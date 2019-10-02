@@ -902,7 +902,9 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.mouse_zoom_invert_button, ui);
 
             if self.global_state.settings.gameplay.zoom_inversion != zoom_inverted {
-                events.push(Event::ToggleZoomInvert(!self.global_state.settings.gameplay.zoom_inversion));
+                events.push(Event::ToggleZoomInvert(
+                    !self.global_state.settings.gameplay.zoom_inversion,
+                ));
             }
 
             Text::new("Invert Scroll Zoom")

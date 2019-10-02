@@ -378,9 +378,9 @@ impl Window {
                     glutin::DeviceEvent::MouseWheel {
                         delta: glutin::MouseScrollDelta::LineDelta(_x, y),
                         ..
-                    } if cursor_grabbed && *focused => {
-                        events.push(Event::Zoom(y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion))
-                    }
+                    } if cursor_grabbed && *focused => events.push(Event::Zoom(
+                        y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion,
+                    )),
                     _ => {}
                 },
                 _ => {}
