@@ -48,7 +48,7 @@ use vek::*;
 // cleanly representable in f32 (that stops around 1024 * 4 * 1024 * 4, for signed floats anyway)
 // but I think that is probably less important since I don't think we actually cast a chunk id to
 // float, just coordinates... could be wrong though!
-pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
+pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024/* * 2*/, y: 1024/* * 2*/ };
 
 /// A structure that holds cached noise values and cumulative distribution functions for the input
 /// that led to those values.  See the definition of InverseCdf for a description of how to
@@ -1282,7 +1282,7 @@ impl SimChunk {
             river.river_kind == Some(RiverKind::River) && river_slope.abs() >= 1.0 {
             println!("Big area! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river,
                      river_slope);
-            if river_slope.abs() >= 1.0 && river.cross_section.x >= 0.25 {
+            if river_slope.abs() >= 1.0 && river.cross_section.x >= /*0.25*/1.0 {
                 println!("Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river, river_slope);
             }
         }
