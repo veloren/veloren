@@ -37,8 +37,8 @@ impl Animation for ClimbAnimation {
 
         next.head.offset = Vec3::new(
             0.0,
-            1.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 13.5 + wave_cos * 1.3,
+            -1.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 18.5 + wave_cos * 1.3,
         );
         next.head.ori = Quaternion::rotation_z(wave * 0.1)
             * Quaternion::rotation_x(0.6)
@@ -61,21 +61,20 @@ impl Animation for ClimbAnimation {
             * Quaternion::rotation_y(wave_test * 0.10);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-8.5, 3.0 + wave_testc * 1.5, 6.0 - wave_test * 4.0);
-        next.l_hand.ori = Quaternion::rotation_x(0.2 + wave_testc * 0.5);
+        next.l_hand.offset = Vec3::new(-6.0, -0.25 + wave_testc * 1.5, 5.0 - wave_test * 4.0);
+        next.l_hand.ori = Quaternion::rotation_x(2.2 + wave_testc * 0.5);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(8.5, 3.0 - wave_test * 1.5, 6.0 + wave_test * 4.0);
-
-        next.r_hand.ori = Quaternion::rotation_x(0.2 - wave_testc * 0.5);
+        next.r_hand.offset = Vec3::new(6.0, -0.25 - wave_testc * 1.5, 5.0 + wave_test * 4.0);
+        next.r_hand.ori = Quaternion::rotation_x(2.2 - wave_testc * 0.5);
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, 1.0, 6.0 + wave_test * 2.5);
-        next.l_foot.ori = Quaternion::rotation_x(0.2 - wave_testc * 0.50);
+        next.l_foot.ori = Quaternion::rotation_x(0.2 - wave_testc * 0.5);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(3.4, 1.0, 6.0 - wave_test * 2.5);
-        next.r_foot.ori = Quaternion::rotation_x(0.2 + wave_testc * 0.50);
+        next.r_foot.ori = Quaternion::rotation_x(0.2 + wave_testc * 0.5);
         next.r_foot.scale = Vec3::one();
 
         next.weapon.offset = Vec3::new(

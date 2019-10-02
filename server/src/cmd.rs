@@ -611,6 +611,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             Ok("carpet_human_square") => comp::object::Body::CarpetHumanSquare,
             Ok("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
             Ok("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
+            Ok("crafting_bench") => comp::object::Body::CraftingBench,
             _ => {
                 return server.clients.notify(
                     entity,

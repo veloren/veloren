@@ -26,15 +26,15 @@ impl Animation for JumpAnimation {
 
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
-            0.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 15.0,
+            -3.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 21.0,
         );
         next.head.ori = Quaternion::rotation_x(0.25 + wave_stop * 0.1 + wave_slow * 0.04);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(0.0, 0.0, 8.0);
         next.chest.ori = Quaternion::rotation_z(0.0);
-        next.chest.scale = Vec3::one();
+        next.chest.scale = Vec3::one() * 1.01;
 
         next.belt.offset = Vec3::new(0.0, 0.0, 6.0);
         next.belt.ori = Quaternion::rotation_z(0.0);
@@ -45,23 +45,25 @@ impl Animation for JumpAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -8.0,
-            0.0 + wave_stop * 3.8,
-            0.0 + wave_stop * 3.2 - wave * 0.4,
+            -6.0 + wave_stop * -1.8,
+            -0.25 + wave_stop * 1.7,
+            2.0 + wave_stop * 3.2 - wave * 0.4,
         );
-        next.l_hand.ori = Quaternion::rotation_x(wave_stop_alt * 0.6);
+        next.l_hand.ori = Quaternion::rotation_x(wave_stop_alt * 1.2 + wave_slow * 0.2)
+            * Quaternion::rotation_y(wave_stop_alt * 0.2);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
-            8.0,
-            0.0 + wave_stop * -3.8,
-            0.0 + wave_stop * 3.2 - wave * 0.4,
+            6.0 + wave_stop * 1.8,
+            -0.25 + wave_stop * -1.7,
+            2.0 + wave_stop * 3.2 - wave * 0.4,
         );
-        next.r_hand.ori = Quaternion::rotation_x(-wave_stop_alt * 0.6);
+        next.r_hand.ori = Quaternion::rotation_x(-wave_stop_alt * 1.2 + wave_slow * -0.2)
+            * Quaternion::rotation_y(wave_stop_alt * -0.2);
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, 1.0, 6.0);
-        next.l_foot.ori = Quaternion::rotation_x(wave_stop * -1.2 - wave_slow * 0.2);
+        next.l_foot.ori = Quaternion::rotation_x(wave_stop * -1.2 + wave_slow * -0.2);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(3.4, -1.0, 6.0);

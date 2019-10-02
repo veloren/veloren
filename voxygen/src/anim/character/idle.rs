@@ -38,8 +38,8 @@ impl Animation for IdleAnimation {
         );*/
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
-            0.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 15.0 + wave_ultra_slow * 0.1,
+            -2.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 21.0 + wave_ultra_slow * 0.1,
         );
         /*next.head.ori =
         Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y.abs());*/
@@ -59,18 +59,18 @@ impl Animation for IdleAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -7.5,
-            0.0 + wave_ultra_slow_cos * 0.15,
-            0.0 + wave_ultra_slow * 0.5,
+            -6.0,
+            -0.25 + wave_ultra_slow_cos * 0.15,
+            5.0 + wave_ultra_slow * 0.5,
         );
 
         next.l_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
-            7.5,
-            0.0 + wave_ultra_slow_cos * 0.15,
-            0.0 + wave_ultra_slow * 0.5 + wave_ultra_slow_abs * -0.05,
+            6.0,
+            -0.25 + wave_ultra_slow_cos * 0.15,
+            5.0 + wave_ultra_slow * 0.5 + wave_ultra_slow_abs * -0.05,
         );
         next.r_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
         next.r_hand.scale = Vec3::one() + wave_ultra_slow_abs * -0.05;
