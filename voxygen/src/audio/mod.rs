@@ -148,7 +148,16 @@ impl AudioFrontend {
         }
     }
 
-    pub fn play_music(&mut self, sound: &str) -> usize {
+    pub fn is_playing(&mut self, channel_id: usize) -> bool {
+        let index = self.channels.iter().position(|c| c.get_id() == channel_id);
+        if let Some(_) = index {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn play_music(&mut self, sound: &str, fade_time: f32, fade_vol: f32) -> usize {
         let id = self.next_channel_id;
         self.next_channel_id += 1;
 
@@ -160,7 +169,8 @@ impl AudioFrontend {
 
             if let Some(channel) = self.get_channel() {
                 channel.set_id(id);
-                channel.set_volume(music_volume);
+                channel.set_volume(0.0);
+                channel.fade_in(fade_time, fade_vol);
                 channel.play(sound);
             }
         } else {
@@ -168,6 +178,13 @@ impl AudioFrontend {
         }
 
         id
+    }
+
+    pub fn fade_out(&mut self, channel_id: usize, fade_time: f32) {
+        let index = self.channels.iter().position(|c| c.get_id() == channel_id);
+        if let Some(index) = index {
+            self.channels[index].stop(Fader::fade_out(fade_time));
+        }
     }
 
     pub fn stop_channel(&mut self, channel_id: usize, fader: Fader) {

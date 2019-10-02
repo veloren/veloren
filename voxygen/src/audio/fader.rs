@@ -22,12 +22,12 @@ impl Fader {
         }
     }
 
-    pub fn fade_in(time: f32) -> Self {
+    pub fn fade_in(time: f32, volume: f32) -> Self {
         Self {
             length: time,
             running_time: 0.0,
             volume_from: 0.0,
-            volume_to: 1.0,
+            volume_to: volume,
             is_running: true,
         }
     }
