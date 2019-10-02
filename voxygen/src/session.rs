@@ -232,7 +232,7 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
-                    Event::AnalogMovement(vec) => unimplemented!(),
+                    Event::AnalogMovement(vec) => self.key_state.vec = vec,
                     Event::InputUpdate(GameInput::Glide, state) => {
                         self.controller.glide = state;
                     }

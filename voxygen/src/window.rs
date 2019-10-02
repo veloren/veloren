@@ -309,6 +309,15 @@ impl Window {
             .or_default()
             .push(ConAxisAction::MovementY);
 
+        con_button_map
+            .entry(gilrs::ev::Button::RightTrigger2)
+            .or_default()
+            .push(ConButtonAction::GameInput(GameInput::Primary));
+        con_button_map
+            .entry(gilrs::ev::Button::LeftTrigger)
+            .or_default()
+            .push(ConButtonAction::GameInput(GameInput::Secondary));
+
         let keypress_map = HashMap::new();
 
         let gilrs = match Gilrs::new() {
