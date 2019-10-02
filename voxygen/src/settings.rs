@@ -95,6 +95,7 @@ impl Default for ControlSettings {
 pub struct GameplaySettings {
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
+    pub zoom_inversion: bool,
     pub crosshair_transp: f32,
     pub crosshair_type: CrosshairType,
     pub xp_bar: XpBar,
@@ -108,6 +109,7 @@ impl Default for GameplaySettings {
         Self {
             pan_sensitivity: 100,
             zoom_sensitivity: 100,
+            zoom_inversion: false,
             crosshair_transp: 0.6,
             crosshair_type: CrosshairType::Round,
             xp_bar: XpBar::OnGain,
