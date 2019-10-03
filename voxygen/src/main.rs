@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
-#![feature(duration_float, drain_filter)]
+#![feature(drain_filter)]
 #![recursion_limit = "2048"]
 
 #[cfg(feature = "discord")]
@@ -197,7 +197,7 @@ fn main() {
         );
 
         #[cfg(feature = "msgbox")]
-        msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
+        msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error);
 
         default_hook(panic_info);
     }));
