@@ -72,43 +72,27 @@ impl SoundMgr {
         if let Some(chunk) = client.current_chunk() {
             let last_biome = self.current_biome;
             let current_biome = chunk.meta().biome();
-            println!("hello?");
 
             if current_biome != last_biome {
-                if audio.is_playing(self.current_music) {
-                    audio.fade_out(self.current_music, 1.0);
-                } else {
-                    self.current_biome = current_biome;
-                    match current_biome {
-                        BiomeKind::Void => {
-                            // Play no music
-                        }
-                        BiomeKind::Grassland => {
-                            audio.play_music(
-                                "voxygen.audio.soundtrack.regional.grasslands",
-                                10.0,
-                                1.0,
-                            );
-                        }
-                        BiomeKind::Ocean => {}
-                        BiomeKind::Mountain => {
-                            audio.play_music(
-                                "voxygen.audio.soundtrack.Mineral_Deposits",
-                                10.0,
-                                1.0,
-                            );
-                        }
-                        BiomeKind::Snowlands => {
-                            audio.play_music(
-                                "voxygen.audio.soundtrack.Snowtop_mountain",
-                                10.0,
-                                1.0,
-                            );
-                        }
-                        BiomeKind::Desert => {}
-                        BiomeKind::Swamp => {}
-                        BiomeKind::Forest => {}
+                self.current_biome = current_biome;
+                audio.fade_out(self.current_music, 1.0);
+                match current_biome {
+                    BiomeKind::Void => {
+                        // Play no music
                     }
+                    BiomeKind::Grassland => {
+                        audio.play_music("voxygen.audio.soundtrack.regional.grasslands", 10.0, 1.0);
+                    }
+                    BiomeKind::Ocean => {}
+                    BiomeKind::Mountain => {
+                        audio.play_music("voxygen.audio.soundtrack.Mineral_Deposits", 10.0, 1.0);
+                    }
+                    BiomeKind::Snowlands => {
+                        audio.play_music("voxygen.audio.soundtrack.Snowtop_mountain", 10.0, 1.0);
+                    }
+                    BiomeKind::Desert => {}
+                    BiomeKind::Swamp => {}
+                    BiomeKind::Forest => {}
                 }
             }
         }
