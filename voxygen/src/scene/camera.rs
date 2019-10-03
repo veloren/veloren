@@ -127,6 +127,16 @@ impl Camera {
         self.ori.y = orientation.y.min(PI / 2.0).max(-PI / 2.0);
         // Wrap camera roll
         self.ori.z = orientation.z % (2.0 * PI);
+        
+    }
+
+    ///Sets the orientation associated with the camera's focus and a given target position.
+    pub fn look_at(&mut self, target: Vec3<f32>, lerp: f32) -> Vec3<f32> {
+
+        let x = f32::atan2(target.x - self.focus.x, target.y - self.focus.y);
+        let horizontal_dist = f32::sqrt((self.focus.x - target.x).powf(2.0) + (self.focus.y - target.y).powf(2.0));
+        let y = f32::atan2(horizontal_dist, target.z - self.focus.z) - PI/2.0;
+        self:set_orientation(Vec3::new(x, y, self.ori.z));
     }
 
     /// Zoom the camera by the given delta, limiting the input accordingly.
@@ -170,6 +180,15 @@ impl Camera {
     }
 
     pub fn update(&mut self, time: f64) {
+        let test_foc = Vec3::new(
+            16386.0,
+            16386.0,
+            186.0
+        );
+        let test_ori = self.look_at(test_foc);
+        println!("{:?}", test_ori);
+        self.set_orientation(test_ori);
+
         // This is horribly frame time dependent, but so is most of the game
         let delta = self.last_time.replace(time).map_or(0.0, |t| time - t);
         if (self.dist - self.tgt_dist).abs() > 0.01 {
