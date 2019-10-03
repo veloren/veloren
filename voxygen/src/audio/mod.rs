@@ -111,7 +111,7 @@ impl AudioFrontend {
                 channel.set_right_ear_position(right_ear);
                 channel.play(sound);
             } else {
-                log::warn!("No available channels!");
+                log::warn!("play_sound: No available channels!");
             }
         }
 
@@ -152,12 +152,14 @@ impl AudioFrontend {
             let sound = Decoder::new(file).unwrap();
 
             if let Some(channel) = self.get_channel() {
+                channel.set_audio_type(AudioType::Music);
                 channel.set_id(id);
+                channel.set_emitter_position([0.0, 0.0, 0.0]);
                 channel.set_volume(music_volume);
                 channel.play(sound);
+            } else {
+                log::warn!("play_music: No available channels!");
             }
-        } else {
-            log::warn!("No available channels!");
         }
 
         id
@@ -193,6 +195,7 @@ impl AudioFrontend {
 
         for channel in self.channels.iter_mut() {
             if channel.get_audio_type() == AudioType::Music {
+                log::warn!("Music channel id is {}", format!("{:#?}", channel.get_id()));
                 channel.set_volume(music_volume);
             }
         }

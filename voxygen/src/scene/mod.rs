@@ -1,11 +1,13 @@
 pub mod camera;
 pub mod figure;
+pub mod music;
 pub mod sound;
 pub mod terrain;
 
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
+    music::MusicMgr,
     sound::SoundMgr,
     terrain::Terrain,
 };
@@ -59,6 +61,7 @@ pub struct Scene {
 
     figure_mgr: FigureMgr,
     sound_mgr: SoundMgr,
+    music_mgr: MusicMgr,
 }
 
 impl Scene {
@@ -92,6 +95,7 @@ impl Scene {
 
             figure_mgr: FigureMgr::new(),
             sound_mgr: SoundMgr::new(),
+            music_mgr: MusicMgr::new(),
         }
     }
 
@@ -288,6 +292,7 @@ impl Scene {
 
         // Maintain audio
         self.sound_mgr.maintain(audio, client);
+        self.music_mgr.maintain(audio, client);
     }
 
     /// Render the scene using the provided `Renderer`.

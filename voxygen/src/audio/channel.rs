@@ -103,6 +103,10 @@ impl Channel {
         self.audio_type
     }
 
+    pub fn set_audio_type(&mut self, audio_type: AudioType) {
+        self.audio_type = audio_type;
+    }
+
     pub fn set_volume(&mut self, volume: f32) {
         self.sink.set_volume(volume);
     }
