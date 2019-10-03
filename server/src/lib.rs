@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
-#![feature(drain_filter, bind_by_move_pattern_guards)]
+#![feature(drain_filter)]
 
 pub mod auth_provider;
 pub mod client;
