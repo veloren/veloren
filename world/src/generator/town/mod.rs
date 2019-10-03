@@ -424,7 +424,7 @@ impl TownVol {
         for _ in 0..n {
             for _ in 0..ATTEMPTS {
                 let entrance = {
-                    let start_col = self.choose_column(rng, |_, col| col.is_road()).unwrap();;
+                    let start_col = self.choose_column(rng, |_, col| col.is_road()).unwrap();
                     let start = Vec3::new(
                         start_col.x,
                         start_col.y,

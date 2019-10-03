@@ -8,6 +8,7 @@ stages:
 variables:
   GIT_STRATEGY: none
 before_script:
+  # Make the directories
   - mkdir -p /cache/veloren
   - rm -rf /cache/veloren/bin
   - cd /cache/veloren
@@ -17,10 +18,12 @@ before_script:
       git clone $CI_REPOSITORY_URL . ;
     fi;
   - mkdir -p /cache/veloren/bin
+  # Remove previous Git files
   - rm -f .git/index.lock
   - rm -f .git/shallow.lock
   - rm -f .git/HEAD.lock
   - rm -f .git/hocks/post-checkout
+  # Do an efficient Git checkout
   - git remote set-url origin $CI_REPOSITORY_URL
   - git fetch origin --prune +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
   - git checkout -f -q $CI_COMMIT_SHA
@@ -28,14 +31,19 @@ before_script:
       echo "THIS SEEMS TO BE A MERGE PIPELINE FROM ${SOURCE_PROJECT}/${SOURCE_BRANCH}";
       git pull "https://gitlab.com/${SOURCE_PROJECT}/veloren.git" "${SOURCE_BRANCH}";
     fi;
+  # Prepare Git LFS
   - git lfs install;
   - git lfs fetch;
   - git lfs checkout;
+  # Debug info
   - git status
   - rustup -v show
+  # See what's in the target folder?
   - if [ -d target ]; then
       ls -la target;
     fi;
+  # Overwrite toolchain
+  - cp /rust-toolchain /cache/veloren/rust-toolchain
 
 #############
 # Optional build
