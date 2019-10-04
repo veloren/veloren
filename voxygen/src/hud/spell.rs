@@ -95,7 +95,7 @@ impl<'a> Widget for Spell<'a> {
         // TODO: Use an actual character name.
         Text::new("Spell")
             .mid_top_with_margin_on(state.spell_frame, 6.0)
-            .font_id(self.fonts.metamorph)
+            .font_id(self.fonts.ronda)
             .font_size(14)
             .color(TEXT_COLOR)
             .set(state.spell_title, ui);

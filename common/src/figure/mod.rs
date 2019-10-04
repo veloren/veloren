@@ -169,8 +169,8 @@ impl From<&DotVoxData> for MatSegment {
                     1 => MatCell::Mat(Material::Hair),
                     2 => MatCell::Mat(Material::EyeDark),
                     3 => MatCell::Mat(Material::EyeLight),
-                    4 => MatCell::Mat(Material::SkinLight),
-                    5 => MatCell::Mat(Material::SkinDark),
+                    4 => MatCell::Mat(Material::SkinDark),
+                    5 => MatCell::Mat(Material::SkinLight),
                     7 => MatCell::Mat(Material::EyeWhite),
                     //6 => MatCell::Mat(Material::Clothing),
                     index => {
