@@ -21,12 +21,12 @@ use common::{
     comp,
     effect::Effect,
     event::{EventBus, ServerEvent},
+    msg::{validate_chat_msg, ChatMsgValidationError, MAX_BYTES_CHAT_MSG},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
-    msg::{validate_chat_msg, MAX_BYTES_CHAT_MSG, ChatMsgValidationError},
 };
 use crossbeam::channel;
 use hashbrown::{hash_map::Entry, HashMap};
