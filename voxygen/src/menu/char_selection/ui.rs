@@ -880,18 +880,18 @@ impl CharSelectionUi {
                 self.imgs.icon_border
             })
             .middle_of(self.ids.bow)
-            //.hover_image(self.imgs.icon_border_mo)
-            //.press_image(self.imgs.icon_border_press)
-            //.with_tooltip(tooltip_manager, "Bow", "", &tooltip_human)
+            .hover_image(self.imgs.icon_border_mo)
+            .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Bow", "", &tooltip_human)
             .set(self.ids.bow_button, ui_widgets)
             .was_clicked()
             {
-                //self.character_tool = Some(Tool::Bow);
+                self.character_tool = Some(Tool::Bow);
             }
             // REMOVE THIS AFTER IMPLEMENTATION
-            Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .middle_of(self.ids.bow)
-                .set(self.ids.bow_grey, ui_widgets);
+            /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+            .middle_of(self.ids.bow)
+            .set(self.ids.bow_grey, ui_widgets);*/
             // Staff
             Image::new(self.imgs.staff)
                 .w_h(70.0, 70.0)
