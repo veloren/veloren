@@ -1,0 +1,103 @@
+({
+    //For now I'm assuming we will still need a per race/gender offset.
+    (Human, Male): (
+        offset: (-7.0, -4.0, -6.0),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),
+    (Human, Female): (
+        offset: (-7.0, -4.0, -6.0),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),
+    (Orc, Male): (
+        offset: (-8.0, -5.0, -6.75),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),	
+    (Orc, Female): (
+        offset: (-8.0, -4.0, -6.0),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),
+    (Elf, Male): (
+        offset: (-8.0, -4.0, -6.0),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),	
+    (Elf, Female): (
+        offset: (-8.0, -4.0, -6.0),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),
+    (Dwarf, Male): (
+        offset: (-6.0, -4.5, -6.0),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),	
+    (Dwarf, Female): (
+        offset: (-6.0, -4.5, -6.0),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),
+    (Undead, Male): (
+        offset: (-5.0, -4.0, -6.75),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),	
+    (Undead, Female): (
+        offset: (-5.0, -4.0, -6.75),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),	
+    (Danari, Female): (
+        offset: (-9.0, -4.0, -7.5),
+        shoulder: [
+            Some(("armor.shoulder.shoulder_l_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_l_chain", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_brown", (0, 0, 0))),
+            Some(("armor.shoulder.shoulder_r_chain", (0, 0, 0))),
+        ]
+    ),
+    // More here
+})
