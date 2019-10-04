@@ -213,6 +213,13 @@ lazy_static! {
              false,
              handle_debug_column,
          ),
+         ChatCommand::new(
+             "give_exp",
+             "{} {}",
+             "/give_exp <playername> <amount> : Give experience to specified player",
+             true,
+             handle_exp,
+         ),
     ];
 }
 
@@ -914,5 +921,35 @@ spawn_rate {:?} "#,
         server
             .clients
             .notify(entity, ServerMsg::private(String::from(action.help_string)));
+    }
+}
+
+fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (a_alias, a_exp) = scan_fmt_some!(&args, action.arg_fmt, String, i64);
+    if let (Some(alias), Some(exp)) = (a_alias, a_exp) {
+        let ecs = server.state.ecs_mut();
+        let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == alias)
+            .map(|(entity, _)| entity);
+
+        match opt_player {
+            Some(_alias) => {
+                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(entity) {
+                    stats.exp.change_by(exp);
+                } else {
+                    server.clients.notify(
+                        entity,
+                        ServerMsg::private(String::from("Something go wrong")),
+                    );
+                }
+            }
+            _ => {
+                server.clients.notify(
+                    entity,
+                    ServerMsg::private(format!("Player '{}' not found!", alias)),
+                );
+            }
+        }
     }
 }
