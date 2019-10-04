@@ -920,7 +920,20 @@ humidity {:?}
 rockiness {:?}
 tree_density {:?}
 spawn_rate {:?} "#,
-                wpos, alt_base, alt_old, alt, water_alt, river, downhill, chaos, flux, temp, humidity, rockiness, tree_density, spawn_rate
+                wpos,
+                alt_base,
+                alt_old,
+                alt,
+                water_alt,
+                river,
+                downhill,
+                chaos,
+                flux,
+                temp,
+                humidity,
+                rockiness,
+                tree_density,
+                spawn_rate
             ))
         };
         if let Some(s) = foo() {

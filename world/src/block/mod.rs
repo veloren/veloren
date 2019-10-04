@@ -12,7 +12,7 @@ use common::{
     util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
-use std::ops::{Add, Div, Neg, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 use vek::*;
 
 pub struct BlockGen<'a> {
@@ -189,7 +189,7 @@ impl<'a> BlockGen<'a> {
             let (_definitely_underground, height, water_height) =
                 if (wposf.z as f32) < alt - 64.0 * chaos {
                     // Shortcut warping
-                    (true, alt, water_level.max(sea_level)/*water_level*/)
+                    (true, alt, water_level.max(sea_level) /*water_level*/)
                 } else {
                     // Apply warping
                     let warp = world
@@ -200,12 +200,13 @@ impl<'a> BlockGen<'a> {
                         .mul((chaos - 0.1).max(0.0).powf(2.0))
                         .mul(48.0);
                     /* let alt_sub = alt.sub(water_level/* - 1.0*/).powi(2).max(1e-7)
-                        .min(wdelta.powi(2) - 1e-7).div(wdelta.powi(2))
-                        .mul(alt.sub(water_level/* - 1.0*/).signum()); */
+                    .min(wdelta.powi(2) - 1e-7).div(wdelta.powi(2))
+                    .mul(alt.sub(water_level/* - 1.0*/).signum()); */
                     let warp = Lerp::lerp(
                         0.0,
                         warp,
-                        /*(alt.sub(water_level).powi(2).max(1e-7) + */warp_factor,
+                        /*(alt.sub(water_level).powi(2).max(1e-7) + */
+                        warp_factor,
                         // alt_sub.div(1.0.sub(alt_sub)).tanh()
                     );
 
@@ -235,7 +236,8 @@ impl<'a> BlockGen<'a> {
                         false,
                         height,
                         // water_level.max(CONFIG.sea_level),
-                        /*(water_level + warp).max(*/ (water_level + warp/*.min(0.0)*/).max(sea_level), /*)*/
+                        /*(water_level + warp).max(*/
+                        (water_level + warp/*.min(0.0)*/).max(sea_level), /*)*/
                     )
                 };
 
@@ -255,7 +257,7 @@ impl<'a> BlockGen<'a> {
 
             let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-            let grass_depth = 1.5 + 2.0 * chaos;//.min((height - water_height).max(0.0));
+            let grass_depth = 1.5 + 2.0 * chaos; //.min((height - water_height).max(0.0));
             let block = if (wposf.z as f32) < height - grass_depth {
                 let col = Lerp::lerp(
                     saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
@@ -348,8 +350,9 @@ impl<'a> BlockGen<'a> {
             }
             .or_else(|| {
                 // Rocks
-                if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock/* &&
-                   (wposf.z as f32) > water_height + 3.0*/
+                if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock
+                /* &&
+                (wposf.z as f32) > water_height + 3.0*/
                 {
                     let field0 = RandomField::new(world.sim().seed + 0);
                     let field1 = RandomField::new(world.sim().seed + 1);
@@ -379,7 +382,9 @@ impl<'a> BlockGen<'a> {
                         .add(1.0)
                     > 0.9993;
 
-                if cave/* && wposf.z as f32 > water_height + 3.0*/ {
+                if cave
+                /* && wposf.z as f32 > water_height + 3.0*/
+                {
                     None
                 } else {
                     Some(block)
@@ -428,8 +433,9 @@ pub struct ZCache<'a> {
 
 impl<'a> ZCache<'a> {
     pub fn get_z_limits(&self, block_gen: &mut BlockGen) -> (f32, f32, f32) {
-        let cave_depth = if self.sample.cave_xy.abs() > 0.9/* &&
-            self.sample.water_level < self.sample.alt*/
+        let cave_depth = if self.sample.cave_xy.abs() > 0.9
+        /* &&
+        self.sample.water_level < self.sample.alt*/
         {
             (self.sample.alt - self.sample.cave_alt + 8.0).max(0.0)
         } else {
@@ -474,9 +480,8 @@ impl<'a> ZCache<'a> {
         let ground_max = (self.sample.alt + warp + rocks).max(cliff) + 2.0;
 
         let min = min + structure_min;
-        let max = (ground_max + structure_max)
-            .max(self.sample.water_level + 2.0);
-            // .max(self.sample.sea_level + 2.0);
+        let max = (ground_max + structure_max).max(self.sample.water_level + 2.0);
+        // .max(self.sample.sea_level + 2.0);
 
         // Structures
         let (min, max) = self
@@ -491,9 +496,8 @@ impl<'a> ZCache<'a> {
             })
             .unwrap_or((min, max));
 
-        let structures_only_min_z = ground_max
-            .max(self.sample.water_level + 2.0);
-            // .max(/*CONFIG.sea_level*/self.sample.sea_level + 2.0);
+        let structures_only_min_z = ground_max.max(self.sample.water_level + 2.0);
+        // .max(/*CONFIG.sea_level*/self.sample.sea_level + 2.0);
 
         (min, structures_only_min_z, max)
     }

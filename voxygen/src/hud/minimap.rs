@@ -37,8 +37,13 @@ pub struct MiniMap<'a> {
 }
 
 impl<'a> MiniMap<'a> {
-    pub fn new(show: &'a Show, client: &'a Client, imgs: &'a Imgs, world_map: Id,
-               fonts: &'a Fonts) -> Self {
+    pub fn new(
+        show: &'a Show,
+        client: &'a Client,
+        imgs: &'a Imgs,
+        world_map: Id,
+        fonts: &'a Fonts,
+    ) -> Self {
         Self {
             show,
             client,

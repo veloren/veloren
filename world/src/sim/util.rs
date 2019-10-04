@@ -1,21 +1,17 @@
-use bitvec::prelude::{bitbox, bitvec, BitBox, Bits, BitsMut, BitSlice, BitStore, BitVec,
-                      Cursor, LittleEndian};
-use crate::{
-    config::CONFIG,
-    util::RandomField,
+use super::WORLD_SIZE;
+use crate::{config::CONFIG, util::RandomField};
+use bitvec::prelude::{
+    bitbox, bitvec, BitBox, BitSlice, BitStore, BitVec, Bits, BitsMut, Cursor, LittleEndian,
 };
-use noise::{Point3, NoiseFn};
+use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use noise::{NoiseFn, Point3};
 use ordered_float::NotNan;
 use rayon::prelude::*;
 use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
-    f32,
-    mem,
-    u32,
+    f32, mem, u32,
 };
-use super::WORLD_SIZE;
-use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 
 /// Calculates the smallest distance along an axis (x, y) from an edge of
@@ -167,9 +163,9 @@ pub fn vec2_as_uniform_idx(idx: Vec2<i32>) -> usize {
 /// this one, and the actual noise value (we don't need to cache it, but it makes ensuring that
 /// subsequent code that needs the noise value actually uses the same one we were using here
 /// easier).  Also returns the "inverted index" pointing from a position to a noise.
-pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32> + Sync) ->
-    (InverseCdf, Box<[(usize, f32)]>)
-{
+pub fn uniform_noise(
+    f: impl Fn(usize, Vec2<f64>) -> Option<f32> + Sync,
+) -> (InverseCdf, Box<[(usize, f32)]>) {
     let mut noise = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
         .filter_map(|i| {
@@ -206,14 +202,14 @@ pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32> + Sync) ->
 /// This is what's used during cubic interpolation, for example, as it guarantees that for any
 /// point between the given chunk (on the top left) and its top-right/down-right/down neighbors,
 /// the twelve chunks surrounding this box (its "perimeter") are also inspected.
-pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item=usize> {
+pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item = usize> {
     let pos = uniform_idx_as_vec2(posi);
     // NOTE: want to keep this such that the chunk index is in ascending order!
     /* [(-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2),
-     (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
-     (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0),
-     (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1),
-     (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2)] */
+    (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
+    (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0),
+    (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1),
+    (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2)] */
     /* [(-4, -4), (-4, -4), (-2, -4), (-1, -4), (0, -4), (1, -4), (2, -4), (3, -4), (4, -4), (5, -4),
      (-4, -3), (-3, -3), (-2, -3), (-1, -3), (0, -3), (1, -3), (2, -3), (3, -3), (4, -3), (5, -3),
      (-4, -2), (-3, -2), (-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2), (3, -2), (4, -2), (5, -2),
@@ -228,63 +224,86 @@ pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item=usize> {
 
     let grid_size = 4i32;
     /* [(-1,-1), (0,-1), (1, -1), (2, -1),
-     (-1, 0), (0, 0), (1, 0), (2, 0),
-     (-1, 1), (0, 1), (1, 1), (2, 1),
-     (-1, 2), (0, 2), (1, 2), (2, 2)] */
+    (-1, 0), (0, 0), (1, 0), (2, 0),
+    (-1, 1), (0, 1), (1, 1), (2, 1),
+    (-1, 2), (0, 2), (1, 2), (2, 2)] */
     let grid_bounds = 2 * grid_size + 1;
     (0..grid_bounds * grid_bounds)
         .into_iter()
-        .map(move |/*&(x, y)*/index| Vec2::new(pos.x + /*x*/(index % grid_bounds) - grid_size,
-                                               pos.y + /*y*/(index / grid_bounds) - grid_size))
-        .filter(|pos| pos.x >= 0 && pos.y >= 0 &&
-                      pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32)
+        .map(move |/*&(x, y)*/ index| {
+            Vec2::new(
+                pos.x + /*x*/(index % grid_bounds) - grid_size,
+                pos.y + /*y*/(index / grid_bounds) - grid_size,
+            )
+        })
+        .filter(|pos| {
+            pos.x >= 0 && pos.y >= 0 && pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32
+        })
         .map(vec2_as_uniform_idx)
 }
 
 /// Iterate through all cells adjacent to a chunk.
-pub fn neighbors(posi: usize) -> impl Clone + Iterator<Item=usize> {
+pub fn neighbors(posi: usize) -> impl Clone + Iterator<Item = usize> {
     let pos = uniform_idx_as_vec2(posi);
     // NOTE: want to keep this such that the chunk index is in ascending order!
-    [(-1,-1), (0,-1), (1,-1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
-        .into_iter()
-        .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
-        .filter(|pos| pos.x >= 0 && pos.y >= 0 &&
-                      pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32)
-        .map(vec2_as_uniform_idx)
+    [
+        (-1, -1),
+        (0, -1),
+        (1, -1),
+        (-1, 0),
+        (1, 0),
+        (-1, 1),
+        (0, 1),
+        (1, 1),
+    ]
+    .into_iter()
+    .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
+    .filter(|pos| {
+        pos.x >= 0 && pos.y >= 0 && pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32
+    })
+    .map(vec2_as_uniform_idx)
 }
 
 // Note that we should already have okay cache locality since we have a grid.
-pub fn uphill<'a>(dh: &'a [isize], posi: usize) -> impl Clone + Iterator<Item=usize> + 'a {
+pub fn uphill<'a>(dh: &'a [isize], posi: usize) -> impl Clone + Iterator<Item = usize> + 'a {
     neighbors(posi).filter(move |&posj| dh[posj] == posi as isize)
 }
 
 /// Compute the neighbor "most downhill" from all chunks.
 ///
 /// TODO: See if allocating in advance is worthwhile.
-pub fn downhill(h: &[f32], /*oh: impl Fn(usize) -> f32 + Sync*/
-                is_ocean: impl Fn(usize) -> bool + Sync) -> Box<[isize]> {
+pub fn downhill(
+    h: &[f32], /*oh: impl Fn(usize) -> f32 + Sync*/
+    is_ocean: impl Fn(usize) -> bool + Sync,
+) -> Box<[isize]> {
     // Constructs not only the list of downhill nodes, but also computes an ordering (visiting
     // nodes in order from roots to leaves).
-    h.par_iter().enumerate().map(|(posi, &nh)| {
-        let pos = uniform_idx_as_vec2(posi);
-        /* if pos.x < 16 || pos.y < 16 {
-            println!("ocean {:?}: {:?}", pos, is_ocean(posi));
-        } */
-        if /*map_edge_factor(posi) == 0.0 || *//*oh*/is_ocean(posi) {
-            -2
-        } else {
-            let mut best = -1;
-            let mut besth = nh;
-            for nposi in neighbors(posi) {
-                let nbh = h[nposi];
-                if nbh < besth {
-                    besth = nbh;
-                    best = nposi as isize;
+    h.par_iter()
+        .enumerate()
+        .map(|(posi, &nh)| {
+            let pos = uniform_idx_as_vec2(posi);
+            /* if pos.x < 16 || pos.y < 16 {
+                println!("ocean {:?}: {:?}", pos, is_ocean(posi));
+            } */
+            if
+            /*map_edge_factor(posi) == 0.0 || *//*oh*/
+            is_ocean(posi) {
+                -2
+            } else {
+                let mut best = -1;
+                let mut besth = nh;
+                for nposi in neighbors(posi) {
+                    let nbh = h[nposi];
+                    if nbh < besth {
+                        besth = nbh;
+                        best = nposi as isize;
+                    }
                 }
+                best
             }
-            best
-        }
-    }).collect::<Vec<_>>().into_boxed_slice()
+        })
+        .collect::<Vec<_>>()
+        .into_boxed_slice()
 }
 
 /* /// Construct an initial list of chunk indices.
@@ -323,7 +342,7 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
     // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y) as f32);
     let base_flux = 1.0;
     // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y - boundary_len).max(1) as f32);
-    let mut flux = vec![base_flux ; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut flux = vec![base_flux; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     for &chunk_idx in newh.into_iter().rev() {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
@@ -355,7 +374,7 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RiverKind {
     Ocean,
-    Lake  {
+    Lake {
         /// In addition to a downhill node (pointing to, eventually, the bottom of the lake), each
         /// lake also has a "pass" that identifies the direction out of which water should flow
         /// from this lake if it is minimally flooded.  While some lakes may be too full for this
@@ -436,15 +455,22 @@ pub struct RiverData {
 
 impl RiverData {
     pub fn is_river(&self) -> bool {
-        self.river_kind.as_ref().map(RiverKind::is_river).unwrap_or(false)
+        self.river_kind
+            .as_ref()
+            .map(RiverKind::is_river)
+            .unwrap_or(false)
     }
 }
 
 /// Draw rivers and assign them heights, widths, and velocities.  Take some liberties with the
 /// constant factors etc. in order to make it more likely that we draw rivers at all.
-pub fn get_rivers(newh: &[u32], water_alt: &[f32],
-                  downhill: &[isize],
-                  indirection: &[i32], drainage: &[f32]) -> Box<[RiverData]> {
+pub fn get_rivers(
+    newh: &[u32],
+    water_alt: &[f32],
+    downhill: &[isize],
+    indirection: &[i32],
+    drainage: &[f32],
+) -> Box<[RiverData]> {
     // For continuity-preserving quadratic spline interpolation, we (appear to) need to build
     // up the derivatives from the top down.  Fortunately this computation seems tractable.
     /* let mut newh = h.iter().enumerate().collect::<Vec<_>>();
@@ -462,11 +488,13 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
     // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y) as f32);
     // let base_flux = 1.0;
     // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y - boundary_len).max(1) as f32);
-    let mut rivers = vec![RiverData::default() ; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    let neighbor_coef =
-        Vec2::new(TerrainChunkSize::RECT_SIZE.x as f32, TerrainChunkSize::RECT_SIZE.y as f32);
+    let mut rivers = vec![RiverData::default(); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let neighbor_coef = Vec2::new(
+        TerrainChunkSize::RECT_SIZE.x as f32,
+        TerrainChunkSize::RECT_SIZE.y as f32,
+    );
     // NOTE: This technically makes us discontinuous, so we should be cautious about using this.
-    let derivative_divisor = 1.0;//1.03125;
+    let derivative_divisor = 1.0; //1.03125;
     for &chunk_idx in newh.into_iter().rev() {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
@@ -478,8 +506,8 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         }
         let downhill_idx = downhill_idx as usize;
         // First, we calculate the river's volumetric flow rate.
-        let dxy = (uniform_idx_as_vec2(downhill_idx) - uniform_idx_as_vec2(chunk_idx))
-            .map(|e| e as f32);
+        let dxy =
+            (uniform_idx_as_vec2(downhill_idx) - uniform_idx_as_vec2(chunk_idx)).map(|e| e as f32);
         let neighbor_dim = neighbor_coef * dxy;
         let chunk_drainage = drainage[chunk_idx];
         // Volumetric flow rate is just the total drainage area to this chunk, times rainfall
@@ -541,8 +569,8 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             //
             let neighbor_pass_pos = uniform_idx_as_vec2(neighbor_pass_idx);
             lake.river_kind = Some(RiverKind::Lake {
-                neighbor_pass_pos: neighbor_pass_pos * TerrainChunkSize::RECT_SIZE
-                    .map(|e| e as i32),
+                neighbor_pass_pos: neighbor_pass_pos
+                    * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
             });
             lake.spline_derivative = Vec2::zero();
             let pass_pos = uniform_idx_as_vec2((-indirection_idx) as usize);
@@ -557,24 +585,24 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             let mut lake_neighbor_pass = &mut rivers[neighbor_pass_idx];
             // We definitely shouldn't have encountered this yet!
             debug_assert!(lake_neighbor_pass.velocity == Vec3::zero());
-            lake_neighbor_pass.river_kind = Some(RiverKind::River { cross_section: Vec2::default() });
+            lake_neighbor_pass.river_kind = Some(RiverKind::River {
+                cross_section: Vec2::default(),
+            });
             // We also want to add to the out-flow side of the pass a (flux-weighted)
             // derivative coming from the lake center.
             //
             // NOTE: Maybe consider utilizing 3D component of spline somehow?  Currently this is
             // basically a flat vector, but that might be okay from lake to other side of pass.
-            lake_neighbor_pass.spline_derivative +=
-                Vec2::new(weighted_flow.x, weighted_flow.y);
+            lake_neighbor_pass.spline_derivative += Vec2::new(weighted_flow.x, weighted_flow.y);
             continue;
-            // chunk_idx
+        // chunk_idx
         } else {
             indirection_idx as usize
         };
         // Add our spline derivative to the downhill river.
         let mut downhill_river = &mut rivers[downhill_idx];
         downhill_river.spline_derivative +=
-            (neighbor_dim * 2.0 - river_spline_derivative) / derivative_divisor
-            * chunk_drainage;
+            (neighbor_dim * 2.0 - river_spline_derivative) / derivative_divisor * chunk_drainage;
 
         // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
         // pushed towards the point identified by pass_idx).
@@ -592,26 +620,30 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
                 // Check whether we we are the lake side of the pass.
                 // NOTE: Safe because this is a lake.
                 let pass_idx = (-indirection[lake_idx]) as usize;
-                let neighbor_pass_pos = uniform_idx_as_vec2(if pass_idx == chunk_idx/*true*/ {
-                    // This is a pass, so set our flow direction to point to the neighbor pass
-                    // rather than downhill.
-                    // NOTE: Safe because neighbor_pass_idx >= 0.
-                    neighbor_pass_idx as usize
-                } else {
-                    // Just use the lake's usual downhill.
-                    // neighbor_pass_idx as usize
-                    pass_idx
-                    // downhill_idx
-                });
+                let neighbor_pass_pos = uniform_idx_as_vec2(
+                    if pass_idx == chunk_idx
+                    /*true*/
+                    {
+                        // This is a pass, so set our flow direction to point to the neighbor pass
+                        // rather than downhill.
+                        // NOTE: Safe because neighbor_pass_idx >= 0.
+                        neighbor_pass_idx as usize
+                    } else {
+                        // Just use the lake's usual downhill.
+                        // neighbor_pass_idx as usize
+                        pass_idx
+                        // downhill_idx
+                    },
+                );
                 let mut lake = &mut rivers[chunk_idx];
                 lake.spline_derivative = river_spline_derivative;
                 lake.river_kind = Some(RiverKind::Lake {
-                    neighbor_pass_pos: neighbor_pass_pos * TerrainChunkSize::RECT_SIZE
-                        .map(|e| e as i32),
+                    neighbor_pass_pos: neighbor_pass_pos
+                        * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 });
                 continue;
             }
-            // Otherwise, we must be a river.
+        // Otherwise, we must be a river.
         } else {
             // We are flowing into the ocean.
             debug_assert!(neighbor_pass_idx == -2);
@@ -674,18 +706,19 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         // "good enough."  We don't need to be *that* realistic :P
         //
         // NOTE: Derived from a paper on estimating river width.
-        let mut width  = 5.0 * (CONFIG.river_width_to_depth *
-                               (CONFIG.river_width_to_depth + 2.0).powf(2.0/3.0)).powf(3.0/8.0) *
-                         volumetric_flow_rate.powf(3.0/8.0) *
-                         slope.powf(-3.0/16.0) *
-                         CONFIG.river_roughness.powf(3.0/8.0);
+        let mut width = 5.0
+            * (CONFIG.river_width_to_depth * (CONFIG.river_width_to_depth + 2.0).powf(2.0 / 3.0))
+                .powf(3.0 / 8.0)
+            * volumetric_flow_rate.powf(3.0 / 8.0)
+            * slope.powf(-3.0 / 16.0)
+            * CONFIG.river_roughness.powf(3.0 / 8.0);
         width = width.max(0.0);
 
         // let mut width = almost_velocity / height.powf(5.0/3.0);
         let mut height = if width == 0.0 {
             CONFIG.river_min_height
         } else {
-            (almost_velocity / width).powf(3.0/5.0)
+            (almost_velocity / width).powf(3.0 / 5.0)
         };
 
         // We can now weight the river's drainage by its direction, which we use to help improve
@@ -696,9 +729,7 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         // Currently, we just check that width and height are at least 0.5 and
         // CONFIG.river_min_height.
         let river = &rivers[chunk_idx];
-        let is_river =
-            river.is_river() ||
-            width >= 0.5 && height >= CONFIG.river_min_height;
+        let is_river = river.is_river() || width >= 0.5 && height >= CONFIG.river_min_height;
         let mut downhill_river = &mut rivers[downhill_idx];
         // Add the chunk's river direction minus its initial slope (weighted by the
         // chunk's drainage).
@@ -706,7 +737,7 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         // TODO: consider utilizing height difference component of flux as well; currently we
         // just discard it in figuring out the spline's slope.
         /* downhill_river.spline_derivative +=
-            (river_direction * 2.0 - river_spline_derivative) / derivative_divisor * chunk_drainage; */
+        (river_direction * 2.0 - river_spline_derivative) / derivative_divisor * chunk_drainage; */
 
         if is_river {
             // Provisionally make the downhill chunk a river as well.
@@ -757,23 +788,22 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             let dx = ((vox_rot.x - center_rect.x).abs() - half_size.w).max(0.0);
             let dy = ((vox_rot.y - center_rect.y).abs() - half_size.h).max(0.0);
             Vec2::new(dx, dy)*/
-            let max_width = TerrainChunkSize::RECT_SIZE.x as f32 * CONFIG.river_max_width;//neighbor_distance;
-            //
-            // We use the approximation:
-            // h = (almost_velocity / w).powf(3/5)
-            //
-            // (In the future, we will still want wide rivers and should take advantage of this).
+            let max_width = TerrainChunkSize::RECT_SIZE.x as f32 * CONFIG.river_max_width; //neighbor_distance;
+                                                                                           //
+                                                                                           // We use the approximation:
+                                                                                           // h = (almost_velocity / w).powf(3/5)
+                                                                                           //
+                                                                                           // (In the future, we will still want wide rivers and should take advantage of this).
             if width > max_width {
                 width = max_width;
-                height = (almost_velocity / width).powf(3.0/5.0);
+                height = (almost_velocity / width).powf(3.0 / 5.0);
             }
         }
         // Now we can compute the river's approximate velocity magnitude as well, as
         //
         // 1 / (roughness coefficient) * (height)^(2/3) *
         // (slope from chunk_water_alt to downhill water_alt)^(1/2)
-        let velocity_magnitude =
-            1.0 / CONFIG.river_roughness * height.powf(2.0/3.0) * slope_sqrt;
+        let velocity_magnitude = 1.0 / CONFIG.river_roughness * height.powf(2.0 / 3.0) * slope_sqrt;
 
         // Set up the river's cross-sectional area.
         let cross_section = Vec2::new(width, height);
@@ -972,9 +1002,9 @@ fn get_slope(h: &[f32], newh: &[usize], downhill: &[isize], seed: &RandomField) 
 ///
 /// TODO: See if allocating in advance is worthwhile.
 fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync)) -> Box<[f32]> {
-    const MIN_MAX_ANGLE : f32 = 6.0 / 360.0 * 2.0 * f32::consts::PI;
-    const MAX_MAX_ANGLE : f32 = 54.0 / 360.0 * 2.0 * f32::consts::PI;
-    const MAX_ANGLE_RANGE : f32 = MAX_MAX_ANGLE - MIN_MAX_ANGLE;
+    const MIN_MAX_ANGLE: f32 = 6.0 / 360.0 * 2.0 * f32::consts::PI;
+    const MAX_MAX_ANGLE: f32 = 54.0 / 360.0 * 2.0 * f32::consts::PI;
+    const MAX_ANGLE_RANGE: f32 = MAX_MAX_ANGLE - MIN_MAX_ANGLE;
     h.par_iter().enumerate().map(|(posi, &z)| {
         // f32::INFINITY
         let wposf = (uniform_idx_as_vec2(posi)/* * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)*/)
@@ -1288,11 +1318,16 @@ fn erosion_rate(k: f32, h: &[f32], downhill: &[isize], seed: &RandomField,
 ///     Computer Graphics Forum, Wiley, 2016, Proc. EUROGRAPHICS 2016, 35 (2), pp.165-175.
 ///     ⟨10.1111/cgf.12820⟩. ⟨hal-01262376⟩
 ///
-fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
-         rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
-         uplift: impl Fn(usize) -> f32,
-         /*oldh: impl Fn(usize) -> f32 + Sync*/
-         is_ocean: impl Fn(usize) -> bool + Sync) {
+fn erode(
+    h: &mut [f32],
+    erosion_base: f32,
+    max_uplift: f32,
+    _seed: &RandomField,
+    rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
+    uplift: impl Fn(usize) -> f32,
+    /*oldh: impl Fn(usize) -> f32 + Sync*/
+    is_ocean: impl Fn(usize) -> bool + Sync,
+) {
     println!("Done draining...");
     let mmaxh = 1.0;
     let k = erosion_base + 2.244 / mmaxh * max_uplift;
@@ -1370,9 +1405,10 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
     println!("Got max slopes..."); */
     //let newh = height_sorted(h);
     // let slope = get_slope(h, newh, downhill, seed);
-    assert!(h.len() == dh.len() &&
-            dh.len() == /*flux*/area.len()/* &&
-            flux.len() == slope.len()*/);
+    assert!(
+        h.len() == dh.len() && dh.len() == /*flux*/area.len() /* &&
+                                                              flux.len() == slope.len()*/
+    );
     // max angle of slope depends on rock strength, which is computed from noise function.
     // let max_slope = f32::consts::FRAC_PI_6.tan();
     // // Would normally multiply by 2PI, but we already need to multiply by 0.5 when we compute
@@ -1382,8 +1418,10 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
     /* let min_max_angle = 6.0 / 360.0 * 2.0 * f32::consts::PI;
     let max_max_angle = 54.0 / 360.0 * 2.0 * f32::consts::PI;
     let max_angle_range = max_max_angle - min_max_angle; */
-    let neighbor_coef =
-        Vec2::new(TerrainChunkSize::RECT_SIZE.x as f32, TerrainChunkSize::RECT_SIZE.y as f32);
+    let neighbor_coef = Vec2::new(
+        TerrainChunkSize::RECT_SIZE.x as f32,
+        TerrainChunkSize::RECT_SIZE.y as f32,
+    );
     let chunk_area = neighbor_coef.x * neighbor_coef.y;
     // let neighbor_distance = TerrainChunkSize::RECT_SIZE.map(|e| e as f32).magnitude();
     // let mut rate = vec![0.0; h.len()].into_boxed_slice();
@@ -1402,9 +1440,9 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
             if posj == -1 {
                 panic!("Disconnected lake!");
             }
-            // Egress with no outgoing flows.
-            // println!("Shouldn't happen often: {:?}", uniform_idx_as_vec2(posi));
-            // 0.0 // Egress with no outgoing flows.
+        // Egress with no outgoing flows.
+        // println!("Shouldn't happen often: {:?}", uniform_idx_as_vec2(posi));
+        // 0.0 // Egress with no outgoing flows.
         } else {
             nland += 1;
             let posj = posj as usize;
@@ -1469,8 +1507,12 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
             let fake_neighbor = is_lake_bottom && dxy.x.abs() > 1.0 && dxy.y.abs() > 1.0;
             // If you're on the lake bottom and not right next to your neighbor, don't compute a
             // slope.
-            if /* !is_lake_bottom */ /* !fake_neighbor */true {
-                if /* !is_lake_bottom && */mag_slope > max_slope {
+            if
+            /* !is_lake_bottom */ /* !fake_neighbor */
+            true {
+                if
+                /* !is_lake_bottom && */
+                mag_slope > max_slope {
                     // println!("old slope: {:?}, new slope: {:?}, dz: {:?}, h_j: {:?}, new_h_i: {:?}", mag_slope, max_slope, dz, h_j, new_h_i);
                     // Thermal erosion says this can't happen, so we reduce dh_i to make the slope
                     // exactly max_slope.
@@ -1490,11 +1532,20 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
         }
         maxh = h[posi].max(maxh);
     }
-    println!("Done eroding (max height: {:?}) (avg height: {:?}) (avg slope: {:?})",
+    println!(
+        "Done eroding (max height: {:?}) (avg height: {:?}) (avg slope: {:?})",
         maxh,
-        if nland == 0 { f32::INFINITY } else { sumh / nland as f32 },
-        if nland == 0 { f32::INFINITY } else { sums / nland as f32 },
-        );
+        if nland == 0 {
+            f32::INFINITY
+        } else {
+            sumh / nland as f32
+        },
+        if nland == 0 {
+            f32::INFINITY
+        } else {
+            sums / nland as f32
+        },
+    );
 }
 
 /// The Planchon-Darboux algorithm for extracting drainage networks.
@@ -1502,9 +1553,11 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
 /// http://horizon.documentation.ird.fr/exl-doc/pleins_textes/pleins_textes_7/sous_copyright/010031925.pdf
 ///
 /// See https://github.com/mewo2/terrain/blob/master/terrain.js
-pub fn fill_sinks(h: impl Fn(usize) -> f32 + Sync,
-                  is_ocean: impl Fn(usize) -> bool + Sync,
-                  /*oh: impl Fn(usize) -> f32 + Sync*//*, epsilon: f64*/) -> Box<[f32]> {
+pub fn fill_sinks(
+    h: impl Fn(usize) -> f32 + Sync,
+    is_ocean: impl Fn(usize) -> bool + Sync,
+    /*oh: impl Fn(usize) -> f32 + Sync*//*, epsilon: f64*/
+) -> Box<[f32]> {
     //let epsilon = 1e-5f32;
     let epsilon = 1e-7f32 / CONFIG.mountain_scale;
     let infinity = f32::INFINITY;
@@ -1628,7 +1681,10 @@ pub struct LakeIndex(i32); */
 /// - A list of chunks on the boundary (non-lake egress points).
 /// - The second indirection vector (associating chunk indices with their lake's adjacency list).
 /// - The adjacency list (stored in a single vector), indexed by the second indirection vector.
-pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<[i32]>, Vec<usize>, Vec<i32>, Vec<(i32, u32)>)*/(usize, Box<[i32]>, Box<[u32]>) {
+pub fn get_lakes(
+    /*newh: &[u32], */ h: &[f32],
+    downhill: &mut [isize],
+) -> (usize, Box<[i32]>, Box<[u32]>) {
     // Associates each lake index with its root node (the deepest one in the lake), and a list of
     // adjacent lakes.  The list of adjacent lakes includes the lake index of the adjacent lake,
     // and a node index in the adjacent lake which has a neighbor in this lake.  The particular
@@ -1675,11 +1731,15 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
             }
         }) */
     let mut lake_roots = Vec::with_capacity(downhill.len()); // Test
-    for (chunk_idx, &dh) in (&*downhill).into_iter().enumerate().filter(|(_, &dh_idx)| dh_idx < 0) {
+    for (chunk_idx, &dh) in (&*downhill)
+        .into_iter()
+        .enumerate()
+        .filter(|(_, &dh_idx)| dh_idx < 0)
+    {
         if dh == -2 {
             // On the boundary, add to the boundary vector.
             boundary.push(chunk_idx);
-            // Still considered a lake root, though.
+        // Still considered a lake root, though.
         } else if dh == -1 {
             lake_roots.push(chunk_idx);
         } else {
@@ -1770,65 +1830,69 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
         /*if indirection_idx == -1 {
             // Not in a lake, not on the boundary, so do nothing.
         } else {*/
-            // Find our lake, just like before.
-            /* let lake_idx_ = if indirection_idx >= 0 {
-                // indirection_idx is a normal non-lake chunk, so its lake_idx should store the
-                // start index into the lakes vector!
-                indirection_[indirection_idx as usize]
-            } else {
-                // -indirection_idx represents a count (of at least 1).
-                let size = -indirection_idx;
-                // Our own index will be start.
-                let lake_idx = start;
-                // NOTE: Since lake_idx is non-negative, the cast to u32 is fine.
-                let lake_idx_ = lake_idx as i32;
-                // We reserve size * 8 slots, one for each potential neighbor, since that is an
-                // upper bound on the number of neighboring lakes (this is clearly wasteful, but
-                // why compress if you don't have a demonstrated need?).
-                start += size * 8;
-                // Since this is a lake, it has no neighbors of lower height, so we know that
-                // nobody has added an entry for this lake yet.  Thus, we can unconditionally add
-                // ourselves to any adjacent, processed entries' lists, and add them to ours.
-                lake_idx_
-            };
-            // Set our indirection pointer to the new lake index.
-            indirection_[chunk_idx] = lake_idx_;
-            let lake_idx = lake_idx_ as usize; */
-            let lake_idx_ = indirection_[chunk_idx];
-            let lake_idx = lake_idx_ as usize;
-            let height = h[chunk_idx_ as usize];
-            // For every neighbor, check to see whether it is already set; if the neighbor is set,
-            // its height is ≤ our height.  We should search through the edge list for the
-            // neighbor's lake to see if there's an entry; if not, we insert, and otherwise we
-            // get its height.  We do the same thing in our own lake's entry list.  If the maximum
-            // of the heights we get out from this process is greater than the maximum of this
-            // chunk and its neighbor chunk, we switch to this new edge.
-            for neighbor_idx in neighbors(chunk_idx) {
-                let neighbor_height = h[neighbor_idx];
-                let neighbor_lake_idx_ = indirection_[neighbor_idx];
-                let neighbor_lake_idx = neighbor_lake_idx_ as usize;
-                if /*neighbor_lake_idx_ >= 0*//*lakes[neighbor_lake_idx].0 >= 0*/neighbor_lake_idx_ < lake_idx_ /*&& lake_idx_ != neighbor_lake_idx_*/ {
-                    /* let (lake_chunk_idx, lake_len) = {
-                        let indirection_idx = indirection[chunk_idx];
-                        if indirection_idx >= 0 {
-                            (indirection_idx as usize, (-indirection[indirection_idx as usize]) as usize)
-                        } else {
-                            (chunk_idx as usize, (-indirection_idx) as usize)
-                        }
-                    };
-                    let (neighbor_lake_chunk_idx, neighbor_lake_len) = {
-                        let indirection_idx = indirection[neighbor_idx];
-                        if indirection_idx >= 0 {
-                            (indirection_idx as usize, (-indirection[indirection_idx as usize]) as usize)
-                        } else {
-                            (neighbor_idx as usize, (-indirection_idx) as usize)
-                        }
-                    }; */
-                    // let neighbor_lake_idx = neighbor_lake_idx_ as usize;
-                    // We found an adjacent node that is not on the boundary and has already
-                    // been processed, and also has a non-matching lake.  Therefore we can use
-                    // split_at_mut to get disjoint slices.
-                    let (lake, neighbor_lake) = /*if neighbor_lake_idx < lake_idx*/ {
+        // Find our lake, just like before.
+        /* let lake_idx_ = if indirection_idx >= 0 {
+            // indirection_idx is a normal non-lake chunk, so its lake_idx should store the
+            // start index into the lakes vector!
+            indirection_[indirection_idx as usize]
+        } else {
+            // -indirection_idx represents a count (of at least 1).
+            let size = -indirection_idx;
+            // Our own index will be start.
+            let lake_idx = start;
+            // NOTE: Since lake_idx is non-negative, the cast to u32 is fine.
+            let lake_idx_ = lake_idx as i32;
+            // We reserve size * 8 slots, one for each potential neighbor, since that is an
+            // upper bound on the number of neighboring lakes (this is clearly wasteful, but
+            // why compress if you don't have a demonstrated need?).
+            start += size * 8;
+            // Since this is a lake, it has no neighbors of lower height, so we know that
+            // nobody has added an entry for this lake yet.  Thus, we can unconditionally add
+            // ourselves to any adjacent, processed entries' lists, and add them to ours.
+            lake_idx_
+        };
+        // Set our indirection pointer to the new lake index.
+        indirection_[chunk_idx] = lake_idx_;
+        let lake_idx = lake_idx_ as usize; */
+        let lake_idx_ = indirection_[chunk_idx];
+        let lake_idx = lake_idx_ as usize;
+        let height = h[chunk_idx_ as usize];
+        // For every neighbor, check to see whether it is already set; if the neighbor is set,
+        // its height is ≤ our height.  We should search through the edge list for the
+        // neighbor's lake to see if there's an entry; if not, we insert, and otherwise we
+        // get its height.  We do the same thing in our own lake's entry list.  If the maximum
+        // of the heights we get out from this process is greater than the maximum of this
+        // chunk and its neighbor chunk, we switch to this new edge.
+        for neighbor_idx in neighbors(chunk_idx) {
+            let neighbor_height = h[neighbor_idx];
+            let neighbor_lake_idx_ = indirection_[neighbor_idx];
+            let neighbor_lake_idx = neighbor_lake_idx_ as usize;
+            if
+            /*neighbor_lake_idx_ >= 0*//*lakes[neighbor_lake_idx].0 >= 0*/
+            neighbor_lake_idx_ < lake_idx_
+            /*&& lake_idx_ != neighbor_lake_idx_*/
+            {
+                /* let (lake_chunk_idx, lake_len) = {
+                    let indirection_idx = indirection[chunk_idx];
+                    if indirection_idx >= 0 {
+                        (indirection_idx as usize, (-indirection[indirection_idx as usize]) as usize)
+                    } else {
+                        (chunk_idx as usize, (-indirection_idx) as usize)
+                    }
+                };
+                let (neighbor_lake_chunk_idx, neighbor_lake_len) = {
+                    let indirection_idx = indirection[neighbor_idx];
+                    if indirection_idx >= 0 {
+                        (indirection_idx as usize, (-indirection[indirection_idx as usize]) as usize)
+                    } else {
+                        (neighbor_idx as usize, (-indirection_idx) as usize)
+                    }
+                }; */
+                // let neighbor_lake_idx = neighbor_lake_idx_ as usize;
+                // We found an adjacent node that is not on the boundary and has already
+                // been processed, and also has a non-matching lake.  Therefore we can use
+                // split_at_mut to get disjoint slices.
+                let (lake, neighbor_lake) = /*if neighbor_lake_idx < lake_idx*/ {
                         // println!("Okay, {:?} < {:?}", neighbor_lake_idx, lake_idx);
                         let (neighbor_lake, lake) = lakes.split_at_mut(lake_idx);
                         (/*&mut lake[..lake_len]*/lake,
@@ -1840,131 +1904,143 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
                         (&mut lake[lake_idx..], neighbor_lake)
                     }*/;
 
-                    // We don't actually need to know the real length here, because we've reserved
-                    // enough spaces that we should always either find a -1 (available slot) or an
-                    // entry for this chunk.
-                    'outer: for pass in lake.iter_mut() {
-                        if pass.0 == -1 {
-                            /* let indirection_idx = indirection[chunk_idx];
-                            let lake_chunk_idx = if indirection_idx >= 0 {
-                                indirection_idx as usize
-                            } else {
-                                chunk_idx as usize
-                            };
-                            let indirection_idx = indirection[neighbor_idx];
-                            let neighbor_lake_chunk_idx = if indirection_idx >= 0 {
-                                indirection_idx as usize
-                            } else {
-                                neighbor_idx as usize
-                            };
-                            println!("Adding edge {:?} between lakes {:?}.",
-                                   ((chunk_idx, uniform_idx_as_vec2(chunk_idx as usize)),
-                                    (neighbor_idx, uniform_idx_as_vec2(neighbor_idx as usize))),
-                                   ((lake_chunk_idx,
-                                     uniform_idx_as_vec2(lake_chunk_idx as usize),
-                                     lake_idx_),
-                                    (neighbor_lake_chunk_idx,
-                                     uniform_idx_as_vec2(neighbor_lake_chunk_idx as usize),
-                                     neighbor_lake_idx_)),
-                            ); */
+                // We don't actually need to know the real length here, because we've reserved
+                // enough spaces that we should always either find a -1 (available slot) or an
+                // entry for this chunk.
+                'outer: for pass in lake.iter_mut() {
+                    if pass.0 == -1 {
+                        /* let indirection_idx = indirection[chunk_idx];
+                        let lake_chunk_idx = if indirection_idx >= 0 {
+                            indirection_idx as usize
+                        } else {
+                            chunk_idx as usize
+                        };
+                        let indirection_idx = indirection[neighbor_idx];
+                        let neighbor_lake_chunk_idx = if indirection_idx >= 0 {
+                            indirection_idx as usize
+                        } else {
+                            neighbor_idx as usize
+                        };
+                        println!("Adding edge {:?} between lakes {:?}.",
+                               ((chunk_idx, uniform_idx_as_vec2(chunk_idx as usize)),
+                                (neighbor_idx, uniform_idx_as_vec2(neighbor_idx as usize))),
+                               ((lake_chunk_idx,
+                                 uniform_idx_as_vec2(lake_chunk_idx as usize),
+                                 lake_idx_),
+                                (neighbor_lake_chunk_idx,
+                                 uniform_idx_as_vec2(neighbor_lake_chunk_idx as usize),
+                                 neighbor_lake_idx_)),
+                        ); */
 
-                            // println!("One time, in my mind, one time... (neighbor lake={:?} lake={:?})", neighbor_lake_idx, lake_idx_);
-                            *pass = (chunk_idx_ as i32, neighbor_idx as u32);
-                            // Should never run out of -1s in the neighbor lake if we didn't find
-                            // the neighbor lake in our lake.
-                            *neighbor_lake
-                                .iter_mut()
-                                .filter( |neighbor_pass| neighbor_pass.0 == -1)
-                                .next()
-                                .unwrap() = (neighbor_idx as i32, chunk_idx_);
-                            // panic!("Should never happen; maybe didn't reserve enough space in lakes?")
-                            break;
-                        } else if indirection_[pass.1 as usize] == neighbor_lake_idx_ {
-                            for neighbor_pass in neighbor_lake.iter_mut() {
-                                // Should never run into -1 while looping here, since (i, j)
-                                // and (j, i) should be added together.
-                                if indirection_[neighbor_pass.1 as usize] == lake_idx_ {
-                                    let pass_height = h[neighbor_pass.1 as usize];
-                                    let neighbor_pass_height = h[pass.1 as usize];
-                                    if height.max(neighbor_height) <
-                                       pass_height.max(neighbor_pass_height) {
-                                        *pass = (chunk_idx_ as i32, neighbor_idx as u32);
-                                        *neighbor_pass = (neighbor_idx as i32, chunk_idx_);
-                                    }
-                                    break 'outer;
+                        // println!("One time, in my mind, one time... (neighbor lake={:?} lake={:?})", neighbor_lake_idx, lake_idx_);
+                        *pass = (chunk_idx_ as i32, neighbor_idx as u32);
+                        // Should never run out of -1s in the neighbor lake if we didn't find
+                        // the neighbor lake in our lake.
+                        *neighbor_lake
+                            .iter_mut()
+                            .filter(|neighbor_pass| neighbor_pass.0 == -1)
+                            .next()
+                            .unwrap() = (neighbor_idx as i32, chunk_idx_);
+                        // panic!("Should never happen; maybe didn't reserve enough space in lakes?")
+                        break;
+                    } else if indirection_[pass.1 as usize] == neighbor_lake_idx_ {
+                        for neighbor_pass in neighbor_lake.iter_mut() {
+                            // Should never run into -1 while looping here, since (i, j)
+                            // and (j, i) should be added together.
+                            if indirection_[neighbor_pass.1 as usize] == lake_idx_ {
+                                let pass_height = h[neighbor_pass.1 as usize];
+                                let neighbor_pass_height = h[pass.1 as usize];
+                                if height.max(neighbor_height)
+                                    < pass_height.max(neighbor_pass_height)
+                                {
+                                    *pass = (chunk_idx_ as i32, neighbor_idx as u32);
+                                    *neighbor_pass = (neighbor_idx as i32, chunk_idx_);
                                 }
+                                break 'outer;
                             }
-                            // Should always find a corresponding match in the neighbor lake if
-                            // we found the neighbor lake in our lake.
-                            let indirection_idx = indirection[chunk_idx];
-                            let lake_chunk_idx = if indirection_idx >= 0 {
-                                indirection_idx as usize
-                            } else {
-                                chunk_idx as usize
-                            };
-                            let indirection_idx = indirection[neighbor_idx];
-                            let neighbor_lake_chunk_idx = if indirection_idx >= 0 {
-                                indirection_idx as usize
-                            } else {
-                                neighbor_idx as usize
-                            };
-                            panic!("For edge {:?} between lakes {:?}, couldn't find partner \
-                                    for pass {:?}. \
-                                    Should never happen; maybe forgot to set both edges?",
-                                   ((chunk_idx, uniform_idx_as_vec2(chunk_idx as usize)),
-                                    (neighbor_idx, uniform_idx_as_vec2(neighbor_idx as usize))),
-                                   ((lake_chunk_idx,
-                                     uniform_idx_as_vec2(lake_chunk_idx as usize),
-                                     lake_idx_),
-                                    (neighbor_lake_chunk_idx,
-                                     uniform_idx_as_vec2(neighbor_lake_chunk_idx as usize),
-                                     neighbor_lake_idx_)),
-                                   ((pass.0, uniform_idx_as_vec2(pass.0 as usize)),
-                                    (pass.1, uniform_idx_as_vec2(pass.1 as usize))),
-                            );
                         }
+                        // Should always find a corresponding match in the neighbor lake if
+                        // we found the neighbor lake in our lake.
+                        let indirection_idx = indirection[chunk_idx];
+                        let lake_chunk_idx = if indirection_idx >= 0 {
+                            indirection_idx as usize
+                        } else {
+                            chunk_idx as usize
+                        };
+                        let indirection_idx = indirection[neighbor_idx];
+                        let neighbor_lake_chunk_idx = if indirection_idx >= 0 {
+                            indirection_idx as usize
+                        } else {
+                            neighbor_idx as usize
+                        };
+                        panic!(
+                            "For edge {:?} between lakes {:?}, couldn't find partner \
+                             for pass {:?}. \
+                             Should never happen; maybe forgot to set both edges?",
+                            (
+                                (chunk_idx, uniform_idx_as_vec2(chunk_idx as usize)),
+                                (neighbor_idx, uniform_idx_as_vec2(neighbor_idx as usize))
+                            ),
+                            (
+                                (
+                                    lake_chunk_idx,
+                                    uniform_idx_as_vec2(lake_chunk_idx as usize),
+                                    lake_idx_
+                                ),
+                                (
+                                    neighbor_lake_chunk_idx,
+                                    uniform_idx_as_vec2(neighbor_lake_chunk_idx as usize),
+                                    neighbor_lake_idx_
+                                )
+                            ),
+                            (
+                                (pass.0, uniform_idx_as_vec2(pass.0 as usize)),
+                                (pass.1, uniform_idx_as_vec2(pass.1 as usize))
+                            ),
+                        );
                     }
-                    /*    lake.iter_mut()
-                            .find_map(|(mut pass_lake_idx_, mut pass_chunk_idx_)| {
-                                if pass_lake_idx_ == lake_idx_ {
-                                    if h[pass_chunk_idx_ as usize] < height {
-                                    }
-                                    Some(())
-                                } else if pass_lake_idx == -1 {
-                                    *pass_lake_idx_ = lake_idx_;
-                                    *pass_chunk_idx_ = chunk_idx_;
-                                    Some(())
-                                } else {
-                                    None
-                                }
-                            })
-                            // Should never run out of -1s.
-                            .unwrap();*/
-
-                    /* let lake_height = do_height(lake, neighbor_lake_idx_, neighbor_idx_);
-
-                    // Since we are a lake root, we have no downhill nodes, so
-                    // that means neighbor_idx is also a lake root.  Moreover, since we are
-                    // generating this lake for the first time, there can't yet be an edge in
-                    // neighbor_idx's list, so we can unconditionally add ourselves to it, and
-                    // make chunk_idx the closest pass without checking the height.
-                    // NOTE: neighbor_lake_idx can't overflow isize, because non-negative lake
-                    // indices are always taken from the length of an allocated vector, and
-                    // vector lengths are guaranteed to fit in isize.
-                    // NOTE: Since neighbor_lake_idx is non-negative, the implicit cast from
-                    // isize to usize is fine.
-                    lakes[neighbor_lake_idx as usize].push((lake_idx_, chunk_idx_));
-                    // We also push the neighbor onto our own pass list.
-                    // NOTE: This can't overflow i32 because WORLD_SIZE.x * WORLD_SIZE.y is
-                    // (assumed to) fit in an i32, and we can have at most
-                    // WORLD_SIZE.x * WORLD_SIZE.y chunks (so neighbor_idx here is at most
-                    // WORLD_SIZE.x * WORLD_SIZE.y - 1).
-                    // NOTE: Since neighbor_idx is non-negative, the implicit cast from i32 to
-                    // u32 is fine.
-                    // NOTE: Since neighbor_lake_idx is non-negative, the cast to u32 is fine.
-                    lakes[lake_idx].push((neighbor_lake_idx as u32, neighbor_idx as u32));*/
                 }
+                /*    lake.iter_mut()
+                .find_map(|(mut pass_lake_idx_, mut pass_chunk_idx_)| {
+                    if pass_lake_idx_ == lake_idx_ {
+                        if h[pass_chunk_idx_ as usize] < height {
+                        }
+                        Some(())
+                    } else if pass_lake_idx == -1 {
+                        *pass_lake_idx_ = lake_idx_;
+                        *pass_chunk_idx_ = chunk_idx_;
+                        Some(())
+                    } else {
+                        None
+                    }
+                })
+                // Should never run out of -1s.
+                .unwrap();*/
+
+                /* let lake_height = do_height(lake, neighbor_lake_idx_, neighbor_idx_);
+
+                // Since we are a lake root, we have no downhill nodes, so
+                // that means neighbor_idx is also a lake root.  Moreover, since we are
+                // generating this lake for the first time, there can't yet be an edge in
+                // neighbor_idx's list, so we can unconditionally add ourselves to it, and
+                // make chunk_idx the closest pass without checking the height.
+                // NOTE: neighbor_lake_idx can't overflow isize, because non-negative lake
+                // indices are always taken from the length of an allocated vector, and
+                // vector lengths are guaranteed to fit in isize.
+                // NOTE: Since neighbor_lake_idx is non-negative, the implicit cast from
+                // isize to usize is fine.
+                lakes[neighbor_lake_idx as usize].push((lake_idx_, chunk_idx_));
+                // We also push the neighbor onto our own pass list.
+                // NOTE: This can't overflow i32 because WORLD_SIZE.x * WORLD_SIZE.y is
+                // (assumed to) fit in an i32, and we can have at most
+                // WORLD_SIZE.x * WORLD_SIZE.y chunks (so neighbor_idx here is at most
+                // WORLD_SIZE.x * WORLD_SIZE.y - 1).
+                // NOTE: Since neighbor_idx is non-negative, the implicit cast from i32 to
+                // u32 is fine.
+                // NOTE: Since neighbor_lake_idx is non-negative, the cast to u32 is fine.
+                lakes[lake_idx].push((neighbor_lake_idx as u32, neighbor_idx as u32));*/
             }
+        }
         /*}*/
     }
 
@@ -1975,7 +2051,7 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
     // We start by going through each pass, deleting the ones that point out of boundary nodes and
     // adding ones that point into boundary nodes from non-boundary nodes.
     for edge in &mut lakes {
-        let edge : &mut (i32, u32) = edge;
+        let edge: &mut (i32, u32) = edge;
         // Only consider valid elements.
         if edge.0 == -1 {
             continue;
@@ -2006,7 +2082,10 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
         if downhill[lake_idx] == -2 {
             // Find the pass height
             let pass = h[from].max(h[to]);
-            candidates.push(Reverse((NotNan::new(pass).unwrap(), (edge.0 as u32, edge.1))));
+            candidates.push(Reverse((
+                NotNan::new(pass).unwrap(),
+                (edge.0 as u32, edge.1),
+            )));
         }
     }
 
@@ -2049,7 +2128,7 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
     } */
 
     // let mut pass_flows_sorted : Vec<(u32, u32)> = Vec::with_capacity(indirection.len());
-    let mut pass_flows_sorted : Vec<usize> = Vec::with_capacity(indirection.len());
+    let mut pass_flows_sorted: Vec<usize> = Vec::with_capacity(indirection.len());
 
     // Now all passes pointing to the boundary are in candidates.
     // As long as there are still candidates, we continue...
@@ -2090,7 +2169,7 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
         pass_flows_sorted.push(lake_chunk_idx);
         // pass_flows_sorted.push((chunk_idx as u32, neighbor_idx as u32));
         for edge in &mut lakes[lake_idx..lake_idx + max_len] {
-        // for edge in lakes[lake_idx..].iter_mut().take(max_len) {
+            // for edge in lakes[lake_idx..].iter_mut().take(max_len) {
             if *edge == (chunk_idx as i32, neighbor_idx as u32) {
                 // Skip deleting this edge.
                 continue;
@@ -2115,7 +2194,10 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
             let pass = h[edge.0 as usize].max(h[edge.1 as usize]);
             // Put the reverse edge in candidates, sorted by height, then chunk idx, and finally
             // neighbor idx.
-            candidates.push(Reverse((NotNan::new(pass).unwrap(), (edge.1, edge.0 as u32))));
+            candidates.push(Reverse((
+                NotNan::new(pass).unwrap(),
+                (edge.1, edge.0 as u32),
+            )));
         }
         // println!("I am a pass: {:?}", (uniform_idx_as_vec2(chunk_idx as usize), uniform_idx_as_vec2(neighbor_idx as usize)));
     }
@@ -2210,50 +2292,55 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
         .collect::<BinaryHeap::<_>>(); */
 
     /* let mut candidates = indirection
-        .iter()
-        .enumerate()
-        .filter(|(_, indirection_idx)| indirection_idx <= 0)
-        .flat_map(|(chunk_idx, indirection_idx)| {
-            let lake_idx = indirection_[indirection_idx as usize];
-            lake[lake_idx as usize].iter()
-                .map(|(neighbor_lake_idx, pass)|
-                     (h[chunk_idx].max(h[pass]), lake_idx, neighbor_lake_idx))
-        })
-        .collect::<BinaryHeap>(); */
+    .iter()
+    .enumerate()
+    .filter(|(_, indirection_idx)| indirection_idx <= 0)
+    .flat_map(|(chunk_idx, indirection_idx)| {
+        let lake_idx = indirection_[indirection_idx as usize];
+        lake[lake_idx as usize].iter()
+            .map(|(neighbor_lake_idx, pass)|
+                 (h[chunk_idx].max(h[pass]), lake_idx, neighbor_lake_idx))
+    })
+    .collect::<BinaryHeap>(); */
     println!("Total lakes: {:?}", pass_flows_sorted.len());
 
     // Perform the bfs once again.
     // let mut newh_position = vec![0usize; downhill.len()]; // Assertion
     let mut newh = Vec::with_capacity(downhill.len());
     // for (chunk_idx, &dh) in (&*downhill).into_iter().enumerate().filter(|(_, &dh_idx)| dh_idx < 0) {}
-    (&*boundary).iter().chain(pass_flows_sorted.iter()).for_each(|&chunk_idx| {
-        // Find all the nodes uphill from this lake.  Since there is only one outgoing edge
-        // in the "downhill" graph, this is guaranteed never to visit a node more than
-        // once.
-        let start = newh.len();
-        // New lake root
-        newh.push(chunk_idx as u32);
-        let mut cur = start;
-        while cur < newh.len() {
-            let node = newh[cur as usize];
-            // newh_position[node as usize] = cur as usize;
+    (&*boundary)
+        .iter()
+        .chain(pass_flows_sorted.iter())
+        .for_each(|&chunk_idx| {
+            // Find all the nodes uphill from this lake.  Since there is only one outgoing edge
+            // in the "downhill" graph, this is guaranteed never to visit a node more than
+            // once.
+            let start = newh.len();
+            // New lake root
+            newh.push(chunk_idx as u32);
+            let mut cur = start;
+            while cur < newh.len() {
+                let node = newh[cur as usize];
+                // newh_position[node as usize] = cur as usize;
 
-            for child in uphill(downhill, node as usize) {
-                // lake_idx is the index of our lake root.
-                // Check to make sure child (flowing into us) isn't a lake.
-                if indirection[child] /*== chunk_idx as i32*/>= 0 /* Note: equal to chunk_idx should be same */ {
-                    assert!(h[child] >= h[node as usize]);
-                    newh.push(child as u32);
-                } else {
-                    /* println!("wrong {:?} {:?}: indirection={:?}",
-                             uniform_idx_as_vec2(node as usize),
-                             uniform_idx_as_vec2(child as usize),
-                             indirection[child]); */
+                for child in uphill(downhill, node as usize) {
+                    // lake_idx is the index of our lake root.
+                    // Check to make sure child (flowing into us) isn't a lake.
+                    if indirection[child] /*== chunk_idx as i32*/>= 0
+                    /* Note: equal to chunk_idx should be same */
+                    {
+                        assert!(h[child] >= h[node as usize]);
+                        newh.push(child as u32);
+                    } else {
+                        /* println!("wrong {:?} {:?}: indirection={:?}",
+                        uniform_idx_as_vec2(node as usize),
+                        uniform_idx_as_vec2(child as usize),
+                        indirection[child]); */
+                    }
                 }
+                cur += 1;
             }
-            cur += 1;
-        }
-    });
+        });
     // Assertion
     // assert!(downhill.iter().enumerate().all(|(chunk_idx, &dh)| dh == -2 || newh_position[dh as usize] < newh_position[chunk_idx]));
     assert_eq!(newh.len(), downhill.len());
@@ -2408,33 +2495,52 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
 }
 
 /// Perform erosion n times.
-pub fn do_erosion(/*oldh: &InverseCdf, *//*, epsilon: f64*//*newh: &mut [u32],*/
-                  erosion_base: f32, max_uplift: f32, /*amount: f32, */n: usize,
-                  seed: &RandomField, rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
-                  oldh: impl Fn(usize) -> f32 + Sync,
-                  is_ocean: impl Fn(usize) -> bool + Sync,
-                  uplift: impl Fn(usize) -> f32 + Sync) -> Box<[f32]> {
-    let oldh_ = (0..WORLD_SIZE.x * WORLD_SIZE.y).into_par_iter()
-        .map(|posi| oldh(posi)).collect::<Vec<_>>().into_boxed_slice();
-    // TODO: Don't do this, maybe?
-    let uplift = (0..oldh_.len()).into_par_iter()
-        .map( |posi| uplift(posi)).collect::<Vec<_>>().into_boxed_slice();
-    /* let max_uplift = (0..oldh_.len())
+pub fn do_erosion(
+    /*oldh: &InverseCdf, *//*, epsilon: f64*//*newh: &mut [u32],*/
+    erosion_base: f32,
+    max_uplift: f32,
+    /*amount: f32, */ n: usize,
+    seed: &RandomField,
+    rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
+    oldh: impl Fn(usize) -> f32 + Sync,
+    is_ocean: impl Fn(usize) -> bool + Sync,
+    uplift: impl Fn(usize) -> f32 + Sync,
+) -> Box<[f32]> {
+    let oldh_ = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
-        .map( |posi| uplift(posi))
-        .max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap(); */
+        .map(|posi| oldh(posi))
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
+    // TODO: Don't do this, maybe?
+    let uplift = (0..oldh_.len())
+        .into_par_iter()
+        .map(|posi| uplift(posi))
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
+    /* let max_uplift = (0..oldh_.len())
+    .into_par_iter()
+    .map( |posi| uplift(posi))
+    .max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap(); */
     let max_uplift = uplift
         .into_par_iter()
         .cloned()
-        .max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap();
+        .max_by(|a, b| a.partial_cmp(&b).unwrap())
+        .unwrap();
     println!("Max uplift: {:?}", max_uplift);
     // Start by filling in deep depressions, to make for a more realistic initial river network.
     // let mut h = fill_sinks(&oldh_, |posi| oldh[posi].1 );
     let mut h = oldh_;
     for i in 0..n {
         println!("Erosion iteration #{:?}", i);
-        erode(&mut h, /*newh*//*&h, *//*amount*/erosion_base, max_uplift, seed,
-              rock_strength_nz, |posi| /*uplift(posi)*/uplift[posi], |posi| is_ocean(posi));
+        erode(
+            &mut h,
+            /*newh*//*&h, *//*amount*/ erosion_base,
+            max_uplift,
+            seed,
+            rock_strength_nz,
+            |posi| /*uplift(posi)*/uplift[posi],
+            |posi| is_ocean(posi),
+        );
         // h = fill_sinks(&h);
     }
     h

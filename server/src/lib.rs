@@ -45,7 +45,7 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{ChunkSupplement, sim::WORLD_SIZE, World};
+use world::{sim::WORLD_SIZE, ChunkSupplement, World};
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 

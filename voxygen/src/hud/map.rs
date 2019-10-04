@@ -38,8 +38,13 @@ pub struct Map<'a> {
     common: widget::CommonBuilder,
 }
 impl<'a> Map<'a> {
-    pub fn new(show: &'a Show, client: &'a Client,
-               imgs: &'a Imgs, world_map: Id, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        show: &'a Show,
+        client: &'a Client,
+        imgs: &'a Imgs,
+        world_map: Id,
+        fonts: &'a Fonts,
+    ) -> Self {
         Self {
             _show: show,
             imgs,
