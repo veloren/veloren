@@ -37,6 +37,11 @@ impl PlayState for MainMenuState {
         // Used for client creation.
         let mut client_init: Option<ClientInit> = None;
 
+        // Kick off title music
+        global_state
+            .audio
+            .play_music("voxygen.audio.soundtrack.veloren_title_tune-3");
+
         loop {
             // Handle window events.
             for event in global_state.window.fetch_events() {
