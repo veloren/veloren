@@ -82,7 +82,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         }),
 
         BlockKind::BlueFlower => Some(SpriteConfig {
-            variations: 5,
+            variations: 6,
             wind_sway: 0.1,
         }),
         BlockKind::PinkFlower => Some(SpriteConfig {
@@ -237,7 +237,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::LargeCactus, 0),
                     make_model(
                         "voxygen.voxel.sprite.cacti.large_cactus",
-                        Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::new(-13.5, -5.5, 0.0),
                     ),
                 ),
                 (
@@ -316,6 +316,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::BlueFlower, 4),
                     make_model(
                         "voxygen.voxel.sprite.flowers.flower_blue_5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::BlueFlower, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_blue_6",
                         Vec3::new(-6.0, -6.0, 0.0),
                     ),
                 ),

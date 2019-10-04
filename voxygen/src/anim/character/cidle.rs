@@ -240,11 +240,11 @@ impl Animation for CidleAnimation {
         next.r_foot.ori = Quaternion::rotation_x(wave_ultra_slow * 0.015);
         next.r_foot.scale = Vec3::one();
 
-        next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
+        next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 5.0);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
         next.l_shoulder.scale = Vec3::one() * 1.1;
 
-        next.r_shoulder.offset = Vec3::new(5.0, 0.0, 4.7);
+        next.r_shoulder.offset = Vec3::new(5.0, 0.0, 5.0);
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one() * 1.1;
 
