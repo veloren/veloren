@@ -43,6 +43,7 @@ widget_ids! {
         info_ok,
         info_no,
         delete_text,
+        space,
 
         // REMOVE THIS AFTER IMPLEMENTATION
         daggers_grey,
@@ -217,6 +218,10 @@ font_ids! {
     pub struct Fonts {
         opensans: "voxygen.font.OpenSans-Regular",
         metamorph: "voxygen.font.Metamorphous-Regular",
+        alkhemi: "voxygen.font.Alkhemikal",
+        ronda:"voxygen.font.pf_ronda_seven",
+        ronda_b: "voxygen.font.pf_ronda_seven_bold",
+        wizard: "voxygen.font.wizard",
     }
 }
 
@@ -300,6 +305,7 @@ impl CharSelectionUi {
         })
         .title_font_size(15)
         .desc_font_size(10)
+        .font_id(self.fonts.ronda)
         .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
 
@@ -319,7 +325,8 @@ impl CharSelectionUi {
                 InfoContent::Deletion => {
                     Text::new("Permanently delete this Character?")
                         .mid_top_with_margin_on(self.ids.info_frame, 40.0)
-                        .font_size(20)
+                        .font_size(24)
+                        .font_id(self.fonts.ronda)
                         .color(TEXT_COLOR)
                         .set(self.ids.delete_text, ui_widgets);
                     if Button::image(self.imgs.button)
@@ -329,6 +336,7 @@ impl CharSelectionUi {
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
                         .label("No")
+                        .label_font_id(self.fonts.ronda)
                         .label_font_size(18)
                         .label_color(TEXT_COLOR)
                         .set(self.ids.info_no, ui_widgets)
@@ -344,6 +352,7 @@ impl CharSelectionUi {
                         .label_y(Relative::Scalar(2.0))
                         .label("Yes")
                         .label_font_size(18)
+                        .label_font_id(self.fonts.ronda)
                         .label_color(Color::Rgba(1.0, 1.0, 1.0, 0.1))
                         .set(self.ids.info_ok, ui_widgets)
                         .was_clicked()
@@ -386,8 +395,8 @@ impl CharSelectionUi {
             // Server Name
             Text::new(&client.server_info.name)
                 .mid_top_with_margin_on(self.ids.server_frame_bg, 5.0)
-                .font_size(24)
-                .font_id(self.fonts.metamorph)
+                .font_size(26)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.server_name_text, ui_widgets);
             //Change Server
@@ -399,6 +408,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.button_press)
                 .label("Change Server")
                 .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.ronda)
                 .label_font_size(18)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.change_server, ui_widgets)
@@ -415,7 +425,8 @@ impl CharSelectionUi {
                 .press_image(self.imgs.button_press)
                 .label("Enter World")
                 .label_color(TEXT_COLOR)
-                .label_font_size(22)
+                .label_font_size(26)
+                .label_font_id(self.fonts.ronda)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.enter_world_button, ui_widgets)
                 .was_clicked()
@@ -430,8 +441,9 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Logout")
+                .label_font_id(self.fonts.ronda)
                 .label_color(TEXT_COLOR)
-                .label_font_size(18)
+                .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.logout_button, ui_widgets)
                 .was_clicked()
@@ -446,6 +458,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Create Character")
+                .label_font_id(self.fonts.ronda)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
@@ -460,7 +473,7 @@ impl CharSelectionUi {
             Text::new(version)
                 .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
 
@@ -471,6 +484,7 @@ impl CharSelectionUi {
                 .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
                 .hover_image(self.imgs.selection)
                 .press_image(self.imgs.selection)
+                .label_font_id(self.fonts.ronda)
                 .label_y(conrod_core::position::Relative::Scalar(20.0))
                 .set(self.ids.character_box_1, ui_widgets)
                 .was_clicked()
@@ -490,21 +504,21 @@ impl CharSelectionUi {
             Text::new("Human Default")
                 .top_left_with_margins_on(self.ids.character_box_1, 6.0, 9.0)
                 .font_size(19)
-                .font_id(self.fonts.metamorph)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_name_1, ui_widgets);
 
             Text::new("Level 1")
                 .down_from(self.ids.character_name_1, 4.0)
                 .font_size(17)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_level_1, ui_widgets);
 
             Text::new("Uncanny Valley")
                 .down_from(self.ids.character_level_1, 4.0)
                 .font_size(17)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_location_1, ui_widgets);
 
@@ -522,21 +536,21 @@ impl CharSelectionUi {
             Text::new("Example 2nd Char")
                 .top_left_with_margins_on(self.ids.character_box_2, 6.0, 9.0)
                 .font_size(19)
-                .font_id(self.fonts.metamorph)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_name_2, ui_widgets);
 
             Text::new("Level ??")
                 .down_from(self.ids.character_name_2, 4.0)
                 .font_size(17)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_level_2, ui_widgets);
 
             Text::new("Plains of Uncertainty")
                 .down_from(self.ids.character_level_2, 4.0)
                 .font_size(17)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_location_2, ui_widgets);
         }
@@ -549,8 +563,9 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Back")
+                .label_font_id(self.fonts.ronda)
                 .label_color(TEXT_COLOR)
-                .label_font_size(18)
+                .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.back_button, ui_widgets)
                 .was_clicked()
@@ -564,8 +579,9 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Create")
+                .label_font_id(self.fonts.ronda)
                 .label_color(TEXT_COLOR)
-                .label_font_size(18)
+                .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.create_button, ui_widgets)
                 .was_clicked()
@@ -586,9 +602,10 @@ impl CharSelectionUi {
                 .w_h(300.0, 60.0)
                 .mid_top_with_margin_on(self.ids.name_input, 2.0)
                 .font_size(26)
-                .font_id(self.fonts.metamorph)
+                .font_id(self.fonts.ronda)
                 .center_justify()
                 .text_color(TEXT_COLOR)
+                .font_id(self.fonts.ronda)
                 .color(TRANSPARENT)
                 .border_color(TRANSPARENT)
                 .set(self.ids.name_field, ui_widgets)
@@ -623,7 +640,7 @@ impl CharSelectionUi {
             Text::new("Character Creation")
                 .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
                 .font_size(24)
-                .font_id(self.fonts.metamorph)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(self.ids.bodyrace_text, ui_widgets);
             // Alignment
@@ -967,7 +984,7 @@ impl CharSelectionUi {
 
             // Sliders
             let (metamorph, slider_indicator, slider_range) = (
-                self.fonts.metamorph,
+                self.fonts.ronda,
                 self.imgs.slider_indicator,
                 self.imgs.slider_range,
             );
@@ -1102,7 +1119,7 @@ impl CharSelectionUi {
                 Text::new("Beard")
                     .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
                     .font_size(18)
-                    .font_id(self.fonts.metamorph)
+                    .font_id(self.fonts.ronda)
                     .color(TEXT_COLOR_2)
                     .set(self.ids.beard_text, ui_widgets);
                 ImageSlider::discrete(5, 0, 10, self.imgs.nothing, self.imgs.slider_range)
@@ -1119,7 +1136,7 @@ impl CharSelectionUi {
             let current_chest = self.character_body.chest;
             if let Some(new_val) = char_slider(
                 self.ids.beard_slider,
-                "Chest",
+                "Chest Color",
                 self.ids.chest_text,
                 humanoid::ALL_CHESTS.len() - 1,
                 humanoid::ALL_CHESTS
@@ -1132,7 +1149,7 @@ impl CharSelectionUi {
                 self.character_body.chest = humanoid::ALL_CHESTS[new_val];
             }
             // Pants
-            let current_pants = self.character_body.pants;
+            /*let current_pants = self.character_body.pants;
             if let Some(new_val) = char_slider(
                 self.ids.chest_slider,
                 "Pants",
@@ -1146,7 +1163,10 @@ impl CharSelectionUi {
                 ui_widgets,
             ) {
                 self.character_body.pants = humanoid::ALL_PANTS[new_val];
-            }
+            }*/
+            Rectangle::fill_with([20.0, 20.0], color::TRANSPARENT)
+                .down_from(self.ids.chest_slider, 15.0)
+                .set(self.ids.space, ui_widgets);
         } // Char Creation fin
 
         events

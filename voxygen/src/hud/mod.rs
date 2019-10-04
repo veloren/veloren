@@ -55,7 +55,7 @@ use crate::{discord, discord::DiscordUpdate};
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
+//const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
 //const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
@@ -136,8 +136,12 @@ widget_ids! {
 
 font_ids! {
     pub struct Fonts {
-        opensans: "voxygen.font.OpenSans-Regular",
+        opensans: "voxygen.font.pf_ronda_seven",
         metamorph: "voxygen.font.Metamorphous-Regular",
+        alkhemi: "voxygen.font.Alkhemikal",
+        ronda_b: "voxygen.font.pf_ronda_seven_bold",
+        wizard: "voxygen.font.wizard",
+        ronda:"voxygen.font.pf_ronda_seven",
     }
 }
 
