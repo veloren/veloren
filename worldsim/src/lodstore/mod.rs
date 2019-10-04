@@ -1,5 +1,6 @@
 pub mod index;
 pub mod area;
+pub mod newdata;
 pub mod data;
 pub mod delta;
 pub use data::LodData;
