@@ -6,8 +6,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),
     (Human, Female): (
@@ -16,8 +16,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),
     (Orc, Male): (
@@ -26,8 +26,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),	
     (Orc, Female): (
@@ -36,8 +36,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),
     (Elf, Male): (
@@ -46,8 +46,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),	
     (Elf, Female): (
@@ -56,8 +56,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),
     (Dwarf, Male): (
@@ -66,8 +66,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),	
     (Dwarf, Female): (
@@ -76,8 +76,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),
     (Undead, Male): (
@@ -86,8 +86,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),	
     (Undead, Female): (
@@ -96,8 +96,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),
     (Danari, Male): (
@@ -106,8 +106,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),	
     (Danari, Female): (
@@ -116,8 +116,8 @@
             Some(("armor.hand.cloth_basic_left", (0, 0, 0))),
             Some(("armor.hand.cloth_basic_right", (0, 0, 0))),
             Some(("armor.hand.dark-0", (0, 0, 0))),
-            Some(("armor.hand.hand_left", (0, 0, 0))),
-            Some(("armor.hand.hand_right", (0, 0, 0))),
+            Some(("armor.hand.default_left", (0, 0, 0))),
+            Some(("armor.hand.default_right", (0, 0, 0))),
         ]
     ),
     // More here
