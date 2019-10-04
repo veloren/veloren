@@ -8,7 +8,7 @@ use noise::{Point3, NoiseFn};
 use ordered_float::NotNan;
 use rayon::prelude::*;
 use std::{
-    cmp::Reverse,
+    cmp::{Ordering, Reverse},
     collections::BinaryHeap,
     f32,
     mem,
@@ -226,7 +226,7 @@ pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item=usize> {
      (-4, 5), (-3, 5), (-2, 5), (-1, 5), (0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5),
     ] */
 
-    let grid_size = 3i32;
+    let grid_size = 4i32;
     /* [(-1,-1), (0,-1), (1, -1), (2, -1),
      (-1, 0), (0, 0), (1, 0), (2, 0),
      (-1, 1), (0, 1), (1, 1), (2, 1),
@@ -352,12 +352,48 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
 }
 
 /// Kind of water on this tile.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RiverKind {
     Ocean,
-    Lake,
+    Lake  {
+        /// In addition to a downhill node (pointing to, eventually, the bottom of the lake), each
+        /// lake also has a "pass" that identifies the direction out of which water should flow
+        /// from this lake if it is minimally flooded.  While some lakes may be too full for this
+        /// to be the actual pass used by their enclosing lake, we still use this as a way to make
+        /// sure that lake connections to rivers flow in the correct direction.
+        neighbor_pass_pos: Vec2<i32>,
+    },
     /// River should be maximal.
-    River,
+    River {
+        /// Dimensions of the river's cross-sectional area, as m × m (rivers are approximated
+        /// as an open rectangular prism in the direction of the velocity vector).
+        cross_section: Vec2<f32>,
+    },
+}
+
+impl RiverKind {
+    pub fn is_river(&self) -> bool {
+        if let RiverKind::River { .. } = *self {
+            true
+        } else {
+            false
+        }
+    }
+}
+
+impl PartialOrd for RiverKind {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (*self, *other) {
+            (RiverKind::Ocean, RiverKind::Ocean) => Some(Ordering::Equal),
+            (RiverKind::Ocean, _) => Some(Ordering::Less),
+            (_, RiverKind::Ocean) => Some(Ordering::Greater),
+            (RiverKind::Lake { .. }, RiverKind::Lake { .. }) => None,
+            (RiverKind::Lake { .. }, _) => Some(Ordering::Less),
+            (_, RiverKind::Lake { .. }) => Some(Ordering::Greater),
+            (RiverKind::River { .. }, RiverKind::River { .. }) => None,
+            (_, RiverKind::River { .. }) => Some(Ordering::Greater),
+        }
+    }
 }
 
 /// From velocity and cross_section we can calculate the volumetric flow rate, as the
@@ -373,9 +409,6 @@ pub struct RiverData {
     ///
     /// TODO: To represent this in a better-packed way, use u8s instead (as "f8s").
     pub(crate) velocity: Vec3<f32>,
-    /// Dimensions of the river's cross-sectional area, as m × m (rivers are approximated
-    /// as an open rectangular prism in the direction of the velocity vector).
-    pub(crate) cross_section: Vec2<f32>,
     /// The computed derivative for the segment of river starting at this chunk (and flowing
     /// downhill).  Should be 0 at endpoints.  For rivers with more than one incoming segment, we
     /// weight the derivatives by flux (cross-sectional area times velocity) which is correlated
@@ -399,6 +432,12 @@ pub struct RiverData {
     /// wide enough.  In such cases we may choose to render the rivers as particularly deep in
     /// those places.
     pub(crate) neighbor_rivers: Vec<u32>,
+}
+
+impl RiverData {
+    pub fn is_river(&self) -> bool {
+        self.river_kind.as_ref().map(RiverKind::is_river).unwrap_or(false)
+    }
 }
 
 /// Draw rivers and assign them heights, widths, and velocities.  Take some liberties with the
@@ -427,7 +466,7 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
     let neighbor_coef =
         Vec2::new(TerrainChunkSize::RECT_SIZE.x as f32, TerrainChunkSize::RECT_SIZE.y as f32);
     // NOTE: This technically makes us discontinuous, so we should be cautious about using this.
-    let derivative_divisor = 1.03125;
+    let derivative_divisor = 1.0;//1.03125;
     for &chunk_idx in newh.into_iter().rev() {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
@@ -438,12 +477,60 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             continue;
         }
         let downhill_idx = downhill_idx as usize;
+        // First, we calculate the river's volumetric flow rate.
+        let dxy = (uniform_idx_as_vec2(downhill_idx) - uniform_idx_as_vec2(chunk_idx))
+            .map(|e| e as f32);
+        let neighbor_dim = neighbor_coef * dxy;
+        let chunk_drainage = drainage[chunk_idx];
+        // Volumetric flow rate is just the total drainage area to this chunk, times rainfall
+        // height per chunk per minute (needed in order to use this as a m³ volume).
+        // TODO: consider having different rainfall rates (and including this information in the
+        // computation of drainage).
+        let volumetric_flow_rate = chunk_drainage * CONFIG.rainfall_chunk_rate;
+        let river = &rivers[chunk_idx];
+
+        // We know the drainage to this node is just chunk_drainage - 1.0 (the amount of
+        // rainfall this chunk is said to get), so we don't need to explicitly remember the
+        // incoming mass.  How do we find a slope for endpoints where there is no incoming data?
+        // Currently, we just assume it's set to 0.0.
+        // TODO: Fix this when we add differing amounts of rainfall.
+        let incoming_drainage = chunk_drainage - 1.0;
+        let river_spline_derivative = if incoming_drainage == 0.0 {
+            Vec2::zero()
+        } else {
+            // "Velocity of center of mass" of splines of incoming flows.
+            let river_prev_slope = river.spline_derivative / incoming_drainage;
+            // NOTE: We need to make sure the slope doesn't get *too* crazy.
+            // ((dpx - cx) - 4 * MAX).abs() = bx
+            // NOTE: This will fail if the distance between chunks in any direction
+            // is exactly TerrainChunkSize::RECT * 4.0, but hopefully this should not be possible.
+            // NOTE: This isn't measuring actual distance, you can go farther on diagonals.
+            let max_deriv = (neighbor_dim - neighbor_coef * 4.0);
+            let extra_divisor = river_prev_slope
+                .map2(max_deriv, |e, f| (e / f).abs())
+                .reduce_partial_max();
+            // Set up the river's spline derivative.  For each incoming river at pos with
+            // river_spline_derivative bx, we can compute our interpolated slope as:
+            //   d_x = 2 * (chunk_pos - pos - bx) + bx
+            //       = 2 * (chunk_pos - pos) - bx
+            //
+            // which is exactly twice what was weighted by uphill nodes to get our
+            // river_spline_derivative in the first place.
+            //
+            // NOTE: this probably implies that the distance shouldn't be normalized, since the
+            // distances aren't actually equal between x and y... we'll see what happens.
+            if extra_divisor > 1.0 {
+                river_prev_slope / extra_divisor
+            } else {
+                river_prev_slope
+            }
+        };
+
         let indirection_idx = indirection[chunk_idx];
         // Find the lake we are flowing into.
         let lake_idx = if indirection_idx < 0 {
             // If we're a lake bottom, our own indirection is negative.
             let mut lake = &mut rivers[chunk_idx];
-            lake.river_kind = Some(RiverKind::Lake);
             /* let pass_idx = downhill[chunk_idx];
             // Lakes should never (in our current model) be right next to the ocean.
             debug_assert!(pass_idx >= 0); */
@@ -452,12 +539,14 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             // considered proportional to drainage, but in the direction of "lake side of pass to
             // pass.").
             //
-            // NOTE: could/should probably actually do this for the "lake side of the pass."
-            // NOTE: Find the *minimal* neighboring node connected to this lake, not just the
-            // neighboring node.
             let neighbor_pass_pos = uniform_idx_as_vec2(neighbor_pass_idx);
-            let lake_pos = uniform_idx_as_vec2(chunk_idx);
-            let mut lake_direction = /* neighbor_coeff * */(neighbor_pass_pos - lake_pos).map(|e| e as f32);
+            lake.river_kind = Some(RiverKind::Lake {
+                neighbor_pass_pos: neighbor_pass_pos * TerrainChunkSize::RECT_SIZE
+                    .map(|e| e as i32),
+            });
+            lake.spline_derivative = Vec2::zero();
+            let pass_pos = uniform_idx_as_vec2((-indirection_idx) as usize);
+            let mut lake_direction = /* neighbor_coeff * */(neighbor_pass_pos - pass_pos).map(|e| e as f32);
             // Normally we want to not normalize, but for the lake we don't want to generate a
             // super long edge since it could lead to a lot of oscillation... this is another
             // reason why we shouldn't use the lake bottom.
@@ -468,7 +557,7 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             let mut lake_neighbor_pass = &mut rivers[neighbor_pass_idx];
             // We definitely shouldn't have encountered this yet!
             debug_assert!(lake_neighbor_pass.velocity == Vec3::zero());
-            lake_neighbor_pass.river_kind = Some(RiverKind::River);
+            lake_neighbor_pass.river_kind = Some(RiverKind::River { cross_section: Vec2::default() });
             // We also want to add to the out-flow side of the pass a (flux-weighted)
             // derivative coming from the lake center.
             //
@@ -481,6 +570,12 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         } else {
             indirection_idx as usize
         };
+        // Add our spline derivative to the downhill river.
+        let mut downhill_river = &mut rivers[downhill_idx];
+        downhill_river.spline_derivative +=
+            (neighbor_dim * 2.0 - river_spline_derivative) / derivative_divisor
+            * chunk_drainage;
+
         // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
         // pushed towards the point identified by pass_idx).
         let neighbor_pass_idx = downhill[lake_idx];
@@ -494,7 +589,26 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             let lake_water_alt = water_alt[lake_idx];
             if (chunk_water_alt - lake_water_alt).abs() <= epsilon {
                 // Not a river.
-                rivers[chunk_idx].river_kind = Some(RiverKind::Lake);
+                // Check whether we we are the lake side of the pass.
+                // NOTE: Safe because this is a lake.
+                let pass_idx = (-indirection[lake_idx]) as usize;
+                let neighbor_pass_pos = uniform_idx_as_vec2(if pass_idx == chunk_idx/*true*/ {
+                    // This is a pass, so set our flow direction to point to the neighbor pass
+                    // rather than downhill.
+                    // NOTE: Safe because neighbor_pass_idx >= 0.
+                    neighbor_pass_idx as usize
+                } else {
+                    // Just use the lake's usual downhill.
+                    // neighbor_pass_idx as usize
+                    pass_idx
+                    // downhill_idx
+                });
+                let mut lake = &mut rivers[chunk_idx];
+                lake.spline_derivative = river_spline_derivative;
+                lake.river_kind = Some(RiverKind::Lake {
+                    neighbor_pass_pos: neighbor_pass_pos * TerrainChunkSize::RECT_SIZE
+                        .map(|e| e as i32),
+                });
                 continue;
             }
             // Otherwise, we must be a river.
@@ -519,18 +633,8 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         // derivative of our interpolating spline (since this percolates through the whole river
         // network).
 
-        // First, we calculate the river's volumetric flow rate.
-        let chunk_drainage = drainage[chunk_idx];
-        // Volumetric flow rate is just the total drainage area to this chunk, times rainfall
-        // height per chunk per minute (needed in order to use this as a m³ volume).
-        // TODO: consider having different rainfall rates (and including this information in the
-        // computation of drainage).
-        let volumetric_flow_rate = chunk_drainage * CONFIG.rainfall_chunk_rate;
         // Next, we compute the slope from this chunk to its downhill chunk.
         let downhill_water_alt = water_alt[downhill_idx];
-        let dxy = (uniform_idx_as_vec2(downhill_idx) - uniform_idx_as_vec2(chunk_idx))
-            .map(|e| e as f32);
-        let neighbor_dim = neighbor_coef * dxy;
         let neighbor_distance = neighbor_dim.magnitude();
         let dz = (downhill_water_alt - chunk_water_alt) * CONFIG.mountain_scale;
         let slope = dz.abs() / neighbor_distance;
@@ -538,7 +642,8 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             // // This is not a river--how did this even happen?
             // This should only ever happen when a lake flows into another lake, or to an
             // outflow river--i.e. this lake is "internal."
-            rivers[chunk_idx].river_kind = Some(RiverKind::Lake);
+            /* let neighbor_pass_pos = uniform_idx_as_vec2(neighbor_pass_idx as usize);
+            rivers[chunk_idx].river_kind = Some(RiverKind::Lake { neighbor_pass_pos }); */
             panic!("Should this happen at all?");
             // continue;
         }
@@ -587,51 +692,12 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         // the slope of the downhill node.
         let river_direction = Vec3::new(neighbor_dim.x, neighbor_dim.y, dz.signum() * dz);
 
-        let river = &rivers[chunk_idx];
-
-        // We know the drainage to this node is just chunk_drainage - 1.0 (the amount of
-        // rainfall this chunk is said to get), so we don't need to explicitly remember the
-        // incoming mass.  How do we find a slope for endpoints where there is no incoming data?
-        // Currently, we just assume it's set to 0.0.
-        // TODO: Fix this when we add differing amounts of rainfall.
-        let incoming_drainage = chunk_drainage - 1.0;
-        let river_spline_derivative = if incoming_drainage == 0.0 {
-            Vec2::zero()
-        } else {
-            // "Velocity of center of mass" of splines of incoming flows.
-            let river_prev_slope = river.spline_derivative / incoming_drainage;
-            // NOTE: We need to make sure the slope doesn't get *too* crazy.
-            // ((dpx - cx) - 4 * MAX).abs() = bx
-            // NOTE: This will fail if the distance between chunks in any direction
-            // is exactly TerrainChunkSize::RECT * 4.0, but hopefully this should not be possible.
-            // NOTE: This isn't measuring actual distance, you can go farther on diagonals.
-            let max_deriv = (neighbor_dim - neighbor_coef * 4.0);
-            let extra_divisor = river_prev_slope
-                .map2(max_deriv, |e, f| (e / f).abs())
-                .reduce_partial_max();
-            // Set up the river's spline derivative.  For each incoming river at pos with
-            // river_spline_derivative bx, we can compute our interpolated slope as:
-            //   d_x = 2 * (chunk_pos - pos - bx) + bx
-            //       = 2 * (chunk_pos - pos) - bx
-            //
-            // which is exactly twice what was weighted by uphill nodes to get our
-            // river_spline_derivative in the first place.
-            //
-            // NOTE: this probably implies that the distance shouldn't be normalized, since the
-            // distances aren't actually equal between x and y... we'll see what happens.
-            if extra_divisor > 1.0 {
-                river_prev_slope / extra_divisor
-            } else {
-                river_prev_slope
-            }
-        };
-
-
         // Now, we can check whether this is "really" a river.
         // Currently, we just check that width and height are at least 0.5 and
         // CONFIG.river_min_height.
+        let river = &rivers[chunk_idx];
         let is_river =
-            river.river_kind == Some(RiverKind::River) ||
+            river.is_river() ||
             width >= 0.5 && height >= CONFIG.river_min_height;
         let mut downhill_river = &mut rivers[downhill_idx];
         // Add the chunk's river direction minus its initial slope (weighted by the
@@ -639,12 +705,14 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         //
         // TODO: consider utilizing height difference component of flux as well; currently we
         // just discard it in figuring out the spline's slope.
-        downhill_river.spline_derivative +=
-            (river_direction * 2.0 - river_spline_derivative) / derivative_divisor * chunk_drainage;
+        /* downhill_river.spline_derivative +=
+            (river_direction * 2.0 - river_spline_derivative) / derivative_divisor * chunk_drainage; */
 
         if is_river {
             // Provisionally make the downhill chunk a river as well.
-            downhill_river.river_kind = Some(RiverKind::River);
+            downhill_river.river_kind = Some(RiverKind::River {
+                cross_section: Vec2::default(),
+            });
 
             // Additionally, if the cross-sectional area for this river exceeds the diameter of the
             // chunk (ideally in the direction orthogonal to channel flow, but for now we just
@@ -718,10 +786,10 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         // NOTE: Not trying to do this more cleverly because we want to keep the river's neighbors.
         // TODO: Actually put something in the neighbors.
         river.velocity = velocity;
-        river.cross_section = cross_section;
+        // river.cross_section = cross_section;
         river.spline_derivative = river_spline_derivative;
         river.river_kind = if is_river {
-            Some(RiverKind::River)
+            Some(RiverKind::River { cross_section })
         } else {
             None
         };

@@ -310,7 +310,7 @@ impl WorldSim {
         // Assumes μ = 0, σ = 1
         let logistic_cdf = |x: f32| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
-        let erosion_pow = 2.0;//0.6/*0.5*//*1.0*/;//1.0;
+        let erosion_pow = 2.0/*1.5*/;//0.6/*0.5*//*1.0*/;//1.0;
         let n_steps = 50;//100;//50;
         let erosion_factor = |x: f32| logistic_cdf(erosion_pow * logit(x))/*x.powf(erosion_pow)*/;
         let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, /*96.0 / CONFIG.mountain_scale*//*32.0 / CONFIG.mountain_scale*/max_erosion_per_delta_t,
@@ -551,8 +551,8 @@ impl WorldSim {
         // let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
 
         let is_underwater = |chunk_idx: usize| match rivers[chunk_idx].river_kind {
-            Some(RiverKind::Ocean) | Some(RiverKind::Lake) => true,
-            Some(RiverKind::River) => false, // TODO: inspect width
+            Some(RiverKind::Ocean) | Some(RiverKind::Lake { .. }) => true,
+            Some(RiverKind::River { .. }) => false, // TODO: inspect width
             None => false,
         };
 
@@ -703,8 +703,8 @@ impl WorldSim {
             let water_alt = ((alt.max(water_alt) - CONFIG.sea_level) / CONFIG.mountain_scale).min(1.0).max(0.0);
             match river_kind {
                 Some(RiverKind::Ocean) => u32::from_le_bytes([64, 32, 0, 255]),
-                Some(RiverKind::Lake) => u32::from_le_bytes([64 + (water_alt * 191.0) as u8, 32 + (water_alt * 95.0) as u8, 0, 255]),
-                Some(RiverKind::River) => u32::from_le_bytes([64 + (alt * 191.0) as u8, 32 + (alt * 95.0) as u8, 0, 255]),
+                Some(RiverKind::Lake { .. }) => u32::from_le_bytes([64 + (water_alt * 191.0) as u8, 32 + (water_alt * 95.0) as u8, 0, 255]),
+                Some(RiverKind::River { .. }) => u32::from_le_bytes([64 + (alt * 191.0) as u8, 32 + (alt * 95.0) as u8, 0, 255]),
                 None => u32::from_le_bytes([0, (alt * 255.0) as u8, 0, 255]),
             }
         }).collect()
@@ -913,7 +913,7 @@ impl WorldSim {
                 let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
                 let has_river = self
                     .get(neighbor_pos)
-                    .and_then(|c| c.river.river_kind) == Some(RiverKind::River);
+                    .map(|c| c.river.is_river()) == Some(true);
                 if (neighbor_pos - chunk_pos).reduce_partial_max() <= 1 || has_river {
                     self.get(neighbor_pos).map(|c| c.get_base_z())
                 } else {
@@ -1269,8 +1269,8 @@ impl SimChunk {
         let logistic_cdf = |x: f32| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
 
         let is_underwater = match river.river_kind {
-            Some(RiverKind::Ocean) | Some(RiverKind::Lake) => true,
-            Some(RiverKind::River) => false, // TODO: inspect width
+            Some(RiverKind::Ocean) | Some(RiverKind::Lake { .. }) => true,
+            Some(RiverKind::River { .. }) => false, // TODO: inspect width
             None => false,
         };
         if flux * water_factor >= 1.0 {
@@ -1278,11 +1278,13 @@ impl SimChunk {
         }
         let river_xy = Vec2::new(river.velocity.x, river.velocity.y).magnitude();
         let river_slope = river.velocity.z / river_xy;
-        if river.cross_section.x >= 0.5 && river.cross_section.y >= CONFIG.river_min_height ||
-            river.river_kind == Some(RiverKind::River) && river_slope.abs() >= 1.0 {
-            println!("Big area! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river,
-                     river_slope);
-            if river_slope.abs() >= 1.0 && river.cross_section.x >= /*0.25*/1.0 {
+        if /*river.cross_section.x >= 0.5 && river.cross_section.y >= CONFIG.river_min_height ||*/
+            let Some(RiverKind::River { cross_section }) = river.river_kind {
+            if cross_section.x >= 0.5 && cross_section.y >= CONFIG.river_min_height {
+                println!("Big area! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river,
+                         river_slope);
+            }
+            if river_slope.abs() >= 1.0 && cross_section.x >= /*0.25*/1.0 {
                 println!("Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river, river_slope);
             }
         }

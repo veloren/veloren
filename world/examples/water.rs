@@ -36,8 +36,8 @@ fn main() {
                 let water_alt = ((alt.max(water_alt) - CONFIG.sea_level) / CONFIG.mountain_scale).min(1.0).max(0.0);
                 buf[j * W + i] = match river_kind {
                     Some(RiverKind::Ocean) => u32::from_le_bytes([64, 32, 0, 255]),
-                    Some(RiverKind::Lake) => u32::from_le_bytes([64 + (water_alt * 191.0) as u8, 32 + (water_alt * 95.0) as u8, 0, 255]),
-                    Some(RiverKind::River) => u32::from_le_bytes([64 + (alt * 191.0) as u8, 32 + (alt * 95.0) as u8, 0, 255]),
+                    Some(RiverKind::Lake { .. }) => u32::from_le_bytes([64 + (water_alt * 191.0) as u8, 32 + (water_alt * 95.0) as u8, 0, 255]),
+                    Some(RiverKind::River { .. }) => u32::from_le_bytes([64 + (alt * 191.0) as u8, 32 + (alt * 95.0) as u8, 0, 255]),
                     None => u32::from_le_bytes([0, (alt * 255.0) as u8, 0, 255]),
                 };
                 /* u32::from_le_bytes([loc_color.0, loc_color.1, alt, alt]);
