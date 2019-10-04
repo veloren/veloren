@@ -1,4 +1,4 @@
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR_2};
+use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
 use client::{self, Client};
 use common::comp;
 use conrod_core::{
@@ -31,7 +31,7 @@ pub struct Map<'a> {
     client: &'a Client,
 
     imgs: &'a Imgs,
-    _fonts: &'a Fonts,
+    fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -41,7 +41,7 @@ impl<'a> Map<'a> {
             _show: show,
             imgs,
             client,
-            _fonts: fonts,
+            fonts: fonts,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -119,15 +119,16 @@ impl<'a> Widget for Map<'a> {
         // Location Name
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(state.ids.map_bg, 40.0)
-                .font_size(40)
-                .color(TEXT_COLOR_2)
+                .mid_top_with_margin_on(state.ids.map_bg, 70.0)
+                .font_size(20)
+                .color(TEXT_COLOR)
                 .parent(state.ids.map_frame_r)
                 .set(state.ids.location_name, ui),
             None => Text::new(" ")
                 .mid_top_with_margin_on(state.ids.map_bg, 3.0)
                 .font_size(40)
-                .color(TEXT_COLOR_2)
+                .font_id(self.fonts.alkhemi)
+                .color(TEXT_COLOR)
                 .set(state.ids.location_name, ui),
         }
         // Map Image
@@ -150,8 +151,8 @@ impl<'a> Widget for Map<'a> {
         let y = player_pos.y as f64 / worldsize * 700.0;
         // Indicator
         Image::new(self.imgs.map_indicator)
-            .bottom_left_with_margins_on(state.ids.grid, y, x - 11.5)
-            .w_h(23.0, 25.0)
+            .bottom_left_with_margins_on(state.ids.grid, y, x - (12.0 * 1.4) / 2.0)
+            .w_h(12.0 * 1.4, 21.0 * 1.4)
             .floating(true)
             .parent(ui.window)
             .set(state.ids.indicator, ui);

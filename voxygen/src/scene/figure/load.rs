@@ -58,8 +58,8 @@ fn color_segment(
     // TODO move some of the colors to common
     mat_segment.to_segment(|mat| match mat {
         Material::Skin => skin.rgb(),
-        Material::SkinDark => skin.light_rgb(),
-        Material::SkinLight => skin.dark_rgb(),
+        Material::SkinDark => skin.dark_rgb(),
+        Material::SkinLight => skin.light_rgb(),
         Material::Hair => hair_color,
         // TODO add back multiple colors
         Material::EyeLight => eye_color.light_rgb(),
@@ -201,11 +201,12 @@ pub fn mesh_chest(
     eye_color: u8,
 ) -> Mesh<FigurePipeline> {
     let chest_color = match chest {
-        Chest::Blue => (28, 66, 109),
-        Chest::Brown => (54, 30, 26),
-        Chest::Dark => (24, 19, 17),
-        Chest::Green => (49, 95, 59),
-        Chest::Orange => (148, 52, 33),
+        Chest::Blue => (44, 74, 109),
+        Chest::Brown => (90, 49, 43),
+        Chest::Dark => (73, 63, 59),
+        Chest::Green => (59, 95, 67),
+        Chest::Orange => (109, 58, 58),
+        Chest::Midnight => (29, 26, 33),
     };
 
     let color = |mat_segment| {

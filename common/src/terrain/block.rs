@@ -43,7 +43,7 @@ impl BlockKind {
     pub fn is_air(&self) -> bool {
         match self {
             BlockKind::Air => true,
-            BlockKind::LargeCactus => false,
+            BlockKind::LargeCactus => true,
             BlockKind::BarrelCactus => true,
             BlockKind::RoundCactus => true,
             BlockKind::ShortCactus => true,
