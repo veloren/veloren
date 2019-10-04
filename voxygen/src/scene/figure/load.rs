@@ -236,7 +236,7 @@ pub fn mesh_belt(belt: Belt) -> Mesh<FigurePipeline> {
     load_mesh(
         match belt {
             //Belt::Default => "figure/body/belt_male",
-            Belt::Dark => "armor.belt.belt_dark",
+            Belt::Dark => "armor.belt.dark",
         },
         Vec3::new(-4.0, -3.5, 2.0),
     )
@@ -277,8 +277,8 @@ pub fn mesh_left_hand(
 ) -> Mesh<FigurePipeline> {
     let hand_segment = color_segment(
         graceful_load_mat_segment(match hand {
-            Hand::Bare => "armor.hand.hand_left",
-            Hand::Dark => "armor.hand.hand_left",
+            Hand::Bare => "armor.hand.default_left",
+            Hand::Dark => "armor.hand.default_left",
         }),
         race.skin_color(skin),
         race.hair_color(hair_color),
@@ -297,8 +297,8 @@ pub fn mesh_right_hand(
 ) -> Mesh<FigurePipeline> {
     let hand_segment = color_segment(
         graceful_load_mat_segment(match hand {
-            Hand::Bare => "armor.hand.hand_right",
-            Hand::Dark => "armor.hand.hand_right",
+            Hand::Bare => "armor.hand.default_right",
+            Hand::Dark => "armor.hand.default_right",
         }),
         race.skin_color(skin),
         race.hair_color(hair_color),
@@ -379,7 +379,7 @@ pub fn mesh_left_shoulder(
     let shoulder_segment = color_segment(
         graceful_load_mat_segment(match shoulder {
             Shoulder::None => return Mesh::new(),
-            Shoulder::Brown1 => "armor.shoulder.shoulder_l_brown",
+            Shoulder::Brown1 => "armor.shoulder.brown_left",
         }),
         race.skin_color(skin),
         race.hair_color(hair_color),
@@ -399,7 +399,7 @@ pub fn mesh_right_shoulder(
     let shoulder_segment = color_segment(
         graceful_load_mat_segment(match shoulder {
             Shoulder::None => return Mesh::new(),
-            Shoulder::Brown1 => "armor.shoulder.shoulder_r_brown",
+            Shoulder::Brown1 => "armor.shoulder.brown_right",
         }),
         race.skin_color(skin),
         race.hair_color(hair_color),
