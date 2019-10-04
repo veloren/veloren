@@ -12,7 +12,6 @@ pub enum HealthSource {
     Command,
     LevelUp,
     Item,
-    Creation,
     Unknown,
 }
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -168,9 +167,10 @@ impl Stats {
         self.is_dead = false;
     }
 
-    // TODO: Delet this once stat points will be a thing
-    pub fn level_hp_bonus(&mut self, level: u32) {
-        self.health.set_maximum((10 * level) / 2);
+    // TODO: Delete this once stat points will be a thing
+    pub fn update_hp_bonus(&mut self, level: u32) {
+        self.health
+            .set_maximum(self.health.maximum() + (10 * level) / 2);
     }
 }
 

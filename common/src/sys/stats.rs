@@ -43,7 +43,7 @@ impl<'a> System<'a> for Sys {
                 stat.exp.change_by(-(stat.exp.maximum() as i64));
                 stat.exp.change_maximum_by(25);
                 stat.level.change_by(1);
-                stat.health.set_maximum(stat.health.maximum() + 10);
+                stat.update_hp_bonus(stat.level.level());
                 stat.health
                     .set_to(stat.health.maximum(), HealthSource::LevelUp)
             }
