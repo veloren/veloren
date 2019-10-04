@@ -489,11 +489,18 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Render Name Tags
-            for (pos, name, scale) in (&entities, &pos, &stats, players.maybe(), scales.maybe())
+            for (pos, name, level, scale) in (
+                &entities,
+                &pos,
+                &stats,
+                &stats,
+                players.maybe(),
+                scales.maybe(),
+            )
                 .join()
-                .filter(|(entity, _, stats, _, _)| *entity != me && !stats.is_dead)
+                .filter(|(entity, _, stats, _, _, _)| *entity != me && !stats.is_dead)
                 // Don't process nametags outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _, _)| {
+                .filter(|(_, pos, _, _, _, _)| {
                     Vec2::from(pos.0 - player_pos)
                         .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
                             d.abs() as f32 / sz as f32
@@ -501,7 +508,7 @@ impl Hud {
                         .magnitude()
                         < view_distance as f32
                 })
-                .map(|(_, pos, stats, player, scale)| {
+                .map(|(_, pos, stats, _, player, scale)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -509,16 +516,17 @@ impl Hud {
                     } else {
                         &stats.name
                     };
-                    (pos.0, name, scale)
+                    (pos.0, name, stats.level, scale)
                 })
             {
+                let info = format!("{} Level {}", name, level.level());
                 let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
                 let id = name_id_walker.next(
                     &mut self.ids.name_tags,
                     &mut ui_widgets.widget_id_generator(),
                 );
-                Text::new(&name)
+                Text::new(&info)
                     .font_size(20)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
                     .x_y(0.0, 0.0)
