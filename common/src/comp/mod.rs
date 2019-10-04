@@ -9,6 +9,7 @@ mod last;
 mod location;
 mod phys;
 mod player;
+pub mod projectile;
 mod stats;
 mod visual;
 
@@ -22,7 +23,8 @@ pub use inputs::CanBuild;
 pub use inventory::{item, Inventory, InventoryUpdate, Item};
 pub use last::Last;
 pub use location::Waypoint;
-pub use phys::{ForceUpdate, Mass, Ori, PhysicsState, Pos, Scale, Vel};
+pub use phys::{ForceUpdate, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::Player;
+pub use projectile::Projectile;
 pub use stats::{Equipment, Exp, HealthSource, Level, Stats};
 pub use visual::LightEmitter;
