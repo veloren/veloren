@@ -215,6 +215,13 @@ lazy_static! {
              false,
              handle_debug_column,
          ),
+         ChatCommand::new(
+             "give_exp",
+             "{} {}",
+             "/give_exp <playername> <amount> : Give experience to specified player",
+             true,
+             handle_exp,
+         ),
     ];
 }
 
@@ -613,6 +620,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             Ok("carpet_human_square") => comp::object::Body::CarpetHumanSquare,
             Ok("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
             Ok("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
+            Ok("crafting_bench") => comp::object::Body::CraftingBench,
             _ => {
                 return server.clients.notify(
                     entity,
@@ -711,7 +719,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 light.strength = s.max(0.1).min(10.0);
                 server.clients.notify(
                     entity,
-                    ServerMsg::private(String::from("You played with flame strength.")),
+                    ServerMsg::private(String::from("You adjusted flame strength.")),
                 );
             }
         } else {
@@ -745,7 +753,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
 
         server.clients.notify(
             entity,
-            ServerMsg::private(String::from("You lighted your lantern.")),
+            ServerMsg::private(String::from("You lit your lantern.")),
         );
     }
 }
@@ -927,5 +935,35 @@ spawn_rate {:?} "#,
         server
             .clients
             .notify(entity, ServerMsg::private(String::from(action.help_string)));
+    }
+}
+
+fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (a_alias, a_exp) = scan_fmt_some!(&args, action.arg_fmt, String, i64);
+    if let (Some(alias), Some(exp)) = (a_alias, a_exp) {
+        let ecs = server.state.ecs_mut();
+        let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == alias)
+            .map(|(entity, _)| entity);
+
+        match opt_player {
+            Some(_alias) => {
+                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(entity) {
+                    stats.exp.change_by(exp);
+                } else {
+                    server.clients.notify(
+                        entity,
+                        ServerMsg::private(String::from("Something go wrong")),
+                    );
+                }
+            }
+            _ => {
+                server.clients.notify(
+                    entity,
+                    ServerMsg::private(format!("Player '{}' not found!", alias)),
+                );
+            }
+        }
     }
 }

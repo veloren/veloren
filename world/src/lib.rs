@@ -1,11 +1,6 @@
 #![deny(unsafe_code)]
-#![feature(
-    const_generics,
-    euclidean_division,
-    bind_by_move_pattern_guards,
-    option_flattening,
-    label_break_value
-)]
+#![allow(incomplete_features)]
+#![feature(const_generics, option_flattening, label_break_value)]
 
 mod all;
 mod block;

@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
-#![feature(drain_filter, bind_by_move_pattern_guards)]
+#![feature(drain_filter)]
 
 pub mod auth_provider;
 pub mod client;
@@ -21,6 +21,7 @@ use common::{
     comp,
     effect::Effect,
     event::{EventBus, ServerEvent},
+    msg::{validate_chat_msg, ChatMsgValidationError, MAX_BYTES_CHAT_MSG},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
@@ -202,14 +203,18 @@ impl Server {
         pos: comp::Pos,
         vel: comp::Vel,
         body: comp::Body,
+        projectile: comp::Projectile,
     ) -> EcsEntityBuilder {
         state
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(vel)
-            .with(comp::Ori(Vec3::unit_y()))
+            .with(comp::Ori(vel.0.normalized()))
+            .with(comp::Mass(0.0))
             .with(body)
+            .with(projectile)
+            .with(comp::Sticky)
     }
 
     pub fn create_player_character(
@@ -287,7 +292,11 @@ impl Server {
                     }
                 }
 
-                ServerEvent::Shoot(entity) => {
+                ServerEvent::Shoot {
+                    entity,
+                    dir,
+                    projectile,
+                } => {
                     let pos = state
                         .ecs()
                         .read_storage::<comp::Pos>()
@@ -297,13 +306,23 @@ impl Server {
                     Self::create_projectile(
                         state,
                         comp::Pos(pos),
-                        comp::Vel(Vec3::new(0.0, 100.0, 3.0)),
-                        comp::Body::Object(comp::object::Body::Bomb),
+                        comp::Vel(dir * 100.0),
+                        comp::Body::Object(comp::object::Body::Arrow),
+                        projectile,
                     )
                     .build();
                 }
 
-                ServerEvent::Die { entity, cause } => {
+                ServerEvent::Damage { uid, dmg, cause } => {
+                    let ecs = state.ecs_mut();
+                    if let Some(entity) = ecs.entity_from_uid(uid.into()) {
+                        if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(entity) {
+                            stats.health.change_by(-(dmg as i32), cause);
+                        }
+                    }
+                }
+
+                ServerEvent::Destroy { entity, cause } => {
                     let ecs = state.ecs_mut();
                     // Chat message
                     if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
@@ -326,7 +345,7 @@ impl Server {
                         clients.notify_registered(ServerMsg::kill(msg));
                     }
 
-                    // Give EXP to the client
+                    // Give EXP to the killer if entity had stats
                     let mut stats = ecs.write_storage::<comp::Stats>();
 
                     if let Some(entity_stats) = stats.get(entity).cloned() {
@@ -529,7 +548,7 @@ impl Server {
                         "Humanoid".to_string(),
                         Some(comp::Item::Tool {
                             kind: comp::item::Tool::Sword,
-                            power: 10,
+                            power: 5,
                         }),
                     );
                     let body = comp::Body::Humanoid(comp::humanoid::Body::random());
@@ -1002,8 +1021,17 @@ impl Server {
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead
-                            | ClientState::Character => new_chat_msgs
-                                .push((Some(entity), ServerMsg::ChatMsg { chat_type, message })),
+                            | ClientState::Character => match validate_chat_msg(&message) {
+                                Ok(()) => new_chat_msgs.push((
+                                    Some(entity),
+                                    ServerMsg::ChatMsg { chat_type, message },
+                                )),
+                                Err(ChatMsgValidationError::TooLong) => log::warn!(
+                                    "Recieved a chat message that's too long (max:{} len:{})",
+                                    MAX_BYTES_CHAT_MSG,
+                                    message.len()
+                                ),
+                            },
                             ClientState::Pending => {}
                         },
                         ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {

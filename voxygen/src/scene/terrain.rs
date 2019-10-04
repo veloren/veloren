@@ -82,7 +82,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         }),
 
         BlockKind::BlueFlower => Some(SpriteConfig {
-            variations: 5,
+            variations: 6,
             wind_sway: 0.1,
         }),
         BlockKind::PinkFlower => Some(SpriteConfig {
@@ -94,7 +94,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.1,
         }),
         BlockKind::WhiteFlower => Some(SpriteConfig {
-            variations: 1,
+            variations: 2,
             wind_sway: 0.1,
         }),
         BlockKind::YellowFlower => Some(SpriteConfig {
@@ -237,7 +237,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::LargeCactus, 0),
                     make_model(
                         "voxygen.voxel.sprite.cacti.large_cactus",
-                        Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::new(-13.5, -5.5, 0.0),
                     ),
                 ),
                 (
@@ -320,6 +320,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 (
+                    (BlockKind::BlueFlower, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_blue_6",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
                     (BlockKind::PinkFlower, 0),
                     make_model(
                         "voxygen.voxel.sprite.flowers.flower_pink_1",
@@ -372,6 +379,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WhiteFlower, 0),
                     make_model(
                         "voxygen.voxel.sprite.flowers.flower_white_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WhiteFlower, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_white_2",
                         Vec3::new(-6.0, -6.0, 0.0),
                     ),
                 ),
@@ -603,8 +617,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                 (
                     (BlockKind::Velorite, 0),
                     make_model(
-                        "voxygen.voxel.sprite.velorite.velorite",
-                        Vec3::new(-5.0, -5.0, -0.0),
+                        "voxygen.voxel.sprite.velorite.velorite_ore",
+                        Vec3::new(-5.0, -5.0, -5.0),
                     ),
                 ),
             ]

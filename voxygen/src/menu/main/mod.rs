@@ -8,6 +8,7 @@ use crate::{window::Event, Direction, GlobalState, PlayState, PlayStateResult};
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use log::warn;
+use sha2::{Digest, Sha512};
 #[cfg(feature = "singleplayer")]
 use start_singleplayer::StartSingleplayerState;
 use std::time::Duration;
@@ -35,6 +36,11 @@ impl PlayState for MainMenuState {
 
         // Used for client creation.
         let mut client_init: Option<ClientInit> = None;
+
+        // Kick off title music
+        global_state
+            .audio
+            .play_music("voxygen.audio.soundtrack.veloren_title_tune-3");
 
         loop {
             // Handle window events.
@@ -108,7 +114,16 @@ impl PlayState for MainMenuState {
                             client_init = client_init.or(Some(ClientInit::new(
                                 (server_address, DEFAULT_PORT, false),
                                 player,
-                                password,
+                                {
+                                    // TODO: Switch to Argon2
+                                    let mut hasher = Sha512::new();
+                                    hasher.input(password.clone());
+                                    let mut out = String::new();
+                                    for i in hasher.result().iter() {
+                                        out.push_str(&format!("{:x}", i));
+                                    }
+                                    out
+                                },
                                 false,
                             )));
                         } else {

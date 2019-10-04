@@ -31,7 +31,7 @@ pub struct MiniMap<'a> {
 
     imgs: &'a Imgs,
     world_map: Id,
-    _fonts: &'a Fonts,
+    fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -44,7 +44,7 @@ impl<'a> MiniMap<'a> {
             client,
             imgs,
             world_map,
-            _fonts: fonts,
+            fonts: fonts,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -93,7 +93,6 @@ impl<'a> Widget for MiniMap<'a> {
                 .set(state.ids.mmap_frame_bg, ui);
             // Map Image
             Image::new(self.world_map)
-                .clone()
                 .middle_of(state.ids.mmap_frame_bg)
                 .w_h(92.0 * 2.0, 82.0 * 2.0)
                 .parent(state.ids.mmap_frame_bg)
@@ -181,12 +180,14 @@ impl<'a> Widget for MiniMap<'a> {
                 // Region Name
                 Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
                     .mid_top_with_margin_on(ui.window, 200.0)
-                    .font_size(80)
+                    .font_size(70)
+                    .font_id(self.fonts.alkhemi)
                     .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                     .set(state.ids.zone_display_bg, ui);
                 Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
                     .top_left_with_margins_on(state.ids.zone_display_bg, -2.5, -2.5)
-                    .font_size(80)
+                    .font_size(70)
+                    .font_id(self.fonts.alkhemi)
                     .color(Color::Rgba(1.0, 1.0, 1.0, fade))
                     .set(state.ids.zone_display, ui);
             }
@@ -202,13 +203,14 @@ impl<'a> Widget for MiniMap<'a> {
         // Title
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(state.ids.mmap_frame, 3.0)
-                .font_size(14)
+                .mid_top_with_margin_on(state.ids.mmap_frame, 0.0)
+                .font_size(18)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
             None => Text::new(" ")
-                .mid_top_with_margin_on(state.ids.mmap_frame, 3.0)
-                .font_size(14)
+                .mid_top_with_margin_on(state.ids.mmap_frame, 0.0)
+                .font_size(18)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
         }

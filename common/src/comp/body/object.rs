@@ -2,6 +2,7 @@ use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Body {
+    Arrow,
     Bomb,
     Scarecrow,
     Cauldron,
@@ -49,6 +50,7 @@ pub enum Body {
     CarpetHumanSquare2,
     CarpetHumanSquircle,
     Pouch,
+    CraftingBench,
 }
 
 impl Body {
@@ -58,7 +60,8 @@ impl Body {
     }
 }
 
-const ALL_OBJECTS: [Body; 46] = [
+const ALL_OBJECTS: [Body; 48] = [
+    Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
     Body::Cauldron,
@@ -105,4 +108,5 @@ const ALL_OBJECTS: [Body; 46] = [
     Body::CarpetHumanSquare,
     Body::CarpetHumanSquare2,
     Body::CarpetHumanSquircle,
+    Body::CraftingBench,
 ];

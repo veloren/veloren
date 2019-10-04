@@ -22,7 +22,7 @@ impl Animation for WieldAnimation {
 
         let wave = (anim_time as f32 * 12.0).sin();
 
-        match Tool::Hammer {
+        match Tool::Bow {
             //TODO: Inventory
             Tool::Sword => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.75, 0.25);
@@ -59,15 +59,15 @@ impl Animation for WieldAnimation {
                 next.weapon.scale = Vec3::one();
             }
             Tool::Hammer => {
-                next.l_hand.offset = Vec3::new(-7.0, 8.25, 3.0);
-                next.l_hand.ori = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(-1.2)
-                    * Quaternion::rotation_z(wave * -0.25);
+                next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
+                next.l_hand.ori = Quaternion::rotation_x(1.27 + wave * 0.25)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
                 next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.offset = Vec3::new(7.0, 7.0, -1.5);
-                next.r_hand.ori = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(-1.2)
-                    * Quaternion::rotation_z(wave * -0.25);
+                next.r_hand.offset = Vec3::new(7.0, 2.5, -1.25);
+                next.r_hand.ori = Quaternion::rotation_x(1.27 + wave * 0.25)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(-0.3);
                 next.r_hand.scale = Vec3::one() * 1.01;
                 next.weapon.offset = Vec3::new(
                     5.0 + skeleton_attr.weapon_x,
@@ -75,7 +75,7 @@ impl Animation for WieldAnimation {
                     -2.0,
                 );
                 next.weapon.ori = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(-1.2)
+                    * Quaternion::rotation_y(-1.27)
                     * Quaternion::rotation_z(wave * -0.25);
                 next.weapon.scale = Vec3::one();
             }
@@ -114,20 +114,24 @@ impl Animation for WieldAnimation {
                 next.weapon.scale = Vec3::one();
             }
             Tool::Bow => {
-                next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
-                next.l_hand.ori = Quaternion::rotation_x(-0.3);
+                next.l_hand.offset = Vec3::new(-4.0, 5.0, 0.0);
+                next.l_hand.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.9)
+                    * Quaternion::rotation_z(0.85);
                 next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
-                next.r_hand.ori = Quaternion::rotation_x(-0.3);
+                next.r_hand.offset = Vec3::new(2.0, 8.0, -3.5);
+                next.r_hand.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.7)
+                    * Quaternion::rotation_z(0.85);
                 next.r_hand.scale = Vec3::one() * 1.01;
                 next.weapon.offset = Vec3::new(
-                    -6.0 + skeleton_attr.weapon_x,
-                    4.5 + skeleton_attr.weapon_y,
-                    0.0,
+                    9.0 + skeleton_attr.weapon_x,
+                    10.0 + skeleton_attr.weapon_y,
+                    -3.0,
                 );
-                next.weapon.ori = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.0);
+                next.weapon.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.7)
+                    * Quaternion::rotation_z(0.85);
                 next.weapon.scale = Vec3::one();
             }
             Tool::Daggers => {

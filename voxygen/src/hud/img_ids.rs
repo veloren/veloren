@@ -106,8 +106,19 @@ image_ids! {
         twohaxe_m2: "voxygen.element.icons.2haxe_m2",
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
+
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
+        // Icons
+        flower: "voxygen.element.icons.item_flower",
+        grass: "voxygen.element.icons.item_grass",
+        apple: "voxygen.element.icons.item_apple",
+        mushroom: "voxygen.element.icons.item_mushroom",
+
+        // Map
+        map_indicator: "voxygen.element.buttons.map_indicator",
+
+        // Crosshair
 
         crosshair_outer_round: "voxygen.element.misc_bg.crosshair_outer_1",
         crosshair_outer_round_edges: "voxygen.element.misc_bg.crosshair_outer_2",
@@ -211,6 +222,7 @@ image_ids! {
         <ImageGraphic>
 
         charwindow_gradient:"voxygen.element.misc_bg.charwindow",
+        map_placeholder: "voxygen.background.map",
 
         // Spell Book Window
         spellbook_icon: "voxygen.element.icons.spellbook",

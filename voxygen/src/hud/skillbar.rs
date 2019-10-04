@@ -90,7 +90,7 @@ pub enum ResourceType {
 pub struct Skillbar<'a> {
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
-    _fonts: &'a Fonts,
+    fonts: &'a Fonts,
     stats: &'a Stats,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -106,7 +106,7 @@ impl<'a> Skillbar<'a> {
     ) -> Self {
         Self {
             imgs,
-            _fonts: fonts,
+            fonts: fonts,
             stats,
             global_state,
             current_resource: ResourceType::Mana,
@@ -229,6 +229,7 @@ impl<'a> Widget for Skillbar<'a> {
         Text::new(&level_up_text)
             .middle_of(state.ids.level_align)
             .font_size(30)
+            .font_id(self.fonts.ronda)
             .color(Color::Rgba(1.0, 1.0, 1.0, fade_level))
             .set(state.ids.level_message, ui);
         Image::new(self.imgs.level_up)
@@ -248,6 +249,7 @@ impl<'a> Widget for Skillbar<'a> {
             Text::new("You Died")
                 .mid_top_with_margin_on(ui.window, 60.0)
                 .font_size(40)
+                .font_id(self.fonts.ronda)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_1_bg, ui);
             Text::new(&format!(
@@ -256,12 +258,14 @@ impl<'a> Widget for Skillbar<'a> {
             ))
             .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
             .font_size(15)
+            .font_id(self.fonts.ronda)
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.death_message_2_bg, ui);
 
             Text::new("You Died")
                 .top_left_with_margins_on(state.ids.death_message_1_bg, -2.0, -2.0)
                 .font_size(40)
+                .font_id(self.fonts.ronda)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
             Text::new(&format!(
@@ -298,11 +302,13 @@ impl<'a> Widget for Skillbar<'a> {
                 Text::new(&level)
                     .bottom_left_with_margins_on(state.ids.xp_bar_left, 3.5 * scale, 4.0 * scale)
                     .font_size(10)
+                    .font_id(self.fonts.ronda)
                     .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                     .set(state.ids.level_text, ui);
                 Text::new(&next_level)
                     .bottom_right_with_margins_on(state.ids.xp_bar_right, 3.5 * scale, 4.0 * scale)
                     .font_size(10)
+                    .font_id(self.fonts.ronda)
                     .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                     .set(state.ids.next_level_text, ui);
                 // M1 Slot
@@ -370,6 +376,7 @@ impl<'a> Widget for Skillbar<'a> {
                         4.0 * scale * 1.5,
                     )
                     .font_size(17)
+                    .font_id(self.fonts.ronda)
                     .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
                     .set(state.ids.level_text, ui);
                 Text::new(&next_level)
@@ -379,6 +386,7 @@ impl<'a> Widget for Skillbar<'a> {
                         4.0 * scale * 1.5,
                     )
                     .font_size(17)
+                    .font_id(self.fonts.ronda)
                     .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
                     .set(state.ids.next_level_text, ui);
                 // Alignment for hotbar
@@ -538,61 +546,73 @@ impl<'a> Widget for Skillbar<'a> {
             Text::new("1")
                 .top_right_with_margins_on(state.ids.slot1_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot1_text, ui);
             Text::new("2")
                 .top_right_with_margins_on(state.ids.slot2_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot2_text, ui);
             Text::new("3")
                 .top_right_with_margins_on(state.ids.slot3_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot3_text, ui);
             Text::new("4")
                 .top_right_with_margins_on(state.ids.slot4_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot4_text, ui);
             Text::new("5")
                 .top_right_with_margins_on(state.ids.slot5_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot5_text, ui);
             Text::new("M1")
                 .top_left_with_margins_on(state.ids.m1_slot, 5.0, 5.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.m1_text, ui);
             Text::new("M2")
                 .top_right_with_margins_on(state.ids.m2_slot, 5.0, 5.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.m2_text, ui);
             Text::new("6")
                 .top_left_with_margins_on(state.ids.slot6_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot6_text, ui);
             Text::new("7")
                 .top_left_with_margins_on(state.ids.slot7_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot7_text, ui);
             Text::new("8")
                 .top_left_with_margins_on(state.ids.slot8_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot8_text, ui);
             Text::new("9")
                 .top_left_with_margins_on(state.ids.slot9_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot9_text, ui);
             Text::new("Q")
                 .top_left_with_margins_on(state.ids.slotq_bg, 1.0, 1.0)
                 .font_size(8)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.slotq_text, ui);
         };
@@ -638,6 +658,7 @@ impl<'a> Widget for Skillbar<'a> {
             Text::new(&hp_text)
                 .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
                 .font_size(14)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.health_text, ui);
             let energy_text = format!(
@@ -648,6 +669,7 @@ impl<'a> Widget for Skillbar<'a> {
             Text::new(&energy_text)
                 .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
                 .font_size(14)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.energy_text, ui);
         }
@@ -657,12 +679,14 @@ impl<'a> Widget for Skillbar<'a> {
             Text::new(&hp_text)
                 .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
                 .font_size(14)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.health_text, ui);
             let energy_text = format!("{}%", energy_percentage as u32);
             Text::new(&energy_text)
                 .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
                 .font_size(14)
+                .font_id(self.fonts.ronda)
                 .color(TEXT_COLOR)
                 .set(state.ids.energy_text, ui);
         }

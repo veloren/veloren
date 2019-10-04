@@ -1,12 +1,13 @@
 use {
     crate::{
-        comp::{Body, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Vel},
+        comp::{Body, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
         event::{EventBus, LocalEvent},
         state::DeltaTime,
         terrain::{Block, TerrainGrid},
         vol::ReadVol,
     },
     specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
+    sphynx::Uid,
     vek::*,
 };
 
@@ -41,10 +42,12 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
+        ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<LocalEvent>>,
         ReadStorage<'a, Scale>,
+        ReadStorage<'a, Sticky>,
         ReadStorage<'a, Mass>,
         ReadStorage<'a, Body>,
         WriteStorage<'a, PhysicsState>,
@@ -58,10 +61,12 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
+            uids,
             terrain,
             dt,
             event_bus,
             scales,
+            stickies,
             masses,
             bodies,
             mut physics_states,
@@ -74,9 +79,10 @@ impl<'a> System<'a> for Sys {
         let mut event_emitter = event_bus.emitter();
 
         // Apply movement inputs
-        for (entity, scale, _b, mut pos, mut vel, _ori, _) in (
+        for (entity, scale, sticky, _b, mut pos, mut vel, _ori, _) in (
             &entities,
             scales.maybe(),
+            stickies.maybe(),
             &bodies,
             &mut positions,
             &mut velocities,
@@ -86,6 +92,11 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
+
+            if sticky.is_some() && (physics_state.on_wall.is_some() || physics_state.on_ground) {
+                continue;
+            }
+
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
             // Basic collision with terrain
@@ -322,19 +333,22 @@ impl<'a> System<'a> for Sys {
         }
 
         // Apply pushback
-        for (pos, scale, mass, vel, _, _) in (
+        for (pos, scale, mass, vel, _, _, physics) in (
             &positions,
             scales.maybe(),
             masses.maybe(),
             &mut velocities,
             &bodies,
             !&mountings,
+            &mut physics_states,
         )
             .join()
         {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
             let mass = mass.map(|m| m.0).unwrap_or(scale);
-            for (pos_other, scale_other, mass_other, _, _) in (
+
+            for (other, pos_other, scale_other, mass_other, _, _) in (
+                &uids,
                 &positions,
                 scales.maybe(),
                 masses.maybe(),
@@ -344,7 +358,12 @@ impl<'a> System<'a> for Sys {
                 .join()
             {
                 let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
+
                 let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
+                if mass_other == 0.0 {
+                    continue;
+                }
+
                 let diff = Vec2::<f32>::from(pos.0 - pos_other.0);
 
                 let collision_dist = 0.95 * (scale + scale_other);
@@ -357,6 +376,7 @@ impl<'a> System<'a> for Sys {
                     let force = (collision_dist - diff.magnitude()) * 2.0 * mass_other
                         / (mass + mass_other);
                     vel.0 += Vec3::from(diff.normalized()) * force;
+                    physics.touch_entity = Some(*other);
                 }
             }
         }

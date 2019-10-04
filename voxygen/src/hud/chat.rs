@@ -3,7 +3,7 @@ use super::{
     KILL_COLOR, META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
 };
 use client::Event as ClientEvent;
-use common::ChatType;
+use common::{msg::validate_chat_msg, ChatType};
 use conrod_core::{
     input::Key,
     position::Dimension,
@@ -59,7 +59,9 @@ impl<'a> Chat<'a> {
     }
 
     pub fn input(mut self, input: String) -> Self {
-        self.force_input = Some(input);
+        if let Ok(()) = validate_chat_msg(&input) {
+            self.force_input = Some(input);
+        }
         self
     }
 
@@ -206,7 +208,9 @@ impl<'a> Widget for Chat<'a> {
             {
                 let mut input = str.to_owned();
                 input.retain(|c| c != '\n');
-                state.update(|s| s.input = input);
+                if let Ok(()) = validate_chat_msg(&input) {
+                    state.update(|s| s.input = input);
+                }
             }
         }
 
