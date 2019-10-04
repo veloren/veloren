@@ -2,84 +2,84 @@
     (Human, Male): (
         offset: (-7.0, -4.0, -6.0),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),
     (Human, Female): (
         offset: (-7.0, -4.0, -6.0),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),
     (Orc, Male): (
         offset: (-8.0, -5.0, -6.75),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),	
     (Orc, Female): (
         offset: (-8.0, -4.0, -6.0),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),
     (Elf, Male): (
         offset: (-8.0, -4.0, -6.0),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),	
     (Elf, Female): (
         offset: (-8.0, -4.0, -6.0),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),
     (Dwarf, Male): (
         offset: (-6.0, -4.5, -6.0),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),	
     (Dwarf, Female): (
         offset: (-6.0, -4.5, -6.0),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),
     (Undead, Male): (
         offset: (-5.0, -4.0, -6.75),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),	
     (Undead, Female): (
         offset: (-5.0, -4.0, -6.75),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),
     (Danari, Male): (
         offset: (-9.0, -4.0, -7.5),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),	
     (Danari, Female): (
         offset: (-9.0, -4.0, -7.5),
         belt: [
-            Some(("armor.belt.belt_dark", (0, 0, 0))),
+            Some(("armor.belt.dark", (0, 0, 0))),
             Some(("armor.belt.cloth_turq", (0, 0, 0))),
         ]
     ),
