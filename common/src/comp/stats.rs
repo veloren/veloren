@@ -12,6 +12,7 @@ pub enum HealthSource {
     Command,
     LevelUp,
     Item,
+    Creation,
     Unknown,
 }
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -133,10 +134,9 @@ impl Exp {
 }
 
 impl Level {
-    // TODO: Uncomment when needed
-    // pub fn set_level(&mut self, level: u32) {
-    // self.amount = level;
-    // }
+    pub fn set_level(&mut self, level: u32) {
+        self.amount = level;
+    }
 
     pub fn level(&self) -> u32 {
         self.amount
@@ -166,6 +166,11 @@ impl Stats {
         self.health
             .set_to(self.health.maximum(), HealthSource::Revive);
         self.is_dead = false;
+    }
+
+    // TODO: Delet this once stat points will be a thing
+    pub fn level_hp_bonus(&mut self, level: u32) {
+        self.health.set_maximum((10 * level) / 2);
     }
 }
 
