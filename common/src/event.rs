@@ -1,6 +1,7 @@
 use crate::comp;
 use parking_lot::Mutex;
 use specs::Entity as EcsEntity;
+use sphynx::Uid;
 use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
 
@@ -25,12 +26,21 @@ pub enum ServerEvent {
         pos: Vec3<f32>,
         radius: f32,
     },
-    Die {
+    Damage {
+        uid: Uid,
+        dmg: u32,
+        cause: comp::HealthSource,
+    },
+    Destroy {
         entity: EcsEntity,
         cause: comp::HealthSource,
     },
     Respawn(EcsEntity),
-    Shoot(EcsEntity),
+    Shoot {
+        entity: EcsEntity,
+        dir: Vec3<f32>,
+        projectile: comp::Projectile,
+    },
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
 }

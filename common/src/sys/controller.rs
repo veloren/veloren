@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{
     comp::{
-        item, ActionState::*, Body, CharacterState, ControlEvent, Controller, Item,
-        MovementState::*, PhysicsState, Stats, Vel,
+        item, projectile, ActionState::*, Body, CharacterState, ControlEvent, Controller, Item,
+        MovementState::*, PhysicsState, Projectile, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
@@ -127,6 +127,35 @@ impl<'a> System<'a> for Sys {
             }
 
             match stats.equipment.main {
+                Some(Item::Tool {
+                    kind: item::Tool::Bow,
+                    ..
+                }) => {
+                    if controller.primary
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                    {
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                // Immediately end the wield
+                                character.action = Idle;
+                                server_emitter.emit(ServerEvent::Shoot {
+                                    entity,
+                                    dir: controller.look_dir,
+                                    projectile: Projectile {
+                                        hit_ground: vec![projectile::Effect::Stick],
+                                        hit_wall: vec![projectile::Effect::Stick],
+                                        hit_entity: vec![
+                                            projectile::Effect::Damage(10),
+                                            projectile::Effect::Vanish,
+                                        ],
+                                    },
+                                });
+                            }
+                        }
+                    }
+                }
                 Some(Item::Tool { .. }) => {
                     // Attack
                     if controller.primary

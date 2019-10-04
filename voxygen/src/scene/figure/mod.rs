@@ -62,10 +62,9 @@ impl FigureMgr {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, vel, ori, scale, body, character, last_character, stats) in (
+        for (entity, pos, ori, scale, body, character, last_character, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
-            &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Ori>(),
             ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<Body>(),
@@ -129,6 +128,12 @@ impl FigureMgr {
 
             let mut movement_animation_rate = 1.0;
             let mut action_animation_rate = 1.0;
+
+            let vel = ecs
+                .read_storage::<Vel>()
+                .get(entity)
+                .cloned()
+                .unwrap_or_default();
 
             match body {
                 Body::Humanoid(_) => {
@@ -421,10 +426,9 @@ impl FigureMgr {
             .read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(client.entity());
 
-        for (entity, _, _, _, body, stats, _) in (
+        for (entity, _, _, body, stats, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
-            &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Ori>(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Stats>().maybe(),
@@ -432,7 +436,7 @@ impl FigureMgr {
         )
             .join()
             // Don't render figures outside of frustum (camera viewport, max draw distance is farplane)
-            .filter(|(_, pos, _, _, _, _, scale)| {
+            .filter(|(_, pos, _, _, _, scale)| {
                 frustum.sphere_intersecting(
                     &pos.0.x,
                     &pos.0.y,
@@ -441,7 +445,7 @@ impl FigureMgr {
                 )
             })
             // Don't render dead entities
-            .filter(|(_, _, _, _, _, stats, _)| stats.map_or(true, |s| !s.is_dead))
+            .filter(|(_, _, _, _, stats, _)| stats.map_or(true, |s| !s.is_dead))
         {
             if let Some((locals, bone_consts)) = match body {
                 Body::Humanoid(_) => self

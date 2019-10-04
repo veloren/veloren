@@ -357,8 +357,8 @@ pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
                 Tool::Hammer => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
                 Tool::Daggers => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
                 Tool::SwordShield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
-                Tool::Bow => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-                Tool::Staff => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
+                Tool::Bow => ("weapon.bow.simple-bow", Vec3::new(-1.0, -6.0, -2.0)),
+                Tool::Staff => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
             },
             Item::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
             _ => return Mesh::new(),
@@ -581,6 +581,7 @@ pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
     use object::Body;
 
     let (name, offset) = match obj {
+        Body::Arrow => ("weapon.bow.simple-arrow", Vec3::new(-5.5, -5.5, 0.0)),
         Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
         Body::Scarecrow => ("object.scarecrow", Vec3::new(-9.5, -4.0, 0.0)),
         Body::Cauldron => ("object.cauldron", Vec3::new(-10.0, -10.0, 0.0)),

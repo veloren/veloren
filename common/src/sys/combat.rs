@@ -1,7 +1,6 @@
 use crate::{
-    comp::{
-        ActionState::*, CharacterState, Controller, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel,
-    },
+    comp::{item::Item, ActionState::*, CharacterState, Controller, HealthSource, Ori, Pos, Stats},
+    event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Uid},
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -14,49 +13,55 @@ pub const ATTACK_DURATION: Duration = Duration::from_millis(500);
 // Delay before hit
 const PREPARE_DURATION: Duration = Duration::from_millis(100);
 
-const BASE_DMG: i32 = 10;
 const BLOCK_EFFICIENCY: f32 = 0.9;
 
 const ATTACK_RANGE: f32 = 4.0;
 const BLOCK_ANGLE: f32 = 180.0;
-
-const KNOCKBACK_XY: f32 = 2.0;
-const KNOCKBACK_Z: f32 = 2.0;
 
 /// This system is responsible for handling accepted inputs like moving or attacking
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        ReadStorage<'a, Uid>,
+        Read<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<LocalEvent>>,
         Read<'a, DeltaTime>,
+        ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Controller>,
-        WriteStorage<'a, Vel>,
         WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
-        WriteStorage<'a, ForceUpdate>,
     );
 
     fn run(
         &mut self,
         (
             entities,
-            uids,
+            server_bus,
+            local_bus,
             dt,
+            uids,
             positions,
             orientations,
             controllers,
-            mut velocities,
             mut character_states,
-            mut stats,
-            mut force_updates,
+            stats,
         ): Self::SystemData,
     ) {
+        let mut server_emitter = server_bus.emitter();
+        let mut _local_emitter = local_bus.emitter();
+
         // Attacks
-        for (entity, uid, pos, ori, _) in
-            (&entities, &uids, &positions, &orientations, &controllers).join()
+        for (entity, uid, pos, ori, _, stat) in (
+            &entities,
+            &uids,
+            &positions,
+            &orientations,
+            &controllers,
+            &stats,
+        )
+            .join()
         {
             let (deal_damage, should_end) = if let Some(Attack { time_left, applied }) =
                 &mut character_states.get_mut(entity).map(|c| &mut c.action)
@@ -79,13 +84,13 @@ impl<'a> System<'a> for Sys {
             if deal_damage {
                 if let Some(Attack { .. }) = &character_states.get(entity).map(|c| c.action) {
                     // Go through all other entities
-                    for (b, pos_b, ori_b, character_b, mut vel_b, stat_b) in (
+                    for (b, uid_b, pos_b, ori_b, character_b, stat_b) in (
                         &entities,
+                        &uids,
                         &positions,
                         &orientations,
                         &character_states,
-                        &mut velocities,
-                        &mut stats,
+                        &stats,
                     )
                         .join()
                     {
@@ -101,22 +106,27 @@ impl<'a> System<'a> for Sys {
                             // TODO: Use size instead of 1.0
                             && ori2.angle_between(pos_b2 - pos2) < (1.0 / pos2.distance(pos_b2)).atan()
                         {
-                            let dmg = if character_b.action.is_block()
+                            // Weapon gives base damage
+                            let mut dmg =
+                                if let Some(Item::Tool { power, .. }) = stat.equipment.main {
+                                    power
+                                } else {
+                                    1
+                                };
+
+                            // Block
+                            if character_b.action.is_block()
                                 && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees()
                                     < BLOCK_ANGLE / 2.0
                             {
-                                (BASE_DMG as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
-                            } else {
-                                BASE_DMG
-                            };
+                                dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
+                            }
 
-                            // Deal damage
-                            stat_b
-                                .health
-                                .change_by(-dmg, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
-                            vel_b.0 += (pos_b.0 - pos.0).normalized() * KNOCKBACK_XY;
-                            vel_b.0.z = KNOCKBACK_Z;
-                            let _ = force_updates.insert(b, ForceUpdate);
+                            server_emitter.emit(ServerEvent::Damage {
+                                uid: *uid_b,
+                                dmg,
+                                cause: HealthSource::Attack { by: *uid },
+                            });
                         }
                     }
                 }

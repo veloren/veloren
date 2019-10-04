@@ -1,3 +1,4 @@
+use crate::state::Uid;
 use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IDVStorage;
 use vek::*;
@@ -42,11 +43,19 @@ impl Component for Mass {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
+#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Sticky;
+
+impl Component for Sticky {
+    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
+}
+
 // PhysicsState
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsState {
     pub on_ground: bool,
     pub on_wall: Option<Vec3<f32>>,
+    pub touch_entity: Option<Uid>,
     pub in_fluid: bool,
 }
 

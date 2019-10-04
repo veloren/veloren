@@ -2,7 +2,7 @@
 pub mod item;
 
 // Reexports
-pub use self::item::{Debug, Item, Tool};
+pub use item::{Debug, Item, Tool};
 
 use specs::{Component, HashMapStorage, NullStorage};
 
@@ -75,6 +75,10 @@ impl Default for Inventory {
 
         inventory.push(Item::Debug(Debug::Boost));
         inventory.push(Item::Tool {
+            kind: Tool::Bow,
+            power: 10,
+        });
+        inventory.push(Item::Tool {
             kind: Tool::Daggers,
             power: 10,
         });
@@ -90,9 +94,6 @@ impl Default for Inventory {
             kind: Tool::Hammer,
             power: 10,
         });
-        for _ in 0..10 {
-            inventory.push(Item::default());
-        }
 
         inventory
     }
