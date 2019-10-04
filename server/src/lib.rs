@@ -563,7 +563,7 @@ impl Server {
                 // TODO: Remove this and implement scaling or level depending on stuff like species instead
                 stats.level.set_level(rand::thread_rng().gen_range(1, 20));
                 if stats.level.level() > 1 {
-                    stats.level_hp_bonus(stats.level.level());
+                    stats.update_hp_bonus(stats.level.level());
                 }
 
                 if npc.boss {

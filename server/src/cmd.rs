@@ -196,14 +196,14 @@ lazy_static! {
             "waypoint",
             "{}",
             "/waypoint : Set your waypoint to your current position",
-            true,
+            false,
             handle_waypoint,
         ),
         ChatCommand::new(
             "adminify",
             "{}",
             "/adminify <playername> : Temporarily gives a player admin permissions or removes them",
-            false, // TODO: NO
+            true,
             handle_adminify,
         ),
         ChatCommand::new(
