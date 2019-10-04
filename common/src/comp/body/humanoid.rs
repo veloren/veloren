@@ -221,23 +221,22 @@ pub const DWARF_SKIN_COLORS: [Skin; 5] = [
     Skin::Steel,
 ];
 pub const ELF_SKIN_COLORS: [Skin; 7] = [
+    Skin::Pale,
     Skin::ElfOne,
     Skin::ElfTwo,
     Skin::ElfThree,
     Skin::White,
     Skin::Tanned,
-    Skin::Brown,
     Skin::TannedBrown,
 ];
-pub const HUMAN_SKIN_COLORS: [Skin; 6] = [
+pub const HUMAN_SKIN_COLORS: [Skin; 5] = [
     Skin::Pale,
     Skin::White,
     Skin::Tanned,
-    Skin::Brown,
     Skin::TannedBrown,
     Skin::TannedDarkBrown,
 ];
-pub const ORC_SKIN_COLORS: [Skin; 3] = [Skin::OrcOne, Skin::OrcTwo, Skin::OrcThree];
+pub const ORC_SKIN_COLORS: [Skin; 4] = [Skin::OrcOne, Skin::OrcTwo, Skin::OrcThree, Skin::Brown];
 pub const UNDEAD_SKIN_COLORS: [Skin; 3] = [Skin::UndeadOne, Skin::UndeadTwo, Skin::UndeadThree];
 
 // Eye colors
@@ -333,11 +332,11 @@ impl Race {
         match (self, body_type) {
             (Race::Danari, BodyType::Female) => 1,
             (Race::Danari, BodyType::Male) => 1,
-            (Race::Dwarf, BodyType::Female) => 2,
+            (Race::Dwarf, BodyType::Female) => 1,
             (Race::Dwarf, BodyType::Male) => 3,
-            (Race::Elf, BodyType::Female) => 21,
+            (Race::Elf, BodyType::Female) => 22,
             (Race::Elf, BodyType::Male) => 1,
-            (Race::Human, BodyType::Female) => 19,
+            (Race::Human, BodyType::Female) => 20,
             (Race::Human, BodyType::Male) => 3,
             (Race::Orc, BodyType::Female) => 1,
             (Race::Orc, BodyType::Male) => 2,
@@ -393,13 +392,15 @@ pub enum Chest {
     Dark,
     Green,
     Orange,
+    Midnight,
 }
-pub const ALL_CHESTS: [Chest; 5] = [
+pub const ALL_CHESTS: [Chest; 6] = [
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
     Chest::Green,
     Chest::Orange,
+    Chest::Midnight,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -547,13 +548,13 @@ impl Skin {
             Self::DanariTwo => (30, 149, 201),
             Self::DanariThree => (57, 120, 148),
             Self::DanariFour => (40, 85, 105),
-            Self::ElfOne => (176, 161, 181),
+            Self::ElfOne => (178, 164, 186),
             Self::ElfTwo => (132, 139, 161),
             Self::ElfThree => (148, 128, 202),
             Self::OrcOne => (61, 130, 42),
             Self::OrcTwo => (82, 117, 36),
             Self::OrcThree => (71, 94, 42),
-            Self::UndeadOne => (255, 255, 255),
+            Self::UndeadOne => (240, 243, 239),
             Self::UndeadTwo => (178, 178, 178),
             Self::UndeadThree => (145, 135, 121),
         };
@@ -561,53 +562,53 @@ impl Skin {
     }
     pub fn light_rgb(self) -> Rgb<u8> {
         let color = match self {
-            Self::Pale => (255, 165, 165),
-            Self::White => (255, 165, 165),
-            Self::Tanned => (222, 181, 151),
-            Self::Brown => (123, 80, 45),
-            Self::TannedBrown => (135, 70, 50),
-            Self::TannedDarkBrown => (116, 61, 43),
-            Self::Iron => (135, 113, 95),
-            Self::Steel => (108, 94, 86),
-            Self::DanariOne => (104, 168, 196),
-            Self::DanariTwo => (30, 149, 201),
-            Self::DanariThree => (57, 120, 148),
-            Self::DanariFour => (40, 85, 105),
-            Self::ElfOne => (176, 161, 181),
-            Self::ElfTwo => (132, 139, 161),
-            Self::ElfThree => (148, 128, 202),
+            Self::Pale => (255, 227, 193),
+            Self::White => (255, 210, 180),
+            Self::Tanned => (239, 197, 164),
+            Self::Brown => (150, 104, 68),
+            Self::TannedBrown => (148, 85, 64),
+            Self::TannedDarkBrown => (132, 74, 56),
+            Self::Iron => (144, 125, 106),
+            Self::Steel => (120, 107, 99),
+            Self::DanariOne => (116, 176, 208),
+            Self::DanariTwo => (42, 158, 206),
+            Self::DanariThree => (70, 133, 160),
+            Self::DanariFour => (53, 96, 116),
+            Self::ElfOne => (190, 176, 199), //178, 164, 186
+            Self::ElfTwo => (137, 144, 167),
+            Self::ElfThree => (156, 138, 209),
             Self::OrcOne => (83, 165, 56),
-            Self::OrcTwo => (85, 124, 37),
-            Self::OrcThree => (73, 100, 43),
-            Self::UndeadOne => (255, 255, 255),
-            Self::UndeadTwo => (178, 178, 178),
-            Self::UndeadThree => (145, 135, 121),
+            Self::OrcTwo => (92, 132, 46),
+            Self::OrcThree => (84, 110, 54),
+            Self::UndeadOne => (254, 252, 251),
+            Self::UndeadTwo => (190, 192, 191),
+            Self::UndeadThree => (160, 151, 134),
         };
         Rgb::from(color)
     }
     pub fn dark_rgb(self) -> Rgb<u8> {
         let color = match self {
-            Self::Pale => (207, 173, 147),
-            Self::White => (212, 162, 138),
-            Self::Tanned => (222, 181, 151),
-            Self::Brown => (123, 80, 45),
-            Self::TannedBrown => (135, 70, 50),
-            Self::TannedDarkBrown => (116, 61, 43),
-            Self::Iron => (135, 113, 95),
-            Self::Steel => (108, 94, 86),
-            Self::DanariOne => (104, 168, 196),
-            Self::DanariTwo => (30, 149, 201),
-            Self::DanariThree => (57, 120, 148),
-            Self::DanariFour => (40, 85, 105),
-            Self::ElfOne => (176, 161, 181),
-            Self::ElfTwo => (132, 139, 161),
-            Self::ElfThree => (148, 128, 202),
-            Self::OrcOne => (61, 119, 40),
-            Self::OrcTwo => (77, 111, 34),
-            Self::OrcThree => (68, 91, 40),
-            Self::UndeadOne => (255, 255, 255),
-            Self::UndeadTwo => (178, 178, 178),
-            Self::UndeadThree => (145, 135, 121),
+            Self::Pale => (229, 192, 163),
+            Self::White => (239, 179, 150),
+            Self::Tanned => (208, 167, 135),
+            Self::Brown => (106, 63, 30),
+            Self::TannedBrown => (122, 58, 40),
+            Self::TannedDarkBrown => (100, 47, 32),
+            Self::Iron => (124, 99, 82),
+            Self::Steel => (96, 81, 72),
+            Self::DanariOne => (92, 155, 183),
+            Self::DanariTwo => (25, 142, 192),
+            Self::DanariThree => (52, 115, 143),
+            Self::DanariFour => (34, 80, 99),
+            Self::ElfOne => (170, 155, 175), //170, 157, 179
+            Self::ElfTwo => (126, 132, 153),
+            Self::ElfThree => (137, 121, 194),
+            Self::OrcOne => (55, 114, 36),
+            Self::OrcTwo => (70, 104, 29),
+            Self::OrcThree => (60, 83, 32),
+            Self::UndeadOne => (229, 231, 230),
+            Self::UndeadTwo => (165, 166, 164),
+            Self::UndeadThree => (130, 122, 106),
         };
         Rgb::from(color)
     }

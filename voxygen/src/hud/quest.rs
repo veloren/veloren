@@ -95,7 +95,7 @@ impl<'a> Widget for Quest<'a> {
         // TODO: Use an actual character name.
         Text::new("Quest")
             .mid_top_with_margin_on(state.quest_frame, 6.0)
-            .font_id(self.fonts.metamorph)
+            .font_id(self.fonts.ronda)
             .font_size(14)
             .color(TEXT_COLOR)
             .set(state.quest_title, ui);
