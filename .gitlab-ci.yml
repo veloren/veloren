@@ -1,7 +1,7 @@
 stages:
   - optional-builds
-  - check-compile
-  - post-build
+#  - check-compile
+#  - post-build
 
 # Our own git fetch command like https://gitlab.com/gitlab-org/gitlab-runner/blob/master/shells/abstract.go
 # speeds up building because we skip the git clean and don't need any gitlab caches.
@@ -100,7 +100,7 @@ optional:windows-debug:
 optional-release:linux-debug:
   <<: *optional-release
   script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
+    - (cd voxygen && VELOREN_ASSETS=assets RUSTFLAGS="-Clink-arg=-fuse-ld=lld" cargo build --release)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
     - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
     - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
