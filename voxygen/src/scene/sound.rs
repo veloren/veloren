@@ -13,7 +13,6 @@ pub struct AnimState {
     last_step_sound: Instant,
     last_jump_sound: Instant,
     last_attack_sound: Instant,
-    last_environment_sound: Instant,
     last_glider_open_sound: Instant,
     last_glide_sound: Instant,
     gliding_channel: usize,
@@ -26,7 +25,6 @@ impl AnimState {
             last_step_sound: Instant::now(),
             last_jump_sound: Instant::now(),
             last_attack_sound: Instant::now(),
-            last_environment_sound: Instant::now(),
             last_glider_open_sound: Instant::now(),
             last_glide_sound: Instant::now(),
             gliding_channel: 0,
@@ -82,21 +80,6 @@ impl SoundMgr {
 
                 // Constrain to our player for testing
                 if entity == client.entity() {
-                    // Ambient sounds
-                    if state.last_environment_sound.elapsed().as_secs_f64() > 60.0 {
-                        let chunk = client.current_chunk();
-
-                        if let Some(chunk) = chunk {
-                            let biome = chunk.meta().biome();
-                            let time_of_day = client.state().get_time_of_day();
-
-                            log::warn!("{}", format!("Biome: {:?}", biome));
-                            log::warn!("{}", format!("Time of Day: {:#?}", time_of_day));
-
-                            state.last_environment_sound = Instant::now();
-                        }
-                    }
-
                     // Attack
                     if character.action.is_attack()
                         && state.last_attack_sound.elapsed().as_secs_f64() > 0.25
