@@ -114,7 +114,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Dwarf, Female) => 0.0,
                 (Undead, Male) => 0.5,
                 (Undead, Female) => 0.5,
-                (Danari, Male) => 0.0,
+                (Danari, Male) => 0.5,
                 (Danari, Female) => 0.5,
             },
             neck_forward: match (body.race, body.body_type) {

@@ -106,8 +106,15 @@ image_ids! {
         twohaxe_m2: "voxygen.element.icons.2haxe_m2",
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
+
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
+        // Icons
+        flower: "voxygen.element.icons.item_flower",
+        grass: "voxygen.element.icons.item_grass",
+        apple: "voxygen.element.icons.item_apple",
+        mushroom: "voxygen.element.icons.item_mushroom",
+
         // Map
         map_indicator: "voxygen.element.buttons.map_indicator",
 

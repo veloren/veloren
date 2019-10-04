@@ -710,7 +710,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 light.strength = s.max(0.1).min(10.0);
                 server.clients.notify(
                     entity,
-                    ServerMsg::private(String::from("You played with flame strength.")),
+                    ServerMsg::private(String::from("You adjusted flame strength.")),
                 );
             }
         } else {
@@ -744,7 +744,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
 
         server.clients.notify(
             entity,
-            ServerMsg::private(String::from("You lighted your lantern.")),
+            ServerMsg::private(String::from("You lit your lantern.")),
         );
     }
 }
