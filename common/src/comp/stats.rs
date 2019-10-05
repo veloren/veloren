@@ -133,10 +133,9 @@ impl Exp {
 }
 
 impl Level {
-    // TODO: Uncomment when needed
-    // pub fn set_level(&mut self, level: u32) {
-    // self.amount = level;
-    // }
+    pub fn set_level(&mut self, level: u32) {
+        self.amount = level;
+    }
 
     pub fn level(&self) -> u32 {
         self.amount
@@ -166,6 +165,12 @@ impl Stats {
         self.health
             .set_to(self.health.maximum(), HealthSource::Revive);
         self.is_dead = false;
+    }
+
+    // TODO: Delete this once stat points will be a thing
+    pub fn update_hp_bonus(&mut self, level: u32) {
+        self.health
+            .set_maximum(self.health.maximum() + (10 * level) / 2);
     }
 }
 
