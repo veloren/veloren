@@ -117,7 +117,6 @@ impl FigureModelCache {
                                             humanoid_armor_chest_spec.mesh_chest(
                                                 body.chest,
                                                 body.race,
-                                                body.body_type,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
@@ -130,7 +129,9 @@ impl FigureModelCache {
                                             humanoid_armor_belt_spec.mesh_belt(
                                                 body.belt,
                                                 body.race,
-                                                body.body_type,
+                                                body.skin,
+                                                body.hair_color,
+                                                body.eye_color,
                                             )
                                         ),
                                         CameraMode::FirstPerson => None,
@@ -140,7 +141,6 @@ impl FigureModelCache {
                                             humanoid_armor_pants_spec.mesh_pants(
                                                 body.pants,
                                                 body.race,
-                                                body.body_type,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
@@ -158,7 +158,6 @@ impl FigureModelCache {
                                         Some(humanoid_armor_hand_spec.mesh_left_hand(
                                             body.hand,
                                             body.race,
-                                            body.body_type,
                                             body.skin,
                                             body.hair_color,
                                             body.eye_color,
@@ -173,7 +172,6 @@ impl FigureModelCache {
                                         Some(humanoid_armor_hand_spec.mesh_right_hand(
                                             body.hand,
                                             body.race,
-                                            body.body_type,
                                             body.skin,
                                             body.hair_color,
                                             body.eye_color,
@@ -184,7 +182,6 @@ impl FigureModelCache {
                                             humanoid_armor_foot_spec.mesh_left_foot(
                                                 body.foot,
                                                 body.race,
-                                                body.body_type,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
@@ -197,7 +194,6 @@ impl FigureModelCache {
                                             humanoid_armor_foot_spec.mesh_right_foot(
                                                 body.foot,
                                                 body.race,
-                                                body.body_type,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
@@ -223,7 +219,6 @@ impl FigureModelCache {
                                             humanoid_armor_shoulder_spec.mesh_left_shoulder(
                                                 body.shoulder,
                                                 body.race,
-                                                body.body_type,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
@@ -236,7 +231,6 @@ impl FigureModelCache {
                                             humanoid_armor_shoulder_spec.mesh_right_shoulder(
                                                 body.shoulder,
                                                 body.race,
-                                                body.body_type,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
