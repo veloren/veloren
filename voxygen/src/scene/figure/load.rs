@@ -84,16 +84,32 @@ fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
 
 // All offsets should be relative to an initial origin that doesn't change when combining segments
 #[derive(Serialize, Deserialize)]
-struct VoxSpec(String, [i32; 3]);
+struct VoxSpec<T>(String, [T; 3]);
+
+// Armor can have the color modified.
+#[derive(Serialize, Deserialize)]
+struct ArmorVoxSpec{
+    voxSpec: VoxSpec<f32>,
+    recolor: bool,
+    color: [u8; 3]
+}
+
+// For use by armor with a left and right component
+#[derive(Serialize, Deserialize)]
+struct SidedArmorVoxSpec{
+    left: ArmorVoxSpec,
+    right: ArmorVoxSpec
+}
+
 // All reliant on humanoid::Race and humanoid::BodyType
 #[derive(Serialize, Deserialize)]
 struct HumHeadSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
-    head: VoxSpec,
-    eyes: VoxSpec,
-    hair: Vec<Option<VoxSpec>>,
-    beard: Vec<Option<VoxSpec>>,
-    accessory: Vec<Option<VoxSpec>>,
+    head: VoxSpec<i32>,
+    eyes: VoxSpec<i32>,
+    hair: Vec<Option<VoxSpec<i32>>>,
+    beard: Vec<Option<VoxSpec<i32>>>,
+    accessory: Vec<Option<VoxSpec<i32>>>,
 }
 #[derive(Serialize, Deserialize)]
 pub struct HumHeadSpec(HashMap<(Race, BodyType), HumHeadSubSpec>);
@@ -192,54 +208,22 @@ impl HumHeadSpec {
         )
     }
 }
-// All reliant on humanoid::Race and humanoid::BodyType
 // Armor spects should be in the same order, top to bottom.
 // These seem overly split up, but wanted to keep the armor seperated
-// unlike head which is done above.  This can also make adding further
-// customization easier, such as allowing a 'chest_emblem' to be added.
-#[derive(Serialize, Deserialize)]
-struct HumArmorShoulderSubSpec {
-    offset: [f32; 3],
-    shoulder:  Vec<Option<VoxSpec>>,
-}
-#[derive(Serialize, Deserialize)]
-struct HumArmorChestSubSpec {
-    offset: [f32; 3],
-    chest: Vec<Option<VoxSpec>>,
-}
-#[derive(Serialize, Deserialize)]
-struct HumArmorHandSubSpec {
-    offset: [f32; 3],
-    hand:  Vec<Option<VoxSpec>>,
-}
-#[derive(Serialize, Deserialize)]
-struct HumArmorBeltSubSpec {
-    offset: [f32; 3],
-    belt: Vec<Option<VoxSpec>>,
-}
-#[derive(Serialize, Deserialize)]
-struct HumArmorPantsSubSpec {
-    offset: [f32; 3],
-    pants:  Vec<Option<VoxSpec>>,
-}
-#[derive(Serialize, Deserialize)]
-struct HumArmorFootSubSpec {
-    offset: [f32; 3],
-    foot:  Vec<Option<VoxSpec>>,
-}
+// unlike head which is done above.
 
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorShoulderSpec(HashMap<(Race, BodyType), HumArmorShoulderSubSpec>);
+pub struct HumArmorShoulderSpec(HashMap<Shoulder, SidedArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorChestSpec(HashMap<(Race, BodyType), HumArmorChestSubSpec>);
+pub struct HumArmorChestSpec(HashMap<Chest, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorHandSpec(HashMap<(Race, BodyType), HumArmorHandSubSpec>);
+pub struct HumArmorHandSpec(HashMap<Hand, SidedArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorBeltSpec(HashMap<(Race, BodyType), HumArmorBeltSubSpec>);
+pub struct HumArmorBeltSpec(HashMap<Belt, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorPantsSpec(HashMap<(Race, BodyType), HumArmorPantsSubSpec>);
+pub struct HumArmorPantsSpec(HashMap<Pants, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorFootSpec(HashMap<(Race, BodyType), HumArmorFootSubSpec>);
+pub struct HumArmorFootSpec(HashMap<Foot, ArmorVoxSpec>);
 
 impl Asset for HumArmorShoulderSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
@@ -296,6 +280,9 @@ impl HumArmorShoulderSpec {
             graceful_load_mat_segment(match shoulder {
                 Shoulder::None => return Mesh::new(),
                 Shoulder::Brown1 => "armor.shoulder.brown_left",
+                //This is wrong and similar are wrong but will be fixed
+                //by the hotloading.
+                Shoulder::Chain => "armor.shoulder.brown_left",
             }),
             race.skin_color(skin),
             race.hair_color(hair_color),
@@ -318,6 +305,7 @@ impl HumArmorShoulderSpec {
             graceful_load_mat_segment(match shoulder {
                 Shoulder::None => return Mesh::new(),
                 Shoulder::Brown1 => "armor.shoulder.brown_right",
+                Shoulder::Chain => "armor.shoulder.brown_right",
             }),
             race.skin_color(skin),
             race.hair_color(hair_color),
@@ -349,6 +337,8 @@ impl HumArmorChestSpec {
             Chest::Green => (59, 95, 67),
             Chest::Orange => (109, 58, 58),
             Chest::Midnight => (29, 26, 33),
+            //Also wrong, will be fixed when reading manifest files.
+            Chest::Kimono => (0,0,0),
         };
 
         let color = |mat_segment| {
@@ -391,8 +381,9 @@ impl HumArmorHandSpec {
     ) -> Mesh<FigurePipeline> {
         let hand_segment = color_segment(
             graceful_load_mat_segment(match hand {
-                Hand::Bare => "armor.hand.default_left",
-                Hand::Dark => "armor.hand.default_left",
+                Hand::Bare => "armor.hand.bare_left",
+                //also to be fixed
+                Hand::Cloth => "armor.hand.bare_left",
             }),
             race.skin_color(skin),
             race.hair_color(hair_color),
@@ -413,8 +404,9 @@ impl HumArmorHandSpec {
     ) -> Mesh<FigurePipeline> {
         let hand_segment = color_segment(
             graceful_load_mat_segment(match hand {
-                Hand::Bare => "armor.hand.default_right",
-                Hand::Dark => "armor.hand.default_right",
+                Hand::Bare => "armor.hand.bare_right",
+                //also to be fixed
+                Hand::Cloth => "armor.hand.bare_right",
             }),
             race.skin_color(skin),
             race.hair_color(hair_color),
@@ -438,8 +430,9 @@ impl HumArmorBeltSpec {
     ) -> Mesh<FigurePipeline> {
         load_mesh(
             match belt {
-                //Belt::Default => "figure/body/belt_male",
                 Belt::Dark => "armor.belt.dark",
+                //also wrong
+                Belt::Cloth => "armor.belt.dark",
             },
             Vec3::new(-4.0, -3.5, 2.0),
         )
@@ -466,6 +459,8 @@ impl HumArmorPantsSpec {
             Pants::Dark => (24, 19, 17),
             Pants::Green => (49, 95, 59),
             Pants::Orange => (148, 52, 33),
+            //also wrong
+            Pants::Kimono => (148, 52, 33),
         };
 
         let pants_segment = color_segment(
@@ -498,6 +493,9 @@ impl HumArmorFootSpec {
             graceful_load_mat_segment(match foot {
                 Foot::Bare => "armor.foot.dark-0",
                 Foot::Dark => "armor.foot.dark-0",
+                //wrong
+                Foot::Sandal => "armor.foot.dark-0",
+                Foot::Jester => "armor.foot.dark-0",
             }),
             race.skin_color(skin),
             race.hair_color(hair_color),
@@ -520,6 +518,9 @@ impl HumArmorFootSpec {
             graceful_load_mat_segment(match foot {
                 Foot::Bare => "armor.foot.dark-0",
                 Foot::Dark => "armor.foot.dark-0",
+                //wrong
+                Foot::Sandal => "armor.foot.dark-0",
+                Foot::Jester => "armor.foot.dark-0",
             }),
             race.skin_color(skin),
             race.hair_color(hair_color),

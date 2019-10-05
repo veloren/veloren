@@ -1,87 +1,37 @@
 ({
-    (Human, Male): (
-        offset: (-7.0, -4.0, -6.0),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
+    Blue: (
+        voxSpec: ("armor.chest.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (44, 74, 109)
     ),
-    (Human, Female): (
-        offset: (-7.0, -4.0, -6.0),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
+    Brown: (
+        voxSpec: ("armor.chest.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (90, 49, 43)
     ),
-    (Orc, Male): (
-        offset: (-8.0, -5.0, -6.75),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Orc, Female): (
-        offset: (-8.0, -4.0, -6.0),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
+    Dark: (
+        voxSpec: ("armor.chest.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (73, 63, 59)
     ),
-    (Elf, Male): (
-        offset: (-8.0, -4.0, -6.0),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Elf, Female): (
-        offset: (-8.0, -4.0, -6.0),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
+    Green: (
+        voxSpec: ("armor.chest.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (59, 95, 67)
     ),
-    (Dwarf, Male): (
-        offset: (-6.0, -4.5, -6.0),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Dwarf, Female): (
-        offset: (-6.0, -4.5, -6.0),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
+    Orange: (
+        voxSpec: ("armor.chest.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (109, 58, 58)
     ),
-    (Undead, Male): (
-        offset: (-5.0, -4.0, -6.75),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Undead, Female): (
-        offset: (-5.0, -4.0, -6.75),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
+    Midnight: (
+        voxSpec: ("armor.chest.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (29, 26, 33)
     ),
-    (Danari, Male): (
-        offset: (-9.0, -4.0, -7.5),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Danari, Female): (
-        offset: (-9.0, -4.0, -7.5),
-        chest: [
-            Some(("armor.chest.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.chest.grayscale", (0, 0, 0))),
-        ]
-    ),
-    // More here
+    Kimono: (
+        voxSpec: ("armor.chest.cloth_red_kimono", (0, 0, 0)),
+        recolor: false,
+        color: (0,0,0)
+    )
 })
