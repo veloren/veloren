@@ -192,160 +192,342 @@ impl HumHeadSpec {
         )
     }
 }
+// All reliant on humanoid::Race and humanoid::BodyType
+// Armor spects should be in the same order, top to bottom.
+// These seem overly split up, but wanted to keep the armor seperated
+// unlike head which is done above.  This can also make adding further
+// customization easier, such as allowing a 'chest_emblem' to be added.
+#[derive(Serialize, Deserialize)]
+struct HumArmorShoulderSubSpec {
+    offset: [f32; 3],
+    shoulder:  Vec<Option<VoxSpec>>,
+}
+#[derive(Serialize, Deserialize)]
+struct HumArmorChestSubSpec {
+    offset: [f32; 3],
+    chest: Vec<Option<VoxSpec>>,
+}
+#[derive(Serialize, Deserialize)]
+struct HumArmorHandSubSpec {
+    offset: [f32; 3],
+    hand:  Vec<Option<VoxSpec>>,
+}
+#[derive(Serialize, Deserialize)]
+struct HumArmorBeltSubSpec {
+    offset: [f32; 3],
+    belt: Vec<Option<VoxSpec>>,
+}
+#[derive(Serialize, Deserialize)]
+struct HumArmorPantsSubSpec {
+    offset: [f32; 3],
+    pants:  Vec<Option<VoxSpec>>,
+}
+#[derive(Serialize, Deserialize)]
+struct HumArmorFootSubSpec {
+    offset: [f32; 3],
+    foot:  Vec<Option<VoxSpec>>,
+}
 
-pub fn mesh_chest(
-    chest: Chest,
-    race: Race,
-    skin: u8,
-    hair_color: u8,
-    eye_color: u8,
-) -> Mesh<FigurePipeline> {
-    let chest_color = match chest {
-        Chest::Blue => (44, 74, 109),
-        Chest::Brown => (90, 49, 43),
-        Chest::Dark => (73, 63, 59),
-        Chest::Green => (59, 95, 67),
-        Chest::Orange => (109, 58, 58),
-        Chest::Midnight => (29, 26, 33),
-    };
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorShoulderSpec(HashMap<(Race, BodyType), HumArmorShoulderSubSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorChestSpec(HashMap<(Race, BodyType), HumArmorChestSubSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorHandSpec(HashMap<(Race, BodyType), HumArmorHandSubSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorBeltSpec(HashMap<(Race, BodyType), HumArmorBeltSubSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorPantsSpec(HashMap<(Race, BodyType), HumArmorPantsSubSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorFootSpec(HashMap<(Race, BodyType), HumArmorFootSubSpec>);
 
-    let color = |mat_segment| {
-        color_segment(
-            mat_segment,
+impl Asset for HumArmorShoulderSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor shoulder spec"))
+    }
+}
+impl Asset for HumArmorChestSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor chest spec"))
+    }
+}
+impl Asset for HumArmorHandSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor hand spec"))
+    }
+}
+impl Asset for HumArmorBeltSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor belt spec"))
+    }
+}
+impl Asset for HumArmorPantsSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor pants spec"))
+    }
+}
+impl Asset for HumArmorFootSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor foot spec"))
+    }
+}
+
+impl HumArmorShoulderSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_shoulder_manifest", indicator).unwrap()
+    }
+
+    pub fn mesh_left_shoulder(
+        &self,
+        shoulder: Shoulder,
+        race: Race,
+        body_type: BodyType,
+        skin: u8,
+        hair_color: u8,
+        eye_color: u8,
+    ) -> Mesh<FigurePipeline> {
+        let shoulder_segment = color_segment(
+            graceful_load_mat_segment(match shoulder {
+                Shoulder::None => return Mesh::new(),
+                Shoulder::Brown1 => "armor.shoulder.brown_left",
+            }),
             race.skin_color(skin),
             race.hair_color(hair_color),
             race.eye_color(eye_color),
+        );
+
+        generate_mesh(&shoulder_segment, Vec3::new(-3.0, -3.5, 0.1))
+    }
+
+    pub fn mesh_right_shoulder(
+        &self,
+        shoulder: Shoulder,
+        race: Race,
+        body_type: BodyType,
+        skin: u8,
+        hair_color: u8,
+        eye_color: u8,
+    ) -> Mesh<FigurePipeline> {
+        let shoulder_segment = color_segment(
+            graceful_load_mat_segment(match shoulder {
+                Shoulder::None => return Mesh::new(),
+                Shoulder::Brown1 => "armor.shoulder.brown_right",
+            }),
+            race.skin_color(skin),
+            race.hair_color(hair_color),
+            race.eye_color(eye_color),
+        );
+
+        generate_mesh(&shoulder_segment, Vec3::new(-2.0, -3.5, 0.1))
+    }
+}
+
+impl HumArmorChestSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_chest_manifest", indicator).unwrap()
+    }
+
+    pub fn mesh_chest(
+        &self,
+        chest: Chest,
+        race: Race,
+        body_type: BodyType,
+        skin: u8,
+        hair_color: u8,
+        eye_color: u8,
+    ) -> Mesh<FigurePipeline> {
+        let chest_color = match chest {
+            Chest::Blue => (44, 74, 109),
+            Chest::Brown => (90, 49, 43),
+            Chest::Dark => (73, 63, 59),
+            Chest::Green => (59, 95, 67),
+            Chest::Orange => (109, 58, 58),
+            Chest::Midnight => (29, 26, 33),
+        };
+
+        let color = |mat_segment| {
+            color_segment(
+                mat_segment,
+                race.skin_color(skin),
+                race.hair_color(hair_color),
+                race.eye_color(eye_color),
+            )
+        };
+
+        let bare_chest = graceful_load_mat_segment("armor.chest.grayscale");
+        let chest_armor = graceful_load_mat_segment("armor.chest.grayscale");
+        let chest = DynaUnionizer::new()
+            .add(color(bare_chest), Vec3::new(0, 0, 0))
+            .add(
+                color(chest_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(chest_color)))),
+                Vec3::new(0, 0, 0),
+            )
+            .unify()
+            .0;
+
+        generate_mesh(&chest, Vec3::new(-7.0, -3.5, 2.0))
+    }
+}
+
+impl HumArmorHandSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_hand_manifest", indicator).unwrap()
+    }
+
+    pub fn mesh_left_hand(
+        &self,
+        hand: Hand,
+        race: Race,
+        body_type: BodyType,
+        skin: u8,
+        hair_color: u8,
+        eye_color: u8,
+    ) -> Mesh<FigurePipeline> {
+        let hand_segment = color_segment(
+            graceful_load_mat_segment(match hand {
+                Hand::Bare => "armor.hand.default_left",
+                Hand::Dark => "armor.hand.default_left",
+            }),
+            race.skin_color(skin),
+            race.hair_color(hair_color),
+            race.eye_color(eye_color),
+        );
+
+        generate_mesh(&hand_segment, Vec3::new(-1.5, -1.5, -7.0))
+    }
+    
+    pub fn mesh_right_hand(
+        &self,
+        hand: Hand,
+        race: Race,
+        body_type: BodyType,
+        skin: u8,
+        hair_color: u8,
+        eye_color: u8,
+    ) -> Mesh<FigurePipeline> {
+        let hand_segment = color_segment(
+            graceful_load_mat_segment(match hand {
+                Hand::Bare => "armor.hand.default_right",
+                Hand::Dark => "armor.hand.default_right",
+            }),
+            race.skin_color(skin),
+            race.hair_color(hair_color),
+            race.eye_color(eye_color),
+        );
+
+        generate_mesh(&hand_segment, Vec3::new(-1.5, -1.5, -7.0))
+    }
+}
+
+impl HumArmorBeltSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_belt_manifest", indicator).unwrap()
+    }
+
+    pub fn mesh_belt(
+        &self,
+        belt: Belt,
+        race: Race,
+        body_type: BodyType,
+    ) -> Mesh<FigurePipeline> {
+        load_mesh(
+            match belt {
+                //Belt::Default => "figure/body/belt_male",
+                Belt::Dark => "armor.belt.dark",
+            },
+            Vec3::new(-4.0, -3.5, 2.0),
         )
-    };
-
-    let bare_chest = graceful_load_mat_segment("armor.chest.grayscale");
-    let chest_armor = graceful_load_mat_segment("armor.chest.grayscale");
-    let chest = DynaUnionizer::new()
-        .add(color(bare_chest), Vec3::new(0, 0, 0))
-        .add(
-            color(chest_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(chest_color)))),
-            Vec3::new(0, 0, 0),
-        )
-        .unify()
-        .0;
-
-    generate_mesh(&chest, Vec3::new(-7.0, -3.5, 2.0))
+    }
 }
 
-pub fn mesh_belt(belt: Belt) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match belt {
-            //Belt::Default => "figure/body/belt_male",
-            Belt::Dark => "armor.belt.dark",
-        },
-        Vec3::new(-4.0, -3.5, 2.0),
-    )
+impl HumArmorPantsSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_pants_manifest", indicator).unwrap()
+    }
+
+    pub fn mesh_pants(
+        &self,
+        pants: Pants,
+        race: Race,
+        body_type: BodyType,
+        skin: u8,
+        hair_color: u8,
+        eye_color: u8,
+    ) -> Mesh<FigurePipeline> {
+        let color = match pants {
+            Pants::Blue => (28, 66, 109),
+            Pants::Brown => (54, 30, 26),
+            Pants::Dark => (24, 19, 17),
+            Pants::Green => (49, 95, 59),
+            Pants::Orange => (148, 52, 33),
+        };
+
+        let pants_segment = color_segment(
+            graceful_load_mat_segment("armor.pants.grayscale")
+                .map_rgb(|rgb| recolor_grey(rgb, Rgb::from(color))),
+            race.skin_color(skin),
+            race.hair_color(hair_color),
+            race.eye_color(eye_color),
+        );
+
+        generate_mesh(&pants_segment, Vec3::new(-5.0, -3.5, 1.0))
+    }
 }
 
-pub fn mesh_pants(
-    pants: Pants,
-    race: Race,
-    skin: u8,
-    hair_color: u8,
-    eye_color: u8,
-) -> Mesh<FigurePipeline> {
-    let color = match pants {
-        Pants::Blue => (28, 66, 109),
-        Pants::Brown => (54, 30, 26),
-        Pants::Dark => (24, 19, 17),
-        Pants::Green => (49, 95, 59),
-        Pants::Orange => (148, 52, 33),
-    };
+impl HumArmorFootSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_foot_manifest", indicator).unwrap()
+    }
 
-    let pants_segment = color_segment(
-        graceful_load_mat_segment("armor.pants.grayscale")
-            .map_rgb(|rgb| recolor_grey(rgb, Rgb::from(color))),
-        race.skin_color(skin),
-        race.hair_color(hair_color),
-        race.eye_color(eye_color),
-    );
+    pub fn mesh_left_foot(
+        &self,
+        foot: Foot,
+        race: Race,
+        body_type: BodyType,
+        skin: u8,
+        hair_color: u8,
+        eye_color: u8,
+    ) -> Mesh<FigurePipeline> {
+        let foot_segment = color_segment(
+            graceful_load_mat_segment(match foot {
+                Foot::Bare => "armor.foot.dark-0",
+                Foot::Dark => "armor.foot.dark-0",
+            }),
+            race.skin_color(skin),
+            race.hair_color(hair_color),
+            race.eye_color(eye_color),
+        );
 
-    generate_mesh(&pants_segment, Vec3::new(-5.0, -3.5, 1.0))
-}
+        generate_mesh(&foot_segment, Vec3::new(-2.5, -3.5, -9.0))
+    }
 
-pub fn mesh_left_hand(
-    hand: Hand,
-    race: Race,
-    skin: u8,
-    hair_color: u8,
-    eye_color: u8,
-) -> Mesh<FigurePipeline> {
-    let hand_segment = color_segment(
-        graceful_load_mat_segment(match hand {
-            Hand::Bare => "armor.hand.default_left",
-            Hand::Dark => "armor.hand.default_left",
-        }),
-        race.skin_color(skin),
-        race.hair_color(hair_color),
-        race.eye_color(eye_color),
-    );
+    pub fn mesh_right_foot(
+        &self,
+        foot: Foot,
+        race: Race,
+        body_type: BodyType,
+        skin: u8,
+        hair_color: u8,
+        eye_color: u8,
+    ) -> Mesh<FigurePipeline> {
+        let foot_segment = color_segment(
+            graceful_load_mat_segment(match foot {
+                Foot::Bare => "armor.foot.dark-0",
+                Foot::Dark => "armor.foot.dark-0",
+            }),
+            race.skin_color(skin),
+            race.hair_color(hair_color),
+            race.eye_color(eye_color),
+        );
 
-    generate_mesh(&hand_segment, Vec3::new(-1.5, -1.5, -7.0))
-}
-
-pub fn mesh_right_hand(
-    hand: Hand,
-    race: Race,
-    skin: u8,
-    hair_color: u8,
-    eye_color: u8,
-) -> Mesh<FigurePipeline> {
-    let hand_segment = color_segment(
-        graceful_load_mat_segment(match hand {
-            Hand::Bare => "armor.hand.default_right",
-            Hand::Dark => "armor.hand.default_right",
-        }),
-        race.skin_color(skin),
-        race.hair_color(hair_color),
-        race.eye_color(eye_color),
-    );
-
-    generate_mesh(&hand_segment, Vec3::new(-1.5, -1.5, -7.0))
-}
-
-pub fn mesh_left_foot(
-    foot: Foot,
-    race: Race,
-    skin: u8,
-    hair_color: u8,
-    eye_color: u8,
-) -> Mesh<FigurePipeline> {
-    let foot_segment = color_segment(
-        graceful_load_mat_segment(match foot {
-            Foot::Bare => "armor.foot.dark-0",
-            Foot::Dark => "armor.foot.dark-0",
-        }),
-        race.skin_color(skin),
-        race.hair_color(hair_color),
-        race.eye_color(eye_color),
-    );
-
-    generate_mesh(&foot_segment, Vec3::new(-2.5, -3.5, -9.0))
-}
-
-pub fn mesh_right_foot(
-    foot: Foot,
-    race: Race,
-    skin: u8,
-    hair_color: u8,
-    eye_color: u8,
-) -> Mesh<FigurePipeline> {
-    let foot_segment = color_segment(
-        graceful_load_mat_segment(match foot {
-            Foot::Bare => "armor.foot.dark-0",
-            Foot::Dark => "armor.foot.dark-0",
-        }),
-        race.skin_color(skin),
-        race.hair_color(hair_color),
-        race.eye_color(eye_color),
-    );
-
-    generate_mesh(&foot_segment, Vec3::new(-2.5, -3.5, -9.0))
+        generate_mesh(&foot_segment, Vec3::new(-2.5, -3.5, -9.0))
+    }
 }
 
 pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
@@ -367,46 +549,6 @@ pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
     } else {
         Mesh::new()
     }
-}
-
-pub fn mesh_left_shoulder(
-    shoulder: Shoulder,
-    race: Race,
-    skin: u8,
-    hair_color: u8,
-    eye_color: u8,
-) -> Mesh<FigurePipeline> {
-    let shoulder_segment = color_segment(
-        graceful_load_mat_segment(match shoulder {
-            Shoulder::None => return Mesh::new(),
-            Shoulder::Brown1 => "armor.shoulder.brown_left",
-        }),
-        race.skin_color(skin),
-        race.hair_color(hair_color),
-        race.eye_color(eye_color),
-    );
-
-    generate_mesh(&shoulder_segment, Vec3::new(-3.0, -3.5, 0.1))
-}
-
-pub fn mesh_right_shoulder(
-    shoulder: Shoulder,
-    race: Race,
-    skin: u8,
-    hair_color: u8,
-    eye_color: u8,
-) -> Mesh<FigurePipeline> {
-    let shoulder_segment = color_segment(
-        graceful_load_mat_segment(match shoulder {
-            Shoulder::None => return Mesh::new(),
-            Shoulder::Brown1 => "armor.shoulder.brown_right",
-        }),
-        race.skin_color(skin),
-        race.hair_color(hair_color),
-        race.eye_color(eye_color),
-    );
-
-    generate_mesh(&shoulder_segment, Vec3::new(-2.0, -3.5, 0.1))
 }
 
 // TODO: Inventory
