@@ -5,10 +5,10 @@ mod ui;
 
 use super::char_selection::CharSelectionState;
 use crate::{window::Event, Direction, GlobalState, PlayState, PlayStateResult};
+use argon2::{self, Config};
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use log::warn;
-use sha2::{Digest, Sha512};
 #[cfg(feature = "singleplayer")]
 use start_singleplayer::StartSingleplayerState;
 use std::time::Duration;
@@ -115,14 +115,10 @@ impl PlayState for MainMenuState {
                                 (server_address, DEFAULT_PORT, false),
                                 player,
                                 {
-                                    // TODO: Switch to Argon2
-                                    let mut hasher = Sha512::new();
-                                    hasher.input(password.clone());
-                                    let mut out = String::new();
-                                    for i in hasher.result().iter() {
-                                        out.push_str(&format!("{:x}", i));
-                                    }
-                                    out
+                                    let salt = b"staticsalt_zTuGkGvybZIjZbNUDtw15";
+                                    let config = Config::default();
+                                    argon2::hash_encoded(password.as_bytes(), salt, &config)
+                                        .unwrap()
                                 },
                                 false,
                             )));
