@@ -1,7 +1,8 @@
 use crate::DISCORD_INSTANCE;
-use crossbeam::channel::{unbounded, Receiver, Sender};
+use crossbeam::channel::{unbounded, Sender};
 use discord_rpc_sdk::{DiscordUser, EventHandlers, RichPresence, RPC};
-use parking_lot::Mutex;
+//use parking_lot::Mutex;
+use std::sync::Mutex;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::SystemTime;
