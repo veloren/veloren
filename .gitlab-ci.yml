@@ -211,7 +211,8 @@ verify-rebase:
   tags:
     - veloren-docker
   script:
-    - git checkout $CI_COMMIT_REF_NAME
+    - git checkout master; git pull
+    - git checkout $CI_COMMIT_REF_NAME; git pull
     - LATEST_COMMIT=$(git show-ref --heads -s origin master)
     - SIMILAR_COMMIT=$(git merge-base origin/master "$CI_COMMIT_REF_NAME")
     - echo "Working on     ::" $CI_COMMIT_REF_NAME;
