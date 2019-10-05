@@ -117,7 +117,7 @@ impl<'a> Widget for Social<'a> {
         // Title
         Text::new("Social")
             .mid_top_with_margin_on(ids.social_frame, 6.0)
-            .font_id(self.fonts.ronda)
+            .font_id(self.fonts.cyri)
             .font_size(14)
             .color(TEXT_COLOR)
             .set(ids.social_title, ui);
