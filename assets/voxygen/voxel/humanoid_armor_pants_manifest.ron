@@ -1,88 +1,32 @@
 ({
-    //For now I'm assuming we will still need a per race/gender offset.
-    (Human, Male): (
-        offset: (-7.0, -4.0, -6.0),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
+    Blue: (
+        voxSpec: ("armor.pants.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (28, 66, 109)
     ),
-    (Human, Female): (
-        offset: (-7.0, -4.0, -6.0),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
+    Brown: (
+        voxSpec: ("armor.pants.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (54, 30, 26)
     ),
-    (Orc, Male): (
-        offset: (-8.0, -5.0, -6.75),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Orc, Female): (
-        offset: (-8.0, -4.0, -6.0),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
+    Dark: (
+        voxSpec: ("armor.pants.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (24, 19, 17)
     ),
-    (Elf, Male): (
-        offset: (-8.0, -4.0, -6.0),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Elf, Female): (
-        offset: (-8.0, -4.0, -6.0),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
+    Green: (
+        voxSpec: ("armor.pants.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (49, 95, 59)
     ),
-    (Dwarf, Male): (
-        offset: (-6.0, -4.5, -6.0),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Dwarf, Female): (
-        offset: (-6.0, -4.5, -6.0),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
+    Orange: (
+        voxSpec: ("armor.pants.grayscale", (0, 0, 0)),
+        recolor: true,
+        color: (148, 52, 33)
     ),
-    (Undead, Male): (
-        offset: (-5.0, -4.0, -6.75),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Undead, Female): (
-        offset: (-5.0, -4.0, -6.75),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
-    ),
-    (Danari, Male): (
-        offset: (-9.0, -4.0, -7.5),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
-    ),	
-    (Danari, Female): (
-        offset: (-9.0, -4.0, -7.5),
-        pants: [
-            Some(("armor.pants.cloth_red_kimono", (0, 0, 0))),
-            Some(("armor.pants.grayscale", (0, 0, 0))),
-        ]
-    ),
-    // More here
+    Kimono: (
+        voxSpec: ("armor.pants.cloth_red_kimono", (0, 0, 0)),
+        recolor: false,
+        color: (0,0,0)
+    )
 })
