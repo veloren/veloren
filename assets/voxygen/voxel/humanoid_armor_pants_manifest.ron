@@ -2,31 +2,31 @@
     Blue: (
         vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
         recolor: true,
-        color: (28, 66, 109)
+        color: Some((28, 66, 109))
     ),
     Brown: (
         vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
         recolor: true,
-        color: (54, 30, 26)
+        color: Some((54, 30, 26))
     ),
     Dark: (
         vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
         recolor: true,
-        color: (24, 19, 17)
+        color: Some((24, 19, 17))
     ),
     Green: (
         vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
         recolor: true,
-        color: (49, 95, 59)
+        color: Some((49, 95, 59))
     ),
     Orange: (
         vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
         recolor: true,
-        color: (148, 52, 33)
+        color: Some((148, 52, 33))
     ),
     Kimono: (
         vox_spec: ("armor.pants.cloth_red_kimono", (-5.0, -3.5, 1.0)),
         recolor: false,
-        color: (0,0,0)
+        color: None
     )
 })

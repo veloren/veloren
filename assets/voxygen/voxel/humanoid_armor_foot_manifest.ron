@@ -3,21 +3,21 @@
     Bare: (
         vox_spec: ("armor.foot.cloth_sandals", (-2.5, -3.5, -9.0)),
         recolor: false,
-        color: (0,0,0)
+        color: None
     ),
     Dark: (
         vox_spec: ("armor.foot.dark-0", (-2.5, -3.5, -9.0)),
         recolor: false,
-        color: (0,0,0)
+        color: None
     ),
     Sandal: (
         vox_spec: ("armor.foot.cloth_sandals", (-2.5, -3.5, -9.0)),
         recolor: false,
-        color: (0,0,0)
+        color: None
     ),
     Jester: (
         vox_spec: ("armor.foot.dark_jester-elf_shoe", (-2.5, -3.5, -9.0)),
         recolor: false,
-        color: (0,0,0)
+        color: None
     )
 })
