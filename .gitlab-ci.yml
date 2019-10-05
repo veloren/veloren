@@ -210,8 +210,8 @@ verify-rebase:
     - veloren-docker
   script:
     - git branch
-    - git pull origin master
-    - git pull origin $CI_COMMIT_REF_NAME
+    - git pull origin master; git branch
+    - git pull origin $CI_COMMIT_REF_NAME; git branch
     - git branch
     - LATEST_COMMIT=$(git show-ref --heads -s master)
     - SIMILAR_COMMIT=$(git merge-base master "$CI_COMMIT_REF_NAME")
