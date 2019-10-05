@@ -136,12 +136,11 @@ widget_ids! {
 
 font_ids! {
     pub struct Fonts {
-        opensans: "voxygen.font.pf_ronda_seven",
+        opensans: "voxygen.font.OpenSans-Regular",
         metamorph: "voxygen.font.Metamorphous-Regular",
         alkhemi: "voxygen.font.Alkhemikal",
-        ronda_b: "voxygen.font.pf_ronda_seven_bold",
         wizard: "voxygen.font.wizard",
-        ronda:"voxygen.font.pf_ronda_seven",
+        cyri:"voxygen.font.haxrcorp_4089_cyrillic_altgr",
     }
 }
 
