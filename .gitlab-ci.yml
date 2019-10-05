@@ -194,10 +194,12 @@ verify-lock:
   tags:
     - veloren-docker
   script:
+    - cargo check
     - NEW_SUM=$(md5sum Cargo.lock)
     - OLD_SUM=$(cat lock-checksum)
     - if [ "$NEW_SUM" != "$OLD_SUM" ]; then
         echo "Something changed in the Cargo.lock file, please go and commit this file!";
+        echo "If you need help, or something is wrong, message @AngelOnFira!";
         exit 1;
       fi
 
