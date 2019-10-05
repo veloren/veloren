@@ -88,17 +88,17 @@ struct VoxSpec<T>(String, [T; 3]);
 
 // Armor can have the color modified.
 #[derive(Serialize, Deserialize)]
-struct ArmorVoxSpec{
+struct ArmorVoxSpec {
     vox_spec: VoxSpec<f32>,
     recolor: bool,
-    color: [u8; 3]
+    color: [u8; 3],
 }
 
 // For use by armor with a left and right component
 #[derive(Serialize, Deserialize)]
-struct SidedArmorVoxSpec{
+struct SidedArmorVoxSpec {
     left: ArmorVoxSpec,
-    right: ArmorVoxSpec
+    right: ArmorVoxSpec,
 }
 
 // All reliant on humanoid::Race and humanoid::BodyType
@@ -264,7 +264,8 @@ impl Asset for HumArmorFootSpec {
 
 impl HumArmorShoulderSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_shoulder_manifest", indicator).unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_shoulder_manifest", indicator)
+            .unwrap()
     }
 
     pub fn mesh_left_shoulder(
@@ -278,10 +279,7 @@ impl HumArmorShoulderSpec {
         let spec = match self.0.get(&shoulder) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No shoulder specification exists for {:?}",
-                    shoulder
-                );
+                error!("No shoulder specification exists for {:?}", shoulder);
                 return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1));
             }
         };
@@ -307,14 +305,11 @@ impl HumArmorShoulderSpec {
         let spec = match self.0.get(&shoulder) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No shoulder specification exists for {:?}",
-                    shoulder
-                );
+                error!("No shoulder specification exists for {:?}", shoulder);
                 return load_mesh("not_found", Vec3::new(-2.0, -3.5, 0.1));
             }
         };
-        
+
         let shoulder_segment = color_segment(
             graceful_load_mat_segment(&spec.right.vox_spec.0),
             race.skin_color(skin),
@@ -328,7 +323,8 @@ impl HumArmorShoulderSpec {
 
 impl HumArmorChestSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_chest_manifest", indicator).unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_chest_manifest", indicator)
+            .unwrap()
     }
 
     pub fn mesh_chest(
@@ -342,10 +338,7 @@ impl HumArmorChestSpec {
         let spec = match self.0.get(&chest) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No chest specification exists for {:?}",
-                    chest
-                );
+                error!("No chest specification exists for {:?}", chest);
                 return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0));
             }
         };
@@ -368,13 +361,10 @@ impl HumArmorChestSpec {
         if spec.recolor {
             chest_armor = chest_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(chest_color)))
         }
-        
+
         let chest = DynaUnionizer::new()
             .add(color(bare_chest), Vec3::new(0, 0, 0))
-            .add(
-                color(chest_armor),
-                Vec3::new(0, 0, 0),
-            )
+            .add(color(chest_armor), Vec3::new(0, 0, 0))
             .unify()
             .0;
 
@@ -384,7 +374,8 @@ impl HumArmorChestSpec {
 
 impl HumArmorHandSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_hand_manifest", indicator).unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_hand_manifest", indicator)
+            .unwrap()
     }
 
     pub fn mesh_left_hand(
@@ -398,10 +389,7 @@ impl HumArmorHandSpec {
         let spec = match self.0.get(&hand) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No hand specification exists for {:?}",
-                    hand
-                );
+                error!("No hand specification exists for {:?}", hand);
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
             }
         };
@@ -415,7 +403,7 @@ impl HumArmorHandSpec {
 
         generate_mesh(&hand_segment, Vec3::from(spec.left.vox_spec.1))
     }
-    
+
     pub fn mesh_right_hand(
         &self,
         hand: Hand,
@@ -427,10 +415,7 @@ impl HumArmorHandSpec {
         let spec = match self.0.get(&hand) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No hand specification exists for {:?}",
-                    hand
-                );
+                error!("No hand specification exists for {:?}", hand);
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
             }
         };
@@ -448,7 +433,8 @@ impl HumArmorHandSpec {
 
 impl HumArmorBeltSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_belt_manifest", indicator).unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_belt_manifest", indicator)
+            .unwrap()
     }
 
     pub fn mesh_belt(
@@ -462,10 +448,7 @@ impl HumArmorBeltSpec {
         let spec = match self.0.get(&belt) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No belt specification exists for {:?}",
-                    belt
-                );
+                error!("No belt specification exists for {:?}", belt);
                 return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
             }
         };
@@ -483,7 +466,8 @@ impl HumArmorBeltSpec {
 
 impl HumArmorPantsSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_pants_manifest", indicator).unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_pants_manifest", indicator)
+            .unwrap()
     }
 
     pub fn mesh_pants(
@@ -497,10 +481,7 @@ impl HumArmorPantsSpec {
         let spec = match self.0.get(&pants) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No pants specification exists for {:?}",
-                    pants
-                );
+                error!("No pants specification exists for {:?}", pants);
                 return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
             }
         };
@@ -523,13 +504,10 @@ impl HumArmorPantsSpec {
         if spec.recolor {
             pants_armor = pants_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(pants_color)))
         }
-        
+
         let pants = DynaUnionizer::new()
             .add(color(bare_pants), Vec3::new(0, 0, 0))
-            .add(
-                color(pants_armor),
-                Vec3::new(0, 0, 0),
-            )
+            .add(color(pants_armor), Vec3::new(0, 0, 0))
             .unify()
             .0;
 
@@ -539,7 +517,8 @@ impl HumArmorPantsSpec {
 
 impl HumArmorFootSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_foot_manifest", indicator).unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_foot_manifest", indicator)
+            .unwrap()
     }
 
     pub fn mesh_left_foot(
@@ -553,10 +532,7 @@ impl HumArmorFootSpec {
         let spec = match self.0.get(&foot) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No foot specification exists for {:?}",
-                    foot
-                );
+                error!("No foot specification exists for {:?}", foot);
                 return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
             }
         };
@@ -582,10 +558,7 @@ impl HumArmorFootSpec {
         let spec = match self.0.get(&foot) {
             Some(spec) => spec,
             None => {
-                error!(
-                    "No foot specification exists for {:?}",
-                    foot
-                );
+                error!("No foot specification exists for {:?}", foot);
                 return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
             }
         };

@@ -410,10 +410,7 @@ pub enum Belt {
     Dark,
     Cloth,
 }
-pub const ALL_BELTS: [Belt; 2] = [
-    Belt::Dark,
-    Belt::Cloth,
-];
+pub const ALL_BELTS: [Belt; 2] = [Belt::Dark, Belt::Cloth];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Pants {
@@ -447,12 +444,7 @@ pub enum Foot {
     Sandal,
     Jester,
 }
-pub const ALL_FEET: [Foot; 4] = [
-    Foot::Bare, 
-    Foot::Dark,
-    Foot::Sandal,
-    Foot::Jester,
-];
+pub const ALL_FEET: [Foot; 4] = [Foot::Bare, Foot::Dark, Foot::Sandal, Foot::Jester];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Shoulder {
@@ -460,11 +452,7 @@ pub enum Shoulder {
     Brown1,
     Chain,
 }
-pub const ALL_SHOULDERS: [Shoulder; 3] = [
-    Shoulder::None, 
-    Shoulder::Brown1,
-    Shoulder::Chain,
-];
+pub const ALL_SHOULDERS: [Shoulder; 3] = [Shoulder::None, Shoulder::Brown1, Shoulder::Chain];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Eyebrows {

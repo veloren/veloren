@@ -113,39 +113,39 @@ impl FigureModelCache {
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_chest_spec.mesh_chest(
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_armor_chest_spec.mesh_chest(
                                                 body.chest,
                                                 body.race,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
-                                            )
-                                        ),
+                                            ))
+                                        }
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_belt_spec.mesh_belt(
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_armor_belt_spec.mesh_belt(
                                                 body.belt,
                                                 body.race,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
-                                            )
-                                        ),
+                                            ))
+                                        }
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_pants_spec.mesh_pants(
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_armor_pants_spec.mesh_pants(
                                                 body.pants,
                                                 body.race,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
-                                            )
-                                        ),
+                                            ))
+                                        }
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode == CameraMode::FirstPerson
@@ -178,27 +178,27 @@ impl FigureModelCache {
                                         ))
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_foot_spec.mesh_left_foot(
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_armor_foot_spec.mesh_left_foot(
                                                 body.foot,
                                                 body.race,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
-                                            )
-                                        ),
+                                            ))
+                                        }
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_foot_spec.mesh_right_foot(
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_armor_foot_spec.mesh_right_foot(
                                                 body.foot,
                                                 body.race,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
-                                            )
-                                        ),
+                                            ))
+                                        }
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode != CameraMode::FirstPerson
@@ -215,27 +215,27 @@ impl FigureModelCache {
                                         None
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_shoulder_spec.mesh_left_shoulder(
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_armor_shoulder_spec.mesh_left_shoulder(
                                                 body.shoulder,
                                                 body.race,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
-                                            )
-                                        ),
+                                            ))
+                                        }
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_shoulder_spec.mesh_right_shoulder(
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_armor_shoulder_spec.mesh_right_shoulder(
                                                 body.shoulder,
                                                 body.race,
                                                 body.skin,
                                                 body.hair_color,
                                                 body.eye_color,
-                                            )
-                                        ),
+                                            ))
+                                        }
                                         CameraMode::FirstPerson => None,
                                     },
                                     Some(mesh_draw()),
