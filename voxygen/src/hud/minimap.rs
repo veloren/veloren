@@ -201,7 +201,7 @@ impl<'a> Widget for MiniMap<'a> {
             Some(chunk) => Text::new(chunk.meta().name())
                 .mid_top_with_margin_on(state.ids.mmap_frame, 0.0)
                 .font_size(18)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
             None => Text::new(" ")
