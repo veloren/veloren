@@ -1,21 +1,22 @@
 ({
+    //This shouldn't be bare, but what is?
     Bare: (
-        voxSpec: ("armor.foot.none", (0, 0, 0)),
+        vox_spec: ("armor.foot.cloth_sandals", (-2.5, -3.5, -9.0)),
         recolor: false,
         color: (0,0,0)
     ),
     Dark: (
-        voxSpec: ("armor.foot.dark-0", (0, 0, 0)),
+        vox_spec: ("armor.foot.dark-0", (-2.5, -3.5, -9.0)),
         recolor: false,
         color: (0,0,0)
     ),
     Sandal: (
-        voxSpec: ("armor.foot.cloth_sandals", (0, 0, 0)),
+        vox_spec: ("armor.foot.cloth_sandals", (-2.5, -3.5, -9.0)),
         recolor: false,
         color: (0,0,0)
     ),
     Jester: (
-        voxSpec: ("armor.foot.dark_jester-elf_shoe", (0, 0, 0)),
+        vox_spec: ("armor.foot.dark_jester-elf_shoe", (-2.5, -3.5, -9.0)),
         recolor: false,
         color: (0,0,0)
     )

@@ -1,36 +1,37 @@
 ({
+    //This shouldn't be the none option, but what is?
     None: (
         left: (
-            voxSpec: ("armor.shoulder.none_left", (0, 0, 0)),
+            vox_spec: ("armor.shoulder.brown_left", (-3.0, -3.5, 0.1)),
             recolor: false,
             color: (0,0,0)
         ),
         right: (
-            voxSpec: ("armor.shoulder.none_right", (0, 0, 0)),
+            vox_spec: ("armor.shoulder.brown_right", (-2.0, -3.5, 0.1)),
             recolor: false,
             color: (0,0,0)
         )
     ),
     Brown1: (
         left: (
-            voxSpec: ("armor.shoulder.brown_left", (0, 0, 0)),
+            vox_spec: ("armor.shoulder.brown_left", (-3.0, -3.5, 0.1)),
             recolor: false,
             color: (0,0,0)
         ),
         right: (
-            voxSpec: ("armor.shoulder.brown_right", (0, 0, 0)),
+            vox_spec: ("armor.shoulder.brown_right", (-2.0, -3.5, 0.1)),
             recolor: false,
             color: (0,0,0)
         )
     ),
     Chain: (
         left: (
-            voxSpec: ("armor.shoulder.chain_left", (0, 0, 0)),
+            vox_spec: ("armor.shoulder.chain_left", (-3.0, -3.5, 0.1)),
             recolor: false,
             color: (0,0,0)
         ),
         right: (
-            voxSpec: ("armor.shoulder.chain_right", (0, 0, 0)),
+            vox_spec: ("armor.shoulder.chain_right", (-2.0, -3.5, 0.1)),
             recolor: false,
             color: (0,0,0)
         )

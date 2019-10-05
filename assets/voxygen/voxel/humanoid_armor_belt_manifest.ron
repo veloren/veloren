@@ -1,11 +1,11 @@
 ({
     Dark:(
-        voxSpec: ("armor.belt.dark", (0, 0, 0)),
+        vox_spec: ("armor.belt.dark", (-4.0, -3.5, 2.0)),
         recolor: false,
         color: (0,0,0)
     ),
     Cloth:(
-        voxSpec: ("armor.belt.cloth_turq", (0, 0, 0)),
+        vox_spec: ("armor.belt.cloth_turq", (-4.0, -3.5, 2.0)),
         recolor: false,
         color: (0,0,0)
     )
