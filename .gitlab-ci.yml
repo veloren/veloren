@@ -210,12 +210,11 @@ verify-rebase:
     - veloren-docker
   script:
     - git fetch origin
-    - BRANCH_NAME=$(git branch --contains HEAD | tail -1 | cut -c 3-)
-    - echo "Working on     ::" $BRANCH_NAME
     - LATEST_COMMIT=$(git show-ref --heads -s master)
-    - echo "Master commit  ::" $LATEST_COMMIT
-    - SIMILAR_COMMIT=$(git merge-base master $BRANCH_NAME)
-    - echo "Similar commit ::" $SIMILAR_COMMIT
+    - SIMILAR_COMMIT=$(git merge-base master "$CI_COMMIT_REF_NAME")
+    - echo "Working on     ::" $CI_COMMIT_REF_NAME;
+      echo "Master commit  ::" $LATEST_COMMIT;
+      echo "Similar commit ::" $SIMILAR_COMMIT;
     - if [ "$LATEST_COMMIT" != "$SIMILAR_COMMIT" ]; then
         echo "These commits should be the same, so this branch needs to be rebased!";
         echo "If you need help, or something is wrong, message @AngelOnFira!";
