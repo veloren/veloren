@@ -13,7 +13,7 @@ before_script:
   - rm -rf /cache/veloren/bin
   - cd /cache/veloren
   - if [ -d .git ]; then
-       echo "is git dir";
+      echo "is git dir";
     else
       git clone $CI_REPOSITORY_URL . ;
     fi;
@@ -25,7 +25,7 @@ before_script:
   - rm -f .git/hocks/post-checkout
   # Do an efficient Git checkout
   - git remote set-url origin $CI_REPOSITORY_URL
-  - git fetch origin --prune +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+  - git fetch origin --prune +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* --no-prune
   - git checkout -f -q $CI_COMMIT_SHA
   - if [ ! -z "${SOURCE_PROJECT}" -a "${SOURCE_PROJECT}" != " " ]; then
       echo "THIS SEEMS TO BE A MERGE PIPELINE FROM ${SOURCE_PROJECT}/${SOURCE_BRANCH}";
@@ -212,6 +212,7 @@ verify-rebase:
     - git branch
     - git pull origin master; git branch
     - git pull origin $CI_COMMIT_REF_NAME; git branch
+    - git checkout $CI_COMMIT_REF_NAME
     - git branch
     - LATEST_COMMIT=$(git show-ref --heads -s master)
     - SIMILAR_COMMIT=$(git merge-base master "$CI_COMMIT_REF_NAME")
