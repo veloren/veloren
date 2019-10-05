@@ -194,8 +194,7 @@ verify-lock:
   tags:
     - veloren-docker
   script:
-    # Fine if cargo check fails, we want it to just update Cargo.lock
-    - trap 'cargo check' 1
+    - cargo check
     - NEW_SUM=$(md5sum Cargo.lock)
     - OLD_SUM=$(cat lock-checksum)
     - if [ "$NEW_SUM" != "$OLD_SUM" ]; then
