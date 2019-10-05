@@ -201,6 +201,8 @@ verify-lock:
         echo "Something changed in the Cargo.lock file, please go and commit this file!";
         echo "If you need help, or something is wrong, message @AngelOnFira!";
         exit 1;
+      else
+        echo "The Cargo.lock file appears to be in order :ok_hand:";
       fi
 
 verify-rebase:
@@ -209,11 +211,7 @@ verify-rebase:
   tags:
     - veloren-docker
   script:
-    - git branch
-    - git pull origin master; git branch
-    - git pull origin $CI_COMMIT_REF_NAME; git branch
     - git checkout $CI_COMMIT_REF_NAME
-    - git branch
     - LATEST_COMMIT=$(git show-ref --heads -s master)
     - SIMILAR_COMMIT=$(git merge-base master "$CI_COMMIT_REF_NAME")
     - echo "Working on     ::" $CI_COMMIT_REF_NAME;
@@ -224,7 +222,7 @@ verify-rebase:
         echo "If you need help, or something is wrong, message @AngelOnFira!";
         exit 1;
       else
-        echo "This branch appears to be rebased :100:"
+        echo "This branch appears to be rebased :100:";
       fi
 
 
