@@ -198,7 +198,7 @@ verify-lock:
     - OLD_SUM=$(cat lock-checksum)
     - if [ $NEW_SUM != $OLD_SUM ]; then
         echo "Something changed in the Cargo.lock file, please go and commit this file!";
-        exit 1
+        exit 1;
       fi
 
 verify-rebase:
@@ -209,11 +209,13 @@ verify-rebase:
   script:
     - git fetch origin master
     - BRANCH_NAME=$(git branch --contains HEAD | tail -1 | xargs)
+    - echo $BRANCH_NAME
     - LATEST_COMMIT=$(git show-ref --heads -s $BRANCH_NAME)
+    - echo $LATEST_COMMIT
     - SIMILAR_COMMIT=$(git merge-base $BRANCH_NAME origin/master)
     - if [ $LATEST_COMMIT != $SIMILAR_COMMIT ]; then
-        echo "This branch needs to be rebased!"
-        exit 1
+        echo "This branch needs to be rebased!";
+        exit 1;
       fi
 
 
