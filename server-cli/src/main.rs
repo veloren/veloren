@@ -1,5 +1,12 @@
 #![deny(unsafe_code)]
 
+#[cfg(not(target_os = "windows"))]
+use jemallocator::Jemalloc;
+
+#[cfg(not(target_os = "windows"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
+
 use common::clock::Clock;
 use log::info;
 use server::{Event, Input, Server, ServerSettings};
