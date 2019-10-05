@@ -10,7 +10,7 @@ extern crate lazy_static;
 pub mod discord;
 
 #[cfg(feature = "discord")]
-use parking_lot::Mutex;
+use std::sync::Mutex;
 
 #[macro_use]
 pub mod ui;
@@ -201,6 +201,17 @@ fn main() {
 
         default_hook(panic_info);
     }));
+
+    // Initialise Discord
+    #[cfg(feature = "discord")]
+    {
+        use discord::DiscordUpdate;
+        discord::send_all(vec![
+            DiscordUpdate::Details("Menu".into()),
+            DiscordUpdate::State("Idling".into()),
+            DiscordUpdate::LargeImg("bg_main".into()),
+        ]);
+    }
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
