@@ -4,36 +4,36 @@
         left: (
             vox_spec: ("armor.shoulder.brown_left", (-3.0, -3.5, 0.1)),
             recolor: false,
-            color: (0,0,0)
+            color: None
         ),
         right: (
             vox_spec: ("armor.shoulder.brown_right", (-2.0, -3.5, 0.1)),
             recolor: false,
-            color: (0,0,0)
+            color: None
         )
     ),
     Brown1: (
         left: (
             vox_spec: ("armor.shoulder.brown_left", (-3.0, -3.5, 0.1)),
             recolor: false,
-            color: (0,0,0)
+            color: None
         ),
         right: (
             vox_spec: ("armor.shoulder.brown_right", (-2.0, -3.5, 0.1)),
             recolor: false,
-            color: (0,0,0)
+            color: None
         )
     ),
     Chain: (
         left: (
             vox_spec: ("armor.shoulder.chain_left", (-3.0, -3.5, 0.1)),
             recolor: false,
-            color: (0,0,0)
+            color: None
         ),
         right: (
             vox_spec: ("armor.shoulder.chain_right", (-2.0, -3.5, 0.1)),
             recolor: false,
-            color: (0,0,0)
+            color: None
         )
     )
 })
