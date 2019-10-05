@@ -12,10 +12,10 @@ pub mod discord;
 #[cfg(feature = "discord")]
 use std::sync::Mutex;
 
-#[cfg(not(target_os = "windows"))]
+#[cfg(not(target_env = "msvc"))]
 use jemallocator::Jemalloc;
 
-#[cfg(not(target_os = "windows"))]
+#[cfg(not(target_env = "msvc"))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
