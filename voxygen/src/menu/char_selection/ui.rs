@@ -219,8 +219,7 @@ font_ids! {
         opensans: "voxygen.font.OpenSans-Regular",
         metamorph: "voxygen.font.Metamorphous-Regular",
         alkhemi: "voxygen.font.Alkhemikal",
-        ronda:"voxygen.font.pf_ronda_seven",
-        ronda_b: "voxygen.font.pf_ronda_seven_bold",
+        cyri:"voxygen.font.haxrcorp_4089_cyrillic_altgr",
         wizard: "voxygen.font.wizard",
     }
 }
@@ -305,7 +304,7 @@ impl CharSelectionUi {
         })
         .title_font_size(15)
         .desc_font_size(10)
-        .font_id(self.fonts.ronda)
+        .font_id(self.fonts.cyri)
         .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
 
@@ -326,7 +325,7 @@ impl CharSelectionUi {
                     Text::new("Permanently delete this Character?")
                         .mid_top_with_margin_on(self.ids.info_frame, 40.0)
                         .font_size(24)
-                        .font_id(self.fonts.ronda)
+                        .font_id(self.fonts.cyri)
                         .color(TEXT_COLOR)
                         .set(self.ids.delete_text, ui_widgets);
                     if Button::image(self.imgs.button)
@@ -336,7 +335,7 @@ impl CharSelectionUi {
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
                         .label("No")
-                        .label_font_id(self.fonts.ronda)
+                        .label_font_id(self.fonts.cyri)
                         .label_font_size(18)
                         .label_color(TEXT_COLOR)
                         .set(self.ids.info_no, ui_widgets)
@@ -352,7 +351,7 @@ impl CharSelectionUi {
                         .label_y(Relative::Scalar(2.0))
                         .label("Yes")
                         .label_font_size(18)
-                        .label_font_id(self.fonts.ronda)
+                        .label_font_id(self.fonts.cyri)
                         .label_color(Color::Rgba(1.0, 1.0, 1.0, 0.1))
                         .set(self.ids.info_ok, ui_widgets)
                         .was_clicked()
@@ -396,7 +395,7 @@ impl CharSelectionUi {
             Text::new(&client.server_info.name)
                 .mid_top_with_margin_on(self.ids.server_frame_bg, 5.0)
                 .font_size(26)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.server_name_text, ui_widgets);
             //Change Server
@@ -408,7 +407,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.button_press)
                 .label("Change Server")
                 .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_font_size(18)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.change_server, ui_widgets)
@@ -426,7 +425,7 @@ impl CharSelectionUi {
                 .label("Enter World")
                 .label_color(TEXT_COLOR)
                 .label_font_size(26)
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.enter_world_button, ui_widgets)
                 .was_clicked()
@@ -441,7 +440,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Logout")
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
@@ -458,7 +457,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Create Character")
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
@@ -473,7 +472,7 @@ impl CharSelectionUi {
             Text::new(version)
                 .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
 
@@ -484,7 +483,7 @@ impl CharSelectionUi {
                 .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
                 .hover_image(self.imgs.selection)
                 .press_image(self.imgs.selection)
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_y(conrod_core::position::Relative::Scalar(20.0))
                 .set(self.ids.character_box_1, ui_widgets)
                 .was_clicked()
@@ -504,21 +503,21 @@ impl CharSelectionUi {
             Text::new("Human Default")
                 .top_left_with_margins_on(self.ids.character_box_1, 6.0, 9.0)
                 .font_size(19)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_name_1, ui_widgets);
 
             Text::new("Level 1")
                 .down_from(self.ids.character_name_1, 4.0)
                 .font_size(17)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_level_1, ui_widgets);
 
             Text::new("Uncanny Valley")
                 .down_from(self.ids.character_level_1, 4.0)
                 .font_size(17)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_location_1, ui_widgets);
 
@@ -536,21 +535,21 @@ impl CharSelectionUi {
             Text::new("Example 2nd Char")
                 .top_left_with_margins_on(self.ids.character_box_2, 6.0, 9.0)
                 .font_size(19)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_name_2, ui_widgets);
 
             Text::new("Level ??")
                 .down_from(self.ids.character_name_2, 4.0)
                 .font_size(17)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_level_2, ui_widgets);
 
             Text::new("Plains of Uncertainty")
                 .down_from(self.ids.character_level_2, 4.0)
                 .font_size(17)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_location_2, ui_widgets);
         }
@@ -563,7 +562,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Back")
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
@@ -579,7 +578,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Create")
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
@@ -602,10 +601,10 @@ impl CharSelectionUi {
                 .w_h(300.0, 60.0)
                 .mid_top_with_margin_on(self.ids.name_input, 2.0)
                 .font_size(26)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .center_justify()
                 .text_color(TEXT_COLOR)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TRANSPARENT)
                 .border_color(TRANSPARENT)
                 .set(self.ids.name_field, ui_widgets)
@@ -640,7 +639,7 @@ impl CharSelectionUi {
             Text::new("Character Creation")
                 .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
                 .font_size(24)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.bodyrace_text, ui_widgets);
             // Alignment
@@ -984,7 +983,7 @@ impl CharSelectionUi {
 
             // Sliders
             let (metamorph, slider_indicator, slider_range) = (
-                self.fonts.ronda,
+                self.fonts.cyri,
                 self.imgs.slider_indicator,
                 self.imgs.slider_range,
             );
@@ -1119,7 +1118,7 @@ impl CharSelectionUi {
                 Text::new("Beard")
                     .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
                     .font_size(18)
-                    .font_id(self.fonts.ronda)
+                    .font_id(self.fonts.cyri)
                     .color(TEXT_COLOR_2)
                     .set(self.ids.beard_text, ui_widgets);
                 ImageSlider::discrete(5, 0, 10, self.imgs.nothing, self.imgs.slider_range)
