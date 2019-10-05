@@ -489,35 +489,29 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Render Name Tags
-            for (pos, name, level, scale) in (
-                &entities,
-                &pos,
-                &stats,
-                &stats,
-                players.maybe(),
-                scales.maybe(),
-            )
-                .join()
-                .filter(|(entity, _, stats, _, _, _)| *entity != me && !stats.is_dead)
-                // Don't process nametags outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _, _, _)| {
-                    Vec2::from(pos.0 - player_pos)
-                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                            d.abs() as f32 / sz as f32
-                        })
-                        .magnitude()
-                        < view_distance as f32
-                })
-                .map(|(_, pos, stats, _, player, scale)| {
-                    // TODO: This is temporary
-                    // If the player used the default character name display their name instead
-                    let name = if stats.name == "Character Name" {
-                        player.map_or(&stats.name, |p| &p.alias)
-                    } else {
-                        &stats.name
-                    };
-                    (pos.0, name, stats.level, scale)
-                })
+            for (pos, name, level, scale) in
+                (&entities, &pos, &stats, players.maybe(), scales.maybe())
+                    .join()
+                    .filter(|(entity, _, stats, _, _)| *entity != me && !stats.is_dead)
+                    // Don't process nametags outside the vd (visibility further limited by ui backend)
+                    .filter(|(_, pos, _, _, _)| {
+                        Vec2::from(pos.0 - player_pos)
+                            .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                                d.abs() as f32 / sz as f32
+                            })
+                            .magnitude()
+                            < view_distance as f32
+                    })
+                    .map(|(_, pos, stats, player, scale)| {
+                        // TODO: This is temporary
+                        // If the player used the default character name display their name instead
+                        let name = if stats.name == "Character Name" {
+                            player.map_or(&stats.name, |p| &p.alias)
+                        } else {
+                            &stats.name
+                        };
+                        (pos.0, name, stats.level, scale)
+                    })
             {
                 let info = format!("{} Level {}", name, level.level());
                 let scale = scale.map(|s| s.0).unwrap_or(1.0);
