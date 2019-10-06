@@ -7,7 +7,6 @@ pub mod error;
 pub use crate::error::Error;
 pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage};
 
-use byteorder::{ByteOrder, LittleEndian};
 use common::{
     comp,
     msg::{
@@ -21,7 +20,7 @@ use common::{
     ChatType,
 };
 use hashbrown::HashMap;
-use image::{ConvertBuffer, DynamicImage};
+use image::DynamicImage;
 use log::warn;
 use std::{
     net::SocketAddr,
@@ -93,7 +92,7 @@ impl Client {
                     .ok_or(Error::ServerWentMad)?;
 
                 // assert_eq!(world_map.len(), map_size.x * map_size.y);
-                let mut world_map_raw = vec![0u8; 4 * /*world_map.len()*/map_size.x * map_size.y];
+                let world_map_raw = vec![0u8; 4 * /*world_map.len()*/map_size.x * map_size.y];
                 // LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
                 log::info!("Preparing image...");
                 let world_map = Arc::new(image::DynamicImage::ImageRgba8({

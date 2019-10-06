@@ -213,7 +213,7 @@ impl<'a> BlockGen<'a> {
                         warp_factor,
                         // alt_sub.div(1.0.sub(alt_sub)).tanh()
                     );
-                    // let warp = 0.0;
+                    let warp = 0.0;
 
                     let height = if (wposf.z as f32) < alt + warp - 10.0 {
                         // Shortcut cliffs
@@ -243,7 +243,7 @@ impl<'a> BlockGen<'a> {
                         height,
                         // water_level.max(CONFIG.sea_level),
                         /*(water_level + warp).max(*/
-                        (water_level + warp/*.min(0.0)*/), /*.max(sea_level)*/, /*)*/
+                        (water_level + warp/*.min(0.0)*/), /*)*/
                     )
                 };
 
