@@ -104,6 +104,8 @@ image_ids! {
         twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
         twohaxe_m1: "voxygen.element.icons.2haxe_m1",
         twohaxe_m2: "voxygen.element.icons.2haxe_m2",
+        bow_m1: "voxygen.element.icons.bow_m1",
+        bow_m2: "voxygen.element.icons.bow_m2",
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
 

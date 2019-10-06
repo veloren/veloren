@@ -99,8 +99,7 @@ font_ids! {
         opensans: "voxygen.font.OpenSans-Regular",
         metamorph: "voxygen.font.Metamorphous-Regular",
         alkhemi: "voxygen.font.Alkhemikal",
-        ronda:"voxygen.font.pf_ronda_seven",
-        ronda_b: "voxygen.font.pf_ronda_seven_bold",
+        cyri:"voxygen.font.haxrcorp_4089_cyrillic_altgr",
         wizard: "voxygen.font.wizard",
     }
 }
@@ -229,7 +228,7 @@ impl MainMenuUi {
         Text::new(version)
             .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .font_size(14)
-            .font_id(self.fonts.ronda)
+            .font_id(self.fonts.cyri)
             .color(TEXT_COLOR)
             .set(self.ids.version, ui_widgets);
 
@@ -272,7 +271,7 @@ impl MainMenuUi {
             ~ The Veloren Devs")
             .top_left_with_margins_on(self.ids.disc_window, 110.0, 40.0)
             .font_size(26)
-            .font_id(self.fonts.ronda)
+            .font_id(self.fonts.cyri)
             .color(TEXT_COLOR)
             .set(self.ids.disc_text_2, ui_widgets);
             if Button::image(self.imgs.button)
@@ -284,7 +283,7 @@ impl MainMenuUi {
                 .label("Accept")
                 .label_font_size(22)
                 .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .set(self.ids.disc_button, ui_widgets)
                 .was_clicked()
             {
@@ -337,7 +336,7 @@ impl MainMenuUi {
                 .w_h(290.0, 30.0)
                 .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
                 .font_size(22)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .text_color(TEXT_COLOR)
                 // transparent background
                 .color(TRANSPARENT)
@@ -366,7 +365,7 @@ impl MainMenuUi {
                 .w_h(290.0, 30.0)
                 .mid_bottom_with_margin_on(self.ids.password_bg, 44.0 / 2.0)
                 .font_size(22)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .text_color(TEXT_COLOR)
                 // transparent background
                 .color(TRANSPARENT)
@@ -388,7 +387,7 @@ impl MainMenuUi {
                 let text = Text::new(&popup_data.msg)
                     .rgba(1.0, 1.0, 1.0, 1.0)
                     .font_size(25)
-                    .font_id(self.fonts.ronda);
+                    .font_id(self.fonts.cyri);
                 Rectangle::fill_with([65.0 * 6.0, 100.0], color::TRANSPARENT)
                     .rgba(0.1, 0.1, 0.1, 1.0)
                     .parent(ui_widgets.window)
@@ -407,7 +406,7 @@ impl MainMenuUi {
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
                     .label(&popup_data.button_text)
-                    .label_font_id(self.fonts.ronda)
+                    .label_font_id(self.fonts.cyri)
                     .label_font_size(15)
                     .label_color(TEXT_COLOR)
                     .set(self.ids.button_ok, ui_widgets)
@@ -458,7 +457,7 @@ impl MainMenuUi {
                                 .label_y(Relative::Scalar(2.0))
                                 .label(&text)
                                 .label_font_size(20)
-                                .label_font_id(self.fonts.ronda)
+                                .label_font_id(self.fonts.cyri)
                                 .label_color(TEXT_COLOR),
                             ui_widgets,
                         )
@@ -477,7 +476,7 @@ impl MainMenuUi {
                     .label_y(Relative::Scalar(2.0))
                     .label("Close")
                     .label_font_size(20)
-                    .label_font_id(self.fonts.ronda)
+                    .label_font_id(self.fonts.cyri)
                     .label_color(TEXT_COLOR)
                     .set(self.ids.servers_close, ui_widgets)
                     .was_clicked()
@@ -497,7 +496,7 @@ impl MainMenuUi {
                 .w_h(290.0, 30.0)
                 .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
                 .font_size(22)
-                .font_id(self.fonts.ronda)
+                .font_id(self.fonts.cyri)
                 .text_color(TEXT_COLOR)
                 // transparent background
                 .color(TRANSPARENT)
@@ -521,7 +520,7 @@ impl MainMenuUi {
                 .down_from(self.ids.address_bg, 20.0)
                 .align_middle_x_of(self.ids.address_bg)
                 .label("Login")
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(26)
                 .label_y(Relative::Scalar(5.0))
@@ -548,7 +547,7 @@ impl MainMenuUi {
                     .down_from(self.ids.login_button, 20.0)
                     .align_middle_x_of(self.ids.address_bg)
                     .label("Singleplayer")
-                    .label_font_id(self.fonts.ronda)
+                    .label_font_id(self.fonts.cyri)
                     .label_color(TEXT_COLOR)
                     .label_font_size(22)
                     .label_y(Relative::Scalar(5.0))
@@ -566,7 +565,7 @@ impl MainMenuUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Quit")
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
                 .label_y(Relative::Scalar(3.0))
@@ -583,7 +582,7 @@ impl MainMenuUi {
                 //.hover_image(self.imgs.button_hover)
                 //.press_image(self.imgs.button_press)
                 .label("Settings")
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR_2)
                 .label_font_size(20)
                 .label_y(Relative::Scalar(3.0))
@@ -600,7 +599,7 @@ impl MainMenuUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label("Servers")
-                .label_font_id(self.fonts.ronda)
+                .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
                 .label_y(Relative::Scalar(3.0))

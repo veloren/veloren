@@ -10,7 +10,14 @@ extern crate lazy_static;
 pub mod discord;
 
 #[cfg(feature = "discord")]
-use parking_lot::Mutex;
+use std::sync::Mutex;
+
+#[cfg(not(target_env = "msvc"))]
+use jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
 
 #[macro_use]
 pub mod ui;
@@ -37,11 +44,6 @@ use log::{self, debug, error, info};
 
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
-
-#[cfg(feature = "heaptrack")]
-use heaptrack::track_mem;
-#[cfg(feature = "heaptrack")]
-track_mem!();
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
@@ -201,6 +203,17 @@ fn main() {
 
         default_hook(panic_info);
     }));
+
+    // Initialise Discord
+    #[cfg(feature = "discord")]
+    {
+        use discord::DiscordUpdate;
+        discord::send_all(vec![
+            DiscordUpdate::Details("Menu".into()),
+            DiscordUpdate::State("Idling".into()),
+            DiscordUpdate::LargeImg("bg_main".into()),
+        ]);
+    }
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
