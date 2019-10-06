@@ -1,16 +1,12 @@
 #![deny(unsafe_code)]
 
-#[cfg(not(target_env = "msvc"))]
-use jemallocator::Jemalloc;
-
-#[cfg(not(target_env = "msvc"))]
-#[global_allocator]
-static GLOBAL: Jemalloc = Jemalloc;
-
 use common::clock::Clock;
+use heaptrack::track_mem;
 use log::info;
 use server::{Event, Input, Server, ServerSettings};
 use std::time::Duration;
+
+track_mem!();
 
 const TPS: u64 = 30;
 
