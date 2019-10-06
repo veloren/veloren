@@ -10,7 +10,7 @@ gl = ["gfx_device_gl"]
 discord = ["discord-rpc-sdk", "lazy_static"]
 singleplayer = ["server", "portpicker"]
 
-default = ["gl", "singleplayer", "msgbox"]
+default = ["gl", "singleplayer", "msgbox", "heaptrack"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
@@ -59,10 +59,10 @@ rand = "0.7.0"
 frustum_query = "0.1.2"
 rodio = "0.9.0"
 crossbeam = "0.7.2"
+heaptrack = { version = "0.3.0", optional = true }
 hashbrown = { version = "0.5.0", features = ["serde", "nightly"] }
 chrono = "0.4.7"
 rust-argon2 = "0.5"
-jemallocator = "0.3.2"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
