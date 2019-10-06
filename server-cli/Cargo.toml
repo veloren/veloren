@@ -10,4 +10,6 @@ common = { package = "veloren-common", path = "../common" }
 
 log = "0.4.8"
 pretty_env_logger = "0.3.0"
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
 jemallocator = "0.3.2"
