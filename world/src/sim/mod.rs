@@ -33,7 +33,7 @@ use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
 use std::{
     collections::HashMap,
-    f32, iter,
+    f32,
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
@@ -113,7 +113,7 @@ impl WorldSim {
     pub fn generate(seed: u32) -> Self {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
 
-        let mut gen_ctx = GenCtx {
+        let gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
             turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
             chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(rng.gen()),
@@ -270,7 +270,7 @@ impl WorldSim {
                 // = [-0.946, 1.067]
                 Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1.powf(1.2)))
                      .mul(map_edge_factor(posi))
-                     .add((CONFIG.sea_level.div(CONFIG.mountain_scale).mul(map_edge_factor(posi))))
+                     .add(CONFIG.sea_level.div(CONFIG.mountain_scale).mul(map_edge_factor(posi)))
                      .sub(CONFIG.sea_level.div(CONFIG.mountain_scale)))
             })/*,
             alt_positions,
@@ -279,12 +279,12 @@ impl WorldSim {
         // Find the minimum and maximum original altitudes.
         // NOTE: Will panic if there is no land, and will not work properly if the minimum and
         // maximum land altitude are identical (will most likely panic later).
-        let (alt_old_min_index, alt_old_min) = alt_old_inverse
+        let (alt_old_min_index, _alt_old_min) = alt_old_inverse
             .iter()
             .copied()
             .find(|&(_, h)| h > 0.0)
             .unwrap();
-        let &(alt_old_max_index, alt_old_max) = alt_old_inverse.last().unwrap();
+        let &(alt_old_max_index, _alt_old_max) = alt_old_inverse.last().unwrap();
         let alt_old_min_uniform = alt_old[alt_old_min_index].0;
         let alt_old_max_uniform = alt_old[alt_old_max_index].0;
 
@@ -354,12 +354,12 @@ impl WorldSim {
             // 0.22875/2.36025 ~ 0.97...
             |posi| {
                 let height =
-                                     (((old_height_uniform(posi) /*+ 0.946*/- alt_old_min_uniform) / /*2.013*/(alt_old_max_uniform - alt_old_min_uniform)/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
+                                     ((old_height_uniform(posi) /*+ 0.946*/- alt_old_min_uniform) / /*2.013*/(alt_old_max_uniform - alt_old_min_uniform)/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
                                      // .max(1.0 / CONFIG.mountain_scale)
                                      // .min(1.0)
                                      // .max(1.0 / CONFIG.mountain_scale)
                                      .max(1e-7 / CONFIG.mountain_scale)
-                                     .min(1.0 - 1e-7));
+                                     .min(1.0 - 1e-7);
                 let height = erosion_factor(height);
                 height
                     // .powf(erosion_pow)
@@ -511,8 +511,8 @@ impl WorldSim {
         // If out_height_i < in_height_i,j, we need to fix it by pulling up in_height_i,j
         // to match in_height_i.
 
-        let water_factor = (1.0 / 1024.0) as f32;
-        let wdelta = /*flux * water_factor*/5.0;
+        let _water_factor = (1.0 / 1024.0) as f32;
+        let _wdelta = /*flux * water_factor*/5.0;
         /* let water_alt = indirection
         .par_iter()
         .enumerate()
@@ -586,7 +586,7 @@ impl WorldSim {
 
         // Check whether any tiles around this tile are not seawater (since Lerp will ensure that they
         // are included).
-        let sea_water = |posi| {
+        let _sea_water = |posi| {
             let pos = uniform_idx_as_vec2(posi);
             for x in pos.x - 1..=pos.x + 1 {
                 for y in pos.y - 1..=pos.y + 1 {
@@ -1045,7 +1045,7 @@ impl WorldSim {
 
         let parabola = |a: T, c: T| -a * 0.5 + c * 0.5;
 
-        let slope = |a: T, b: T, c: T, s_a: T, s_b: T, p_b: T| {
+        let slope = |_a: T, _b: T, _c: T, s_a: T, s_b: T, p_b: T| {
             // let s1 = b - a;
             // let s2 = c - b;
             (s_a.signum() + s_b.signum()) * (s_a.abs().min(s_b.abs()).min(p_b.abs() * 0.5))
@@ -1070,10 +1070,10 @@ impl WorldSim {
             let x2 = x * x;
 
             // Interpolating splines.
-            let co0 = (slope_b + slope_c - s_b * 2.0);
+            let co0 = slope_b + slope_c - s_b * 2.0;
             // = a * -0.5 + c * 0.5 + b * -0.5 + d * 0.5 - 2 * (c - b)
             // = a * -0.5 + b * 1.5 - c * 1.5 + d * 0.5;
-            let co1 = (s_b * 3.0 - slope_b * 2.0 - slope_c);
+            let co1 = s_b * 3.0 - slope_b * 2.0 - slope_c;
             // = (3.0 * (c - b) - 2.0 * (a * -0.5 + c * 0.5) - (b * -0.5 + d * 0.5))
             // = a + b * -2.5 + c * 2.0 + d * -0.5;
             let co2 = slope_b;
@@ -1237,7 +1237,7 @@ impl SimChunk {
 
         let (_, alt_base) = gen_cdf.alt_base[posi];
         let (_, alt_old) = gen_cdf.alt_old[posi];
-        let map_edge_factor = map_edge_factor(posi);
+        let _map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
         let (humid_uniform, _) = gen_cdf.humid_base[posi];
         let alt_pre = gen_cdf.alt[posi];

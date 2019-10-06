@@ -16,7 +16,7 @@ use common::{
 };
 use lazy_static::lazy_static;
 use noise::NoiseFn;
-use roots::{find_roots_cubic, Roots};
+use roots::{find_roots_cubic};
 use std::{
     cmp::Reverse,
     f32,
@@ -86,7 +86,7 @@ impl<'a> ColumnGen<'a> {
         }; */
 
         // let flux = chunk.flux;
-        let water_factor = /*((WORLD_SIZE.x * WORLD_SIZE.y) / 1024) as f32;*/1.0 / (1024.0 * 1.0) as f32;
+        let _water_factor = /*((WORLD_SIZE.x * WORLD_SIZE.y) / 1024) as f32;*/1.0 / (1024.0 * 1.0) as f32;
         let wdelta = /*flux * water_factor*/0.01f32;
         if seed % 5 == 2
             && chunk.temp > CONFIG.desert_temp
@@ -253,7 +253,7 @@ fn intersecting_rect(rect: Aabr<f32>, mut rot_vec: Vec2<f32>, vox: Vec2<f32>) ->
 }
 
 fn river_spline_coeffs(
-    sim: &WorldSim,
+    _sim: &WorldSim,
     chunk_pos: Vec2<f32>,
     spline_derivative: Vec2<f32>,
     downhill_pos: Vec2<f32>,
@@ -459,7 +459,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
 
         let sim_chunk = sim.get(chunk_pos)?;
-        let river_data = &sim_chunk.river;
+        let _river_data = &sim_chunk.river;
         let neighbor_coef = Vec2::new(
             TerrainChunkSize::RECT_SIZE.x as f32,
             TerrainChunkSize::RECT_SIZE.y as f32,
@@ -620,7 +620,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let mut overlap_count = /*0.0f32*//*alt*/0.0f64;
         let mut river_distance_product = 1.0f32;
         let mut river_overlap_distance_product = /*1.0f32*/0.0f64;
-        let mut min_river_distance = f32::INFINITY;
+        let _min_river_distance = f32::INFINITY;
         let mut max_river = None;
         let mut max_key = None;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| {
@@ -684,7 +684,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     }
                     let river_dist = dist.map(
                         /*Vec2::magnitude*/
-                        |(direction, dist, _, (river_t, _, downhill_river))| {
+                        |(_direction, dist, _, (river_t, _, downhill_river))| {
                             let downhill_height = if kind.is_river() {
                                 Lerp::lerp(
                                     river_chunk.alt.max(river_chunk.water_alt),
@@ -730,10 +730,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     // until the nearest point in "this" chunk (i.e. the one whose top-left corner
                     // is chunk_pos) that is at least 2 chunks away from the river source.
                     if let Some((
-                        direction,
+                        _direction,
                         dist,
-                        river_width,
-                        (river_t, (river_pos, river_coeffs), downhill_river_chunk),
+                        _river_width,
+                        (river_t, (_river_pos, _river_coeffs), downhill_river_chunk),
                     )) = dist
                     {
                         let max_distance = TerrainChunkSize::RECT_SIZE.x as f32; //river_width;//direction.magnitude();
@@ -785,7 +785,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         // with the "normal" height of this point.
                         // NOTE: We keep the maximum at 1.0 so we don't undo work from another river
                         // just by being far away.
-                        let river_scale = (river_dist / scale_factor); //.min(1.0);
+                        let river_scale = river_dist / scale_factor; //.min(1.0);
                                                                        // river_count += 1.0 - river_scale;
                                                                        // What we want: chunk that river point is in is at least 1 away from the
                                                                        // chunk that this column is in.
@@ -1028,10 +1028,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // let alt_orig = sim_chunk.alt;
         let downhill = sim_chunk.downhill;
         let downhill_pos = downhill.and_then(|downhill_pos| sim.get(downhill_pos));
-        let downhill_alt = downhill_pos
+        let _downhill_alt = downhill_pos
             .map(|downhill_chunk| downhill_chunk.alt)
             .unwrap_or(CONFIG.sea_level);
-        let wdelta = /*sim_chunk.flux * water_factor*//*0.01f32*/16.0f32;
+        let _wdelta = /*sim_chunk.flux * water_factor*//*0.01f32*/16.0f32;
         /* let water_alt = sim.get_interpolated_monotone(wpos, |chunk| {
             chunk.water_alt.max(
                 /*Lerp::lerp(chunk.alt - 5.0, chunk.alt, chunk.flux * water_factor)*/
@@ -1128,7 +1128,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         (flux * water_factor - /*0.33*/0.25) * 256.0,
             ),*/
 
-        let water_factor = /*((WORLD_SIZE.x * WORLD_SIZE.y) / 1024) as f32*/1.0 / (1024.0 * 1.0) as f32;
+        let _water_factor = /*((WORLD_SIZE.x * WORLD_SIZE.y) / 1024) as f32*/1.0 / (1024.0 * 1.0) as f32;
         // let alt_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.alt)?;
         //let water_alt_orig = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;
         // let water_alt_orig = sim_chunk.water_alt;// + riverless_alt_delta;
@@ -1181,7 +1181,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // let water_level = water_alt;
 
         let river_gouge = 0.5;
-        let (alt_, water_level, warp_factor) = /*if /*water_alt_orig == alt_orig.max(0.0)*/water_alt_orig == CONFIG.sea_level {
+        let (alt_, water_level, _warp_factor) = /*if /*water_alt_orig == alt_orig.max(0.0)*/water_alt_orig == CONFIG.sea_level {
             // This is flowing into the ocean.
             if alt_orig <= CONFIG.sea_level + 5.0 {
                 (alt, CONFIG.sea_level)
@@ -1250,7 +1250,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             RiverKind::Lake { .. } => {
                                 let lake_dist = (max_border_river_pos.map(|e| e as f32) * neighbor_coef).distance(wposf.map(|e| e as f32));
                                 let downhill_river_chunk = max_border_river_pos;//river_chunk.downhill./*and_then( |downhill_pos| sim.get(downhill_pos)).unwrap_or(river_chunk);*/unwrap_or(max_border_river_pos);
-                                let lake_id_dist = (downhill_river_chunk - chunk_pos);
+                                let lake_id_dist = downhill_river_chunk - chunk_pos;
                                 let in_bounds = lake_id_dist.x >= -1 && lake_id_dist.y >= -1 && lake_id_dist.x <= 1 && lake_id_dist.y <= 1;
                                 let in_bounds = in_bounds && (lake_id_dist.x >= 0 && lake_id_dist.y >= 0);
                                 /* if in_bounds {
@@ -1293,7 +1293,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                     return None;
                                 }; */
                                 let lake_dist = dist.y;//lake_dist.min(dist.y/* + (TerrainChunkSize::RECT_SIZE.x as f32) * 1.0*/);
-                                let lake_dist_ = river_pos.distance(wposf.map(|e| e as f32));
+                                let _lake_dist_ = river_pos.distance(wposf.map(|e| e as f32));
                                 let river_alt = /*sim.get(/*river_pos*/max_border_river_pos)?*/
                                     Lerp::lerp(
                                         river_chunk.alt.max(river_chunk.water_alt),
@@ -1306,7 +1306,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                          downhill_river_chunk)) = max_border_river_dist.unwrap(); */
                                     // println!("Pos: {:?}, river: {:?}", wposf, river.cross_section);
                                     let river_dist = wposf.map(|e| e as f32).distance(river_pos);
-                                    let river_height_factor = river_dist / (river_width * 0.5);
+                                    let _river_height_factor = river_dist / (river_width * 0.5);
 
                                     return Some((/*Lerp::lerp(
                                                 alt.min(new_alt - 1.0),
@@ -1365,7 +1365,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         downhill_river_chunk.alt.max(downhill_river_chunk.water_alt),
                                         river_t,
                                     );
-                                let new_alt = /*alt.min(river_alt)*/river_alt;//sim.get_interpolated(wpos, |chunk| chunk.alt./*min*/min(river_alt))?;
+                                let _new_alt = /*alt.min(river_alt)*/river_alt;//sim.get_interpolated(wpos, |chunk| chunk.alt./*min*/min(river_alt))?;
                                 //
                                 //
                                 // let dist = max_border_river_dist?;

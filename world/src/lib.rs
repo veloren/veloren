@@ -24,7 +24,6 @@ use common::{
 };
 use rand::Rng;
 use std::{
-    sync::atomic::{AtomicBool, Ordering},
     time::Duration,
 };
 use vek::*;
@@ -72,7 +71,7 @@ impl World {
         let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-        let chunk_size2d = TerrainChunkSize::RECT_SIZE;
+        let _chunk_size2d = TerrainChunkSize::RECT_SIZE;
         let (base_z, sim_chunk) = match self
             .sim
             /*.get_interpolated(

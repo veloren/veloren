@@ -281,7 +281,7 @@ pub fn downhill(
     h.par_iter()
         .enumerate()
         .map(|(posi, &nh)| {
-            let pos = uniform_idx_as_vec2(posi);
+            let _pos = uniform_idx_as_vec2(posi);
             /* if pos.x < 16 || pos.y < 16 {
                 println!("ocean {:?}: {:?}", pos, is_ocean(posi));
             } */
@@ -549,7 +549,7 @@ pub fn get_rivers(
                     // NOTE: This will fail if the distance between chunks in any direction
                     // is exactly TerrainChunkSize::RECT * 4.0, but hopefully this should not be possible.
                     // NOTE: This isn't measuring actual distance, you can go farther on diagonals.
-                    let max_deriv = (neighbor_dim - neighbor_coef * 4.0);
+                    let max_deriv = neighbor_dim - neighbor_coef * 4.0;
                     let extra_divisor = river_prev_slope
                         .map2(max_deriv, |e, f| (e / f).abs())
                         .reduce_partial_max();
@@ -634,7 +634,7 @@ pub fn get_rivers(
             indirection_idx as usize
         };
         // Add our spline derivative to the downhill river.
-        let mut downhill_river = &mut rivers[downhill_idx];
+        let downhill_river = &mut rivers[downhill_idx];
         downhill_river.spline_derivative +=
             (neighbor_dim * 2.0 - river_spline_derivative) / derivative_divisor * chunk_drainage;
 
@@ -1541,7 +1541,7 @@ fn erode(
             } */
             let dz = (new_h_i - h_j) * CONFIG.mountain_scale;
             let mag_slope = dz.abs() / neighbor_distance;
-            let fake_neighbor = is_lake_bottom && dxy.x.abs() > 1.0 && dxy.y.abs() > 1.0;
+            let _fake_neighbor = is_lake_bottom && dxy.x.abs() > 1.0 && dxy.y.abs() > 1.0;
             // If you're on the lake bottom and not right next to your neighbor, don't compute a
             // slope.
             if
@@ -2535,7 +2535,7 @@ pub fn get_lakes(
 pub fn do_erosion(
     /*oldh: &InverseCdf, *//*, epsilon: f64*//*newh: &mut [u32],*/
     erosion_base: f32,
-    max_uplift: f32,
+    _max_uplift: f32,
     /*amount: f32, */ n: usize,
     seed: &RandomField,
     rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),

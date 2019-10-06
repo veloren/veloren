@@ -3,7 +3,6 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     generator::{Generator, TownGen},
-    sim::WORLD_SIZE,
     util::{RandomField, Sampler, SmallCache},
     World, CONFIG,
 };
@@ -12,7 +11,7 @@ use common::{
     util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg};
 use vek::*;
 
 pub struct BlockGen<'a> {
@@ -206,7 +205,7 @@ impl<'a> BlockGen<'a> {
                     /* let alt_sub = alt.sub(water_level/* - 1.0*/).powi(2).max(1e-7)
                     .min(wdelta.powi(2) - 1e-7).div(wdelta.powi(2))
                     .mul(alt.sub(water_level/* - 1.0*/).signum()); */
-                    let warp = Lerp::lerp(
+                    let _warp = Lerp::lerp(
                         0.0,
                         warp,
                         /*(alt.sub(water_level).powi(2).max(1e-7) + */
