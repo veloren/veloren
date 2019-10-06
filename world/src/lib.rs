@@ -9,6 +9,7 @@ pub mod config;
 pub mod generator;
 pub mod sim;
 pub mod util;
+pub mod manifest;
 
 // Reexports
 pub use crate::config::CONFIG;
