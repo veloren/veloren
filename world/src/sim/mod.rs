@@ -900,7 +900,7 @@ impl WorldSim {
                     let maybe_town = maybe_towns
                         .entry(*pos)
                         .or_insert_with(|| {
-                            println!("Town: {:?}", town);
+                            // println!("Town: {:?}", town);
                             TownState::generate(*pos, &mut ColumnGen::new(self), &mut rng)
                                 .map(|t| Arc::new(t))
                         })
@@ -1326,7 +1326,7 @@ impl SimChunk {
             None => false,
         };
         if flux * water_factor >= 1.0 {
-            println!("Big flux: {:?}, flux: {:?}", wposf, flux / 1024.0 as f32);
+            // println!("Big flux: {:?}, flux: {:?}", wposf, flux / 1024.0 as f32);
         }
         let river_xy = Vec2::new(river.velocity.x, river.velocity.y).magnitude();
         let river_slope = river.velocity.z / river_xy;
@@ -1334,10 +1334,10 @@ impl SimChunk {
         match river.river_kind {
             Some(RiverKind::River { cross_section }) => {
                 if cross_section.x >= 0.5 && cross_section.y >= CONFIG.river_min_height {
-                    println!(
+                    /* println!(
                         "Big area! Pos area: {:?}, River data: {:?}, slope: {:?}",
                         wposf, river, river_slope
-                    );
+                    ); */
                 }
                 if river_slope.abs() >= 1.0 && cross_section.x >= /*0.25*/1.0 {
                     println!(
