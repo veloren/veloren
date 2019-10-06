@@ -1589,7 +1589,8 @@ impl Server {
                             entity: EcsEntity,
                             pos: comp::Pos,
                             force_update,
-                            clients: &mut Clients| {
+                            clients: &mut Clients,
+                            throttle: bool| {
                 for (index, _, client_entity, client_pos) in &subscribers {
                     match force_update {
                         None if client_entity == &entity => {}
@@ -1597,18 +1598,18 @@ impl Server {
                             let distance_sq = client_pos.0.distance_squared(pos.0);
 
                             // Throttle update rate based on distance to player
-                            let update = if distance_sq < 100.0f32.powi(2) {
+                            let update = if !throttle || distance_sq < 100.0f32.powi(2) {
                                 true // Closer than 100.0 blocks
                             } else if distance_sq < 150.0f32.powi(2) {
-                                tick + entity.id() as u64 % 2 == 0
+                                (tick + entity.id() as u64) % 2 == 0
                             } else if distance_sq < 200.0f32.powi(2) {
-                                tick + entity.id() as u64 % 4 == 0
+                                (tick + entity.id() as u64) % 4 == 0
                             } else if distance_sq < 250.0f32.powi(2) {
-                                tick + entity.id() as u64 % 8 == 0
+                                (tick + entity.id() as u64) % 8 == 0
                             } else if distance_sq < 300.0f32.powi(2) {
-                                tick + entity.id() as u64 % 8 == 0
+                                (tick + entity.id() as u64) % 16 == 0
                             } else {
-                                tick + entity.id() as u64 % 16 == 0
+                                (tick + entity.id() as u64) % 32 == 0
                             };
 
                             if update {
@@ -1648,6 +1649,7 @@ impl Server {
                         pos,
                         force_update,
                         clients,
+                        true,
                     );
                 }
 
@@ -1663,6 +1665,7 @@ impl Server {
                             pos,
                             force_update,
                             clients,
+                            true,
                         );
                     }
                 }
@@ -1679,6 +1682,7 @@ impl Server {
                             pos,
                             force_update,
                             clients,
+                            true,
                         );
                     }
                 }
@@ -1699,6 +1703,7 @@ impl Server {
                             pos,
                             force_update,
                             clients,
+                            false,
                         );
                     }
                 }
