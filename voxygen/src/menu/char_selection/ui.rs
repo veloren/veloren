@@ -1237,7 +1237,6 @@ impl CharSelectionUi {
                 self.character_body.foot = humanoid::ALL_FEET[new_val];
             }
 
-
             Rectangle::fill_with([20.0, 20.0], color::TRANSPARENT)
                 .down_from(self.ids.chest_slider, 15.0)
                 .set(self.ids.space, ui_widgets);
