@@ -205,14 +205,13 @@ impl<'a> BlockGen<'a> {
                     /* let alt_sub = alt.sub(water_level/* - 1.0*/).powi(2).max(1e-7)
                     .min(wdelta.powi(2) - 1e-7).div(wdelta.powi(2))
                     .mul(alt.sub(water_level/* - 1.0*/).signum()); */
-                    let _warp = Lerp::lerp(
+                    let warp = Lerp::lerp(
                         0.0,
                         warp,
                         /*(alt.sub(water_level).powi(2).max(1e-7) + */
                         warp_factor,
                         // alt_sub.div(1.0.sub(alt_sub)).tanh()
                     );
-                    let warp = 0.0;
 
                     let height = if (wposf.z as f32) < alt + warp - 10.0 {
                         // Shortcut cliffs

@@ -990,7 +990,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .get((wposf_turb.div(200.0)).into_array()) as f32)
             .abs()
             .mul(chaos.max(0.05))
-            .mul(/*55.0*/ 11.0)
+            .mul(/*55.0*//*11.0*/27.0)
             + (sim
                 .gen_ctx
                 .small_nz
@@ -998,7 +998,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .abs()
                 .mul((1.0 - chaos).max(0.3))
                 .mul(1.0 - humidity)
-                .mul(/*65.0*/ 13.0);
+                .mul(/*65.0*/32.0);
 
         /* let riverless_alt_delta_mid =
         (sim
@@ -1045,6 +1045,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 );
             }*/
         })?; // + riverless_alt_delta; */
+        debug_assert!(sim_chunk.water_alt >= CONFIG.sea_level);
 
         let downhill_water_alt = downhill_pos /*sim.get(max_border_river_pos)*/
             .map(|downhill_chunk| {
@@ -1054,7 +1055,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 downhill_chunk
                     .water_alt
                     .min(sim_chunk.water_alt)
-                    .max(sim_chunk.alt /* - wdelta*/)
+                    .max(sim_chunk.alt.min(sim_chunk.water_alt) /* - wdelta*/)
                 /*}*/
             })
             .unwrap_or(CONFIG.sea_level);
@@ -1181,7 +1182,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // let water_level = water_alt;
 
         let river_gouge = 0.5;
-        let (alt_, water_level, _warp_factor) = /*if /*water_alt_orig == alt_orig.max(0.0)*/water_alt_orig == CONFIG.sea_level {
+        let (alt_, water_level, warp_factor) = /*if /*water_alt_orig == alt_orig.max(0.0)*/water_alt_orig == CONFIG.sea_level {
             // This is flowing into the ocean.
             if alt_orig <= CONFIG.sea_level + 5.0 {
                 (alt, CONFIG.sea_level)
@@ -1246,7 +1247,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         // let new_alt = alt.min(river_alt)/*river_alt*/;//sim.get_interpolated(wpos, |chunk| chunk.alt./*min*/min(river_alt))?;
                         // let new_alt = alt./*min*/min(river_alt);
                         match river_kind {
-                            RiverKind::Ocean => None,
+                            RiverKind::Ocean => {
+                                Some((alt, CONFIG.sea_level, 1.0))
+                            },
                             RiverKind::Lake { .. } => {
                                 let lake_dist = (max_border_river_pos.map(|e| e as f32) * neighbor_coef).distance(wposf.map(|e| e as f32));
                                 let downhill_river_chunk = max_border_river_pos;//river_chunk.downhill./*and_then( |downhill_pos| sim.get(downhill_pos)).unwrap_or(river_chunk);*/unwrap_or(max_border_river_pos);
@@ -1485,7 +1488,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         /* let alt_sub = alt.sub(water_level/* - 1.0*/).powi(2).max(1e-7)
         .min(wdelta.powi(2) - 1e-7).div(wdelta.powi(2))
         .mul(alt.sub(water_level/* - 1.0*/).signum()); */
-        let warp_factor = 0.0;
+        // let warp_factor = 0.0;
         let riverless_alt_delta = Lerp::lerp(
             0.0,
             riverless_alt_delta,
@@ -1793,23 +1796,23 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             5.0
         };
 
-        let alt_min = /*max_river
+        /* let alt_min = /*max_river
             // .map(|(_, _, _, max_border_river_dist)| water_alt)
             .and_then(|(_, _, _, max_border_river_dist)| max_border_river_dist)
             .map(|(_, _, _, (_, _, downhill_river_chunk))| {
                 alt.min(downhill_river_chunk.alt.max(downhill_river_chunk.water_alt))
             })
             .unwrap_or(alt);*/
-            alt.min(water_level);
+            alt;//.min(water_level);
         /*if water_level.max(water_alt) >= alt {
             alt
         } else {
             downhill_water_alt
-        };*/
+        };*/ */
 
         Some(ColumnSample {
             alt,
-            alt_min,
+            // alt_min,
             // alt_old,
             chaos,
             /* sea_level: /*if water_level/*.max(water_alt)*/ >= alt
@@ -1819,9 +1822,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             } else {
                 downhill_water_alt - river_gouge
             }*/water_level, /*/*water_alt.sub(5.0),/**/ */water_alt_orig.sub(/*wdelta*/5.0)*//*downhill_water_alt*//*water_alt_orig.sub(5.0),*/ */
-            water_level,
+            water_level: alt.max(water_level),
             // flux,
-            river,
+            // river,
             warp_factor,
             surface_color: Rgb::lerp(
                 sand,
@@ -1879,13 +1882,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 #[derive(Clone)]
 pub struct ColumnSample<'a> {
     pub alt: f32,
-    pub alt_min: f32,
+    // pub alt_min: f32,
     // pub alt_old: f32,
     pub chaos: f32,
     // pub sea_level: f32,
     pub water_level: f32,
     // pub flux: f32,
-    pub river: f32,
+    // pub river: f32,
     pub warp_factor: f32,
     pub surface_color: Rgb<f32>,
     pub sub_surface_color: Rgb<f32>,

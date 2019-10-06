@@ -452,7 +452,7 @@ impl WorldSim {
         );
         let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
 
-        /* let water_alt = indirection.par_iter()
+        let water_alt = indirection.par_iter()
         .enumerate()
         .map(|(chunk_idx, &indirection_idx)| {
             // Find the lake this point is flowing into.
@@ -463,15 +463,21 @@ impl WorldSim {
             };
             // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
             // pushed towards the point identified by pass_idx).
-            let pass_idx = dh[lake_idx];
-            // Find our own height.
-            // let height = alt[chunk_idx];
-            // let water_height = water_alt[chunk_idx];
-            if pass_idx < 0 {
+            let neighbor_pass_idx = dh[lake_idx];
+            if neighbor_pass_idx < 0 {
+                // This is either a boundary node (dh[chunk_idx] == -2, i.e. water is at sea level)
+                // or part of a lake that flows directly into the ocean.  In the former case, water
+                // is at sea level so we just return 0.0.  In the latter case, the lake bottom must
+                // have been a boundary node in the first place--meaning this node flows directly
+                // into the ocean.  In that case, its lake bottom is ocean, meaning its water is
+                // also at sea level.  Thus, we return 0.0 in both cases.
+                0.0
             } else {
+                // This is not flowing into the ocean, so we can use the existing water_alt.
+                water_alt[chunk_idx]
             }
         })
-        .collect::<Vec<_>>().into_boxed_slice(); */
+        .collect::<Vec<_>>().into_boxed_slice();
 
         // Start at a node x.  Find x's lake bottom, lake_i, then its pass pass_i,j on the
         // downhill side (flowing into lake j), then its height on the
@@ -952,7 +958,7 @@ impl WorldSim {
 
     pub fn get_base_z(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
         if !chunk_pos
-            .map2(WORLD_SIZE, |e, sz| e >= 0 && e < sz as i32)
+            .map2(WORLD_SIZE, |e, sz| e > 0 && e < sz as i32 - 2)
             .reduce_and()
         {
             return None;
@@ -963,11 +969,12 @@ impl WorldSim {
         local_cells(chunk_idx)
             .flat_map(|neighbor_idx| {
                 let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
-                let river_kind = self.get(neighbor_pos).and_then(|c| c.river.river_kind);
+                let neighbor_chunk = self.get(neighbor_pos);
+                let river_kind = neighbor_chunk.and_then(|c| c.river.river_kind);
                 let has_water = river_kind.is_some() && river_kind != Some(RiverKind::Ocean);
                 // let has_water = self.get(neighbor_pos).map(|c| c.river.is_river()) == Some(true);
                 if (neighbor_pos - chunk_pos).reduce_partial_max() <= 1 || has_water {
-                    self.get(neighbor_pos).map(|c| c.get_base_z())
+                    neighbor_chunk.map(|c| c.get_base_z())
                 } else {
                     None
                 }
