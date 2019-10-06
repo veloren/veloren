@@ -12,13 +12,6 @@ pub mod discord;
 #[cfg(feature = "discord")]
 use std::sync::Mutex;
 
-#[cfg(not(target_env = "msvc"))]
-use jemallocator::Jemalloc;
-
-#[cfg(not(target_env = "msvc"))]
-#[global_allocator]
-static GLOBAL: Jemalloc = Jemalloc;
-
 #[macro_use]
 pub mod ui;
 pub mod anim;
@@ -44,6 +37,11 @@ use log::{self, debug, error, info};
 
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
+
+#[cfg(feature = "heaptrack")]
+use heaptrack::track_mem;
+#[cfg(feature = "heaptrack")]
+track_mem!();
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
