@@ -980,6 +980,21 @@ impl Server {
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead => {
+                                if let (Some(player), None) = (
+                                    state.ecs().read_storage::<comp::Player>().get(entity),
+                                    // Only send login message if the player didn't have a body
+                                    // previously
+                                    state.ecs().read_storage::<comp::Body>().get(entity),
+                                ) {
+                                    new_chat_msgs.push((
+                                        None,
+                                        ServerMsg::broadcast(format!(
+                                            "[{}] is now online.",
+                                            &player.alias
+                                        )),
+                                    ));
+                                }
+
                                 Self::create_player_character(
                                     state,
                                     entity,
@@ -989,17 +1004,6 @@ impl Server {
                                     main.map(|t| comp::Item::Tool { kind: t, power: 10 }),
                                     &server_settings,
                                 );
-                                if let Some(player) =
-                                    state.ecs().read_storage::<comp::Player>().get(entity)
-                                {
-                                    new_chat_msgs.push((
-                                        None,
-                                        ServerMsg::broadcast(format!(
-                                            "[{}] is now online.",
-                                            &player.alias
-                                        )),
-                                    ));
-                                }
                             }
                             ClientState::Character => {
                                 client.error_state(RequestStateError::Already)
