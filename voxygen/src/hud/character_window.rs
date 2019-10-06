@@ -343,7 +343,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         // Level
         Text::new(&level)
             .mid_top_with_margin_on(state.charwindow_rectangle, 10.0)
-            .font_id(self.fonts.opensans)
+            .font_id(self.fonts.cyri)
             .font_size(30)
             .color(TEXT_COLOR)
             .set(state.charwindow_tab1_level, ui);
@@ -367,7 +367,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         // Exp-Text
         Text::new(&exp_treshold)
             .mid_top_with_margin_on(state.charwindow_tab1_expbar, 10.0)
-            .font_id(self.fonts.opensans)
+            .font_id(self.fonts.cyri)
             .font_size(15)
             .color(TEXT_COLOR)
             .set(state.charwindow_tab1_exp, ui);
@@ -390,7 +390,7 @@ impl<'a> Widget for CharacterWindow<'a> {
              Intelligence",
         )
         .top_left_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
-        .font_id(self.fonts.opensans)
+        .font_id(self.fonts.cyri)
         .font_size(16)
         .color(TEXT_COLOR)
         .set(state.charwindow_tab1_statnames, ui);
@@ -406,7 +406,7 @@ impl<'a> Widget for CharacterWindow<'a> {
              124124",
         )
         .top_right_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
-        .font_id(self.fonts.opensans)
+        .font_id(self.fonts.cyri)
         .font_size(16)
         .color(TEXT_COLOR)
         .set(state.charwindow_tab1_stats, ui);
