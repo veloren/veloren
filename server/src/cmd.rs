@@ -940,7 +940,7 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                 } else {
                     server.clients.notify(
                         entity,
-                        ServerMsg::private(String::from("Something go wrong")),
+                        ServerMsg::private(String::from("Player has no stats!")),
                     );
                 }
             }
