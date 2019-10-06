@@ -6,6 +6,7 @@ use fader::Fader;
 use soundcache::SoundCache;
 
 use common::assets;
+use cpal::traits::DeviceTrait;
 use rodio::{Decoder, Device};
 use vek::*;
 
@@ -217,6 +218,7 @@ pub fn get_default_device() -> String {
     rodio::default_output_device()
         .expect("No audio output devices detected.")
         .name()
+        .expect("Unable to get device name")
 }
 
 /// Load the audio file directory selected by genre.
@@ -237,14 +239,21 @@ pub fn load_soundtracks() -> Vec<String> {
 /// Returns a vec of the audio devices available.
 /// Does not return rodio Device struct in case our audio backend changes.
 pub fn list_devices() -> Vec<String> {
-    list_devices_raw().iter().map(|x| x.name()).collect()
+    list_devices_raw()
+        .iter()
+        .map(|x| x.name().expect("Unable to get device name"))
+        .collect()
 }
 
 /// Returns vec of devices
 fn list_devices_raw() -> Vec<Device> {
-    rodio::output_devices().collect()
+    rodio::output_devices()
+        .expect("Unable to get output devices")
+        .collect()
 }
 
 fn get_device_raw(device: &str) -> Option<Device> {
-    rodio::output_devices().find(|d| d.name() == device)
+    rodio::output_devices()
+        .expect("Unable to get output devices")
+        .find(|d| d.name().expect("Unable to get device name") == device)
 }

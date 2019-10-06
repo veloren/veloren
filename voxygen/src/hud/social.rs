@@ -192,7 +192,7 @@ impl<'a> Widget for Social<'a> {
                 Text::new(&player.alias)
                     .down_from(ids.online_title, count as f64 * (15.0 + 3.0))
                     .font_size(15)
-                    .font_id(self.fonts.opensans)
+                    .font_id(self.fonts.cyri)
                     .color(TEXT_COLOR)
                     .set(ids.player_names[count], ui);
 
@@ -201,7 +201,7 @@ impl<'a> Widget for Social<'a> {
             Text::new(&format!("{} player(s) online\n", count))
                 .top_left_with_margins_on(ids.content_align, -2.0, 7.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(ids.online_title, ui);
         }
@@ -241,7 +241,7 @@ impl<'a> Widget for Social<'a> {
             Text::new("Not yet available")
                 .middle_of(ids.content_align)
                 .font_size(18)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR_3)
                 .set(ids.friends_test, ui);
         }
@@ -271,7 +271,7 @@ impl<'a> Widget for Social<'a> {
             Text::new("Not yet available")
                 .middle_of(ids.content_align)
                 .font_size(18)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR_3)
                 .set(ids.faction_test, ui);
         }

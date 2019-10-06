@@ -150,6 +150,7 @@ impl<'a> System<'a> for Sys {
                                             projectile::Effect::Damage(10),
                                             projectile::Effect::Vanish,
                                         ],
+                                        time_left: Duration::from_secs(60 * 5),
                                     },
                                 });
                             }

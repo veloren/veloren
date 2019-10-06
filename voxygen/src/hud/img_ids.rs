@@ -223,6 +223,8 @@ image_ids! {
 
         <ImageGraphic>
 
+        help:"voxygen.element.help",
+
         charwindow_gradient:"voxygen.element.misc_bg.charwindow",
         map_placeholder: "voxygen.background.map",
 
