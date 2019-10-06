@@ -501,6 +501,11 @@ impl Client {
                     ServerMsg::EcsSync(sync_package) => {
                         self.state.ecs_mut().sync_with_package(sync_package)
                     }
+                    ServerMsg::DeleteEntity(entity) => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            let _ = self.state.ecs_mut().delete_entity(entity);
+                        }
+                    }
                     ServerMsg::EntityPos { entity, pos } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
                             self.state.write_component(entity, pos);

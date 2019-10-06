@@ -14,7 +14,7 @@ pub use crate::{error::Error, input::Input, settings::ServerSettings};
 
 use crate::{
     auth_provider::AuthProvider,
-    client::{Client, Clients},
+    client::{Client, Clients, RegionSubscription},
     cmd::CHAT_COMMANDS,
 };
 use common::{
@@ -86,6 +86,10 @@ pub struct Server {
     server_info: ServerInfo,
     metrics: ServerMetrics,
 
+    // Tick count used for throttling network updates
+    // Note this doesn't account for dt (so update rate changes with tick rate)
+    tick: u64,
+
     // TODO: anything but this
     accounts: AuthProvider,
 }
@@ -102,6 +106,7 @@ impl Server {
         state
             .ecs_mut()
             .add_resource(EventBus::<ServerEvent>::default());
+        state.ecs_mut().register::<RegionSubscription>();
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
@@ -128,6 +133,7 @@ impl Server {
             },
             metrics: ServerMetrics::new(settings.metrics_address)
                 .expect("Failed to initialize server metrics submodule."),
+            tick: 0,
             accounts: AuthProvider::new(),
             server_settings: settings.clone(),
         };
@@ -547,6 +553,7 @@ impl Server {
 
     /// Execute a single server tick, handle input and update the game state by the given duration.
     pub fn tick(&mut self, _input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
+        self.tick += 1;
         // This tick function is the centre of the Veloren universe. Most server-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -792,6 +799,7 @@ impl Server {
         }
 
         // Remove NPCs that are outside the view distances of all players
+        // This is done by removing NPCs in unloaded chunks
         let to_delete = {
             let terrain = self.state.terrain();
             (
@@ -1116,6 +1124,7 @@ impl Server {
                                     }),
                                     &server_settings,
                                 );
+                                Self::initialize_region_subscription(state, client, entity);
                             }
                             ClientState::Character => {
                                 client.error_state(RequestStateError::Already)
@@ -1329,161 +1338,368 @@ impl Server {
         // Save player metadata (for example the username).
         state.write_component(entity, player);
 
-        // Sync physics of all entities
-        for (&uid, &pos, vel, ori, character_state) in (
-            &state.ecs().read_storage::<Uid>(),
-            &state.ecs().read_storage::<comp::Pos>(), // We assume all these entities have a position
-            state.ecs().read_storage::<comp::Vel>().maybe(),
-            state.ecs().read_storage::<comp::Ori>().maybe(),
-            state.ecs().read_storage::<comp::CharacterState>().maybe(),
-        )
-            .join()
-        {
-            client.notify(ServerMsg::EntityPos {
-                entity: uid.into(),
-                pos,
-            });
-            if let Some(vel) = vel.copied() {
-                client.notify(ServerMsg::EntityVel {
-                    entity: uid.into(),
-                    vel,
-                });
-            }
-            if let Some(ori) = ori.copied() {
-                client.notify(ServerMsg::EntityOri {
-                    entity: uid.into(),
-                    ori,
-                });
-            }
-            if let Some(character_state) = character_state.copied() {
-                client.notify(ServerMsg::EntityCharacterState {
-                    entity: uid.into(),
-                    character_state,
-                });
-            }
-        }
-
         // Tell the client its request was successful.
         client.allow_state(ClientState::Registered);
     }
 
+    /// Initialize region subscription, entity should be the client's entity
+    fn initialize_region_subscription(
+        state: &mut State,
+        client: &mut Client,
+        entity: specs::Entity,
+    ) {
+        let mut subscription = None;
+
+        if let (Some(client_pos), Some(client_vd)) = (
+            state.ecs().read_storage::<comp::Pos>().get(entity),
+            state
+                .ecs()
+                .read_storage::<comp::Player>()
+                .get(entity)
+                .map(|pl| pl.view_distance)
+                .and_then(|v| v),
+        ) {
+            use common::region::RegionMap;
+
+            let fuzzy_chunk = (Vec2::<f32>::from(client_pos.0))
+                .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+            let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
+            let regions = common::region::regions_in_vd(
+                client_pos.0,
+                (client_vd as f32 * chunk_size) as f32
+                    + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
+            );
+
+            for (_, region) in state
+                .ecs()
+                .read_resource::<RegionMap>()
+                .iter()
+                .filter(|(key, _)| regions.contains(key))
+            {
+                // Sync physics of all entities in this region
+                for (&uid, &pos, vel, ori, character_state, _) in (
+                    &state.ecs().read_storage::<Uid>(),
+                    &state.ecs().read_storage::<comp::Pos>(), // We assume all these entities have a position
+                    state.ecs().read_storage::<comp::Vel>().maybe(),
+                    state.ecs().read_storage::<comp::Ori>().maybe(),
+                    state.ecs().read_storage::<comp::CharacterState>().maybe(),
+                    region.entities(),
+                )
+                    .join()
+                {
+                    client.notify(ServerMsg::EntityPos {
+                        entity: uid.into(),
+                        pos,
+                    });
+                    if let Some(vel) = vel.copied() {
+                        client.notify(ServerMsg::EntityVel {
+                            entity: uid.into(),
+                            vel,
+                        });
+                    }
+                    if let Some(ori) = ori.copied() {
+                        client.notify(ServerMsg::EntityOri {
+                            entity: uid.into(),
+                            ori,
+                        });
+                    }
+                    if let Some(character_state) = character_state.copied() {
+                        client.notify(ServerMsg::EntityCharacterState {
+                            entity: uid.into(),
+                            character_state,
+                        });
+                    }
+                }
+            }
+
+            subscription = Some(RegionSubscription {
+                fuzzy_chunk,
+                regions,
+            });
+        }
+        if let Some(subscription) = subscription {
+            state.write_component(entity, subscription);
+        }
+    }
+
     /// Sync client states with the most up to date information.
     fn sync_clients(&mut self) {
-        // Sync 'logical' state using Sphynx.
-        self.clients
-            .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
+        use common::region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap};
+        //use hibitset::BitSetLike;
 
         let ecs = self.state.ecs_mut();
+        let clients = &mut self.clients;
 
-        // Sync physics
-        for (entity, &uid, &pos, force_update) in (
+        // Sync 'logical' state using Sphynx.
+        clients.notify_registered(ServerMsg::EcsSync(ecs.next_sync_package()));
+
+        // To update subscriptions
+        // 1. Iterate through clients
+        // 2. Calculate current chunk position
+        // 3. If chunk is the same return, otherwise continue (use fuzzyiness)
+        // 4. Iterate through subscribed regions
+        // 5. Check if region is still in range (use fuzzyiness)
+        // 6. If not in range
+        //     - remove from hashset
+        //     - inform client of which entities to remove
+        // 7. Determine list of regions that are in range and iterate through it
+        //    - check if in hashset (hash calc) if not add it
+        let mut regions_to_remove = Vec::new();
+        for (entity, subscription, pos, vd) in (
             &ecs.entities(),
-            &ecs.read_storage::<Uid>(),
+            &mut ecs.write_storage::<RegionSubscription>(),
             &ecs.read_storage::<comp::Pos>(),
-            ecs.read_storage::<comp::ForceUpdate>().maybe(),
+            &ecs.read_storage::<comp::Player>(),
         )
             .join()
+            .filter_map(|(e, s, pos, player)| player.view_distance.map(|v| (e, s, pos, v)))
         {
-            let clients = &mut self.clients;
-
-            let in_vd = |entity| {
-                if let (Some(client_pos), Some(client_vd)) = (
-                    ecs.read_storage::<comp::Pos>().get(entity),
-                    ecs.read_storage::<comp::Player>()
-                        .get(entity)
-                        .map(|pl| pl.view_distance)
-                        .and_then(|v| v),
-                ) {
-                    {
-                        // Check if the entity is in the client's range
-                        Vec2::from(pos.0 - client_pos.0)
-                            .map2(TerrainChunkSize::RECT_SIZE, |d: f32, sz| {
-                                (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
-                            })
-                            .magnitude_squared()
-                            < client_vd.pow(2)
+            let chunk = (Vec2::<f32>::from(pos.0))
+                .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+            if chunk != subscription.fuzzy_chunk
+                && (subscription
+                    .fuzzy_chunk
+                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
+                        (e as f32 + 0.5) * sz as f32
+                    })
+                    - Vec2::from(pos.0))
+                .map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
+                    e.abs() > (sz / 2 + client::CHUNK_FUZZ) as f32
+                })
+                .reduce_or()
+            {
+                let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
+                for key in &subscription.regions {
+                    if !region_in_vd(
+                        *key,
+                        pos.0,
+                        (vd as f32 * chunk_size)
+                            + (client::CHUNK_FUZZ as f32 + client::REGION_FUZZ as f32 + chunk_size)
+                                * 2.0f32.sqrt(),
+                    ) {
+                        regions_to_remove.push(*key);
                     }
-                } else {
-                    false
+                }
+
+                let mut client = clients.get_mut(&entity);
+
+                for key in regions_to_remove.drain(..) {
+                    subscription.regions.remove(&key);
+                    // Inform the client to delete these entities
+                    if let (Some(ref mut client), Some(region)) =
+                        (&mut client, ecs.read_resource::<RegionMap>().get(key))
+                    {
+                        // Process entity left events since they won't be processed below because this region is no longer subscribed to
+                        for event in region.events() {
+                            match event {
+                                RegionEvent::Entered(_, _) => {} // These don't need to be processed because this region is being thrown out anyway
+                                RegionEvent::Left(id, maybe_key) => {
+                                    // Lookup UID for entity
+                                    if let Some(&uid) =
+                                        ecs.read_storage::<Uid>().get(ecs.entities().entity(*id))
+                                    {
+                                        if !maybe_key
+                                            .as_ref()
+                                            .map(|key| subscription.regions.contains(key))
+                                            .unwrap_or(false)
+                                        {
+                                            client.notify(ServerMsg::DeleteEntity(uid.into()));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        for (&uid, _) in (&ecs.read_storage::<Uid>(), region.entities()).join() {
+                            client.notify(ServerMsg::DeleteEntity(uid.into()))
+                        }
+                    }
+                }
+
+                for key in regions_in_vd(
+                    pos.0,
+                    (vd as f32 * chunk_size)
+                        + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
+                ) {
+                    if subscription.regions.insert(key) {
+                        // TODO: send the client initial infromation for all the entities in this region
+                    }
+                }
+            }
+        }
+
+        // To send entity updates
+        // 1. Iterate through regions
+        // 2. Iterate through region subscribers (ie clients)
+        //     - Collect a list of entity ids for clients who are subscribed to this region (hash calc to check each)
+        // 3. Iterate through events from that region
+        //     - For each entity left event, iterate through the client list and check if they are subscribed to the destination (hash calc per subscribed client per entity left event)
+        //     - Do something with entity entered events when sphynx is removed??
+        // 4. Iterate through entities in that region
+        // 5. Inform clients of the component changes for that entity
+        //     - Throttle update rate base on distance to each client
+
+        // Sync physics
+        // via iterating through regions
+        for (key, region) in ecs.read_resource::<RegionMap>().iter() {
+            let subscriptions = ecs.read_storage::<RegionSubscription>();
+            let subscribers = (
+                &ecs.entities(),
+                &subscriptions,
+                &ecs.read_storage::<comp::Pos>(),
+            )
+                .join()
+                .filter_map(|(entity, subscription, pos)| {
+                    if subscription.regions.contains(&key) {
+                        clients
+                            .get_client_index_ingame(&entity)
+                            .map(|index| (index, &subscription.regions, entity, *pos))
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            for event in region.events() {
+                match event {
+                    RegionEvent::Entered(_, _) => {} // TODO use this
+                    RegionEvent::Left(id, maybe_key) => {
+                        // Lookup UID for entity
+                        if let Some(&uid) =
+                            ecs.read_storage::<Uid>().get(ecs.entities().entity(*id))
+                        {
+                            for (client_index, regions, _, _) in &subscribers {
+                                if !maybe_key
+                                    .as_ref()
+                                    .map(|key| regions.contains(key))
+                                    .unwrap_or(false)
+                                {
+                                    clients.notify_index(
+                                        *client_index,
+                                        ServerMsg::DeleteEntity(uid.into()),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            let tick = self.tick;
+            let send_msg = |msg: ServerMsg,
+                            entity: EcsEntity,
+                            pos: comp::Pos,
+                            force_update,
+                            clients: &mut Clients| {
+                for (index, _, client_entity, client_pos) in &subscribers {
+                    match force_update {
+                        None if client_entity == &entity => {}
+                        _ => {
+                            let distance_sq = client_pos.0.distance_squared(pos.0);
+
+                            // Throttle update rate based on distance to player
+                            let update = if distance_sq < 100.0f32.powi(2) {
+                                true // Closer than 100.0 blocks
+                            } else if distance_sq < 150.0f32.powi(2) {
+                                tick + entity.id() as u64 % 2 == 0
+                            } else if distance_sq < 200.0f32.powi(2) {
+                                tick + entity.id() as u64 % 4 == 0
+                            } else if distance_sq < 250.0f32.powi(2) {
+                                tick + entity.id() as u64 % 8 == 0
+                            } else if distance_sq < 300.0f32.powi(2) {
+                                tick + entity.id() as u64 % 8 == 0
+                            } else {
+                                tick + entity.id() as u64 % 16 == 0
+                            };
+
+                            if update {
+                                clients.notify_index(*index, msg.clone());
+                            }
+                        }
+                    }
                 }
             };
 
-            let mut last_pos = ecs.write_storage::<comp::Last<comp::Pos>>();
-            let mut last_vel = ecs.write_storage::<comp::Last<comp::Vel>>();
-            let mut last_ori = ecs.write_storage::<comp::Last<comp::Ori>>();
-            let mut last_character_state = ecs.write_storage::<comp::Last<comp::CharacterState>>();
-
-            if let Some(client_pos) = ecs.read_storage::<comp::Pos>().get(entity) {
-                if last_pos
-                    .get(entity)
-                    .map(|&l| l.0 != *client_pos)
-                    .unwrap_or(true)
-                {
-                    let _ = last_pos.insert(entity, comp::Last(*client_pos));
-                    let msg = ServerMsg::EntityPos {
-                        entity: uid.into(),
-                        pos: *client_pos,
-                    };
-                    match force_update {
-                        Some(_) => clients.notify_ingame_if(msg, in_vd),
-                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
-                    }
-                }
-            }
-
-            if let Some(client_vel) = ecs.read_storage::<comp::Vel>().get(entity) {
-                if last_vel
-                    .get(entity)
-                    .map(|&l| l.0 != *client_vel)
-                    .unwrap_or(true)
-                {
-                    let _ = last_vel.insert(entity, comp::Last(*client_vel));
-                    let msg = ServerMsg::EntityVel {
-                        entity: uid.into(),
-                        vel: *client_vel,
-                    };
-                    match force_update {
-                        Some(_) => clients.notify_ingame_if(msg, in_vd),
-                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
-                    }
-                }
-            }
-
-            if let Some(client_ori) = ecs.read_storage::<comp::Ori>().get(entity) {
-                if last_ori
-                    .get(entity)
-                    .map(|&l| l.0 != *client_ori)
-                    .unwrap_or(true)
-                {
-                    let _ = last_ori.insert(entity, comp::Last(*client_ori));
-                    let msg = ServerMsg::EntityOri {
-                        entity: uid.into(),
-                        ori: *client_ori,
-                    };
-                    match force_update {
-                        Some(_) => clients.notify_ingame_if(msg, in_vd),
-                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
-                    }
-                }
-            }
-
-            if let Some(client_character_state) =
-                ecs.read_storage::<comp::CharacterState>().get(entity)
+            for (_, entity, &uid, &pos, maybe_vel, maybe_ori, character_state, force_update) in (
+                region.entities(),
+                &ecs.entities(),
+                &ecs.read_storage::<Uid>(),
+                &ecs.read_storage::<comp::Pos>(),
+                ecs.read_storage::<comp::Vel>().maybe(),
+                ecs.read_storage::<comp::Ori>().maybe(),
+                ecs.read_storage::<comp::CharacterState>().maybe(),
+                ecs.read_storage::<comp::ForceUpdate>().maybe(),
+            )
+                .join()
             {
-                if last_character_state
-                    .get(entity)
-                    .map(|&l| !client_character_state.is_same_state(&l.0))
-                    .unwrap_or(true)
-                {
-                    let _ =
-                        last_character_state.insert(entity, comp::Last(*client_character_state));
-                    let msg = ServerMsg::EntityCharacterState {
-                        entity: uid.into(),
-                        character_state: *client_character_state,
-                    };
-                    match force_update {
-                        Some(_) => clients.notify_ingame_if(msg, in_vd),
-                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
+                let mut last_pos = ecs.write_storage::<comp::Last<comp::Pos>>();
+                let mut last_vel = ecs.write_storage::<comp::Last<comp::Vel>>();
+                let mut last_ori = ecs.write_storage::<comp::Last<comp::Ori>>();
+                let mut last_character_state =
+                    ecs.write_storage::<comp::Last<comp::CharacterState>>();
+
+                if last_pos.get(entity).map(|&l| l.0 != pos).unwrap_or(true) {
+                    let _ = last_pos.insert(entity, comp::Last(pos));
+                    send_msg(
+                        ServerMsg::EntityPos {
+                            entity: uid.into(),
+                            pos,
+                        },
+                        entity,
+                        pos,
+                        force_update,
+                        clients,
+                    );
+                }
+
+                if let Some(&vel) = maybe_vel {
+                    if last_vel.get(entity).map(|&l| l.0 != vel).unwrap_or(true) {
+                        let _ = last_vel.insert(entity, comp::Last(vel));
+                        send_msg(
+                            ServerMsg::EntityVel {
+                                entity: uid.into(),
+                                vel,
+                            },
+                            entity,
+                            pos,
+                            force_update,
+                            clients,
+                        );
+                    }
+                }
+
+                if let Some(&ori) = maybe_ori {
+                    if last_ori.get(entity).map(|&l| l.0 != ori).unwrap_or(true) {
+                        let _ = last_ori.insert(entity, comp::Last(ori));
+                        send_msg(
+                            ServerMsg::EntityOri {
+                                entity: uid.into(),
+                                ori,
+                            },
+                            entity,
+                            pos,
+                            force_update,
+                            clients,
+                        );
+                    }
+                }
+
+                if let Some(&character_state) = character_state {
+                    if last_character_state
+                        .get(entity)
+                        .map(|&l| !character_state.is_same_state(&l.0))
+                        .unwrap_or(true)
+                    {
+                        let _ = last_character_state.insert(entity, comp::Last(character_state));
+                        send_msg(
+                            ServerMsg::EntityCharacterState {
+                                entity: uid.into(),
+                                character_state,
+                            },
+                            entity,
+                            pos,
+                            force_update,
+                            clients,
+                        );
                     }
                 }
             }
