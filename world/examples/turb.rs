@@ -1,8 +1,6 @@
 use noise::{Seedable, SuperSimplex};
 
-
 use vek::*;
-
 
 const W: usize = 640;
 const H: usize = 640;

@@ -16,7 +16,7 @@ use common::{
 };
 use lazy_static::lazy_static;
 use noise::NoiseFn;
-use roots::{find_roots_cubic};
+use roots::find_roots_cubic;
 use std::{
     cmp::Reverse,
     f32,
@@ -786,22 +786,22 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         // NOTE: We keep the maximum at 1.0 so we don't undo work from another river
                         // just by being far away.
                         let river_scale = river_dist / scale_factor; //.min(1.0);
-                                                                       // river_count += 1.0 - river_scale;
-                                                                       // What we want: chunk that river point is in is at least 1 away from the
-                                                                       // chunk that this column is in.
-                                                                       // let river_chunk = river_pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
-                                                                       // let chunk_dist = river_chunk.map(|e| e.abs()).reduce_partial_min();
-                                                                       /* if (river_t < 0.0 || river_t > 1.0) {
-                                                                           /*if river_dist < min_river_distance */{
-                                                                               overlap_count += 1.0;
-                                                                               river_overlap_distance_product *= river_scale;
-                                                                           }
-                                                                       } else if /*true*//*river_chunk >= 1.0 &&*/ /*river_scale < 1.0*/true
-                                                                           /*river_dist*//*river_scale*//*river_dist < min_river_distance*/ {
-                                                                           river_count += 1.0;
-                                                                           // min_river_distance = /*river_dist*/river_scale;
-                                                                           river_distance_product *= river_scale;
-                                                                       } */
+                                                                     // river_count += 1.0 - river_scale;
+                                                                     // What we want: chunk that river point is in is at least 1 away from the
+                                                                     // chunk that this column is in.
+                                                                     // let river_chunk = river_pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+                                                                     // let chunk_dist = river_chunk.map(|e| e.abs()).reduce_partial_min();
+                                                                     /* if (river_t < 0.0 || river_t > 1.0) {
+                                                                         /*if river_dist < min_river_distance */{
+                                                                             overlap_count += 1.0;
+                                                                             river_overlap_distance_product *= river_scale;
+                                                                         }
+                                                                     } else if /*true*//*river_chunk >= 1.0 &&*/ /*river_scale < 1.0*/true
+                                                                         /*river_dist*//*river_scale*//*river_dist < min_river_distance*/ {
+                                                                         river_count += 1.0;
+                                                                         // min_river_distance = /*river_dist*/river_scale;
+                                                                         river_distance_product *= river_scale;
+                                                                     } */
                         let river_alt = /*sim.get(/*river_pos*/max_border_river_pos)?*/
                             Lerp::lerp(
                                 river_chunk.alt.max(river_chunk.water_alt),
@@ -990,7 +990,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .get((wposf_turb.div(200.0)).into_array()) as f32)
             .abs()
             .mul(chaos.max(0.05))
-            .mul(/*55.0*//*11.0*/27.0)
+            .mul(/*55.0*//*11.0*/ 27.0)
             + (sim
                 .gen_ctx
                 .small_nz
@@ -998,7 +998,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .abs()
                 .mul((1.0 - chaos).max(0.3))
                 .mul(1.0 - humidity)
-                .mul(/*65.0*/32.0);
+                .mul(/*65.0*/ 32.0);
 
         /* let riverless_alt_delta_mid =
         (sim
@@ -1875,7 +1875,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .as_ref()
                 .map(|town| TownGen.spawn_rules(town, wpos))
                 .unwrap_or(SpawnRules::default())
-                .and(SpawnRules { cliffs: !in_water, trees: !in_water, }),
+                .and(SpawnRules {
+                    cliffs: !in_water,
+                    trees: !in_water,
+                }),
         })
     }
 }

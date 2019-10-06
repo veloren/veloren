@@ -452,32 +452,34 @@ impl WorldSim {
         );
         let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
 
-        let water_alt = indirection.par_iter()
-        .enumerate()
-        .map(|(chunk_idx, &indirection_idx)| {
-            // Find the lake this point is flowing into.
-            let lake_idx = if indirection_idx < 0 {
-                chunk_idx
-            } else {
-                indirection_idx as usize
-            };
-            // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
-            // pushed towards the point identified by pass_idx).
-            let neighbor_pass_idx = dh[lake_idx];
-            if neighbor_pass_idx < 0 {
-                // This is either a boundary node (dh[chunk_idx] == -2, i.e. water is at sea level)
-                // or part of a lake that flows directly into the ocean.  In the former case, water
-                // is at sea level so we just return 0.0.  In the latter case, the lake bottom must
-                // have been a boundary node in the first place--meaning this node flows directly
-                // into the ocean.  In that case, its lake bottom is ocean, meaning its water is
-                // also at sea level.  Thus, we return 0.0 in both cases.
-                0.0
-            } else {
-                // This is not flowing into the ocean, so we can use the existing water_alt.
-                water_alt[chunk_idx]
-            }
-        })
-        .collect::<Vec<_>>().into_boxed_slice();
+        let water_alt = indirection
+            .par_iter()
+            .enumerate()
+            .map(|(chunk_idx, &indirection_idx)| {
+                // Find the lake this point is flowing into.
+                let lake_idx = if indirection_idx < 0 {
+                    chunk_idx
+                } else {
+                    indirection_idx as usize
+                };
+                // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+                // pushed towards the point identified by pass_idx).
+                let neighbor_pass_idx = dh[lake_idx];
+                if neighbor_pass_idx < 0 {
+                    // This is either a boundary node (dh[chunk_idx] == -2, i.e. water is at sea level)
+                    // or part of a lake that flows directly into the ocean.  In the former case, water
+                    // is at sea level so we just return 0.0.  In the latter case, the lake bottom must
+                    // have been a boundary node in the first place--meaning this node flows directly
+                    // into the ocean.  In that case, its lake bottom is ocean, meaning its water is
+                    // also at sea level.  Thus, we return 0.0 in both cases.
+                    0.0
+                } else {
+                    // This is not flowing into the ocean, so we can use the existing water_alt.
+                    water_alt[chunk_idx]
+                }
+            })
+            .collect::<Vec<_>>()
+            .into_boxed_slice();
 
         // Start at a node x.  Find x's lake bottom, lake_i, then its pass pass_i,j on the
         // downhill side (flowing into lake j), then its height on the
