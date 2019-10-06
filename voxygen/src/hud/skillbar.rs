@@ -299,18 +299,73 @@ impl<'a> Widget for Skillbar<'a> {
                     .top_left_with_margins_on(state.ids.xp_bar_left, 2.0 * scale, 10.0 * scale)
                     .set(state.ids.xp_bar_filling, ui);
                 // Level Display
-                Text::new(&level)
-                    .bottom_left_with_margins_on(state.ids.xp_bar_left, 3.5 * scale, 4.0 * scale)
-                    .font_size(10)
-                    .font_id(self.fonts.cyri)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                    .set(state.ids.level_text, ui);
-                Text::new(&next_level)
-                    .bottom_right_with_margins_on(state.ids.xp_bar_right, 3.5 * scale, 4.0 * scale)
-                    .font_size(10)
-                    .font_id(self.fonts.cyri)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                    .set(state.ids.next_level_text, ui);
+
+                if self.stats.level.level() < 10 {
+                    Text::new(&level)
+                        .bottom_left_with_margins_on(
+                            state.ids.xp_bar_left,
+                            3.5 * scale,
+                            4.0 * scale,
+                        )
+                        .font_size(10)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                        .set(state.ids.level_text, ui);
+                    Text::new(&next_level)
+                        .bottom_right_with_margins_on(
+                            state.ids.xp_bar_right,
+                            3.5 * scale,
+                            4.0 * scale,
+                        )
+                        .font_size(10)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                        .set(state.ids.next_level_text, ui);
+                } else if self.stats.level.level() < 100 {
+                    // Change offset and fontsize for levels > 9
+                    Text::new(&level)
+                        .bottom_left_with_margins_on(
+                            state.ids.xp_bar_left,
+                            3.5 * scale,
+                            3.0 * scale,
+                        )
+                        .font_size(9)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                        .set(state.ids.level_text, ui);
+                    Text::new(&next_level)
+                        .bottom_right_with_margins_on(
+                            state.ids.xp_bar_right,
+                            3.5 * scale,
+                            3.0 * scale,
+                        )
+                        .font_size(9)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                        .set(state.ids.next_level_text, ui);
+                } else {
+                    // Change offset and fontsize for levels > 9
+                    Text::new(&level)
+                        .bottom_left_with_margins_on(
+                            state.ids.xp_bar_left,
+                            3.5 * scale,
+                            2.5 * scale,
+                        )
+                        .font_size(8)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                        .set(state.ids.level_text, ui);
+                    Text::new(&next_level)
+                        .bottom_right_with_margins_on(
+                            state.ids.xp_bar_right,
+                            3.5 * scale,
+                            2.5 * scale,
+                        )
+                        .font_size(8)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                        .set(state.ids.next_level_text, ui);
+                }
                 // M1 Slot
                 Image::new(self.imgs.skillbar_slot_big)
                     .w_h(40.0 * scale, 40.0 * scale)
@@ -369,26 +424,72 @@ impl<'a> Widget for Skillbar<'a> {
                     )
                     .set(state.ids.xp_bar_filling_top, ui);
                 // Level Display
-                Text::new(&level)
-                    .bottom_left_with_margins_on(
-                        state.ids.xp_bar_left_top,
-                        3.0 * scale * 1.5,
-                        4.0 * scale * 1.5,
-                    )
-                    .font_size(17)
-                    .font_id(self.fonts.cyri)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
-                    .set(state.ids.level_text, ui);
-                Text::new(&next_level)
-                    .bottom_right_with_margins_on(
-                        state.ids.xp_bar_right_top,
-                        3.0 * scale * 1.5,
-                        4.0 * scale * 1.5,
-                    )
-                    .font_size(17)
-                    .font_id(self.fonts.cyri)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
-                    .set(state.ids.next_level_text, ui);
+                if self.stats.level.level() < 10 {
+                    Text::new(&level)
+                        .bottom_left_with_margins_on(
+                            state.ids.xp_bar_left_top,
+                            3.0 * scale * 1.5,
+                            4.0 * scale * 1.5,
+                        )
+                        .font_size(17)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
+                        .set(state.ids.level_text, ui);
+                    Text::new(&next_level)
+                        .bottom_right_with_margins_on(
+                            state.ids.xp_bar_right_top,
+                            3.0 * scale * 1.5,
+                            4.0 * scale * 1.5,
+                        )
+                        .font_size(15)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
+                        .set(state.ids.next_level_text, ui);
+                } else if self.stats.level.level() < 100 {
+                    // Change offset and fontsize for levels > 9
+                    Text::new(&level)
+                        .bottom_left_with_margins_on(
+                            state.ids.xp_bar_left_top,
+                            3.0 * scale * 1.5,
+                            3.0 * scale * 1.5,
+                        )
+                        .font_size(15)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
+                        .set(state.ids.level_text, ui);
+                    Text::new(&next_level)
+                        .bottom_right_with_margins_on(
+                            state.ids.xp_bar_right_top,
+                            3.0 * scale * 1.5,
+                            3.0 * scale * 1.5,
+                        )
+                        .font_size(15)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
+                        .set(state.ids.next_level_text, ui);
+                } else {
+                    // Change offset and fontsize for levels > 9
+                    Text::new(&level)
+                        .bottom_left_with_margins_on(
+                            state.ids.xp_bar_left_top,
+                            3.0 * scale * 1.5,
+                            2.75 * scale * 1.5,
+                        )
+                        .font_size(12)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
+                        .set(state.ids.level_text, ui);
+                    Text::new(&next_level)
+                        .bottom_right_with_margins_on(
+                            state.ids.xp_bar_right_top,
+                            3.0 * scale * 1.5,
+                            2.75 * scale * 1.5,
+                        )
+                        .font_size(12)
+                        .font_id(self.fonts.cyri)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
+                        .set(state.ids.next_level_text, ui);
+                }
                 // Alignment for hotbar
                 Rectangle::fill_with([80.0 * scale, 1.0], color::TRANSPARENT)
                     .mid_bottom_with_margin_on(ui.window, 9.0)
