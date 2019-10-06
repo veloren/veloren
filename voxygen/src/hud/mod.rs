@@ -34,7 +34,7 @@ use spell::Spell;
 use crate::{
     render::{AaMode, Consts, Globals, Renderer},
     scene::camera::Camera,
-    settings::ControlSettings,
+    //settings::ControlSettings,
     ui::{Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
@@ -103,7 +103,7 @@ widget_ids! {
 
         // Help
         help,
-        help_bg,
+        help_info,
 
         // Window Frames
         window_frame_0,
@@ -444,28 +444,30 @@ impl Hud {
 
         if self.show.ingame {
             // Crosshair
-            Image::new(
-                // TODO: Do we want to match on this every frame?
-                match global_state.settings.gameplay.crosshair_type {
-                    CrosshairType::Round => self.imgs.crosshair_outer_round,
-                    CrosshairType::RoundEdges => self.imgs.crosshair_outer_round_edges,
-                    CrosshairType::Edges => self.imgs.crosshair_outer_edges,
-                },
-            )
-            .w_h(21.0 * 1.5, 21.0 * 1.5)
-            .middle_of(ui_widgets.window)
-            .color(Some(Color::Rgba(
-                1.0,
-                1.0,
-                1.0,
-                global_state.settings.gameplay.crosshair_transp,
-            )))
-            .set(self.ids.crosshair_outer, ui_widgets);
-            Image::new(self.imgs.crosshair_inner)
-                .w_h(21.0 * 2.0, 21.0 * 2.0)
-                .middle_of(self.ids.crosshair_outer)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
-                .set(self.ids.crosshair_inner, ui_widgets);
+            if !self.show.help {
+                Image::new(
+                    // TODO: Do we want to match on this every frame?
+                    match global_state.settings.gameplay.crosshair_type {
+                        CrosshairType::Round => self.imgs.crosshair_outer_round,
+                        CrosshairType::RoundEdges => self.imgs.crosshair_outer_round_edges,
+                        CrosshairType::Edges => self.imgs.crosshair_outer_edges,
+                    },
+                )
+                .w_h(21.0 * 1.5, 21.0 * 1.5)
+                .middle_of(ui_widgets.window)
+                .color(Some(Color::Rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    global_state.settings.gameplay.crosshair_transp,
+                )))
+                .set(self.ids.crosshair_outer, ui_widgets);
+                Image::new(self.imgs.crosshair_inner)
+                    .w_h(21.0 * 2.0, 21.0 * 2.0)
+                    .middle_of(self.ids.crosshair_outer)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
+                    .set(self.ids.crosshair_inner, ui_widgets);
+            }
 
             // Nametags and healthbars
             let ecs = client.state().ecs();
@@ -584,21 +586,21 @@ impl Hud {
             Text::new(&version)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
             // Ticks per second
             Text::new(&format!("FPS: {:.0}", debug_info.tps))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.version, 5.0)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
             // Ping
             Text::new(&format!("Ping: {:.0}ms", debug_info.ping_ms))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.fps_counter, 5.0)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .font_size(14)
                 .set(self.ids.ping, ui_widgets);
             // Player's position
@@ -612,7 +614,7 @@ impl Hud {
             Text::new(&coordinates_text)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.ping, 5.0)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .font_size(14)
                 .set(self.ids.coordinates, ui_widgets);
             // Player's velocity
@@ -629,7 +631,7 @@ impl Hud {
             Text::new(&velocity_text)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.coordinates, 5.0)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .font_size(14)
                 .set(self.ids.velocity, ui_widgets);
             // Loaded distance
@@ -639,7 +641,7 @@ impl Hud {
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.velocity, 5.0)
-            .font_id(self.fonts.opensans)
+            .font_id(self.fonts.cyri)
             .font_size(14)
             .set(self.ids.loaded_distance, ui_widgets);
             // Time
@@ -655,9 +657,17 @@ impl Hud {
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.loaded_distance, 5.0)
-            .font_id(self.fonts.opensans)
+            .font_id(self.fonts.cyri)
             .font_size(14)
             .set(self.ids.time, ui_widgets);
+
+            // Help Window
+            Text::new("Press 'F1' to show Keybindings")
+                .color(TEXT_COLOR)
+                .down_from(self.ids.time, 5.0)
+                .font_id(self.fonts.cyri)
+                .font_size(14)
+                .set(self.ids.help_info, ui_widgets);
         }
 
         // Add Bag-Space Button.
@@ -681,23 +691,18 @@ impl Hud {
         }
 
         // Help Text
-        if self.show.help {
-            Image::new(self.imgs.window_frame_2)
-                .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
-                .w_h(300.0, 190.0)
-                .set(self.ids.help_bg, ui_widgets);
-            Text::new(get_help_text(&global_state.settings.controls).as_str())
-                .color(TEXT_COLOR)
-                .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
-                .font_id(self.fonts.opensans)
-                .font_size(18)
+        if self.show.help && !self.show.map && !self.show.esc_menu {
+            Image::new(self.imgs.help)
+                .middle_of(ui_widgets.window)
+                .w_h(1260.0, 519.0)
                 .set(self.ids.help, ui_widgets);
             // X-button
             if Button::image(self.imgs.close_button)
-                .w_h(100.0 * 0.2, 100.0 * 0.2)
+                .w_h(40.0, 40.0)
                 .hover_image(self.imgs.close_button_hover)
                 .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.help_bg, 4.0, 4.0)
+                .top_right_with_margins_on(self.ids.help, 0.0, 0.0)
+                .color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
                 .set(self.ids.button_help2, ui_widgets)
                 .was_clicked()
             {
@@ -1120,7 +1125,7 @@ impl Hud {
 
 // Get the text to show in the help window and use the
 // length of the longest line to resize the window.
-fn get_help_text(cs: &ControlSettings) -> String {
+/*fn get_help_text(cs: &ControlSettings) -> String {
     format!(
         "{free_cursor:?} = Free cursor\n\
          {escape:?} = Open/close menus\n\
@@ -1136,4 +1141,4 @@ fn get_help_text(cs: &ControlSettings) -> String {
         toggle_interface = cs.toggle_interface,
         chat = cs.enter
     )
-}
+}*/
