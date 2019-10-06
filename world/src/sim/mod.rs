@@ -965,6 +965,7 @@ impl WorldSim {
                 let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
                 let river_kind = self.get(neighbor_pos).and_then(|c| c.river.river_kind);
                 let has_water = river_kind.is_some() && river_kind != Some(RiverKind::Ocean);
+                // let has_water = self.get(neighbor_pos).map(|c| c.river.is_river()) == Some(true);
                 if (neighbor_pos - chunk_pos).reduce_partial_max() <= 1 || has_water {
                     self.get(neighbor_pos).map(|c| c.get_base_z())
                 } else {

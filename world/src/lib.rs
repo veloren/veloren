@@ -83,6 +83,7 @@ impl World {
             .get_base_z(chunk_pos)
         {
             Some(base_z) => (base_z as i32, self.sim.get(chunk_pos).unwrap()),
+            // Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
             None => {
                 return Ok((
                     TerrainChunk::new(

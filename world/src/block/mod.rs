@@ -151,9 +151,9 @@ impl<'a> BlockGen<'a> {
         let &ColumnSample {
             alt,
             chaos,
-            sea_level,
+            // sea_level,
             water_level,
-            flux,
+            // flux,
             warp_factor,
             //river,
             surface_color,
@@ -189,7 +189,11 @@ impl<'a> BlockGen<'a> {
             let (_definitely_underground, height, water_height) =
                 if (wposf.z as f32) < alt - 64.0 * chaos {
                     // Shortcut warping
-                    (true, alt, water_level.max(sea_level) /*water_level*/)
+                    (
+                        true,
+                        alt,
+                        water_level, /*.max(sea_level)*/ /*water_level*/
+                    )
                 } else {
                     // Apply warping
                     let warp = world
@@ -209,6 +213,7 @@ impl<'a> BlockGen<'a> {
                         warp_factor,
                         // alt_sub.div(1.0.sub(alt_sub)).tanh()
                     );
+                    // let warp = 0.0;
 
                     let height = if (wposf.z as f32) < alt + warp - 10.0 {
                         // Shortcut cliffs
@@ -238,7 +243,7 @@ impl<'a> BlockGen<'a> {
                         height,
                         // water_level.max(CONFIG.sea_level),
                         /*(water_level + warp).max(*/
-                        (water_level + warp/*.min(0.0)*/).max(sea_level), /*)*/
+                        (water_level + warp/*.min(0.0)*/), /*.max(sea_level)*/, /*)*/
                     )
                 };
 
@@ -273,7 +278,7 @@ impl<'a> BlockGen<'a> {
                     Some(Block::new(BlockKind::Dense, col))
                 }
             } else if (wposf.z as f32) < height
-                && (water_height < height || (wpos.z as f32) < water_height.floor())
+            /*&& (water_height < height || (wpos.z as f32) < water_height.floor())*/
             {
                 let col = Lerp::lerp(
                     sub_surface_color,
@@ -395,7 +400,7 @@ impl<'a> BlockGen<'a> {
             })
             .or_else(|| {
                 // Water
-                if (wposf.z as f32) <= water_height {
+                if (wposf.z as f32) </*=*/ water_height {
                     // Ocean
                     Some(water)
                 } else {
@@ -445,9 +450,9 @@ impl<'a> ZCache<'a> {
             0.0
         };
 
-        let min = self.sample./*alt*/alt_min - (self.sample.chaos * 48.0 + cave_depth);
-        let min = min.min(self.sample.sea_level) - 4.0;
-        let min = min - 4.0;
+        let min = self.sample.alt/*alt_min*/ - (self.sample.chaos * 48.0 + cave_depth);
+        let min = min/*.min(self.sample.sea_level)*/ - 4.0;
+        // let min = min - 4.0;
 
         let cliff = BlockGen::get_cliff_height(
             &mut block_gen.column_gen,
@@ -483,7 +488,7 @@ impl<'a> ZCache<'a> {
         let ground_max = (self.sample.alt + warp + rocks).max(cliff) + 2.0;
 
         let min = min + structure_min;
-        let max = (ground_max + structure_max).max(self.sample.water_level + 2.0);
+        let max = (ground_max + structure_max).max(self.sample.water_level /* + 2.0*/);
         // .max(self.sample.sea_level + 2.0);
 
         // Structures
@@ -499,7 +504,7 @@ impl<'a> ZCache<'a> {
             })
             .unwrap_or((min, max));
 
-        let structures_only_min_z = ground_max.max(self.sample.water_level + 2.0);
+        let structures_only_min_z = ground_max.max(self.sample.water_level /* + 2.0*/);
         // .max(/*CONFIG.sea_level*/self.sample.sea_level + 2.0);
 
         (min, structures_only_min_z, max)

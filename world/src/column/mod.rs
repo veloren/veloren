@@ -3,8 +3,8 @@ use crate::{
     block::StructureMeta,
     generator::{Generator, SpawnRules, TownGen},
     sim::{
-        local_cells, neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx, LocationInfo, RiverKind,
-        SimChunk, WorldSim, WORLD_SIZE,
+        local_cells, neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx, LocationInfo, RiverData,
+        RiverKind, SimChunk, WorldSim, WORLD_SIZE,
     },
     util::{RandomPerm, Sampler, UnitChooser},
     CONFIG,
@@ -465,11 +465,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             TerrainChunkSize::RECT_SIZE.y as f32,
         );
         let my_chunk_idx = vec2_as_uniform_idx(chunk_pos);
-        let neighbor_river_data = local_cells(my_chunk_idx).filter_map(|neighbor_idx| {
-            let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
-            let neighbor_chunk = sim.get(neighbor_pos)?;
-            Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
-        });
+        let neighbor_river_data = local_cells(my_chunk_idx) /*std::iter::empty()*/
+            .filter_map(|neighbor_idx: usize| {
+                let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
+                let neighbor_chunk = sim.get(neighbor_pos)?;
+                Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
+                // None::<(Vec2<i32>, &SimChunk, &RiverData)>
+            });
         let neighbor_river_data =
             /* std::iter::once((chunk_pos, river_data))
             .chain(neighbor_river_data) */
@@ -640,7 +642,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 chunk.alt - new_water_alt,
             ) */
         })?;
-        let alt_old = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt_old)?;
+        // let alt_old = sim.get_interpolated/*_monotone*/(wpos, |chunk| chunk.alt_old)?;
         // For every neighbor at 0,0 or to the right or front of us, we need to compute its river
         // prism, and then figure out whether this column intersects its river line.  If it does,
         // we should set ourselves to the maximum of the lerps of all their fluxes as they converge
@@ -670,7 +672,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // this point towards the altitude of the river.  Specifically, as the dist goes from
         // TerrainChunkSize::RECT_SIZE.x to 0, the weighted altitude of this point should go from
         // alt to river_alt.
-        for (river_chunk_idx, river_chunk, river, dist) in neighbor_river_data.clone() {
+        for (river_chunk_idx, river_chunk, river, dist) in neighbor_river_data {
             match river.river_kind {
                 Some(kind) => {
                     if
@@ -845,14 +847,20 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             }
         }
         // Harmonic mean.
-        let river_scale_factor = /*if river_count == 0.0 {
-            0.0
-        } else */{
+        let river_scale_factor = if river_count == 0.0 {
+            1.0
+        } else {
             let river_scale_factor = river_distance_product/* / river_count*/;
-            /*if river_scale_factor == 0.0 {
+            if river_scale_factor == 0.0 {
                 0.0
-            } else */{
-                /*1.0 / river_scale_factor*/river_scale_factor/* * river_scale_factor*/.powf(if river_count == 0.0 { 1.0 } else {1.0 / river_count })
+            } else {
+                /*1.0 / river_scale_factor*/
+                river_scale_factor /* * river_scale_factor*/
+                    .powf(if river_count == 0.0 {
+                        1.0
+                    } else {
+                        1.0 / river_count
+                    })
             }
         };
 
@@ -1024,7 +1032,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .map(|downhill_chunk| downhill_chunk.alt)
             .unwrap_or(CONFIG.sea_level);
         let wdelta = /*sim_chunk.flux * water_factor*//*0.01f32*/16.0f32;
-        let water_alt = sim.get_interpolated_monotone(wpos, |chunk| {
+        /* let water_alt = sim.get_interpolated_monotone(wpos, |chunk| {
             chunk.water_alt.max(
                 /*Lerp::lerp(chunk.alt - 5.0, chunk.alt, chunk.flux * water_factor)*/
                 chunk.alt,
@@ -1036,7 +1044,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     (flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)
                 );
             }*/
-        })?; // + riverless_alt_delta;
+        })?; // + riverless_alt_delta; */
 
         let downhill_water_alt = downhill_pos /*sim.get(max_border_river_pos)*/
             .map(|downhill_chunk| {
@@ -1056,17 +1064,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
              .max(sim_chunk.alt - wdelta))
         .unwrap_or(CONFIG.sea_level); */
         // let water_alt_orig = downhill_water_alt;
-        let water_alt_orig = sim.get_interpolated_monotone(wpos, |chunk| {
+        /* let water_alt_orig = sim.get_interpolated_monotone(wpos, |chunk| {
             chunk.water_alt.sub(2.0).max(
                 /*Lerp::lerp(chunk.alt - 5.0, chunk.alt, chunk.flux * water_factor)*/
                 chunk.alt.sub(/*wdelta*/ 5.0),
             )
-        })?;
-        let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
+        })?; */
+        // let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
         // let flux = sim_chunk.flux;
-        let downhill_flux = downhill_pos
-            .map(|downhill_chunk| downhill_chunk.flux)
-            .unwrap_or(flux);
+        /* let downhill_flux = downhill_pos
+        .map(|downhill_chunk| downhill_chunk.flux)
+        .unwrap_or(flux); */
         /* let downhill_pos_x = sim.get_interpolated(wpos, |chunk| {
             chunk.downhill.map(|e|
                 e.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| e as f32 / sz as f32)
@@ -1490,7 +1498,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             water_alt
         }; */
         let alt = alt_ + riverless_alt_delta;
-        let alt_old = alt_old + riverless_alt_delta;
+        // let alt_old = alt_old + riverless_alt_delta;
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)
@@ -1802,17 +1810,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         Some(ColumnSample {
             alt,
             alt_min,
-            alt_old,
+            // alt_old,
             chaos,
-            sea_level: /*if water_level/*.max(water_alt)*/ >= alt
+            /* sea_level: /*if water_level/*.max(water_alt)*/ >= alt
             /*_*/
             {
                 alt
             } else {
                 downhill_water_alt - river_gouge
-            }*/water_level, /*/*water_alt.sub(5.0),/**/ */water_alt_orig.sub(/*wdelta*/5.0)*//*downhill_water_alt*//*water_alt_orig.sub(5.0),*/
+            }*/water_level, /*/*water_alt.sub(5.0),/**/ */water_alt_orig.sub(/*wdelta*/5.0)*//*downhill_water_alt*//*water_alt_orig.sub(5.0),*/ */
             water_level,
-            flux,
+            // flux,
             river,
             warp_factor,
             surface_color: Rgb::lerp(
@@ -1872,11 +1880,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 pub struct ColumnSample<'a> {
     pub alt: f32,
     pub alt_min: f32,
-    pub alt_old: f32,
+    // pub alt_old: f32,
     pub chaos: f32,
-    pub sea_level: f32,
+    // pub sea_level: f32,
     pub water_level: f32,
-    pub flux: f32,
+    // pub flux: f32,
     pub river: f32,
     pub warp_factor: f32,
     pub surface_color: Rgb<f32>,
