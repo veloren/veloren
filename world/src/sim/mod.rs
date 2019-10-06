@@ -513,68 +513,68 @@ impl WorldSim {
 
         let water_factor = (1.0 / 1024.0) as f32;
         let wdelta = /*flux * water_factor*/5.0;
-        let water_alt = indirection
-            .par_iter()
-            .enumerate()
-            .map(|(chunk_idx, &indirection_idx)| {
-                // Find the lake this point is flowing into.
-                let lake_idx = if indirection_idx < 0 {
-                    chunk_idx
-                } else {
-                    indirection_idx as usize
-                };
-                // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
-                // pushed towards the point identified by pass_idx).
-                let pass_idx = dh[lake_idx];
-                // Find our own height.
-                // let height = alt[chunk_idx];
-                // let water_height = water_alt[chunk_idx];
-                if pass_idx < 0 {
-                    // println!("Really, no passes at all?");
-                    /* if dh[chunk_idx] == -2 {
-                        // Boundary node, water is at sea level.
-                        0.0
-                    } else {
-                    // Flows into the ocean, so just make this a river.
-                        water_height.max(0.0)// * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0))
-                    } */
+        /* let water_alt = indirection
+        .par_iter()
+        .enumerate()
+        .map(|(chunk_idx, &indirection_idx)| {
+            // Find the lake this point is flowing into.
+            let lake_idx = if indirection_idx < 0 {
+                chunk_idx
+            } else {
+                indirection_idx as usize
+            };
+            // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+            // pushed towards the point identified by pass_idx).
+            let pass_idx = dh[lake_idx];
+            // Find our own height.
+            // let height = alt[chunk_idx];
+            // let water_height = water_alt[chunk_idx];
+            if pass_idx < 0 {
+                // println!("Really, no passes at all?");
+                /* if dh[chunk_idx] == -2 {
+                    // Boundary node, water is at sea level.
                     0.0
                 } else {
-                    // Find the height of the node into which we are flowing.
-                    let pass_height_i = water_alt[pass_idx as usize];
-                    // Find the minimum height among all neighbors of the pass which share the
-                    // chunk's lake (this is the other half of the pass).
-                    // The pass height is the maximum of these two heights.
-                    let pass_height = neighbors(pass_idx as usize)
-                        .filter(|&neighbor_id| {
-                            let indirection_idx = indirection[neighbor_id];
-                            let neighbor_lake_idx = if indirection_idx < 0 {
-                                neighbor_id
-                            } else {
-                                indirection_idx as usize
-                            };
-                            // Same lake
-                            neighbor_lake_idx == lake_idx
-                        })
-                        .map(|neighbor_id| pass_height_i.max(water_alt[neighbor_id]))
-                        .min_by(|hi, hj| hi.partial_cmp(hj).unwrap())
-                        .expect("If there is a pass, it should be next to a lake.");
-                    // let pass_height = pass_height_i;
-                    // Now, if we are above the point into which this lake flows, we should form a
-                    // river (stay at our surface), while if we are below it we should form a lake
-                    // (stay at the height of the pass).
-                    let water_height = /*water_height.max(*/pass_height/*)*/; // * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0));
-                                                                              // let water_height = /*water_height.max(*/pass_height_i/*)*/;// * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0));
-                                                                              // println!("Water at {:?}: {:?}", uniform_idx_as_vec2(chunk_idx), water_height);
-                                                                              // water_height
-                    water_alt[chunk_idx]
-                    // water_height
-                }
-                /* if flux_old[posi] * water_factor < 0.25 {
+                // Flows into the ocean, so just make this a river.
+                    water_height.max(0.0)// * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0))
                 } */
-            })
-            .collect::<Vec<_>>()
-            .into_boxed_slice();
+                0.0
+            } else {
+                // Find the height of the node into which we are flowing.
+                let pass_height_i = water_alt[pass_idx as usize];
+                // Find the minimum height among all neighbors of the pass which share the
+                // chunk's lake (this is the other half of the pass).
+                // The pass height is the maximum of these two heights.
+                let pass_height = neighbors(pass_idx as usize)
+                    .filter(|&neighbor_id| {
+                        let indirection_idx = indirection[neighbor_id];
+                        let neighbor_lake_idx = if indirection_idx < 0 {
+                            neighbor_id
+                        } else {
+                            indirection_idx as usize
+                        };
+                        // Same lake
+                        neighbor_lake_idx == lake_idx
+                    })
+                    .map(|neighbor_id| pass_height_i.max(water_alt[neighbor_id]))
+                    .min_by(|hi, hj| hi.partial_cmp(hj).unwrap())
+                    .expect("If there is a pass, it should be next to a lake.");
+                // let pass_height = pass_height_i;
+                // Now, if we are above the point into which this lake flows, we should form a
+                // river (stay at our surface), while if we are below it we should form a lake
+                // (stay at the height of the pass).
+                let water_height = /*water_height.max(*/pass_height/*)*/; // * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0));
+                                                                          // let water_height = /*water_height.max(*/pass_height_i/*)*/;// * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0));
+                                                                          // println!("Water at {:?}: {:?}", uniform_idx_as_vec2(chunk_idx), water_height);
+                                                                          // water_height
+                water_alt[chunk_idx]
+                // water_height
+            }
+            /* if flux_old[posi] * water_factor < 0.25 {
+            } */
+        })
+        .collect::<Vec<_>>()
+        .into_boxed_slice(); */
 
         // let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
 
@@ -963,8 +963,9 @@ impl WorldSim {
         local_cells(chunk_idx)
             .flat_map(|neighbor_idx| {
                 let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
-                let has_river = self.get(neighbor_pos).map(|c| c.river.is_river()) == Some(true);
-                if (neighbor_pos - chunk_pos).reduce_partial_max() <= 1 || has_river {
+                let river_kind = self.get(neighbor_pos).and_then(|c| c.river.river_kind);
+                let has_water = river_kind.is_some() && river_kind != Some(RiverKind::Ocean);
+                if (neighbor_pos - chunk_pos).reduce_partial_max() <= 1 || has_water {
                     self.get(neighbor_pos).map(|c| c.get_base_z())
                 } else {
                     None
@@ -1285,7 +1286,7 @@ impl SimChunk {
         .mul(2.0);
 
         let alt_base = alt_base.mul(CONFIG.mountain_scale);
-        let alt = CONFIG
+        let mut alt = CONFIG
             .sea_level
             // .mul(map_edge_factor)
             .add(alt_pre.mul(CONFIG.mountain_scale));
@@ -1328,21 +1329,27 @@ impl SimChunk {
         }
         let river_xy = Vec2::new(river.velocity.x, river.velocity.y).magnitude();
         let river_slope = river.velocity.z / river_xy;
-        if
         /*river.cross_section.x >= 0.5 && river.cross_section.y >= CONFIG.river_min_height ||*/
-        let Some(RiverKind::River { cross_section }) = river.river_kind {
-            if cross_section.x >= 0.5 && cross_section.y >= CONFIG.river_min_height {
-                println!(
-                    "Big area! Pos area: {:?}, River data: {:?}, slope: {:?}",
-                    wposf, river, river_slope
-                );
-            }
-            if river_slope.abs() >= 1.0 && cross_section.x >= /*0.25*/1.0 {
-                println!(
-                    "Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}",
-                    wposf, river, river_slope
-                );
-            }
+        match river.river_kind {
+            Some(RiverKind::River { cross_section }) => {
+                if cross_section.x >= 0.5 && cross_section.y >= CONFIG.river_min_height {
+                    println!(
+                        "Big area! Pos area: {:?}, River data: {:?}, slope: {:?}",
+                        wposf, river, river_slope
+                    );
+                }
+                if river_slope.abs() >= 1.0 && cross_section.x >= /*0.25*/1.0 {
+                    println!(
+                        "Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}",
+                        wposf, river, river_slope
+                    );
+                }
+            },
+            Some(RiverKind::Lake { .. }) /*if alt <= water_alt - 1.0*/ => {
+                // Forces lakes to be downhill from the land around them.
+                alt = alt.min(water_alt - /*1.0*/1e-7);
+            },
+            _ => {},
         }
 
         // No trees in the ocean or with zero humidity (currently)

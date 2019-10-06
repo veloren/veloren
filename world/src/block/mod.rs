@@ -228,6 +228,7 @@ impl<'a> BlockGen<'a> {
                             cliff_hill,
                             0.0,
                         );
+                        // let cliff_height = 0.0;
 
                         (alt + warp).max(cliff_height)
                     };
@@ -271,7 +272,9 @@ impl<'a> BlockGen<'a> {
                 } else {
                     Some(Block::new(BlockKind::Dense, col))
                 }
-            } else if (wposf.z as f32) < height {
+            } else if (wposf.z as f32) < height
+                && (water_height < height || (wpos.z as f32) < water_height.floor())
+            {
                 let col = Lerp::lerp(
                     sub_surface_color,
                     surface_color,
