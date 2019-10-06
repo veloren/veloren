@@ -5,6 +5,7 @@ use crate::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     msg::{EcsCompPacket, EcsResPacket},
+    region::RegionMap,
     sys,
     terrain::{Block, TerrainChunk, TerrainGrid},
     vol::WriteVol,
@@ -172,6 +173,7 @@ impl State {
         ecs.add_resource(TerrainChanges::default());
         ecs.add_resource(EventBus::<ServerEvent>::default());
         ecs.add_resource(EventBus::<LocalEvent>::default());
+        ecs.add_resource(RegionMap::new());
     }
 
     /// Register a component with the state's ECS.
@@ -386,6 +388,13 @@ impl State {
         dispatch_builder.build().dispatch(&self.ecs.res);
 
         self.ecs.maintain();
+
+        // Run RegionMap tick to update enitity region occupancy
+        self.ecs.write_resource::<RegionMap>().tick(
+            self.ecs.read_storage::<comp::Pos>(),
+            self.ecs.read_storage::<comp::Vel>(),
+            self.ecs.entities(),
+        );
 
         // Apply terrain changes
         let mut terrain = self.ecs.write_resource::<TerrainGrid>();

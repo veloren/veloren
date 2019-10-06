@@ -2,8 +2,12 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
     net::PostBox,
 };
-use hashbrown::HashMap;
+use hashbrown::{hash_map::DefaultHashBuilder, HashSet};
+use indexmap::IndexMap;
 use specs::Entity as EcsEntity;
+use specs::{Component, FlaggedStorage};
+use specs_idvs::IDVStorage;
+use vek::*;
 
 pub struct Client {
     pub client_state: ClientState,
@@ -31,13 +35,13 @@ impl Client {
 }
 
 pub struct Clients {
-    clients: HashMap<EcsEntity, Client>,
+    clients: IndexMap<EcsEntity, Client, DefaultHashBuilder>,
 }
 
 impl Clients {
     pub fn empty() -> Self {
         Self {
-            clients: HashMap::new(),
+            clients: IndexMap::default(),
         }
     }
 
@@ -54,15 +58,38 @@ impl Clients {
     }
 
     pub fn get_mut<'a>(&'a mut self, entity: &EcsEntity) -> Option<&'a mut Client> {
-        self.clients.get_mut(entity)
+        self.clients.get_mut(entit:y)
     }
 
     pub fn remove<'a>(&'a mut self, entity: &EcsEntity) -> Option<Client> {
         self.clients.remove(entity)
     }
 
+    pub fn get_client_index_ingame<'a>(&'a mut self, entity: &EcsEntity) -> Option<usize> {
+        self.clients.get_full(entity).and_then(|(i, _, c)| {
+            if c.client_state == ClientState::Spectator
+                || c.client_state == ClientState::Character
+                || c.client_state == ClientState::Dead
+            {
+                Some(i)
+            } else {
+                None
+            }
+        })
+    }
+
+    //pub fn get_index_mut<'a>(&'a mut self, index: u32) -> Option<&'a mut Client> {
+    //    self.clients.get_index_mut(index)
+    //}
+
     pub fn remove_if<F: FnMut(EcsEntity, &mut Client) -> bool>(&mut self, mut f: F) {
         self.clients.retain(|entity, client| !f(*entity, client));
+    }
+
+    pub fn notify_index(&mut self, index: usize, msg: ServerMsg) {
+        if let Some((_, client)) = self.clients.get_index_mut(index) {
+            client.notify(msg);
+        }
     }
 
     pub fn notify(&mut self, entity: EcsEntity, msg: ServerMsg) {
@@ -137,4 +164,19 @@ impl Clients {
             }
         }
     }
+}
+
+// Distance from fuzzy_chunk before snapping to current chunk
+pub const CHUNK_FUZZ: u32 = 2;
+// Distance out of the range of a region before removing it from subscriptions
+pub const REGION_FUZZ: u32 = 16;
+
+#[derive(Clone, Debug)]
+pub struct RegionSubscription {
+    pub fuzzy_chunk: Vec2<i32>,
+    pub regions: HashSet<Vec2<i32>>,
+}
+
+impl Component for RegionSubscription {
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
