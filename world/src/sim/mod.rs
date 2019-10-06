@@ -1318,7 +1318,7 @@ impl SimChunk {
         };
 
         let water_factor = /*((WORLD_SIZE.x * WORLD_SIZE.y) / 1024) as f32;*/(1.0 / 1024.0) as f32;
-        let cliff = /*gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;*/0.0;
+        let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f32| x.ln() - x.neg().ln_1p();
