@@ -419,14 +419,16 @@ pub enum Pants {
     Dark,
     Green,
     Orange,
+    Original,
     Kimono,
 }
-pub const ALL_PANTS: [Pants; 6] = [
+pub const ALL_PANTS: [Pants; 7] = [
     Pants::Blue,
     Pants::Brown,
     Pants::Dark,
     Pants::Green,
     Pants::Orange,
+    Pants::Original,
     Pants::Kimono,
 ];
 

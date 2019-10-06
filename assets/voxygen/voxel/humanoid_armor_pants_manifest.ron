@@ -24,6 +24,11 @@
         recolor: true,
         color: (148, 52, 33)
     ),
+    Original: (
+        vox_spec: ("armor.pants.original", (-5.0, -3.5, 1.0)),
+        recolor: false,
+        color: (0,0,0)
+    ),
     Kimono: (
         vox_spec: ("armor.pants.cloth_red_kimono", (-5.0, -3.5, 1.0)),
         recolor: false,

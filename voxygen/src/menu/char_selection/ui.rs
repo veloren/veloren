@@ -99,10 +99,18 @@ widget_ids! {
         beard_text,
         accessories_slider,
         accessories_text,
+        shoulder_slider,
+        shoulder_text,
         chest_slider,
         chest_text,
+        hand_slider,
+        hand_text,
+        belt_slider,
+        belt_text,
         pants_slider,
         pants_text,
+        foot_slider,
+        foot_text,
 
         // Buttons
         enter_world_button,
@@ -1132,11 +1140,27 @@ impl CharSelectionUi {
                     .pad_track((5.0, 5.0))
                     .set(self.ids.beard_slider, ui_widgets);
             }
+            // Shoulder
+            let current_shoulder = self.character_body.shoulder;
+            if let Some(new_val) = char_slider(
+                self.ids.beard_slider,
+                "Shoulder",
+                self.ids.shoulder_text,
+                humanoid::ALL_SHOULDERS.len() - 1,
+                humanoid::ALL_SHOULDERS
+                    .iter()
+                    .position(|&c| c == current_shoulder)
+                    .unwrap_or(0),
+                self.ids.shoulder_slider,
+                ui_widgets,
+            ) {
+                self.character_body.shoulder = humanoid::ALL_SHOULDERS[new_val];
+            }
             // Chest
             let current_chest = self.character_body.chest;
             if let Some(new_val) = char_slider(
-                self.ids.beard_slider,
-                "Chest Color",
+                self.ids.shoulder_slider,
+                "Chest",
                 self.ids.chest_text,
                 humanoid::ALL_CHESTS.len() - 1,
                 humanoid::ALL_CHESTS
@@ -1148,10 +1172,42 @@ impl CharSelectionUi {
             ) {
                 self.character_body.chest = humanoid::ALL_CHESTS[new_val];
             }
-            // Pants
-            /*let current_pants = self.character_body.pants;
+            // Hand
+            let current_hand = self.character_body.hand;
             if let Some(new_val) = char_slider(
                 self.ids.chest_slider,
+                "Hand",
+                self.ids.hand_text,
+                humanoid::ALL_HANDS.len() - 1,
+                humanoid::ALL_HANDS
+                    .iter()
+                    .position(|&c| c == current_hand)
+                    .unwrap_or(0),
+                self.ids.hand_slider,
+                ui_widgets,
+            ) {
+                self.character_body.hand = humanoid::ALL_HANDS[new_val];
+            }
+            // Belt
+            let current_belt = self.character_body.belt;
+            if let Some(new_val) = char_slider(
+                self.ids.hand_slider,
+                "Belt",
+                self.ids.belt_text,
+                humanoid::ALL_BELTS.len() - 1,
+                humanoid::ALL_BELTS
+                    .iter()
+                    .position(|&c| c == current_belt)
+                    .unwrap_or(0),
+                self.ids.belt_slider,
+                ui_widgets,
+            ) {
+                self.character_body.belt = humanoid::ALL_BELTS[new_val];
+            }
+            // Pants
+            let current_pants = self.character_body.pants;
+            if let Some(new_val) = char_slider(
+                self.ids.belt_slider,
                 "Pants",
                 self.ids.pants_text,
                 humanoid::ALL_PANTS.len() - 1,
@@ -1163,7 +1219,25 @@ impl CharSelectionUi {
                 ui_widgets,
             ) {
                 self.character_body.pants = humanoid::ALL_PANTS[new_val];
-            }*/
+            }
+            // Foot
+            let current_foot = self.character_body.foot;
+            if let Some(new_val) = char_slider(
+                self.ids.pants_slider,
+                "Foot",
+                self.ids.foot_text,
+                humanoid::ALL_FEET.len() - 1,
+                humanoid::ALL_FEET
+                    .iter()
+                    .position(|&c| c == current_foot)
+                    .unwrap_or(0),
+                self.ids.foot_slider,
+                ui_widgets,
+            ) {
+                self.character_body.foot = humanoid::ALL_FEET[new_val];
+            }
+
+
             Rectangle::fill_with([20.0, 20.0], color::TRANSPARENT)
                 .down_from(self.ids.chest_slider, 15.0)
                 .set(self.ids.space, ui_widgets);
