@@ -1122,7 +1122,11 @@ impl Server {
             }
 
             if disconnect {
-                if let Some(player) = state.ecs().read_storage::<comp::Player>().get(entity) {
+                if let (Some(player), Some(_)) = (
+                    state.ecs().read_storage::<comp::Player>().get(entity),
+                    // It only shows a message if you had a body (not in char selection)
+                    state.ecs().read_storage::<comp::Body>().get(entity),
+                ) {
                     new_chat_msgs.push((
                         None,
                         ServerMsg::broadcast(format!("{} went offline.", &player.alias)),
