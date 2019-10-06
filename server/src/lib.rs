@@ -297,12 +297,16 @@ impl Server {
                     dir,
                     projectile,
                 } => {
-                    let pos = state
+                    let mut pos = state
                         .ecs()
                         .read_storage::<comp::Pos>()
                         .get(entity)
                         .unwrap()
                         .0;
+
+                    // TODO: Player height
+                    pos.z += 1.2;
+
                     Self::create_projectile(
                         state,
                         comp::Pos(pos),
