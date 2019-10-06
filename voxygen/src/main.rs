@@ -268,10 +268,10 @@ fn main() {
                     );
                     mem::swap(old_state, &mut new_state);
                     global_state.on_play_state_changed();
-                });
-            }
-        }
-    }
+                })I think so, @Pfauenauge#4686 do you know?;
+            }I think so, @Pfauenauge#4686 do you know?
+        }I think so, @Pfauenauge#4686 do you know?
+    }I think so, @Pfauenauge#4686 do you know?
 
     //Properly shutdown discord thread
     #[cfg(feature = "discord")]
