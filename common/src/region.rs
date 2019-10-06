@@ -176,9 +176,6 @@ impl RegionMap {
                 regions_to_remove.push(i);
             }
         }
-        for index in regions_to_remove {
-            self.remove_index(index);
-        }
 
         // Mutate
         // Note entity moving is outside the whole loop so that the same entity is not checked twice (this may be fine though...)
@@ -195,6 +192,14 @@ impl RegionMap {
                 .unwrap()
                 .remove(id, None);
             self.tracked_entities.remove(id);
+        }
+        for index in regions_to_remove {
+            let (k, r) = self.regions.get_index(index).unwrap();
+            // Check that the region is still removable
+            if r.removable() {
+                // Note we have to use key's here since the index can change when others are removed
+                self.remove(*k);
+            }
         }
     }
     pub fn add(&mut self, entity: EcsEntity, pos: Vec3<f32>) {
@@ -220,9 +225,9 @@ impl RegionMap {
     pub fn key_pos(key: Vec2<i32>) -> Vec2<i32> {
         key.map(|e| e << REGION_LOG2)
     }
-    //fn key_index(&self, key: Vec2<i32>) -> Option<usize> {
-    //    self.regions.get_full(&key).map(|(i, _, _)| i)
-    //}
+    fn key_index(&self, key: Vec2<i32>) -> Option<usize> {
+        self.regions.get_full(&key).map(|(i, _, _)| i)
+    }
     fn index_key(&self, index: usize) -> Option<Vec2<i32>> {
         self.regions.get_index(index).map(|(k, _)| k).copied()
     }
@@ -253,11 +258,11 @@ impl RegionMap {
         index
     }
     /// Remove a region using its key
-    //fn remove(&mut self, key: Vec2<i32>) {
-    //    if let Some(index) = self.key_index(key) {
-    //        self.remove_index(index);
-    //    }
-    //}
+    fn remove(&mut self, key: Vec2<i32>) {
+        if let Some(index) = self.key_index(key) {
+            self.remove_index(index);
+        }
+    }
     /// Add a region using its key
     fn remove_index(&mut self, index: usize) {
         // Remap neighbor indices for neighbors of the region that will be moved from the end of the index map
