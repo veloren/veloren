@@ -961,9 +961,14 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
     }
 }
 
-fn handle_remove_lights(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_remove_lights(
+    server: &mut Server,
+    entity: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
     let opt_radius = scan_fmt_some!(&args, action.arg_fmt, f32);
-    let opt_player_pos = server.state.read_component_cloned::<comp::Pos>(entity); 
+    let opt_player_pos = server.state.read_component_cloned::<comp::Pos>(entity);
     let mut to_delete = vec![];
 
     match opt_player_pos {
@@ -973,16 +978,21 @@ fn handle_remove_lights(server: &mut Server, entity: EcsEntity, args: String, ac
                 &ecs.entities(),
                 &ecs.read_storage::<comp::Pos>(),
                 &ecs.read_storage::<comp::LightEmitter>(),
-                !&ecs.read_storage::<comp::Player>()
-            ).join() {
-                if opt_radius.map(|r| pos.0.distance(player_pos.0) < r).unwrap_or(true) {
+                !&ecs.read_storage::<comp::Player>(),
+            )
+                .join()
+            {
+                if opt_radius
+                    .map(|r| pos.0.distance(player_pos.0) < r)
+                    .unwrap_or(true)
+                {
                     to_delete.push(entity);
                 }
             }
-        },
+        }
         None => server.clients.notify(
-                entity,
-                ServerMsg::private(String::from("You have no position.")),
+            entity,
+            ServerMsg::private(String::from("You have no position.")),
         ),
     }
 
@@ -993,9 +1003,7 @@ fn handle_remove_lights(server: &mut Server, entity: EcsEntity, args: String, ac
     }
 
     server.clients.notify(
-        entity, 
-        ServerMsg::private(String::from(
-            format!("Removed {} lights!", size)
-        )),
+        entity,
+        ServerMsg::private(String::from(format!("Removed {} lights!", size))),
     );
 }
