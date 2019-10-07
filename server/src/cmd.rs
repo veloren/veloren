@@ -220,6 +220,13 @@ lazy_static! {
              true,
              handle_exp,
          ),
+        ChatCommand::new(
+             "removelights",
+             "{}",
+             "/removelights [radius] : Removes all lights spawned by players",
+             true,
+             handle_remove_lights,
+         ),
     ];
 }
 
@@ -952,4 +959,51 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
             }
         }
     }
+}
+
+fn handle_remove_lights(
+    server: &mut Server,
+    entity: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    let opt_radius = scan_fmt_some!(&args, action.arg_fmt, f32);
+    let opt_player_pos = server.state.read_component_cloned::<comp::Pos>(entity);
+    let mut to_delete = vec![];
+
+    match opt_player_pos {
+        Some(player_pos) => {
+            let ecs = server.state.ecs();
+            for (entity, pos, _, _) in (
+                &ecs.entities(),
+                &ecs.read_storage::<comp::Pos>(),
+                &ecs.read_storage::<comp::LightEmitter>(),
+                !&ecs.read_storage::<comp::Player>(),
+            )
+                .join()
+            {
+                if opt_radius
+                    .map(|r| pos.0.distance(player_pos.0) < r)
+                    .unwrap_or(true)
+                {
+                    to_delete.push(entity);
+                }
+            }
+        }
+        None => server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no position.")),
+        ),
+    }
+
+    let size = to_delete.len();
+
+    for entity in to_delete {
+        let _ = server.state.ecs_mut().delete_entity_synced(entity);
+    }
+
+    server.clients.notify(
+        entity,
+        ServerMsg::private(String::from(format!("Removed {} lights!", size))),
+    );
 }
