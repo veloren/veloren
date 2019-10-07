@@ -221,8 +221,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         // Colours
         let cold_grass = Rgb::new(0.0, 0.5, 0.25);
-        let warm_grass = Rgb::new(0.03, 0.8, 0.0);
-        let dark_grass = Rgb::new(0.01, 0.3, 0.0);
+        let warm_grass = Rgb::new(0.4, 0.8, 0.0);
+        let dark_grass = Rgb::new(0.15, 0.4, 0.1);
         let wet_grass = Rgb::new(0.1, 0.8, 0.2);
         let cold_stone = Rgb::new(0.57, 0.67, 0.8);
         let warm_stone = Rgb::new(0.77, 0.77, 0.64);
@@ -513,6 +513,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             cliff_hill,
             close_cliffs: sim.gen_ctx.cliff_gen.get(wpos),
             temp,
+            humidity,
             spawn_rate,
             location: sim_chunk.location.as_ref(),
 
@@ -548,6 +549,7 @@ pub struct ColumnSample<'a> {
     pub cliff_hill: f32,
     pub close_cliffs: [(Vec2<i32>, u32); 9],
     pub temp: f32,
+    pub humidity: f32,
     pub spawn_rate: f32,
     pub location: Option<&'a LocationInfo>,
 
