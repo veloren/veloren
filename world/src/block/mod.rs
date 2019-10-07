@@ -564,7 +564,7 @@ pub fn block_from_structure(
     let field = RandomField::new(structure_seed + 0);
 
     let lerp = 0.5
-        + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.65
+        + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.85
         + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
 
     match sblock {
