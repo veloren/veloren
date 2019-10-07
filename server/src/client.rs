@@ -78,10 +78,6 @@ impl Clients {
         })
     }
 
-    //pub fn get_index_mut<'a>(&'a mut self, index: u32) -> Option<&'a mut Client> {
-    //    self.clients.get_index_mut(index)
-    //}
-
     pub fn remove_if<F: FnMut(EcsEntity, &mut Client) -> bool>(&mut self, mut f: F) {
         self.clients.retain(|entity, client| !f(*entity, client));
     }
