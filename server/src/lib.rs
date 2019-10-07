@@ -1456,6 +1456,8 @@ impl Server {
         {
             let chunk = (Vec2::<f32>::from(pos.0))
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+            // Only update regions when moving to a new chunk
+            // uses a fuzzy border to prevent rapid triggering when moving along chunk boundaries
             if chunk != subscription.fuzzy_chunk
                 && (subscription
                     .fuzzy_chunk
@@ -1468,8 +1470,14 @@ impl Server {
                 })
                 .reduce_or()
             {
+                // Update current chunk
+                subscription.fuzzy_chunk = (Vec2::<f32>::from(pos.0))
+                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+                // Use the largest side length as our chunk size
                 let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
+                // Iterate through currently subscribed regions
                 for key in &subscription.regions {
+                    // Check if the region is not within range anymore
                     if !region_in_vd(
                         *key,
                         pos.0,
@@ -1477,15 +1485,17 @@ impl Server {
                             + (client::CHUNK_FUZZ as f32 + client::REGION_FUZZ as f32 + chunk_size)
                                 * 2.0f32.sqrt(),
                     ) {
+                        // Add to the list of regions to remove
                         regions_to_remove.push(*key);
                     }
                 }
 
                 let mut client = clients.get_mut(&entity);
-
+                // Iterate through regions to remove
                 for key in regions_to_remove.drain(..) {
+                    // Remove region from this clients set of subscribed regions
                     subscription.regions.remove(&key);
-                    // Inform the client to delete these entities
+                    // Tell the client to delete the entities in that region if it exists in the RegionMap
                     if let (Some(ref mut client), Some(region)) =
                         (&mut client, ecs.read_resource::<RegionMap>().get(key))
                     {

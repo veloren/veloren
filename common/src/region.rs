@@ -54,11 +54,10 @@ impl Region {
 /// In units of blocks (i.e. world pos)
 /// Used to prevent rapid switching of entities between regions
 pub const TETHER_LENGTH: u32 = 16;
-/// Region Size in blocks
-pub const REGION_SIZE: u32 = 16 * 32;
-/// Shift between region to world pos
-/// TODO: don't use this :P
+/// Bitshift between region and world pos, i.e. log2(REGION_SIZE)
 const REGION_LOG2: u8 = 9;
+/// Region Size in blocks
+pub const REGION_SIZE: u32 = 1 << REGION_LOG2;
 /// Offsets to iterate though neighbors
 /// Counter-clockwise order
 const NEIGHBOR_OFFSETS: [Vec2<i32>; 8] = [
@@ -166,14 +165,9 @@ impl RegionMap {
 
             // Remove region if it is empty
             // TODO: distribute this betweeen ticks
-            if self
-                .regions
-                .get_index(i)
-                .map(|(_, v)| v)
-                .unwrap()
-                .removable()
-            {
-                regions_to_remove.push(i);
+            let (key, region) = self.regions.get_index(i).unwrap();
+            if region.removable() {
+                regions_to_remove.push(*key);
             }
         }
 
@@ -193,12 +187,11 @@ impl RegionMap {
                 .remove(id, None);
             self.tracked_entities.remove(id);
         }
-        for index in regions_to_remove {
-            let (k, r) = self.regions.get_index(index).unwrap();
+        for key in regions_to_remove.into_iter() {
             // Check that the region is still removable
-            if r.removable() {
+            if self.regions.get(&key).unwrap().removable() {
                 // Note we have to use key's here since the index can change when others are removed
-                self.remove(*k);
+                self.remove(key);
             }
         }
     }

@@ -503,7 +503,9 @@ impl Client {
                     }
                     ServerMsg::DeleteEntity(entity) => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            let _ = self.state.ecs_mut().delete_entity(entity);
+                            if entity != self.entity {
+                                let _ = self.state.ecs_mut().delete_entity(entity);
+                            }
                         }
                     }
                     ServerMsg::EntityPos { entity, pos } => {
