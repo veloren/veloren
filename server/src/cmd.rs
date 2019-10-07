@@ -998,8 +998,8 @@ fn handle_remove_lights(
 
     let size = to_delete.len();
 
-    for entity in to_delete.iter() {
-        let _ = server.state.ecs_mut().delete_entity_synced(*entity);
+    for entity in to_delete {
+        let _ = server.state.ecs_mut().delete_entity_synced(entity);
     }
 
     server.clients.notify(
