@@ -2407,7 +2407,7 @@ dependencies = [
 [[package]]
 name = "portpicker"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/wusyong/portpicker-rs?branch=fix_ipv6#06b989ac271ada33f9d44e7bcfcb10d55ead0c43"
 dependencies = [
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -3634,7 +3634,7 @@ dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "msgbox 0.2.0 (git+https://github.com/bekker/msgbox-rs.git)",
  "num 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "portpicker 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "portpicker 0.1.0 (git+https://github.com/wusyong/portpicker-rs?branch=fix_ipv6)",
  "rand 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rodio 0.9.0 (git+https://github.com/RustAudio/rodio?rev=e5474a2)",
  "ron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4120,7 +4120,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum pkg-config 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)" = "72d5370d90f49f70bd033c3d75e87fc529fbfff9d6f7cccef07d6170079d91ea"
 "checksum png 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f0b0cabbbd20c2d7f06dbf015e06aad59b6ca3d9ed14848783e98af9aaf19925"
 "checksum png 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8422b27bb2c013dd97b9aef69e161ce262236f49aaf46a0489011c8ff0264602"
-"checksum portpicker 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5b497d05c16fe00939445c00a4fe2fa4f3d3dfc9c0401a3ab5c577afda2debb9"
+"checksum portpicker 0.1.0 (git+https://github.com/wusyong/portpicker-rs?branch=fix_ipv6)" = "<none>"
 "checksum ppv-lite86 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "e3cbf9f658cdb5000fcf6f362b8ea2ba154b9f146a61c7a20d647034c6b6561b"
 "checksum pretty_env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "717ee476b1690853d222af4634056d830b5197ffd747726a9a1eee6da9f49074"
 "checksum proc-macro-hack 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)" = "e688f31d92ffd7c1ddc57a1b4e6d773c0f2a14ee437a4b0a4f5a69c80eb221c8"
