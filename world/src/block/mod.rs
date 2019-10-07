@@ -166,7 +166,7 @@ impl<'a> BlockGen<'a> {
             cliff_hill,
             close_cliffs,
             temp,
-
+            humidity,
             chunk,
             ..
         } = sample;
@@ -265,9 +265,10 @@ impl<'a> BlockGen<'a> {
             } else if (wposf.z as f32) < height + 0.9
                 && temp < CONFIG.desert_temp
                 && (wposf.z as f32 > water_height + 3.0)
-                && marble > 0.68
-                && marble_small > 0.65
-                && (marble * 3173.7).fract() < 0.5
+                && marble > 0.6
+                && marble_small > 0.55
+                && (marble * 3173.7).fract() < 0.6
+                && humidity > 0.4
             {
                 let flowers = [
                     BlockKind::BlueFlower,
@@ -287,10 +288,10 @@ impl<'a> BlockGen<'a> {
                 ];
 
                 Some(Block::new(
-                    if (height * 1271.0).fract() < 0.15 {
+                    if (height * 1271.0).fract() < 0.1 {
                         flowers[(height * 0.2) as usize % flowers.len()]
                     } else {
-                        grasses[(height * 0.3) as usize % grasses.len()]
+                        grasses[(height * 103.3) as usize % grasses.len()]
                     },
                     Rgb::broadcast(0),
                 ))
