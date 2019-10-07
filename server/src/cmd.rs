@@ -969,22 +969,14 @@ fn handle_remove_lights(server: &mut Server, entity: EcsEntity, args: String, ac
     match opt_player_pos {
         Some(player_pos) => {
             let ecs = server.state.ecs();
-            let entities = &ecs.entities();
-            let light_emitters = &ecs.read_storage::<comp::LightEmitter>();
-            let lights = (entities, light_emitters).join();
-            for (entity, _) in lights {
-                let pos = ecs
-                    .read_storage::<comp::Pos>()
-                    .get(entity)
-                    .copied();
-                if let Some(pos) = pos {
-                    if opt_radius.is_some() {
-                        if pos.0.distance(player_pos.0) < opt_radius.unwrap() {
-                            to_delete.push(entity);
-                        }
-                    } else {
-                        to_delete.push(entity);
-                    }
+            for (entity, pos, _, _) in (
+                &ecs.entities(),
+                &ecs.read_storage::<comp::Pos>(),
+                &ecs.read_storage::<comp::LightEmitter>(),
+                !&ecs.read_storage::<comp::Player>()
+            ).join() {
+                if opt_radius.map(|r| pos.0.distance(player_pos.0) < r).unwrap_or(true) {
+                    to_delete.push(entity);
                 }
             }
         },
