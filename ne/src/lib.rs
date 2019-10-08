@@ -6,3 +6,4 @@ mod mailsender;
 
 pub use error::{NetworkError, NetworkResult};
 pub use mailsender::MailSender;
+pub use message::Reliability;

@@ -6,15 +6,22 @@ use std::net::TcpStream;
 use std::io::Write;
 use crossbeam_channel::{Sender, Receiver};
 
+pub enum Reliability {
+    None,
+    Reliable,
+    Unreliable,
+}
+
 pub struct NetworkMessage<T> {
     result_sender: Option<Sender<NetworkResult<()>>>,
     data: T,
+    reliability: Reliability,
 }
 
 impl<T: Send + Serialize + DeserializeOwned> NetworkMessage<T> {
-    pub fn new(data: T) -> (Self, Receiver<NetworkResult<()>>) {
+    pub fn new(data: T, reliability: Reliability) -> (Self, Receiver<NetworkResult<()>>) {
         let (result_sender, result_receiver) = crossbeam_channel::bounded(1);
-        (Self { result_sender: Some(result_sender), data }, result_receiver)
+        (Self { result_sender: Some(result_sender), data, reliability }, result_receiver)
     }
 
     pub fn into_data(self) -> T {
@@ -38,6 +45,7 @@ impl<T: Send + Serialize + DeserializeOwned> NetworkMessage<T> {
         Ok(Self {
             result_sender: None,
             data,
+            reliability: Reliability::None,
         })
     }
 }
