@@ -1,23 +1,39 @@
 use crate::audio::AudioFrontend;
 use client::Client;
-use common::comp::{Body, CharacterState, MovementState::*, Ori, Pos};
+use common::comp::{Body, CharacterState, MovementState, Ori, Pos};
 use hashbrown::HashMap;
+use ron::de::from_str;
+use serde::Deserialize;
 use specs::{Entity as EcsEntity, Join};
 use std::time::Instant;
 use vek::*;
 
-pub struct AnimState {
-    last_step_sound: Instant,
+#[derive(Deserialize)]
+struct SfxTriggerItem {
+    trigger: MovementState,
+    files: Vec<String>,
+    threshold: f64,
+}
+
+#[derive(Deserialize)]
+struct SfxTriggers {
+    items: Vec<SfxTriggerItem>,
+}
+
+pub struct SfxTriggerState {
+    trigger_history: HashMap<MovementState, Instant>,
 }
 
 pub struct SoundMgr {
-    character_states: HashMap<EcsEntity, AnimState>,
+    character_states: HashMap<EcsEntity, SfxTriggerState>,
+    triggers: SfxTriggers,
 }
 
 impl SoundMgr {
     pub fn new() -> Self {
         Self {
             character_states: HashMap::new(),
+            triggers: Self::load_sfx_items(),
         }
     }
 
@@ -47,23 +63,81 @@ impl SoundMgr {
             .filter(|(_, e_pos, _, _)| (e_pos.0.distance_squared(player_pos)) < SFX_DIST_LIMIT_SQR)
         {
             if let (Body::Humanoid(_), Some(character)) = (body, character) {
-                let state = self
-                    .character_states
-                    .entry(entity)
-                    .or_insert_with(|| AnimState {
-                        last_step_sound: Instant::now(),
-                    });
+                let state =
+                    self.character_states
+                        .entry(entity)
+                        .or_insert_with(|| SfxTriggerState {
+                            trigger_history: HashMap::new(),
+                        });
 
-                if character.movement == Run && state.last_step_sound.elapsed().as_secs_f64() > 0.25
-                {
-                    let rand_step = (rand::random::<usize>() % 5) + 1;
-                    audio.play_sound(
-                        &format!("voxygen.audio.sfx.steps.step_{}", rand_step),
-                        pos.0,
-                    );
-                    state.last_step_sound = Instant::now();
+                let last_play_entry = state.trigger_history.get(&character.movement);
+
+                // Check for SFX config entry for this movement
+                let sfx_trigger_item: Option<&SfxTriggerItem> = self
+                    .triggers
+                    .items
+                    .iter()
+                    .find(|item| item.trigger == character.movement);
+
+                // Check valid sfx config and whether wait threshold has elapsed
+                let can_play = match (last_play_entry, sfx_trigger_item) {
+                    (Some(last_play_entry), Some(sfx_trigger_item)) => {
+                        last_play_entry.elapsed().as_secs_f64() > sfx_trigger_item.threshold
+                    }
+                    (None, Some(_)) => true,
+                    _ => false,
+                };
+
+                if can_play {
+                    // Update the last play time
+                    state
+                        .trigger_history
+                        .insert(character.movement, Instant::now());
+
+                    let item = sfx_trigger_item.unwrap();
+
+                    let sfx_file = match item.files.len() {
+                        1 => item.files.last().unwrap(),
+                        _ => {
+                            let rand_step = rand::random::<usize>() % item.files.len();
+                            &item.files[rand_step]
+                        }
+                    };
+
+                    audio.play_sound(sfx_file, pos.0);
                 }
             }
         }
+    }
+
+    fn load_sfx_items() -> SfxTriggers {
+        // slapping it here while the format is in flux
+        const CONFIG: &str = "
+    (
+      items: [
+        (
+            trigger: Run,
+            files: [
+                \"voxygen.audio.sfx.footsteps.stepdirt_1\",
+                \"voxygen.audio.sfx.footsteps.stepdirt_2\",
+                \"voxygen.audio.sfx.footsteps.stepdirt_3\",
+                \"voxygen.audio.sfx.footsteps.stepdirt_4\",
+                \"voxygen.audio.sfx.footsteps.stepdirt_5\",
+            ],
+            threshold: 0.25,
+        ),
+      ],
+    )";
+
+        let collection: SfxTriggers = match from_str(CONFIG) {
+            Ok(x) => x,
+            Err(e) => {
+                println!("Failed to load config: {}", e);
+
+                std::process::exit(1);
+            }
+        };
+
+        collection
     }
 }
