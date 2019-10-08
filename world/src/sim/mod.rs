@@ -56,13 +56,15 @@ pub const WORLD_SIZE: Vec2<usize> = Vec2 {
 struct GenCdf {
     humid_base: InverseCdf,
     temp_base: InverseCdf,
-    alt_base: InverseCdf,
+    // alt_base: InverseCdf,
     chaos: InverseCdf,
-    alt_old: InverseCdf,
+    // alt_old: InverseCdf,
     is_ocean: BitBox,
     alt: Box<[f32]>,
     water_alt: Box<[f32]>,
     dh: Box<[isize]>,
+    /// NOTE: Until we hit 4096 × 4096, this should suffice since integers with an absolute value
+    /// under 2^24 can be exactly represented in an f32.
     flux: Box<[f32]>,
     pure_flux: InverseCdf,
     alt_no_water: InverseCdf,
@@ -697,9 +699,9 @@ impl WorldSim {
         let gen_cdf = GenCdf {
             humid_base,
             temp_base,
-            alt_base,
+            // alt_base,
             chaos,
-            alt_old,
+            // alt_old,
             is_ocean,
             alt,
             water_alt,
@@ -1200,11 +1202,11 @@ impl WorldSim {
 
 pub struct SimChunk {
     pub chaos: f32,
-    pub alt_base: f32,
+    // pub alt_base: f32,
     pub alt: f32,
     pub water_alt: f32,
     pub downhill: Option<Vec2<i32>>,
-    pub alt_old: f32,
+    // pub alt_old: f32,
     pub flux: f32,
     pub temp: f32,
     pub humidity: f32,
@@ -1244,8 +1246,8 @@ impl SimChunk {
         let pos = uniform_idx_as_vec2(posi);
         let wposf = (pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).map(|e| e as f64);
 
-        let (_, alt_base) = gen_cdf.alt_base[posi];
-        let (_, alt_old) = gen_cdf.alt_old[posi];
+        // let (_, alt_base) = gen_cdf.alt_base[posi];
+        // let (_, alt_old) = gen_cdf.alt_old[posi];
         let _map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
         let (humid_uniform, _) = gen_cdf.humid_base[posi];
@@ -1295,7 +1297,7 @@ impl SimChunk {
         .sub(0.5)
         .mul(2.0);
 
-        let alt_base = alt_base.mul(CONFIG.mountain_scale);
+        // let alt_base = alt_base.mul(CONFIG.mountain_scale);
         let mut alt = CONFIG
             .sea_level
             // .mul(map_edge_factor)
@@ -1304,10 +1306,10 @@ impl SimChunk {
             .sea_level
             // .mul(map_edge_factor)
             .add(water_alt_pre.mul(CONFIG.mountain_scale));
-        let alt_old = CONFIG
+        /* let alt_old = CONFIG
             .sea_level
             // .mul(map_edge_factor)
-            .add(alt_old.mul(CONFIG.mountain_scale));
+            .add(alt_old.mul(CONFIG.mountain_scale)); */
         let downhill = if downhill_pre == -2 {
             None
         } else if downhill_pre < 0 {
@@ -1334,7 +1336,7 @@ impl SimChunk {
             Some(RiverKind::River { .. }) => false, // TODO: inspect width
             None => false,
         };
-        if flux * water_factor >= 1.0 {
+        if flux as f64 * water_factor as f64 >= 1.0 {
             // println!("Big flux: {:?}, flux: {:?}", wposf, flux / 1024.0 as f32);
         }
         let river_xy = Vec2::new(river.velocity.x, river.velocity.y).magnitude();
@@ -1395,12 +1397,12 @@ impl SimChunk {
 
         Self {
             chaos,
-            alt_base,
+            // alt_base,
             flux,
             alt,
             water_alt,
             downhill,
-            alt_old,
+            // alt_old,
             temp,
             humidity,
             rockiness: if
@@ -1413,7 +1415,7 @@ impl SimChunk {
             } else {
                 0.0
             },
-            is_cliffs: cliff > 0.5 && alt_old > CONFIG.sea_level + wdelta,
+            is_cliffs: cliff > 0.5 && /*alt_old > CONFIG.sea_level + wdelta*/!is_underwater,
             near_cliffs: cliff > 0.2,
             tree_density,
             forest_kind: if temp > 0.0 {
@@ -1497,7 +1499,7 @@ impl SimChunk {
     }
 
     pub fn get_biome(&self) -> BiomeKind {
-        if self.alt_old < CONFIG.sea_level {
+        if self./*alt_old*/alt < CONFIG.sea_level {
             BiomeKind::Ocean
         } else if self.chaos > 0.6 {
             BiomeKind::Mountain

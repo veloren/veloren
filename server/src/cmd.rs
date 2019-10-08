@@ -889,12 +889,9 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
 
         let foo = || {
             // let sim_chunk = sim.get(chunk_pos)?;
-            let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
             let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
-            let alt_old = sim.get_interpolated(wpos, |chunk| chunk.alt_old)?;
             let water_alt = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;
             let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
-            let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
             let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
             let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
             let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
@@ -904,11 +901,10 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
             let chunk = sim.get(chunk_pos)?;
             let downhill = chunk.downhill;
             let river = &chunk.river;
+            let flux = chunk.flux;
 
             Some(format!(
                 r#"wpos: {:?}
-alt_base {:?}
-alt_old {:?}
 alt {:?}
 water_alt {:?}
 river {:?}
@@ -921,8 +917,6 @@ rockiness {:?}
 tree_density {:?}
 spawn_rate {:?} "#,
                 wpos,
-                alt_base,
-                alt_old,
                 alt,
                 water_alt,
                 river,
