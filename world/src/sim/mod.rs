@@ -169,8 +169,7 @@ impl WorldSim {
                     Some(
                         (gen_ctx
                             .alt_nz
-                            .get((wposf.div(/*12_000.0*/ 10_000.0)).into_array())
-                            as f32)
+                            .get((wposf.div(/*12_000.0*/ 10_000.0)).into_array()).min(1.0).max(-1.0))
                             .sub(/*0.1*/ 0.05)
                             .mul(/*0.25*/ 0.35),
                     )
@@ -184,11 +183,13 @@ impl WorldSim {
                         + gen_ctx
                             .hill_nz
                             .get((wposf.div(1_500.0)).into_array())
-                            .mul(1.0) as f32
+                            .min(1.0).max(-1.0)
+                            .mul(1.0)
                         + gen_ctx
                             .hill_nz
                             .get((wposf.div(400.0)).into_array())
-                            .mul(0.3) as f32)
+                            .min(1.0).max(-1.0)
+                            .mul(0.3))
                         .add(0.3)
                         .max(0.0);
 
@@ -196,12 +197,12 @@ impl WorldSim {
                     // reflect how "chaotic" the region is--how much weird stuff is going on on this
                     // terrain.
                     Some(
-                        (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
+                        ((gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()).min(1.0).max(-1.0))
                             .add(1.0)
                             .mul(0.5)
                             // [0, 1] * [0.4, 1] = [0, 1] (but probably towards the lower end)
                             .mul(
-                                (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+                                (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()).min(1.0).max(-1.0))
                                     .abs()
                                     .max(0.4)
                                     .min(1.0),
@@ -211,7 +212,7 @@ impl WorldSim {
                             // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
                             .add(0.2 * hill)
                             // We can't have *no* chaos!
-                            .max(0.12),
+                            .max(0.12)) as f32,
                     )
                 })
             },
@@ -243,16 +244,16 @@ impl WorldSim {
                 let alt_main = {
                     // Extension upwards from the base.  A positive number from 0 to 1 curved to be
                     // maximal at 0.  Also to be multiplied by CONFIG.mountain_scale.
-                    let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
+                    let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()).min(1.0).max(-1.0))
                         .abs()
                         .powf(1.35);
 
-                    fn spring(x: f32, pow: f32) -> f32 {
+                    fn spring(x: f64, pow: f64) -> f64 {
                         x.abs().powf(pow) * x.signum()
                     }
 
                     (0.0 + alt_main
-                        + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
+                        + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()).min(1.0).max(-1.0))
                         .mul(alt_main.powf(0.8).max(/*0.25*/0.15))
                             .mul(0.3)
                             .add(1.0)
@@ -270,10 +271,10 @@ impl WorldSim {
                 // ~ [-.3675, .3325] + [-0.445, 0.565] * [_, 1.30]
                 // = [-.3675, .3325] + ([-0.5785, 0.7345])
                 // = [-0.946, 1.067]
-                Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1.powf(1.2)))
-                     .mul(map_edge_factor(posi))
-                     .add(CONFIG.sea_level.div(CONFIG.mountain_scale).mul(map_edge_factor(posi)))
-                     .sub(CONFIG.sea_level.div(CONFIG.mountain_scale)))
+                Some(((alt_base[posi].1 + alt_main.mul((chaos[posi].1 as f64).powf(1.2)))
+                     .mul(map_edge_factor(posi) as f64)
+                     .add((CONFIG.sea_level as f64).div(CONFIG.mountain_scale as f64).mul(map_edge_factor(posi) as f64))
+                     .sub((CONFIG.sea_level as f64).div(CONFIG.mountain_scale as f64))) as f32)
             })/*,
             alt_positions,
         )*/;
@@ -361,7 +362,7 @@ impl WorldSim {
                                      // .min(1.0)
                                      // .max(1.0 / CONFIG.mountain_scale)
                                      .max(1e-7 / CONFIG.mountain_scale as f64)
-                                     .min(1.0 - 1e-7);
+                                     .min(1.0f64 - 1e-7);
                 let height = erosion_factor(height);
                 let height = height
                     // .powf(erosion_pow)
@@ -1326,11 +1327,11 @@ impl SimChunk {
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
         // Logistic regression.  Make sure x ∈ (0, 1).
-        let logit = |x: f32| x.ln() - x.neg().ln_1p();
+        let logit = |x: f64| x.ln() - x.neg().ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-        let logistic_2_base = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI);
+        let logistic_2_base = 3.0f64.sqrt().mul(f64::consts::FRAC_2_PI);
         // Assumes μ = 0, σ = 1
-        let logistic_cdf = |x: f32| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
+        let logistic_cdf = |x: f64| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
 
         let is_underwater = match river.river_kind {
             Some(RiverKind::Ocean) | Some(RiverKind::Lake { .. }) => true,
@@ -1373,11 +1374,11 @@ impl SimChunk {
         is_underwater {
             0.0
         } else {
-            let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
+            let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()))
                 .mul(1.5)
                 .add(1.0)
                 .mul(0.5)
-                .mul(1.2 - chaos * 0.95)
+                .mul(1.2 - chaos as f64 * 0.95)
                 .add(0.05)
                 .max(0.0)
                 .min(1.0);
@@ -1388,13 +1389,13 @@ impl SimChunk {
                 1.0
             } else {
                 // Weighted logit sum.
-                logistic_cdf(logit(humidity) + 0.5 * logit(tree_density))
+                logistic_cdf(logit(humidity as f64) + 0.5 * logit(tree_density))
             }
             // rescale to (-0.95, 0.95)
             .sub(0.5)
             .mul(0.95)
             .add(0.5)
-        };
+        } as f32;
 
         Self {
             chaos,

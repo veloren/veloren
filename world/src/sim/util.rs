@@ -1385,7 +1385,7 @@ fn erode(
 ) {
     println!("Done draining...");
     let mmaxh = 1.0;
-    let k = (erosion_base + 2.244 / mmaxh * max_uplift) as f64;
+    let k = (erosion_base as f64 + 2.244 / mmaxh as f64 * max_uplift as f64);
     let ((dh, indirection, newh, area), max_slope) = rayon::join(
         || {
             /* let (dh, ()) = rayon::join(
@@ -2581,7 +2581,7 @@ pub fn do_erosion(
         .cloned()
         .map(|e| e as f64)
         .sum::<f64>();
-    println!("Sum uplifts`: {:?}", sum_uplift);
+    println!("Sum uplifts: {:?}", sum_uplift);
 
     let max_uplift = uplift
         .into_par_iter()
