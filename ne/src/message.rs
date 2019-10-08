@@ -11,7 +11,7 @@ pub struct NetworkMessage<T> {
     data: T,
 }
 
-impl<T: Send + Sync + Serialize + DeserializeOwned> NetworkMessage<T> {
+impl<T: Send + Serialize + DeserializeOwned> NetworkMessage<T> {
     pub fn new(data: T) -> (Self, Receiver<NetworkResult<()>>) {
         let (result_sender, result_receiver) = crossbeam_channel::bounded(1);
         (Self { result_sender: Some(result_sender), data }, result_receiver)

@@ -9,7 +9,7 @@ pub struct MailBox<T> {
     receiver: Receiver<NetworkMessage<T>>,
 }
 
-impl<T: Send + Sync + Serialize + DeserializeOwned> MailBox<T> {
+impl<T: Send + Serialize + DeserializeOwned> MailBox<T> {
     pub fn send(&self, data: T) -> NetworkResult<()> {
         let (message, result_receiver) = NetworkMessage::new(data);
         self.sender.send(message)?;
