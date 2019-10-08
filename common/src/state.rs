@@ -407,10 +407,13 @@ impl State {
             let mut controllers = self.ecs.write_storage::<comp::Controller>();
             match event {
                 LocalEvent::LandOnGround { entity, vel } => {
-                    if let Some(stats) = self.ecs.write_storage::<comp::Stats>().get_mut(entity) {
-                        let falldmg = (vel.z / 1.5 + 10.0) as i32;
-                        if falldmg < 0 {
-                            stats.health.change_by(falldmg, comp::HealthSource::World);
+                    if vel.z <= -20.0 {
+                        if let Some(stats) = self.ecs.write_storage::<comp::Stats>().get_mut(entity)
+                        {
+                            let falldmg = (vel.z / 5.0) as i32;
+                            if falldmg < 0 {
+                                stats.health.change_by(falldmg, comp::HealthSource::World);
+                            }
                         }
                     }
                 }
