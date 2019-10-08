@@ -16,16 +16,17 @@ pub struct InternalNetworkMessage<T> {
     result_sender: Option<Sender<NetworkResult<()>>>,
     data: T,
     reliability: Reliability,
+    id: u32,
 }
 
 impl<T: Send + Serialize + DeserializeOwned> InternalNetworkMessage<T> {
-    pub fn new(data: T, reliability: Reliability) -> (Self, Receiver<NetworkResult<()>>) {
+    pub fn new(data: T, reliability: Reliability, id: u32) -> (Self, Receiver<NetworkResult<()>>) {
         let (result_sender, result_receiver) = crossbeam_channel::bounded(1);
-        (Self { result_sender: Some(result_sender), data, reliability }, result_receiver)
+        (Self { result_sender: Some(result_sender), data, reliability, id }, result_receiver)
     }
 
-    pub fn into_data(self) -> T {
-        self.data
+    pub fn deconstruct(self) -> (T, u32) {
+        (self.data, self.id)
     }
 
     pub fn send(&self, writer: &mut BufWriter<TcpStream>) {
@@ -39,13 +40,14 @@ impl<T: Send + Serialize + DeserializeOwned> InternalNetworkMessage<T> {
         Ok(())
     }
 
-    pub fn receive(reader: &mut BufReader<TcpStream>) -> NetworkResult<Self> {
+    pub fn receive(reader: &mut BufReader<TcpStream>, id: u32) -> NetworkResult<Self> {
         let data: T = serde_cbor::from_reader(reader)?;
 
         Ok(Self {
             result_sender: None,
             data,
             reliability: Reliability::None,
+            id,
         })
     }
 }

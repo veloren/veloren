@@ -15,7 +15,7 @@ impl<T: Send + Serialize + DeserializeOwned> MailSender<T> {
     }
 
     pub fn send(&self, data: T, reliability: Reliability) -> NetworkResult<()> {
-        let (message, result_receiver) = InternalNetworkMessage::new(data, reliability);
+        let (message, result_receiver) = InternalNetworkMessage::new(data, reliability, self.id);
         self.sender.send(message)?;
         let result = result_receiver.recv()?;
         result
