@@ -39,7 +39,7 @@ void main() {
 	vec3 norm = warp_normal(f_norm, f_pos, tick.x);
 
 	vec3 light, diffuse_light, ambient_light;
-	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light);
+	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
 	float point_shadow = shadow_at(f_pos, f_norm);
 	diffuse_light *= f_light * point_shadow;
 	ambient_light *= f_light, point_shadow;
@@ -60,7 +60,7 @@ void main() {
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(norm, norm, cam_to_frag), -cam_to_frag), 1.0);
 
-	vec4 color = mix(vec4(reflect_color, 1.0), vec4(surf_color, 0.5 / (1.0 + diffuse_light * 2.0)), passthrough);
+	vec4 color = mix(vec4(reflect_color, 1.0), vec4(surf_color, 3.0 / (1.0 + diffuse_light * 2.0)), passthrough);
 
     tgt_color = mix(color, vec4(fog_color, 0.0), fog_level);
 }

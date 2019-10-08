@@ -169,7 +169,7 @@ impl<'a> BlockGen<'a> {
             cliff_hill,
             close_cliffs,
             temp,
-
+            humidity,
             chunk,
             ..
         } = sample;
@@ -293,9 +293,10 @@ impl<'a> BlockGen<'a> {
             } else if (wposf.z as f32) < height + 0.9
                 && temp < CONFIG.desert_temp
                 && (wposf.z as f32 > water_height + 3.0)
-                && marble > 0.68
-                && marble_small > 0.65
-                && (marble * 3173.7).fract() < 0.5
+                && marble > 0.6
+                && marble_small > 0.55
+                && (marble * 3173.7).fract() < 0.6
+                && humidity > 0.4
             {
                 let flowers = [
                     BlockKind::BlueFlower,
@@ -315,10 +316,10 @@ impl<'a> BlockGen<'a> {
                 ];
 
                 Some(Block::new(
-                    if (height * 1271.0).fract() < 0.15 {
+                    if (height * 1271.0).fract() < 0.1 {
                         flowers[(height * 0.2) as usize % flowers.len()]
                     } else {
-                        grasses[(height * 0.3) as usize % grasses.len()]
+                        grasses[(height * 103.3) as usize % grasses.len()]
                     },
                     Rgb::broadcast(0),
                 ))
@@ -599,7 +600,7 @@ pub fn block_from_structure(
     let field = RandomField::new(structure_seed + 0);
 
     let lerp = 0.5
-        + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.65
+        + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.85
         + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
 
     match sblock {

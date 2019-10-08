@@ -707,7 +707,7 @@ impl Server {
                 .collect::<Vec<_>>()
         };
         for entity in to_delete {
-            let _ = self.state.ecs_mut().delete_entity(entity);
+            let _ = self.state.ecs_mut().delete_entity_synced(entity);
         }
 
         let before_tick_7 = Instant::now();

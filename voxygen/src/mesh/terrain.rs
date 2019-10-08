@@ -233,7 +233,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             offs,
                             &colors,
                             |pos, norm, col, ao, light| {
-                                FluidVertex::new(pos, norm, col, light.min(ao), 0.3)
+                                FluidVertex::new(pos, norm, col, light, 0.3)
                             },
                             false,
                             &lights,
