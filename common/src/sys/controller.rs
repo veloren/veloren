@@ -177,13 +177,15 @@ impl<'a> System<'a> for Sys {
                     // Block
                     if controller.secondary
                         && (character.movement == Stand || character.movement == Run)
-                        && (character.action == Idle || character.action.is_wield())
+                        && character.action.is_wield()
                     {
                         character.action = Block {
                             time_left: Duration::from_secs(5),
                         };
                     } else if !controller.secondary && character.action.is_block() {
-                        character.action = Idle;
+                        character.action = Wield {
+                            time_left: Duration::default(),
+                        };
                     }
                 }
                 Some(Item::Debug(item::Debug::Boost)) => {
