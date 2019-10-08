@@ -12,13 +12,13 @@ pub enum Reliability {
     Unreliable,
 }
 
-pub struct NetworkMessage<T> {
+pub struct InternalNetworkMessage<T> {
     result_sender: Option<Sender<NetworkResult<()>>>,
     data: T,
     reliability: Reliability,
 }
 
-impl<T: Send + Serialize + DeserializeOwned> NetworkMessage<T> {
+impl<T: Send + Serialize + DeserializeOwned> InternalNetworkMessage<T> {
     pub fn new(data: T, reliability: Reliability) -> (Self, Receiver<NetworkResult<()>>) {
         let (result_sender, result_receiver) = crossbeam_channel::bounded(1);
         (Self { result_sender: Some(result_sender), data, reliability }, result_receiver)
