@@ -169,7 +169,7 @@ impl Stats {
 
     // TODO: Delete this once stat points will be a thing
     pub fn update_max_hp(&mut self) {
-        self.health.set_maximum(22 * self.level.amount);
+        self.health.set_maximum(42 * self.level.amount);
     }
 }
 
