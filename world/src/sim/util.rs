@@ -182,7 +182,7 @@ pub fn uniform_noise<F: Float + Send>(
     // sort_unstable_by is equivalent to sort_by here since we include a unique index in the
     // comparison.  We could leave out the index, but this might make the order not
     // reproduce the same way between different versions of Rust (for example).
-    noise.par_sort_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap());
+    noise.par_sort_unstable_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap());
 
     // Construct a vector that associates each chunk position with the 1-indexed
     // position of the noise in the sorted vector (divided by the vector length).
@@ -1066,7 +1066,7 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
             .map(|e| e as f64);
         // let wposf = uniform_idx_as_vec2(posi)
         //     .map(|e| e as f64) / WORLD_SIZE.map(|e| e as f64);
-        let wposz = (z * CONFIG.mountain_scale) as f64;
+        let wposz = z as f64 * CONFIG.mountain_scale as f64;
         // let wposz = h[posi] as f64;
         // Normalized to be between 6 and and 54 degrees.
         let div_factor = /*CONFIG.mountain_scale as f64*/32.0/*WORLD_SIZE.x as f64*/;
@@ -2576,6 +2576,13 @@ pub fn do_erosion(
     .into_par_iter()
     .map( |posi| uplift(posi))
     .max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap(); */
+    let sum_uplift = uplift
+        .into_par_iter()
+        .cloned()
+        .map(|e| e as f64)
+        .sum::<f64>();
+    println!("Sum uplifts`: {:?}", sum_uplift);
+
     let max_uplift = uplift
         .into_par_iter()
         .cloned()
