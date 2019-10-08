@@ -1,0 +1,10 @@
+[package]
+name = "ne"
+version = "0.1.0"
+authors = ["Acrimon <joel.wejdenstal@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1.0.101", features = ["derive"]}
+serde_cbor = "0.10.2"
+crossbeam-channel = "0.3.9"
