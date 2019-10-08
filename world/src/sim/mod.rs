@@ -356,13 +356,13 @@ impl WorldSim {
             // 0.22875/2.36025 ~ 0.97...
             |posi| {
                 let height =
-                                     ((old_height_uniform(posi) /*+ 0.946*/- alt_old_min_uniform) / /*2.013*/(alt_old_max_uniform - alt_old_min_uniform)/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
+                                     ((old_height_uniform(posi) /*+ 0.946*/- alt_old_min_uniform) as f64 / /*2.013*/(alt_old_max_uniform - alt_old_min_uniform) as f64/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
                                      // .max(1.0 / CONFIG.mountain_scale)
                                      // .min(1.0)
                                      // .max(1.0 / CONFIG.mountain_scale)
-                                     .max(1e-7 / CONFIG.mountain_scale)
+                                     .max(1e-7 / CONFIG.mountain_scale as f64)
                                      .min(1.0 - 1e-7);
-                let height = erosion_factor(height as f64);
+                let height = erosion_factor(height);
                 let height = height
                     // .powf(erosion_pow)
                     /*.powf(1.0)*//* * /*0.05*//*0.0625*/(/*128.0*/32.0 / CONFIG.mountain_scale))*/

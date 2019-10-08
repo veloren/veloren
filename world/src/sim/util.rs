@@ -1200,7 +1200,7 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
         // 0.25 / (1 - 0.25)
         // plausible cliffs effect.  Taking the square root makes it increase more rapidly than it
         // would otherwise, so that at height 0.4 we are already looking at 0.8 of the maximum.
-        let rock_strength = logistic_cdf(/*0.25*//*0.5*/1.0 * logit(rock_strength.min(1.0 - 1e-7).max(1e-7)) +
+        let rock_strength = logistic_cdf(/*0.25*//*0.5*/1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7)) +
                                          /*3.0*/1.0 * log_odds((z as f64).min(/*0.15*//*0.45*//*0.2*/dmax).max(/*0.35*//*0.1*//*center*/dmin))/*0.0*/);
         // let height_factor = z.min(1.0).max(0.0).powf(0.25);
         let max_slope = (rock_strength * MAX_ANGLE_RANGE/* * height_factor*/ + MIN_MAX_ANGLE).tan();
