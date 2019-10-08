@@ -1,4 +1,4 @@
-image: registry.gitlab.com/veloren/veloren-docker-ci:rework
+image: registry.gitlab.com/veloren/veloren-docker-ci:latest
 
 variables:
     GIT_STRATEGY: none
