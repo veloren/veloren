@@ -1,220 +1,217 @@
-stages:
-  - optional-builds
-  - check-compile
-  - post-build
+image: registry.gitlab.com/veloren/veloren-docker-ci:rework
 
-# Our own git fetch command like https://gitlab.com/gitlab-org/gitlab-runner/blob/master/shells/abstract.go
-# speeds up building because we skip the git clean and don't need any gitlab caches.
 variables:
-  GIT_STRATEGY: none
+    GIT_STRATEGY: none
+
+stages:
+    - optional-builds
+    - check-compile
+    - post
+
 before_script:
-  # Make the directories
-  - mkdir -p /cache/veloren
-  - rm -rf /cache/veloren/bin
-  - cd /cache/veloren
-  - if [ -d .git ]; then
-       echo "is git dir";
-    else
-      git clone $CI_REPOSITORY_URL . ;
-    fi;
-  - mkdir -p /cache/veloren/bin
-  # Remove previous Git files
-  - rm -f .git/index.lock
-  - rm -f .git/shallow.lock
-  - rm -f .git/HEAD.lock
-  - rm -f .git/hocks/post-checkout
-  # Do an efficient Git checkout
-  - git remote set-url origin $CI_REPOSITORY_URL
-  - git fetch origin --prune +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
-  - git checkout -f -q $CI_COMMIT_SHA
-  - if [ ! -z "${SOURCE_PROJECT}" -a "${SOURCE_PROJECT}" != " " ]; then
-      echo "THIS SEEMS TO BE A MERGE PIPELINE FROM ${SOURCE_PROJECT}/${SOURCE_BRANCH}";
-      git pull "https://gitlab.com/${SOURCE_PROJECT}/veloren.git" "${SOURCE_BRANCH}";
-    fi;
-  # Prepare Git LFS
-  - git lfs install;
-  - git lfs fetch;
-  - git lfs checkout;
-  # Debug info
-  - git status
-  - rustup -v show
-  # See what's in the target folder?
-  - if [ -d target ]; then
-      ls -la target;
-    fi;
-  # Overwrite toolchain
-  - cp /rust-toolchain /cache/veloren/rust-toolchain
+    - mkdir -p veloren
+    - cd veloren
+    - git lfs install
+    - if [ ! -d ".git" ]; then git clone https://gitlab.com/veloren/veloren.git .; fi
+    - git clean -f
+    - git lfs fetch
+    - git lfs checkout $CI_COMMIT_SHA
+    - source $HOME/.cargo/env
+    - df -h
+    - free -h
+    - gcc -v
+    - cargo --version
 
-#############
-# Optional build
-#############
+# -- optional build
 
-.optional: &optional
-  stage: optional-builds
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  except:
-    - schedules
-  when: manual
-  artifacts:
-    paths:
-      - ./
-    expire_in: 1 week
+.optional-debug: &optional-debug
+    stage: optional-builds
+    tags:
+        - veloren-docker
+    except:
+        - schedules
+    when: manual
+    artifacts:
+        paths:
+            - veloren/artifact
+        expire_in: 1 week
 
-optional:linux-debug:
-  <<: *optional
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build)
-    - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
-    - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
-    - cp -r assets $CI_PROJECT_DIR
+optional-debug:linux:
+    <<: *optional-debug
+    cache:
+        key: "cache-linux-debug"
+        paths:
+            - veloren/
+    script:
+        - mkdir artifact
+        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose && cd ..
+        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
+        - cp target/debug/veloren-server-cli ./artifact
+        - cp target/debug/veloren-voxygen ./artifact
+        - cp -r assets ./artifact
 
-optional:windows-debug:
-  <<: *optional
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
-    - cp -r assets $CI_PROJECT_DIR
-
-#############
-# Optional release build
-#############
+optional-debug:windows:
+    <<: *optional-debug
+    cache:
+        key: "cache-windows-debug"
+        paths:
+            - veloren/
+    script:
+        - mkdir artifact
+        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
+        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
+        - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe ./artifact
+        - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe ./artifact
+        - cp -r assets ./artifact
 
 .optional-release: &optional-release
-  stage: optional-builds
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  except:
-    - schedules
-  when: manual
-  artifacts:
-    paths:
-      - ./
-    expire_in: 1 month
+    stage: optional-builds
+    tags:
+        - veloren-docker
+    except:
+        - schedules
+    when: manual
+    artifacts:
+        paths:
+            - veloren/artifact
+        expire_in: 1 week
 
-optional-release:linux-debug:
-  <<: *optional-release
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
-    - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
-    - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
-    - cp -r assets $CI_PROJECT_DIR
+optional-release:linux:
+    <<: *optional-release
+    cache:
+        key: "cache-linux-release"
+        paths:
+            - veloren/
+    script:
+        - mkdir artifact
+        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
+        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
+        - cp target/release/veloren-server-cli ./artifact
+        - cp target/release/veloren-voxygen ./artifact
+        - cp -r assets ./artifact
 
-optional-release:windows-debug:
-  <<: *optional-release
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
-    - cp -r assets $CI_PROJECT_DIR
+optional-release:windows:
+    <<: *optional-release
+    cache:
+        key: "cache-windows-release"
+        paths:
+            - veloren/
+    script:
+        - mkdir artifact
+        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
+        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
+        - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe ./artifact
+        - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe ./artifact
+        - cp -r assets ./artifact
 
-#############
-# CHECK
-#############
+# --
 
-check-voxygen:
-  stage: check-compile
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - (cd voxygen && RUSTFLAGS="-D warnings" cargo check)
+# -- check
 
-check-server-cli:
-  stage: check-compile
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - (cd server-cli && RUSTFLAGS="-D warnings" cargo check)
+check:
+    stage: check-compile
+    cache:
+        key: "cache-linux-debug"
+        paths:
+            - veloren/
+    tags:
+        - veloren-docker
+    script:
+        - RUSTFLAGS="-D warnings" cargo check --verbose
 
-#############
-# POST-BUILD
-#############
+code-quality:
+    stage: check-compile
+    cache:
+        key: "cache-linux-debug"
+        paths:
+            - veloren/
+    tags:
+        - veloren-docker
+    script:
+        - cargo clippy -- --warn clippy::all
+        - cargo fmt --all -- --check
+
+# --
+
+# -- post build
 
 unittests:
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo test
+    stage: post
+    cache:
+        key: "cache-linux-debug"
+        paths:
+            - veloren/
+    when: delayed
+    start_in: 5 seconds
+    tags:
+        - veloren-docker
+    script:
+        - cargo test
 
-benchmarktests:
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo bench
-  allow_failure: true
+benchmarks:
+    stage: post
+    cache:
+        key: "cache-linux-release"
+        paths:
+            - veloren/
+    when: delayed
+    start_in: 5 seconds
+    tags:
+        - veloren-docker
+    script:
+        - cargo bench
+    allow_failure: true
 
-clean-code:
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo fmt --all -- --check
+linux:
+    stage: post
+    cache:
+        key: "cache-linux-release"
+        paths:
+            - veloren/
+    when: delayed
+    start_in: 5 seconds
+    only:
+        refs:
+            - /^r[0-9]+\.[0-9]+\.[0-9]+/
+            - /^v[0-9]+\.[0-9]+\.[0-9]+/
+            - /^master$/
+    artifacts:
+        paths:
+            - veloren/artifact
+    tags:
+        - veloren-docker
+    script:
+        - mkdir artifact
+        - cd voxygen && VELOREN_ASSETS=assets cargo build --release && cd ..
+        - cd server-cli && VELOREN_ASSETS=assets cargo build --release && cd ..
+        - cp -r target/release/veloren-server-cli ./artifact
+        - cp -r target/release/veloren-voxygen ./artifact
+        - cp -r assets ./artifact
 
-# # Coverage needs to be disabled until an issue in the Rust compiler is fixed
-# # https://github.com/rust-lang/rust/issues/58375
-# coverage:
-#   stage: post-build
-#   image: registry.gitlab.com/veloren/veloren-docker-ci
-#   tags:
-#     - veloren-docker
-#   script:
-#     - cargo tarpaulin --all
-#   allow_failure: true
+windows:
+    stage: post
+    cache:
+        key: "cache-windows-release"
+        paths:
+            - veloren/
+    when: delayed
+    start_in: 5 seconds
+    only:
+        refs:
+            - /^r[0-9]+\.[0-9]+\.[0-9]+/
+            - /^v[0-9]+\.[0-9]+\.[0-9]+/
+            - /^master$/
+    artifacts:
+        paths:
+            - veloren/artifact
+    tags:
+        - veloren-docker
+    script:
+        - mkdir artifact
+        - cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
+        - cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
+        - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli ./artifact
+        - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen ./artifact
+        - cp -r assets ./artifact
 
-# For now, Clippy will just care about performance improvements as much of the
-# codebase is not in a place that cleaning warnings will be benificial
-
-clippy:
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo clippy -- -W clippy::all
-
-.commit: &commit
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  except:
-    - schedules
-  only:
-    refs:
-      - master
-  artifacts:
-    paths:
-      - ./
-    expire_in: 1 week
-
-commit:linux-debug:
-  <<: *commit
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build)
-    - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
-    - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
-    - cp -r assets $CI_PROJECT_DIR
-
-commit:windows-debug:
-  <<: *commit
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
-    - cp -r assets $CI_PROJECT_DIR
+# --
