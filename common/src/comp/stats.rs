@@ -168,19 +168,18 @@ impl Stats {
     }
 
     // TODO: Delete this once stat points will be a thing
-    pub fn update_hp_bonus(&mut self, level: u32) {
-        self.health
-            .set_maximum(self.health.maximum() + (10 * level) / 2);
+    pub fn update_max_hp(&mut self) {
+        self.health.set_maximum(42 * self.level.amount);
     }
 }
 
 impl Stats {
     pub fn new(name: String, main: Option<comp::Item>) -> Self {
-        Self {
+        let mut stats = Self {
             name,
             health: Health {
-                current: 100,
-                maximum: 100,
+                current: 0,
+                maximum: 0,
                 last_change: None,
             },
             level: Level { amount: 1 },
@@ -198,7 +197,14 @@ impl Stats {
                 alt: None,
             },
             is_dead: false,
-        }
+        };
+
+        stats.update_max_hp();
+        stats
+            .health
+            .set_to(stats.health.maximum(), HealthSource::Revive);
+
+        stats
     }
 
     pub fn with_max_health(mut self, amount: u32) -> Self {
