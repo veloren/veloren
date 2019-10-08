@@ -1,11 +1,18 @@
 pub enum NetworkError {
-    SerializationError(serde_cbor::Error),
+    IoError(std::io::Error),
+    SerdeError(serde_cbor::Error),
 }
 
 pub type NetworkResult<T> = Result<T, NetworkError>;
 
+impl From<std::io::Error> for NetworkError {
+    fn from(e: std::io::Error) -> Self {
+        Self::IoError(e)
+    }
+}
+
 impl From<serde_cbor::Error> for NetworkError {
     fn from(e: serde_cbor::Error) -> Self {
-        Self::SerializationError(e)
+        Self::SerdeError(e)
     }
 }
