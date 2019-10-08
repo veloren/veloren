@@ -15,10 +15,6 @@ pub enum LocalEvent {
         entity: EcsEntity,
         vel: Vec3<f32>,
     },
-    LandOnGround {
-        entity: EcsEntity,
-        vel: Vec3<f32>,
-    },
 }
 
 pub enum ServerEvent {
@@ -40,6 +36,10 @@ pub enum ServerEvent {
         entity: EcsEntity,
         dir: Vec3<f32>,
         projectile: comp::Projectile,
+    },
+    LandOnGround {
+        entity: EcsEntity,
+        vel: Vec3<f32>,
     },
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),

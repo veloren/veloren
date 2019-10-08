@@ -1,7 +1,7 @@
 use {
     crate::{
         comp::{Body, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
-        event::{EventBus, LocalEvent},
+        event::{EventBus, ServerEvent},
         state::DeltaTime,
         terrain::{Block, TerrainGrid},
         vol::ReadVol,
@@ -45,7 +45,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
-        Read<'a, EventBus<LocalEvent>>,
+        Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Sticky>,
         ReadStorage<'a, Mass>,
@@ -245,7 +245,7 @@ impl<'a> System<'a> for Sys {
                         on_ground = true;
 
                         if !was_on_ground {
-                            event_emitter.emit(LocalEvent::LandOnGround { entity, vel: vel.0 });
+                            event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
                         }
                     }
 
