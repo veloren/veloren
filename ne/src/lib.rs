@@ -2,6 +2,7 @@
 
 mod error;
 mod message;
-mod mailbox;
+mod mailsender;
 
 pub use error::{NetworkError, NetworkResult};
+pub use mailsender::MailSender;
