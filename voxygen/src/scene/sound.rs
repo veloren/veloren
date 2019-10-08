@@ -79,16 +79,7 @@ impl SoundMgr {
                     .iter()
                     .find(|item| item.trigger == character.movement);
 
-                // Check valid sfx config and whether wait threshold has elapsed
-                let can_play = match (last_play_entry, sfx_trigger_item) {
-                    (Some(last_play_entry), Some(sfx_trigger_item)) => {
-                        last_play_entry.elapsed().as_secs_f64() > sfx_trigger_item.threshold
-                    }
-                    (None, Some(_)) => true,
-                    _ => false,
-                };
-
-                if can_play {
+                if Self::trigger_should_play(last_play_entry, sfx_trigger_item) {
                     // Update the last play time
                     state
                         .trigger_history
@@ -107,6 +98,23 @@ impl SoundMgr {
                     audio.play_sound(sfx_file, pos.0);
                 }
             }
+        }
+    }
+
+    /// When specific entity movements are detected, the associated sound (if any) needs to satisfy two conditions to
+    /// be allowed to play:
+    /// 1. An sfx config and files have been configured for the movement (we need to know which sound file(s) to play)
+    /// 2. The sfx has not been played since it's timeout threshold has elapsed (we don't want to fire it repeatedly if the movement is long)
+    fn trigger_should_play(
+        last_play_entry: Option<&Instant>,
+        sfx_trigger_item: Option<&SfxTriggerItem>,
+    ) -> bool {
+        match (last_play_entry, sfx_trigger_item) {
+            (Some(last_play_entry), Some(sfx_trigger_item)) => {
+                last_play_entry.elapsed().as_secs_f64() > sfx_trigger_item.threshold
+            }
+            (None, Some(_)) => true,
+            _ => false,
         }
     }
 
@@ -139,5 +147,59 @@ impl SoundMgr {
         };
 
         collection
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use common::comp::MovementState;
+    use std::time::Instant;
+
+    #[test]
+    fn no_item_config() {
+        let result = SoundMgr::trigger_should_play(None, None);
+
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn config_but_played_since_threshold() {
+        let trigger_item = SfxTriggerItem {
+            trigger: MovementState::Run,
+            files: vec![String::from("some.path.to.sfx.file")],
+            threshold: 1.0,
+        };
+
+        let result = SoundMgr::trigger_should_play(Some(&Instant::now()), Some(&trigger_item));
+
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn config_and_never_played() {
+        let trigger_item = SfxTriggerItem {
+            trigger: MovementState::Run,
+            files: vec![String::from("some.path.to.sfx.file")],
+            threshold: 1.0,
+        };
+
+        let result = SoundMgr::trigger_should_play(None, Some(&trigger_item));
+
+        assert_eq!(result, true);
+    }
+
+    #[test]
+    fn config_and_not_played_since_threshold() {
+        let trigger_item = SfxTriggerItem {
+            trigger: MovementState::Run,
+            files: vec![String::from("some.path.to.sfx.file")],
+            threshold: 0.0,
+        };
+
+        let instant = Instant::now();
+        let result = SoundMgr::trigger_should_play(Some(&instant), Some(&trigger_item));
+
+        assert_eq!(result, true);
     }
 }
