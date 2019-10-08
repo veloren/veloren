@@ -302,6 +302,13 @@ impl<'a> System<'a> for Sys {
             ) && vel.0.z < 0.0
                 && vel.0.z > -1.5
                 && was_on_ground
+                && !terrain
+                    .get(
+                        Vec3::new(pos.0.x, pos.0.y, (pos.0.z - 0.05).floor())
+                            .map(|e| e.floor() as i32),
+                    )
+                    .map(|vox| vox.is_solid())
+                    .unwrap_or(false)
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
                 physics_state.on_ground = true;
