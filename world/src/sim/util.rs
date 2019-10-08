@@ -182,7 +182,7 @@ pub fn uniform_noise<F: Float + Send>(
     // sort_unstable_by is equivalent to sort_by here since we include a unique index in the
     // comparison.  We could leave out the index, but this might make the order not
     // reproduce the same way between different versions of Rust (for example).
-    noise.par_sort_unstable_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap());
+    noise.par_sort_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap());
 
     // Construct a vector that associates each chunk position with the 1-indexed
     // position of the noise in the sorted vector (divided by the vector length).
@@ -1057,9 +1057,9 @@ fn get_slope(h: &[f32], newh: &[usize], downhill: &[isize], seed: &RandomField) 
 ///
 /// TODO: See if allocating in advance is worthwhile.
 fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync)) -> Box<[f32]> {
-    const MIN_MAX_ANGLE: f32 = 6.0 / 360.0 * 2.0 * f32::consts::PI;
-    const MAX_MAX_ANGLE: f32 = 54.0 / 360.0 * 2.0 * f32::consts::PI;
-    const MAX_ANGLE_RANGE: f32 = MAX_MAX_ANGLE - MIN_MAX_ANGLE;
+    const MIN_MAX_ANGLE: f64 = 6.0 / 360.0 * 2.0 * f64::consts::PI;
+    const MAX_MAX_ANGLE: f64 = 54.0 / 360.0 * 2.0 * f64::consts::PI;
+    const MAX_ANGLE_RANGE: f64 = MAX_MAX_ANGLE - MIN_MAX_ANGLE;
     h.par_iter().enumerate().map(|(posi, &z)| {
         // f32::INFINITY
         let wposf = (uniform_idx_as_vec2(posi)/* * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)*/)
@@ -1074,7 +1074,7 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
                                                    wposf.y / div_factor/* / WORLD_SIZE.y as f64*/,
                                                    wposz/* / div_factor*/])
                              .max(-1.0)
-                             .min(1.0) * 0.5 + 0.5) as f32;
+                             .min(1.0) * 0.5 + 0.5);
         // For rock strength from 0-10%, do normal-ish around 0.5
         /* if rock_strength < 0.0 || rock_strength > 1.0 {
             println!("Huh strength?: {:?}", rock_strength);
@@ -1167,11 +1167,11 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
         //
         //
         // Logistic regression.  Make sure x ∈ (0, 1).
-        let logit = |x: f32| x.ln() - (-x).ln_1p();
+        let logit = |x: f64| x.ln() - (-x).ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-        let logistic_2_base = 3.0f32.sqrt() * f32::consts::FRAC_2_PI;
+        let logistic_2_base = 3.0f64.sqrt() * f64::consts::FRAC_2_PI;
         // Assumes μ = 0, σ = 1
-        let logistic_cdf = |x: f32| (x / logistic_2_base).tanh() * 0.5 + 0.5;
+        let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
         // We do log-odds against 0.1, so that our log odds are 0 when x = 0.1, lower when x is
         // lower, and higher when x is higher.
@@ -1179,7 +1179,7 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
         let delta = 0.05/*0.0625*/;
         let dmin = center - delta;
         let dmax = center + delta;
-        let log_odds = |x: f32| logit(x) - logit(/*0.10*//*0.4*/center);
+        let log_odds = |x: f64| logit(x) - logit(/*0.10*//*0.4*/center);
         //
         // 0.9^((1.25-0.0)*4)*(56-6)+6
         //
@@ -1201,13 +1201,13 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
         // plausible cliffs effect.  Taking the square root makes it increase more rapidly than it
         // would otherwise, so that at height 0.4 we are already looking at 0.8 of the maximum.
         let rock_strength = logistic_cdf(/*0.25*//*0.5*/1.0 * logit(rock_strength.min(1.0 - 1e-7).max(1e-7)) +
-                                         /*3.0*/1.0 * log_odds(z.min(/*0.15*//*0.45*//*0.2*/dmax).max(/*0.35*//*0.1*//*center*/dmin))/*0.0*/);
+                                         /*3.0*/1.0 * log_odds((z as f64).min(/*0.15*//*0.45*//*0.2*/dmax).max(/*0.35*//*0.1*//*center*/dmin))/*0.0*/);
         // let height_factor = z.min(1.0).max(0.0).powf(0.25);
         let max_slope = (rock_strength * MAX_ANGLE_RANGE/* * height_factor*/ + MIN_MAX_ANGLE).tan();
         /* if max_slope > 1.48 || max_slope < 0.0 {
             println!("Huh? {:?}", max_slope);
         } */
-        max_slope
+        max_slope as f32
     }).collect::<Vec<_>>().into_boxed_slice()
 }
 /*

@@ -33,7 +33,7 @@ use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
 use std::{
     collections::HashMap,
-    f32,
+    f32, f64,
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
@@ -314,22 +314,22 @@ impl WorldSim {
         // 5.010e-4*2.5e5 ~ 125 ~ 128 / CONFIG.mountain_scale
         /* let alt_old_min = -0.946;
         let alt_old_max = 1.067; */
-        let max_erosion_per_delta_t = 64.0 / CONFIG.mountain_scale;
+        let max_erosion_per_delta_t = 64.0 / CONFIG.mountain_scale as f64;
 
         // Logistic regression.  Make sure x ∈ (0, 1).
-        let logit = |x: f32| x.ln() - (-x).ln_1p();
+        let logit = |x: f64| x.ln() - (-x).ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-        let logistic_2_base = 3.0f32.sqrt() * f32::consts::FRAC_2_PI;
+        let logistic_2_base = 3.0f64.sqrt() * f64::consts::FRAC_2_PI;
         // Assumes μ = 0, σ = 1
-        let logistic_cdf = |x: f32| (x / logistic_2_base).tanh() * 0.5 + 0.5;
+        let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
         let erosion_pow = 2.0/*1.5*/; //0.6/*0.5*//*1.0*/;//1.0;
         let n_steps = 50; //100;//50;
-        let erosion_factor = |x: f32| logistic_cdf(erosion_pow * logit(x))/*x.powf(erosion_pow)*/;
+        let erosion_factor = |x: f64| logistic_cdf(erosion_pow * logit(x))/*x.powf(erosion_pow)*/;
         let alt = do_erosion(
             /*&alt_old*//*v, *//*&mut *alt_pos, */ 0.0,
             /*96.0 / CONFIG.mountain_scale*//*32.0 / CONFIG.mountain_scale*/
-            max_erosion_per_delta_t,
+            max_erosion_per_delta_t as f32,
             n_steps,
             &river_seed,
             &rock_strength_nz,
@@ -362,13 +362,14 @@ impl WorldSim {
                                      // .max(1.0 / CONFIG.mountain_scale)
                                      .max(1e-7 / CONFIG.mountain_scale)
                                      .min(1.0 - 1e-7);
-                let height = erosion_factor(height);
-                height
+                let height = erosion_factor(height as f64);
+                let height = height
                     // .powf(erosion_pow)
                     /*.powf(1.0)*//* * /*0.05*//*0.0625*/(/*128.0*/32.0 / CONFIG.mountain_scale))*/
                     // .mul(max_erosion_per_delta_t)
                     .mul(max_erosion_per_delta_t * 7.0 / 8.0)
-                    .add(max_erosion_per_delta_t / 8.0)
+                    .add(max_erosion_per_delta_t / 8.0);
+                height as f32
                 // .max(1.0 / CONFIG.mountain_scale)
                 // .max(0.5 / CONFIG.mountain_scale)
                 /*.min(96.0 / CONFIG.mountain_scale)*/
