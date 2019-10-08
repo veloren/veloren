@@ -33,7 +33,7 @@ before_script:
     when: manual
     artifacts:
         paths:
-            - veloren/artifact
+            - veloren/artifact/*
         expire_in: 1 week
 
 optional-debug:linux:
@@ -73,7 +73,7 @@ optional-debug:windows:
     when: manual
     artifacts:
         paths:
-            - veloren/artifact
+            - veloren/artifact/*
         expire_in: 1 week
 
 optional-release:linux:
@@ -177,7 +177,7 @@ linux:
             - /^master$/
     artifacts:
         paths:
-            - veloren/artifact
+            - veloren/artifact/*
     tags:
         - veloren-docker
     script:
@@ -203,7 +203,7 @@ windows:
             - /^master$/
     artifacts:
         paths:
-            - veloren/artifact
+            - veloren/artifact/*
     tags:
         - veloren-docker
     script:
