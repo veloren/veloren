@@ -210,8 +210,8 @@ windows:
         - mkdir artifact
         - cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
-        - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli ./artifact
-        - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen ./artifact
+        - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe ./artifact
+        - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe ./artifact
         - cp -r assets ./artifact
 
 # --
