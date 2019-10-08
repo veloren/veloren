@@ -120,6 +120,9 @@ image_ids! {
         // Map
         map_indicator: "voxygen.element.buttons.map_indicator",
 
+        // Bag
+        item_drop: "voxygen.element.icons.item_drop.",
+
         // Crosshair
 
         crosshair_outer_round: "voxygen.element.misc_bg.crosshair_outer_1",

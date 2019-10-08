@@ -26,6 +26,8 @@ widget_ids! {
         inv_slots[],
         items[],
         tooltip[],
+        drop_button,
+        drop_icon,
     }
 }
 
@@ -220,6 +222,25 @@ impl<'a> Widget for Bag<'a> {
                     .set(state.ids.items[i], ui);
             }
         }
+
+        // Drop Button -> Remove when dragging was introduced
+
+        if Button::image(self.imgs.button)
+            .bottom_left_with_margins_on(state.ids.bag_bot, 25.0, -50.0)
+            .w_h(50.0, 50.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)            
+            .set(state.ids.drop_button, ui)
+            .was_clicked()
+        {
+            // TODO
+        };
+
+        Image::new(self.imgs.item_drop)
+            .w_h(29.0, 19.0)
+            .middle_of(state.ids.drop_button)
+            .graphics_for(state.ids.drop_button)
+            .set(state.ids.drop_icon, ui);
 
         // Close button
         if Button::image(self.imgs.close_button)
