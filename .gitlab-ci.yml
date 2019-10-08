@@ -11,9 +11,9 @@ stages:
 before_script:
     - mkdir -p veloren
     - cd veloren
-    - git lfs install
     - if [ ! -d ".git" ]; then git clone https://gitlab.com/veloren/veloren.git .; fi
     - git clean -f
+    - git lfs install
     - git lfs fetch
     - git lfs checkout $CI_COMMIT_SHA
     - source $HOME/.cargo/env
@@ -21,6 +21,7 @@ before_script:
     - free -h
     - gcc -v
     - cargo --version
+    - export DISABLE_GIT_LFS_CHECK=true
 
 # -- optional build
 
@@ -31,10 +32,6 @@ before_script:
     except:
         - schedules
     when: manual
-    artifacts:
-        paths:
-            - veloren/artifact/*
-        expire_in: 1 week
 
 optional-debug:linux:
     <<: *optional-debug
@@ -43,12 +40,17 @@ optional-debug:linux:
         paths:
             - veloren/
     script:
-        - mkdir artifact
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
-        - cp target/debug/veloren-server-cli ./artifact
-        - cp target/debug/veloren-voxygen ./artifact
-        - cp -r assets ./artifact
+        - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
+        - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
+        - cp -r assets $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli
+            - veloren-voxygen
+            - assets/
+        expire_in: 1 week
 
 optional-debug:windows:
     <<: *optional-debug
@@ -57,12 +59,17 @@ optional-debug:windows:
         paths:
             - veloren/
     script:
-        - mkdir artifact
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
-        - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe ./artifact
-        - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe ./artifact
-        - cp -r assets ./artifact
+        - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
+        - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
+        - cp -r assets $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli.exe
+            - veloren-voxygen.exe
+            - assets/
+        expire_in: 1 week
 
 .optional-release: &optional-release
     stage: optional-builds
@@ -71,10 +78,6 @@ optional-debug:windows:
     except:
         - schedules
     when: manual
-    artifacts:
-        paths:
-            - veloren/artifact/*
-        expire_in: 1 week
 
 optional-release:linux:
     <<: *optional-release
@@ -83,12 +86,17 @@ optional-release:linux:
         paths:
             - veloren/
     script:
-        - mkdir artifact
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
-        - cp target/release/veloren-server-cli ./artifact
-        - cp target/release/veloren-voxygen ./artifact
-        - cp -r assets ./artifact
+        - cp target/release/veloren-server-cli $CI_PROJECT_DIR
+        - cp target/release/veloren-voxygen $CI_PROJECT_DIR
+        - cp -r assets $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli
+            - veloren-voxygen
+            - assets/
+        expire_in: 1 week
 
 optional-release:windows:
     <<: *optional-release
@@ -97,12 +105,17 @@ optional-release:windows:
         paths:
             - veloren/
     script:
-        - mkdir artifact
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
-        - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe ./artifact
-        - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe ./artifact
-        - cp -r assets ./artifact
+        - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
+        - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
+        - cp -r assets $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli.exe
+            - veloren-voxygen.exe
+            - assets/
+        expire_in: 1 week
 
 # --
 
@@ -175,18 +188,20 @@ linux:
             - /^r[0-9]+\.[0-9]+\.[0-9]+/
             - /^v[0-9]+\.[0-9]+\.[0-9]+/
             - /^master$/
-    artifacts:
-        paths:
-            - veloren/artifact/*
     tags:
         - veloren-docker
     script:
-        - mkdir artifact
         - cd voxygen && VELOREN_ASSETS=assets cargo build --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --release && cd ..
-        - cp -r target/release/veloren-server-cli ./artifact
-        - cp -r target/release/veloren-voxygen ./artifact
-        - cp -r assets ./artifact
+        - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
+        - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
+        - cp -r assets $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli
+            - veloren-voxygen
+            - assets/
+        expire_in: 1 week
 
 windows:
     stage: post
@@ -201,17 +216,19 @@ windows:
             - /^r[0-9]+\.[0-9]+\.[0-9]+/
             - /^v[0-9]+\.[0-9]+\.[0-9]+/
             - /^master$/
-    artifacts:
-        paths:
-            - veloren/artifact/*
     tags:
         - veloren-docker
     script:
-        - mkdir artifact
         - cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
-        - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe ./artifact
-        - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe ./artifact
-        - cp -r assets ./artifact
+        - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
+        - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
+        - cp -r assets $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli.exe
+            - veloren-voxygen.exe
+            - assets/
+        expire_in: 1 week
 
 # --
