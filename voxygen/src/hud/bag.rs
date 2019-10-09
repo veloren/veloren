@@ -7,9 +7,8 @@ use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
 use conrod_core::{
     color, image,
-    position::Relative,
     widget::{self, Button, Image, Rectangle /*, Scrollbar*/},
-    widget_ids, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -31,6 +30,7 @@ widget_ids! {
 }
 
 #[derive(WidgetCommon)]
+#[allow(dead_code)]
 pub struct Bag<'a> {
     client: &'a Client,
     imgs: &'a Imgs,
