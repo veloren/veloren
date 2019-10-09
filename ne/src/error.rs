@@ -29,12 +29,3 @@ impl From<crossbeam_channel::RecvError> for NetworkError {
         Self::EngineShutdown
     }
 }
-
-impl From<crossbeam_channel::TryRecvError> for NetworkError {
-    fn from(e: crossbeam_channel::TryRecvError) -> Self {
-        match e {
-            crossbeam_channel::TryRecvError::Empty => Self::EngineShutdown,
-            crossbeam_channel::TryRecvError::Disconnected => Self::EngineShutdown,
-        }
-    }
-}
