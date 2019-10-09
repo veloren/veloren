@@ -55,4 +55,7 @@ impl<T: Send + Serialize + DeserializeOwned> MailBox<T> {
             }
         }
     }
+
+    /// Close the mailbox. This shuts down the network engine and all open connections.
+    pub fn close(&self) { unimplemented!() }
 }
