@@ -1,0 +1,16 @@
+(
+    [
+        (
+            specifier: "world.structure.natural.ribcage-small",
+            center: (7, 13, 4)
+        ),
+        (
+            specifier: "world.structure.natural.ribcage-large",
+            center: (13, 19, 8)
+        ),
+        (
+            specifier: "world.structure.natural.skull-large",
+            center: (15, 20, 4)
+        ),
+    ]
+)

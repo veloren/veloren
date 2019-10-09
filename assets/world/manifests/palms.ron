@@ -1,0 +1,44 @@
+(
+    [
+        (
+            specifier: "world.tree.desert_palm.1",
+            center: (12, 12, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.2",
+            center: (12, 10, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.3",
+            center: (12, 12, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.4",
+            center: (10, 10, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.5",
+            center: (10, 10, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.6",
+            center: (10, 10, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.7",
+            center: (10, 10, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.8",
+            center: (10, 10, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.9",
+            center: (10, 10, 10)
+        ),
+        (
+            specifier: "world.tree.desert_palm.10",
+            center: (10, 10, 10)
+        ),
+    ]
+)

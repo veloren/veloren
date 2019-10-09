@@ -3662,6 +3662,8 @@ dependencies = [
  "noise 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand_chacha 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "veloren-common 0.4.0",
 ]
