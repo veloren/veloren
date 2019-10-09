@@ -1,8 +1,8 @@
-use crossbeam_channel::Sender;
 use crate::message::InternalNetworkMessage;
-use serde::Serialize;
-use serde::de::DeserializeOwned;
 use crate::{FutureNetworkResult, Reliability};
+use crossbeam_channel::Sender;
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 /// A mail sender. This will send mail to the end it is connection to. This may be anything running a NetworkEngine.
 pub struct MailSender<T> {

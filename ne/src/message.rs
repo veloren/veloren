@@ -1,10 +1,10 @@
 use crate::NetworkResult;
-use serde::Serialize;
+use crossbeam_channel::{Receiver, Sender};
 use serde::de::DeserializeOwned;
-use std::io::{BufWriter, BufReader};
-use std::net::TcpStream;
+use serde::Serialize;
 use std::io::Write;
-use crossbeam_channel::{Sender, Receiver};
+use std::io::{BufReader, BufWriter};
+use std::net::TcpStream;
 
 /// A reliability level specified per mail. These levels have different guarantees.
 /// Those with stronger guarantees incur a grater latency cost.
@@ -30,7 +30,15 @@ pub struct InternalNetworkMessage<T> {
 impl<T: Send + Serialize + DeserializeOwned> InternalNetworkMessage<T> {
     pub fn new(data: T, reliability: Reliability, id: u32) -> (Self, Receiver<NetworkResult<()>>) {
         let (result_sender, result_receiver) = crossbeam_channel::bounded(1);
-        (Self { result_sender: Some(result_sender), data, reliability, id }, result_receiver)
+        (
+            Self {
+                result_sender: Some(result_sender),
+                data,
+                reliability,
+                id,
+            },
+            result_receiver,
+        )
     }
 
     pub fn deconstruct(self) -> (u32, T) {

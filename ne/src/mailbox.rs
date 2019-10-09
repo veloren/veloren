@@ -1,14 +1,14 @@
-use crate::{NetworkResult, NetworkError};
 use crate::message::InternalNetworkMessage;
+use crate::{NetworkError, NetworkResult};
 use crossbeam_channel::Receiver;
-use serde::Serialize;
-use serde::de::DeserializeOwned;
 use crossbeam_channel::TryRecvError;
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 /// A mail represents an incoming message with the ID of the sender tied to it.
 pub struct Mail<T> {
     id: u32,
-    data: T
+    data: T,
 }
 
 impl<T> Mail<T> {
@@ -47,15 +47,15 @@ impl<T: Send + Serialize + DeserializeOwned> MailBox<T> {
                 Ok(Some(Mail::new(id, data)))
             }
 
-            Err(error) => {
-                match error {
-                    TryRecvError::Empty => Ok(None),
-                    TryRecvError::Disconnected => Err(NetworkError::EngineShutdown),
-                }
-            }
+            Err(error) => match error {
+                TryRecvError::Empty => Ok(None),
+                TryRecvError::Disconnected => Err(NetworkError::EngineShutdown),
+            },
         }
     }
 
     /// Close the mailbox. This shuts down the network engine and all open connections.
-    pub fn close(&self) { unimplemented!() }
+    pub fn close(&self) {
+        unimplemented!()
+    }
 }

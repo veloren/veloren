@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 
 mod error;
-mod message;
-mod mailsender;
 mod mailbox;
+mod mailsender;
+mod message;
+mod server;
 
-pub use error::{NetworkError, NetworkResult, FutureNetworkResult};
+pub use error::{FutureNetworkResult, NetworkError, NetworkResult};
+pub use mailbox::{Mail, MailBox};
 pub use mailsender::MailSender;
 pub use message::Reliability;
-pub use mailbox::{Mail, MailBox};
+pub use server::NetworkServerEngine;
