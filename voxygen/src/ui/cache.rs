@@ -61,6 +61,9 @@ impl Cache {
     pub fn add_graphic(&mut self, graphic: Graphic) -> GraphicId {
         self.graphic_cache.add_graphic(graphic)
     }
+    pub fn replace_graphic(&mut self, id: GraphicId, graphic: Graphic) {
+        self.graphic_cache.replace_graphic(id, graphic)
+    }
     // Resizes and clears the GraphicCache
     pub fn resize_graphic_cache(&mut self, renderer: &mut Renderer) -> Result<(), Error> {
         let max_texture_size = renderer.max_texture_size();

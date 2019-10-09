@@ -253,9 +253,8 @@ impl MainMenuUi {
             Before you dive into the fun, please keep a few things in mind:\n\
             \n\
             - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features. \n\
-            If you are a reviewer, please DO NOT review this version.\n\
             \n\
-            - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.\n\
+            -If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.\n\
             \n\
             - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however you wish \n\
             (provided derived work is also under GPL 3).

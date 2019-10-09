@@ -3,13 +3,14 @@ use crate::{
     effect::Effect,
     terrain::{Block, BlockKind},
 };
+use rand::prelude::*;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Tool {
-    Daggers,
-    SwordShield,
+    Dagger,
+    Shield,
     Sword,
     Axe,
     Hammer,
@@ -20,20 +21,43 @@ pub enum Tool {
 impl Tool {
     pub fn name(&self) -> &'static str {
         match self {
-            Tool::Daggers => "daggers",
-            Tool::SwordShield => "sword and shield",
-            Tool::Sword => "sword",
-            Tool::Axe => "axe",
-            Tool::Hammer => "hammer",
-            Tool::Bow => "bow",
-            Tool::Staff => "staff",
+            Tool::Dagger => "Dagger",
+            Tool::Shield => "Shield",
+            Tool::Sword => "Sword",
+            Tool::Axe => "Axe",
+            Tool::Hammer => "Hammer",
+            Tool::Bow => "Bow",
+            Tool::Staff => "Staff",
+        }
+    }
+
+    pub fn description(&self) -> &'static str {
+        match self {
+            Tool::Dagger => "A basic kitchen knife.",
+            Tool::Shield => {
+                "This shield belonged to many adventurers.\n\
+                 Now it's yours.\n\
+                 NOT YET AVAILABLE."
+            }
+            Tool::Sword => "When closing one eye it's nearly like it wasn't rusty at all!",
+            Tool::Axe => {
+                "It has a name written on it.\n\
+                 Sounds dwarvish."
+            }
+            Tool::Hammer => "Use with caution around nails.",
+            Tool::Bow => "An old but sturdy hunting bow.",
+            Tool::Staff => {
+                "A carved stick.\n\
+                 The wood smells like magic.\n\
+                 NOT YET AVAILABLE."
+            }
         }
     }
 }
 
 pub const ALL_TOOLS: [Tool; 7] = [
-    Tool::Daggers,
-    Tool::SwordShield,
+    Tool::Dagger,
+    Tool::Shield,
     Tool::Sword,
     Tool::Axe,
     Tool::Hammer,
@@ -43,7 +67,7 @@ pub const ALL_TOOLS: [Tool; 7] = [
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
-    // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also creepy thing to do.
+    // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also a creepy thing to do.
     Helmet,
     Shoulders,
     Chestplate,
@@ -60,18 +84,22 @@ pub enum Armor {
 impl Armor {
     pub fn name(&self) -> &'static str {
         match self {
-            Armor::Helmet => "helmet",
-            Armor::Shoulders => "shoulder pads",
-            Armor::Chestplate => "chestplate",
-            Armor::Belt => "belt",
-            Armor::Gloves => "gloves",
-            Armor::Pants => "pants",
-            Armor::Boots => "boots",
-            Armor::Back => "back",
-            Armor::Tabard => "tabard",
-            Armor::Gem => "gem",
-            Armor::Necklace => "necklace",
+            Armor::Helmet => "Helmet",
+            Armor::Shoulders => "Shoulder Pads",
+            Armor::Chestplate => "Chestplate",
+            Armor::Belt => "Belt",
+            Armor::Gloves => "Gloves",
+            Armor::Pants => "Pants",
+            Armor::Boots => "Boots",
+            Armor::Back => "Back",
+            Armor::Tabard => "Tabard",
+            Armor::Gem => "Gem",
+            Armor::Necklace => "Necklace",
         }
+    }
+
+    pub fn description(&self) -> &'static str {
+        self.name()
     }
 }
 
@@ -86,10 +114,19 @@ pub enum Consumable {
 impl Consumable {
     pub fn name(&self) -> &'static str {
         match self {
-            Consumable::Apple => "apple",
-            Consumable::Potion => "potion",
-            Consumable::Mushroom => "mushroom",
-            Consumable::Velorite => "velorite",
+            Consumable::Apple => "Apple",
+            Consumable::Potion => "Potion",
+            Consumable::Mushroom => "Mushroom",
+            Consumable::Velorite => "Velorite",
+        }
+    }
+
+    pub fn description(&self) -> &'static str {
+        match self {
+            Consumable::Apple => "A tasty Apple.",
+            Consumable::Potion => "This Potion contains the essence of Life.",
+            Consumable::Mushroom => "A common Mushroom.",
+            Consumable::Velorite => "Has a subtle turqoise glow.",
         }
     }
 }
@@ -103,8 +140,15 @@ pub enum Ingredient {
 impl Ingredient {
     pub fn name(&self) -> &'static str {
         match self {
-            Ingredient::Flower => "flower",
-            Ingredient::Grass => "grass",
+            Ingredient::Flower => "Flower",
+            Ingredient::Grass => "Grass",
+        }
+    }
+
+    pub fn description(&self) -> &'static str {
+        match self {
+            Ingredient::Flower => "It smells great.",
+            Ingredient::Grass => "Greener than an orc's snout.",
         }
     }
 }
@@ -112,6 +156,7 @@ impl Ingredient {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Debug {
     Boost,
+    Possess,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -119,11 +164,17 @@ pub enum Item {
     Tool {
         kind: Tool,
         power: u32,
+        stamina: i32,
+        strength: i32,
+        dexterity: i32,
+        intelligence: i32,
     },
     Armor {
         kind: Armor,
-        defense: i32,
-        health_bonus: i32,
+        stamina: i32,
+        strength: i32,
+        dexterity: i32,
+        intelligence: i32,
     },
     Consumable {
         kind: Consumable,
@@ -141,23 +192,43 @@ impl Item {
             Item::Tool { kind, .. } => kind.name(),
             Item::Armor { kind, .. } => kind.name(),
             Item::Consumable { kind, .. } => kind.name(),
-            Item::Ingredient { kind } => kind.name(),
+            Item::Ingredient { kind, .. } => kind.name(),
             Item::Debug(_) => "Debugging item",
+        }
+    }
+
+    pub fn title(&self) -> String {
+        format!("{} ({})", self.name(), self.category())
+    }
+
+    pub fn info(&self) -> String {
+        match self {
+            Item::Tool { power, .. } => format!("{:+} attack", power),
+            Item::Armor { .. } => String::new(),
+            Item::Consumable { effect, .. } => format!("{}", effect.info()),
+            Item::Ingredient { .. } => String::new(),
+            Item::Debug(_) => format!("+99999 insanity"),
         }
     }
 
     pub fn category(&self) -> &'static str {
         match self {
-            Item::Tool { .. } => "tool",
-            Item::Armor { .. } => "armour",
-            Item::Consumable { .. } => "consumable",
-            Item::Ingredient { .. } => "ingredient",
-            Item::Debug(_) => "debug",
+            Item::Tool { .. } => "Tool",
+            Item::Armor { .. } => "Armor",
+            Item::Consumable { .. } => "Consumable",
+            Item::Ingredient { .. } => "Ingredient",
+            Item::Debug(_) => "Debug",
         }
     }
 
     pub fn description(&self) -> String {
-        format!("{} ({})", self.name(), self.category())
+        match self {
+            Item::Tool { kind, .. } => format!("{}", kind.description()),
+            Item::Armor { kind, .. } => format!("{}", kind.description()),
+            Item::Consumable { kind, .. } => format!("{}", kind.description()),
+            Item::Ingredient { kind, .. } => format!("{}", kind.description()),
+            Item::Debug(_) => format!("Debugging item"),
+        }
     }
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
@@ -175,6 +246,19 @@ impl Item {
             BlockKind::LongGrass => Some(Self::grass()),
             BlockKind::MediumGrass => Some(Self::grass()),
             BlockKind::ShortGrass => Some(Self::grass()),
+            BlockKind::Chest => Some(match rand::random::<usize>() % 3 {
+                0 => Self::apple(),
+                1 => Self::velorite(),
+                2 => Item::Tool {
+                    kind: *(&ALL_TOOLS).choose(&mut rand::thread_rng()).unwrap(),
+                    power: 8 + rand::random::<u32>() % (rand::random::<u32>() % 30),
+                    stamina: 0,
+                    strength: 0,
+                    dexterity: 0,
+                    intelligence: 0,
+                },
+                _ => unreachable!(),
+            }),
             _ => None,
         }
     }
@@ -184,7 +268,7 @@ impl Item {
     pub fn apple() -> Self {
         Item::Consumable {
             kind: Consumable::Apple,
-            effect: Effect::Health(20, comp::HealthSource::Item),
+            effect: Effect::Health(50, comp::HealthSource::Item),
         }
     }
 
@@ -197,8 +281,8 @@ impl Item {
 
     pub fn velorite() -> Self {
         Item::Consumable {
-            kind: Consumable::Mushroom,
-            effect: Effect::Xp(250),
+            kind: Consumable::Velorite,
+            effect: Effect::Xp(50),
         }
     }
 
@@ -220,6 +304,10 @@ impl Default for Item {
         Item::Tool {
             kind: Tool::Hammer,
             power: 0,
+            stamina: 0,
+            strength: 0,
+            dexterity: 0,
+            intelligence: 0,
         }
     }
 }
