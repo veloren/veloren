@@ -6,9 +6,17 @@ use std::net::TcpStream;
 use std::io::Write;
 use crossbeam_channel::{Sender, Receiver};
 
+/// A reliability level specified per mail. These levels have different guarantees.
+/// Those with stronger guarantees incur a grater latency cost.
 pub enum Reliability {
+    /// Special value. Should not be used.
     None,
+
+    /// The reliable level ensures mail ordering and that it gets to its destination.
     Reliable,
+
+    /// The unreliable level does not ensure ordering nor that it gets to it's destination.
+    /// The only guarantee is that the message is not damaged if it is received.
     Unreliable,
 }
 
