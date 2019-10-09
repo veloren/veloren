@@ -39,7 +39,6 @@ optional-debug:linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
         - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
         - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli
@@ -58,7 +57,6 @@ optional-debug:windows:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli.exe
@@ -85,7 +83,6 @@ optional-release:linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
         - cp target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp target/release/veloren-voxygen $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli
@@ -104,7 +101,6 @@ optional-release:windows:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
         - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli.exe
@@ -190,7 +186,6 @@ linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --release && cd ..
         - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli
@@ -218,7 +213,6 @@ windows:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli.exe
