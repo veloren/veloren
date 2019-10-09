@@ -1,4 +1,3 @@
-//Re-Exports
 pub mod item;
 
 // Reexports
@@ -77,22 +76,42 @@ impl Default for Inventory {
         inventory.push(Item::Tool {
             kind: Tool::Bow,
             power: 10,
+            stamina: 0,
+            strength: 0,
+            dexterity: 0,
+            intelligence: 0,
         });
         inventory.push(Item::Tool {
-            kind: Tool::Daggers,
+            kind: Tool::Dagger,
             power: 10,
+            stamina: 0,
+            strength: 0,
+            dexterity: 0,
+            intelligence: 0,
         });
         inventory.push(Item::Tool {
             kind: Tool::Sword,
             power: 10,
+            stamina: 0,
+            strength: 0,
+            dexterity: 0,
+            intelligence: 0,
         });
         inventory.push(Item::Tool {
             kind: Tool::Axe,
             power: 10,
+            stamina: 0,
+            strength: 0,
+            dexterity: 0,
+            intelligence: 0,
         });
         inventory.push(Item::Tool {
             kind: Tool::Hammer,
             power: 10,
+            stamina: 0,
+            strength: 0,
+            dexterity: 0,
+            intelligence: 0,
         });
 
         inventory

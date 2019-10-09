@@ -20,6 +20,7 @@ pub enum StructureBlock {
     Water,
     GreenSludge,
     Fruit,
+    Chest,
     Hollow,
     Liana,
     Normal(Rgb<u8>),
@@ -116,6 +117,7 @@ impl Asset for Structure {
                     6 => StructureBlock::GreenSludge,
                     7 => StructureBlock::Fruit,
                     9 => StructureBlock::Liana,
+                    10 => StructureBlock::Chest,
                     15 => StructureBlock::Hollow,
                     index => {
                         let color = palette
