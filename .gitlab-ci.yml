@@ -71,6 +71,27 @@ optional-debug:windows:
             - assets/
         expire_in: 1 week
 
+optional-debug:mac:
+    <<: *optional-debug
+    cache:
+        key: "cache-mac-debug"
+        paths:
+            - ./
+    script:
+        - rustup target add x86_64-apple-darwin
+        - 
+        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
+        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
+        - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
+        - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
+        - cp -r assets $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli.exe
+            - veloren-voxygen.exe
+            - assets/
+        expire_in: 1 week
+
 .optional-release: &optional-release
     stage: optional-builds
     tags:
