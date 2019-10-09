@@ -597,6 +597,9 @@ impl Server {
                 }
 
                 stats.update_max_hp();
+                stats
+                    .health
+                    .set_to(stats.health.maximum(), comp::HealthSource::Revive);
                 self.create_npc(comp::Pos(npc.pos), stats, body)
                     .with(comp::Agent::enemy())
                     .with(comp::Scale(scale))
