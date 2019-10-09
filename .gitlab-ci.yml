@@ -1,7 +1,9 @@
 image: registry.gitlab.com/veloren/veloren-docker-ci:latest
 
 variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 3
+    GIT_CLEAN_FLAGS: -f
 
 stages:
     - optional-builds
@@ -9,13 +11,6 @@ stages:
     - post
 
 before_script:
-    - mkdir -p veloren
-    - cd veloren
-    - if [ ! -d ".git" ]; then git clone https://gitlab.com/veloren/veloren.git .; fi
-    - git clean -f
-    - git lfs install
-    - git lfs fetch
-    - git lfs checkout $CI_COMMIT_SHA
     - source $HOME/.cargo/env
     - df -h
     - free -h
@@ -38,7 +33,7 @@ optional-debug:linux:
     cache:
         key: "cache-linux-debug"
         paths:
-            - veloren/
+            - ./
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
@@ -57,7 +52,7 @@ optional-debug:windows:
     cache:
         key: "cache-windows-debug"
         paths:
-            - veloren/
+            - ./
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
@@ -84,7 +79,7 @@ optional-release:linux:
     cache:
         key: "cache-linux-release"
         paths:
-            - veloren/
+            - ./
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
@@ -103,7 +98,7 @@ optional-release:windows:
     cache:
         key: "cache-windows-release"
         paths:
-            - veloren/
+            - ./
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
@@ -126,7 +121,7 @@ check:
     cache:
         key: "cache-linux-debug"
         paths:
-            - veloren/
+            - ./
     tags:
         - veloren-docker
     script:
@@ -137,7 +132,7 @@ code-quality:
     cache:
         key: "cache-linux-debug"
         paths:
-            - veloren/
+            - ./
     tags:
         - veloren-docker
     script:
@@ -153,7 +148,7 @@ unittests:
     cache:
         key: "cache-linux-debug"
         paths:
-            - veloren/
+            - ./
     when: delayed
     start_in: 5 seconds
     tags:
@@ -166,7 +161,7 @@ benchmarks:
     cache:
         key: "cache-linux-release"
         paths:
-            - veloren/
+            - ./
     when: delayed
     start_in: 5 seconds
     tags:
@@ -180,7 +175,7 @@ linux:
     cache:
         key: "cache-linux-release"
         paths:
-            - veloren/
+            - ./
     when: delayed
     start_in: 5 seconds
     only:
@@ -208,7 +203,7 @@ windows:
     cache:
         key: "cache-windows-release"
         paths:
-            - veloren/
+            - ./
     when: delayed
     start_in: 5 seconds
     only:
