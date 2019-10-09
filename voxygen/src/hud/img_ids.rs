@@ -19,6 +19,7 @@ image_ids! {
         bag_contents: "voxygen.element.frames.bag",
         inv_grid: "voxygen.element.frames.inv_grid",
         inv_slot: "voxygen.element.buttons.inv_slot",
+        inv_slot_sel: "voxygen.element.buttons.inv_slot_sel",
         grid_inv: "voxygen.element.buttons.grid_inv",
         bag_top: "voxygen.element.bag.top",
         bag_mid: "voxygen.element.bag.mid",
@@ -222,6 +223,8 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+
+        not_found:"voxygen.element.not_found",
 
         help:"voxygen.element.help",
 

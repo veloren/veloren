@@ -30,6 +30,7 @@ pub enum BlockKind {
     Mushroom,
     Liana,
     Velorite,
+    Chest,
 }
 
 impl BlockKind {
@@ -63,6 +64,7 @@ impl BlockKind {
             BlockKind::Mushroom => true,
             BlockKind::Liana => true,
             BlockKind::Velorite => true,
+            BlockKind::Chest => true,
             _ => false,
         }
     }
@@ -98,6 +100,7 @@ impl BlockKind {
             BlockKind::Mushroom => false,
             BlockKind::Liana => false,
             BlockKind::Velorite => false,
+            BlockKind::Chest => false,
             _ => true,
         }
     }
@@ -125,6 +128,7 @@ impl BlockKind {
             BlockKind::Apple => true,
             BlockKind::Mushroom => false,
             BlockKind::Liana => false,
+            BlockKind::Chest => true,
             _ => true,
         }
     }
@@ -144,6 +148,7 @@ impl BlockKind {
             BlockKind::Apple => true,
             BlockKind::Mushroom => true,
             BlockKind::Velorite => true,
+            BlockKind::Chest => true,
             _ => false,
         }
     }

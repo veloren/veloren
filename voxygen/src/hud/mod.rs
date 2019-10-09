@@ -4,6 +4,7 @@ mod character_window;
 mod chat;
 mod esc_menu;
 mod img_ids;
+mod item_imgs;
 mod map;
 mod minimap;
 mod quest;
@@ -22,6 +23,7 @@ use chat::Chat;
 use chrono::NaiveTime;
 use esc_menu::EscMenu;
 use img_ids::Imgs;
+use item_imgs::ItemImgs;
 use map::Map;
 use minimap::MiniMap;
 use quest::Quest;
@@ -370,6 +372,7 @@ pub struct Hud {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
+    item_imgs: ItemImgs,
     fonts: Fonts,
     rot_imgs: ImgsRot,
     new_messages: VecDeque<ClientEvent>,
@@ -394,6 +397,8 @@ impl Hud {
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         // Load rotation images.
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load rot images!");
+        // Load item images.
+        let item_imgs = ItemImgs::new(&mut ui);
         // Load fonts.
         let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
 
@@ -401,6 +406,7 @@ impl Hud {
             ui,
             imgs,
             rot_imgs,
+            item_imgs,
             fonts,
             ids,
             new_messages: VecDeque::new(),
@@ -743,6 +749,7 @@ impl Hud {
             match Bag::new(
                 client,
                 &self.imgs,
+                &self.item_imgs,
                 &self.fonts,
                 &self.rot_imgs,
                 tooltip_manager,
@@ -1112,6 +1119,10 @@ impl Hud {
             &mut global_state.window.renderer_mut(),
             Some((view_mat, fov)),
         );
+
+        // Check if item images need to be reloaded
+        self.item_imgs.reload_if_changed(&mut self.ui);
+
         events
     }
 

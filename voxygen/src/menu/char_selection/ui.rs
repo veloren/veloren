@@ -939,7 +939,7 @@ impl CharSelectionUi {
                 .w_h(70.0, 70.0)
                 .right_from(self.ids.sword, 2.0)
                 .set(self.ids.daggers, ui_widgets);
-            if Button::image(if let Some(Tool::Daggers) = self.character_tool {
+            if Button::image(if let Some(Tool::Dagger) = self.character_tool {
                 self.imgs.icon_border_pressed
             } else {
                 self.imgs.icon_border

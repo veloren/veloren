@@ -1,7 +1,8 @@
-use super::Graphic;
+use super::{Graphic, Transform};
 use common::assets::{load, Error};
 use dot_vox::DotVoxData;
 use image::DynamicImage;
+use vek::*;
 
 pub enum BlankGraphic {}
 pub enum ImageGraphic {}
@@ -31,7 +32,14 @@ pub enum VoxelMs9Graphic {}
 impl<'a> GraphicCreator<'a> for VoxelGraphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-        Ok(Graphic::Voxel(load::<DotVoxData>(specifier)?, None, None))
+        Ok(Graphic::Voxel(
+            load::<DotVoxData>(specifier)?,
+            Transform {
+                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ..Default::default()
+            },
+            None,
+        ))
     }
 }
 impl<'a> GraphicCreator<'a> for VoxelMsGraphic {
@@ -39,7 +47,10 @@ impl<'a> GraphicCreator<'a> for VoxelMsGraphic {
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
             load::<DotVoxData>(specifier.0)?,
-            None,
+            Transform {
+                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ..Default::default()
+            },
             Some(specifier.1),
         ))
     }
@@ -49,7 +60,10 @@ impl<'a> GraphicCreator<'a> for VoxelMs4Graphic {
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
             load::<DotVoxData>(specifier)?,
-            None,
+            Transform {
+                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ..Default::default()
+            },
             Some(4),
         ))
     }
@@ -59,7 +73,10 @@ impl<'a> GraphicCreator<'a> for VoxelMs9Graphic {
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
             load::<DotVoxData>(specifier)?,
-            None,
+            Transform {
+                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ..Default::default()
+            },
             Some(9),
         ))
     }
