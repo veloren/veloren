@@ -32,7 +32,7 @@ impl<T> Mail<T> {
     }
 }
 
-/// A mailbox is where all mails received are stashed by the engine.
+/// A mailbox is where all mails received are stashed by the network engine.
 pub struct MailBox<T> {
     message_queue: Receiver<InternalNetworkMessage<T>>,
 }
