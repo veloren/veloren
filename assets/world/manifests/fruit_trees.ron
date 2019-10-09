@@ -1,0 +1,28 @@
+(
+    [
+        (
+            specifier: "world.tree.fruit.1",
+            center: (5, 5, 7)
+        ),
+        (
+            specifier: "world.tree.fruit.2",
+            center: (6, 6, 7)
+        ),
+        (
+            specifier: "world.tree.fruit.3",
+            center: (6, 7, 7)
+        ),
+        (
+            specifier: "world.tree.fruit.4",
+            center: (3, 3, 7)
+        ),
+        (
+            specifier: "world.tree.fruit.5",
+            center: (6, 8, 7)
+        ),
+        (
+            specifier: "world.tree.fruit.6",
+            center: (7, 7, 7)
+        ),
+    ]
+)

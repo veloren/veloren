@@ -13,6 +13,8 @@ lazy_static = "1.4.0"
 rand = "0.7.2"
 rand_chacha = "0.2.1"
 arr_macro = "0.1.2"
+serde = "1.0.101"
+ron = "0.5.1"
 
 [dev-dependencies]
 minifb = { git = "https://github.com/emoon/rust_minifb.git" }

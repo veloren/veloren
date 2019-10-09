@@ -1,0 +1,36 @@
+(
+    [
+        (
+            specifier: "world.tree.snow_pine.1",
+            center: (15, 15, 14)
+        ),
+        (
+            specifier: "world.tree.snow_pine.2",
+            center: (15, 15, 14)
+        ),
+        (
+            specifier: "world.tree.snow_pine.3",
+            center: (17, 15, 12)
+        ),
+        (
+            specifier: "world.tree.snow_pine.4",
+            center: (10, 8, 12)
+        ),
+        (
+            specifier: "world.tree.snow_pine.5",
+            center: (12, 12, 12)
+        ),
+        (
+            specifier: "world.tree.snow_pine.6",
+            center: (11, 10, 12)
+        ),
+        (
+            specifier: "world.tree.snow_pine.7",
+            center: (16, 15, 12)
+        ),
+        (
+            specifier: "world.tree.snow_pine.8",
+            center: (12, 10, 12)
+        )
+    ],
+)

@@ -1,0 +1,40 @@
+(
+    [
+        (
+            specifier: "world.tree.oak_stump.1",
+            center: (15, 18, 10)
+        ),
+        (
+            specifier: "world.tree.oak_stump.2",
+            center: (15, 18, 10)
+        ),
+        (
+            specifier: "world.tree.oak_stump.3",
+            center: (16, 20, 10)
+        ),
+        (
+            specifier: "world.tree.oak_stump.4",
+            center: (18, 21, 10)
+        ),
+        (
+            specifier: "world.tree.oak_stump.5",
+            center: (18, 18, 10)
+        ),
+        (
+            specifier: "world.tree.oak_stump.6",
+            center: (16, 21, 10)
+        ),
+        (
+            specifier: "world.tree.oak_stump.7",
+            center: (20, 19, 10)
+        ),
+        (
+            specifier: "world.tree.oak_stump.8",
+            center: (22, 20, 10)
+        ),
+        (
+            specifier: "world.tree.oak_stump.9",
+            center:(26, 26, 10)
+        ),
+    ]
+)

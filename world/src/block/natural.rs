@@ -5,8 +5,13 @@ use crate::{
     util::{RandomPerm, Sampler, SmallCache, UnitChooser},
     CONFIG,
 };
+use common::assets::Asset;
 use common::{assets, terrain::Structure};
 use lazy_static::lazy_static;
+use ron;
+use serde::Deserialize;
+use std::fs::File;
+use std::io::BufReader;
 use std::sync::Arc;
 use std::u32;
 use vek::*;
@@ -76,101 +81,62 @@ pub fn structure_gen<'a>(
     })
 }
 
-fn st_asset(path: &str, offset: impl Into<Vec3<i32>>) -> Arc<Structure> {
-    assets::load_map(path, |s: Structure| s.with_center(offset.into()))
-        .expect("Failed to load structure asset")
+#[derive(Deserialize)]
+struct StructureSpec {
+    specifier: String,
+    center: [i32; 3],
+}
+#[derive(Deserialize)]
+struct StructuresSpec(Vec<StructureSpec>);
+
+impl Asset for StructuresSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing structure specs"))
+    }
+}
+
+fn convert(specifications: &StructuresSpec) -> Vec<Arc<Structure>> {
+    return specifications
+        .0
+        .iter()
+        .map(|sp| {
+            assets::load_map(&sp.specifier[..], |s: Structure| {
+                s.with_center(Vec3::from(sp.center))
+            })
+            .unwrap()
+        })
+        .collect();
+}
+
+fn load_structures(specifier: &str) -> Vec<Arc<Structure>> {
+    dbg!(specifier);
+    let spec = assets::load::<StructuresSpec>(&["world.manifests.", specifier].concat());
+    return convert(&spec.unwrap());
 }
 
 lazy_static! {
-    pub static ref OAKS: Vec<Arc<Structure>> = vec![
-        // green oaks
-        assets::load_map("world.tree.oak_green.1", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_green.2", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_green.3", |s: Structure| s
-            .with_center(Vec3::new(16, 20, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_green.4", |s: Structure| s
-            .with_center(Vec3::new(18, 21, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_green.5", |s: Structure| s
-            .with_center(Vec3::new(18, 18, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_green.6", |s: Structure| s
-            .with_center(Vec3::new(16, 21, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_green.7", |s: Structure| s
-            .with_center(Vec3::new(20, 19, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_green.8", |s: Structure| s
-            .with_center(Vec3::new(22, 20, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_green.9", |s: Structure| s
-            .with_center(Vec3::new(26, 26, 14)))
-        .unwrap(),
-    ];
+    pub static ref OAKS: Vec<Arc<Structure>> = load_structures("oaks");
 
-    pub static ref OAK_STUMPS: Vec<Arc<Structure>> = vec![
-        // oak stumps
-        assets::load_map("world.tree.oak_stump.1", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_stump.2", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_stump.3", |s: Structure| s
-            .with_center(Vec3::new(16, 20, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_stump.4", |s: Structure| s
-            .with_center(Vec3::new(18, 21, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_stump.5", |s: Structure| s
-            .with_center(Vec3::new(18, 18, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_stump.6", |s: Structure| s
-            .with_center(Vec3::new(16, 21, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_stump.7", |s: Structure| s
-            .with_center(Vec3::new(20, 19, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_stump.8", |s: Structure| s
-            .with_center(Vec3::new(22, 20, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.oak_stump.9", |s: Structure| s
-            .with_center(Vec3::new(26, 26, 10)))
-        .unwrap(),
-    ];
+    pub static ref OAK_STUMPS: Vec<Arc<Structure>> = load_structures("oak_stumps");
 
-    pub static ref PINES: Vec<Arc<Structure>> = vec![
-        // green pines
-        assets::load_map("world.tree.pine_green.1", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.pine_green.2", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 14)))
-        .unwrap(),
-        assets::load_map("world.tree.pine_green.3", |s: Structure| s
-            .with_center(Vec3::new(17, 15, 12)))
-        .unwrap(),
-        assets::load_map("world.tree.pine_green.4", |s: Structure| s
-            .with_center(Vec3::new(10, 8, 12)))
-        .unwrap(),
-        assets::load_map("world.tree.pine_green.5", |s: Structure| s
-            .with_center(Vec3::new(12, 12, 12)))
-        .unwrap(),
-        assets::load_map("world.tree.pine_green.6", |s: Structure| s
-            .with_center(Vec3::new(11, 10, 12)))
-        .unwrap(),
-        assets::load_map("world.tree.pine_green.7", |s: Structure| s
-            .with_center(Vec3::new(16, 15, 12)))
-        .unwrap(),
-        assets::load_map("world.tree.pine_green.8", |s: Structure| s
-            .with_center(Vec3::new(12, 10, 12)))
-        .unwrap(),
-        /*
+    pub static ref PINES: Vec<Arc<Structure>> = load_structures("pines");
+
+    pub static ref PALMS: Vec<Arc<Structure>> = load_structures("palms");
+
+    pub static ref SNOW_PINES: Vec<Arc<Structure>> = load_structures("snow_pines");
+
+    pub static ref ACACIAS: Vec<Arc<Structure>> = load_structures("acacias");
+
+    pub static ref FRUIT_TREES: Vec<Arc<Structure>> = load_structures("fruit_trees");
+
+    pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = load_structures("mangrove_trees");
+
+    pub static ref QUIRKY: Vec<Arc<Structure>> = load_structures("quirky");
+
+    pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = load_structures("quirky_dry");
+
+     /*
         // green pines 2
          assets::load_map("world/tree/pine_green_2/1", |s: Structure| s
             .with_center(Vec3::new(15, 15, 14)))
@@ -222,7 +188,6 @@ lazy_static! {
             .with_center(Vec3::new(12, 10, 12)))
         .unwrap(),
         */
-    ];
       /*
         // temperate small
         assets::load_map("world/tree/temperate_small/1", |s: Structure| s
@@ -312,72 +277,6 @@ lazy_static! {
             .with_center(Vec3::new(7, 7, 10)))
         .unwrap(),
         */
-
-    pub static ref PALMS: Vec<Arc<Structure>> = vec![
-        // palm trees
-        assets::load_map("world.tree.desert_palm.1", |s: Structure| s
-            .with_center(Vec3::new(12, 12, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.2", |s: Structure| s
-            .with_center(Vec3::new(12, 10, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.3", |s: Structure| s
-            .with_center(Vec3::new(12, 12, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.4", |s: Structure| s
-            .with_center(Vec3::new(10, 10, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.5", |s: Structure| s
-            .with_center(Vec3::new(10, 10, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.6", |s: Structure| s
-            .with_center(Vec3::new(10, 10, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.7", |s: Structure| s
-            .with_center(Vec3::new(10, 10, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.8", |s: Structure| s
-            .with_center(Vec3::new(10, 10, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.9", |s: Structure| s
-            .with_center(Vec3::new(10, 10, 10)))
-        .unwrap(),
-        assets::load_map("world.tree.desert_palm.10", |s: Structure| s
-            .with_center(Vec3::new(10, 10, 10)))
-        .unwrap(),
-    ];
-
-    pub static ref SNOW_PINES: Vec<Arc<Structure>> = vec![
-        // snow pines
-        st_asset("world.tree.snow_pine.1", (15, 15, 14)),
-        st_asset("world.tree.snow_pine.2", (15, 15, 14)),
-        st_asset("world.tree.snow_pine.3", (17, 15, 12)),
-        st_asset("world.tree.snow_pine.4", (10, 8, 12)),
-        st_asset("world.tree.snow_pine.5", (12, 12, 12)),
-        st_asset("world.tree.snow_pine.6", (11, 10, 12)),
-        st_asset("world.tree.snow_pine.7", (16, 15, 12)),
-        st_asset("world.tree.snow_pine.8", (12, 10, 12)),
-    ];
-
-    pub static ref ACACIAS: Vec<Arc<Structure>> = vec![
-        // acias
-        st_asset("world.tree.acacia.1", (16, 17, 1)),
-        st_asset("world.tree.acacia.2", (5, 6, 1)),
-        st_asset("world.tree.acacia.3", (5, 6, 1)),
-        st_asset("world.tree.acacia.4", (15, 16, 1)),
-        st_asset("world.tree.acacia.5", (19, 18, 1)),
-    ];
-
-    pub static ref FRUIT_TREES: Vec<Arc<Structure>> = vec![
-        // fruit trees
-        st_asset("world.tree.fruit.1", (5, 5, 7)),
-        st_asset("world.tree.fruit.2", (6, 6, 7)),
-        st_asset("world.tree.fruit.3", (6, 7, 7)),
-        st_asset("world.tree.fruit.4", (3, 3, 7)),
-        st_asset("world.tree.fruit.5", (6, 8, 7)),
-        st_asset("world.tree.fruit.6", (7, 7, 7)),
-    ];
-
         /*
         // snow birches -> need roots!
         assets::load_map("world/tree/snow_birch/1", |s: Structure| s
@@ -425,45 +324,4 @@ lazy_static! {
         .unwrap(),
     ];
     */
-
-    pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = vec![
-        // oak stumps
-        assets::load_map("world.tree.mangroves.1", |s: Structure| s
-            .with_center(Vec3::new(18, 18, 8)))
-        .unwrap(),
-        assets::load_map("world.tree.mangroves.2", |s: Structure| s
-            .with_center(Vec3::new(16, 17, 7)))
-        .unwrap(),
-        assets::load_map("world.tree.mangroves.3", |s: Structure| s
-            .with_center(Vec3::new(18, 18, 8)))
-        .unwrap(),
-        assets::load_map("world.tree.mangroves.4", |s: Structure| s
-            .with_center(Vec3::new(18, 16, 8)))
-        .unwrap(),
-        assets::load_map("world.tree.mangroves.5", |s: Structure| s
-            .with_center(Vec3::new(19, 20, 9)))
-        .unwrap(),
-        assets::load_map("world.tree.mangroves.6", |s: Structure| s
-            .with_center(Vec3::new(18, 18, 9)))
-        .unwrap(),
-        assets::load_map("world.tree.mangroves.7", |s: Structure| s
-            .with_center(Vec3::new(18, 17, 9)))
-        .unwrap(),
-        assets::load_map("world.tree.mangroves.8", |s: Structure| s
-            .with_center(Vec3::new(18, 18, 9)))
-        .unwrap(),
-    ];
-
-    pub static ref QUIRKY: Vec<Arc<Structure>> = vec![
-        st_asset("world.structure.natural.tower-ruin", (11, 14, 5)),
-        st_asset("world.structure.natural.witch-hut", (10, 13, 9)),
-    ];
-
-    pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = vec![
-        st_asset("world.structure.natural.ribcage-small", (7, 13, 4)),
-        st_asset("world.structure.natural.ribcage-large", (13, 19, 8)),
-        st_asset("world.structure.natural.skull-large", (15, 20, 4)),
-    ];
-
-
 }
