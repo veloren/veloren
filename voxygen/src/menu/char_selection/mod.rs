@@ -97,6 +97,10 @@ impl PlayState for CharSelectionState {
                         Some(comp::Item::Tool {
                             kind: kind,
                             power: 10,
+                            stamina: 0,
+                            strength: 0,
+                            dexterity: 0,
+                            intelligence: 0,
                         })
                     } else {
                         None

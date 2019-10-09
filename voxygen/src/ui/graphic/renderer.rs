@@ -1,3 +1,4 @@
+use super::Transform;
 use common::{
     figure::Segment,
     util::{linear_to_srgba, srgba_to_linear},
@@ -61,7 +62,7 @@ impl<'a> Pipeline for Voxel {
 pub fn draw_vox(
     segment: &Segment,
     output_size: Vec2<u16>,
-    ori: Option<Quaternion<f32>>,
+    transform: Transform,
     min_samples: Option<u8>,
 ) -> RgbaImage {
     let scale = min_samples.map_or(1.0, |s| s as f32).sqrt().ceil() as usize;
@@ -71,17 +72,35 @@ pub fn draw_vox(
 
     let (w, h, d) = segment.size().map(|e| e as f32).into_tuple();
 
-    let mvp = Mat4::<f32>::orthographic_rh_no(FrustumPlanes {
-        left: -1.0,
-        right: 1.0,
-        bottom: -1.0,
-        top: 1.0,
-        near: 0.0,
-        far: 1.0,
-    })  * Mat4::from(ori.unwrap_or(Quaternion::identity()))
-        * Mat4::rotation_x(-std::f32::consts::PI / 2.0) // TODO: remove
-        * Mat4::scaling_3d([2.0 / w, 2.0 / h, 2.0 / d])
+    let mvp = if transform.orth {
+        Mat4::<f32>::orthographic_rh_no(FrustumPlanes {
+            left: -1.0,
+            right: 1.0,
+            bottom: -1.0,
+            top: 1.0,
+            near: 0.0,
+            far: 1.0,
+        })
+    } else {
+        Mat4::<f32>::perspective_fov_rh_no(
+            1.1,            // fov
+            dims[0] as f32, // width
+            dims[1] as f32, // height
+            0.0,
+            1.0,
+        )
+    } * Mat4::scaling_3d(
+        // TODO replace with camera-like parameters?
+        if transform.stretch {
+            Vec3::new(2.0 / w, 2.0 / d, 2.0 / h) // Only works with flipped models :(
+        } else {
+            let s = w.max(h).max(d);
+            Vec3::new(2.0 / s, 2.0 / s, 2.0 / s)
+        } * transform.zoom,
+    ) * Mat4::translation_3d(transform.offset)
+        * Mat4::from(transform.ori)
         * Mat4::translation_3d([-w / 2.0, -h / 2.0, -d / 2.0]);
+
     Voxel { mvp }.draw::<rasterizer::Triangles<_>, _>(
         &generate_mesh(segment, Vec3::from(0.0)),
         &mut color,

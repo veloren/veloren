@@ -132,7 +132,8 @@ impl Scene {
             }
             // Zoom the camera when a zoom event occurs
             Event::Zoom(delta) => {
-                self.camera.zoom_switch(delta * 0.3);
+                self.camera
+                    .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01));
                 true
             }
             // All other events are unhandled

@@ -9,7 +9,7 @@ pub mod img_ids;
 mod font_ids;
 
 pub use event::Event;
-pub use graphic::Graphic;
+pub use graphic::{Graphic, Transform};
 pub use scale::{Scale, ScaleMode};
 pub use widgets::{
     image_frame::ImageFrame,
@@ -41,7 +41,7 @@ use conrod_core::{
     Rect, UiBuilder, UiCell,
 };
 use graphic::Rotation;
-use log::warn;
+use log::{error, warn};
 use std::{
     fs::File,
     io::{BufReader, Read},
@@ -173,6 +173,17 @@ impl Ui {
             cw180: self.image_map.insert((graphic_id, Rotation::Cw180)),
             cw270: self.image_map.insert((graphic_id, Rotation::Cw270)),
         }
+    }
+
+    pub fn replace_graphic(&mut self, id: image::Id, graphic: Graphic) {
+        let graphic_id = if let Some((graphic_id, _)) = self.image_map.get(&id) {
+            *graphic_id
+        } else {
+            error!("Failed to replace graphic the provided id is not in use");
+            return;
+        };
+        self.cache.replace_graphic(graphic_id, graphic);
+        self.image_map.replace(id, (graphic_id, Rotation::None));
     }
 
     pub fn new_font(&mut self, font: Arc<Font>) -> font::Id {
