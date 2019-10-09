@@ -160,7 +160,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::SwordShield => {
+            Tool::Shield => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -214,7 +214,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.85);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Daggers => {
+            Tool::Dagger => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,

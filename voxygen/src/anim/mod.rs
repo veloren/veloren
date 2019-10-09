@@ -150,20 +150,20 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Tool::Sword => 0.0,
                 Tool::Axe => 3.0,
                 Tool::Hammer => 0.0,
-                Tool::SwordShield => 3.0,
+                Tool::Shield => 3.0,
                 Tool::Staff => 3.0,
                 Tool::Bow => 0.0,
-                Tool::Daggers => 0.0,
+                Tool::Dagger => 0.0,
             },
             weapon_y: match Tool::Hammer {
                 // TODO: Inventory
                 Tool::Sword => -1.25,
                 Tool::Axe => 0.0,
                 Tool::Hammer => -2.0,
-                Tool::SwordShield => 0.0,
+                Tool::Shield => 0.0,
                 Tool::Staff => 0.0,
                 Tool::Bow => -2.0,
-                Tool::Daggers => -2.0,
+                Tool::Dagger => -2.0,
             },
         }
     }

@@ -567,6 +567,10 @@ impl Server {
                         Some(comp::Item::Tool {
                             kind: comp::item::Tool::Sword,
                             power: 5,
+                            stamina: 0,
+                            strength: 0,
+                            dexterity: 0,
+                            intelligence: 0,
                         }),
                     );
                     let body = comp::Body::Humanoid(comp::humanoid::Body::random());
@@ -588,6 +592,10 @@ impl Server {
                             Some(comp::Item::Tool {
                                 kind: comp::item::Tool::Sword,
                                 power: 10,
+                                stamina: 0,
+                                strength: 0,
+                                dexterity: 0,
+                                intelligence: 0,
                             }),
                         );
                         body = comp::Body::Humanoid(comp::humanoid::Body::random());
@@ -1020,7 +1028,14 @@ impl Server {
                                     client,
                                     name,
                                     body,
-                                    main.map(|t| comp::Item::Tool { kind: t, power: 10 }),
+                                    main.map(|t| comp::Item::Tool {
+                                        kind: t,
+                                        power: 10,
+                                        stamina: 0,
+                                        strength: 0,
+                                        dexterity: 0,
+                                        intelligence: 0,
+                                    }),
                                     &server_settings,
                                 );
                             }

@@ -135,6 +135,10 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 1,
             wind_sway: 0.0,
         }),
+        BlockKind::Chest => Some(SpriteConfig {
+            variations: 4,
+            wind_sway: 0.0,
+        }),
         _ => None,
     }
 }
@@ -619,6 +623,34 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.velorite.velorite_ore",
                         Vec3::new(-5.0, -5.0, -5.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Chest, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.chests.chest",
+                        Vec3::new(-7.0, -5.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Chest, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.chests.chest_gold",
+                        Vec3::new(-7.0, -5.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Chest, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.chests.chest_dark",
+                        Vec3::new(-7.0, -5.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Chest, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.chests.chest_vines",
+                        Vec3::new(-7.0, -5.0, -0.0),
                     ),
                 ),
             ]
