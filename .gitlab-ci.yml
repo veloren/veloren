@@ -78,8 +78,9 @@ optional-debug:mac:
         paths:
             - ./
     script:
+        - apt-get install clang autotools-dev automake cmake libfuse-dev
         - rustup target add x86_64-apple-darwin
-        - 
+        - echo "[target.x86_64-apple-darwin]\nlinker = \"x86_64-apple-darwin15-clang\"" >> /root/.cargo/config
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
