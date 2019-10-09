@@ -25,8 +25,8 @@ impl<T: Send + Serialize + DeserializeOwned> InternalNetworkMessage<T> {
         (Self { result_sender: Some(result_sender), data, reliability, id }, result_receiver)
     }
 
-    pub fn deconstruct(self) -> (T, u32) {
-        (self.data, self.id)
+    pub fn deconstruct(self) -> (u32, T) {
+        (self.id, self.data)
     }
 
     pub fn send(&self, writer: &mut BufWriter<TcpStream>) {
