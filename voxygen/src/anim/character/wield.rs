@@ -96,7 +96,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::SwordShield => {
+            Tool::Shield => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -134,7 +134,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.85);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Daggers => {
+            Tool::Dagger => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;

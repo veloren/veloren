@@ -217,7 +217,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             self,
                             pos,
                             offs,
-                            &colors,
+                            &colors, //&[[[colors[1][1][1]; 3]; 3]; 3],
                             |pos, norm, col, ao, light| {
                                 TerrainVertex::new(pos, norm, col, light.min(ao))
                             },
