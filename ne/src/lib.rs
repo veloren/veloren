@@ -5,6 +5,7 @@ mod mailbox;
 mod mailsender;
 mod message;
 mod server;
+mod client;
 
 pub use error::{FutureNetworkResult, NetworkError, NetworkResult};
 pub use mailbox::{Mail, MailBox};
