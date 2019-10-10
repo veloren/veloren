@@ -28,7 +28,7 @@ before_script:
     except:
         - schedules
     when: manual
- 
+
 optional-debug:linux:
     <<: *optional-debug
     cache:
