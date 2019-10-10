@@ -185,14 +185,10 @@ impl<'a> BlockGen<'a> {
         }; */
 
         let (block, height) = if !only_structures {
-            let (_definitely_underground, height, water_height) =
+            let (_definitely_underground, height, on_cliff, water_height) =
                 if (wposf.z as f32) < alt - 64.0 * chaos {
                     // Shortcut warping
-                    (
-                        true,
-                        alt,
-                        water_level, /*.max(sea_level)*/ /*water_level*/
-                    )
+                    (true, alt, false, water_level)
                 } else {
                     // Apply warping
                     let warp = world
@@ -213,9 +209,11 @@ impl<'a> BlockGen<'a> {
                         // alt_sub.div(1.0.sub(alt_sub)).tanh()
                     );
 
-                    let height = if (wposf.z as f32) < alt + warp - 10.0 {
+                    let surface_height = alt + warp;
+
+                    let (height, on_cliff) = if (wposf.z as f32) < alt + warp - 10.0 {
                         // Shortcut cliffs
-                        alt + warp
+                        (surface_height, false)
                     } else {
                         let turb = Vec2::new(
                             world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
@@ -233,15 +231,17 @@ impl<'a> BlockGen<'a> {
                         );
                         // let cliff_height = 0.0;
 
-                        (alt + warp).max(cliff_height)
+                        (
+                            surface_height.max(cliff_height),
+                            cliff_height > surface_height + 16.0,
+                        )
                     };
 
                     (
                         false,
                         height,
-                        // water_level.max(CONFIG.sea_level),
-                        /*(water_level + warp).max(*/
-                        (if water_level == alt { water_level + warp/*.min(0.0)*/ } else { water_level }), /*)*/
+                        on_cliff,
+                        (if water_level == alt { water_level + warp/*.min(0.0)*/ } else { water_level }),
                     )
                 };
 
@@ -298,6 +298,11 @@ impl<'a> BlockGen<'a> {
                 && (marble * 3173.7).fract() < 0.6
                 && humidity > 0.4
             {
+                let treasures = [
+                    BlockKind::Chest,
+                    //BlockKind::Velorite,
+                ];
+
                 let flowers = [
                     BlockKind::BlueFlower,
                     BlockKind::PinkFlower,
@@ -316,7 +321,9 @@ impl<'a> BlockGen<'a> {
                 ];
 
                 Some(Block::new(
-                    if (height * 1271.0).fract() < 0.1 {
+                    if on_cliff && (height * 1271.0).fract() < 0.015 {
+                        treasures[(height * 731.3) as usize % treasures.len()]
+                    } else if (height * 1271.0).fract() < 0.1 {
                         flowers[(height * 0.2) as usize % flowers.len()]
                     } else {
                         grasses[(height * 103.3) as usize % grasses.len()]
@@ -640,6 +647,11 @@ pub fn block_from_structure(
             .map(|e| e as u8),
         )),
         StructureBlock::Fruit => Some(Block::new(BlockKind::Apple, Rgb::new(194, 30, 37))),
+        StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
+            Block::empty()
+        } else {
+            Block::new(BlockKind::Chest, Rgb::new(0, 0, 0))
+        }),
         StructureBlock::Liana => Some(Block::new(
             BlockKind::Liana,
             Lerp::lerp(

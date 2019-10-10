@@ -1,7 +1,9 @@
 image: registry.gitlab.com/veloren/veloren-docker-ci:latest
 
 variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 3
+    GIT_CLEAN_FLAGS: -f
 
 stages:
     - optional-builds
@@ -9,13 +11,6 @@ stages:
     - post
 
 before_script:
-    - mkdir -p veloren
-    - cd veloren
-    - if [ ! -d ".git" ]; then git clone https://gitlab.com/veloren/veloren.git .; fi
-    - git clean -f
-    - git lfs install
-    - git lfs fetch
-    - git lfs checkout $CI_COMMIT_SHA
     - source $HOME/.cargo/env
     - df -h
     - free -h
@@ -38,13 +33,12 @@ optional-debug:linux:
     cache:
         key: "cache-linux-debug"
         paths:
-            - veloren/
+            - ./
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
         - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
         - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli
@@ -57,13 +51,12 @@ optional-debug:windows:
     cache:
         key: "cache-windows-debug"
         paths:
-            - veloren/
+            - ./
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli.exe
@@ -84,13 +77,12 @@ optional-release:linux:
     cache:
         key: "cache-linux-release"
         paths:
-            - veloren/
+            - ./
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
         - cp target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp target/release/veloren-voxygen $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli
@@ -103,13 +95,12 @@ optional-release:windows:
     cache:
         key: "cache-windows-release"
         paths:
-            - veloren/
+            - ./
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
         - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli.exe
@@ -126,7 +117,7 @@ check:
     cache:
         key: "cache-linux-debug"
         paths:
-            - veloren/
+            - ./
     tags:
         - veloren-docker
     script:
@@ -137,7 +128,7 @@ code-quality:
     cache:
         key: "cache-linux-debug"
         paths:
-            - veloren/
+            - ./
     tags:
         - veloren-docker
     script:
@@ -153,7 +144,7 @@ unittests:
     cache:
         key: "cache-linux-debug"
         paths:
-            - veloren/
+            - ./
     when: delayed
     start_in: 5 seconds
     tags:
@@ -166,7 +157,7 @@ benchmarks:
     cache:
         key: "cache-linux-release"
         paths:
-            - veloren/
+            - ./
     when: delayed
     start_in: 5 seconds
     tags:
@@ -180,7 +171,7 @@ linux:
     cache:
         key: "cache-linux-release"
         paths:
-            - veloren/
+            - ./
     when: delayed
     start_in: 5 seconds
     only:
@@ -195,7 +186,6 @@ linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --release && cd ..
         - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli
@@ -208,7 +198,7 @@ windows:
     cache:
         key: "cache-windows-release"
         paths:
-            - veloren/
+            - ./
     when: delayed
     start_in: 5 seconds
     only:
@@ -223,7 +213,6 @@ windows:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-        - cp -r assets $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli.exe

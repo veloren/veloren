@@ -146,7 +146,7 @@ impl Camera {
             let t = self.tgt_dist + delta;
             match self.mode {
                 CameraMode::ThirdPerson => {
-                    if t < 2_f32 {
+                    if t < 1_f32 {
                         self.set_mode(CameraMode::FirstPerson);
                     } else {
                         self.tgt_dist = t;

@@ -1,0 +1,56 @@
+//  Png(specifier),
+//  Vox(specier),
+//  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
+({  // Debug Items
+    Debug(Boost): VoxTrans(
+        "voxel.weapon.debug_wand",
+        (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
+    ),
+    // Weapons
+    Tool(Bow): VoxTrans(
+        "voxel.weapon.bow.simple-bow",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool(Dagger): VoxTrans(
+        "voxel.weapon.dagger.dagger_rusty",
+        (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
+    ),
+    Tool(Sword): VoxTrans(
+        "voxel.weapon.sword.rusty_2h",
+        (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
+    ),
+    Tool(Axe): VoxTrans(
+        "voxel.weapon.axe.rusty_2h",
+        (0.0, -8.0, 0.0), (-90.0, 90.0, 0.0), 2.0,
+    ),
+    Tool(Hammer): VoxTrans(
+        "voxel.weapon.hammer.rusty_2h",
+        (0.0, -8.0, 0.0), (-90.0, 90.0, 0.0), 2.0,
+    ),
+    // Consumables
+    Consumable(Apple): VoxTrans(
+        "element.icons.item_apple",
+        (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 1.0,
+    ),
+    Consumable(Potion): VoxTrans(
+        "voxel.object.potion_red",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Consumable(Mushroom): VoxTrans(
+        "voxel.sprite.mushrooms.mushroom-4",
+        (0.0, 0.0, 0.0), (-50.0, 70.0, 40.0), 1.0,
+    ),
+    Consumable(Velorite): VoxTrans(
+        "voxel.sprite.velorite.velorite_ore",
+        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    // Ingredients
+    Ingredient(Flower): VoxTrans(
+        "voxel.sprite.flowers.flower_red_2",
+        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Ingredient(Grass): VoxTrans(
+        "voxel.sprite.grass.grass_long_5",
+        (0.0, 0.0, 0.0), (-90.0, 50.0, 0.0), 1.0,
+    ),
+})

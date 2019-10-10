@@ -104,7 +104,7 @@ impl Server {
         let mut state = State::default();
         state
             .ecs_mut()
-            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 512.0)));
+            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 190.0)));
         state
             .ecs_mut()
             .add_resource(EventBus::<ServerEvent>::default());
@@ -357,11 +357,9 @@ impl Server {
                             ecs.entity_from_uid(by.into()).map(|attacker| {
                                 if let Some(attacker_stats) = stats.get_mut(attacker) {
                                     // TODO: Discuss whether we should give EXP by Player Killing or not.
-                                    attacker_stats.exp.change_by(
-                                        (entity_stats.health.maximum() as f64 / 10.0
-                                            + entity_stats.level.level() as f64 * 10.0)
-                                            as i64,
-                                    );
+                                    attacker_stats
+                                        .exp
+                                        .change_by((entity_stats.level.level() * 10) as i64);
                                 }
                             });
                         }
@@ -401,6 +399,22 @@ impl Server {
                             .insert(entity, comp::ForceUpdate);
                     }
                 }
+
+                ServerEvent::LandOnGround { entity, vel } => {
+                    if vel.z <= -25.0 {
+                        if let Some(stats) = state
+                            .ecs_mut()
+                            .write_storage::<comp::Stats>()
+                            .get_mut(entity)
+                        {
+                            let falldmg = (vel.z / 5.0) as i32;
+                            if falldmg < 0 {
+                                stats.health.change_by(falldmg, comp::HealthSource::World);
+                            }
+                        }
+                    }
+                }
+
                 ServerEvent::Mount(mounter, mountee) => {
                     if state
                         .ecs()
@@ -553,6 +567,10 @@ impl Server {
                         Some(comp::Item::Tool {
                             kind: comp::item::Tool::Sword,
                             power: 5,
+                            stamina: 0,
+                            strength: 0,
+                            dexterity: 0,
+                            intelligence: 0,
                         }),
                     );
                     let body = comp::Body::Humanoid(comp::humanoid::Body::random());
@@ -565,10 +583,7 @@ impl Server {
                 let mut scale = 1.0;
 
                 // TODO: Remove this and implement scaling or level depending on stuff like species instead
-                stats.level.set_level(rand::thread_rng().gen_range(1, 20));
-                if stats.level.level() > 1 {
-                    stats.update_hp_bonus(stats.level.level());
-                }
+                stats.level.set_level(rand::thread_rng().gen_range(1, 3));
 
                 if npc.boss {
                     if rand::random::<f32>() < 0.8 {
@@ -577,14 +592,22 @@ impl Server {
                             Some(comp::Item::Tool {
                                 kind: comp::item::Tool::Sword,
                                 power: 10,
+                                stamina: 0,
+                                strength: 0,
+                                dexterity: 0,
+                                intelligence: 0,
                             }),
                         );
                         body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     }
-                    stats = stats.with_max_health(500 + rand::random::<u32>() % 400);
+                    stats.level.set_level(rand::thread_rng().gen_range(10, 50));
                     scale = 2.5 + rand::random::<f32>();
                 }
 
+                stats.update_max_hp();
+                stats
+                    .health
+                    .set_to(stats.health.maximum(), comp::HealthSource::Revive);
                 self.create_npc(comp::Pos(npc.pos), stats, body)
                     .with(comp::Agent::enemy())
                     .with(comp::Scale(scale))
@@ -1008,7 +1031,14 @@ impl Server {
                                     client,
                                     name,
                                     body,
-                                    main.map(|t| comp::Item::Tool { kind: t, power: 10 }),
+                                    main.map(|t| comp::Item::Tool {
+                                        kind: t,
+                                        power: 10,
+                                        stamina: 0,
+                                        strength: 0,
+                                        dexterity: 0,
+                                        intelligence: 0,
+                                    }),
                                     &server_settings,
                                 );
                             }

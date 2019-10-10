@@ -9,9 +9,29 @@ use std::sync::Arc;
 use vek::*;
 
 #[derive(Clone)]
+pub struct Transform {
+    pub ori: Quaternion<f32>,
+    pub offset: Vec3<f32>,
+    pub zoom: f32,
+    pub orth: bool,
+    pub stretch: bool,
+}
+impl Default for Transform {
+    fn default() -> Self {
+        Self {
+            ori: Quaternion::identity(),
+            offset: Vec3::zero(),
+            zoom: 1.0,
+            orth: true,
+            stretch: true,
+        }
+    }
+}
+
+#[derive(Clone)]
 pub enum Graphic {
     Image(Arc<DynamicImage>),
-    Voxel(Arc<DotVoxData>, Option<Quaternion<f32>>, Option<u8>),
+    Voxel(Arc<DotVoxData>, Transform, Option<u8>),
     Blank,
 }
 
@@ -72,6 +92,26 @@ impl GraphicCache {
 
         id
     }
+    pub fn replace_graphic(&mut self, id: Id, graphic: Graphic) {
+        self.graphic_map.insert(id, graphic);
+
+        // Remove from caches
+        // Maybe make this more efficient if replace graphic is used more often
+        self.transfer_ready.retain(|(p, _)| p.0 != id);
+        let uses = self
+            .soft_cache
+            .keys()
+            .filter(|k| k.0 == id)
+            .copied()
+            .collect::<Vec<_>>();
+        for p in uses {
+            self.soft_cache.remove(&p);
+            if let Some(details) = self.cache_map.remove(&p) {
+                // Deallocate
+                self.atlas.deallocate(details.alloc_id);
+            }
+        }
+    }
     pub fn get_graphic(&self, id: Id) -> Option<&Graphic> {
         self.graphic_map.get(&id)
     }
@@ -129,9 +169,12 @@ impl GraphicCache {
                                 image::FilterType::Nearest,
                             )
                             .to_rgba(),
-                        Some(Graphic::Voxel(ref vox, ori, min_samples)) => {
-                            renderer::draw_vox(&vox.as_ref().into(), dims, *ori, *min_samples)
-                        }
+                        Some(Graphic::Voxel(ref vox, trans, min_samples)) => renderer::draw_vox(
+                            &vox.as_ref().into(),
+                            dims,
+                            trans.clone(),
+                            *min_samples,
+                        ),
                         None => {
                             warn!("A graphic was requested via an id which is not in use");
                             return None;
