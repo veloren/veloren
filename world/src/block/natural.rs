@@ -96,8 +96,9 @@ impl Asset for StructuresSpec {
     }
 }
 
-fn convert(specifications: &StructuresSpec) -> Vec<Arc<Structure>> {
-    return specifications
+fn load_structures(specifier: &str) -> Vec<Arc<Structure>> {
+    let spec = assets::load::<StructuresSpec>(&["world.manifests.", specifier].concat());
+    return spec.unwrap()
         .0
         .iter()
         .map(|sp| {
@@ -107,12 +108,6 @@ fn convert(specifications: &StructuresSpec) -> Vec<Arc<Structure>> {
             .unwrap()
         })
         .collect();
-}
-
-fn load_structures(specifier: &str) -> Vec<Arc<Structure>> {
-    dbg!(specifier);
-    let spec = assets::load::<StructuresSpec>(&["world.manifests.", specifier].concat());
-    return convert(&spec.unwrap());
 }
 
 lazy_static! {
