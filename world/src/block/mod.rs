@@ -617,7 +617,11 @@ pub fn block_from_structure(
             .map(|e| e as u8),
         )),
         StructureBlock::Fruit => Some(Block::new(BlockKind::Apple, Rgb::new(194, 30, 37))),
-        StructureBlock::Chest => Some(Block::new(BlockKind::Chest, Rgb::new(0, 0, 0))),
+        StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
+            Block::empty()
+        } else {
+            Block::new(BlockKind::Chest, Rgb::new(0, 0, 0))
+        }),
         StructureBlock::Liana => Some(Block::new(
             BlockKind::Liana,
             Lerp::lerp(
