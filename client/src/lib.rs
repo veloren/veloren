@@ -74,7 +74,7 @@ impl Client {
                 ecs_state,
                 entity_uid,
                 server_info,
-                world_map: /*(map_size, world_map)*/map_size,
+                // world_map: /*(map_size, world_map)*/map_size,
             }) => {
                 // TODO: Voxygen should display this.
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
@@ -92,6 +92,7 @@ impl Client {
                     .ok_or(Error::ServerWentMad)?;
 
                 // assert_eq!(world_map.len(), map_size.x * map_size.y);
+                let map_size = Vec2::new(1024, 1024);
                 let world_map_raw = vec![0u8; 4 * /*world_map.len()*/map_size.x * map_size.y];
                 // LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
                 log::info!("Preparing image...");

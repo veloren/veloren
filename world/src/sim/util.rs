@@ -507,6 +507,7 @@ pub fn get_rivers(
     // let base_flux = 1.0;
     // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y - boundary_len).max(1) as f32);
     let mut rivers = vec![RiverData::default(); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut max_flows = vec![0.0f32; WORLD_SIZE.x * WORLD_SIZE.y];
     let neighbor_coef = /*Vec2::new(
         TerrainChunkSize::RECT_SIZE.x as f64,
         TerrainChunkSize::RECT_SIZE.y as f64,
@@ -554,7 +555,8 @@ pub fn get_rivers(
                     // NOTE: This will fail if the distance between chunks in any direction
                     // is exactly TerrainChunkSize::RECT * 4.0, but hopefully this should not be possible.
                     // NOTE: This isn't measuring actual distance, you can go farther on diagonals.
-                    let max_deriv = neighbor_dim - neighbor_coef * 4.0;
+                    // let max_deriv = neighbor_dim - neighbor_coef * 4.0;
+                    let max_deriv = neighbor_dim - neighbor_coef * 2.0 * 2.0.sqrt();
                     let extra_divisor = river_prev_slope
                         .map2(max_deriv, |e, f| (e / f).abs())
                         .reduce_partial_max();
@@ -621,6 +623,7 @@ pub fn get_rivers(
                 * lake_drainage
                 / lake_neighbor_pass_incoming_drainage;
             let mut lake_neighbor_pass = &mut rivers[neighbor_pass_idx];
+            // nlet mut max_flow = &mut max_flows[neighbor_pass_idx];
             // We definitely shouldn't have encountered this yet!
             debug_assert!(lake_neighbor_pass.velocity == Vec3::zero());
             // TODO: Rethink making the lake neighbor pass always a river or lake, no matter how
@@ -636,6 +639,10 @@ pub fn get_rivers(
             // basically a flat vector, but that might be okay from lake to other side of pass.
             lake_neighbor_pass.spline_derivative += /*Vec2::new(weighted_flow.x, weighted_flow.y)*/
                 weighted_flow.map(|e| e as f32);
+            /* if lake_drainage > *max_flow as f64  {
+                *max_flow = lake_drainage as f32;
+                lake_neighbor_pass.spline_derivative = weighted_flow.map(|e| e as f32);
+            } */
             continue;
         // chunk_idx
         } else {
@@ -643,12 +650,17 @@ pub fn get_rivers(
         };
         // Add our spline derivative to the downhill river.
         let downhill_river = &mut rivers[downhill_idx];
-
+        // let mut max_flow = &mut max_flows[downhill_idx];
         let weighted_flow = (neighbor_dim * 2.0 - river_spline_derivative.map(|e| e as f64))
             / derivative_divisor
             * chunk_drainage
             / incoming_drainage;
         downhill_river.spline_derivative += weighted_flow.map(|e| e as f32);
+        /* if chunk_drainage > *max_flow as f64 {
+            *max_flow = chunk_drainage as f32;
+            downhill_river.spline_derivative = weighted_flow.map(|e| e as f32);
+        } */
+        // let downhill_river_spline_derivative = downhill_river.spline_derivative;
 
         // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
         // pushed towards the point identified by pass_idx).
@@ -659,15 +671,17 @@ pub fn get_rivers(
             // We may be a river.  But we're not sure yet, since we still could be
             // underwater.  Check the lake height and see if our own water height is within ε of
             // it.
+            let pass_idx = (-indirection[lake_idx]) as usize;
+            // let epsilon = 1.0 / (1 << 7) as f32 / CONFIG.mountain_scale;
             // let epsilon = 1e-7f32 / CONFIG.mountain_scale;
             let lake_water_alt = water_alt[lake_idx];
+            // let lake_water_alt = water_alt[pass_idx];
             if
             /*(chunk_water_alt - lake_water_alt).abs() <= epsilon*/
             chunk_water_alt == lake_water_alt {
                 // Not a river.
                 // Check whether we we are the lake side of the pass.
                 // NOTE: Safe because this is a lake.
-                let pass_idx = (-indirection[lake_idx]) as usize;
                 let (neighbor_pass_pos, river_spline_derivative) = if pass_idx == chunk_idx
                 /*true*/
                 {
@@ -725,6 +739,15 @@ pub fn get_rivers(
             // outflow river--i.e. this lake is "internal."
             /* let neighbor_pass_pos = uniform_idx_as_vec2(neighbor_pass_idx as usize);
             rivers[chunk_idx].river_kind = Some(RiverKind::Lake { neighbor_pass_pos }); */
+            let pass_idx = (-indirection_idx) as usize;
+            println!("Our chunk (and downhill, lake, pass, neighbor_pass): {:?} (to {:?}, in {:?} via {:?} to {:?}), chunk water alt: {:?}, lake water alt: {:?}",
+                uniform_idx_as_vec2(chunk_idx),
+                uniform_idx_as_vec2(downhill_idx),
+                uniform_idx_as_vec2(lake_idx),
+                uniform_idx_as_vec2(pass_idx),
+                if neighbor_pass_idx >= 0 { Some(uniform_idx_as_vec2(neighbor_pass_idx as usize)) } else { None },
+                water_alt[chunk_idx],
+                water_alt[lake_idx]);
             panic!("Should this happen at all?");
             // continue;
         }
@@ -1614,11 +1637,15 @@ pub fn fill_sinks(
     /*oh: impl Fn(usize) -> f32 + Sync*//*, epsilon: f64*/
 ) -> Box<[f32]> {
     //let epsilon = 1e-5f32;
-    let epsilon = 1e-7f32 / CONFIG.mountain_scale;
+    // NOTE: We are using the "exact" version of depression-filling, which is slower but doesn't
+    // change altitudes.
+    //  let epsilon = 1e-7 as f32 / CONFIG.mountain_scale;
+    // let epsilon = /*1.0 / (1 << 7) as f32 / CONFIG.mountain_scale*/0.0;
+    let epsilon = /*1.0 / (1 << 7) as f32 / CONFIG.mountain_scale*/0.0;
     let infinity = f32::INFINITY;
     let range = 0..WORLD_SIZE.x * WORLD_SIZE.y;
-    let mut newh = range.into_par_iter().map(|posi| {
-        let h = h(posi);
+    let oldh = range.into_par_iter().map(|posi| h(posi)).collect::<Vec<_>>().into_boxed_slice();
+    let mut newh = oldh.par_iter().enumerate().map(|(posi, &h)| {
         let is_near_edge = is_ocean(posi); /*map_edge_factor(posi) /*< 1.0*/== 0.0 ||
             oh(posi) /*< 5.0 / CONFIG.mountain_scale*/<= 0.0 / CONFIG.mountain_scale;*/
         if is_near_edge {
@@ -1642,7 +1669,7 @@ pub fn fill_sinks(
         let mut changed = false;
         for posi in 0..newh.len() {
             let nh = newh[posi];
-            let oh = h(posi);
+            let oh = oldh[posi];
             if nh == oh {
                 continue;
             }

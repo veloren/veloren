@@ -779,7 +779,7 @@ impl Server {
                     ecs_state: self.state.ecs().gen_state_package(),
                     entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
                     server_info: self.server_info.clone(),
-                    world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
+                    // world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
                 });
                 println!("Done sync.");
 

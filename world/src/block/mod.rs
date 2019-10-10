@@ -241,7 +241,7 @@ impl<'a> BlockGen<'a> {
                         height,
                         // water_level.max(CONFIG.sea_level),
                         /*(water_level + warp).max(*/
-                        (water_level + warp/*.min(0.0)*/), /*)*/
+                        (if water_level == alt { water_level + warp/*.min(0.0)*/ } else { water_level }), /*)*/
                     )
                 };
 
@@ -487,7 +487,7 @@ impl<'a> ZCache<'a> {
         let ground_max = (self.sample.alt + warp + rocks).max(cliff) + 2.0;
 
         let min = min + structure_min;
-        let max = (ground_max + structure_max).max(self.sample.water_level /* + 2.0*/);
+        let max = (ground_max + structure_max).max(self.sample.water_level + 2.0);
         // .max(self.sample.sea_level + 2.0);
 
         // Structures
@@ -503,7 +503,7 @@ impl<'a> ZCache<'a> {
             })
             .unwrap_or((min, max));
 
-        let structures_only_min_z = ground_max.max(self.sample.water_level /* + 2.0*/);
+        let structures_only_min_z = ground_max.max(self.sample.water_level + 2.0);
         // .max(/*CONFIG.sea_level*/self.sample.sea_level + 2.0);
 
         (min, structures_only_min_z, max)
