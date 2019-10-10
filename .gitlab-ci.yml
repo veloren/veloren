@@ -32,7 +32,7 @@ before_script:
 optional-debug:linux:
     <<: *optional-debug
     cache:
-        key: "cache-linux-debug"
+        key: "cache-linux-debug-v2"
         paths:
             - ./target
     script:
@@ -50,7 +50,7 @@ optional-debug:linux:
 optional-debug:windows:
     <<: *optional-debug
     cache:
-        key: "cache-windows-debug"
+        key: "cache-windows-debug-v2"
         paths:
             - ./target
     script:
@@ -76,7 +76,7 @@ optional-debug:windows:
 optional-release:linux:
     <<: *optional-release
     cache:
-        key: "cache-linux-release"
+        key: "cache-linux-release-v2"
         paths:
             - ./target
     script:
@@ -94,7 +94,7 @@ optional-release:linux:
 optional-release:windows:
     <<: *optional-release
     cache:
-        key: "cache-windows-release"
+        key: "cache-windows-release-v2"
         paths:
             - ./target
     script:
@@ -116,7 +116,7 @@ optional-release:windows:
 check:
     stage: check-compile
     cache:
-        key: "cache-linux-debug"
+        key: "cache-linux-debug-v2"
         paths:
             - ./target
     tags:
@@ -127,7 +127,7 @@ check:
 code-quality:
     stage: check-compile
     cache:
-        key: "cache-linux-debug"
+        key: "cache-linux-debug-v2"
         paths:
             - ./target
     tags:
@@ -143,7 +143,7 @@ code-quality:
 unittests:
     stage: post
     cache:
-        key: "cache-linux-debug"
+        key: "cache-linux-debug-v2"
         paths:
             - ./target
     when: delayed
@@ -156,7 +156,7 @@ unittests:
 benchmarks:
     stage: post
     cache:
-        key: "cache-linux-release"
+        key: "cache-linux-release-v2"
         paths:
             - ./target
     when: delayed
@@ -170,7 +170,7 @@ benchmarks:
 linux:
     stage: post
     cache:
-        key: "cache-linux-release"
+        key: "cache-linux-release-v2"
         paths:
             - ./target
     when: delayed
@@ -197,7 +197,7 @@ linux:
 windows:
     stage: post
     cache:
-        key: "cache-windows-release"
+        key: "cache-windows-release-v2"
         paths:
             - ./target
     when: delayed
