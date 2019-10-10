@@ -3520,17 +3520,17 @@ dependencies = [
 
 [[package]]
 name = "veloren-chat-cli"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "pretty_env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "veloren-client 0.3.0",
- "veloren-common 0.3.0",
+ "veloren-client 0.4.0",
+ "veloren-common 0.4.0",
 ]
 
 [[package]]
 name = "veloren-client"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "hashbrown 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3538,12 +3538,12 @@ dependencies = [
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "uvth 3.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "veloren-common 0.3.0",
+ "veloren-common 0.4.0",
 ]
 
 [[package]]
 name = "veloren-common"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "bincode 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "criterion 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3572,7 +3572,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossbeam 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3590,24 +3590,24 @@ dependencies = [
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "uvth 3.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "veloren-common 0.3.0",
- "veloren-world 0.3.0",
+ "veloren-common 0.4.0",
+ "veloren-world 0.4.0",
 ]
 
 [[package]]
 name = "veloren-server-cli"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "heaptrack 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "pretty_env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "veloren-common 0.3.0",
- "veloren-server 0.3.0",
+ "veloren-common 0.4.0",
+ "veloren-server 0.4.0",
 ]
 
 [[package]]
 name = "veloren-voxygen"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "backtrace 0.3.38 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3644,16 +3644,16 @@ dependencies = [
  "simplelog 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "veloren-client 0.3.0",
- "veloren-common 0.3.0",
- "veloren-server 0.3.0",
+ "veloren-client 0.4.0",
+ "veloren-common 0.4.0",
+ "veloren-server 0.4.0",
  "winit 0.19.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "winres 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "veloren-world"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "arr_macro 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "hashbrown 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3663,7 +3663,7 @@ dependencies = [
  "rand 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand_chacha 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "veloren-common 0.3.0",
+ "veloren-common 0.4.0",
 ]
 
 [[package]]
