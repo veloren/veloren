@@ -148,6 +148,7 @@ impl<'a> System<'a> for Sys {
                                     body: comp::Body::Object(comp::object::Body::Arrow),
                                     light: None,
                                     projectile: Projectile {
+                                        owner: uid.get(entity).copied(),
                                         hit_ground: vec![projectile::Effect::Stick],
                                         hit_wall: vec![projectile::Effect::Stick],
                                         hit_entity: vec![
@@ -226,18 +227,13 @@ impl<'a> System<'a> for Sys {
                                         ..Default::default()
                                     }),
                                     projectile: Projectile {
+                                        owner: uid.get(entity).copied(),
                                         hit_ground: vec![projectile::Effect::Vanish],
                                         hit_wall: vec![projectile::Effect::Vanish],
-                                        hit_entity: {
-                                            let mut effects = vec![projectile::Effect::Vanish];
-                                            if let Some(uid) = uid.get(entity) {
-                                                // TODO: if projectiles themselves get owners we don't need to store the uid here
-                                                effects.push(projectile::Effect::Possess(
-                                                    (*uid).into(),
-                                                ));
-                                            }
-                                            effects
-                                        },
+                                        hit_entity: vec![
+                                            projectile::Effect::Vanish,
+                                            projectile::Effect::Possess,
+                                        ],
                                         time_left: Duration::from_secs(60 * 5),
                                     },
                                 });

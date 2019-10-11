@@ -482,7 +482,7 @@ impl Server {
                                 {
                                     let mut inventories =
                                         state.ecs_mut().write_storage::<comp::Inventory>();
-                                    if let Some(mut inventory) = inventories.get_mut(possesse) {
+                                    if let Some(inventory) = inventories.get_mut(possesse) {
                                         inventory
                                             .push(comp::Item::Debug(comp::item::Debug::Possess));
                                     } else {
