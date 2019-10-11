@@ -27,7 +27,23 @@ impl Default for ServerSettings {
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
-            admins: vec!["Pfau".to_owned()],
+            admins: vec![
+                "Pfau".to_owned(),
+                "zesterer".to_owned(),
+                "xMAC94x".to_owned(),
+                "Timo".to_owned(),
+                "Songtronix".to_owned(),
+                "Slipped".to_owned(),
+                "Sharp".to_owned(),
+                "Acrimon".to_owned(),
+                "imbris".to_owned(),
+                "YuriMomo".to_owned(),
+                "Vechro".to_owned(),
+                "AngelOnFira".to_owned(),
+                "Nancok".to_owned(),
+                "Qutrin".to_owned(),
+                "Mckol".to_owned(),
+            ],
         }
     }
 }
