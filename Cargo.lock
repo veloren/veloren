@@ -3635,7 +3635,6 @@ dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "msgbox 0.2.0 (git+https://github.com/bekker/msgbox-rs.git)",
  "num 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "portpicker 0.1.0 (git+https://github.com/wusyong/portpicker-rs?branch=fix_ipv6)",
  "rand 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rodio 0.9.0 (git+https://github.com/RustAudio/rodio?rev=e5474a2)",
  "ron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
