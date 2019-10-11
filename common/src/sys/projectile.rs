@@ -46,6 +46,10 @@ impl<'a> System<'a> for Sys {
             if physics.on_ground {
                 for effect in projectile.hit_ground.drain(..) {
                     match effect {
+                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
+                            entity,
+                            cause: HealthSource::World,
+                        }),
                         _ => {}
                     }
                 }
@@ -54,6 +58,10 @@ impl<'a> System<'a> for Sys {
             else if physics.on_wall.is_some() {
                 for effect in projectile.hit_wall.drain(..) {
                     match effect {
+                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
+                            entity,
+                            cause: HealthSource::World,
+                        }),
                         _ => {}
                     }
                 }
@@ -73,6 +81,9 @@ impl<'a> System<'a> for Sys {
                             entity,
                             cause: HealthSource::World,
                         }),
+                        projectile::Effect::Possess(client_uid) => {
+                            server_emitter.emit(ServerEvent::Possess(client_uid.into(), other))
+                        }
                         _ => {}
                     }
                 }
