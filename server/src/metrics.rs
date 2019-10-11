@@ -1,3 +1,5 @@
+use log::info;
+use portpicker::pick_unused_port;
 use prometheus::{Encoder, Gauge, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder};
 use rouille::{router, Server};
 use std::{
@@ -93,7 +95,10 @@ impl ServerMetrics {
 
         //TODO: make this a job
         let handle = Some(thread::spawn(move || {
-            let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 14005);
+            let addr = SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+                pick_unused_port().expect("Failed to find unused port!"),
+            );
             let server = Server::new(addr, move |request| {
                 router!(request,
                         (GET) (/metrics) => {
@@ -107,6 +112,7 @@ impl ServerMetrics {
                 )
             })
             .expect("Failed to start server");
+            info!("Started server metrics: {}", addr);
             while running2.load(Ordering::Relaxed) {
                 server.poll();
                 // Poll at 10Hz
