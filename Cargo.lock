@@ -3579,6 +3579,7 @@ dependencies = [
  "hashbrown 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "portpicker 0.1.0 (git+https://github.com/wusyong/portpicker-rs?branch=fix_ipv6)",
  "prometheus 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "prometheus-static-metric 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
