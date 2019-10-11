@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{
     comp::{
-        item, projectile, ActionState::*, Body, CharacterState, ControlEvent, Controller, Item,
-        MovementState::*, PhysicsState, Projectile, Stats, Vel,
+        self, item, projectile, ActionState::*, Body, CharacterState, ControlEvent, Controller,
+        Item, MovementState::*, PhysicsState, Projectile, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
@@ -13,7 +13,7 @@ use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, ReadStorage, System, WriteStorage,
 };
-use sphynx::UidAllocator;
+use sphynx::{Uid, UidAllocator};
 use std::time::Duration;
 use vek::*;
 
@@ -30,6 +30,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Body>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, PhysicsState>,
+        ReadStorage<'a, Uid>,
         WriteStorage<'a, CharacterState>,
     );
 
@@ -45,6 +46,7 @@ impl<'a> System<'a> for Sys {
             bodies,
             velocities,
             physics_states,
+            uid,
             mut character_states,
         ): Self::SystemData,
     ) {
@@ -143,6 +145,8 @@ impl<'a> System<'a> for Sys {
                                 server_emitter.emit(ServerEvent::Shoot {
                                     entity,
                                     dir: controller.look_dir,
+                                    body: comp::Body::Object(comp::object::Body::Arrow),
+                                    light: None,
                                     projectile: Projectile {
                                         hit_ground: vec![projectile::Effect::Stick],
                                         hit_wall: vec![projectile::Effect::Stick],
@@ -201,6 +205,44 @@ impl<'a> System<'a> for Sys {
                             entity,
                             vel: Vec3::new(0.0, 0.0, 7.0),
                         });
+                    }
+                }
+                Some(Item::Debug(item::Debug::Possess)) => {
+                    if controller.primary
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                    {
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                // Immediately end the wield
+                                character.action = Idle;
+                                server_emitter.emit(ServerEvent::Shoot {
+                                    entity,
+                                    dir: controller.look_dir,
+                                    body: comp::Body::Object(comp::object::Body::PotionRed),
+                                    light: Some(comp::LightEmitter {
+                                        col: (0.0, 1.0, 0.3).into(),
+                                        ..Default::default()
+                                    }),
+                                    projectile: Projectile {
+                                        hit_ground: vec![projectile::Effect::Vanish],
+                                        hit_wall: vec![projectile::Effect::Vanish],
+                                        hit_entity: {
+                                            let mut effects = vec![projectile::Effect::Vanish];
+                                            if let Some(uid) = uid.get(entity) {
+                                                // TODO: if projectiles themselves get owners we don't need to store the uid here
+                                                effects.push(projectile::Effect::Possess(
+                                                    (*uid).into(),
+                                                ));
+                                            }
+                                            effects
+                                        },
+                                        time_left: Duration::from_secs(60 * 5),
+                                    },
+                                });
+                            }
+                        }
                     }
                 }
                 None => {
