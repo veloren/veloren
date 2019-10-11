@@ -30,13 +30,12 @@ use common::{
 };
 use crossbeam::channel;
 use hashbrown::{hash_map::Entry, HashMap};
-use log::debug;
+use log::{debug, trace};
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     i32,
-    net::SocketAddr,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -92,13 +91,8 @@ pub struct Server {
 }
 
 impl Server {
-    /// Create a new `Server` bound to the default socket.
+    /// Create a new `Server`
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
-        Self::bind(settings.address, settings)
-    }
-
-    /// Create a new server bound to the given socket.
-    pub fn bind<A: Into<SocketAddr>>(addrs: A, settings: ServerSettings) -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = channel::unbounded();
 
         let mut state = State::default();
@@ -116,7 +110,7 @@ impl Server {
             state,
             world: Arc::new(World::generate(settings.world_seed)),
 
-            postoffice: PostOffice::bind(addrs.into())?,
+            postoffice: PostOffice::bind(settings.gameserver_address)?,
             clients: Clients::empty(),
 
             thread_pool: ThreadPoolBuilder::new()
@@ -131,10 +125,12 @@ impl Server {
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
             },
-            metrics: ServerMetrics::new(),
+            metrics: ServerMetrics::new(settings.metrics_address),
             accounts: AuthProvider::new(),
-            server_settings: settings,
+            server_settings: settings.clone(),
         };
+        debug!("created veloren server");
+        trace!("server configuration: {:?}", &settings);
 
         Ok(this)
     }
