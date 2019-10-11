@@ -98,7 +98,8 @@ impl Asset for StructuresSpec {
 
 fn load_structures(specifier: &str) -> Vec<Arc<Structure>> {
     let spec = assets::load::<StructuresSpec>(&["world.manifests.", specifier].concat());
-    return spec.unwrap()
+    return spec
+        .unwrap()
         .0
         .iter()
         .map(|sp| {
@@ -112,22 +113,13 @@ fn load_structures(specifier: &str) -> Vec<Arc<Structure>> {
 
 lazy_static! {
     pub static ref OAKS: Vec<Arc<Structure>> = load_structures("oaks");
-
     pub static ref OAK_STUMPS: Vec<Arc<Structure>> = load_structures("oak_stumps");
-
     pub static ref PINES: Vec<Arc<Structure>> = load_structures("pines");
-
     pub static ref PALMS: Vec<Arc<Structure>> = load_structures("palms");
-
     pub static ref SNOW_PINES: Vec<Arc<Structure>> = load_structures("snow_pines");
-
     pub static ref ACACIAS: Vec<Arc<Structure>> = load_structures("acacias");
-
     pub static ref FRUIT_TREES: Vec<Arc<Structure>> = load_structures("fruit_trees");
-
     pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = load_structures("mangrove_trees");
-
     pub static ref QUIRKY: Vec<Arc<Structure>> = load_structures("quirky");
-
     pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = load_structures("quirky_dry");
 }
