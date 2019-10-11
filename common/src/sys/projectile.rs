@@ -74,15 +74,20 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::Damage {
                                 uid: other,
                                 dmg: power,
-                                cause: HealthSource::Projectile,
+                                cause: match projectile.owner {
+                                    Some(uid) => HealthSource::Attack { by: uid },
+                                    None => HealthSource::Unknown,
+                                },
                             })
                         }
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
                         }),
-                        projectile::Effect::Possess(client_uid) => {
-                            server_emitter.emit(ServerEvent::Possess(client_uid.into(), other))
+                        projectile::Effect::Possess => {
+                            if let Some(uid) = projectile.owner {
+                                server_emitter.emit(ServerEvent::Possess(uid.into(), other))
+                            }
                         }
                         _ => {}
                     }
