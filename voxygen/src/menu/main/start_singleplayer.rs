@@ -5,22 +5,22 @@ use crate::{
 };
 use common::comp;
 use log::warn;
-use std::net::SocketAddr;
+use server::settings::ServerSettings;
 
 pub struct StartSingleplayerState {
     // Necessary to keep singleplayer working
     _singleplayer: Singleplayer,
-    sock: SocketAddr,
+    server_settings: ServerSettings,
 }
 
 impl StartSingleplayerState {
     /// Create a new `MainMenuState`.
     pub fn new() -> Self {
-        let (_singleplayer, sock) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
+        let (_singleplayer, server_settings) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
 
         Self {
             _singleplayer,
-            sock,
+            server_settings,
         }
     }
 }
@@ -30,10 +30,14 @@ impl PlayState for StartSingleplayerState {
         match direction {
             Direction::Forwards => {
                 let username = "singleplayer".to_owned();
-                let server_address = self.sock.ip().to_string();
 
                 let client_init = ClientInit::new(
-                    (server_address.clone(), self.sock.port(), true),
+                    //TODO: check why we are converting out IP:Port to String instead of parsing it directly as SockAddr
+                    (
+                        self.server_settings.gameserver_address.ip().to_string(),
+                        self.server_settings.gameserver_address.port(),
+                        true,
+                    ),
                     comp::Player::new(
                         username.clone(),
                         Some(global_state.settings.graphics.view_distance),

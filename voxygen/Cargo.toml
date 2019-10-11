@@ -8,7 +8,7 @@ default-run = "veloren-voxygen"
 [features]
 gl = ["gfx_device_gl"]
 discord = ["discord-rpc-sdk", "lazy_static"]
-singleplayer = ["server", "portpicker"]
+singleplayer = ["server"]
 
 default = ["gl", "singleplayer", "msgbox", "heaptrack"]
 
@@ -38,7 +38,6 @@ lazy_static = { version = "1.4.0", optional = true }
 
 # Singleplayer
 server = { package = "veloren-server", path = "../server", optional = true }
-portpicker = { git = "https://github.com/wusyong/portpicker-rs", branch = "fix_ipv6", optional = true }
 
 # Utility
 glsl-include = "0.3.1"

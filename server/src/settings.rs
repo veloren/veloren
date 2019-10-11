@@ -1,10 +1,12 @@
+use portpicker::pick_unused_port;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ServerSettings {
-    pub address: SocketAddr,
+    pub gameserver_address: SocketAddr,
+    pub metrics_address: SocketAddr,
     pub max_players: usize,
     pub world_seed: u32,
     //pub pvp_enabled: bool,
@@ -18,7 +20,8 @@ pub struct ServerSettings {
 impl Default for ServerSettings {
     fn default() -> Self {
         Self {
-            address: SocketAddr::from(([0; 4], 14004)),
+            gameserver_address: SocketAddr::from(([0; 4], 14004)),
+            metrics_address: SocketAddr::from(([0; 4], 14005)),
             world_seed: 1337,
             server_name: "Veloren Alpha".to_owned(),
             server_description: "This is the best Veloren server.".to_owned(),
@@ -63,7 +66,15 @@ impl ServerSettings {
 
     pub fn singleplayer() -> Self {
         Self {
-            address: SocketAddr::from(([0; 4], 14004)),
+            //BUG: theoretically another process can grab the port between here and server creation, however the timewindow is quite small
+            gameserver_address: SocketAddr::from((
+                [127, 0, 0, 1],
+                pick_unused_port().expect("Failed to find unused port!"),
+            )),
+            metrics_address: SocketAddr::from((
+                [127, 0, 0, 1],
+                pick_unused_port().expect("Failed to find unused port!"),
+            )),
             world_seed: 1337,
             server_name: "Singleplayer".to_owned(),
             server_description: "Who needs friends anyway?".to_owned(),
