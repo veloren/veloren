@@ -35,6 +35,8 @@ pub enum ServerEvent {
     Shoot {
         entity: EcsEntity,
         dir: Vec3<f32>,
+        body: comp::Body,
+        light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,
     },
     LandOnGround {
@@ -43,6 +45,7 @@ pub enum ServerEvent {
     },
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
+    Possess(Uid, Uid),
 }
 
 pub struct EventBus<E> {

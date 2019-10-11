@@ -7,6 +7,7 @@ pub enum Effect {
     Damage(u32),
     Vanish,
     Stick,
+    Possess(u64),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

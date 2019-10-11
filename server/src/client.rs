@@ -57,6 +57,10 @@ impl Clients {
         self.clients.get_mut(entity)
     }
 
+    pub fn remove<'a>(&'a mut self, entity: &EcsEntity) -> Option<Client> {
+        self.clients.remove(entity)
+    }
+
     pub fn remove_if<F: FnMut(EcsEntity, &mut Client) -> bool>(&mut self, mut f: F) {
         self.clients.retain(|entity, client| !f(*entity, client));
     }
