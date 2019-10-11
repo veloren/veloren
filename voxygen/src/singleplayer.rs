@@ -2,10 +2,8 @@ use client::Client;
 use common::clock::Clock;
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use log::info;
-use portpicker::pick_unused_port;
 use server::{Event, Input, Server, ServerSettings};
 use std::{
-    net::SocketAddr,
     thread::{self, JoinHandle},
     time::Duration,
 };
@@ -27,17 +25,12 @@ pub struct Singleplayer {
 }
 
 impl Singleplayer {
-    pub fn new(client: Option<&Client>) -> (Self, SocketAddr) {
+    pub fn new(client: Option<&Client>) -> (Self, ServerSettings) {
         let (sender, receiver) = unbounded();
 
-        let sock = SocketAddr::from((
-            [127, 0, 0, 1],
-            pick_unused_port().expect("Failed to find unused port!"),
-        ));
-
         // Create server
-        let server = Server::bind(sock.clone(), ServerSettings::singleplayer())
-            .expect("Failed to create server instance!");
+        let settings = ServerSettings::singleplayer();
+        let server = Server::new(settings.clone()).expect("Failed to create server instance!");
 
         let server = match client {
             Some(client) => server.with_thread_pool(client.thread_pool().clone()),
@@ -53,7 +46,7 @@ impl Singleplayer {
                 _server_thread: thread,
                 sender,
             },
-            sock,
+            settings,
         )
     }
 }
