@@ -199,9 +199,10 @@ impl Server {
         pos: comp::Pos,
         vel: comp::Vel,
         body: comp::Body,
+        maybe_light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,
     ) -> EcsEntityBuilder {
-        state
+        let builder = state
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -210,7 +211,13 @@ impl Server {
             .with(comp::Mass(0.0))
             .with(body)
             .with(projectile)
-            .with(comp::Sticky)
+            .with(comp::Sticky);
+
+        if let Some(light) = maybe_light {
+            builder.with(light)
+        } else {
+            builder
+        }
     }
 
     pub fn create_player_character(
@@ -291,6 +298,8 @@ impl Server {
                 ServerEvent::Shoot {
                     entity,
                     dir,
+                    body,
+                    light,
                     projectile,
                 } => {
                     let mut pos = state
@@ -307,7 +316,8 @@ impl Server {
                         state,
                         comp::Pos(pos),
                         comp::Vel(dir * 100.0),
-                        comp::Body::Object(comp::object::Body::Arrow),
+                        body,
+                        light,
                         projectile,
                     )
                     .build();
@@ -457,6 +467,70 @@ impl Server {
                             .map(|ms| *ms = comp::MountState::Unmounted);
                     }
                     state.delete_component::<comp::Mounting>(mounter);
+                }
+                ServerEvent::Possess(possessor_uid, possesse_uid) => {
+                    if let (Some(possessor), Some(possesse)) = (
+                        state.ecs().entity_from_uid(possessor_uid.into()),
+                        state.ecs().entity_from_uid(possesse_uid.into()),
+                    ) {
+                        // You can't possess other players
+                        if clients.get(&possesse).is_none() {
+                            if let Some(mut client) = clients.remove(&possessor) {
+                                client.notify(ServerMsg::SetPlayerEntity(possesse_uid.into()));
+                                clients.add(possesse, client);
+                                // Create inventory if it doesn't exist
+                                {
+                                    let mut inventories =
+                                        state.ecs_mut().write_storage::<comp::Inventory>();
+                                    if let Some(inventory) = inventories.get_mut(possesse) {
+                                        inventory
+                                            .push(comp::Item::Debug(comp::item::Debug::Possess));
+                                    } else {
+                                        let _ = inventories.insert(
+                                            possesse,
+                                            comp::Inventory {
+                                                slots: vec![Some(comp::Item::Debug(
+                                                    comp::item::Debug::Possess,
+                                                ))],
+                                            },
+                                        );
+                                    }
+                                }
+                                let _ = state
+                                    .ecs_mut()
+                                    .write_storage::<comp::InventoryUpdate>()
+                                    .insert(possesse, comp::InventoryUpdate);
+                                // Move player component
+                                {
+                                    let mut players =
+                                        state.ecs_mut().write_storage::<comp::Player>();
+                                    if let Some(player) = players.get(possessor).cloned() {
+                                        let _ = players.insert(possesse, player);
+                                    }
+                                }
+                                // Remove will of the entity
+                                let _ = state
+                                    .ecs_mut()
+                                    .write_storage::<comp::Agent>()
+                                    .remove(possesse);
+                                // Transfer admin powers
+                                {
+                                    let mut admins = state.ecs_mut().write_storage::<comp::Admin>();
+                                    if let Some(admin) = admins.remove(possessor) {
+                                        let _ = admins.insert(possesse, admin);
+                                    }
+                                }
+                                // Transfer waypoint
+                                {
+                                    let mut waypoints =
+                                        state.ecs_mut().write_storage::<comp::Waypoint>();
+                                    if let Some(waypoint) = waypoints.remove(possessor) {
+                                        let _ = waypoints.insert(possesse, waypoint);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

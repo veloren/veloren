@@ -5,7 +5,6 @@ use specs_idvs::IDVStorage;
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
-    Projectile,
     Suicide,
     World,
     Revive,

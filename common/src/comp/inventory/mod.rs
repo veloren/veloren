@@ -73,6 +73,7 @@ impl Default for Inventory {
         };
 
         inventory.push(Item::Debug(Debug::Boost));
+        inventory.push(Item::Debug(Debug::Possess));
         inventory.push(Item::Tool {
             kind: Tool::Bow,
             power: 10,

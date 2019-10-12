@@ -46,6 +46,10 @@ impl<'a> System<'a> for Sys {
             if physics.on_ground {
                 for effect in projectile.hit_ground.drain(..) {
                     match effect {
+                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
+                            entity,
+                            cause: HealthSource::World,
+                        }),
                         _ => {}
                     }
                 }
@@ -54,6 +58,10 @@ impl<'a> System<'a> for Sys {
             else if physics.on_wall.is_some() {
                 for effect in projectile.hit_wall.drain(..) {
                     match effect {
+                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
+                            entity,
+                            cause: HealthSource::World,
+                        }),
                         _ => {}
                     }
                 }
@@ -66,13 +74,21 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::Damage {
                                 uid: other,
                                 dmg: power,
-                                cause: HealthSource::Projectile,
+                                cause: match projectile.owner {
+                                    Some(uid) => HealthSource::Attack { by: uid },
+                                    None => HealthSource::Unknown,
+                                },
                             })
                         }
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
                         }),
+                        projectile::Effect::Possess => {
+                            if let Some(uid) = projectile.owner {
+                                server_emitter.emit(ServerEvent::Possess(uid.into(), other))
+                            }
+                        }
                         _ => {}
                     }
                 }
