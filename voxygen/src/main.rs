@@ -126,17 +126,19 @@ fn main() {
         .and_then(|env| env.to_str().map(|s| s.to_owned()))
         .and_then(|s| log::LevelFilter::from_str(&s).ok())
         .unwrap_or(log::LevelFilter::Warn);
-    
+
     let colors = ColoredLevelConfig::new()
         .error(Color::Red)
         .warn(Color::Yellow)
         .info(Color::Cyan)
         .debug(Color::Green)
         .trace(Color::BrightBlack);
-    
-    let base = fern::Dispatch::new();
-        //.level_for("hyper", log::LevelFilter::Warn)
-        //.level_for("tokio_reactor", log::LevelFilter::Warn);
+
+    let base = fern::Dispatch::new() 
+        .level_for("dot_vox::parser", log::LevelFilter::Warn)
+        .level_for("gfx_device_gl::factory", log::LevelFilter::Warn)
+        .level_for("veloren_voxygen::discord", log::LevelFilter::Warn)
+        .level_for("veloren_common::assets", log::LevelFilter::Warn);
 
     let file_cfg = fern::Dispatch::new()
         .level(log::LevelFilter::Debug)
@@ -166,7 +168,10 @@ fn main() {
         })
         .chain(std::io::stdout());
 
-    base.chain(file_cfg).chain(stdout_cfg).apply().expect("Failed to setup logging!");
+    base.chain(file_cfg)
+        .chain(stdout_cfg)
+        .apply()
+        .expect("Failed to setup logging!");
 
     // Set up panic handler to relay swish panic messages to the user
     let settings_clone = settings.clone();
