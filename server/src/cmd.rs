@@ -61,8 +61,9 @@ impl ChatCommand {
             if !server.entity_is_admin(entity) {
                 server.clients.notify(
                     entity,
-                    ServerMsg::private(String::from(
-                        "Unavailable command '/{}'.\nType '/help' for available commands",
+                    ServerMsg::private(format!(
+                        "You don't have permission to use '/{}'.",
+                        self.keyword
                     )),
                 );
                 return;
