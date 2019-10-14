@@ -257,6 +257,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
+                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -311,6 +312,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
+                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -367,6 +369,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
+                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -385,6 +388,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
+                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -524,6 +528,7 @@ impl<S: Skeleton> FigureState<S> {
         &mut self,
         renderer: &mut Renderer,
         pos: Vec3<f32>,
+        vel: Vec3<f32>,
         ori: Vec3<f32>,
         scale: f32,
         col: Rgba<f32>,
@@ -535,8 +540,8 @@ impl<S: Skeleton> FigureState<S> {
 
         // Update interpolation values
         if self.pos.distance_squared(pos) < 64.0 * 64.0 {
-            self.pos = Lerp::lerp(self.pos, pos, 15.0 * dt);
-            self.ori = Slerp::slerp(self.ori, ori, 7.5 * dt);
+            self.pos = Lerp::lerp(self.pos, pos + vel * 0.03, 10.0 * dt);
+            self.ori = Slerp::slerp(self.ori, ori, 5.0 * dt);
         } else {
             self.pos = pos;
             self.ori = ori;
