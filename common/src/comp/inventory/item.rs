@@ -251,7 +251,7 @@ impl Item {
                 1 => Self::velorite(),
                 2 => Item::Tool {
                     kind: *(&ALL_TOOLS).choose(&mut rand::thread_rng()).unwrap(),
-                    power: 8 + rand::random::<u32>() % (rand::random::<u32>() % 30),
+                    power: 8 + rand::random::<u32>() % (rand::random::<u32>() % 29 + 1),
                     stamina: 0,
                     strength: 0,
                     dexterity: 0,
