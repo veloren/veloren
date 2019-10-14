@@ -11,7 +11,7 @@ const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.13);
-const vec3 DUSK_LIGHT   = vec3(3.0, 1.0, 0.3);
+const vec3 DUSK_LIGHT   = vec3(3.0, 1.5, 0.3);
 const vec3 SUN_HALO_DUSK = vec3(0.6, 0.1, 0.0);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
@@ -56,7 +56,7 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 	vec3 sun_chroma = sun_color * sun_light;
 
 	light = sun_chroma + PERSISTENT_AMBIANCE;
-	diffuse_light = sun_chroma * mix(1.0, dot(-norm, sun_dir) * 0.5 + 0.5, diffusion) + PERSISTENT_AMBIANCE;
+	diffuse_light = sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.6 + 0.4, 0.0), diffusion) + PERSISTENT_AMBIANCE;
 	ambient_light = vec3(SUN_AMBIANCE * sun_light);
 }
 
