@@ -44,7 +44,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     let mut vol_cached = vol.cached();
 
     let mut voids = HashMap::new();
-    let mut rays = vec![outer.size().d; outer.size().product() as usize];
+    let mut rays = vec![(outer.size().d, 0); outer.size().product() as usize];
     for x in 0..outer.size().w {
         for y in 0..outer.size().h {
             let mut outside = true;
@@ -55,9 +55,12 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                     .copied()
                     .unwrap_or(Block::empty());
 
-                if !block.is_air() && outside {
-                    rays[(outer.size().w * y + x) as usize] = z;
-                    outside = false;
+                if !block.is_air() {
+                    if outside {
+                        rays[(outer.size().w * y + x) as usize].0 = z;
+                        outside = false;
+                    }
+                    rays[(outer.size().w * y + x) as usize].1 = z;
                 }
 
                 if (block.is_air() || block.is_fluid()) && !outside {
@@ -74,6 +77,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
             if pos.z
                 > *rays
                     .get(((outer.size().w * col.y) + col.x) as usize)
+                    .map(|(ray, _)| ray)
                     .unwrap_or(&0)
             {
                 *l = Some(sunlight - 1);
@@ -85,6 +89,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         if pos.z
             >= *rays
                 .get(((outer.size().w * pos.y) + pos.x) as usize)
+                .map(|(ray, _)| ray)
                 .unwrap_or(&0)
         {
             *l = Some(sunlight - 1);
@@ -114,7 +119,15 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     move |wpos| {
         let pos = wpos - outer.min;
         rays.get(((outer.size().w * pos.y) + pos.x) as usize)
-            .and_then(|ray| if pos.z > *ray { Some(1.0) } else { None })
+            .and_then(|(ray, deep)| {
+                if pos.z > *ray {
+                    Some(1.0)
+                } else if pos.z < *deep {
+                    Some(0.0)
+                } else {
+                    None
+                }
+            })
             .or_else(|| {
                 if let Some(Some(l)) = voids.get(&pos) {
                     Some(*l as f32 / sunlight as f32)
