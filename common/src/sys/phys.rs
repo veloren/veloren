@@ -18,7 +18,7 @@ const BOUYANCY: f32 = 0.0;
 // amount an object will slow down within 1/60th of a second. Eg. if the frction
 // is 0.01, and the speed is 1.0, then after 1/60th of a second the speed will
 // be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^ 60.
-const FRIC_GROUND: f32 = 0.125;
+const FRIC_GROUND: f32 = 0.08;
 const FRIC_AIR: f32 = 0.0125;
 const FRIC_FLUID: f32 = 0.2;
 

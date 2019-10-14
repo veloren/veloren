@@ -13,7 +13,7 @@ use vek::*;
 
 pub const ROLL_DURATION: Duration = Duration::from_millis(600);
 
-const HUMANOID_ACCEL: f32 = 70.0;
+const HUMANOID_ACCEL: f32 = 50.0;
 const HUMANOID_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
@@ -163,7 +163,7 @@ impl<'a> System<'a> for Sys {
                 ori.0 = vek::ops::Slerp::slerp(
                     ori.0,
                     ori_dir.into(),
-                    if physics.on_ground { 12.0 } else { 2.0 } * dt.0,
+                    if physics.on_ground { 9.0 } else { 2.0 } * dt.0,
                 );
             }
 
