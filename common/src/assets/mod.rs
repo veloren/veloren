@@ -293,7 +293,7 @@ pub fn load_file(specifier: &str, endings: &[&str]) -> Result<BufReader<File>, E
         let mut path = path.clone();
         path.set_extension(ending);
 
-        debug!("Trying to access \"{:?}\"", path);
+        trace!("Trying to access \"{:?}\"", path);
         if let Ok(file) = File::open(path) {
             return Ok(BufReader::new(file));
         }
