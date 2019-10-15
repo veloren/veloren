@@ -195,9 +195,6 @@ impl RegionMap {
             }
         }
     }
-    pub fn add(&mut self, entity: EcsEntity, pos: Vec3<f32>) {
-        self.add_entity(entity.id(), pos.map(|e| e as i32), None);
-    }
     fn add_entity(&mut self, id: u32, pos: Vec3<i32>, from: Option<Vec2<i32>>) {
         let key = Self::pos_key(pos);
         if let Some(region) = self.regions.get_mut(&key) {

@@ -65,48 +65,50 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            let mut inputs = &mut controller.inputs;
+
             if stats.is_dead {
                 // Respawn
-                if controller.respawn {
+                if inputs.respawn {
                     server_emitter.emit(ServerEvent::Respawn(entity));
                 }
                 continue;
             }
 
             // Move
-            controller.move_dir = if controller.move_dir.magnitude_squared() > 1.0 {
-                controller.move_dir.normalized()
+            inputs.move_dir = if inputs.move_dir.magnitude_squared() > 1.0 {
+                inputs.move_dir.normalized()
             } else {
-                controller.move_dir
+                inputs.move_dir
             };
 
-            if character.movement == Stand && controller.move_dir.magnitude_squared() > 0.0 {
+            if character.movement == Stand && inputs.move_dir.magnitude_squared() > 0.0 {
                 character.movement = Run;
-            } else if character.movement == Run && controller.move_dir.magnitude_squared() == 0.0 {
+            } else if character.movement == Run && inputs.move_dir.magnitude_squared() == 0.0 {
                 character.movement = Stand;
             }
 
             // Look
-            controller.look_dir = controller
+            inputs.look_dir = inputs
                 .look_dir
                 .try_normalized()
-                .unwrap_or(controller.move_dir.into());
+                .unwrap_or(inputs.move_dir.into());
 
             // Glide
             // TODO: Check for glide ability/item
-            if controller.glide
+            if inputs.glide
                 && !physics.on_ground
                 && (character.action == Idle || character.action.is_wield())
                 && character.movement == Jump
                 && body.is_humanoid()
             {
                 character.movement = Glide;
-            } else if !controller.glide && character.movement == Glide {
+            } else if !inputs.glide && character.movement == Glide {
                 character.movement = Jump;
             }
 
             // Sit
-            if controller.sit
+            if inputs.sit
                 && physics.on_ground
                 && character.action == Idle
                 && character.movement != Sit
@@ -114,13 +116,13 @@ impl<'a> System<'a> for Sys {
             {
                 character.movement = Sit;
             } else if character.movement == Sit
-                && (controller.move_dir.magnitude_squared() > 0.0 || !physics.on_ground)
+                && (inputs.move_dir.magnitude_squared() > 0.0 || !physics.on_ground)
             {
                 character.movement = Run;
             }
 
             // Wield
-            if controller.primary
+            if inputs.primary
                 && character.action == Idle
                 && (character.movement == Stand || character.movement == Run)
             {
@@ -135,7 +137,7 @@ impl<'a> System<'a> for Sys {
                     power,
                     ..
                 }) => {
-                    if controller.primary
+                    if inputs.primary
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -146,7 +148,7 @@ impl<'a> System<'a> for Sys {
                                 character.action = Idle;
                                 server_emitter.emit(ServerEvent::Shoot {
                                     entity,
-                                    dir: controller.look_dir,
+                                    dir: inputs.look_dir,
                                     body: comp::Body::Object(comp::object::Body::Arrow),
                                     light: None,
                                     gravity: Some(comp::Gravity(0.3)),
@@ -174,7 +176,7 @@ impl<'a> System<'a> for Sys {
                     ..
                 }) => {
                     // Melee Attack
-                    if controller.primary
+                    if inputs.primary
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -189,7 +191,7 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                     // Magical Bolt
-                    if controller.secondary
+                    if inputs.secondary
                         && (
                             character.movement == Stand
                             //|| character.movement == Run
@@ -204,7 +206,7 @@ impl<'a> System<'a> for Sys {
                                 };
                                 server_emitter.emit(ServerEvent::Shoot {
                                     entity,
-                                    dir: controller.look_dir,
+                                    dir: inputs.look_dir,
                                     body: comp::Body::Object(comp::object::Body::BoltFire),
                                     gravity: Some(comp::Gravity(0.0)),
                                     light: Some(comp::LightEmitter {
@@ -232,7 +234,7 @@ impl<'a> System<'a> for Sys {
                 }
                 Some(Item::Tool { .. }) => {
                     // Melee Attack
-                    if controller.primary
+                    if inputs.primary
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -248,27 +250,27 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Block
-                    if controller.secondary
+                    if inputs.secondary
                         && (character.movement == Stand || character.movement == Run)
                         && character.action.is_wield()
                     {
                         character.action = Block {
                             time_left: Duration::from_secs(5),
                         };
-                    } else if !controller.secondary && character.action.is_block() {
+                    } else if !inputs.secondary && character.action.is_block() {
                         character.action = Wield {
                             time_left: Duration::default(),
                         };
                     }
                 }
                 Some(Item::Debug(item::Debug::Boost)) => {
-                    if controller.primary {
+                    if inputs.primary {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
-                            vel: controller.look_dir * 7.0,
+                            vel: inputs.look_dir * 7.0,
                         });
                     }
-                    if controller.secondary {
+                    if inputs.secondary {
                         // Go upward
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
@@ -277,7 +279,7 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 Some(Item::Debug(item::Debug::Possess)) => {
-                    if controller.primary
+                    if inputs.primary
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -289,7 +291,7 @@ impl<'a> System<'a> for Sys {
                                 server_emitter.emit(ServerEvent::Shoot {
                                     entity,
                                     gravity: Some(comp::Gravity(0.1)),
-                                    dir: controller.look_dir,
+                                    dir: inputs.look_dir,
                                     body: comp::Body::Object(comp::object::Body::ArrowSnake),
                                     light: Some(comp::LightEmitter {
                                         col: (0.0, 1.0, 0.3).into(),
@@ -310,14 +312,14 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                     // Block
-                    if controller.secondary
+                    if inputs.secondary
                         && (character.movement == Stand || character.movement == Run)
                         && character.action.is_wield()
                     {
                         character.action = Block {
                             time_left: Duration::from_secs(5),
                         };
-                    } else if !controller.secondary && character.action.is_block() {
+                    } else if !inputs.secondary && character.action.is_block() {
                         character.action = Wield {
                             time_left: Duration::default(),
                         };
@@ -325,7 +327,7 @@ impl<'a> System<'a> for Sys {
                 }
                 None => {
                     // Attack
-                    if controller.primary
+                    if inputs.primary
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -341,7 +343,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Roll
-            if controller.roll
+            if inputs.roll
                 && (character.action == Idle || character.action.is_wield())
                 && character.movement == Run
                 && physics.on_ground
@@ -352,16 +354,12 @@ impl<'a> System<'a> for Sys {
             }
 
             // Jump
-            if controller.jump
-                && physics.on_ground
-                && vel.0.z <= 0.0
-                && !character.movement.is_roll()
-            {
+            if inputs.jump && physics.on_ground && vel.0.z <= 0.0 && !character.movement.is_roll() {
                 local_emitter.emit(LocalEvent::Jump(entity));
             }
 
             // Wall leap
-            if controller.wall_leap {
+            if inputs.wall_leap {
                 if let (Some(_wall_dir), Climb) = (physics.on_wall, character.movement) {
                     //local_emitter.emit(LocalEvent::WallLeap { entity, wall_dir });
                 }
@@ -378,6 +376,9 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
+                    ControlEvent::InventoryManip(manip) => {
+                        server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
+                    } //ControlEvent::Respawn => server_emitter.emit(ServerEvent::Unmount(entity)),
                 }
             }
         }
