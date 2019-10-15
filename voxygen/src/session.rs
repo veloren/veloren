@@ -25,7 +25,7 @@ pub struct SessionState {
     client: Rc<RefCell<Client>>,
     hud: Hud,
     key_state: KeyState,
-    controller: comp::Controller,
+    inputs: comp::ControllerInputs,
     selected_block: Block,
 }
 
@@ -43,7 +43,7 @@ impl SessionState {
             scene,
             client,
             key_state: KeyState::new(),
-            controller: comp::Controller::default(),
+            inputs: comp::ControllerInputs::default(),
             hud,
             selected_block: Block::new(BlockKind::Normal, Rgb::broadcast(255)),
         }
@@ -53,7 +53,7 @@ impl SessionState {
 impl SessionState {
     /// Tick the session (and the client attached to it).
     fn tick(&mut self, dt: Duration) -> Result<(), Error> {
-        for event in self.client.borrow_mut().tick(self.controller.clone(), dt)? {
+        for event in self.client.borrow_mut().tick(self.inputs.clone(), dt)? {
             match event {
                 client::Event::Chat {
                     chat_type: _,
@@ -139,9 +139,6 @@ impl PlayState for SessionState {
             };
             self.scene.set_select_pos(select_pos);
 
-            // Reset controller events
-            self.controller.clear_events();
-
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 // Pass all events to the ui first.
@@ -168,12 +165,12 @@ impl PlayState for SessionState {
                                 client.place_block(build_pos, self.selected_block);
                             }
                         } else {
-                            self.controller.primary = state
+                            self.inputs.primary = state
                         }
                     }
 
                     Event::InputUpdate(GameInput::Secondary, state) => {
-                        self.controller.secondary = false; // To be changed later on
+                        self.inputs.secondary = false; // To be changed later on
 
                         let mut client = self.client.borrow_mut();
 
@@ -194,7 +191,7 @@ impl PlayState for SessionState {
                             .map(|cs| cs.action.is_wield())
                             .unwrap_or(false)
                         {
-                            self.controller.secondary = state;
+                            self.inputs.secondary = state;
                         } else {
                             if let Some(select_pos) = select_pos {
                                 client.collect_block(select_pos);
@@ -217,36 +214,34 @@ impl PlayState for SessionState {
                                 }
                             }
                         } else {
-                            self.controller.roll = state;
+                            self.inputs.roll = state;
                         }
                     }
                     Event::InputUpdate(GameInput::Respawn, state) => {
-                        self.controller.respawn = state;
+                        self.inputs.respawn = state;
                     }
                     Event::InputUpdate(GameInput::Jump, state) => {
-                        self.controller.jump = state;
+                        self.inputs.jump = state;
                     }
                     Event::InputUpdate(GameInput::Sit, state) => {
-                        self.controller.sit = state;
+                        self.inputs.sit = state;
                     }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
                     Event::InputUpdate(GameInput::Glide, state) => {
-                        self.controller.glide = state;
+                        self.inputs.glide = state;
                     }
-                    Event::InputUpdate(GameInput::Climb, state) => self.controller.climb = state,
+                    Event::InputUpdate(GameInput::Climb, state) => self.inputs.climb = state,
                     Event::InputUpdate(GameInput::ClimbDown, state) => {
-                        self.controller.climb_down = state
+                        self.inputs.climb_down = state
                     }
-                    Event::InputUpdate(GameInput::WallLeap, state) => {
-                        self.controller.wall_leap = state
-                    }
+                    Event::InputUpdate(GameInput::WallLeap, state) => self.inputs.wall_leap = state,
                     Event::InputUpdate(GameInput::Mount, true) => {
-                        let client = self.client.borrow();
+                        let mut client = self.client.borrow_mut();
                         if client.is_mounted() {
-                            self.controller.push_event(comp::ControlEvent::Unmount);
+                            client.unmount();
                         } else {
                             let player_pos = client
                                 .state()
@@ -271,15 +266,10 @@ impl PlayState for SessionState {
                                     .min_by_key(|(_, pos, _)| {
                                         (player_pos.0.distance_squared(pos.0) * 1000.0) as i32
                                     })
-                                    .map(|(entity, _, _)| entity);
+                                    .map(|(uid, _, _)| uid);
 
-                                if let Some(mountee_uid) =
-                                    closest_mountable.and_then(|mountee_entity| {
-                                        client.state().ecs().uid_from_entity(mountee_entity)
-                                    })
-                                {
-                                    self.controller
-                                        .push_event(comp::ControlEvent::Mount(mountee_uid.into()));
+                                if let Some(mountee_entity) = closest_mountable {
+                                    client.mount(mountee_entity);
                                 }
                             }
                         }
@@ -329,9 +319,9 @@ impl PlayState for SessionState {
                 Vec2::new(ori[0].sin(), ori[0].cos()),
             );
             let dir_vec = self.key_state.dir_vec();
-            self.controller.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
+            self.inputs.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-            self.controller.look_dir = cam_dir;
+            self.inputs.look_dir = cam_dir;
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_avg_delta()) {
