@@ -134,11 +134,13 @@ fn main() {
         .debug(Color::Green)
         .trace(Color::BrightBlack);
 
-    let base = fern::Dispatch::new() 
+    let base = fern::Dispatch::new()
         .level_for("dot_vox::parser", log::LevelFilter::Warn)
         .level_for("gfx_device_gl::factory", log::LevelFilter::Warn)
-        .level_for("veloren_voxygen::discord", log::LevelFilter::Warn)
-        .level_for("veloren_common::assets", log::LevelFilter::Warn);
+        .level_for("veloren_voxygen::discord", log::LevelFilter::Warn);
+    // TODO: Filter tracing better such that our own tracing gets seen more easily
+
+    let time = chrono::offset::Utc::now();
 
     let file_cfg = fern::Dispatch::new()
         .level(log::LevelFilter::Debug)
@@ -155,7 +157,10 @@ fn main() {
                 message
             ))
         })
-        .chain(fern::log_file("voxygen.log").expect("Failed to create log file!"));
+        .chain(
+            fern::log_file(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H")))
+                .expect("Failed to create log file!"),
+        );
 
     let stdout_cfg = fern::Dispatch::new()
         .level(term_log_level)
