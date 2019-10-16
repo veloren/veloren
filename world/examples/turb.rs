@@ -1,8 +1,6 @@
-use noise::{NoiseFn, Seedable, SuperSimplex};
-use rand::thread_rng;
-use std::ops::{Add, Mul, Sub};
+use noise::{Seedable, SuperSimplex};
+
 use vek::*;
-use veloren_world::sim::Settlement;
 
 const W: usize = 640;
 const H: usize = 640;
@@ -10,8 +8,8 @@ const H: usize = 640;
 fn main() {
     let mut win = minifb::Window::new("Turb", W, H, minifb::WindowOptions::default()).unwrap();
 
-    let nz_x = SuperSimplex::new().set_seed(0);
-    let nz_y = SuperSimplex::new().set_seed(1);
+    let _nz_x = SuperSimplex::new().set_seed(0);
+    let _nz_y = SuperSimplex::new().set_seed(1);
 
     let mut time = 0.0f64;
     while win.is_open() {

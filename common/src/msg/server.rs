@@ -28,6 +28,7 @@ pub enum ServerMsg {
         ecs_state: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
         entity_uid: u64,
         server_info: ServerInfo,
+        // world_map: Vec2<usize>, /*, Vec<u32>)*/
     },
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
     ForceState(ClientState),
