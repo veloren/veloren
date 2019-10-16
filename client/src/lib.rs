@@ -20,6 +20,7 @@ use common::{
     ChatType,
 };
 use hashbrown::HashMap;
+use image::DynamicImage;
 use log::warn;
 use std::{
     net::SocketAddr,
@@ -43,6 +44,7 @@ pub struct Client {
     client_state: ClientState,
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
+    pub world_map: Arc<DynamicImage>,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
 
@@ -67,11 +69,12 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity, server_info) = match postbox.next_message() {
+        let (state, entity, server_info, world_map) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,
                 server_info,
+                // world_map: /*(map_size, world_map)*/map_size,
             }) => {
                 // TODO: Voxygen should display this.
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
@@ -87,7 +90,24 @@ impl Client {
                     .ecs()
                     .entity_from_uid(entity_uid)
                     .ok_or(Error::ServerWentMad)?;
-                (state, entity, server_info)
+
+                // assert_eq!(world_map.len(), map_size.x * map_size.y);
+                let map_size = Vec2::new(1024, 1024);
+                let world_map_raw = vec![0u8; 4 * /*world_map.len()*/map_size.x * map_size.y];
+                // LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
+                log::info!("Preparing image...");
+                let world_map = Arc::new(image::DynamicImage::ImageRgba8({
+                    // Should not fail if the dimensions are correct.
+                    let world_map = image::ImageBuffer::from_raw(
+                        map_size.x as u32,
+                        map_size.y as u32,
+                        world_map_raw,
+                    );
+                    world_map.ok_or(Error::Other("Server sent a bad world map image".into()))?
+                }));
+                log::info!("Done preparing image...");
+
+                (state, entity, server_info, world_map)
             }
             Some(ServerMsg::Error(ServerError::TooManyPlayers)) => {
                 return Err(Error::TooManyPlayers)
@@ -107,6 +127,7 @@ impl Client {
             client_state,
             thread_pool,
             server_info,
+            world_map,
 
             postbox,
 
@@ -172,7 +193,7 @@ impl Client {
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
-        self.view_distance = Some(view_distance.max(1).min(25));
+        self.view_distance = Some(view_distance.max(1).min(65));
         self.postbox
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap()));
         // Can't fail

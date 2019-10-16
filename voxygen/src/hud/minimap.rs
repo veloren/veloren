@@ -3,6 +3,7 @@ use client::{self, Client};
 use common::comp;
 use conrod_core::{
     color,
+    image::Id,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -29,17 +30,25 @@ pub struct MiniMap<'a> {
     client: &'a Client,
 
     imgs: &'a Imgs,
+    _world_map: Id,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> MiniMap<'a> {
-    pub fn new(show: &'a Show, client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        show: &'a Show,
+        client: &'a Client,
+        imgs: &'a Imgs,
+        world_map: Id,
+        fonts: &'a Fonts,
+    ) -> Self {
         Self {
             show,
             client,
             imgs,
+            _world_map: world_map,
             fonts: fonts,
             common: widget::CommonBuilder::default(),
         }
@@ -88,7 +97,7 @@ impl<'a> Widget for MiniMap<'a> {
                 .mid_top_with_margin_on(state.ids.mmap_frame, 13.0 * 2.0 + 2.0)
                 .set(state.ids.mmap_frame_bg, ui);
             // Map Image
-            Image::new(self.imgs.map_placeholder)
+            Image::new(/*self.world_map*/ self.imgs.map_placeholder)
                 .middle_of(state.ids.mmap_frame_bg)
                 .w_h(92.0 * 2.0, 82.0 * 2.0)
                 .parent(state.ids.mmap_frame_bg)

@@ -69,16 +69,18 @@ impl World {
         let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-        let chunk_size2d = TerrainChunkSize::RECT_SIZE;
+        let _chunk_size2d = TerrainChunkSize::RECT_SIZE;
         let (base_z, sim_chunk) = match self
             .sim
-            .get_interpolated(
+            /*.get_interpolated(
                 chunk_pos.map2(chunk_size2d, |e, sz: u32| e * sz as i32 + sz as i32 / 2),
                 |chunk| chunk.get_base_z(),
             )
-            .and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk)))
+            .and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk))) */
+            .get_base_z(chunk_pos)
         {
-            Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
+            Some(base_z) => (base_z as i32, self.sim.get(chunk_pos).unwrap()),
+            // Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
             None => {
                 return Ok((
                     TerrainChunk::new(

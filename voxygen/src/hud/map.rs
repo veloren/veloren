@@ -3,6 +3,7 @@ use client::{self, Client};
 use common::comp;
 use conrod_core::{
     color,
+    image::Id,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -30,16 +31,24 @@ pub struct Map<'a> {
     _show: &'a Show,
     client: &'a Client,
 
+    _world_map: Id,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 impl<'a> Map<'a> {
-    pub fn new(show: &'a Show, client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        show: &'a Show,
+        client: &'a Client,
+        imgs: &'a Imgs,
+        world_map: Id,
+        fonts: &'a Fonts,
+    ) -> Self {
         Self {
             _show: show,
             imgs,
+            _world_map: world_map,
             client,
             fonts: fonts,
             common: widget::CommonBuilder::default(),
@@ -132,7 +141,7 @@ impl<'a> Widget for Map<'a> {
                 .set(state.ids.location_name, ui),
         }
         // Map Image
-        Image::new(self.imgs.map_placeholder)
+        Image::new(/*self.world_map*/ self.imgs.map_placeholder)
             .middle_of(state.ids.map_bg)
             .w_h(700.0, 700.0)
             .parent(state.ids.map_bg)
