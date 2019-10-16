@@ -98,7 +98,7 @@ impl Server {
         let mut state = State::default();
         state
             .ecs_mut()
-            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 190.0)));
+            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 600.0)));
         state
             .ecs_mut()
             .add_resource(EventBus::<ServerEvent>::default());
@@ -867,11 +867,14 @@ impl Server {
                 client.notify(ServerMsg::Error(ServerError::TooManyPlayers));
             } else {
                 // Return the state of the current world (all of the components that Sphynx tracks).
+                log::info!("Starting initial sync with client.");
                 client.notify(ServerMsg::InitialSync {
                     ecs_state: self.state.ecs().gen_state_package(),
                     entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
                     server_info: self.server_info.clone(),
+                    // world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
                 });
+                log::info!("Done initial sync with client.");
 
                 frontend_events.push(Event::ClientConnected { entity });
             }
