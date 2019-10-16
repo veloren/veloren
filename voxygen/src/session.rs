@@ -38,12 +38,13 @@ impl SessionState {
         scene
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
+        let hud = Hud::new(global_state, &client.borrow());
         Self {
             scene,
             client,
             key_state: KeyState::new(),
             controller: comp::Controller::default(),
-            hud: Hud::new(global_state),
+            hud,
             selected_block: Block::new(BlockKind::Normal, Rgb::broadcast(255)),
         }
     }

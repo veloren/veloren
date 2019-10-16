@@ -50,7 +50,7 @@ serde_derive = "1.0.98"
 ron = "0.5.1"
 guillotiere = "0.4.2"
 simplelog = "0.6.0"
-msgbox = { git = "https://github.com/bekker/msgbox-rs.git", optional = true }
+msgbox = { version = "0.4.0", optional = true }
 directories = "2.0.2"
 num = "0.2.0"
 backtrace = "0.3.33"
