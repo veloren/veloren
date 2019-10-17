@@ -44,6 +44,13 @@ impl Component for Mass {
 }
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Gravity(pub f32);
+
+impl Component for Gravity {
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+}
+
+#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sticky;
 
 impl Component for Sticky {

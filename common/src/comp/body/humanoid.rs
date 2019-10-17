@@ -77,23 +77,23 @@ pub const ALL_RACES: [Race; 6] = [
 ];
 
 // Hair Colors
-pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 16] = [
+pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 11] = [
     (198, 169, 113), // Philosopher's Grey
-    (245, 232, 175), // Cream Blonde
-    (228, 208, 147), // Gold Blonde
-    (228, 223, 141), // Platinum Blonde
-    (199, 131, 58),  // Summer Blonde
-    (107, 76, 51),   // Oak Brown
-    (203, 154, 98),  // Light Brown
-    (64, 32, 18),    // Chocolate Brown
-    (86, 72, 71),    // Ash Brown
-    (57, 56, 61),    // Raven Black
-    (101, 83, 95),   // Matte Purple
-    (101, 57, 90),   // Witch Purple
-    (107, 32, 60),   // Grape Purple
-    (135, 38, 39),   // Dark Red
-    (88, 26, 29),    // Wine Red
-    (146, 32, 32),   // Autumn Red
+    //(245, 232, 175), // Cream Blonde
+    //(228, 208, 147), // Gold Blonde
+    //(228, 223, 141), // Platinum Blonde
+    (199, 131, 58), // Summer Blonde
+    (107, 76, 51),  // Oak Brown
+    //(203, 154, 98),  // Light Brown
+    (64, 32, 18),  // Chocolate Brown
+    (86, 72, 71),  // Ash Brown
+    (57, 56, 61),  // Raven Black
+    (101, 83, 95), // Matte Purple
+    (101, 57, 90), // Witch Purple
+    (107, 32, 60), // Grape Purple
+    (135, 38, 39), // Dark Red
+    (88, 26, 29),  // Wine Red
+                   //(146, 32, 32), // Autumn Red
 ];
 pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 20] = [
     (245, 232, 175), // Cream Blonde
@@ -165,24 +165,24 @@ pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
 ];
-pub const ORC_HAIR_COLORS: [(u8, u8, u8); 12] = [
-    (66, 66, 59),   // Wise Grey
-    (107, 76, 51),  // Oak Brown
-    (203, 154, 98), // Light Brown
-    (64, 32, 18),   // Chocolate Brown
-    (54, 30, 26),   // Dark Chocolate
-    (86, 72, 71),   // Ash Brown
-    (57, 56, 61),   // Raven Black
-    (101, 83, 95),  // Matte Purple
-    (101, 57, 90),  // Witch Purple
-    (135, 38, 39),  // Dark Red
-    (88, 26, 29),   // Wine Red
-    (66, 83, 113),  // Mysterious Blue
+pub const ORC_HAIR_COLORS: [(u8, u8, u8); 10] = [
+    (66, 66, 59), // Wise Grey
+    //(107, 76, 51),  // Oak Brown
+    //(203, 154, 98), // Light Brown
+    (64, 32, 18),  // Chocolate Brown
+    (54, 30, 26),  // Dark Chocolate
+    (86, 72, 71),  // Ash Brown
+    (57, 56, 61),  // Raven Black
+    (101, 83, 95), // Matte Purple
+    (101, 57, 90), // Witch Purple
+    (135, 38, 39), // Dark Red
+    (88, 26, 29),  // Wine Red
+    (66, 83, 113), // Mysterious Blue
 ];
-pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 24] = [
-    (245, 232, 175), // Cream Blonde
+pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 21] = [
+    //(245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
-    (228, 223, 141), // Platinum Blonde
+    //(228, 223, 141), // Platinum Blonde
     (199, 131, 58),  // Summer Blonde
     (107, 76, 51),   // Oak Brown
     (203, 154, 98),  // Light Brown
@@ -198,7 +198,7 @@ pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 24] = [
     (92, 80, 144),   // Kingfisher Blue
     (146, 198, 238), // Lagoon Blue
     (66, 66, 59),    // Decayed Grey
-    (224, 182, 184), // Candy Pink
+    //(224, 182, 184), // Candy Pink
     (174, 148, 161), // Matte Pink
     (0, 131, 122),   // Rotten Green
     (163, 186, 192), // Matte Green
@@ -330,8 +330,8 @@ impl Race {
     }
     pub fn num_hair_styles(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
-            (Race::Danari, BodyType::Female) => 1,
-            (Race::Danari, BodyType::Male) => 1,
+            (Race::Danari, BodyType::Female) => 2,
+            (Race::Danari, BodyType::Male) => 2,
             (Race::Dwarf, BodyType::Female) => 1,
             (Race::Dwarf, BodyType::Male) => 3,
             (Race::Elf, BodyType::Female) => 21,
@@ -363,7 +363,7 @@ impl Race {
     pub fn num_beards(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
             (Race::Danari, BodyType::Female) => 1,
-            (Race::Danari, BodyType::Male) => 1,
+            (Race::Danari, BodyType::Male) => 2,
             (Race::Dwarf, BodyType::Female) => 1,
             (Race::Dwarf, BodyType::Male) => 20,
             (Race::Elf, BodyType::Female) => 1,

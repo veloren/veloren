@@ -133,6 +133,7 @@ impl State {
         ecs.register_synced::<comp::MountState>();
         ecs.register_synced::<comp::Mass>();
         ecs.register_synced::<comp::Sticky>();
+        ecs.register_synced::<comp::Gravity>();
         ecs.register_synced::<comp::Projectile>();
 
         // Register components send from clients -> server
