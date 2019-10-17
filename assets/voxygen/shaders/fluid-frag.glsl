@@ -14,6 +14,8 @@ uniform u_locals {
 	float load_time;
 };
 
+uniform sampler2D t_waves;
+
 out vec4 tgt_color;
 
 #include <sky.glsl>
@@ -46,7 +48,25 @@ void main() {
 	hex_pos = floor(hex_pos);
 	*/
 
-	vec3 norm = warp_normal(f_norm, f_pos, tick.x);
+	vec3 b_norm;
+	if (f_norm.z > 0.0) {
+		b_norm = vec3(1, 0, 0);
+	} else if (f_norm.x > 0.0) {
+		b_norm = vec3(0, 1, 0);
+	} else {
+		b_norm = vec3(0, 0, 1);
+	}
+	vec3 c_norm = cross(f_norm, b_norm);
+
+	vec3 nmap = normalize(
+		(texture(t_waves, fract(f_pos.xy * 0.3 + tick.x * 0.04)).rgb - 0.0) * 0.05
+		+ (texture(t_waves, fract(f_pos.xy * 0.1 - tick.x * 0.08)).rgb - 0.0) * 0.1
+		+ (texture(t_waves, fract(-f_pos.yx * 0.06 - tick.x * 0.1)).rgb - 0.0) * 0.1
+		+ (texture(t_waves, fract(-f_pos.yx * 0.03 - tick.x * 0.01)).rgb - 0.0) * 0.2
+		+ vec3(0, 0, 0.1)
+	);
+
+	vec3 norm = f_norm * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
 
 	vec3 light, diffuse_light, ambient_light;
 	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
@@ -67,10 +87,11 @@ void main() {
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
 
 	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, false) * f_light;
+	//reflect_color = vec3(reflect_color.r + reflect_color.g + reflect_color.b) / 3.0;
 	// 0 = 100% reflection, 1 = translucent water
-	float passthrough = pow(dot(faceforward(norm, norm, cam_to_frag), -cam_to_frag), 1.0);
+	float passthrough = pow(dot(faceforward(norm, norm, cam_to_frag), -cam_to_frag), 0.5);
 
-	vec4 color = mix(vec4(reflect_color, 1.0), vec4(surf_color, 3.0 / (1.0 + diffuse_light * 2.0)), passthrough);
+	vec4 color = mix(vec4(reflect_color, 1.0), vec4(surf_color, 4.0 / (1.0 + diffuse_light * 2.0)), passthrough);
 
     tgt_color = mix(color, vec4(fog_color, 0.0), fog_level);
 }

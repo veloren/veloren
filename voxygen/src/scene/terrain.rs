@@ -2,7 +2,7 @@ use crate::{
     mesh::Meshable,
     render::{
         Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, Shadow,
-        SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline,
+        SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline, Texture,
     },
 };
 
@@ -208,6 +208,7 @@ pub struct Terrain<V: RectRasterableVol> {
 
     // GPU data
     sprite_models: HashMap<(BlockKind, usize), Model<SpritePipeline>>,
+    waves: Texture<FluidPipeline>,
 
     phantom: PhantomData<V>,
 }
@@ -656,6 +657,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             ]
             .into_iter()
             .collect(),
+            waves: renderer
+                .create_texture(
+                    &assets::load_expect("voxygen.texture.waves"),
+                    Some(gfx::texture::FilterMethod::Bilinear),
+                    Some(gfx::texture::WrapMode::Tile),
+                )
+                .expect("Failed to create wave texture"),
             phantom: PhantomData,
         }
     }
@@ -1024,7 +1032,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .map(|model| (model, &chunk.locals))
             })
             .for_each(|(model, locals)| {
-                renderer.render_fluid_chunk(model, globals, locals, lights, shadows)
+                renderer.render_fluid_chunk(model, globals, locals, lights, shadows, &self.waves)
             });
     }
 }
