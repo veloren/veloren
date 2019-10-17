@@ -1,37 +1,30 @@
 ({
     Blue: (
         vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
-        recolor: true,
         color: Some((44, 74, 109))
     ),
     Brown: (
         vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
-        recolor: true,
         color: Some((90, 49, 43))
     ),
     Dark: (
         vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
-        recolor: true,
         color: Some((73, 63, 59))
     ),
     Green: (
         vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
-        recolor: true,
         color: Some((59, 95, 67))
     ),
     Orange: (
         vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
-        recolor: true,
         color: Some((109, 58, 58))
     ),
     Midnight: (
         vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
-        recolor: true,
         color: Some((29, 26, 33))
     ),
     Kimono: (
         vox_spec: ("armor.chest.cloth_red_kimono", (-7.0, -3.5, 2.0)),
-        recolor: false,
         color: None
     )
 })
