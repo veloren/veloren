@@ -24,8 +24,7 @@ pub enum ServerEvent {
     },
     Damage {
         uid: Uid,
-        dmg: u32,
-        cause: comp::HealthSource,
+        change: comp::HealthChange,
     },
     Destroy {
         entity: EcsEntity,
@@ -38,6 +37,7 @@ pub enum ServerEvent {
         body: comp::Body,
         light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,
+        gravity: Option<comp::Gravity>,
     },
     LandOnGround {
         entity: EcsEntity,
