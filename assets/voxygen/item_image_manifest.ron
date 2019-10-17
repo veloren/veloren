@@ -3,7 +3,11 @@
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
 ({  // Debug Items
     Debug(Boost): VoxTrans(
-        "voxel.weapon.debug_wand",
+        "voxel.weapon.debug_wand-0",
+        (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
+    ),
+    Debug(Possess): VoxTrans(
+        "voxel.weapon.debug_wand-1",
         (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
     ),
     // Weapons
@@ -27,6 +31,14 @@
         "voxel.weapon.hammer.rusty_2h",
         (0.0, -8.0, 0.0), (-90.0, 90.0, 0.0), 2.0,
     ),
+    Tool(Staff): VoxTrans(
+        "voxel.weapon.staff.wood-0",
+        (0.0, -9.0, 0.0), (90.0, 90.0, 0.0), 2.5,
+    ),
+    Tool(Shield): VoxTrans(
+        "voxel.weapon.shield.wood-0",
+        (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
+    ),
     // Consumables
     Consumable(Apple): VoxTrans(
         "element.icons.item_apple",
@@ -42,6 +54,10 @@
     ),
     Consumable(Velorite): VoxTrans(
         "voxel.sprite.velorite.velorite_ore",
+        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Consumable(VeloriteFrag): VoxTrans(
+        "voxel.sprite.velorite.velorite_1",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     // Ingredients

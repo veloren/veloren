@@ -1,6 +1,6 @@
 use {
     crate::{
-        comp::{Body, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
+        comp::{Body, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
         event::{EventBus, ServerEvent},
         state::DeltaTime,
         terrain::{Block, TerrainGrid},
@@ -49,6 +49,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Sticky>,
         ReadStorage<'a, Mass>,
+        ReadStorage<'a, Gravity>,
         ReadStorage<'a, Body>,
         WriteStorage<'a, PhysicsState>,
         WriteStorage<'a, Pos>,
@@ -68,6 +69,7 @@ impl<'a> System<'a> for Sys {
             scales,
             stickies,
             masses,
+            gravities,
             bodies,
             mut physics_states,
             mut positions,
@@ -130,7 +132,7 @@ impl<'a> System<'a> for Sys {
                 (1.0 - BOUYANCY) * GRAVITY
             } else {
                 GRAVITY
-            };
+            } * gravities.get(entity).map(|g| g.0).unwrap_or_default();
             vel.0 = integrate_forces(dt.0, vel.0, downward_force, friction);
 
             // Don't move if we're not in a loaded chunk

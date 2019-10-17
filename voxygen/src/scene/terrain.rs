@@ -82,7 +82,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         }),
 
         BlockKind::BlueFlower => Some(SpriteConfig {
-            variations: 6,
+            variations: 7,
             wind_sway: 0.1,
         }),
         BlockKind::PinkFlower => Some(SpriteConfig {
@@ -90,7 +90,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.1,
         }),
         BlockKind::RedFlower => Some(SpriteConfig {
-            variations: 2,
+            variations: 3,
             wind_sway: 0.1,
         }),
         BlockKind::WhiteFlower => Some(SpriteConfig {
@@ -133,6 +133,10 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         }),
         BlockKind::Velorite => Some(SpriteConfig {
             variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::VeloriteFrag => Some(SpriteConfig {
+            variations: 10,
             wind_sway: 0.0,
         }),
         BlockKind::Chest => Some(SpriteConfig {
@@ -332,6 +336,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 (
+                    (BlockKind::BlueFlower, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_blue_7",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
                     (BlockKind::PinkFlower, 0),
                     make_model(
                         "voxygen.voxel.sprite.flowers.flower_pink_1",
@@ -377,6 +388,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::RedFlower, 1),
                     make_model(
                         "voxygen.voxel.sprite.flowers.flower_red_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::RedFlower, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_red_3",
                         Vec3::new(-6.0, -6.0, 0.0),
                     ),
                 ),
@@ -624,6 +642,76 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.velorite.velorite_ore",
                         Vec3::new(-5.0, -5.0, -5.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_1",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_2",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_3",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_4",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_5",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_6",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_7",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_8",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_9",
+                        Vec3::new(-3.0, -5.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::VeloriteFrag, 9),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite_10",
+                        Vec3::new(-3.0, -5.0, 0.0),
                     ),
                 ),
                 (
