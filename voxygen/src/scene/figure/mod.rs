@@ -104,11 +104,11 @@ impl FigureMgr {
 
             // Change in health as color!
             let col = stats
-                .and_then(|stats| stats.health.last_change)
-                .map(|(_, time, _)| {
+                .map(|s| {
                     Rgba::broadcast(1.0)
-                        + Rgba::new(2.0, 2.0, 2.0, 0.0)
-                            .map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
+                        + Rgba::new(2.0, 2.0, 2.0, 0.0).map(|c| {
+                            (c / (1.0 + DAMAGE_FADE_COEFFICIENT * s.health.last_change.0)) as f32
+                        })
                 })
                 .unwrap_or(Rgba::broadcast(1.0));
 

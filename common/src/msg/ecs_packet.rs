@@ -31,6 +31,7 @@ sphynx::sum_type! {
         Mounting(comp::Mounting),
         Mass(comp::Mass),
         Projectile(comp::Projectile),
+        Gravity(comp::Gravity),
         Sticky(comp::Sticky),
     }
 }
@@ -53,6 +54,7 @@ sphynx::sum_type! {
         Mounting(PhantomData<comp::Mounting>),
         Mass(PhantomData<comp::Mass>),
         Projectile(PhantomData<comp::Projectile>),
+        Gravity(PhantomData<comp::Gravity>),
         Sticky(PhantomData<comp::Sticky>),
     }
 }

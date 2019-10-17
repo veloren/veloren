@@ -1,5 +1,5 @@
 use crate::{
-    comp::{projectile, HealthSource, Ori, PhysicsState, Projectile, Vel},
+    comp::{projectile, /*HealthChange,*/ HealthSource, Ori, PhysicsState, Projectile, Vel},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
@@ -70,25 +70,15 @@ impl<'a> System<'a> for Sys {
             else if let Some(other) = physics.touch_entity {
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
-                        projectile::Effect::Damage(power) => {
-                            server_emitter.emit(ServerEvent::Damage {
-                                uid: other,
-                                dmg: power,
-                                cause: match projectile.owner {
-                                    Some(uid) => HealthSource::Attack { by: uid },
-                                    None => HealthSource::Unknown,
-                                },
-                            })
+                        projectile::Effect::Damage(change) => {
+                            server_emitter.emit(ServerEvent::Damage { uid: other, change })
                         }
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
                         }),
-                        projectile::Effect::Possess => {
-                            if let Some(uid) = projectile.owner {
-                                server_emitter.emit(ServerEvent::Possess(uid.into(), other))
-                            }
-                        }
+                        projectile::Effect::Possess => server_emitter
+                            .emit(ServerEvent::Possess(projectile.owner.into(), other)),
                         _ => {}
                     }
                 }

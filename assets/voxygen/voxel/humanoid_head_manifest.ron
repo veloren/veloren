@@ -7,10 +7,9 @@
             Some(("figure.hair.human.male-0", (1, 1, 1))),
             Some(("figure.hair.human.male-1", (1, 1, 1))),
             Some(("figure.hair.human.male-2", (0, -1, 0))),
-            Some(("figure.hair.human.male-3", (0, -1, 0))),
+            Some(("figure.hair.human.male-3", (0, -1, 0))),            
         ],
-        beard: [
-            None,
+        beard: [            
             Some(("figure.beard.human.human-0", (4, 6, -2))),
             Some(("figure.beard.human.human-1", (5, 10, -2))),
         ],
@@ -206,10 +205,12 @@
         head: ("figure.head.danari.male", (0, 2, 2)),
         eyes: ("figure.eyes.danari.male-0", (5, 9, 4)),
         hair: [
-            Some(("figure.hair.danari.male", (3, 1, 2))),
-            Some(("figure.hair.danari.male", (3, 1, 2))),
+            Some(("figure.hair.danari.male-0", (3, 1, 2))),
+            Some(("figure.hair.danari.male-1", (3, 1, 2))),
         ],  
-        beard: [None],
+        beard: [
+            Some(("figure.beard.danari.danari-0", (4, 6, -1))),
+            ],
         accessory: [            
             Some(("figure.accessory.danari.horns-0", (4, 8, 8))),]
     ),	
@@ -218,8 +219,8 @@
         head: ("figure.head.danari.female", (0, 2, 2)),
         eyes: ("figure.eyes.danari.female-0", (4, 9, 4)),
         hair: [
-            Some(("figure.hair.danari.female", (3, -4, 1))),
-            Some(("figure.hair.danari.female", (3, -4, 1))),
+            Some(("figure.hair.danari.female-0", (3, -4, 1))),
+            Some(("figure.hair.danari.female-1", (1, 1, 3))),
         ],
         beard: [None],
         accessory: [            

@@ -1,3 +1,4 @@
+use crate::comp;
 use crate::state::Uid;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
@@ -5,7 +6,7 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Effect {
-    Damage(u32),
+    Damage(comp::HealthChange),
     Vanish,
     Stick,
     Possess,
@@ -13,7 +14,7 @@ pub enum Effect {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Projectile {
-    pub owner: Option<Uid>,
+    pub owner: Uid,
     pub hit_ground: Vec<Effect>,
     pub hit_wall: Vec<Effect>,
     pub hit_entity: Vec<Effect>,

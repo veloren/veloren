@@ -1,5 +1,8 @@
 use crate::{
-    comp::{item::Item, ActionState::*, CharacterState, Controller, HealthSource, Ori, Pos, Stats},
+    comp::{
+        item::Item, ActionState::*, CharacterState, Controller, HealthChange, HealthSource, Ori,
+        Pos, Stats,
+    },
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Uid},
 };
@@ -109,7 +112,7 @@ impl<'a> System<'a> for Sys {
                             // Weapon gives base damage
                             let mut dmg =
                                 if let Some(Item::Tool { power, .. }) = stat.equipment.main {
-                                    power
+                                    power as i32
                                 } else {
                                     1
                                 };
@@ -119,13 +122,15 @@ impl<'a> System<'a> for Sys {
                                 && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees()
                                     < BLOCK_ANGLE / 2.0
                             {
-                                dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
+                                dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
                             }
 
                             server_emitter.emit(ServerEvent::Damage {
                                 uid: *uid_b,
-                                dmg,
-                                cause: HealthSource::Attack { by: *uid },
+                                change: HealthChange {
+                                    amount: -dmg,
+                                    cause: HealthSource::Attack { by: *uid },
+                                },
                             });
                         }
                     }

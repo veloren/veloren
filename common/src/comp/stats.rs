@@ -3,6 +3,12 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HealthChange {
+    pub amount: i32,
+    pub cause: HealthSource,
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
     Suicide,
@@ -24,7 +30,7 @@ pub enum EnergySource {
 pub struct Health {
     current: u32,
     maximum: u32,
-    pub last_change: Option<(i32, f64, HealthSource)>,
+    pub last_change: (f64, HealthChange),
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -63,13 +69,19 @@ impl Health {
 
     pub fn set_to(&mut self, amount: u32, cause: HealthSource) {
         let amount = amount.min(self.maximum);
-        self.last_change = Some((amount as i32 - self.current as i32, 0.0, cause));
+        self.last_change = (
+            0.0,
+            HealthChange {
+                amount: amount as i32 - self.current as i32,
+                cause,
+            },
+        );
         self.current = amount;
     }
 
-    pub fn change_by(&mut self, amount: i32, cause: HealthSource) {
-        self.current = ((self.current as i32 + amount).max(0) as u32).min(self.maximum);
-        self.last_change = Some((amount, 0.0, cause));
+    pub fn change_by(&mut self, change: HealthChange) {
+        self.current = ((self.current as i32 + change.amount).max(0) as u32).min(self.maximum);
+        self.last_change = (0.0, change);
     }
 
     pub fn set_maximum(&mut self, amount: u32) {
@@ -179,7 +191,13 @@ impl Stats {
             health: Health {
                 current: 0,
                 maximum: 0,
-                last_change: None,
+                last_change: (
+                    0.0,
+                    HealthChange {
+                        amount: 0,
+                        cause: HealthSource::Revive,
+                    },
+                ),
             },
             level: Level { amount: 1 },
             exp: Exp {
