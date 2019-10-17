@@ -3,7 +3,6 @@ use crate::{
     event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
-use log::warn;
 use specs::{Entities, Join, Read, System, WriteStorage};
 
 /// This system kills players
@@ -23,21 +22,13 @@ impl<'a> System<'a> for Sys {
             if stat.should_die() && !stat.is_dead {
                 event_emitter.emit(ServerEvent::Destroy {
                     entity,
-                    cause: match stat.health.last_change {
-                        Some(change) => change.2,
-                        None => {
-                            warn!("Nothing caused an entity to die!");
-                            HealthSource::Unknown
-                        }
-                    },
+                    cause: stat.health.last_change.1.cause,
                 });
 
                 stat.is_dead = true;
             }
 
-            if let Some(change) = &mut stat.health.last_change {
-                change.1 += f64::from(dt.0);
-            }
+            stat.health.last_change.0 += f64::from(dt.0);
 
             if stat.exp.current() >= stat.exp.maximum() {
                 while stat.exp.current() >= stat.exp.maximum() {

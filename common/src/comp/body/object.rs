@@ -51,6 +51,8 @@ pub enum Body {
     CarpetHumanSquircle,
     Pouch,
     CraftingBench,
+    BoltFire,
+    ArrowSnake,
 }
 
 impl Body {
@@ -60,7 +62,7 @@ impl Body {
     }
 }
 
-const ALL_OBJECTS: [Body; 48] = [
+const ALL_OBJECTS: [Body; 50] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -109,4 +111,6 @@ const ALL_OBJECTS: [Body; 48] = [
     Body::CarpetHumanSquare2,
     Body::CarpetHumanSquircle,
     Body::CraftingBench,
+    Body::BoltFire,
+    Body::ArrowSnake,
 ];

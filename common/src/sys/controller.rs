@@ -5,7 +5,7 @@ use super::{
 use crate::{
     comp::{
         self, item, projectile, ActionState::*, Body, CharacterState, ControlEvent, Controller,
-        Item, MovementState::*, PhysicsState, Projectile, Stats, Vel,
+        HealthChange, HealthSource, Item, MovementState::*, PhysicsState, Projectile, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
@@ -46,15 +46,16 @@ impl<'a> System<'a> for Sys {
             bodies,
             velocities,
             physics_states,
-            uid,
+            uids,
             mut character_states,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
 
-        for (entity, controller, stats, body, vel, physics, mut character) in (
+        for (entity, uid, controller, stats, body, vel, physics, mut character) in (
             &entities,
+            &uids,
             &mut controllers,
             &stats,
             &bodies,
@@ -131,6 +132,7 @@ impl<'a> System<'a> for Sys {
             match stats.equipment.main {
                 Some(Item::Tool {
                     kind: item::Tool::Bow,
+                    power,
                     ..
                 }) => {
                     if controller.primary
@@ -147,15 +149,81 @@ impl<'a> System<'a> for Sys {
                                     dir: controller.look_dir,
                                     body: comp::Body::Object(comp::object::Body::Arrow),
                                     light: None,
+                                    gravity: Some(comp::Gravity(0.3)),
                                     projectile: Projectile {
-                                        owner: uid.get(entity).copied(),
+                                        owner: *uid,
                                         hit_ground: vec![projectile::Effect::Stick],
                                         hit_wall: vec![projectile::Effect::Stick],
                                         hit_entity: vec![
-                                            projectile::Effect::Damage(10),
+                                            projectile::Effect::Damage(HealthChange {
+                                                amount: -(power as i32),
+                                                cause: HealthSource::Attack { by: *uid },
+                                            }),
                                             projectile::Effect::Vanish,
                                         ],
-                                        time_left: Duration::from_secs(60 * 5),
+                                        time_left: Duration::from_secs(30),
+                                    },
+                                });
+                            }
+                        }
+                    }
+                }
+                Some(Item::Tool {
+                    kind: item::Tool::Staff,
+                    power,
+                    ..
+                }) => {
+                    // Melee Attack
+                    if controller.primary
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                    {
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                character.action = Attack {
+                                    time_left: ATTACK_DURATION,
+                                    applied: false,
+                                };
+                            }
+                        }
+                    }
+                    // Magical Bolt
+                    if controller.secondary
+                        && (
+                            character.movement == Stand
+                            //|| character.movement == Run
+                            //|| character.movement == Jump
+                        )
+                    {
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                character.action = Attack {
+                                    time_left: ATTACK_DURATION,
+                                    applied: false,
+                                };
+                                server_emitter.emit(ServerEvent::Shoot {
+                                    entity,
+                                    dir: controller.look_dir,
+                                    body: comp::Body::Object(comp::object::Body::BoltFire),
+                                    gravity: Some(comp::Gravity(0.0)),
+                                    light: Some(comp::LightEmitter {
+                                        col: (0.72, 0.11, 0.11).into(),
+                                        strength: 10.0,
+                                        offset: Vec3::new(0.0, -5.0, 2.0),
+                                    }),
+                                    projectile: Projectile {
+                                        owner: *uid,
+                                        hit_ground: vec![projectile::Effect::Vanish],
+                                        hit_wall: vec![projectile::Effect::Vanish],
+                                        hit_entity: vec![
+                                            projectile::Effect::Damage(HealthChange {
+                                                amount: -(power as i32),
+                                                cause: HealthSource::Attack { by: *uid },
+                                            }),
+                                            projectile::Effect::Vanish,
+                                        ],
+                                        time_left: Duration::from_secs(5),
                                     },
                                 });
                             }
@@ -220,25 +288,39 @@ impl<'a> System<'a> for Sys {
                                 character.action = Idle;
                                 server_emitter.emit(ServerEvent::Shoot {
                                     entity,
+                                    gravity: Some(comp::Gravity(0.1)),
                                     dir: controller.look_dir,
-                                    body: comp::Body::Object(comp::object::Body::PotionRed),
+                                    body: comp::Body::Object(comp::object::Body::ArrowSnake),
                                     light: Some(comp::LightEmitter {
                                         col: (0.0, 1.0, 0.3).into(),
                                         ..Default::default()
                                     }),
                                     projectile: Projectile {
-                                        owner: uid.get(entity).copied(),
-                                        hit_ground: vec![projectile::Effect::Vanish],
-                                        hit_wall: vec![projectile::Effect::Vanish],
+                                        owner: *uid,
+                                        hit_ground: vec![projectile::Effect::Stick],
+                                        hit_wall: vec![projectile::Effect::Stick],
                                         hit_entity: vec![
-                                            projectile::Effect::Vanish,
+                                            projectile::Effect::Stick,
                                             projectile::Effect::Possess,
                                         ],
-                                        time_left: Duration::from_secs(60 * 5),
+                                        time_left: Duration::from_secs(10),
                                     },
                                 });
                             }
                         }
+                    }
+                    // Block
+                    if controller.secondary
+                        && (character.movement == Stand || character.movement == Run)
+                        && character.action.is_wield()
+                    {
+                        character.action = Block {
+                            time_left: Duration::from_secs(5),
+                        };
+                    } else if !controller.secondary && character.action.is_block() {
+                        character.action = Wield {
+                            time_left: Duration::default(),
+                        };
                     }
                 }
                 None => {

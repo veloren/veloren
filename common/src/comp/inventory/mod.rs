@@ -69,52 +69,11 @@ impl Inventory {
 impl Default for Inventory {
     fn default() -> Inventory {
         let mut inventory = Inventory {
-            slots: vec![None; 24],
+            slots: vec![None; 25],
         };
 
         inventory.push(Item::Debug(Debug::Boost));
         inventory.push(Item::Debug(Debug::Possess));
-        inventory.push(Item::Tool {
-            kind: Tool::Bow,
-            power: 10,
-            stamina: 0,
-            strength: 0,
-            dexterity: 0,
-            intelligence: 0,
-        });
-        inventory.push(Item::Tool {
-            kind: Tool::Dagger,
-            power: 10,
-            stamina: 0,
-            strength: 0,
-            dexterity: 0,
-            intelligence: 0,
-        });
-        inventory.push(Item::Tool {
-            kind: Tool::Sword,
-            power: 10,
-            stamina: 0,
-            strength: 0,
-            dexterity: 0,
-            intelligence: 0,
-        });
-        inventory.push(Item::Tool {
-            kind: Tool::Axe,
-            power: 10,
-            stamina: 0,
-            strength: 0,
-            dexterity: 0,
-            intelligence: 0,
-        });
-        inventory.push(Item::Tool {
-            kind: Tool::Hammer,
-            power: 10,
-            stamina: 0,
-            strength: 0,
-            dexterity: 0,
-            intelligence: 0,
-        });
-
         inventory
     }
 }
