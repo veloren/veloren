@@ -45,6 +45,7 @@ optional-debug:linux:
             - veloren-server-cli
             - veloren-voxygen
             - assets/
+            - LICENSE
         expire_in: 1 week
 
 optional-debug:windows:
@@ -63,6 +64,7 @@ optional-debug:windows:
             - veloren-server-cli.exe
             - veloren-voxygen.exe
             - assets/
+            - LICENSE
         expire_in: 1 week
 
 .optional-release: &optional-release
@@ -89,6 +91,7 @@ optional-release:linux:
             - veloren-server-cli
             - veloren-voxygen
             - assets/
+            - LICENSE
         expire_in: 1 week
 
 optional-release:windows:
@@ -107,6 +110,7 @@ optional-release:windows:
             - veloren-server-cli.exe
             - veloren-voxygen.exe
             - assets/
+            - LICENSE
         expire_in: 1 week
 
 # --
