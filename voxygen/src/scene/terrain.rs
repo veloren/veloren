@@ -2,7 +2,7 @@ use crate::{
     mesh::Meshable,
     render::{
         Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, Shadow,
-        SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline,
+        SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline, Texture,
     },
 };
 
@@ -10,7 +10,7 @@ use client::Client;
 use common::{
     assets,
     figure::Segment,
-    terrain::{Block, BlockKind},
+    terrain::{Block, BlockKind, TerrainChunk},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, Vox},
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
@@ -21,11 +21,11 @@ use hashbrown::HashMap;
 use std::{f32, fmt::Debug, i32, marker::PhantomData, ops::Mul, time::Duration};
 use vek::*;
 
-struct TerrainChunk {
+struct TerrainChunkData {
     // GPU data
     load_time: f32,
     opaque_model: Model<TerrainPipeline>,
-    fluid_model: Model<FluidPipeline>,
+    fluid_model: Option<Model<FluidPipeline>>,
     sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
 
@@ -198,7 +198,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
 }
 
 pub struct Terrain<V: RectRasterableVol> {
-    chunks: HashMap<Vec2<i32>, TerrainChunk>,
+    chunks: HashMap<Vec2<i32>, TerrainChunkData>,
 
     // The mpsc sender and receiver used for talking to meshing worker threads.
     // We keep the sender component for no reason other than to clone it and send it to new workers.
@@ -208,6 +208,7 @@ pub struct Terrain<V: RectRasterableVol> {
 
     // GPU data
     sprite_models: HashMap<(BlockKind, usize), Model<SpritePipeline>>,
+    waves: Texture<FluidPipeline>,
 
     phantom: PhantomData<V>,
 }
@@ -656,6 +657,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             ]
             .into_iter()
             .collect(),
+            waves: renderer
+                .create_texture(
+                    &assets::load_expect("voxygen.texture.waves"),
+                    Some(gfx::texture::FilterMethod::Bilinear),
+                    Some(gfx::texture::WrapMode::Tile),
+                )
+                .expect("Failed to create wave texture"),
             phantom: PhantomData,
         }
     }
@@ -862,14 +870,20 @@ impl<V: RectRasterableVol> Terrain<V> {
                         .unwrap_or(current_time as f32);
                     self.chunks.insert(
                         response.pos,
-                        TerrainChunk {
+                        TerrainChunkData {
                             load_time,
                             opaque_model: renderer
                                 .create_model(&response.opaque_mesh)
                                 .expect("Failed to upload chunk mesh to the GPU!"),
-                            fluid_model: renderer
-                                .create_model(&response.fluid_mesh)
-                                .expect("Failed to upload chunk mesh to the GPU!"),
+                            fluid_model: if response.fluid_mesh.vertices().len() > 0 {
+                                Some(
+                                    renderer
+                                        .create_model(&response.fluid_mesh)
+                                        .expect("Failed to upload chunk mesh to the GPU!"),
+                                )
+                            } else {
+                                None
+                            },
                             sprite_instances: response
                                 .sprite_instances
                                 .into_iter()
@@ -954,8 +968,25 @@ impl<V: RectRasterableVol> Terrain<V> {
         shadows: &Consts<Shadow>,
         focus_pos: Vec3<f32>,
     ) {
+        let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
+            (e as i32).div_euclid(sz as i32)
+        });
+
+        let chunks = &self.chunks;
+        let chunk_iter = Spiral2d::new()
+            .scan(0, |n, rpos| {
+                if *n >= chunks.len() {
+                    None
+                } else {
+                    *n += 1;
+                    let pos = focus_chunk + rpos;
+                    Some(chunks.get(&pos).map(|c| (pos, c)))
+                }
+            })
+            .filter_map(|x| x);
+
         // Opaque
-        for (_, chunk) in &self.chunks {
+        for (_, chunk) in chunk_iter.clone() {
             if chunk.visible {
                 renderer.render_terrain_chunk(
                     &chunk.opaque_model,
@@ -968,7 +999,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         }
 
         // Terrain sprites
-        for (pos, chunk) in &self.chunks {
+        for (pos, chunk) in chunk_iter.clone() {
             if chunk.visible {
                 const SPRITE_RENDER_DISTANCE: f32 = 128.0;
 
@@ -991,16 +1022,53 @@ impl<V: RectRasterableVol> Terrain<V> {
         }
 
         // Translucent
-        for (_, chunk) in &self.chunks {
-            if chunk.visible {
-                renderer.render_fluid_chunk(
-                    &chunk.fluid_model,
-                    globals,
-                    &chunk.locals,
-                    lights,
-                    shadows,
-                );
-            }
+        chunk_iter
+            .clone()
+            .filter(|(_, chunk)| chunk.visible)
+            .filter_map(|(_, chunk)| {
+                chunk
+                    .fluid_model
+                    .as_ref()
+                    .map(|model| (model, &chunk.locals))
+            })
+            .for_each(|(model, locals)| {
+                renderer.render_fluid_chunk(model, globals, locals, lights, shadows, &self.waves)
+            });
+    }
+}
+
+#[derive(Clone)]
+struct Spiral2d {
+    layer: i32,
+    i: i32,
+}
+
+impl Spiral2d {
+    pub fn new() -> Self {
+        Self { layer: 0, i: 0 }
+    }
+}
+
+impl Iterator for Spiral2d {
+    type Item = Vec2<i32>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let layer_size = (self.layer * 8 + 4 * self.layer.min(1) - 4).max(1);
+        if self.i >= layer_size {
+            self.layer += 1;
+            self.i = 0;
         }
+        let layer_size = (self.layer * 8 + 4 * self.layer.min(1) - 4).max(1);
+
+        let pos = Vec2::new(
+            -self.layer + (self.i - (layer_size / 4) * 0).max(0).min(self.layer * 2)
+                - (self.i - (layer_size / 4) * 2).max(0).min(self.layer * 2),
+            -self.layer + (self.i - (layer_size / 4) * 1).max(0).min(self.layer * 2)
+                - (self.i - (layer_size / 4) * 3).max(0).min(self.layer * 2),
+        );
+
+        self.i += 1;
+
+        Some(pos)
     }
 }
