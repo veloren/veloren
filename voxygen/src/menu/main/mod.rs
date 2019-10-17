@@ -16,6 +16,7 @@ use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
+    title_music_channel: Option<usize>,
 }
 
 impl MainMenuState {
@@ -23,6 +24,7 @@ impl MainMenuState {
     pub fn new(global_state: &mut GlobalState) -> Self {
         Self {
             main_menu_ui: MainMenuUi::new(global_state),
+            title_music_channel: None,
         }
     }
 }
@@ -38,9 +40,13 @@ impl PlayState for MainMenuState {
         let mut client_init: Option<ClientInit> = None;
 
         // Kick off title music
-        global_state
-            .audio
-            .play_music("voxygen.audio.soundtrack.veloren_title_tune-3");
+        if None == self.title_music_channel {
+            self.title_music_channel = Some(
+                global_state
+                    .audio
+                    .play_music("voxygen.audio.soundtrack.veloren_title_tune-3"),
+            )
+        }
 
         loop {
             // Handle window events.
