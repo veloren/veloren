@@ -99,11 +99,14 @@ impl<'a> System<'a> for Sys {
 
             if character.movement.is_roll() {
                 vel.0 = Vec3::new(0.0, 0.0, vel.0.z)
-                    + controller
-                        .move_dir
-                        .try_normalized()
-                        .unwrap_or(Vec2::from(vel.0).try_normalized().unwrap_or_default())
-                        * ROLL_SPEED
+                    + (vel.0 * Vec3::new(1.0, 1.0, 0.0)
+                        + 1.5
+                            * controller
+                                .move_dir
+                                .try_normalized()
+                                .unwrap_or(Vec2::from(vel.0).try_normalized().unwrap_or_default()))
+                    .normalized()
+                        * ROLL_SPEED;
             }
             if character.action.is_block() || character.action.is_attack() {
                 vel.0 += Vec2::broadcast(dt.0)
