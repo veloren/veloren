@@ -6,8 +6,9 @@ use crate::{
     window::{Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client};
+use client::{self, Client, Event::Chat};
 use common::{
+    ChatType,
     clock::Clock,
     comp,
     comp::{Pos, Vel},
@@ -55,13 +56,21 @@ impl SessionState {
     fn tick(&mut self, dt: Duration) -> Result<(), Error> {
         for event in self.client.borrow_mut().tick(self.inputs.clone(), dt)? {
             match event {
-                client::Event::Chat {
+                Chat {
                     chat_type: _,
                     message: _,
                 } => {
                     self.hud.new_message(event);
                 }
                 client::Event::Disconnect => {} // TODO
+                client::Event::DisconnectionNotification(time) => {
+                    log::warn!("{}", format!("{:#?}", time));
+
+                    self.hud.new_message(Chat {
+                        chat_type: ChatType::Meta,
+                        message: format!("Connection lost. Kicking in {} seconds", time),
+                    });
+                }
             }
         }
 
