@@ -354,8 +354,10 @@ impl Renderer {
     pub fn create_texture<P: Pipeline>(
         &mut self,
         image: &image::DynamicImage,
+        filter_method: Option<gfx::texture::FilterMethod>,
+        wrap_mode: Option<gfx::texture::WrapMode>,
     ) -> Result<Texture<P>, RenderError> {
-        Texture::new(&mut self.factory, image)
+        Texture::new(&mut self.factory, image, filter_method, wrap_mode)
     }
 
     /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the specified dimensions.
@@ -518,6 +520,7 @@ impl Renderer {
         locals: &Consts<terrain::Locals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
+        waves: &Texture<fluid::FluidPipeline>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -534,6 +537,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                waves: (waves.srv.clone(), waves.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
