@@ -24,6 +24,8 @@ impl<P: Pipeline> Texture<P> {
     pub fn new(
         factory: &mut gfx_backend::Factory,
         image: &DynamicImage,
+        filter_method: Option<gfx::texture::FilterMethod>,
+        wrap_mode: Option<gfx::texture::WrapMode>,
     ) -> Result<Self, RenderError> {
         let (tex, srv) = factory
             .create_texture_immutable_u8::<ShaderFormat>(
@@ -41,12 +43,13 @@ impl<P: Pipeline> Texture<P> {
             tex,
             srv,
             sampler: factory.create_sampler(gfx::texture::SamplerInfo::new(
-                gfx::texture::FilterMethod::Scale,
-                gfx::texture::WrapMode::Clamp,
+                filter_method.unwrap_or(gfx::texture::FilterMethod::Scale),
+                wrap_mode.unwrap_or(gfx::texture::WrapMode::Clamp),
             )),
             _phantom: PhantomData,
         })
     }
+
     pub fn new_dynamic(
         factory: &mut gfx_backend::Factory,
         width: u16,
