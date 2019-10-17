@@ -8,13 +8,13 @@ use crate::{
 };
 use client::{self, Client, Event::Chat};
 use common::{
-    ChatType,
     clock::Clock,
     comp,
     comp::{Pos, Vel},
     msg::ClientState,
     terrain::{Block, BlockKind},
     vol::ReadVol,
+    ChatType,
 };
 use log::error;
 use specs::Join;

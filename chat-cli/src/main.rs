@@ -77,9 +77,10 @@ fn main() {
             match event {
                 Event::Chat { message, .. } => println!("{}", message),
                 Event::Disconnect => {} // TODO
-                Event::DisconnectionNotification(time) => {
-                    println!("{}", format!("Connection lost. Kicking in {} seconds", time))
-                }
+                Event::DisconnectionNotification(time) => println!(
+                    "{}",
+                    format!("Connection lost. Kicking in {} seconds", time)
+                ),
             }
         }
         // Clean up the server after a tick.
