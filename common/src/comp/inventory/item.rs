@@ -33,7 +33,10 @@ impl Tool {
 
     pub fn description(&self) -> &'static str {
         match self {
-            Tool::Dagger => "A basic kitchen knife.",
+            Tool::Dagger => {
+                "A basic kitchen knife.\n\
+                 NOT YET AVAILABLE."
+            }
             Tool::Shield => {
                 "This shield belonged to many adventurers.\n\
                  Now it's yours.\n\
@@ -109,6 +112,7 @@ pub enum Consumable {
     Potion,
     Mushroom,
     Velorite,
+    VeloriteFrag,
 }
 
 impl Consumable {
@@ -118,6 +122,7 @@ impl Consumable {
             Consumable::Potion => "Potion",
             Consumable::Mushroom => "Mushroom",
             Consumable::Velorite => "Velorite",
+            Consumable::VeloriteFrag => "Glowing Fragment",
         }
     }
 
@@ -127,6 +132,7 @@ impl Consumable {
             Consumable::Potion => "This Potion contains the essence of Life.",
             Consumable::Mushroom => "A common Mushroom.",
             Consumable::Velorite => "Has a subtle turqoise glow.",
+            Consumable::VeloriteFrag => "Seems to be the fragment of a bigger piece...",
         }
     }
 }
@@ -246,7 +252,7 @@ impl Item {
             BlockKind::LongGrass => Some(Self::grass()),
             BlockKind::MediumGrass => Some(Self::grass()),
             BlockKind::ShortGrass => Some(Self::grass()),
-            BlockKind::Chest => Some(match rand::random::<usize>() % 3 {
+            BlockKind::Chest => Some(match rand::random::<usize>() % 4 {
                 0 => Self::apple(),
                 1 => Self::velorite(),
                 2 => Item::Tool {
@@ -257,6 +263,7 @@ impl Item {
                     dexterity: 0,
                     intelligence: 0,
                 },
+                3 => Self::veloritefrag(),
                 _ => unreachable!(),
             }),
             _ => None,
@@ -268,14 +275,20 @@ impl Item {
     pub fn apple() -> Self {
         Item::Consumable {
             kind: Consumable::Apple,
-            effect: Effect::Health(50, comp::HealthSource::Item),
+            effect: Effect::Health(comp::HealthChange {
+                amount: 50,
+                cause: comp::HealthSource::Item,
+            }),
         }
     }
 
     pub fn mushroom() -> Self {
         Item::Consumable {
             kind: Consumable::Mushroom,
-            effect: Effect::Health(10, comp::HealthSource::Item),
+            effect: Effect::Health(comp::HealthChange {
+                amount: 10,
+                cause: comp::HealthSource::Item,
+            }),
         }
     }
 
@@ -283,6 +296,12 @@ impl Item {
         Item::Consumable {
             kind: Consumable::Velorite,
             effect: Effect::Xp(50),
+        }
+    }
+    pub fn veloritefrag() -> Self {
+        Item::Consumable {
+            kind: Consumable::VeloriteFrag,
+            effect: Effect::Xp(20),
         }
     }
 

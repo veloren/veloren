@@ -26,7 +26,7 @@ impl From<&Item> for ItemKind {
             Item::Tool { kind, .. } => ItemKind::Tool(kind.clone()),
             Item::Armor { kind, .. } => ItemKind::Armor(kind.clone()),
             Item::Consumable { kind, .. } => ItemKind::Consumable(kind.clone()),
-            Item::Ingredient { kind } => ItemKind::Ingredient(kind.clone()),
+            Item::Ingredient { kind, .. } => ItemKind::Ingredient(kind.clone()),
             Item::Debug(kind) => ItemKind::Debug(kind.clone()),
         }
     }

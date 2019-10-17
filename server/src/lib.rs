@@ -170,6 +170,7 @@ impl Server {
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
+            .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
     }
 
@@ -199,10 +200,9 @@ impl Server {
         pos: comp::Pos,
         vel: comp::Vel,
         body: comp::Body,
-        maybe_light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,
     ) -> EcsEntityBuilder {
-        let builder = state
+        state
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -211,13 +211,7 @@ impl Server {
             .with(comp::Mass(0.0))
             .with(body)
             .with(projectile)
-            .with(comp::Sticky);
-
-        if let Some(light) = maybe_light {
-            builder.with(light)
-        } else {
-            builder
-        }
+            .with(comp::Sticky)
     }
 
     pub fn create_player_character(
@@ -237,6 +231,7 @@ impl Server {
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
+        state.write_component(entity, comp::Gravity(1.0));
         state.write_component(entity, comp::CharacterState::default());
         state.write_component(entity, comp::Inventory::default());
         state.write_component(entity, comp::InventoryUpdate);
@@ -301,6 +296,7 @@ impl Server {
                     body,
                     light,
                     projectile,
+                    gravity,
                 } => {
                     let mut pos = state
                         .ecs()
@@ -312,22 +308,28 @@ impl Server {
                     // TODO: Player height
                     pos.z += 1.2;
 
-                    Self::create_projectile(
+                    let mut builder = Self::create_projectile(
                         state,
                         comp::Pos(pos),
                         comp::Vel(dir * 100.0),
                         body,
-                        light,
                         projectile,
-                    )
-                    .build();
+                    );
+                    if let Some(light) = light {
+                        builder = builder.with(light)
+                    }
+                    if let Some(gravity) = gravity {
+                        builder = builder.with(gravity)
+                    }
+
+                    builder.build();
                 }
 
-                ServerEvent::Damage { uid, dmg, cause } => {
+                ServerEvent::Damage { uid, change } => {
                     let ecs = state.ecs_mut();
                     if let Some(entity) = ecs.entity_from_uid(uid.into()) {
                         if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(entity) {
-                            stats.health.change_by(-(dmg as i32), cause);
+                            stats.health.change_by(change);
                         }
                     }
                 }
@@ -415,7 +417,10 @@ impl Server {
                         {
                             let falldmg = (vel.z / 5.0) as i32;
                             if falldmg < 0 {
-                                stats.health.change_by(falldmg, comp::HealthSource::World);
+                                stats.health.change_by(comp::HealthChange {
+                                    amount: falldmg,
+                                    cause: comp::HealthSource::World,
+                                });
                             }
                         }
                     }
@@ -1585,11 +1590,11 @@ impl StateExt for State {
 
     fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
         match effect {
-            Effect::Health(hp, source) => {
+            Effect::Health(change) => {
                 self.ecs_mut()
                     .write_storage::<comp::Stats>()
                     .get_mut(entity)
-                    .map(|stats| stats.health.change_by(hp, source));
+                    .map(|stats| stats.health.change_by(change));
             }
             Effect::Xp(xp) => {
                 self.ecs_mut()

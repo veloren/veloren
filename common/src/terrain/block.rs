@@ -30,6 +30,7 @@ pub enum BlockKind {
     Mushroom,
     Liana,
     Velorite,
+    VeloriteFrag,
     Chest,
 }
 
@@ -64,6 +65,7 @@ impl BlockKind {
             BlockKind::Mushroom => true,
             BlockKind::Liana => true,
             BlockKind::Velorite => true,
+            BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
             _ => false,
         }
@@ -100,6 +102,7 @@ impl BlockKind {
             BlockKind::Mushroom => false,
             BlockKind::Liana => false,
             BlockKind::Velorite => false,
+            BlockKind::VeloriteFrag => false,
             BlockKind::Chest => false,
             _ => true,
         }
@@ -135,19 +138,20 @@ impl BlockKind {
 
     pub fn is_collectible(&self) -> bool {
         match self {
-            BlockKind::BlueFlower => true,
-            BlockKind::PinkFlower => true,
-            BlockKind::PurpleFlower => true,
-            BlockKind::RedFlower => true,
-            BlockKind::WhiteFlower => true,
-            BlockKind::YellowFlower => true,
-            BlockKind::Sunflower => true,
-            BlockKind::LongGrass => true,
-            BlockKind::MediumGrass => true,
-            BlockKind::ShortGrass => true,
+            BlockKind::BlueFlower => false,
+            BlockKind::PinkFlower => false,
+            BlockKind::PurpleFlower => false,
+            BlockKind::RedFlower => false,
+            BlockKind::WhiteFlower => false,
+            BlockKind::YellowFlower => false,
+            BlockKind::Sunflower => false,
+            BlockKind::LongGrass => false,
+            BlockKind::MediumGrass => false,
+            BlockKind::ShortGrass => false,
             BlockKind::Apple => true,
             BlockKind::Mushroom => true,
             BlockKind::Velorite => true,
+            BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
             _ => false,
         }
