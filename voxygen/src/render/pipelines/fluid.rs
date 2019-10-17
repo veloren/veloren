@@ -29,6 +29,8 @@ gfx_defines! {
         lights: gfx::ConstantBuffer<Light> = "u_lights",
         shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
+        waves: gfx::TextureSampler<[f32; 4]> = "t_waves",
+
         tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
         tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
     }
