@@ -91,7 +91,6 @@ struct VoxSpec<T>(String, [T; 3]);
 #[derive(Serialize, Deserialize)]
 struct ArmorVoxSpec {
     vox_spec: VoxSpec<f32>,
-    recolor: bool,
     color: Option<[u8; 3]>,
 }
 
@@ -323,11 +322,6 @@ impl HumArmorChestSpec {
             }
         };
 
-        let chest_color = Vec3::from(match spec.color {
-            Some(color_array) => color_array,
-            _ => [0, 0, 0],
-        });
-
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
@@ -341,8 +335,9 @@ impl HumArmorChestSpec {
 
         let mut chest_armor = graceful_load_mat_segment(&spec.vox_spec.0);
 
-        if spec.recolor {
-            chest_armor = chest_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(chest_color)))
+        if let Some(color) = spec.color {
+            let chest_color = Vec3::from(color);
+            chest_armor = chest_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(chest_color)));
         }
 
         let chest = DynaUnionizer::new()
@@ -441,11 +436,6 @@ impl HumArmorPantsSpec {
             }
         };
 
-        let pants_color = Vec3::from(match spec.color {
-            Some(color_array) => color_array,
-            _ => [0, 0, 0],
-        });
-
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
@@ -459,8 +449,9 @@ impl HumArmorPantsSpec {
 
         let mut pants_armor = graceful_load_mat_segment(&spec.vox_spec.0);
 
-        if spec.recolor {
-            pants_armor = pants_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(pants_color)))
+        if let Some(color) = spec.color {
+            let pants_color = Vec3::from(color);
+            pants_armor = pants_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(pants_color)));
         }
 
         let pants = DynaUnionizer::new()
