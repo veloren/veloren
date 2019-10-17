@@ -40,11 +40,13 @@ optional-debug:linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
         - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
         - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
+        - cp LICENSE $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli
             - veloren-voxygen
             - assets/
+            - LICENSE
         expire_in: 1 week
 
 optional-debug:windows:
@@ -58,11 +60,13 @@ optional-debug:windows:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
+        - cp LICENSE $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli.exe
             - veloren-voxygen.exe
             - assets/
+            - LICENSE
         expire_in: 1 week
 
 .optional-release: &optional-release
@@ -84,11 +88,13 @@ optional-release:linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
         - cp target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp target/release/veloren-voxygen $CI_PROJECT_DIR
+        - cp LICENSE $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli
             - veloren-voxygen
             - assets/
+            - LICENSE
         expire_in: 1 week
 
 optional-release:windows:
@@ -102,11 +108,13 @@ optional-release:windows:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
         - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
+        - cp LICENSE $CI_PROJECT_DIR
     artifacts:
         paths:
             - veloren-server-cli.exe
             - veloren-voxygen.exe
             - assets/
+            - LICENSE
         expire_in: 1 week
 
 # --
