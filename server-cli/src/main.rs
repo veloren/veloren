@@ -22,6 +22,8 @@ fn main() {
     // Create server
     let mut server = Server::new(settings).expect("Failed to create server instance!");
 
+    println!("Server is ready to accept connections");
+
     loop {
         let events = server
             .tick(Input::default(), clock.get_last_delta())
