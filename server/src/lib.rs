@@ -124,6 +124,7 @@ impl Server {
                 name: settings.server_name.clone(),
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
+                git_date: common::util::GIT_DATE.to_string(),
             },
             metrics: ServerMetrics::new(settings.metrics_address),
             accounts: AuthProvider::new(),

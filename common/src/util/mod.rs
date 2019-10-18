@@ -1,4 +1,21 @@
-pub const GIT_HASH: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
+pub const GIT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
+
+lazy_static::lazy_static! {
+    pub static ref GIT_HASH: &'static str = include_str!(concat!(env!("OUT_DIR"), "/githash")).split(" ").nth(0).unwrap();
+    pub static ref GIT_DATE: &'static str = include_str!(concat!(env!("OUT_DIR"), "/githash")).split(" ").nth(1).unwrap();
+}
+
+impl std::fmt::Display for GIT_HASH {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
+impl std::fmt::Display for GIT_DATE {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
 
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
