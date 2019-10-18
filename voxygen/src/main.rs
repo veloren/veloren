@@ -43,6 +43,7 @@ pub struct GlobalState {
     settings: Settings,
     window: Window,
     audio: AudioFrontend,
+    error_message: Option<String>,
 }
 
 impl GlobalState {
@@ -116,6 +117,7 @@ fn main() {
         audio,
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
+        error_message: None,
     };
     let settings = &global_state.settings;
 
