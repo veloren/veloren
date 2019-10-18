@@ -452,7 +452,11 @@ impl Hud {
         let mut events = Vec::new();
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
 
-        let version = format!("{}-{}", env!("CARGO_PKG_VERSION"), common::util::GIT_HASH);
+        let version = format!(
+            "{}-{}",
+            env!("CARGO_PKG_VERSION"),
+            common::util::GIT_VERSION.to_string()
+        );
 
         if self.show.ingame {
             // Crosshair

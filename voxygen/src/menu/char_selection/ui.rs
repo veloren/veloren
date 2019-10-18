@@ -288,7 +288,11 @@ impl CharSelectionUi {
     fn update_layout(&mut self, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
-        let version = env!("CARGO_PKG_VERSION");
+        let version = format!(
+            "{}-{}",
+            env!("CARGO_PKG_VERSION"),
+            common::util::GIT_VERSION.to_string()
+        );
         // Tooltip
         let tooltip_human = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -469,7 +473,7 @@ impl CharSelectionUi {
             }
 
             // Alpha Version
-            Text::new(version)
+            Text::new(&version)
                 .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)

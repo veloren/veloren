@@ -5,18 +5,6 @@ lazy_static::lazy_static! {
     pub static ref GIT_DATE: &'static str = include_str!(concat!(env!("OUT_DIR"), "/githash")).split(" ").nth(1).unwrap();
 }
 
-impl std::fmt::Display for GIT_HASH {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
-}
-
-impl std::fmt::Display for GIT_DATE {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
-}
-
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
 /// This is a fast approximation of powf. This should only be used when minor accuracy loss is acceptable.

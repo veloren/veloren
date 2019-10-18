@@ -82,8 +82,8 @@ impl Client {
                         "Server is running {}[{}], you are running {}[{}], versions might be incompatible!",
                         server_info.git_hash,
                         server_info.git_date,
-                        common::util::GIT_HASH,
-                        common::util::GIT_DATE,
+                        common::util::GIT_HASH.to_string(),
+                        common::util::GIT_DATE.to_string(),
                     );
                 }
 
