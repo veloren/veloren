@@ -333,7 +333,7 @@ impl PlayState for SessionState {
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_avg_delta()) {
                 error!("Failed to tick the scene: {:?}", err);
-                global_state.error_message = Some(
+                global_state.info_message = Some(
                     "Connection lost!\nDid the server restart?\nIs the client up to date?"
                         .to_owned(),
                 );

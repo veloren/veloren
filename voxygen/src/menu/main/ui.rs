@@ -353,10 +353,11 @@ impl MainMenuUi {
             macro_rules! singleplayer {
                 () => {
                     events.push(Event::StartSingleplayer);
-                    events.push(Event::LoginAttempt {
-                        username: "singleplayer".to_string(),
-                        password: String::default(),
-                        server_address: "localhost".to_string(),
+                    self.connecting = Some(std::time::Instant::now());
+                    self.popup = Some(PopupData {
+                        msg: "Connecting...".to_string(),
+                        button_text: "Cancel".to_string(),
+                        popup_type: PopupType::ConnectionInfo,
                     });
                 };
             }
@@ -650,7 +651,7 @@ impl MainMenuUi {
         events
     }
 
-    pub fn show_error(&mut self, msg: String) {
+    pub fn show_info(&mut self, msg: String) {
         self.popup = Some(PopupData {
             msg,
             button_text: "Okay".to_string(),
