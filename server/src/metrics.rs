@@ -40,7 +40,7 @@ impl ServerMetrics {
         );
         let entity_count = IntGauge::with_opts(opts).unwrap();
         let opts = Opts::new("veloren_build_info", "Build information")
-            .const_label("hash", common::util::GIT_HASH)
+            .const_label("hash", &common::util::GIT_HASH)
             .const_label("version", "");
         let build_info = IntGauge::with_opts(opts).unwrap();
         let opts = Opts::new(
