@@ -179,7 +179,7 @@ impl MainMenuUi {
     fn update_layout(&mut self, global_state: &mut GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
         let (ref mut ui_widgets, ref mut _tooltip_manager) = self.ui.set_widgets();
-        let version = env!("CARGO_PKG_VERSION");
+        let version = format!("{}-{}/{}", env!("CARGO_PKG_VERSION"), common::util::GIT_HASH, common::util::GIT_DATE);
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
 
@@ -224,8 +224,8 @@ impl MainMenuUi {
             .mid_top_with_margin_on(self.ids.banner_top, 40.0)
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.95)))
             .set(self.ids.v_logo, ui_widgets);
-
-        Text::new(version)
+        // Version displayed top right corner
+        Text::new(&version)
             .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .font_size(14)
             .font_id(self.fonts.cyri)
