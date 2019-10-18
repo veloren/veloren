@@ -75,11 +75,11 @@ impl PlayState for MainMenuState {
                 }
                 Some(Err(err)) => {
                     client_init = None;
-                    self.main_menu_ui.login_error(
+                    global_state.error_message = Some(
                         match err {
                             InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
                             InitError::InvalidAuth => "Invalid credentials",
-                            InitError::ServerIsFull => "Server is Full!",
+                            InitError::ServerIsFull => "Server is full",
                             InitError::ConnectionFailed(_) => "Connection failed",
                             InitError::ClientCrashed => "Client crashed",
                         }
@@ -129,8 +129,8 @@ impl PlayState for MainMenuState {
                                 false,
                             )));
                         } else {
-                            self.main_menu_ui
-                                .login_error("Invalid username or password".to_string());
+                            global_state.error_message =
+                                Some("Invalid username or password".to_string());
                         }
                     }
                     MainMenuEvent::CancelLoginAttempt => {
@@ -150,6 +150,10 @@ impl PlayState for MainMenuState {
                         global_state.settings.show_disclaimer = false
                     }
                 }
+            }
+
+            if let Some(error) = global_state.error_message.take() {
+                self.main_menu_ui.show_error(error);
             }
 
             // Draw the UI to the screen.
