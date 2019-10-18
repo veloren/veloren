@@ -13,7 +13,7 @@ fn main() {
             "log",
             "-n",
             "1",
-            "--pretty=format:%h %cd",
+            "--pretty=format:%h/%cd",
             "--date=format:%Y-%m-%d-%H:%M",
         ])
         .output()

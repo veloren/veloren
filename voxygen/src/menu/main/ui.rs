@@ -179,7 +179,11 @@ impl MainMenuUi {
     fn update_layout(&mut self, global_state: &mut GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
         let (ref mut ui_widgets, ref mut _tooltip_manager) = self.ui.set_widgets();
-        let version = format!("{}-{}/{}", env!("CARGO_PKG_VERSION"), common::util::GIT_HASH, common::util::GIT_DATE);
+        let version = format!(
+            "{}-{}",
+            env!("CARGO_PKG_VERSION"),
+            common::util::GIT_VERSION.to_string()
+        );
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
 
