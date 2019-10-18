@@ -79,9 +79,11 @@ impl Client {
                 // TODO: Voxygen should display this.
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
                     log::warn!(
-                        "Git hash mismatch between client and server: {} vs {}",
+                        "Server is running {}[{}], you are running {}[{}], versions might be incompatible!",
                         server_info.git_hash,
-                        common::util::GIT_HASH
+                        server_info.git_date,
+                        common::util::GIT_HASH,
+                        common::util::GIT_DATE,
                     );
                 }
 

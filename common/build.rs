@@ -9,7 +9,13 @@ use std::process::Command;
 fn main() {
     // Get the current githash
     match Command::new("git")
-        .args(&["rev-parse", "--short", "HEAD"])
+        .args(&[
+            "log",
+            "-n",
+            "1",
+            "--pretty=format:%h %cd",
+            "--date=format:%Y-%m-%d-%H:%M",
+        ])
         .output()
     {
         Ok(output) => match String::from_utf8(output.stdout) {
