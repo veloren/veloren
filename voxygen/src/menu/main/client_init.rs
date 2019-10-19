@@ -2,7 +2,7 @@ use client::{error::Error as ClientError, Client};
 use common::comp;
 use crossbeam::channel::{unbounded, Receiver, TryRecvError};
 use log::info;
-use std::sync::atomic::{Ordering, AtomicBool};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{net::ToSocketAddrs, thread, time::Duration};
 
@@ -60,7 +60,8 @@ impl ClientInit {
 
                     let mut last_err = None;
 
-                    'tries: for _ in 0..=12 { // 1 Minute
+                    'tries: for _ in 0..=60 {
+                        // 300 Seconds
                         if cancel2.load(Ordering::Relaxed) {
                             break;
                         }
@@ -123,7 +124,7 @@ impl ClientInit {
             }
         });
 
-        ClientInit { rx, cancel, }
+        ClientInit { rx, cancel }
     }
     /// Poll if the thread is complete.
     /// Returns None if the thread is still running, otherwise returns the Result of client creation.
