@@ -33,7 +33,6 @@ impl ClientInit {
         connection_args: (String, u16, bool),
         player: comp::Player,
         password: String,
-        wait: bool,
     ) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
 
@@ -42,11 +41,6 @@ impl ClientInit {
         let cancel2 = Arc::clone(&cancel);
 
         thread::spawn(move || {
-            // Sleep the thread to wait for the single-player server to start up.
-            if wait {
-                info!("Waiting for server to come up...");
-                thread::sleep(Duration::from_millis(500));
-            }
             // Parse ip address or resolves hostname.
             // Note: if you use an ipv6 address, the number after the last colon will be used
             // as the port unless you use [] around the address.
