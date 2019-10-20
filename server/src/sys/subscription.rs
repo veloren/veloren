@@ -1,3 +1,4 @@
+use super::SysTimer;
 use crate::client::{self, Client, RegionSubscription};
 use common::{
     comp::{Player, Pos},
@@ -7,7 +8,7 @@ use common::{
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
-use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use vek::*;
 
 /// This system will update region subscriptions based on client positions
@@ -16,6 +17,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, RegionMap>,
+        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Player>,
@@ -25,8 +27,10 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, region_map, uids, positions, players, mut clients, mut subscriptions): Self::SystemData,
+        (entities, region_map, mut timer, uids, positions, players, mut clients, mut subscriptions): Self::SystemData,
     ) {
+        timer.start();
+
         // To update subscriptions
         // 1. Iterate through clients
         // 2. Calculate current chunk position
@@ -121,5 +125,7 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
+
+        timer.end();
     }
 }

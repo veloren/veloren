@@ -1,3 +1,4 @@
+use super::SysTimer;
 use crate::{
     client::{Client, RegionSubscription},
     Tick,
@@ -9,7 +10,7 @@ use common::{
     state::Uid,
 };
 use specs::{
-    Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
+    Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
 };
 
 /// This system will send physics updates to the client
@@ -19,6 +20,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, Tick>,
         ReadExpect<'a, RegionMap>,
+        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
@@ -41,6 +43,7 @@ impl<'a> System<'a> for Sys {
             entities,
             tick,
             region_map,
+            mut timer,
             uids,
             positions,
             velocities,
@@ -57,6 +60,8 @@ impl<'a> System<'a> for Sys {
             mut inventory_updates,
         ): Self::SystemData,
     ) {
+        timer.start();
+
         let tick = tick.0;
         // To send entity updates
         // 1. Iterate through regions
@@ -222,5 +227,7 @@ impl<'a> System<'a> for Sys {
         // Remove all force flags.
         force_updates.clear();
         inventory_updates.clear();
+
+        timer.end();
     }
 }
