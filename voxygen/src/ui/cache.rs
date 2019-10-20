@@ -8,7 +8,6 @@ use vek::*;
 
 // Multiplied by current window size
 const GLYPH_CACHE_SIZE: u16 = 1;
-const GRAPHIC_CACHE_SIZE: u16 = 2;
 // Glyph cache tolerances
 const SCALE_TOLERANCE: f32 = 0.1;
 const POSITION_TOLERANCE: f32 = 0.1;
@@ -17,7 +16,6 @@ pub struct Cache {
     glyph_cache: GlyphCache<'static>,
     glyph_cache_tex: Texture<UiPipeline>,
     graphic_cache: GraphicCache,
-    graphic_cache_tex: Texture<UiPipeline>,
 }
 
 // TODO: Should functions be returning UiError instead of Error?
@@ -27,11 +25,6 @@ impl Cache {
 
         let max_texture_size = renderer.max_texture_size();
 
-        let graphic_cache_dims = Vec2::new(w, h).map(|e| {
-            (e * GRAPHIC_CACHE_SIZE)
-                .min(max_texture_size as u16)
-                .max(512)
-        });
         let glyph_cache_dims =
             Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size as u16).max(512));
 
@@ -42,8 +35,7 @@ impl Cache {
                 .position_tolerance(POSITION_TOLERANCE)
                 .build(),
             glyph_cache_tex: renderer.create_dynamic_texture(glyph_cache_dims.map(|e| e as u16))?,
-            graphic_cache: GraphicCache::new(graphic_cache_dims),
-            graphic_cache_tex: renderer.create_dynamic_texture(graphic_cache_dims)?,
+            graphic_cache: GraphicCache::new(renderer),
         })
     }
     pub fn glyph_cache_tex(&self) -> &Texture<UiPipeline> {
@@ -52,11 +44,11 @@ impl Cache {
     pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture<UiPipeline>) {
         (&mut self.glyph_cache, &self.glyph_cache_tex)
     }
-    pub fn graphic_cache_tex(&self) -> &Texture<UiPipeline> {
-        &self.graphic_cache_tex
+    pub fn graphic_cache(&self) -> &GraphicCache {
+        &self.graphic_cache
     }
-    pub fn graphic_cache_mut_and_tex(&mut self) -> (&mut GraphicCache, &Texture<UiPipeline>) {
-        (&mut self.graphic_cache, &self.graphic_cache_tex)
+    pub fn graphic_cache_mut(&mut self) -> &mut GraphicCache {
+        &mut self.graphic_cache
     }
     pub fn add_graphic(&mut self, graphic: Graphic) -> GraphicId {
         self.graphic_cache.add_graphic(graphic)
@@ -65,16 +57,8 @@ impl Cache {
         self.graphic_cache.replace_graphic(id, graphic)
     }
     // Resizes and clears the GraphicCache
-    pub fn resize_graphic_cache(&mut self, renderer: &mut Renderer) -> Result<(), Error> {
-        let max_texture_size = renderer.max_texture_size();
-        let cache_dims = renderer.get_resolution().map(|e| {
-            (e * GRAPHIC_CACHE_SIZE)
-                .min(max_texture_size as u16)
-                .max(512)
-        });
-        self.graphic_cache.clear_cache(cache_dims);
-        self.graphic_cache_tex = renderer.create_dynamic_texture(cache_dims)?;
-        Ok(())
+    pub fn resize_graphic_cache(&mut self, renderer: &mut Renderer) {
+        self.graphic_cache.clear_cache(renderer);
     }
     // Resizes and clears the GlyphCache
     pub fn resize_glyph_cache(&mut self, renderer: &mut Renderer) -> Result<(), Error> {
