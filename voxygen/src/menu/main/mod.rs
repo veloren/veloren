@@ -205,7 +205,6 @@ fn attempt_login(
                     let config = Config::default();
                     argon2::hash_encoded(password.as_bytes(), salt, &config).unwrap()
                 },
-                false,
             ));
         }
     } else {

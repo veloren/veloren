@@ -1,7 +1,6 @@
 use client::{error::Error as ClientError, Client};
 use common::comp;
 use crossbeam::channel::{unbounded, Receiver, TryRecvError};
-use log::info;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{net::ToSocketAddrs, thread, time::Duration};
