@@ -114,12 +114,9 @@ impl PlayState for CharSelectionState {
                 .tick(comp::ControllerInputs::default(), clock.get_last_delta())
             {
                 error!("Failed to tick the scene: {:?}", err);
-                global_state.info_message = Some(
-                    "Connection lost!\nDid the server restart?\nIs the client up to date?"
-                        .to_owned(),
-                );
                 return PlayStateResult::Pop;
             }
+
             self.client.borrow_mut().cleanup();
 
             // Finish the frame.
