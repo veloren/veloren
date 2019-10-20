@@ -2,7 +2,7 @@
 //! To implement a new command, add an instance of `ChatCommand` to `CHAT_COMMANDS`
 //! and provide a handler function.
 
-use crate::Server;
+use crate::{Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
     comp,
@@ -430,6 +430,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
 
                             let body = kind_to_body(id);
                             server
+                                .state
                                 .create_npc(pos, comp::Stats::new(get_npc_name(id), None), body)
                                 .with(comp::Vel(vel))
                                 .with(comp::MountState::Unmounted)

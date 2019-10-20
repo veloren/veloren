@@ -2,6 +2,7 @@
 #![feature(drain_filter)]
 
 pub mod auth_provider;
+pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
 pub mod error;
@@ -15,6 +16,7 @@ pub use crate::{error::Error, input::Input, settings::ServerSettings};
 
 use crate::{
     auth_provider::AuthProvider,
+    chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::CHAT_COMMANDS,
 };
@@ -25,26 +27,21 @@ use common::{
     msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
+    terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
-use crossbeam::channel;
-use hashbrown::{hash_map::Entry, HashMap};
 use log::{debug, trace};
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     i32,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
+    sync::Arc,
     time::{Duration, Instant},
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{ChunkSupplement, World};
+use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -76,15 +73,6 @@ pub struct Server {
     postoffice: PostOffice<ServerMsg, ClientMsg>,
 
     thread_pool: ThreadPool,
-    chunk_tx: channel::Sender<(
-        Vec2<i32>,
-        Result<(TerrainChunk, ChunkSupplement), EcsEntity>,
-    )>,
-    chunk_rx: channel::Receiver<(
-        Vec2<i32>,
-        Result<(TerrainChunk, ChunkSupplement), EcsEntity>,
-    )>,
-    pending_chunks: HashMap<Vec2<i32>, Arc<AtomicBool>>,
 
     server_info: ServerInfo,
     metrics: ServerMetrics,
@@ -95,8 +83,6 @@ pub struct Server {
 impl Server {
     /// Create a new `Server`
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
-        let (chunk_tx, chunk_rx) = channel::unbounded();
-
         let mut state = State::default();
         state
             .ecs_mut()
@@ -107,6 +93,7 @@ impl Server {
         // TODO: anything but this
         state.ecs_mut().add_resource(AuthProvider::new());
         state.ecs_mut().add_resource(Tick(0));
+        state.ecs_mut().add_resource(ChunkGenerator::new());
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
@@ -122,9 +109,6 @@ impl Server {
             thread_pool: ThreadPoolBuilder::new()
                 .name("veloren-worker".into())
                 .build(),
-            chunk_tx,
-            chunk_rx,
-            pending_chunks: HashMap::new(),
 
             server_info: ServerInfo {
                 name: settings.server_name.clone(),
@@ -159,26 +143,6 @@ impl Server {
     /// Get a reference to the server's world.
     pub fn world(&self) -> &World {
         &self.world
-    }
-
-    /// Build a non-player character.
-    pub fn create_npc(
-        &mut self,
-        pos: comp::Pos,
-        stats: comp::Stats,
-        body: comp::Body,
-    ) -> EcsEntityBuilder {
-        self.state
-            .ecs_mut()
-            .create_entity_synced()
-            .with(pos)
-            .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori(Vec3::unit_y()))
-            .with(comp::Controller::default())
-            .with(body)
-            .with(stats)
-            .with(comp::Gravity(1.0))
-            .with(comp::CharacterState::default())
     }
 
     /// Build a static object entity
@@ -694,6 +658,20 @@ impl Server {
                     Self::initialize_region_subscription(state, entity);
                 }
 
+                ServerEvent::CreateNpc {
+                    pos,
+                    stats,
+                    body,
+                    agent,
+                    scale,
+                } => {
+                    state
+                        .create_npc(pos, stats, body)
+                        .with(agent)
+                        .with(scale)
+                        .build();
+                }
+
                 ServerEvent::ClientDisconnect(entity) => {
                     if let Err(err) = state.ecs_mut().delete_entity_synced(entity) {
                         debug!("Failed to delete disconnected client: {:?}", err);
@@ -785,202 +763,14 @@ impl Server {
 
         let before_tick_5 = Instant::now();
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
-        // Also, send the chunk data to anybody that is close by.
-        'insert_terrain_chunks: while let Ok((key, res)) = self.chunk_rx.try_recv() {
-            let (chunk, supplement) = match res {
-                Ok((chunk, supplement)) => (chunk, supplement),
-                Err(entity) => {
-                    self.notify_client(
-                        entity,
-                        ServerMsg::TerrainChunkUpdate {
-                            key,
-                            chunk: Err(()),
-                        },
-                    );
-                    continue 'insert_terrain_chunks;
-                }
-            };
-            // Send the chunk to all nearby players.
-            for (view_distance, pos, client) in (
-                &self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::Pos>(),
-                &mut self.state.ecs().write_storage::<Client>(),
-            )
-                .join()
-                .filter_map(|(player, pos, client)| {
-                    player.view_distance.map(|vd| (vd, pos, client))
-                })
-            {
-                let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let adjusted_dist_sqr = (Vec2::from(chunk_pos) - Vec2::from(key))
-                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
-                    .magnitude_squared();
-
-                if adjusted_dist_sqr <= view_distance.pow(2) {
-                    client.notify(ServerMsg::TerrainChunkUpdate {
-                        key,
-                        chunk: Ok(Box::new(chunk.clone())),
-                    });
-                }
-            }
-
-            self.state.insert_chunk(key, chunk);
-            self.pending_chunks.remove(&key);
-
-            // Handle chunk supplement
-            for npc in supplement.npcs {
-                let (mut stats, mut body) = if rand::random() {
-                    let stats = comp::Stats::new(
-                        "Humanoid".to_string(),
-                        Some(comp::Item::Tool {
-                            kind: comp::item::Tool::Sword,
-                            power: 5,
-                            stamina: 0,
-                            strength: 0,
-                            dexterity: 0,
-                            intelligence: 0,
-                        }),
-                    );
-                    let body = comp::Body::Humanoid(comp::humanoid::Body::random());
-                    (stats, body)
-                } else {
-                    let stats = comp::Stats::new("Wolf".to_string(), None);
-                    let body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
-                    (stats, body)
-                };
-                let mut scale = 1.0;
-
-                // TODO: Remove this and implement scaling or level depending on stuff like species instead
-                stats.level.set_level(rand::thread_rng().gen_range(1, 3));
-
-                if npc.boss {
-                    if rand::random::<f32>() < 0.8 {
-                        stats = comp::Stats::new(
-                            "Humanoid".to_string(),
-                            Some(comp::Item::Tool {
-                                kind: comp::item::Tool::Sword,
-                                power: 10,
-                                stamina: 0,
-                                strength: 0,
-                                dexterity: 0,
-                                intelligence: 0,
-                            }),
-                        );
-                        body = comp::Body::Humanoid(comp::humanoid::Body::random());
-                    }
-                    stats.level.set_level(rand::thread_rng().gen_range(10, 50));
-                    scale = 2.5 + rand::random::<f32>();
-                }
-
-                stats.update_max_hp();
-                stats
-                    .health
-                    .set_to(stats.health.maximum(), comp::HealthSource::Revive);
-                self.create_npc(comp::Pos(npc.pos), stats, body)
-                    .with(comp::Agent::enemy())
-                    .with(comp::Scale(scale))
-                    .build();
-            }
-        }
-
-        fn chunk_in_vd(
-            player_pos: Vec3<f32>,
-            chunk_pos: Vec2<i32>,
-            terrain: &TerrainGrid,
-            vd: u32,
-        ) -> bool {
-            let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
-
-            let adjusted_dist_sqr = Vec2::from(player_chunk_pos - chunk_pos)
-                .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
-                .magnitude_squared();
-
-            adjusted_dist_sqr <= vd.pow(2)
-        }
-
-        // Remove chunks that are too far from players.
-        let mut chunks_to_remove = Vec::new();
-        self.state
-            .terrain()
-            .iter()
-            .map(|(k, _)| k)
-            .chain(self.pending_chunks.keys().cloned())
-            .for_each(|chunk_key| {
-                let mut should_drop = true;
-
-                // For each player with a position, calculate the distance.
-                for (player, pos) in (
-                    &self.state.ecs().read_storage::<comp::Player>(),
-                    &self.state.ecs().read_storage::<comp::Pos>(),
-                )
-                    .join()
-                {
-                    if player
-                        .view_distance
-                        .map(|vd| chunk_in_vd(pos.0, chunk_key, &self.state.terrain(), vd))
-                        .unwrap_or(false)
-                    {
-                        should_drop = false;
-                        break;
-                    }
-                }
-
-                if should_drop {
-                    chunks_to_remove.push(chunk_key);
-                }
-            });
-        for key in chunks_to_remove {
-            self.state.remove_chunk(key);
-            if let Some(cancel) = self.pending_chunks.remove(&key) {
-                cancel.store(true, Ordering::Relaxed);
-            }
-        }
 
         let before_tick_6 = Instant::now();
         // 6) Synchronise clients with the new state of the world.
-        self.sync_clients();
-
-        // Sync changed chunks
-        'chunk: for chunk_key in &self.state.terrain_changes().modified_chunks {
-            let terrain = self.state.terrain();
-
-            for (player, pos, client) in (
-                &self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::Pos>(),
-                &mut self.state.ecs().write_storage::<Client>(),
-            )
-                .join()
-            {
-                if player
-                    .view_distance
-                    .map(|vd| chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
-                    .unwrap_or(false)
-                {
-                    client.notify(ServerMsg::TerrainChunkUpdate {
-                        key: *chunk_key,
-                        chunk: Ok(Box::new(match self.state.terrain().get_key(*chunk_key) {
-                            Some(chunk) => chunk.clone(),
-                            None => break 'chunk,
-                        })),
-                    });
-                }
-            }
-        }
-
-        // Sync changed blocks
-        let msg =
-            ServerMsg::TerrainBlockUpdates(self.state.terrain_changes().modified_blocks.clone());
-        for (player, client) in (
-            &self.state.ecs().read_storage::<comp::Player>(),
-            &mut self.state.ecs().write_storage::<Client>(),
-        )
-            .join()
-        {
-            // TODO: Don't send all changed blocks to all clients
-            if player.view_distance.is_some() {
-                client.notify(msg.clone());
-            }
-        }
+        // TODO: Remove sphynx
+        // Sync 'logical' state using Sphynx.
+        let sync_package = self.state.ecs_mut().next_sync_package();
+        self.state
+            .notify_registered_clients(ServerMsg::EcsSync(sync_package));
 
         // Remove NPCs that are outside the view distances of all players
         // This is done by removing NPCs in unloaded chunks
@@ -1001,6 +791,7 @@ impl Server {
         }
 
         let before_tick_7 = Instant::now();
+        // TODO: Update metrics now that a lot of processing has been moved to ecs systems
         // 7) Update Metrics
         self.metrics
             .tick_time
@@ -1172,14 +963,6 @@ impl Server {
         }
     }
 
-    /// Sync client states with the most up to date information.
-    fn sync_clients(&mut self) {
-        let sync_package = self.state.ecs_mut().next_sync_package();
-        // Sync 'logical' state using Sphynx.
-        self.state
-            .notify_registered_clients(ServerMsg::EcsSync(sync_package));
-    }
-
     pub fn notify_client(&self, entity: EcsEntity, msg: ServerMsg) {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
             client.notify(msg)
@@ -1187,21 +970,10 @@ impl Server {
     }
 
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
-        let v = if let Entry::Vacant(v) = self.pending_chunks.entry(key) {
-            v
-        } else {
-            return;
-        };
-        let cancel = Arc::new(AtomicBool::new(false));
-        v.insert(Arc::clone(&cancel));
-        let chunk_tx = self.chunk_tx.clone();
-        let world = self.world.clone();
-        self.thread_pool.execute(move || {
-            let payload = world
-                .generate_chunk(key, || cancel.load(Ordering::Relaxed))
-                .map_err(|_| entity);
-            let _ = chunk_tx.send((key, payload));
-        });
+        self.state
+            .ecs()
+            .write_resource::<ChunkGenerator>()
+            .generate_chunk(entity, key, &mut self.thread_pool, self.world.clone());
     }
 
     fn process_chat_cmd(&mut self, entity: EcsEntity, cmd: String) {
@@ -1246,6 +1018,12 @@ trait StateExt {
     fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool;
     fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
     fn notify_registered_clients(&self, msg: ServerMsg);
+    fn create_npc(
+        &mut self,
+        pos: comp::Pos,
+        stats: comp::Stats,
+        body: comp::Body,
+    ) -> EcsEntityBuilder;
 }
 
 impl StateExt for State {
@@ -1277,6 +1055,25 @@ impl StateExt for State {
                     .map(|stats| stats.exp.change_by(xp));
             }
         }
+    }
+
+    /// Build a non-player character.
+    fn create_npc(
+        &mut self,
+        pos: comp::Pos,
+        stats: comp::Stats,
+        body: comp::Body,
+    ) -> EcsEntityBuilder {
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(comp::Vel(Vec3::zero()))
+            .with(comp::Ori(Vec3::unit_y()))
+            .with(comp::Controller::default())
+            .with(body)
+            .with(stats)
+            .with(comp::Gravity(1.0))
+            .with(comp::CharacterState::default())
     }
 
     fn notify_registered_clients(&self, msg: ServerMsg) {
