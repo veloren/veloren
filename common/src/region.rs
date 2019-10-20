@@ -2,7 +2,7 @@ use crate::comp::{Pos, Vel};
 use hashbrown::{hash_map::DefaultHashBuilder, HashSet};
 use hibitset::BitSetLike;
 use indexmap::IndexMap;
-use specs::{BitSet, Entities, Entity as EcsEntity, Join, ReadStorage};
+use specs::{BitSet, Entities, Join, ReadStorage};
 use vek::*;
 
 pub enum Event {
