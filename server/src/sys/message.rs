@@ -1,3 +1,4 @@
+use super::SysTimer;
 use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
     comp::{Admin, Body, CanBuild, Controller, Item, Ori, Player, Pos, Vel},
@@ -20,6 +21,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
         ReadExpect<'a, TerrainGrid>,
+        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, Admin>,
@@ -40,6 +42,7 @@ impl<'a> System<'a> for Sys {
             server_emitter,
             time,
             terrain,
+            mut timer,
             bodies,
             can_build,
             admins,
@@ -53,6 +56,8 @@ impl<'a> System<'a> for Sys {
             mut controllers,
         ): Self::SystemData,
     ) {
+        timer.start();
+
         let time = time.0;
 
         let mut new_chat_msgs = Vec::new();
@@ -316,5 +321,7 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
+
+        timer.end()
     }
 }

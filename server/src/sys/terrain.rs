@@ -1,3 +1,4 @@
+use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     comp::{self, Player, Pos},
@@ -21,6 +22,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Tick>,
+        Write<'a, SysTimer<Self>>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
@@ -34,6 +36,7 @@ impl<'a> System<'a> for Sys {
         (
             server_emitter,
             tick,
+            mut timer,
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
@@ -42,6 +45,8 @@ impl<'a> System<'a> for Sys {
             mut clients,
         ): Self::SystemData,
     ) {
+        timer.start();
+
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         'insert_terrain_chunks: while let Some((key, res)) = chunk_generator.recv_new_chunk() {
@@ -180,6 +185,8 @@ impl<'a> System<'a> for Sys {
 
             chunk_generator.cancel_if_pending(key);
         }
+
+        timer.end()
     }
 }
 
