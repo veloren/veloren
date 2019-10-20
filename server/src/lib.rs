@@ -94,6 +94,19 @@ impl Server {
         state.ecs_mut().add_resource(AuthProvider::new());
         state.ecs_mut().add_resource(Tick(0));
         state.ecs_mut().add_resource(ChunkGenerator::new());
+        // System timers
+        state
+            .ecs_mut()
+            .add_resource(sys::EntitySyncTimer::default());
+        state.ecs_mut().add_resource(sys::MessageTimer::default());
+        state
+            .ecs_mut()
+            .add_resource(sys::SubscriptionTimer::default());
+        state
+            .ecs_mut()
+            .add_resource(sys::TerrainSyncTimer::default());
+        state.ecs_mut().add_resource(sys::TerrainTimer::default());
+        // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
@@ -761,8 +774,8 @@ impl Server {
         // Tick the world
         self.world.tick(dt);
 
-        let before_tick_5 = Instant::now();
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
+        // in sys/terrain.rs
 
         let before_tick_6 = Instant::now();
         // 6) Synchronise clients with the new state of the world.
@@ -791,24 +804,61 @@ impl Server {
         }
 
         let before_tick_7 = Instant::now();
-        // TODO: Update metrics now that a lot of processing has been moved to ecs systems
         // 7) Update Metrics
+        let entity_sync_nanos = self
+            .state
+            .ecs()
+            .read_resource::<sys::EntitySyncTimer>()
+            .nanos as i64;
+        let message_nanos = self.state.ecs().read_resource::<sys::MessageTimer>().nanos as i64;
+        let subscription_nanos = self
+            .state
+            .ecs()
+            .read_resource::<sys::SubscriptionTimer>()
+            .nanos as i64;
+        let terrain_sync_nanos = self
+            .state
+            .ecs()
+            .read_resource::<sys::TerrainSyncTimer>()
+            .nanos as i64;
+        let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
+        let total_sys_nanos = entity_sync_nanos
+            + message_nanos
+            + subscription_nanos
+            + terrain_sync_nanos
+            + terrain_nanos;
         self.metrics
             .tick_time
             .with_label_values(&["input"])
             .set((before_tick_4 - before_tick_1).as_nanos() as i64);
         self.metrics
             .tick_time
-            .with_label_values(&["world"])
-            .set((before_tick_5 - before_tick_4).as_nanos() as i64);
+            .with_label_values(&["state tick"])
+            .set((before_tick_6 - before_tick_4).as_nanos() as i64 - total_sys_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["sphynx sync"])
+            .set((before_tick_7 - before_tick_6).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["entity sync"])
+            .set(entity_sync_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["message"])
+            .set(message_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["subscription"])
+            .set(subscription_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["terrain sync"])
+            .set(terrain_sync_nanos);
         self.metrics
             .tick_time
             .with_label_values(&["terrain"])
-            .set((before_tick_6 - before_tick_5).as_nanos() as i64);
-        self.metrics
-            .tick_time
-            .with_label_values(&["sync"])
-            .set((before_tick_7 - before_tick_6).as_nanos() as i64);
+            .set(terrain_nanos);
         self.metrics
             .player_online
             .set(self.state.ecs().read_storage::<Client>().join().count() as i64);

@@ -58,6 +58,12 @@ impl PlayState for StartSingleplayerState {
                     }
                 };
 
+                // Print the metrics port
+                println!(
+                    "Metrics port: {}",
+                    self.server_settings.metrics_address.port()
+                );
+
                 PlayStateResult::Push(Box::new(CharSelectionState::new(
                     global_state,
                     std::rc::Rc::new(std::cell::RefCell::new(client)),

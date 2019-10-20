@@ -1,3 +1,4 @@
+use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::{Player, Pos},
@@ -5,7 +6,7 @@ use common::{
     state::TerrainChanges,
     terrain::TerrainGrid,
 };
-use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 
 /// This system will handle loading generated chunks and unloading uneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
@@ -17,6 +18,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadExpect<'a, TerrainGrid>,
         Read<'a, TerrainChanges>,
+        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Player>,
         WriteStorage<'a, Client>,
@@ -24,8 +26,10 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (terrain, terrain_changes, positions, players, mut clients): Self::SystemData,
+        (terrain, terrain_changes, mut timer, positions, players, mut clients): Self::SystemData,
     ) {
+        timer.start();
+
         // Sync changed chunks
         'chunk: for chunk_key in &terrain_changes.modified_chunks {
             for (player, pos, client) in (&players, &positions, &mut clients).join() {
@@ -53,5 +57,7 @@ impl<'a> System<'a> for Sys {
                 client.notify(msg.clone());
             }
         }
+
+        timer.end();
     }
 }
