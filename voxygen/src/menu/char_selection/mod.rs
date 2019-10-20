@@ -5,7 +5,7 @@ use crate::{
     session::SessionState, window::Event as WinEvent, Direction, GlobalState, PlayState,
     PlayStateResult,
 };
-use client::{self, Client};
+use client::{self, Client, Error as ClientError};
 use common::{assets, clock::Clock, comp, msg::ClientState};
 use log::error;
 use scene::Scene;
@@ -113,7 +113,20 @@ impl PlayState for CharSelectionState {
                 .borrow_mut()
                 .tick(comp::ControllerInputs::default(), clock.get_last_delta())
             {
-                error!("Failed to tick the scene: {:?}", err);
+                match err {
+                    ClientError::ServerTimeout => {
+                        global_state.info_message = Some(
+                            "Connection lost!\nDid the server restart?\nIs the client up to date?"
+                                .to_owned(),
+                        );
+
+                        error!("[session] ServerTimeout: {:?}", err);
+                    }
+                    _ => {
+                        error!("[session] Failed to tick the scene: {:?}", err);
+                    }
+                }
+
                 return PlayStateResult::Pop;
             }
 
