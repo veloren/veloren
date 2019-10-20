@@ -1471,7 +1471,7 @@ dependencies = [
 [[package]]
 name = "guillotiere"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/Imberflur/guillotiere#42c298f5bcf0f95f1a004360d05e25ca3711e9ed"
 dependencies = [
  "euclid 0.19.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "svg_fmt 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3668,7 +3668,7 @@ dependencies = [
  "gfx_window_glutin 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glsl-include 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "glutin 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "guillotiere 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "guillotiere 0.4.2 (git+https://github.com/Imberflur/guillotiere)",
  "hashbrown 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "heaptrack 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.22.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4132,7 +4132,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum gobject-sys 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "70409d6405db8b1591602fcd0cbe8af52cd9976dd39194442b4c149ba343f86d"
 "checksum gtk 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d695d6be4110618a97c19cd068e8a00e53e33b87e3c65cdc5397667498b1bc24"
 "checksum gtk-sys 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3d9554cf5b3a85a13fb39258c65b04b262989c1d7a758f8f555b77a478621a91"
-"checksum guillotiere 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "182af928b4435d8fbef910535586ecdca95ab4068493769c090e6573477f5e35"
+"checksum guillotiere 0.4.2 (git+https://github.com/Imberflur/guillotiere)" = "<none>"
 "checksum gzip-header 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0131feb3d3bb2a5a238d8a4d09f6353b7ebfdc52e77bccbf4ea6eaa751dde639"
 "checksum hashbrown 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e1de41fb8dba9714efd92241565cdff73f78508c95697dd56787d3cba27e2353"
 "checksum hashbrown 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2bcea5b597dd98e6d1f1ec171744cc5dee1a30d1c23c5b98e3cf9d4fbdf8a526"
