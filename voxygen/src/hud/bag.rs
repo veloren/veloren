@@ -248,6 +248,13 @@ impl<'a> Widget for Bag<'a> {
             }
         }
 
+        // Drop selected item
+        if let Some(to_drop) = state.selected_slot {
+            if ui.widget_input(ui.window).clicks().left().next().is_some() {
+                event = Some(Event::HudEvent(HudEvent::DropInventorySlot(to_drop)));
+            }
+        }
+
         // Close button
         if Button::image(self.imgs.close_button)
             .w_h(28.0, 28.0)
