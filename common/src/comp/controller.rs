@@ -30,6 +30,7 @@ pub struct ControllerInputs {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Controller {
     pub inputs: ControllerInputs,
+    // TODO: consider SmallVec
     pub events: Vec<ControlEvent>,
 }
 

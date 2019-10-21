@@ -366,7 +366,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Process controller events
-            for event in std::mem::replace(&mut controller.events, Vec::new()) {
+            for event in controller.events.drain(..) {
                 match event {
                     ControlEvent::Mount(mountee_uid) => {
                         if let Some(mountee_entity) =

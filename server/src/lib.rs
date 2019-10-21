@@ -629,7 +629,7 @@ impl Server {
                                 // Move player component
                                 {
                                     let mut players = ecs.write_storage::<comp::Player>();
-                                    if let Some(player) = players.get(possessor).cloned() {
+                                    if let Some(player) = players.remove(possessor) {
                                         let _ = players.insert(possesse, player);
                                     }
                                 }
