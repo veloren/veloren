@@ -19,7 +19,6 @@ const SUBSCRIPTION_SYS: &str = "server_subscription_sys";
 const TERRAIN_SYNC_SYS: &str = "server_terrain_sync_sys";
 const TERRAIN_SYS: &str = "server_terrain_sys";
 const MESSAGE_SYS: &str = "server_message_sys";
-//const SYNC_CHUNK_SYS: &str = "server_sync_chunk_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(subscription::Sys, SUBSCRIPTION_SYS, &[]);
