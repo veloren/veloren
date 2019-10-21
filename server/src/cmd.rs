@@ -516,12 +516,13 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
     }
 }
 
-// TODO: Don't display commands that the player cannot use.
 fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     for cmd in CHAT_COMMANDS.iter() {
-        server
-            .clients
-            .notify(entity, ServerMsg::private(String::from(cmd.help_string)));
+        if !cmd.needs_admin || server.entity_is_admin(entity) {
+            server
+                .clients
+                .notify(entity, ServerMsg::private(String::from(cmd.help_string)));
+        }
     }
 }
 
