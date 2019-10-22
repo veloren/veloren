@@ -502,15 +502,19 @@ impl Client {
         let mut frontend_events = Vec::new();
 
         // Check that we have an valid connection.
-        // Limit this to the ping time (1s), since that's the max resolution we have
+        // Use the last ping time as a 1s rate limiter, we only notify the user once per second
         if Instant::now().duration_since(self.last_server_ping) > Duration::from_secs(1) {
             let duration_since_last_pong = Instant::now().duration_since(self.last_server_pong);
 
             // Dispatch a notification to the HUD warning they will be kicked in {n} seconds
-            if duration_since_last_pong.as_secs_f64() > SERVER_TIMEOUT_GRACE_PERIOD.as_secs_f64() {
-                frontend_events.push(Event::DisconnectionNotification(
-                    SERVER_TIMEOUT.as_secs() - duration_since_last_pong.as_secs(),
-                ));
+            if duration_since_last_pong.as_secs() >= SERVER_TIMEOUT_GRACE_PERIOD.as_secs() {
+                if let Some(seconds_until_kick) =
+                    SERVER_TIMEOUT.checked_sub(duration_since_last_pong)
+                {
+                    frontend_events.push(Event::DisconnectionNotification(
+                        seconds_until_kick.as_secs(),
+                    ));
+                }
             }
         }
 

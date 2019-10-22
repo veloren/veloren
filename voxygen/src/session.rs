@@ -64,9 +64,14 @@ impl SessionState {
                 }
                 client::Event::Disconnect => {} // TODO
                 client::Event::DisconnectionNotification(time) => {
+                    let message = match time {
+                        0 => String::from("Goodbye!"),
+                        _ => format!("Connection lost. Kicking in {} seconds", time),
+                    };
+
                     self.hud.new_message(Chat {
                         chat_type: ChatType::Meta,
-                        message: format!("Connection lost. Kicking in {} seconds", time),
+                        message,
                     });
                 }
             }
