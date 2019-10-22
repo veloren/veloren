@@ -520,8 +520,8 @@ pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
                 Tool::Shield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
                 Tool::Bow => ("weapon.bow.simple-bow", Vec3::new(-1.0, -6.0, -2.0)),
                 Tool::Staff => ("weapon.staff.wood-fire", Vec3::new(-1.0, -6.0, -3.0)),
+                Tool::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
             },
-            ItemKind::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
             _ => return Mesh::new(),
         };
         load_mesh(name, offset)

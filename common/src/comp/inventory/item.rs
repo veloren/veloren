@@ -17,6 +17,13 @@ pub enum Tool {
     Hammer,
     Bow,
     Staff,
+    Debug(Debug),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Debug {
+    Boost,
+    Possess,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -50,19 +57,12 @@ pub enum Ingredient {
     Grass,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Debug {
-    Boost,
-    Possess,
-}
-
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKind {
     Tool { kind: Tool, power: u32 },
     Armor { kind: Armor, power: u32 },
     Consumable { kind: Consumable, effect: Effect },
     Ingredient(Ingredient),
-    Debug(Debug),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

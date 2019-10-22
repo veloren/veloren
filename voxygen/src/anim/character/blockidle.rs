@@ -223,6 +223,27 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
+            Tool::Debug(_) => {
+                next.l_hand.offset = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
+                next.l_hand.ori = Quaternion::rotation_x(2.07)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(-0.2);
+                next.l_hand.scale = Vec3::one() * 1.01;
+                next.r_hand.offset = Vec3::new(7.0, 2.5 + wave_ultra_slow * 2.0, 3.75);
+                next.r_hand.ori = Quaternion::rotation_x(2.07)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(-0.2);
+                next.r_hand.scale = Vec3::one() * 1.01;
+                next.weapon.offset = Vec3::new(
+                    5.0 + skeleton_attr.weapon_x,
+                    8.75 + wave_ultra_slow * 2.0 + skeleton_attr.weapon_y,
+                    5.5,
+                );
+                next.weapon.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(-1.35)
+                    * Quaternion::rotation_z(-0.85);
+                next.weapon.scale = Vec3::one();
+            }
         }
         next.l_foot.offset = Vec3::new(-3.4, 0.3, 8.0 + wave_ultra_slow_cos * 0.1);
         next.l_foot.ori = Quaternion::rotation_x(-0.3);
