@@ -8,7 +8,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::comp::{humanoid, item::Tool};
+use common::comp::humanoid;
 use conrod_core::{
     color,
     color::TRANSPARENT,

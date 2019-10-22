@@ -1,15 +1,7 @@
 //  Png(specifier),
 //  Vox(specier),
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
-({  // Debug Items
-    Debug(Boost): VoxTrans(
-        "voxel.weapon.debug_wand-0",
-        (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
-    ),
-    Debug(Possess): VoxTrans(
-        "voxel.weapon.debug_wand-1",
-        (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
-    ),
+({
     // Weapons
     Tool(Bow): VoxTrans(
         "voxel.weapon.bow.simple-bow",
@@ -68,5 +60,14 @@
     Ingredient(Grass): VoxTrans(
         "voxel.sprite.grass.grass_long_5",
         (0.0, 0.0, 0.0), (-90.0, 50.0, 0.0), 1.0,
+    ),
+    // Debug Items
+    Tool(Debug(Boost)): VoxTrans(
+        "voxel.weapon.debug_wand-0",
+        (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
+    ),
+    Tool(Debug(Possess)): VoxTrans(
+        "voxel.weapon.debug_wand-1",
+        (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
     ),
 })

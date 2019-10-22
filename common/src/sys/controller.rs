@@ -233,38 +233,10 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                 }
-                Some(ItemKind::Tool { .. }) => {
-                    // Melee Attack
-                    if inputs.primary
-                        && (character.movement == Stand
-                            || character.movement == Run
-                            || character.movement == Jump)
-                    {
-                        if let Wield { time_left } = character.action {
-                            if time_left == Duration::default() {
-                                character.action = Attack {
-                                    time_left: ATTACK_DURATION,
-                                    applied: false,
-                                };
-                            }
-                        }
-                    }
-
-                    // Block
-                    if inputs.secondary
-                        && (character.movement == Stand || character.movement == Run)
-                        && character.action.is_wield()
-                    {
-                        character.action = Block {
-                            time_left: Duration::from_secs(5),
-                        };
-                    } else if !inputs.secondary && character.action.is_block() {
-                        character.action = Wield {
-                            time_left: Duration::default(),
-                        };
-                    }
-                }
-                Some(ItemKind::Debug(item::Debug::Boost)) => {
+                Some(ItemKind::Tool {
+                    kind: item::Tool::Debug(item::Debug::Boost),
+                    ..
+                }) => {
                     if inputs.primary {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
@@ -279,7 +251,10 @@ impl<'a> System<'a> for Sys {
                         });
                     }
                 }
-                Some(ItemKind::Debug(item::Debug::Possess)) => {
+                Some(ItemKind::Tool {
+                    kind: item::Tool::Debug(item::Debug::Possess),
+                    ..
+                }) => {
                     if inputs.primary
                         && (character.movement == Stand
                             || character.movement == Run
@@ -312,6 +287,38 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                     }
+                    // Block
+                    if inputs.secondary
+                        && (character.movement == Stand || character.movement == Run)
+                        && character.action.is_wield()
+                    {
+                        character.action = Block {
+                            time_left: Duration::from_secs(5),
+                        };
+                    } else if !inputs.secondary && character.action.is_block() {
+                        character.action = Wield {
+                            time_left: Duration::default(),
+                        };
+                    }
+                }
+                // All other tools
+                Some(ItemKind::Tool { .. }) => {
+                    // Attack
+                    if inputs.primary
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                    {
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                character.action = Attack {
+                                    time_left: ATTACK_DURATION,
+                                    applied: false,
+                                };
+                            }
+                        }
+                    }
+
                     // Block
                     if inputs.secondary
                         && (character.movement == Stand || character.movement == Run)
