@@ -84,6 +84,12 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     load_map(specifier, |x| x)
 }
 
+/// Function used to load assets from the filesystem or the cache and return a clone.
+pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Option<A> {
+    let asset: Option<Arc<A>> = load(specifier).ok();
+    asset.map(|asset| (*asset).clone())
+}
+
 /// Function used to load essential assets from the filesystem or the cache. It will panic if the asset is not found.
 /// Example usage:
 /// ```no_run
@@ -94,6 +100,12 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
 /// ```
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     load(specifier).unwrap_or_else(|_| panic!("Failed loading essential asset: {}", specifier))
+}
+
+/// Function used to load essential assets from the filesystem or the cache and return a clone. It will panic if the asset is not found.
+pub fn load_expect_cloned<A: Asset + Clone + 'static>(specifier: &str) -> A {
+    let asset: Arc<A> = load_expect(specifier);
+    (*asset).clone()
 }
 
 /// Load an asset while registering it to be watched and reloaded when it changes

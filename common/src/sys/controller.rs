@@ -5,7 +5,8 @@ use super::{
 use crate::{
     comp::{
         self, item, projectile, ActionState::*, Body, CharacterState, ControlEvent, Controller,
-        HealthChange, HealthSource, Item, MovementState::*, PhysicsState, Projectile, Stats, Vel,
+        HealthChange, HealthSource, ItemKind, MovementState::*, PhysicsState, Projectile, Stats,
+        Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
@@ -131,8 +132,8 @@ impl<'a> System<'a> for Sys {
                 };
             }
 
-            match stats.equipment.main {
-                Some(Item::Tool {
+            match stats.equipment.main.as_ref().map(|i| &i.kind) {
+                Some(ItemKind::Tool {
                     kind: item::Tool::Bow,
                     power,
                     ..
@@ -158,7 +159,7 @@ impl<'a> System<'a> for Sys {
                                         hit_wall: vec![projectile::Effect::Stick],
                                         hit_entity: vec![
                                             projectile::Effect::Damage(HealthChange {
-                                                amount: -(power as i32),
+                                                amount: -(*power as i32),
                                                 cause: HealthSource::Attack { by: *uid },
                                             }),
                                             projectile::Effect::Vanish,
@@ -170,7 +171,7 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                 }
-                Some(Item::Tool {
+                Some(ItemKind::Tool {
                     kind: item::Tool::Staff,
                     power,
                     ..
@@ -220,7 +221,7 @@ impl<'a> System<'a> for Sys {
                                         hit_wall: vec![projectile::Effect::Vanish],
                                         hit_entity: vec![
                                             projectile::Effect::Damage(HealthChange {
-                                                amount: -(power as i32),
+                                                amount: -(*power as i32),
                                                 cause: HealthSource::Attack { by: *uid },
                                             }),
                                             projectile::Effect::Vanish,
@@ -232,7 +233,7 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                 }
-                Some(Item::Tool { .. }) => {
+                Some(ItemKind::Tool { .. }) => {
                     // Melee Attack
                     if inputs.primary
                         && (character.movement == Stand
@@ -263,7 +264,7 @@ impl<'a> System<'a> for Sys {
                         };
                     }
                 }
-                Some(Item::Debug(item::Debug::Boost)) => {
+                Some(ItemKind::Debug(item::Debug::Boost)) => {
                     if inputs.primary {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
@@ -278,7 +279,7 @@ impl<'a> System<'a> for Sys {
                         });
                     }
                 }
-                Some(Item::Debug(item::Debug::Possess)) => {
+                Some(ItemKind::Debug(item::Debug::Possess)) => {
                     if inputs.primary
                         && (character.movement == Stand
                             || character.movement == Run

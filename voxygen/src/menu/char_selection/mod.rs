@@ -6,7 +6,7 @@ use crate::{
     PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, msg::ClientState};
+use common::{assets, clock::Clock, comp, msg::ClientState};
 use log::error;
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
@@ -67,7 +67,9 @@ impl PlayState for CharSelectionState {
                         self.client.borrow_mut().request_character(
                             self.char_selection_ui.character_name.clone(),
                             comp::Body::Humanoid(self.char_selection_ui.character_body),
-                            self.char_selection_ui.character_tool,
+                            self.char_selection_ui
+                                .character_tool
+                                .map(|specifier| specifier.to_owned()),
                         );
                         return PlayStateResult::Push(Box::new(SessionState::new(
                             global_state,
@@ -93,18 +95,10 @@ impl PlayState for CharSelectionState {
                 &self.client.borrow(),
                 self.char_selection_ui.character_body,
                 &comp::Equipment {
-                    main: if let Some(kind) = self.char_selection_ui.character_tool {
-                        Some(comp::Item::Tool {
-                            kind: kind,
-                            power: 10,
-                            stamina: 0,
-                            strength: 0,
-                            dexterity: 0,
-                            intelligence: 0,
-                        })
-                    } else {
-                        None
-                    },
+                    main: self
+                        .char_selection_ui
+                        .character_tool
+                        .and_then(|specifier| assets::load_cloned(&specifier)),
                     alt: None,
                 },
             );
