@@ -3,8 +3,7 @@ use super::{
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::{item::Debug, item::Tool, Item, Stats};
-
+use common::comp::{item::Debug, item::Tool, Item, ItemKind, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -506,8 +505,8 @@ impl<'a> Widget for Skillbar<'a> {
         // M1 Slot
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(36.0 * scale, 36.0 * scale)
-            .color(match self.stats.equipment.main {
-                Some(Item::Tool { kind, .. }) => match kind {
+            .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
+                Some(ItemKind::Tool { kind, .. }) => match kind {
                     Tool::Bow => Some(BG_COLOR_2),
                     Tool::Staff => Some(BG_COLOR_2),
                     _ => Some(BG_COLOR_2),
@@ -516,20 +515,20 @@ impl<'a> Widget for Skillbar<'a> {
             })
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
-        Button::image(match self.stats.equipment.main {
-            Some(Item::Tool { kind, .. }) => match kind {
+        Button::image(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
+            Some(ItemKind::Tool { kind, .. }) => match kind {
                 Tool::Sword => self.imgs.twohsword_m1,
                 Tool::Hammer => self.imgs.twohhammer_m1,
                 Tool::Axe => self.imgs.twohaxe_m1,
                 Tool::Bow => self.imgs.bow_m1,
                 Tool::Staff => self.imgs.staff_m1,
+                Tool::Debug(Debug::Boost) => self.imgs.flyingrod_m1,
                 _ => self.imgs.twohaxe_m1,
             },
-            Some(Item::Debug(Debug::Boost)) => self.imgs.flyingrod_m1,
             _ => self.imgs.twohaxe_m1,
         }) // Insert Icon here
-        .w(match self.stats.equipment.main {
-            Some(Item::Tool { kind, .. }) => match kind {
+        .w(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
+            Some(ItemKind::Tool { kind, .. }) => match kind {
                 Tool::Bow => 30.0 * scale,
                 Tool::Staff => 30.0 * scale,
                 _ => 38.0 * scale,
@@ -537,7 +536,7 @@ impl<'a> Widget for Skillbar<'a> {
             _ => 38.0 * scale,
         })
         .h(match self.stats.equipment.main {
-            Some(Item::Tool { kind, .. }) => match kind {
+            Some(ItemKind::Tool { kind, .. }) => match kind {
                 Tool::Bow => 30.0 * scale,
                 Tool::Staff => 36.0 * scale,
                 _ => 38.0 * scale,
@@ -563,20 +562,20 @@ impl<'a> Widget for Skillbar<'a> {
             })
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(match self.stats.equipment.main {
-            Some(Item::Tool { kind, .. }) => match kind {
+        Button::image(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
+            Some(ItemKind::Tool { kind, .. }) => match kind {
                 Tool::Sword => self.imgs.twohsword_m2,
                 Tool::Hammer => self.imgs.twohhammer_m2,
                 Tool::Axe => self.imgs.twohaxe_m2,
                 Tool::Bow => self.imgs.bow_m2,
                 Tool::Staff => self.imgs.staff_m2,
+                Tool::Debug(Debug::Boost) => self.imgs.flyingrod_m2,
                 _ => self.imgs.twohaxe_m2,
             },
-            Some(Item::Debug(Debug::Boost)) => self.imgs.flyingrod_m2,
             _ => self.imgs.twohaxe_m2,
         }) // Insert Icon here
         .w(match self.stats.equipment.main {
-            Some(Item::Tool { kind, .. }) => match kind {
+            Some(ItemKind::Tool { kind, .. }) => match kind {
                 Tool::Bow => 30.0 * scale,
                 Tool::Staff => 30.0 * scale,
                 _ => 38.0 * scale,
@@ -584,7 +583,7 @@ impl<'a> Widget for Skillbar<'a> {
             _ => 38.0 * scale,
         })
         .h(match self.stats.equipment.main {
-            Some(Item::Tool { kind, .. }) => match kind {
+            Some(ItemKind::Tool { kind, .. }) => match kind {
                 Tool::Bow => 30.0 * scale,
                 Tool::Staff => 30.0 * scale,
                 _ => 38.0 * scale,

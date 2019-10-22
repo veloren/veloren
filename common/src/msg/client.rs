@@ -12,7 +12,7 @@ pub enum ClientMsg {
     Character {
         name: String,
         body: comp::Body,
-        main: Option<comp::item::Tool>,
+        main: Option<String>, // Specifier for the weapon
     },
     ControllerInputs(comp::ControllerInputs),
     ControlEvent(comp::ControlEvent),

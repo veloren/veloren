@@ -1,0 +1,11 @@
+Item(
+    name: "An apple",
+    description: "Looks refreshing",
+    kind: Consumable(
+        kind: Apple,
+        effect: Health((
+            amount: 10,
+            cause: Item,
+        )),
+    ),
+)
