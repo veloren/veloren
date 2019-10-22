@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{ItemImgs, ItemKind},
+    item_imgs::{ItemImgs, ItemKey},
     Event as HudEvent, Fonts, TEXT_COLOR,
 };
 use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
@@ -65,7 +65,7 @@ impl<'a> Bag<'a> {
 
 pub struct State {
     ids: Ids,
-    img_id_cache: Vec<Option<(ItemKind, image::Id)>>,
+    img_id_cache: Vec<Option<(ItemKey, image::Id)>>,
     selected_slot: Option<usize>,
 }
 
@@ -195,8 +195,8 @@ impl<'a> Widget for Bag<'a> {
                 slot_widget
                     .with_tooltip(
                         self.tooltip_manager,
-                        &item.title(),
-                        &format!("{}\n{}", item.info(), item.description()),
+                        &item.name(),
+                        &format!("{}\n{}", item.name(), item.description()),
                         &item_tooltip,
                     )
                     .set(state.ids.inv_slots[i], ui)
@@ -222,7 +222,7 @@ impl<'a> Widget for Bag<'a> {
                 state.update(|s| s.selected_slot = selected_slot);
             }
             // Item
-            if let Some(kind) = item.as_ref().map(|i| ItemKind::from(i)) {
+            if let Some(kind) = item.as_ref().map(|i| ItemKey::from(i)) {
                 Button::image(match &state.img_id_cache[i] {
                     Some((cached_kind, id)) if cached_kind == &kind => *id,
                     _ => {

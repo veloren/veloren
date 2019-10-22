@@ -1,0 +1,5 @@
+Item(
+    name: "Boost rod",
+    description: "Your legs feel full of energy while holding this",
+    kind: Debug(Boost),
+)

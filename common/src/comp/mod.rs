@@ -22,7 +22,7 @@ pub use controller::{
     ControlEvent, Controller, ControllerInputs, InventoryManip, MountState, Mounting,
 };
 pub use inputs::CanBuild;
-pub use inventory::{item, Inventory, InventoryUpdate, Item};
+pub use inventory::{item, Inventory, InventoryUpdate, Item, ItemKind};
 pub use last::Last;
 pub use location::Waypoint;
 pub use phys::{ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};

@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        item::Item, ActionState::*, CharacterState, Controller, HealthChange, HealthSource, Ori,
-        Pos, Stats,
+        ActionState::*, CharacterState, Controller, HealthChange, HealthSource, ItemKind, Ori, Pos,
+        Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Uid},
@@ -110,12 +110,13 @@ impl<'a> System<'a> for Sys {
                             && ori2.angle_between(pos_b2 - pos2) < (1.0 / pos2.distance(pos_b2)).atan()
                         {
                             // Weapon gives base damage
-                            let mut dmg =
-                                if let Some(Item::Tool { power, .. }) = stat.equipment.main {
-                                    power as i32
-                                } else {
-                                    1
-                                };
+                            let mut dmg = if let Some(ItemKind::Tool { power, .. }) =
+                                stat.equipment.main.as_ref().map(|i| &i.kind)
+                            {
+                                *power as i32
+                            } else {
+                                1
+                            };
 
                             // Block
                             if character_b.action.is_block()
