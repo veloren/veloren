@@ -7,7 +7,7 @@ pub use load::load_mesh; // TODO: Don't make this public.
 use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, birdmedium::BirdMediumSkeleton, fishmedium::FishMediumSkeleton,Animation, Skeleton,
+        quadrupedmedium::QuadrupedMediumSkeleton, birdmedium::BirdMediumSkeleton, fishmedium::FishMediumSkeleton, dragon::DragonSkeleton, Animation, Skeleton,
     },
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::camera::{Camera, CameraMode},
@@ -34,6 +34,7 @@ pub struct FigureMgr {
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
     bird_medium_states: HashMap<EcsEntity, FigureState<BirdMediumSkeleton>>,
     fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
+    dragon_states: HashMap<EcsEntity, FigureState<DragonSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
@@ -46,6 +47,7 @@ impl FigureMgr {
             quadruped_medium_states: HashMap::new(),
             bird_medium_states: HashMap::new(),
             fish_medium_states: HashMap::new(),
+            dragon_states: HashMap::new(),
             object_states: HashMap::new(),
         }
     }
@@ -102,6 +104,9 @@ impl FigureMgr {
                     }
                     Body::FishMedium(_) => {
                         self.fish_medium_states.remove(&entity);
+                    }
+                    Body::Dragon(_) => {
+                        self.dragon_states.remove(&entity);
                     }
                     Body::Object(_) => {
                         self.object_states.remove(&entity);
@@ -502,6 +507,63 @@ impl FigureMgr {
                         action_animation_rate,
                     );
                 }
+                Body::Dragon(_) => {
+                    let state = self
+                        .dragon_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, DragonSkeleton::new())
+                        });
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.is_same_movement(&last_character.0) {
+                        state.movement_time = 0.0;
+                    }
+
+                    let target_base = match character.movement {
+                        Stand => anim::dragon::IdleAnimation::update_skeleton(
+                            &DragonSkeleton::new(),
+                            time,
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Run => anim::dragon::RunAnimation::update_skeleton(
+                            &DragonSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Jump => anim::dragon::JumpAnimation::update_skeleton(
+                            &DragonSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_base, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        vel.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
+                }
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -534,6 +596,8 @@ impl FigureMgr {
         self.bird_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.fish_medium_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.dragon_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.object_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -598,6 +662,10 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::FishMedium(_) => self
                     .fish_medium_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::Dragon(_) => self
+                    .dragon_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::Object(_) => self
