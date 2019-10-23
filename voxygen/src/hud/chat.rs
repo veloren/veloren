@@ -2,6 +2,7 @@ use super::{
     img_ids::Imgs, Fonts, BROADCAST_COLOR, FACTION_COLOR, GAME_UPDATE_COLOR, GROUP_COLOR,
     KILL_COLOR, META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
 };
+use crate::GlobalState;
 use client::Event as ClientEvent;
 use common::{msg::validate_chat_msg, ChatType};
 use conrod_core::{
@@ -31,6 +32,7 @@ pub struct Chat<'a> {
     force_input: Option<String>,
     force_cursor: Option<Index>,
 
+    global_state: &'a GlobalState,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
@@ -44,6 +46,7 @@ pub struct Chat<'a> {
 impl<'a> Chat<'a> {
     pub fn new(
         new_messages: &'a mut VecDeque<ClientEvent>,
+        global_state: &'a GlobalState,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
     ) -> Self {
@@ -53,6 +56,7 @@ impl<'a> Chat<'a> {
             force_cursor: None,
             imgs,
             fonts,
+            global_state,
             common: widget::CommonBuilder::default(),
             history_max: 32,
         }
@@ -121,7 +125,7 @@ impl<'a> Widget for Chat<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
-
+        let transp = self.global_state.settings.gameplay.chat_transp;
         // Maintain scrolling.
         if !self.new_messages.is_empty() {
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
@@ -197,7 +201,7 @@ impl<'a> Widget for Chat<'a> {
                 _ => 0.0,
             };
             Rectangle::fill([470.0, y])
-                .rgba(0.0, 0.0, 0.0, 0.8)
+                .rgba(0.0, 0.0, 0.0, transp + 0.1)
                 .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
                 .w(470.0)
                 .set(state.ids.input_bg, ui);
@@ -216,7 +220,7 @@ impl<'a> Widget for Chat<'a> {
 
         // Message box
         Rectangle::fill([470.0, 174.0])
-            .rgba(0.0, 0.0, 0.0, 0.4)
+            .rgba(0.0, 0.0, 0.0, transp)
             .and(|r| {
                 if input_focused {
                     r.up_from(state.ids.input_bg, 0.0)
