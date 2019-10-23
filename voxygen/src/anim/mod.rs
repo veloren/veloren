@@ -3,6 +3,8 @@ pub mod fixture;
 pub mod object;
 pub mod quadruped;
 pub mod quadrupedmedium;
+pub mod birdmedium;
+pub mod fishmedium;
 
 use crate::render::FigureBoneData;
 use common::comp::{self, item::Tool};
