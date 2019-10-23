@@ -43,7 +43,7 @@ impl Default for ServerSettings {
                 "Nancok",
                 "Qutrin",
                 "Mckol",
-            ].into_iter().map(|n| n.to_string()).collect(),
+            ].iter().map(|n| n.to_string()).collect(),
         }
     }
 }
