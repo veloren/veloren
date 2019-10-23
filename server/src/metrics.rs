@@ -1,6 +1,7 @@
 use log::info;
 use prometheus::{Encoder, Gauge, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder};
 use rouille::{router, Server};
+use std::error::Error;
 use std::{
     convert::TryInto,
     net::SocketAddr,
@@ -11,7 +12,6 @@ use std::{
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use std::error::Error;
 
 pub struct ServerMetrics {
     pub chonks_count: IntGauge,

@@ -43,7 +43,10 @@ impl Default for ServerSettings {
                 "Nancok",
                 "Qutrin",
                 "Mckol",
-            ].iter().map(|n| n.to_string()).collect(),
+            ]
+            .iter()
+            .map(|n| n.to_string())
+            .collect(),
         }
     }
 }
@@ -75,8 +78,11 @@ impl ServerSettings {
         let path = ServerSettings::get_settings_path();
         let mut config_file = fs::File::create(path)?;
 
-        let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).expect("Failed serialize settings.");
-        config_file.write_all(s.as_bytes()).expect("Failed to write to config file.");
+        let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default())
+            .expect("Failed serialize settings.");
+        config_file
+            .write_all(s.as_bytes())
+            .expect("Failed to write to config file.");
         Ok(())
     }
 
