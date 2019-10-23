@@ -470,7 +470,11 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
     let header_message: String = format!("{} online players: \n", count);
     if count > 0 {
         let mut player_iter = players.join();
-        let first = player_iter.next().expect("Player iterator returned none.").alias.to_owned();
+        let first = player_iter
+            .next()
+            .expect("Player iterator returned none.")
+            .alias
+            .to_owned();
         let player_list = player_iter.fold(first, |mut s, p| {
             s += ",\n";
             s += &p.alias;
