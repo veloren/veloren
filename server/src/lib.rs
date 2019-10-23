@@ -126,7 +126,8 @@ impl Server {
                 git_hash: common::util::GIT_HASH.to_string(),
                 git_date: common::util::GIT_DATE.to_string(),
             },
-            metrics: ServerMetrics::new(settings.metrics_address),
+            metrics: ServerMetrics::new(settings.metrics_address)
+                .expect("Failed to initialize server metrics submodule."),
             accounts: AuthProvider::new(),
             server_settings: settings.clone(),
         };
@@ -245,7 +246,7 @@ impl Server {
                 .ecs()
                 .read_storage::<comp::Player>()
                 .get(entity)
-                .unwrap()
+                .expect("Failed to fetch entity.")
                 .alias,
         ) {
             state.write_component(entity, comp::Admin);
@@ -303,7 +304,7 @@ impl Server {
                         .ecs()
                         .read_storage::<comp::Pos>()
                         .get(entity)
-                        .unwrap()
+                        .expect("Failed to fetch entity")
                         .0;
 
                     // TODO: Player height
