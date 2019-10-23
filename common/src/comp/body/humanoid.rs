@@ -339,7 +339,7 @@ impl Race {
             (Race::Human, BodyType::Female) => 19,
             (Race::Human, BodyType::Male) => 4,
             (Race::Orc, BodyType::Female) => 1,
-            (Race::Orc, BodyType::Male) => 2,
+            (Race::Orc, BodyType::Male) => 8,
             (Race::Undead, BodyType::Female) => 4,
             (Race::Undead, BodyType::Male) => 3,
         }
@@ -371,7 +371,7 @@ impl Race {
             (Race::Human, BodyType::Female) => 1,
             (Race::Human, BodyType::Male) => 3,
             (Race::Orc, BodyType::Female) => 1,
-            (Race::Orc, BodyType::Male) => 2,
+            (Race::Orc, BodyType::Male) => 3,
             (Race::Undead, BodyType::Female) => 1,
             (Race::Undead, BodyType::Male) => 1,
         }

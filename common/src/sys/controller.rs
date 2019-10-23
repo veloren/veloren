@@ -231,7 +231,7 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 Some(Item::Tool { .. }) => {
-                    // Attack
+                    // Melee Attack
                     if controller.primary
                         && (character.movement == Stand
                             || character.movement == Run
