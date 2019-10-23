@@ -27,23 +27,23 @@ impl Default for ServerSettings {
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
-            admins: vec![
-                "Pfau".to_owned(),
-                "zesterer".to_owned(),
-                "xMAC94x".to_owned(),
-                "Timo".to_owned(),
-                "Songtronix".to_owned(),
-                "Slipped".to_owned(),
-                "Sharp".to_owned(),
-                "Acrimon".to_owned(),
-                "imbris".to_owned(),
-                "YuriMomo".to_owned(),
-                "Vechro".to_owned(),
-                "AngelOnFira".to_owned(),
-                "Nancok".to_owned(),
-                "Qutrin".to_owned(),
-                "Mckol".to_owned(),
-            ],
+            admins: [
+                "Pfau",
+                "zesterer",
+                "xMAC94x",
+                "Timo",
+                "Songtronix",
+                "Slipped",
+                "Sharp",
+                "Acrimon",
+                "imbris",
+                "YuriMomo",
+                "Vechro",
+                "AngelOnFira",
+                "Nancok",
+                "Qutrin",
+                "Mckol",
+            ].into_iter().map(|n| n.to_string()).collect(),
         }
     }
 }
@@ -75,8 +75,8 @@ impl ServerSettings {
         let path = ServerSettings::get_settings_path();
         let mut config_file = fs::File::create(path)?;
 
-        let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
-        config_file.write_all(s.as_bytes()).unwrap();
+        let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).expect("Failed serialize settings.");
+        config_file.write_all(s.as_bytes()).expect("Failed to write to config file.");
         Ok(())
     }
 

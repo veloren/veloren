@@ -11,6 +11,7 @@ use std::{
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
+use std::error::Error;
 
 pub struct ServerMetrics {
     pub chonks_count: IntGauge,
@@ -28,66 +29,65 @@ pub struct ServerMetrics {
 }
 
 impl ServerMetrics {
-    pub fn new(addr: SocketAddr) -> Self {
+    pub fn new(addr: SocketAddr) -> Result<Self, Box<dyn Error>> {
         let opts = Opts::new(
             "player_online",
             "shows the number of clients connected to the server",
         );
-        let player_online = IntGauge::with_opts(opts).unwrap();
+        let player_online = IntGauge::with_opts(opts)?;
         let opts = Opts::new(
             "entity_count",
             "number of all entities currently active on the server",
         );
-        let entity_count = IntGauge::with_opts(opts).unwrap();
+        let entity_count = IntGauge::with_opts(opts)?;
         let opts = Opts::new("veloren_build_info", "Build information")
             .const_label("hash", &common::util::GIT_HASH)
             .const_label("version", "");
-        let build_info = IntGauge::with_opts(opts).unwrap();
+        let build_info = IntGauge::with_opts(opts)?;
         let opts = Opts::new(
             "veloren_start_time",
             "start time of the server in seconds since EPOCH",
         );
-        let start_time = IntGauge::with_opts(opts).unwrap();
+        let start_time = IntGauge::with_opts(opts)?;
         let opts = Opts::new("time_of_day", "ingame time in ingame-seconds");
-        let time_of_day = Gauge::with_opts(opts).unwrap();
+        let time_of_day = Gauge::with_opts(opts)?;
         let opts = Opts::new(
             "light_count",
             "number of all lights currently active on the server",
         );
-        let light_count = IntGauge::with_opts(opts).unwrap();
+        let light_count = IntGauge::with_opts(opts)?;
         let opts = Opts::new(
             "chonks_count",
             "number of all chonks currently active on the server",
         );
-        let chonks_count = IntGauge::with_opts(opts).unwrap();
+        let chonks_count = IntGauge::with_opts(opts)?;
         let opts = Opts::new(
             "chunks_count",
             "number of all chunks currently active on the server",
         );
-        let chunks_count = IntGauge::with_opts(opts).unwrap();
+        let chunks_count = IntGauge::with_opts(opts)?;
         let vec = IntGaugeVec::new(
             Opts::new("tick_time", "time in ns requiered for a tick of the server"),
             &["period"],
-        )
-        .unwrap();
+        )?;
         let tick_time = IntGaugeVec::from(vec);
 
         let since_the_epoch = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards");
-        start_time.set(since_the_epoch.as_secs().try_into().unwrap());
+        start_time.set(since_the_epoch.as_secs().try_into()?);
 
         let registry = Registry::new();
         //registry.register(Box::new(chonks_count.clone())).unwrap();
-        registry.register(Box::new(player_online.clone())).unwrap();
-        registry.register(Box::new(entity_count.clone())).unwrap();
-        registry.register(Box::new(build_info.clone())).unwrap();
-        registry.register(Box::new(start_time.clone())).unwrap();
-        registry.register(Box::new(time_of_day.clone())).unwrap();
+        registry.register(Box::new(player_online.clone()))?;
+        registry.register(Box::new(entity_count.clone()))?;
+        registry.register(Box::new(build_info.clone()))?;
+        registry.register(Box::new(start_time.clone()))?;
+        registry.register(Box::new(time_of_day.clone()))?;
         //registry.register(Box::new(light_count.clone())).unwrap();
-        registry.register(Box::new(chonks_count.clone())).unwrap();
-        registry.register(Box::new(chunks_count.clone())).unwrap();
-        registry.register(Box::new(tick_time.clone())).unwrap();
+        registry.register(Box::new(chonks_count.clone()))?;
+        registry.register(Box::new(chunks_count.clone()))?;
+        registry.register(Box::new(tick_time.clone()))?;
 
         let running = Arc::new(AtomicBool::new(true));
         let running2 = running.clone();
@@ -100,8 +100,8 @@ impl ServerMetrics {
                         let encoder = TextEncoder::new();
                         let mut buffer = vec![];
                         let mf = registry.gather();
-                        encoder.encode(&mf, &mut buffer).unwrap();
-                        rouille::Response::text(String::from_utf8(buffer).unwrap())
+                        encoder.encode(&mf, &mut buffer).expect("Failed to encoder metrics text.");
+                        rouille::Response::text(String::from_utf8(buffer).expect("Failed to parse bytes as a string."))
                 },
                 _ => rouille::Response::empty_404()
                 )
@@ -115,7 +115,7 @@ impl ServerMetrics {
             }
         }));
 
-        Self {
+        Ok(Self {
             chonks_count,
             chunks_count,
             player_online,
@@ -128,7 +128,7 @@ impl ServerMetrics {
             running,
             handle,
             every_100th: 0,
-        }
+        })
     }
 
     pub fn is_100th_tick(&mut self) -> bool {
@@ -147,7 +147,7 @@ impl Drop for ServerMetrics {
         self.running.store(false, Ordering::Relaxed);
         let handle = self.handle.take();
         handle
-            .unwrap()
+            .expect("ServerMetrics worker handle does not exist.")
             .join()
             .expect("Error shutting down prometheus metric exporter");
     }
