@@ -126,7 +126,8 @@ impl Server {
                 git_hash: common::util::GIT_HASH.to_string(),
                 git_date: common::util::GIT_DATE.to_string(),
             },
-            metrics: ServerMetrics::new(settings.metrics_address).expect("Failed to initialize server metrics submodule."),
+            metrics: ServerMetrics::new(settings.metrics_address)
+                .expect("Failed to initialize server metrics submodule."),
             accounts: AuthProvider::new(),
             server_settings: settings.clone(),
         };
