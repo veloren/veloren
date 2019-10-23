@@ -4,6 +4,7 @@ pub mod quadruped;
 pub mod quadruped_medium;
 pub mod bird_medium;
 pub mod fish_medium;
+pub mod dragon;
 
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
@@ -15,6 +16,7 @@ pub enum Body {
     QuadrupedMedium(quadruped_medium::Body),
     BirdMedium(bird_medium::Body),
     FishMedium(fish_medium::Body),
+    Dragon(dragon::Body),
     Object(object::Body),
 }
 

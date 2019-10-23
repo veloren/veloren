@@ -10,7 +10,7 @@ use common::{
             Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder, Skin,
         },
         item::Tool,
-        object, quadruped, quadruped_medium, bird_medium, fish_medium, Item, Itemkind
+        object, quadruped, quadruped_medium, bird_medium, fish_medium, dragon, Item, Itemkind
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
 };
@@ -814,6 +814,125 @@ pub fn mesh_marlin_fin_r(fin_r: fish_medium::FinR) -> Mesh<FigurePipeline> {
         Vec3::new(-7.0, -6.0, -6.0),
     )
 }
+////
+pub fn mesh_dragon_head(head: dragon::Head) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match head {
+            dragon::Head::Default => "npc.dragon.dragon_head",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_chest_front(chest_front: dragon::ChestFront) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match chest_front {
+            dragon::ChestFront::Default => "npc.dragon.dragon_chest_front",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_chest_rear(chest_rear: dragon::ChestRear) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match chest_rear {
+            dragon::ChestRear::Default => "npc.dragon.dragon_chest_rear",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_tail_front(tail_front: dragon::TailFront) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail_front {
+            dragon::TailFront::Default => "npc.dragon.dragon_tail_front",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_tail_rear(tail_rear: dragon::TailRear) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail_rear {
+            dragon::TailRear::Default => "npc.dragon.dragon_tail_rear",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_wing_in_l(wing_in_l: dragon::WingInL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_in_l {
+            dragon::WingInL::Default => "npc.dragon.dragon_wing_in_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_wing_in_r(wing_in_r: dragon::WingInR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_in_r {
+            dragon::WingInR::Default => "npc.dragon.dragon_wing_in_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_wing_out_l(wing_out_l: dragon::WingOutL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_out_l {
+            dragon::WingOutL::Default => "npc.dragon.dragon_wing_out_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_wing_out_r(wing_out_r: dragon::WingOutR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_out_r {
+            dragon::WingOutR::Default => "npc.dragon.dragon_wing_out_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_foot_fl(foot_fl: dragon::FootFL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_fl {
+            dragon::FootFL::Default => "npc.dragon.dragon_foot_fl",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_foot_fr(foot_fr: dragon::FootFR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_fr {
+            dragon::FootFR::Default => "npc.dragon.dragon_foot_fr",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_foot_bl(foot_bl: dragon::FootBL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_bl {
+            dragon::FootBL::Default => "npc.dragon.dragon_foot_bl",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_foot_br(foot_br: dragon::FootBR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_br {
+            dragon::FootBR::Default => "npc.dragon.dragon_foot_br",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+
 ////
 pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
     use object::Body;
