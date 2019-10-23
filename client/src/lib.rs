@@ -104,7 +104,7 @@ impl Client {
                 let map_size = Vec2::new(1024, 1024);
                 let world_map_raw = vec![0u8; 4 * /*world_map.len()*/map_size.x * map_size.y];
                 // LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
-                log::info!("Preparing image...");
+                log::debug!("Preparing image...");
                 let world_map = Arc::new(image::DynamicImage::ImageRgba8({
                     // Should not fail if the dimensions are correct.
                     let world_map = image::ImageBuffer::from_raw(
@@ -114,7 +114,7 @@ impl Client {
                     );
                     world_map.ok_or(Error::Other("Server sent a bad world map image".into()))?
                 }));
-                log::info!("Done preparing image...");
+                log::debug!("Done preparing image...");
 
                 (state, entity, server_info, world_map)
             }

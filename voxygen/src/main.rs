@@ -143,7 +143,7 @@ fn main() {
     let time = chrono::offset::Utc::now();
 
     let file_cfg = fern::Dispatch::new()
-        .level(log::LevelFilter::Debug)
+        .level(log::LevelFilter::Trace)
         .format(|out, message, record| {
             out.finish(format_args!(
                 "{}[{}:{}][{}] {}",
