@@ -7,7 +7,7 @@ pub use load::load_mesh; // TODO: Don't make this public.
 use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, Animation, Skeleton,
+        quadrupedmedium::QuadrupedMediumSkeleton, birdmedium::BirdMediumSkeleton, fishmedium::FishMediumSkeleton,Animation, Skeleton,
     },
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::camera::{Camera, CameraMode},
@@ -32,6 +32,8 @@ pub struct FigureMgr {
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
+    bird_medium_states: HashMap<EcsEntity, FigureState<BirdMediumSkeleton>>,
+    fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
@@ -42,6 +44,8 @@ impl FigureMgr {
             character_states: HashMap::new(),
             quadruped_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
+            bird_medium_states: HashMap::new(),
+            fish_medium_states: HashMap::new(),
             object_states: HashMap::new(),
         }
     }
@@ -92,6 +96,12 @@ impl FigureMgr {
                     }
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states.remove(&entity);
+                    }
+                    Body::BirdMedium(_) => {
+                        self.bird_medium_states.remove(&entity);
+                    }
+                    Body::FishMedium(_) => {
+                        self.fish_medium_states.remove(&entity);
                     }
                     Body::Object(_) => {
                         self.object_states.remove(&entity);
@@ -378,6 +388,120 @@ impl FigureMgr {
                         action_animation_rate,
                     );
                 }
+                Body::BirdMedium(_) => {
+                    let state = self
+                        .bird_medium_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, BirdMediumSkeleton::new())
+                        });
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.is_same_movement(&last_character.0) {
+                        state.movement_time = 0.0;
+                    }
+
+                    let target_base = match character.movement {
+                        Stand => anim::birdmedium::IdleAnimation::update_skeleton(
+                            &BirdMediumSkeleton::new(),
+                            time,
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Run => anim::birdmedium::RunAnimation::update_skeleton(
+                            &BirdMediumSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Jump => anim::birdmedium::JumpAnimation::update_skeleton(
+                            &BirdMediumSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_base, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        vel.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
+                }
+                Body::FishMedium(_) => {
+                    let state = self
+                        .fish_medium_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, FishMediumSkeleton::new())
+                        });
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.is_same_movement(&last_character.0) {
+                        state.movement_time = 0.0;
+                    }
+
+                    let target_base = match character.movement {
+                        Stand => anim::fishmedium::IdleAnimation::update_skeleton(
+                            &FishMediumSkeleton::new(),
+                            time,
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Run => anim::fishmedium::RunAnimation::update_skeleton(
+                            &FishMediumSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Jump => anim::fishmedium::JumpAnimation::update_skeleton(
+                            &FishMediumSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_base, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        vel.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
+                }
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -406,6 +530,10 @@ impl FigureMgr {
         self.quadruped_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_medium_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.bird_medium_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.fish_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.object_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -462,6 +590,14 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::QuadrupedMedium(_) => self
                     .quadruped_medium_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::BirdMedium(_) => self
+                    .bird_medium_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::FishMedium(_) => self
+                    .fish_medium_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::Object(_) => self
