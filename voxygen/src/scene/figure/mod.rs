@@ -39,7 +39,6 @@ pub struct FigureMgr {
     bird_small_states: HashMap<EcsEntity, FigureState<BirdSmallSkeleton>>,
     fish_small_states: HashMap<EcsEntity, FigureState<FishSmallSkeleton>>,
     biped_large_states: HashMap<EcsEntity, FigureState<BipedLargeSkeleton>>,
-
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
