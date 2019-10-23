@@ -8,6 +8,7 @@ use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
         quadrupedmedium::QuadrupedMediumSkeleton, birdmedium::BirdMediumSkeleton, fishmedium::FishMediumSkeleton, dragon::DragonSkeleton, bird_small::BirdSmallSkeleton, fish_small::FishSmallSkeleton, biped_large::BipedLargeSkeleton, Animation, Skeleton,
+
     },
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::camera::{Camera, CameraMode},
@@ -38,6 +39,7 @@ pub struct FigureMgr {
     bird_small_states: HashMap<EcsEntity, FigureState<BirdSmallSkeleton>>,
     fish_small_states: HashMap<EcsEntity, FigureState<FishSmallSkeleton>>,
     biped_large_states: HashMap<EcsEntity, FigureState<BipedLargeSkeleton>>,
+
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 

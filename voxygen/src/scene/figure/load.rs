@@ -707,6 +707,7 @@ pub fn mesh_duck_m_head(head: bird_medium::Head) -> Mesh<FigurePipeline> {
         Vec3::new(-7.0, -6.0, -6.0),
     )
 }
+<<<<<<< HEAD
 
 pub fn mesh_duck_m_torso(torso: bird_medium::Torso) -> Mesh<FigurePipeline> {
     load_mesh(
@@ -1088,6 +1089,116 @@ pub fn mesh_knight_foot_r(foot_r: biped_large::FootR) -> Mesh<FigurePipeline> {
 }
 
 
+=======
+
+pub fn mesh_duck_m_torso(torso: bird_medium::Torso) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match torso {
+            bird_medium::Torso::Default => "npc.duck_m.duck_m_body",
+        },
+        Vec3::new(-8.0, -5.5, -6.0),
+    )
+}
+
+pub fn mesh_duck_m_tail(tail: bird_medium::Tail) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail {
+            bird_medium::Tail::Default => "npc.duck_m.duck_m_tail",
+        },
+        Vec3::new(-4.0, -1.0, -1.0),
+    )
+}
+
+pub fn mesh_duck_m_wing_l(wing_l: bird_medium::WingL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_l {
+            bird_medium::WingL::Default => "npc.duck_m.duck_m_wing",
+        },
+        Vec3::new(-2.5, -4.0, -2.5),
+    )
+}
+
+pub fn mesh_duck_m_wing_r(wing_r: bird_medium::WingR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_r {
+            bird_medium::WingR::Default => "npc.duck_m.duck_m_wing",
+        },
+        Vec3::new(-2.5, -4.0, -2.5),
+    )
+}
+
+pub fn mesh_duck_m_leg_l(leg_l: bird_medium::LegL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match leg_l {
+            bird_medium::LegL::Default => "npc.duck_m.duck_m_leg_l",
+        },
+        Vec3::new(-2.5, -4.0, -2.5),
+    )
+}
+
+pub fn mesh_duck_m_leg_r(leg_r: bird_medium::LegR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match leg_r {
+            bird_medium::LegR::Default => "npc.duck_m.duck_m_leg_r",
+        },
+        Vec3::new(-2.5, -4.0, -2.5),
+    )
+}
+////
+pub fn mesh_marlin_head(head: fish_medium::Head) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match head {
+            fish_medium::Head::Default => "npc.marlin.marlin_head",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_marlin_torso(torso: fish_medium::Torso) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match torso {
+            fish_medium::Torso::Default => "npc.marlin.marlin_torso",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_marlin_rear(rear: fish_medium::Rear) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match rear {
+            fish_medium::Rear::Default => "npc.marlin.marlin_rear",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_marlin_tail(tail: fish_medium::Tail) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail {
+            fish_medium::Tail::Default => "npc.marlin.marlin_tail",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_marlin_fin_l(fin_l: fish_medium::FinL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match fin_l {
+            fish_medium::FinL::Default => "npc.marlin.marlin_fin_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_marlin_fin_r(fin_r: fish_medium::FinR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match fin_r {
+            fish_medium::FinR::Default => "npc.marlin.marlin_fin_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+>>>>>>> fish_medium and bird_medium skelingtons
 ////
 pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
     use object::Body;
