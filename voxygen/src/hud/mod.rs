@@ -662,6 +662,7 @@ impl Hud {
                 Intro::Show => {
                     Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
                         .mid_left_with_margin_on(ui_widgets.window, 10.0)
+                        .depth(-1.0)
                         .set(self.ids.intro_bg, ui_widgets);
                     Text::new(intro_text)
                         .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
