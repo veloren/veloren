@@ -1,5 +1,6 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, Fonts, ShortcutNumbers, Show, XpBar, TEXT_COLOR,
+    img_ids::Imgs, BarNumbers, CrosshairType, Fonts, Intro, ShortcutNumbers, Show, XpBar, MENU_BG,
+    TEXT_COLOR,
 };
 use crate::{
     render::AaMode,
@@ -43,6 +44,8 @@ widget_ids! {
         general_txt,
         debug_button,
         debug_button_label,
+        tips_button,
+        tips_button_label,
         interface,
         mouse_pan_slider,
         mouse_pan_label,
@@ -102,6 +105,9 @@ widget_ids! {
         show_bars_button,
         show_bars_text,
         placeholder,
+        chat_transp_title,
+        chat_transp_text,
+        chat_transp_slider
     }
 }
 
@@ -154,6 +160,7 @@ pub enum Event {
     ToggleShortcutNumbers(ShortcutNumbers),
     ChangeTab(SettingsTab),
     Close,
+    Intro(Intro),
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
     ToggleZoomInvert(bool),
@@ -167,6 +174,7 @@ pub enum Event {
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
     UiScale(ScaleChange),
+    ChatTransp(f32),
 }
 
 pub enum ScaleChange {
@@ -273,11 +281,12 @@ impl<'a> Widget for SettingsWindow<'a> {
             let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
             let crosshair_type = self.global_state.settings.gameplay.crosshair_type;
             let ui_scale = self.global_state.settings.gameplay.ui_scale;
+            let chat_transp = self.global_state.settings.gameplay.chat_transp;
 
             Text::new("General")
                 .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
                 .font_size(18)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.general_txt, ui);
 
@@ -300,7 +309,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Show Help Window")
                 .right_from(state.ids.button_help, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.button_help)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_help_label, ui);
@@ -324,16 +333,43 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Show Debug Info")
                 .right_from(state.ids.debug_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.debug_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.debug_button_label, ui);
+            // Tips
+            if Button::image(match self.global_state.settings.gameplay.intro_show {
+                Intro::Show => self.imgs.checkbox_checked,
+                Intro::Never => self.imgs.checkbox,
+            })
+            .w_h(20.0, 20.0)
+            .down_from(state.ids.debug_button, 8.0)
+            .hover_image(match self.global_state.settings.gameplay.intro_show {
+                Intro::Show => self.imgs.checkbox_checked_mo,
+                Intro::Never => self.imgs.checkbox_mo,
+            })
+            .press_image(self.imgs.checkbox_press)
+            .set(state.ids.tips_button, ui)
+            .was_clicked()
+            {
+                match self.global_state.settings.gameplay.intro_show {
+                    Intro::Show => events.push(Event::Intro(Intro::Never)),
+                    Intro::Never => events.push(Event::Intro(Intro::Show)),
+                }
+            };
+            Text::new("Show Tips on Startup")
+                .right_from(state.ids.tips_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .graphics_for(state.ids.button_help)
+                .color(TEXT_COLOR)
+                .set(state.ids.tips_button_label, ui);
 
             // Ui Scale
             Text::new("UI-Scale")
-                .down_from(state.ids.debug_button, 20.0)
+                .down_from(state.ids.tips_button, 20.0)
                 .font_size(18)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.ui_scale_label, ui);
 
@@ -367,7 +403,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Relative Scaling")
                 .right_from(state.ids.relative_to_win_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.relative_to_win_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.relative_to_win_text, ui);
@@ -402,7 +438,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Custom Scaling")
                 .right_from(state.ids.absolute_scale_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.absolute_scale_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.absolute_scale_text, ui);
@@ -429,7 +465,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 Text::new(&format!("{:.2}", scale))
                     .right_from(state.ids.ui_scale_slider, 10.0)
                     .font_size(14)
-                    .font_id(self.fonts.opensans)
+                    .font_id(self.fonts.cyri)
                     .color(TEXT_COLOR)
                     .set(state.ids.ui_scale_value, ui);
             } else {
@@ -579,13 +615,13 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Crosshair")
                 .down_from(state.ids.absolute_scale_button, 20.0)
                 .font_size(18)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.ch_title, ui);
             Text::new("Transparency")
                 .right_from(state.ids.ch_3_bg, 20.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.ch_transp_text, ui);
 
@@ -610,7 +646,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .right_from(state.ids.ch_transp_slider, 8.0)
                 .font_size(14)
                 .graphics_for(state.ids.ch_transp_slider)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.ch_transp_value, ui);
 
@@ -618,7 +654,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Hotbar")
                 .down_from(state.ids.ch_1_bg, 20.0)
                 .font_size(18)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.hotbar_title, ui);
             // Show xp bar
@@ -647,7 +683,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Always show Experience Bar")
                 .right_from(state.ids.show_xpbar_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.show_xpbar_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_xpbar_text, ui);
@@ -681,7 +717,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Always show Shortcuts")
                 .right_from(state.ids.show_shortcuts_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.show_shortcuts_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_shortcuts_text, ui);
@@ -691,7 +727,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Energybar Numbers")
                 .down_from(state.ids.show_shortcuts_button, 20.0)
                 .font_size(18)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.bar_numbers_title, ui);
 
@@ -721,7 +757,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("None")
                 .right_from(state.ids.show_bar_numbers_none_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.show_bar_numbers_none_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_bar_numbers_none_text, ui);
@@ -752,7 +788,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Values")
                 .right_from(state.ids.show_bar_numbers_values_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.show_bar_numbers_values_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_bar_numbers_values_text, ui);
@@ -783,13 +819,43 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Percentages")
                 .right_from(state.ids.show_bar_numbers_percentage_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.show_bar_numbers_percentage_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_bar_numbers_percentage_text, ui);
 
-            Rectangle::fill_with([20.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
-                .down_from(state.ids.show_bar_numbers_percentage_button, 8.0)
+            // Chat Transp
+            Text::new("Chat")
+                .down_from(state.ids.show_bar_numbers_percentage_button, 20.0)
+                .font_size(18)
+                .font_id(self.fonts.cyri)
+                .color(TEXT_COLOR)
+                .set(state.ids.chat_transp_title, ui);
+            Text::new("Background Transparency")
+                .right_from(state.ids.chat_transp_slider, 20.0)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .color(TEXT_COLOR)
+                .set(state.ids.chat_transp_text, ui);
+
+            if let Some(new_val) = ImageSlider::continuous(
+                chat_transp,
+                0.0,
+                0.9,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.chat_transp_title, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.chat_transp_slider, ui)
+            {
+                events.push(Event::ChatTransp(new_val));
+            }
+            Rectangle::fill_with([40.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
+                .down_from(state.ids.chat_transp_title, 30.0)
                 .set(state.ids.placeholder, ui);
         }
 
@@ -829,7 +895,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Pan Sensitivity")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_pan_label, ui);
 
@@ -853,7 +919,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new(&format!("{}", display_pan))
                 .right_from(state.ids.mouse_pan_slider, 8.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_pan_value, ui);
 
@@ -861,7 +927,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Zoom Sensitivity")
                 .down_from(state.ids.mouse_pan_slider, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_label, ui);
 
@@ -885,7 +951,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new(&format!("{}", display_zoom))
                 .right_from(state.ids.mouse_zoom_slider, 8.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_value, ui);
 
@@ -910,7 +976,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Invert Scroll Zoom")
                 .right_from(state.ids.mouse_zoom_invert_button, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .graphics_for(state.ids.button_help)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_invert_label, ui);
@@ -1020,7 +1086,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             )
             .color(TEXT_COLOR)
             .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
-            .font_id(self.fonts.opensans)
+            .font_id(self.fonts.cyri)
             .font_size(18)
             .set(state.ids.controls_text, ui);
             // TODO: Replace with buttons that show actual keybinds and allow the user to change them.
@@ -1093,7 +1159,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             )
             .color(TEXT_COLOR)
             .right_from(state.ids.controls_text, 0.0)
-            .font_id(self.fonts.opensans)
+            .font_id(self.fonts.cyri)
             .font_size(18)
             .set(state.ids.controls_controls, ui);
         }
@@ -1132,7 +1198,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("View Distance")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.vd_text, ui);
 
@@ -1159,7 +1225,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             ))
             .right_from(state.ids.vd_slider, 8.0)
             .font_size(14)
-            .font_id(self.fonts.opensans)
+            .font_id(self.fonts.cyri)
             .color(TEXT_COLOR)
             .set(state.ids.vd_value, ui);
 
@@ -1167,7 +1233,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Maximum FPS")
                 .down_from(state.ids.vd_slider, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.max_fps_text, ui);
 
@@ -1194,7 +1260,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new(&format!("{}", self.global_state.settings.graphics.max_fps))
                 .right_from(state.ids.max_fps_slider, 8.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.max_fps_value, ui);
 
@@ -1202,7 +1268,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Field of View (deg)")
                 .down_from(state.ids.max_fps_slider, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.fov_text, ui);
 
@@ -1226,7 +1292,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new(&format!("{}", self.global_state.settings.graphics.fov))
                 .right_from(state.ids.fov_slider, 8.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.fov_value, ui);
 
@@ -1234,7 +1300,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("AntiAliasing Mode")
                 .down_from(state.ids.fov_slider, 8.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.aa_mode_text, ui);
             let mode_label_list = [
@@ -1298,7 +1364,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Music Volume")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.audio_volume_text, ui);
 
@@ -1323,7 +1389,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Sound Effects Volume")
                 .down_from(state.ids.audio_volume_slider, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.sfx_volume_text, ui);
 
@@ -1350,7 +1416,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Audio Device")
                 .down_from(state.ids.sfx_volume_slider, 10.0)
                 .font_size(14)
-                .font_id(self.fonts.opensans)
+                .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.audio_device_text, ui);
 
@@ -1359,8 +1425,10 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             if let Some(clicked) = DropDownList::new(&device_list, selected)
                 .w_h(400.0, 22.0)
-                .down_from(state.ids.audio_device_text, 10.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
                 .label_font_id(self.fonts.opensans)
+                .down_from(state.ids.audio_device_text, 10.0)
                 .set(state.ids.audio_device_list, ui)
             {
                 let new_val = device_list[clicked].clone();

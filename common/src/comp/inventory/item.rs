@@ -49,11 +49,7 @@ impl Tool {
             }
             Tool::Hammer => "Use with caution around nails.",
             Tool::Bow => "An old but sturdy hunting bow.",
-            Tool::Staff => {
-                "A carved stick.\n\
-                 The wood smells like magic.\n\
-                 NOT YET AVAILABLE."
-            }
+            Tool::Staff => "The wood smells like magic.",
         }
     }
 }
