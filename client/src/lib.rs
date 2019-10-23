@@ -492,8 +492,12 @@ impl Client {
                         frontend_events.push(Event::Chat { chat_type, message })
                     }
                     ServerMsg::SetPlayerEntity(uid) => {
-                        self.entity = self.state.ecs().entity_from_uid(uid).unwrap()
-                    } // TODO: Don't unwrap here!
+                        if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
+                            self.entity = entity;
+                        } else {
+                            return Err(Error::Other("Failed to find entity from uid.".to_owned()));
+                        }
+                    }
                     ServerMsg::EcsSync(sync_package) => {
                         self.state.ecs_mut().sync_with_package(sync_package)
                     }
