@@ -4,6 +4,7 @@ use super::{
 };
 use crate::GlobalState;
 use common::comp::{item::Debug, item::Tool, Item, Stats};
+
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -163,6 +164,7 @@ impl<'a> Widget for Skillbar<'a> {
         let shortcuts = self.global_state.settings.gameplay.shortcut_numbers;
 
         const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
+        const BG_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 0.99);
 
         // Stamina Wheel
         /*
@@ -503,8 +505,15 @@ impl<'a> Widget for Skillbar<'a> {
         }
         // M1 Slot
         Image::new(self.imgs.skillbar_slot_big_bg)
-            .w_h(37.0 * scale, 37.0 * scale)
-            .color(Some(BG_COLOR))
+            .w_h(36.0 * scale, 36.0 * scale)
+            .color(match self.stats.equipment.main {
+                Some(Item::Tool { kind, .. }) => match kind {
+                    Tool::Bow => Some(BG_COLOR_2),
+                    Tool::Staff => Some(BG_COLOR_2),
+                    _ => Some(BG_COLOR_2),
+                },
+                _ => Some(BG_COLOR_2),
+            })
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
         Button::image(match self.stats.equipment.main {
@@ -519,7 +528,22 @@ impl<'a> Widget for Skillbar<'a> {
             Some(Item::Debug(Debug::Boost)) => self.imgs.flyingrod_m1,
             _ => self.imgs.twohaxe_m1,
         }) // Insert Icon here
-        .w_h(38.0 * scale, 38.0 * scale)
+        .w(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Bow => 30.0 * scale,
+                Tool::Staff => 30.0 * scale,
+                _ => 38.0 * scale,
+            },
+            _ => 38.0 * scale,
+        })
+        .h(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Bow => 30.0 * scale,
+                Tool::Staff => 36.0 * scale,
+                _ => 38.0 * scale,
+            },
+            _ => 38.0 * scale,
+        })
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
         // M2 Slot
@@ -528,8 +552,15 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.m1_slot, 0.0)
             .set(state.ids.m2_slot, ui);
         Image::new(self.imgs.skillbar_slot_big_bg)
-            .w_h(37.0 * scale, 37.0 * scale)
-            .color(Some(BG_COLOR))
+            .w_h(36.0 * scale, 36.0 * scale)
+            .color(match self.stats.equipment.main {
+                Some(Item::Tool { kind, .. }) => match kind {
+                    Tool::Bow => Some(BG_COLOR_2),
+                    Tool::Staff => Some(BG_COLOR_2),
+                    _ => Some(BG_COLOR_2),
+                },
+                _ => Some(BG_COLOR_2),
+            })
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
         Button::image(match self.stats.equipment.main {
@@ -544,7 +575,22 @@ impl<'a> Widget for Skillbar<'a> {
             Some(Item::Debug(Debug::Boost)) => self.imgs.flyingrod_m2,
             _ => self.imgs.twohaxe_m2,
         }) // Insert Icon here
-        .w_h(38.0 * scale, 38.0 * scale)
+        .w(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Bow => 30.0 * scale,
+                Tool::Staff => 30.0 * scale,
+                _ => 38.0 * scale,
+            },
+            _ => 38.0 * scale,
+        })
+        .h(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Bow => 30.0 * scale,
+                Tool::Staff => 30.0 * scale,
+                _ => 38.0 * scale,
+            },
+            _ => 38.0 * scale,
+        })
         .middle_of(state.ids.m2_slot_bg)
         .set(state.ids.m2_content, ui);
         //Slot 5

@@ -157,50 +157,52 @@ impl<'a> Widget for MiniMap<'a> {
         const FADE_HOLD: f32 = 1.0;
         const FADE_OUT: f32 = 3.0;
 
-        match self.client.current_chunk() {
-            Some(chunk) => {
-                let current = chunk.meta().name();
-                // Check if no other popup is displayed and a new one is needed
-                if state.last_update.elapsed()
-                    > Duration::from_secs_f32(FADE_IN + FADE_HOLD + FADE_OUT)
-                    && state
-                        .last_region_name
-                        .as_ref()
-                        .map(|l| l != current)
-                        .unwrap_or(true)
-                {
-                    // Update last_region
-                    state.update(|s| s.last_region_name = Some(current.to_owned()));
-                    state.update(|s| s.last_update = Instant::now());
-                }
+        if !self.show.intro {
+            match self.client.current_chunk() {
+                Some(chunk) => {
+                    let current = chunk.meta().name();
+                    // Check if no other popup is displayed and a new one is needed
+                    if state.last_update.elapsed()
+                        > Duration::from_secs_f32(FADE_IN + FADE_HOLD + FADE_OUT)
+                        && state
+                            .last_region_name
+                            .as_ref()
+                            .map(|l| l != current)
+                            .unwrap_or(true)
+                    {
+                        // Update last_region
+                        state.update(|s| s.last_region_name = Some(current.to_owned()));
+                        state.update(|s| s.last_update = Instant::now());
+                    }
 
-                let seconds = state.last_update.elapsed().as_secs_f32();
-                let fade = if seconds < FADE_IN {
-                    seconds / FADE_IN
-                } else if seconds < FADE_IN + FADE_HOLD {
-                    1.0
-                } else {
-                    (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
-                };
-                // Region Name
-                Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
-                    .mid_top_with_margin_on(ui.window, 200.0)
-                    .font_size(70)
-                    .font_id(self.fonts.alkhemi)
-                    .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                    .set(state.ids.zone_display_bg, ui);
-                Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
-                    .top_left_with_margins_on(state.ids.zone_display_bg, -2.5, -2.5)
-                    .font_size(70)
-                    .font_id(self.fonts.alkhemi)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                    .set(state.ids.zone_display, ui);
+                    let seconds = state.last_update.elapsed().as_secs_f32();
+                    let fade = if seconds < FADE_IN {
+                        seconds / FADE_IN
+                    } else if seconds < FADE_IN + FADE_HOLD {
+                        1.0
+                    } else {
+                        (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
+                    };
+                    // Region Name
+                    Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
+                        .mid_top_with_margin_on(ui.window, 200.0)
+                        .font_size(70)
+                        .font_id(self.fonts.alkhemi)
+                        .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                        .set(state.ids.zone_display_bg, ui);
+                    Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
+                        .top_left_with_margins_on(state.ids.zone_display_bg, -2.5, -2.5)
+                        .font_size(70)
+                        .font_id(self.fonts.alkhemi)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                        .set(state.ids.zone_display, ui);
+                }
+                None => Text::new(" ")
+                    .middle_of(ui.window)
+                    .font_size(14)
+                    .color(HP_COLOR)
+                    .set(state.ids.zone_display, ui),
             }
-            None => Text::new(" ")
-                .middle_of(ui.window)
-                .font_size(14)
-                .color(HP_COLOR)
-                .set(state.ids.zone_display, ui),
         }
 
         // TODO: Subregion name display

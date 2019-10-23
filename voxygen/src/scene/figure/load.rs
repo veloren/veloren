@@ -331,7 +331,7 @@ impl HumArmorChestSpec {
             )
         };
 
-        let bare_chest = graceful_load_mat_segment("armor.chest.grayscale");
+        let bare_chest = graceful_load_mat_segment("armor.chest.none");
 
         let mut chest_armor = graceful_load_mat_segment(&spec.vox_spec.0);
 
@@ -385,13 +385,13 @@ impl HumArmorHandSpec {
         };
 
         let hand_segment = color_segment(
-            graceful_load_mat_segment(&spec.left.vox_spec.0),
+            graceful_load_mat_segment(&spec.right.vox_spec.0),
             body.race.skin_color(body.skin),
             body.race.hair_color(body.hair_color),
             body.race.eye_color(body.eye_color),
         );
 
-        generate_mesh(&hand_segment, Vec3::from(spec.left.vox_spec.1))
+        generate_mesh(&hand_segment, Vec3::from(spec.right.vox_spec.1))
     }
 }
 
@@ -519,7 +519,7 @@ pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
                 Tool::Dagger => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
                 Tool::Shield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
                 Tool::Bow => ("weapon.bow.simple-bow", Vec3::new(-1.0, -6.0, -2.0)),
-                Tool::Staff => ("weapon.staff.wood-0", Vec3::new(-1.0, -6.0, -3.0)),
+                Tool::Staff => ("weapon.staff.wood-fire", Vec3::new(-1.0, -6.0, -3.0)),
             },
             Item::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
             _ => return Mesh::new(),

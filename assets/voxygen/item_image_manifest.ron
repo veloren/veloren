@@ -32,7 +32,7 @@
         (0.0, -8.0, 0.0), (-90.0, 90.0, 0.0), 2.0,
     ),
     Tool(Staff): VoxTrans(
-        "voxel.weapon.staff.wood-0",
+        "voxel.weapon.staff.wood-fire",
         (0.0, -9.0, 0.0), (90.0, 90.0, 0.0), 2.5,
     ),
     Tool(Shield): VoxTrans(
