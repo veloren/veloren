@@ -189,10 +189,8 @@ impl Server {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Body::Object(object))
-            .with(comp::LightEmitter {
-                offset: Vec3::unit_z(),
-                ..comp::LightEmitter::default()
-            })
+            .with(comp::Mass(100.0))
+            .with(comp::Gravity(1.0))
         //.with(comp::LightEmitter::default())
     }
 

@@ -52,11 +52,18 @@
         eyes: ("figure.eyes.orc.male-0", (5, 10, 6)),
         hair: [
             Some(("figure.hair.dwarf.bald", (0, 3, -1))),
-            Some(("figure.hair.orc.male", (4, 2, 0))),
+            Some(("figure.hair.orc.male-0", (4, 2, 0))),
+            Some(("figure.hair.orc.male-1", (0, 0, -1))),
+            Some(("figure.hair.orc.male-2", (0, 0, 0))),
+            Some(("figure.hair.orc.male-3", (0, 0, 0))),
+            Some(("figure.hair.orc.male-4", (0, 0, 0))),
+            Some(("figure.hair.orc.male-5", (0, 0, 0))),
+            Some(("figure.hair.orc.male-6", (0, 0, 0))),
         ],
         beard: [
             None,
-            Some(("figure.beard.orc.1", (7, 8, 1))),
+            Some(("figure.beard.orc.1", (7, 11, 0))),
+            Some(("figure.beard.orc.2", (3, 8, -2))),
         ],
         accessory: [
             Some(("figure.accessory.orc.teeth-0", (5, 11, 3))),                     
@@ -67,7 +74,7 @@
         ],
     ),	
     (Orc, Female): (
-        offset: (-8.0, -4.0, -6.0),
+        offset: (-8.0, -3.0, -6.0),
         head: ("figure.head.orc.female", (0, 2, 0)),
         eyes: ("figure.eyes.orc.female-0", (3, 9, 2)),
         hair: [

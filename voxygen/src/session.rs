@@ -408,8 +408,16 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.crosshair_transp = crosshair_transp;
                         global_state.settings.save_to_file_warn();
                     }
+                    HudEvent::ChatTransp(chat_transp) => {
+                        global_state.settings.gameplay.chat_transp = chat_transp;
+                        global_state.settings.save_to_file_warn();
+                    }
                     HudEvent::CrosshairType(crosshair_type) => {
                         global_state.settings.gameplay.crosshair_type = crosshair_type;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::Intro(intro_show) => {
+                        global_state.settings.gameplay.intro_show = intro_show;
                         global_state.settings.save_to_file_warn();
                     }
                     HudEvent::ToggleXpBar(xp_bar) => {

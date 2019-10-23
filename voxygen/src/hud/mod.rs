@@ -58,6 +58,7 @@ use crate::{discord, discord::DiscordUpdate};
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
 //const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
@@ -89,6 +90,15 @@ widget_ids! {
         health_bars[],
         health_bar_backs[],
 
+        // Intro Text
+        intro_bg,
+        intro_text,
+        intro_close,
+        intro_close_2,
+        intro_close_3,
+        intro_check,
+        intro_check_text,
+
         // Test
         bag_space_add,
 
@@ -116,8 +126,8 @@ widget_ids! {
         window_frame_4,
         window_frame_5,
 
-        // Contents
         button_help2,
+        button_help3,
 
         // External
         chat,
@@ -168,8 +178,10 @@ pub enum Event {
     ChangeFOV(u16),
     ChangeAaMode(AaMode),
     CrosshairTransp(f32),
+    ChatTransp(f32),
     CrosshairType(CrosshairType),
     ToggleXpBar(XpBar),
+    Intro(Intro),
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
     UiScale(ScaleChange),
@@ -197,6 +209,11 @@ pub enum CrosshairType {
     Edges,
 }
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum Intro {
+    Show,
+    Never,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum XpBar {
     Always,
     OnGain,
@@ -216,6 +233,7 @@ pub enum ShortcutNumbers {
 
 pub struct Show {
     ui: bool,
+    intro: bool,
     help: bool,
     debug: bool,
     bag: bool,
@@ -381,6 +399,9 @@ pub struct Hud {
     new_messages: VecDeque<ClientEvent>,
     inventory_space: usize,
     show: Show,
+    never_show: bool,
+    intro: bool,
+    intro_2: bool,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
     force_chat_input: Option<String>,
@@ -417,8 +438,11 @@ impl Hud {
             ids,
             new_messages: VecDeque::new(),
             inventory_space: 8,
+            intro: false,
+            intro_2: false,
             show: Show {
                 help: false,
+                intro: true,
                 debug: true,
                 bag: false,
                 esc_menu: false,
@@ -437,6 +461,7 @@ impl Hud {
                 ingame: true,
             },
             to_focus: None,
+            never_show: false,
             force_ungrab: false,
             force_chat_input: None,
             force_chat_cursor: None,
@@ -457,7 +482,6 @@ impl Hud {
             env!("CARGO_PKG_VERSION"),
             common::util::GIT_VERSION.to_string()
         );
-
         if self.show.ingame {
             // Crosshair
             if !self.show.help {
@@ -595,6 +619,131 @@ impl Hud {
                 .set(bar_id, ui_widgets);
             }
         }
+        // Introduction Text
+        let intro_text: &'static str =
+            "Welcome to the Veloren Alpha!\n\
+             \n\
+             \n\
+             Some tips before you start:\n\
+             \n\
+             \n\
+             MOST IMPORTANTLY: To set your respawn point type /waypoint into the chat.\n\
+             \n\
+             This can also be done when you are already dead!\n\
+             \n\
+             \n\
+             Press F1 to see the available key commands.\n\
+             \n\
+             Type /help into the chat to see chat commands\n\
+             \n\
+             \n\
+             There are chests and other objects randomly spawning in the World!\n\
+             \n\
+             Right-Click to collect them.\n\
+             \n\
+             To actually use whatever you loot from those chests open your inventory with 'B'.\n\
+             \n\
+             Double click the items in your bag to use or equip them.\n\
+             \n\
+             Throw them away by clicking them once and clicking outside of the bag\n\
+             \n\
+             \n\
+             Nights can get pretty dark in Veloren.\n\
+             \n\
+             Light your lantern by typing /lantern into the chat\n\
+             \n\
+             \n\
+             Want to free your cursor to close this window? Press TAB!\n\
+             \n\
+             \n\
+             Enjoy your stay in the World of Veloren.";
+        if self.show.intro && !self.show.esc_menu && !self.intro_2 {
+            match global_state.settings.gameplay.intro_show {
+                Intro::Show => {
+                    Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
+                        .mid_left_with_margin_on(ui_widgets.window, 10.0)
+                        .set(self.ids.intro_bg, ui_widgets);
+                    Text::new(intro_text)
+                        .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
+                        .font_size(20)
+                        .font_id(self.fonts.cyri)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.intro_text, ui_widgets);
+                    if Button::image(self.imgs.button)
+                        .w_h(100.0, 50.0)
+                        .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
+                        .label("Close")
+                        .label_font_size(20)
+                        .label_color(TEXT_COLOR)
+                        .hover_image(self.imgs.button_hover)
+                        .press_image(self.imgs.button_press)
+                        .set(self.ids.intro_close, ui_widgets)
+                        .was_clicked()
+                    {
+                        if self.never_show {
+                            events.push(Event::Intro(Intro::Never));
+                            self.never_show = !self.never_show;
+                            self.intro = false;
+                            self.intro_2 = false;
+                        } else {
+                            self.show.intro = !self.show.intro;
+                            self.intro = false;
+                            self.intro_2 = false;
+                        }
+                    }
+                    if Button::image(if self.never_show {
+                        self.imgs.checkbox_checked
+                    } else {
+                        self.imgs.checkbox
+                    })
+                    .w_h(20.0, 20.0)
+                    .right_from(self.ids.intro_close, 10.0)
+                    .hover_image(if self.never_show {
+                        self.imgs.checkbox_checked_mo
+                    } else {
+                        self.imgs.checkbox_mo
+                    })
+                    .press_image(self.imgs.checkbox_press)
+                    .set(self.ids.intro_check, ui_widgets)
+                    .was_clicked()
+                    {
+                        self.never_show = !self.never_show
+                    };
+                    Text::new("Don't show this on Startup")
+                        .right_from(self.ids.intro_check, 10.0)
+                        .font_size(10)
+                        .font_id(self.fonts.cyri)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.intro_check_text, ui_widgets);
+                }
+                Intro::Never => {}
+            }
+        }
+
+        if self.intro_2 && !self.show.esc_menu {
+            Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
+                .mid_left_with_margin_on(ui_widgets.window, 10.0)
+                .set(self.ids.intro_bg, ui_widgets);
+            Text::new(intro_text)
+                .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
+                .font_size(20)
+                .font_id(self.fonts.cyri)
+                .color(TEXT_COLOR)
+                .set(self.ids.intro_text, ui_widgets);
+            if Button::image(self.imgs.button)
+                .w_h(100.0, 50.0)
+                .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
+                .label("Close")
+                .label_font_size(20)
+                .label_color(TEXT_COLOR)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .set(self.ids.intro_close_3, ui_widgets)
+                .was_clicked()
+            {
+                self.intro_2 = false;
+            }
+        }
 
         // Display debug window.
         if self.show.debug {
@@ -712,6 +861,23 @@ impl Hud {
                 .middle_of(ui_widgets.window)
                 .w_h(1260.0, 519.0)
                 .set(self.ids.help, ui_widgets);
+            // Show tips
+            if Button::image(self.imgs.button)
+                .w_h(120.0, 50.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label("Show Tips")
+                .label_font_size(20)
+                .label_color(TEXT_COLOR)
+                .mid_bottom_with_margin_on(self.ids.help, 20.0)
+                .set(self.ids.button_help3, ui_widgets)
+                .was_clicked()
+            {
+                self.show.help = false;
+                self.show.intro = false;
+                self.intro = false;
+                self.intro_2 = true;
+            };
             // X-button
             if Button::image(self.imgs.close_button)
                 .w_h(40.0, 40.0)
@@ -788,10 +954,15 @@ impl Hud {
         }
 
         // Chat box
-        match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
-            .and_then(self.force_chat_input.take(), |c, input| c.input(input))
-            .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
-            .set(self.ids.chat, ui_widgets)
+        match Chat::new(
+            &mut self.new_messages,
+            global_state,
+            &self.imgs,
+            &self.fonts,
+        )
+        .and_then(self.force_chat_input.take(), |c, input| c.input(input))
+        .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
+        .set(self.ids.chat, ui_widgets)
         {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
@@ -825,6 +996,9 @@ impl Hud {
                     settings_window::Event::AdjustMouseZoom(sensitivity) => {
                         events.push(Event::AdjustMouseZoom(sensitivity));
                     }
+                    settings_window::Event::ChatTransp(chat_transp) => {
+                        events.push(Event::ChatTransp(chat_transp));
+                    }
                     settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
                         events.push(Event::ToggleZoomInvert(zoom_inverted));
                     }
@@ -833,6 +1007,9 @@ impl Hud {
                     }
                     settings_window::Event::CrosshairTransp(crosshair_transp) => {
                         events.push(Event::CrosshairTransp(crosshair_transp));
+                    }
+                    settings_window::Event::Intro(intro_show) => {
+                        events.push(Event::Intro(intro_show));
                     }
                     settings_window::Event::AdjustMusicVolume(music_volume) => {
                         events.push(Event::AdjustMusicVolume(music_volume));
@@ -1143,23 +1320,3 @@ impl Hud {
         }
     }
 }
-
-// Get the text to show in the help window and use the
-// length of the longest line to resize the window.
-/*fn get_help_text(cs: &ControlSettings) -> String {
-    format!(
-        "{free_cursor:?} = Free cursor\n\
-         {escape:?} = Open/close menus\n\
-         \n\
-         {help:?} = Toggle this window\n\
-         {toggle_interface:?} = Toggle interface\n\
-         \n\
-         {chat:?} = Open chat\n\
-         Mouse Wheel = Scroll chat/zoom",
-        free_cursor = cs.toggle_cursor,
-        escape = cs.escape,
-        help = cs.help,
-        toggle_interface = cs.toggle_interface,
-        chat = cs.enter
-    )
-}*/
