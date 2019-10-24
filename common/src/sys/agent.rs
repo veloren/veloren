@@ -47,6 +47,8 @@ impl<'a> System<'a> for Sys {
 
             controller.reset();
 
+            let mut inputs = &mut controller.inputs;
+
             match agent {
                 Agent::Wanderer(bearing) => {
                     *bearing += Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
@@ -55,7 +57,7 @@ impl<'a> System<'a> for Sys {
                         - pos.0 * 0.0002;
 
                     if bearing.magnitude_squared() > 0.001 {
-                        controller.move_dir = bearing.normalized();
+                        inputs.move_dir = bearing.normalized();
                     }
                 }
                 Agent::Pet { target, offset } => {
@@ -65,12 +67,12 @@ impl<'a> System<'a> for Sys {
                             let tgt_pos = tgt_pos.0 + *offset;
 
                             if tgt_pos.z > pos.0.z + 1.0 {
-                                controller.jump = true;
+                                inputs.jump = true;
                             }
 
                             // Move towards the target.
                             let dist: f32 = Vec2::from(tgt_pos - pos.0).magnitude();
-                            controller.move_dir = if dist > 5.0 {
+                            inputs.move_dir = if dist > 5.0 {
                                 Vec2::from(tgt_pos - pos.0).normalized()
                             } else if dist < 1.5 && dist > 0.001 {
                                 Vec2::from(pos.0 - tgt_pos).normalized()
@@ -78,7 +80,7 @@ impl<'a> System<'a> for Sys {
                                 Vec2::zero()
                             };
                         }
-                        _ => controller.move_dir = Vec2::zero(),
+                        _ => inputs.move_dir = Vec2::zero(),
                     }
 
                     // Change offset occasionally.
@@ -102,28 +104,28 @@ impl<'a> System<'a> for Sys {
                             )
                         })
                     {
-                        controller.look_dir = target_pos.0 - pos.0;
+                        inputs.look_dir = target_pos.0 - pos.0;
 
                         let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
                         if target_stats.is_dead {
                             choose_new = true;
                         } else if dist < MIN_ATTACK_DIST && dist > 0.001 {
                             // Fight (and slowly move closer)
-                            controller.move_dir =
+                            inputs.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.01;
-                            controller.primary = true;
+                            inputs.primary = true;
                         } else if dist < SIGHT_DIST {
-                            controller.move_dir =
+                            inputs.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.96;
 
                             if rand::random::<f32>() < 0.02 {
-                                controller.roll = true;
+                                inputs.roll = true;
                             }
 
                             if target_character.movement == Glide && target_pos.0.z > pos.0.z + 5.0
                             {
-                                controller.glide = true;
-                                controller.jump = true;
+                                inputs.glide = true;
+                                inputs.jump = true;
                             }
                         } else {
                             choose_new = true;
@@ -134,7 +136,7 @@ impl<'a> System<'a> for Sys {
                                 * 0.1
                                 - *bearing * 0.005;
 
-                        controller.move_dir = if bearing.magnitude_squared() > 0.001 {
+                        inputs.move_dir = if bearing.magnitude_squared() > 0.001 {
                             bearing.normalized()
                         } else {
                             Vec2::zero()

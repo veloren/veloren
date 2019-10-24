@@ -41,6 +41,7 @@ pub enum ServerMsg {
     },
     SetPlayerEntity(u64),
     EcsSync(sphynx::SyncPackage<EcsCompPacket, EcsResPacket>),
+    DeleteEntity(u64),
     EntityPos {
         entity: u64,
         pos: comp::Pos,

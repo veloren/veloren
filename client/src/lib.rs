@@ -8,7 +8,7 @@ pub use crate::error::Error;
 pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage};
 
 use common::{
-    comp,
+    comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, RequestStateError,
         ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
@@ -201,22 +201,33 @@ impl Client {
         // Can't fail
     }
 
-    pub fn use_inventory_slot(&mut self, x: usize) {
-        self.postbox.send_message(ClientMsg::UseInventorySlot(x))
+    pub fn use_inventory_slot(&mut self, slot: usize) {
+        self.postbox
+            .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+                InventoryManip::Use(slot),
+            )));
     }
 
     pub fn swap_inventory_slots(&mut self, a: usize, b: usize) {
         self.postbox
-            .send_message(ClientMsg::SwapInventorySlots(a, b))
+            .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+                InventoryManip::Swap(a, b),
+            )));
     }
 
-    pub fn drop_inventory_slot(&mut self, x: usize) {
-        self.postbox.send_message(ClientMsg::DropInventorySlot(x))
+    pub fn drop_inventory_slot(&mut self, slot: usize) {
+        self.postbox
+            .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+                InventoryManip::Drop(slot),
+            )));
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
-            self.postbox.send_message(ClientMsg::PickUp(uid.id()));
+            self.postbox
+                .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+                    InventoryManip::Pickup(uid),
+                )));
         }
     }
 
@@ -226,6 +237,18 @@ impl Client {
             .read_storage::<comp::Mounting>()
             .get(self.entity)
             .is_some()
+    }
+
+    pub fn mount(&mut self, entity: EcsEntity) {
+        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+            self.postbox
+                .send_message(ClientMsg::ControlEvent(ControlEvent::Mount(uid)));
+        }
+    }
+
+    pub fn unmount(&mut self) {
+        self.postbox
+            .send_message(ClientMsg::ControlEvent(ControlEvent::Unmount));
     }
 
     pub fn view_distance(&self) -> Option<u32> {
@@ -283,16 +306,15 @@ impl Client {
     }
 
     pub fn collect_block(&mut self, pos: Vec3<i32>) {
-        self.postbox.send_message(ClientMsg::CollectBlock(pos));
+        self.postbox
+            .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+                InventoryManip::Collect(pos),
+            )));
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
-    pub fn tick(
-        &mut self,
-        controller: comp::Controller,
-        dt: Duration,
-    ) -> Result<Vec<Event>, Error> {
+    pub fn tick(&mut self, inputs: ControllerInputs, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -310,8 +332,15 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if let ClientState::Character | ClientState::Dead = self.client_state {
-            self.state.write_component(self.entity, controller.clone());
-            self.postbox.send_message(ClientMsg::Controller(controller));
+            self.state.write_component(
+                self.entity,
+                Controller {
+                    inputs: inputs.clone(),
+                    events: Vec::new(),
+                },
+            );
+            self.postbox
+                .send_message(ClientMsg::ControllerInputs(inputs));
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
@@ -319,7 +348,7 @@ impl Client {
 
         // Prepare for new events
         {
-            let ecs = self.state.ecs_mut();
+            let ecs = self.state.ecs();
             for (entity, _) in (&ecs.entities(), &ecs.read_storage::<comp::Body>()).join() {
                 let mut last_character_states =
                     ecs.write_storage::<comp::Last<comp::CharacterState>>();
@@ -343,7 +372,7 @@ impl Client {
         // 3) Update client local data
 
         // 4) Tick the client's LocalState
-        self.state.tick(dt);
+        self.state.tick(dt, |_| {});
 
         // 5) Terrain
         let pos = self
@@ -500,6 +529,13 @@ impl Client {
                     }
                     ServerMsg::EcsSync(sync_package) => {
                         self.state.ecs_mut().sync_with_package(sync_package)
+                    }
+                    ServerMsg::DeleteEntity(entity) => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            if entity != self.entity {
+                                let _ = self.state.ecs_mut().delete_entity(entity);
+                            }
+                        }
                     }
                     ServerMsg::EntityPos { entity, pos } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {

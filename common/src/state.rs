@@ -5,6 +5,7 @@ use crate::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     msg::{EcsCompPacket, EcsResPacket},
+    region::RegionMap,
     sys,
     terrain::{Block, TerrainChunk, TerrainGrid},
     vol::WriteVol,
@@ -172,6 +173,7 @@ impl State {
         ecs.add_resource(TerrainChanges::default());
         ecs.add_resource(EventBus::<ServerEvent>::default());
         ecs.add_resource(EventBus::<LocalEvent>::default());
+        ecs.add_resource(RegionMap::new());
     }
 
     /// Register a component with the state's ECS.
@@ -307,7 +309,7 @@ impl State {
     }
 
     /// Execute a single tick, simulating the game state by the given duration.
-    pub fn tick(&mut self, dt: Duration) {
+    pub fn tick(&mut self, dt: Duration, add_foreign_systems: impl Fn(&mut DispatcherBuilder)) {
         // Change the time accordingly.
         self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
         self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
@@ -378,10 +380,19 @@ impl State {
             self.ecs.write_storage::<comp::Mounting>().remove(entity);
         }
 
+        // Run RegionMap tick to update entity region occupancy
+        self.ecs.write_resource::<RegionMap>().tick(
+            self.ecs.read_storage::<comp::Pos>(),
+            self.ecs.read_storage::<comp::Vel>(),
+            self.ecs.entities(),
+        );
+
         // Run systems to update the world.
         // Create and run a dispatcher for ecs systems.
         let mut dispatch_builder = DispatcherBuilder::new().with_pool(self.thread_pool.clone());
         sys::add_local_systems(&mut dispatch_builder);
+        // TODO: Consider alternative ways to do this
+        add_foreign_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel.
         dispatch_builder.build().dispatch(&self.ecs.res);
 
