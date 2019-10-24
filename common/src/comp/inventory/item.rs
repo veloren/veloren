@@ -3,10 +3,12 @@ use crate::{
     effect::Effect,
     terrain::{Block, BlockKind},
 };
+use rand::prelude::*;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::fs::File;
 use std::io::BufReader;
+use std::sync::Arc;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Tool {
@@ -112,16 +114,11 @@ impl Item {
             BlockKind::Chest => Some(match rand::random::<usize>() % 4 {
                 0 => assets::load_expect_cloned("common.items.apple"),
                 1 => assets::load_expect_cloned("common.items.velorite"),
-                // TODO: Implement random asset loading
-                //2 => Item::Tool {
-                //    kind: *(&ALL_TOOLS).choose(&mut rand::thread_rng()),
-                //    power: 8 + rand::random::<u32>() % (rand::random::<u32>() % 29 + 1),
-                //    stamina: 0,
-                //    strength: 0,
-                //    dexterity: 0,
-                //    intelligence: 0,
-                //},
-                2 => assets::load_expect_cloned("common.items.apple"),
+                2 => (**assets::load_glob::<Item>("common.items.weapons.*")
+                    .expect("Error getting glob")
+                    .choose(&mut rand::thread_rng())
+                    .expect("Empty glob"))
+                .clone(),
                 3 => assets::load_expect_cloned("common.items.veloritefrag"),
                 _ => unreachable!(),
             }),
