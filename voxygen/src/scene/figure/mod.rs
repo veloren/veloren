@@ -7,7 +7,7 @@ pub use load::load_mesh; // TODO: Don't make this public.
 use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, birdmedium::BirdMediumSkeleton, fishmedium::FishMediumSkeleton, dragon::DragonSkeleton, Animation, Skeleton,
+        quadrupedmedium::QuadrupedMediumSkeleton, birdmedium::BirdMediumSkeleton, fishmedium::FishMediumSkeleton, dragon::DragonSkeleton, bird_small::BirdSmallSkeleton, fish_small::FishSmallSkeleton, biped_large::BipedLargeSkeleton, Animation, Skeleton,
     },
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::camera::{Camera, CameraMode},
@@ -35,6 +35,9 @@ pub struct FigureMgr {
     bird_medium_states: HashMap<EcsEntity, FigureState<BirdMediumSkeleton>>,
     fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
     dragon_states: HashMap<EcsEntity, FigureState<DragonSkeleton>>,
+    bird_small_states: HashMap<EcsEntity, FigureState<BirdSmallSkeleton>>,
+    fish_small_states: HashMap<EcsEntity, FigureState<FishSmallSkeleton>>,
+    biped_large_states: HashMap<EcsEntity, FigureState<BipedLargeSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
@@ -48,6 +51,9 @@ impl FigureMgr {
             bird_medium_states: HashMap::new(),
             fish_medium_states: HashMap::new(),
             dragon_states: HashMap::new(),
+            bird_small_states: HashMap::new(),
+            fish_small_states: HashMap::new(),
+            biped_large_states: HashMap::new(),
             object_states: HashMap::new(),
         }
     }
@@ -107,6 +113,15 @@ impl FigureMgr {
                     }
                     Body::Dragon(_) => {
                         self.dragon_states.remove(&entity);
+                    }
+                    Body::BirdSmall(_) => {
+                        self.bird_small_states.remove(&entity);
+                    }
+                    Body::FishSmall(_) => {
+                        self.fish_small_states.remove(&entity);
+                    }
+                    Body::BipedLarge(_) => {
+                        self.biped_large_states.remove(&entity);
                     }
                     Body::Object(_) => {
                         self.object_states.remove(&entity);
@@ -564,6 +579,177 @@ impl FigureMgr {
                         action_animation_rate,
                     );
                 }
+                Body::BirdSmall(_) => {
+                    let state = self
+                        .bird_small_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, BirdSmallSkeleton::new())
+                        });
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.is_same_movement(&last_character.0) {
+                        state.movement_time = 0.0;
+                    }
+
+                    let target_base = match character.movement {
+                        Stand => anim::bird_small::IdleAnimation::update_skeleton(
+                            &BirdSmallSkeleton::new(),
+                            time,
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Run => anim::bird_small::RunAnimation::update_skeleton(
+                            &BirdSmallSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Jump => anim::bird_small::JumpAnimation::update_skeleton(
+                            &BirdSmallSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_base, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        vel.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
+                }
+                Body::FishSmall(_) => {
+                    let state = self
+                        .fish_small_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer,FishSmallSkeleton::new())
+                        });
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.is_same_movement(&last_character.0) {
+                        state.movement_time = 0.0;
+                    }
+
+                    let target_base = match character.movement {
+                        Stand => anim::fish_small::IdleAnimation::update_skeleton(
+                            &FishSmallSkeleton::new(),
+                            time,
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Run => anim::fish_small::RunAnimation::update_skeleton(
+                            &FishSmallSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Jump => anim::fish_small::JumpAnimation::update_skeleton(
+                            &FishSmallSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_base, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        vel.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
+                }
+                Body::BipedLarge(_) => {
+                    let state = self
+                        .biped_large_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, BipedLargeSkeleton::new())
+                        });
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.is_same_movement(&last_character.0) {
+                        state.movement_time = 0.0;
+                    }
+
+                    let target_base = match character.movement {
+                        Stand => anim::biped_large::IdleAnimation::update_skeleton(
+                            &BipedLargeSkeleton::new(),
+                            time,
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Run => anim::biped_large::RunAnimation::update_skeleton(
+                            &BipedLargeSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Jump => anim::biped_large::JumpAnimation::update_skeleton(
+                            &BipedLargeSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_base, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        vel.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
+                }
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -598,6 +784,12 @@ impl FigureMgr {
         self.fish_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.dragon_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.bird_small_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.fish_small_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.biped_large_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.object_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -666,6 +858,18 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::Dragon(_) => self
                     .dragon_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::BirdSmall(_) => self
+                    .bird_small_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::FishSmall(_) => self
+                    .fish_small_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::BipedLarge(_) => self
+                    .biped_large_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::Object(_) => self

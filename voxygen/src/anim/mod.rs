@@ -6,6 +6,9 @@ pub mod quadrupedmedium;
 pub mod birdmedium;
 pub mod fishmedium;
 pub mod dragon;
+pub mod bird_small;
+pub mod fish_small;
+pub mod biped_large;
 
 use crate::render::FigureBoneData;
 use common::comp::{self, item::Tool};
