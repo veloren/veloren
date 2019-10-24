@@ -1088,6 +1088,7 @@ pub fn mesh_knight_foot_r(foot_r: biped_large::FootR) -> Mesh<FigurePipeline> {
     )
 }
 
+
 ////
 pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
     use object::Body;
