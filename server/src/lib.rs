@@ -205,7 +205,7 @@ impl Server {
         server_settings: &ServerSettings,
     ) {
         // Give no item when an invalid specifier is given
-        let main = main.and_then(|specifier| assets::load_cloned(&specifier));
+        let main = main.and_then(|specifier| assets::load_cloned(&specifier).ok());
 
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
