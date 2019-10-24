@@ -14,8 +14,6 @@ pub enum Error {
     BadAddress(std::io::Error),
     // Parsing yielded an empty iterator (specifically to_socket_addrs()).
     NoAddress,
-    // Parsing/host name resolution successful but could not connect.
-    ConnectionFailed(ClientError),
     InvalidAuth,
     ClientCrashed,
     ServerIsFull,
