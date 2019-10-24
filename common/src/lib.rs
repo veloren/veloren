@@ -19,6 +19,7 @@ pub mod figure;
 pub mod msg;
 pub mod npc;
 pub mod ray;
+pub mod region;
 pub mod state;
 pub mod sys;
 pub mod terrain;

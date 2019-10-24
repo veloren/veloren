@@ -30,6 +30,7 @@ pub enum ServerEvent {
         entity: EcsEntity,
         cause: comp::HealthSource,
     },
+    InventoryManip(EcsEntity, comp::InventoryManip),
     Respawn(EcsEntity),
     Shoot {
         entity: EcsEntity,
@@ -46,6 +47,22 @@ pub enum ServerEvent {
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
+    CreatePlayer {
+        entity: EcsEntity,
+        name: String,
+        body: comp::Body,
+        main: Option<comp::Item>,
+    },
+    CreateNpc {
+        pos: comp::Pos,
+        stats: comp::Stats,
+        body: comp::Body,
+        agent: comp::Agent,
+        scale: comp::Scale,
+    },
+    ClientDisconnect(EcsEntity),
+    ChunkRequest(EcsEntity, Vec2<i32>),
+    ChatCmd(EcsEntity, String),
 }
 
 pub struct EventBus<E> {
