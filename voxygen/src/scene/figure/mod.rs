@@ -8,7 +8,10 @@ use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
         quadrupedmedium::QuadrupedMediumSkeleton, birdmedium::BirdMediumSkeleton, fishmedium::FishMediumSkeleton, dragon::DragonSkeleton, bird_small::BirdSmallSkeleton, fish_small::FishSmallSkeleton, biped_large::BipedLargeSkeleton, Animation, Skeleton,
+<<<<<<< HEAD
 
+=======
+>>>>>>> added large bipeds, small birbs, small fish skeletons
     },
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::camera::{Camera, CameraMode},
