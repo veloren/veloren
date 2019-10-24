@@ -96,6 +96,8 @@ widget_ids! {
         intro_close,
         intro_close_2,
         intro_close_3,
+        intro_close_4,
+        intro_close_5,
         intro_check,
         intro_check_text,
 
@@ -661,8 +663,8 @@ impl Hud {
             match global_state.settings.gameplay.intro_show {
                 Intro::Show => {
                     Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
-                        .mid_left_with_margin_on(ui_widgets.window, 10.0)
-                        .depth(-1.0)
+                        .top_left_with_margins_on(ui_widgets.window, 180.0, 10.0)
+                        .floating(true)
                         .set(self.ids.intro_bg, ui_widgets);
                     Text::new(intro_text)
                         .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
@@ -716,6 +718,27 @@ impl Hud {
                         .font_id(self.fonts.cyri)
                         .color(TEXT_COLOR)
                         .set(self.ids.intro_check_text, ui_widgets);
+                    // X-button
+                    if Button::image(self.imgs.close_button)
+                        .w_h(40.0, 40.0)
+                        .hover_image(self.imgs.close_button_hover)
+                        .press_image(self.imgs.close_button_press)
+                        .top_right_with_margins_on(self.ids.intro_bg, 0.0, 0.0)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
+                        .set(self.ids.intro_close_4, ui_widgets)
+                        .was_clicked()
+                    {
+                        if self.never_show {
+                            events.push(Event::Intro(Intro::Never));
+                            self.never_show = !self.never_show;
+                            self.intro = false;
+                            self.intro_2 = false;
+                        } else {
+                            self.show.intro = !self.show.intro;
+                            self.intro = false;
+                            self.intro_2 = false;
+                        }
+                    };
                 }
                 Intro::Never => {}
             }
@@ -723,7 +746,8 @@ impl Hud {
 
         if self.intro_2 && !self.show.esc_menu {
             Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
-                .mid_left_with_margin_on(ui_widgets.window, 10.0)
+                .top_left_with_margins_on(ui_widgets.window, 180.0, 10.0)
+                .floating(true)
                 .set(self.ids.intro_bg, ui_widgets);
             Text::new(intro_text)
                 .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
@@ -744,6 +768,27 @@ impl Hud {
             {
                 self.intro_2 = false;
             }
+            // X-button
+            if Button::image(self.imgs.close_button)
+                .w_h(40.0, 40.0)
+                .hover_image(self.imgs.close_button_hover)
+                .press_image(self.imgs.close_button_press)
+                .top_right_with_margins_on(self.ids.intro_bg, 0.0, 0.0)
+                .color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
+                .set(self.ids.intro_close_4, ui_widgets)
+                .was_clicked()
+            {
+                if self.never_show {
+                    events.push(Event::Intro(Intro::Never));
+                    self.never_show = !self.never_show;
+                    self.intro = false;
+                    self.intro_2 = false;
+                } else {
+                    self.show.intro = !self.show.intro;
+                    self.intro = false;
+                    self.intro_2 = false;
+                }
+            };
         }
 
         // Display debug window.
