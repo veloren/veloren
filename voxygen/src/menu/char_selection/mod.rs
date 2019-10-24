@@ -98,7 +98,7 @@ impl PlayState for CharSelectionState {
                     main: self
                         .char_selection_ui
                         .character_tool
-                        .and_then(|specifier| assets::load_cloned(&specifier)),
+                        .and_then(|specifier| assets::load_cloned(&specifier).ok()),
                     alt: None,
                 },
             );

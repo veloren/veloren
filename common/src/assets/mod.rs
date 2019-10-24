@@ -85,9 +85,9 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
 }
 
 /// Function used to load assets from the filesystem or the cache and return a clone.
-pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Option<A> {
-    let asset: Option<Arc<A>> = load(specifier).ok();
-    asset.map(|asset| (*asset).clone())
+pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Result<A, Error> {
+    let asset = load(specifier);
+    asset.map(|asset: Arc<A>| (*asset).clone())
 }
 
 /// Function used to load essential assets from the filesystem or the cache. It will panic if the asset is not found.
