@@ -4,7 +4,7 @@ use crate::{
     PlayState, PlayStateResult,
 };
 use common::comp;
-use log::warn;
+use log::{info, warn};
 use server::settings::ServerSettings;
 
 pub struct StartSingleplayerState {
@@ -57,6 +57,12 @@ impl PlayState for StartSingleplayerState {
                         _ => {}
                     }
                 };
+
+                // Print the metrics port
+                info!(
+                    "Metrics port: {}",
+                    self.server_settings.metrics_address.port()
+                );
 
                 PlayStateResult::Push(Box::new(CharSelectionState::new(
                     global_state,

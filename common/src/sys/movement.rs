@@ -97,11 +97,13 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
+            let inputs = &controller.inputs;
+
             if character.movement.is_roll() {
                 vel.0 = Vec3::new(0.0, 0.0, vel.0.z)
                     + (vel.0 * Vec3::new(1.0, 1.0, 0.0)
                         + 1.5
-                            * controller
+                            * inputs
                                 .move_dir
                                 .try_normalized()
                                 .unwrap_or(Vec2::from(vel.0).try_normalized().unwrap_or_default()))
@@ -110,7 +112,7 @@ impl<'a> System<'a> for Sys {
             }
             if character.action.is_block() || character.action.is_attack() {
                 vel.0 += Vec2::broadcast(dt.0)
-                    * controller.move_dir
+                    * inputs.move_dir
                     * match physics.on_ground {
                         true if vel.0.magnitude_squared() < BLOCK_SPEED.powf(2.0) => BLOCK_ACCEL,
                         _ => 0.0,
@@ -118,7 +120,7 @@ impl<'a> System<'a> for Sys {
             } else {
                 // Move player according to move_dir
                 vel.0 += Vec2::broadcast(dt.0)
-                    * controller.move_dir
+                    * inputs.move_dir
                     * match (physics.on_ground, &character.movement) {
                         (true, Run) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {
                             HUMANOID_ACCEL
@@ -148,7 +150,7 @@ impl<'a> System<'a> for Sys {
                 || character.action.is_attack()
                 || character.action.is_block()
             {
-                Vec2::from(controller.look_dir).normalized()
+                Vec2::from(inputs.look_dir).normalized()
             } else if let (Climb, Some(wall_dir)) = (character.movement, physics.on_wall) {
                 if Vec2::<f32>::from(wall_dir).magnitude_squared() > 0.001 {
                     Vec2::from(wall_dir).normalized()
@@ -198,12 +200,12 @@ impl<'a> System<'a> for Sys {
 
             // Climb
             if let (true, Some(_wall_dir)) = (
-                (controller.climb | controller.climb_down) && vel.0.z <= CLIMB_SPEED,
+                (inputs.climb | inputs.climb_down) && vel.0.z <= CLIMB_SPEED,
                 physics.on_wall,
             ) {
-                if controller.climb_down && !controller.climb {
+                if inputs.climb_down && !inputs.climb {
                     vel.0 -= dt.0 * vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
-                } else if controller.climb && !controller.climb_down {
+                } else if inputs.climb && !inputs.climb_down {
                     vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
                 } else {
                     vel.0.z = vel.0.z + dt.0 * GRAVITY * 1.5;

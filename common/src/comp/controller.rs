@@ -7,14 +7,14 @@ use vek::*;
 pub enum ControlEvent {
     Mount(Uid),
     Unmount,
+    InventoryManip(InventoryManip),
+    //Respawn,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct Controller {
+pub struct ControllerInputs {
     pub primary: bool,
     pub secondary: bool,
-    pub move_dir: Vec2<f32>,
-    pub look_dir: Vec3<f32>,
     pub sit: bool,
     pub jump: bool,
     pub roll: bool,
@@ -23,6 +23,14 @@ pub struct Controller {
     pub climb_down: bool,
     pub wall_leap: bool,
     pub respawn: bool,
+    pub move_dir: Vec2<f32>,
+    pub look_dir: Vec3<f32>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Controller {
+    pub inputs: ControllerInputs,
+    // TODO: consider SmallVec
     pub events: Vec<ControlEvent>,
 }
 
@@ -59,4 +67,13 @@ pub struct Mounting(pub Uid);
 
 impl Component for Mounting {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum InventoryManip {
+    Pickup(Uid),
+    Collect(Vec3<i32>),
+    Use(usize),
+    Swap(usize, usize),
+    Drop(usize),
 }

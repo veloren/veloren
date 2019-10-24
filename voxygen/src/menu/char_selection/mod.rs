@@ -117,7 +117,7 @@ impl PlayState for CharSelectionState {
             if let Err(err) = self
                 .client
                 .borrow_mut()
-                .tick(comp::Controller::default(), clock.get_last_delta())
+                .tick(comp::ControllerInputs::default(), clock.get_last_delta())
             {
                 error!("Failed to tick the scene: {:?}", err);
                 return PlayStateResult::Pop;
