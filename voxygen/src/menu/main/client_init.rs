@@ -12,6 +12,8 @@ use crate::{discord, discord::DiscordUpdate};
 pub enum Error {
     // Error parsing input string or error resolving host name.
     BadAddress(std::io::Error),
+    // Parsing/host name resolution successful but could not connect.
+    ConnectionFailed(ClientError),
     // Parsing yielded an empty iterator (specifically to_socket_addrs()).
     NoAddress,
     InvalidAuth,
