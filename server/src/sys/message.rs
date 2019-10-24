@@ -169,7 +169,8 @@ impl<'a> System<'a> for Sys {
                                 entity,
                                 name,
                                 body,
-                                main: main.and_then(|specifier| assets::load_cloned(&specifier)),
+                                main: main
+                                    .and_then(|specifier| assets::load_cloned(&specifier).ok()),
                             });
                         }
                         ClientState::Character => client.error_state(RequestStateError::Already),
