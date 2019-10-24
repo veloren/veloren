@@ -1,10 +1,11 @@
 mod renderer;
 
+use crate::render::{Renderer, Texture, UiPipeline};
 use dot_vox::DotVoxData;
-use guillotiere::{size2, AllocId, Allocation, AtlasAllocator};
+use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::HashMap;
 use image::{DynamicImage, RgbaImage};
-use log::{error, warn};
+use log::warn;
 use std::sync::Arc;
 use vek::*;
 
@@ -43,44 +44,60 @@ pub enum Rotation {
     Cw270,
 }
 
+/// Images larger than this are stored in individual textures
+/// Fraction of the total graphic cache size
+const ATLAS_CUTTOFF_FRAC: f32 = 0.2;
+/// Multiplied by current window size
+const GRAPHIC_CACHE_RELATIVE_SIZE: u16 = 1;
+
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Id(u32);
 
-type Parameters = (Id, Vec2<u16>, Aabr<u64>);
+// TODO these can become invalid when clearing the cache
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+pub struct TexId(usize);
 
+type Parameters = (Id, Vec2<u16>, Aabr<u64>);
+type GraphicMap = HashMap<Id, Graphic>;
+
+enum CacheLoc {
+    Atlas {
+        // Index of the atlas this is cached in
+        atlas_idx: usize,
+        // Where in the cache texture this is
+        aabr: Aabr<u16>,
+    },
+    Texture {
+        index: usize,
+    },
+}
 struct CachedDetails {
-    // Id used by AtlasAllocator
-    alloc_id: AllocId,
-    // Last frame this was used on
-    frame: u32,
-    // Where in the cache texture this is
-    aabr: Aabr<u16>,
+    location: CacheLoc,
+    valid: bool,
 }
 
+// Caches graphics, only deallocates when changing screen resolution (completely cleared)
 pub struct GraphicCache {
-    graphic_map: HashMap<Id, Graphic>,
+    graphic_map: GraphicMap,
+    // Next id to use when a new graphic is added
     next_id: u32,
 
-    atlas: AtlasAllocator,
+    // Atlases with the index of their texture in the textures vec
+    atlases: Vec<(SimpleAtlasAllocator, usize)>,
+    textures: Vec<Texture<UiPipeline>>,
+    // Stores the location of graphics rendered at a particular resolution and cached on the cpu
     cache_map: HashMap<Parameters, CachedDetails>,
-    // The current frame
-    current_frame: u32,
-    unused_entries_this_frame: Option<Vec<Option<(u32, Parameters)>>>,
-
-    soft_cache: HashMap<Parameters, RgbaImage>,
-    transfer_ready: Vec<(Parameters, Aabr<u16>)>,
 }
 impl GraphicCache {
-    pub fn new(size: Vec2<u16>) -> Self {
+    pub fn new(renderer: &mut Renderer) -> Self {
+        let (atlas, texture) = create_atlas_texture(renderer);
+
         Self {
             graphic_map: HashMap::default(),
             next_id: 0,
-            atlas: AtlasAllocator::new(size2(i32::from(size.x), i32::from(size.y))),
+            atlases: vec![(atlas, 0)],
+            textures: vec![texture],
             cache_map: HashMap::default(),
-            current_frame: 0,
-            unused_entries_this_frame: None,
-            soft_cache: HashMap::default(),
-            transfer_ready: Vec::new(),
         }
     }
     pub fn add_graphic(&mut self, graphic: Graphic) -> Id {
@@ -97,38 +114,42 @@ impl GraphicCache {
 
         // Remove from caches
         // Maybe make this more efficient if replace graphic is used more often
-        self.transfer_ready.retain(|(p, _)| p.0 != id);
         let uses = self
-            .soft_cache
+            .cache_map
             .keys()
             .filter(|k| k.0 == id)
             .copied()
             .collect::<Vec<_>>();
         for p in uses {
-            self.soft_cache.remove(&p);
-            if let Some(details) = self.cache_map.remove(&p) {
-                // Deallocate
-                self.atlas.deallocate(details.alloc_id);
+            if let Some(details) = self.cache_map.get_mut(&p) {
+                // Reuse allocation
+                details.valid = false;
             }
         }
     }
     pub fn get_graphic(&self, id: Id) -> Option<&Graphic> {
         self.graphic_map.get(&id)
     }
-    pub fn clear_cache(&mut self, new_size: Vec2<u16>) {
-        self.soft_cache.clear();
-        self.transfer_ready.clear();
+    /// Used to aquire textures for rendering
+    pub fn get_tex(&self, id: TexId) -> &Texture<UiPipeline> {
+        self.textures.get(id.0).expect("Invalid TexId used")
+    }
+    pub fn clear_cache(&mut self, renderer: &mut Renderer) {
         self.cache_map.clear();
-        self.atlas = AtlasAllocator::new(size2(i32::from(new_size.x), i32::from(new_size.y)));
+
+        let (atlas, texture) = create_atlas_texture(renderer);
+        self.atlases = vec![(atlas, 0)];
+        self.textures = vec![texture];
     }
 
-    pub fn queue_res(
+    pub fn cache_res(
         &mut self,
+        renderer: &mut Renderer,
         graphic_id: Id,
         dims: Vec2<u16>,
         source: Aabr<f64>,
         rotation: Rotation,
-    ) -> Option<Aabr<u16>> {
+    ) -> Option<(Aabr<u16>, TexId)> {
         let dims = match rotation {
             Rotation::Cw90 | Rotation::Cw270 => Vec2::new(dims.y, dims.x),
             Rotation::None | Rotation::Cw180 => dims,
@@ -148,170 +169,177 @@ impl GraphicCache {
             },
         };
 
-        if let Some(details) = self.cache_map.get_mut(&key) {
-            // Update frame
-            details.frame = self.current_frame;
+        if let Some(details) = self.cache_map.get(&key) {
+            let (idx, aabr) = match details.location {
+                CacheLoc::Atlas {
+                    atlas_idx, aabr, ..
+                } => (self.atlases[atlas_idx].1, aabr),
+                CacheLoc::Texture { index } => {
+                    (
+                        index,
+                        Aabr {
+                            min: Vec2::new(0, 0),
+                            // Note texture should always match the cached dimensions
+                            max: dims,
+                        },
+                    )
+                }
+            };
 
-            Some(rotated_aabr(details.aabr))
-        } else {
-            // Create image if it doesn't already exist
-            if !self.soft_cache.contains_key(&key) {
-                self.soft_cache.insert(
-                    key,
-                    match self.graphic_map.get(&graphic_id) {
-                        Some(Graphic::Blank) => return None,
-                        // Render image at requested resolution
-                        // TODO: Use source aabr.
-                        Some(Graphic::Image(ref image)) => image
-                            .resize_exact(
-                                u32::from(dims.x),
-                                u32::from(dims.y),
-                                image::FilterType::Nearest,
-                            )
-                            .to_rgba(),
-                        Some(Graphic::Voxel(ref vox, trans, min_samples)) => renderer::draw_vox(
-                            &vox.as_ref().into(),
-                            dims,
-                            trans.clone(),
-                            *min_samples,
-                        ),
-                        None => {
-                            warn!("A graphic was requested via an id which is not in use");
-                            return None;
-                        }
-                    },
-                );
+            // Check if the cached version has been invalidated by replacing the underlying graphic
+            if !details.valid {
+                // Create image
+                let image = draw_graphic(&self.graphic_map, graphic_id, dims)?;
+                // Transfer to the gpu
+                upload_image(renderer, aabr, &self.textures[idx], &image);
             }
 
-            let aabr_from_alloc_rect = |rect: guillotiere::Rectangle| {
-                let (min, max) = (rect.min, rect.max);
-                Aabr {
-                    min: Vec2::new(min.x as u16, min.y as u16),
-                    max: Vec2::new(max.x as u16, max.y as u16),
-                }
-            };
+            Some((rotated_aabr(aabr), TexId(idx)))
+        } else {
+            // Create image
+            let image = draw_graphic(&self.graphic_map, graphic_id, dims)?;
 
-            // Allocate rectangle.
-            let (alloc_id, aabr) = match self
-                .atlas
-                .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
+            // Allocate space on the gpu
+            // Check size of graphic
+            // Graphics over a particular size are sent to their own textures
+            let location = if Vec2::<i32>::from(self.atlases[0].0.size().to_tuple())
+                .map(|e| e as u16)
+                .map2(dims, |a, d| a as f32 * ATLAS_CUTTOFF_FRAC >= d as f32)
+                .reduce_and()
             {
-                Some(Allocation { id, rectangle }) => (id, aabr_from_alloc_rect(rectangle)),
-                // Out of room.
-                //  1) Remove unused allocations
-                // TODO: Make more room.
-                //  2) Rearrange rectangles (see comments below)
-                //  3) Expand cache size
-                None => {
-                    // 1) Remove unused allocations
-                    if self.unused_entries_this_frame.is_none() {
-                        self.unused_entries_this_frame = {
-                            let mut unused = self
-                                .cache_map
-                                .iter()
-                                .filter_map(|(key, details)| {
-                                    if details.frame < self.current_frame - 1 {
-                                        Some(Some((details.frame, *key)))
-                                    } else {
-                                        None
-                                    }
-                                })
-                                .collect::<Vec<_>>();
-                            unused
-                                .sort_unstable_by(|a, b| a.map(|(f, _)| f).cmp(&b.map(|(f, _)| f)));
-                            Some(unused)
-                        };
-                    }
-
-                    let mut allocation = None;
-                    // Fight the checker!
-                    let current_frame = self.current_frame;
-                    // Will always be Some
-                    if let Some(ref mut unused_entries) = self.unused_entries_this_frame {
-                        // Deallocate from oldest to newest
-                        for key in unused_entries
-                            .iter_mut()
-                            .filter_map(|e| e.take().map(|(_, key)| key))
-                        {
-                            // Check if still in cache map and it has not been used since the vec was built
-                            if self
-                                .cache_map
-                                .get(&key)
-                                .filter(|d| d.frame != current_frame)
-                                .is_some()
-                            {
-                                if let Some(alloc_id) =
-                                    self.cache_map.remove(&key).map(|d| d.alloc_id)
-                                {
-                                    // Deallocate
-                                    self.atlas.deallocate(alloc_id);
-                                    // Try to allocate
-                                    if let Some(alloc) = self
-                                        .atlas
-                                        .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
-                                    {
-                                        allocation = Some(alloc);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        // 2) Rearrange rectangles
-                        // This needs to be done infrequently and be based on whether rectangles have been removed
-                        // Maybe find a way to calculate whether there is a significant amount of fragmentation
-                        // Or consider dropping the use of an atlas and moving to a hashmap of individual textures :/
-                        // if allocation.is_none() {
-                        //
-                        // }
-                    }
-
-                    match allocation {
-                        Some(Allocation { id, rectangle }) => (id, aabr_from_alloc_rect(rectangle)),
-                        None => {
-                            warn!("Can't find space for an image in the graphic cache");
-                            return None;
-                        }
+                // Fit into an atlas
+                let mut loc = None;
+                for (atlas_idx, (ref mut atlas, _)) in self.atlases.iter_mut().enumerate() {
+                    if let Some(rectangle) =
+                        atlas.allocate(size2(i32::from(dims.x), i32::from(dims.y)))
+                    {
+                        let aabr = aabr_from_alloc_rect(rectangle);
+                        loc = Some(CacheLoc::Atlas { atlas_idx, aabr });
+                        break;
                     }
                 }
-            };
-            self.transfer_ready.push((key, aabr));
 
-            // Insert area into map for retrieval.
+                match loc {
+                    Some(loc) => loc,
+                    // Create a new atlas
+                    None => {
+                        let (mut atlas, texture) = create_atlas_texture(renderer);
+                        let aabr = atlas
+                            .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
+                            .map(aabr_from_alloc_rect)
+                            .unwrap();
+                        let tex_idx = self.textures.len();
+                        let atlas_idx = self.atlases.len();
+                        self.textures.push(texture);
+                        self.atlases.push((atlas, tex_idx));
+                        CacheLoc::Atlas { atlas_idx, aabr }
+                    }
+                }
+            } else {
+                // Create a texture just for this
+                let texture = renderer.create_dynamic_texture(dims).unwrap();
+                let index = self.textures.len();
+                self.textures.push(texture);
+                CacheLoc::Texture { index }
+            };
+
+            let (idx, aabr) = match location {
+                CacheLoc::Atlas {
+                    atlas_idx, aabr, ..
+                } => (self.atlases[atlas_idx].1, aabr),
+                CacheLoc::Texture { index } => {
+                    (
+                        index,
+                        Aabr {
+                            min: Vec2::new(0, 0),
+                            // Note texture should always match the cached dimensions
+                            max: dims,
+                        },
+                    )
+                }
+            };
+            // Upload
+            upload_image(renderer, aabr, &self.textures[idx], &image);
+            // Insert into cached map
             self.cache_map.insert(
                 key,
                 CachedDetails {
-                    alloc_id,
-                    frame: self.current_frame,
-                    aabr,
+                    location,
+                    valid: true,
                 },
             );
 
-            Some(rotated_aabr(aabr))
+            Some((rotated_aabr(aabr), TexId(idx)))
         }
     }
+}
 
-    // Anything not queued since the last call to this will be removed if there is not enough space in the cache
-    pub fn cache_queued<F>(&mut self, mut cacher: F)
-    where
-        F: FnMut(Aabr<u16>, &[[u8; 4]]),
-    {
-        // Cached queued
-        // TODO: combine nearby transfers
-        for (key, target_aarb) in self.transfer_ready.drain(..) {
-            if let Some(image) = self.soft_cache.get(&key) {
-                cacher(
-                    target_aarb,
-                    &image.pixels().map(|p| p.0).collect::<Vec<[u8; 4]>>(),
-                );
-            } else {
-                error!("Image queued for transfer to gpu cache but it doesn't exist (this should never occur)");
-            }
+// Draw a graphic at the specified dimensions
+fn draw_graphic(graphic_map: &GraphicMap, graphic_id: Id, dims: Vec2<u16>) -> Option<RgbaImage> {
+    match graphic_map.get(&graphic_id) {
+        Some(Graphic::Blank) => None,
+        // Render image at requested resolution
+        // TODO: Use source aabr.
+        Some(Graphic::Image(ref image)) => Some(
+            image
+                .resize_exact(
+                    u32::from(dims.x),
+                    u32::from(dims.y),
+                    image::FilterType::Nearest,
+                )
+                .to_rgba(),
+        ),
+        Some(Graphic::Voxel(ref vox, trans, min_samples)) => Some(renderer::draw_vox(
+            &vox.as_ref().into(),
+            dims,
+            trans.clone(),
+            *min_samples,
+        )),
+        None => {
+            warn!("A graphic was requested via an id which is not in use");
+            None
         }
+    }
+}
 
-        // Increment frame
-        self.current_frame += 1;
+fn create_atlas_texture(renderer: &mut Renderer) -> (SimpleAtlasAllocator, Texture<UiPipeline>) {
+    let (w, h) = renderer.get_resolution().into_tuple();
 
-        // Reset unused entries
-        self.unused_entries_this_frame = None;
+    let max_texture_size = renderer.max_texture_size();
+
+    let size = Vec2::new(w, h).map(|e| {
+        (e * GRAPHIC_CACHE_RELATIVE_SIZE)
+            .max(512)
+            .min(max_texture_size as u16)
+    });
+
+    let atlas = SimpleAtlasAllocator::new(size2(i32::from(size.x), i32::from(size.y)));
+    let texture = renderer.create_dynamic_texture(size).unwrap();
+    (atlas, texture)
+}
+
+fn aabr_from_alloc_rect(rect: guillotiere::Rectangle) -> Aabr<u16> {
+    let (min, max) = (rect.min, rect.max);
+    Aabr {
+        min: Vec2::new(min.x as u16, min.y as u16),
+        max: Vec2::new(max.x as u16, max.y as u16),
+    }
+}
+
+fn upload_image(
+    renderer: &mut Renderer,
+    aabr: Aabr<u16>,
+    tex: &Texture<UiPipeline>,
+    image: &RgbaImage,
+) {
+    let offset = aabr.min.into_array();
+    let size = aabr.size().into_array();
+    if let Err(err) = renderer.update_texture(
+        tex,
+        offset,
+        size,
+        &image.pixels().map(|p| p.0).collect::<Vec<[u8; 4]>>(),
+    ) {
+        warn!("Failed to update texture: {:?}", err);
     }
 }
