@@ -40,7 +40,7 @@ use conrod_core::{
     widget::{self, id::Generator},
     Rect, UiBuilder, UiCell,
 };
-use graphic::Rotation;
+use graphic::{Rotation, TexId};
 use log::{error, warn};
 use std::{
     fs::File,
@@ -57,7 +57,7 @@ pub enum UiError {
 }
 
 enum DrawKind {
-    Image,
+    Image(TexId),
     // Text and non-textured geometry
     Plain,
 }
@@ -67,9 +67,9 @@ enum DrawCommand {
     WorldPos(Option<usize>),
 }
 impl DrawCommand {
-    fn image(verts: Range<usize>) -> DrawCommand {
+    fn image(verts: Range<usize>, id: TexId) -> DrawCommand {
         DrawCommand::Draw {
-            kind: DrawKind::Image,
+            kind: DrawKind::Image(id),
             verts,
         }
     }
@@ -270,7 +270,7 @@ impl Ui {
 
         if self.need_cache_resize {
             // Resize graphic cache
-            self.cache.resize_graphic_cache(renderer).unwrap();
+            self.cache.resize_graphic_cache(renderer);
             // Resize glyph cache
             self.cache.resize_glyph_cache(renderer).unwrap();
 
@@ -289,10 +289,8 @@ impl Ui {
             )
         };
 
-        // TODO: this could be removed entirely if the draw call just used both textures,
-        //  however this allows for flexibility if we want to interweave other draw calls later.
         enum State {
-            Image,
+            Image(TexId),
             Plain,
         };
 
@@ -318,9 +316,9 @@ impl Ui {
         // `Plain` state.
         macro_rules! switch_to_plain_state {
             () => {
-                if let State::Image = current_state {
+                if let State::Image(id) = current_state {
                     self.draw_commands
-                        .push(DrawCommand::image(start..mesh.vertices().len()));
+                        .push(DrawCommand::image(start..mesh.vertices().len(), id));
                     start = mesh.vertices().len();
                     current_state = State::Plain;
                 }
@@ -360,7 +358,7 @@ impl Ui {
                 // Finish the current command.
                 self.draw_commands.push(match current_state {
                     State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
-                    State::Image => DrawCommand::image(start..mesh.vertices().len()),
+                    State::Image(id) => DrawCommand::image(start..mesh.vertices().len(), id),
                 });
                 start = mesh.vertices().len();
 
@@ -377,7 +375,7 @@ impl Ui {
                     // Finish current state
                     self.draw_commands.push(match current_state {
                         State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
-                        State::Image => DrawCommand::image(start..mesh.vertices().len()),
+                        State::Image(id) => DrawCommand::image(start..mesh.vertices().len(), id),
                     });
                     start = mesh.vertices().len();
                     // Push new position command
@@ -425,19 +423,11 @@ impl Ui {
                         .image_map
                         .get(&image_id)
                         .expect("Image does not exist in image map");
-                    let (graphic_cache, cache_tex) = self.cache.graphic_cache_mut_and_tex();
+                    let graphic_cache = self.cache.graphic_cache_mut();
 
                     match graphic_cache.get_graphic(*graphic_id) {
                         Some(Graphic::Blank) | None => continue,
                         _ => {}
-                    }
-
-                    // Switch to the image state if we are not in it already.
-                    if let State::Plain = current_state {
-                        self.draw_commands
-                            .push(DrawCommand::plain(start..mesh.vertices().len()));
-                        start = mesh.vertices().len();
-                        current_state = State::Image;
                     }
 
                     let color =
@@ -467,29 +457,45 @@ impl Ui {
                             max: Vec2::new(uv_r, uv_t),
                         }
                     };
-                    // TODO: get dims from graphic_cache (or have it return floats directly)
-                    let (cache_w, cache_h) =
-                        cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
 
                     // Cache graphic at particular resolution.
-                    let uv_aabr = match graphic_cache.queue_res(
+                    let (uv_aabr, tex_id) = match graphic_cache.cache_res(
+                        renderer,
                         *graphic_id,
                         resolution,
                         source_aabr,
                         *rotation,
                     ) {
-                        Some(aabr) => Aabr {
-                            min: Vec2::new(
-                                (aabr.min.x as f32) / cache_w,
-                                (aabr.max.y as f32) / cache_h,
-                            ),
-                            max: Vec2::new(
-                                (aabr.max.x as f32) / cache_w,
-                                (aabr.min.y as f32) / cache_h,
-                            ),
-                        },
+                        // TODO: get dims from graphic_cache (or have it return floats directly)
+                        Some((aabr, tex_id)) => {
+                            let cache_dims = graphic_cache
+                                .get_tex(tex_id)
+                                .get_dimensions()
+                                .map(|e| e as f32);
+                            let min = Vec2::new(aabr.min.x as f32, aabr.max.y as f32) / cache_dims;
+                            let max = Vec2::new(aabr.max.x as f32, aabr.min.y as f32) / cache_dims;
+                            (Aabr { min, max }, tex_id)
+                        }
                         None => continue,
                     };
+
+                    match current_state {
+                        // Switch to the image state if we are not in it already.
+                        State::Plain => {
+                            self.draw_commands
+                                .push(DrawCommand::plain(start..mesh.vertices().len()));
+                            start = mesh.vertices().len();
+                            current_state = State::Image(tex_id);
+                        }
+                        // If the image is cached in a different texture switch to the new one
+                        State::Image(id) if id != tex_id => {
+                            self.draw_commands
+                                .push(DrawCommand::image(start..mesh.vertices().len(), id));
+                            start = mesh.vertices().len();
+                            current_state = State::Image(tex_id);
+                        }
+                        State::Image(_) => {}
+                    }
 
                     mesh.push_quad(create_ui_quad(gl_aabr, uv_aabr, color, UiMode::Image));
                 }
@@ -624,8 +630,8 @@ impl Ui {
                                     State::Plain => {
                                         DrawCommand::plain(start..mesh.vertices().len())
                                     }
-                                    State::Image => {
-                                        DrawCommand::image(start..mesh.vertices().len())
+                                    State::Image(id) => {
+                                        DrawCommand::image(start..mesh.vertices().len(), id)
                                     }
                                 });
                                 start = mesh.vertices().len();
@@ -672,7 +678,7 @@ impl Ui {
         // Enter the final command.
         self.draw_commands.push(match current_state {
             State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
-            State::Image => DrawCommand::image(start..mesh.vertices().len()),
+            State::Image(id) => DrawCommand::image(start..mesh.vertices().len(), id),
         });
 
         // Draw glyph cache (use for debugging).
@@ -703,16 +709,6 @@ impl Ui {
         // Update model with new mesh.
         renderer.update_model(&self.model, &mesh, 0).unwrap();
 
-        // Move cached graphics to the gpu
-        let (graphic_cache, cache_tex) = self.cache.graphic_cache_mut_and_tex();
-        graphic_cache.cache_queued(|aabr, data| {
-            let offset = aabr.min.into_array();
-            let size = aabr.size().into_array();
-            if let Err(err) = renderer.update_texture(cache_tex, offset, size, data) {
-                warn!("Failed to update texture: {:?}", err);
-            }
-        });
-
         // Handle window resizing.
         if let Some(new_dims) = self.window_resized.take() {
             let (old_w, old_h) = self.scale.scaled_window_size().into_tuple();
@@ -742,11 +738,11 @@ impl Ui {
                 }
                 DrawCommand::Draw { kind, verts } => {
                     let tex = match kind {
-                        DrawKind::Image => self.cache.graphic_cache_tex(),
+                        DrawKind::Image(tex_id) => self.cache.graphic_cache().get_tex(*tex_id),
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
                     let model = self.model.submodel(verts.clone());
-                    renderer.render_ui_element(&model, &tex, scissor, globals, locals);
+                    renderer.render_ui_element(&model, tex, scissor, globals, locals);
                 }
             }
         }
