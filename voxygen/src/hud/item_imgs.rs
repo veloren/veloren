@@ -1,7 +1,7 @@
 use crate::ui::{Graphic, Transform, Ui};
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
-    comp::item::{Armor, Consumable, Debug, Ingredient, Item, Tool},
+    comp::item::{Armor, Consumable, Ingredient, Item, ItemKind, Tool},
 };
 use conrod_core::image::Id;
 use dot_vox::DotVoxData;
@@ -13,21 +13,19 @@ use std::{fs::File, io::BufReader, sync::Arc};
 use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum ItemKind {
+pub enum ItemKey {
     Tool(Tool),
     Armor(Armor),
     Consumable(Consumable),
     Ingredient(Ingredient),
-    Debug(Debug),
 }
-impl From<&Item> for ItemKind {
+impl From<&Item> for ItemKey {
     fn from(item: &Item) -> Self {
-        match item {
-            Item::Tool { kind, .. } => ItemKind::Tool(kind.clone()),
-            Item::Armor { kind, .. } => ItemKind::Armor(kind.clone()),
-            Item::Consumable { kind, .. } => ItemKind::Consumable(kind.clone()),
-            Item::Ingredient { kind, .. } => ItemKind::Ingredient(kind.clone()),
-            Item::Debug(kind) => ItemKind::Debug(kind.clone()),
+        match &item.kind {
+            ItemKind::Tool { kind, .. } => ItemKey::Tool(kind.clone()),
+            ItemKind::Armor { kind, .. } => ItemKey::Armor(kind.clone()),
+            ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
+            ItemKind::Ingredient(kind) => ItemKey::Ingredient(kind.clone()),
         }
     }
 }
@@ -68,7 +66,7 @@ impl ImageSpec {
     }
 }
 #[derive(Serialize, Deserialize)]
-struct ItemImagesSpec(HashMap<ItemKind, ImageSpec>);
+struct ItemImagesSpec(HashMap<ItemKey, ImageSpec>);
 impl Asset for ItemImagesSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
@@ -77,7 +75,7 @@ impl Asset for ItemImagesSpec {
 }
 
 pub struct ItemImgs {
-    map: HashMap<ItemKind, Id>,
+    map: HashMap<ItemKey, Id>,
     indicator: ReloadIndicator,
 }
 impl ItemImgs {
@@ -110,7 +108,7 @@ impl ItemImgs {
                 // See if we already have an id we can use
                 match self.map.get(&kind) {
                     Some(id) => ui.replace_graphic(*id, graphic),
-                    // Otherwise, generate new id and insert it into our Id -> ItemKind map
+                    // Otherwise, generate new id and insert it into our Id -> ItemKey map
                     None => {
                         self.map.insert(kind.clone(), ui.add_graphic(graphic));
                     }
@@ -118,7 +116,7 @@ impl ItemImgs {
             }
         }
     }
-    pub fn img_id(&self, item_kind: ItemKind) -> Option<Id> {
+    pub fn img_id(&self, item_kind: ItemKey) -> Option<Id> {
         match self.map.get(&item_kind) {
             Some(id) => Some(*id),
             // There was no specification in the ron

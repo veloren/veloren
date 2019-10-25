@@ -1,0 +1,8 @@
+Item(
+    name: "Velorite",
+    description: "It's smooth and looks edible",
+    kind: Consumable(
+        kind: Velorite,
+        effect: Xp(50),
+    ),
+)

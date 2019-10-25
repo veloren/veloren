@@ -1,6 +1,7 @@
 use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
+    assets,
     comp::{self, Player, Pos},
     event::{EventBus, ServerEvent},
     msg::ServerMsg,
@@ -95,14 +96,9 @@ impl<'a> System<'a> for Sys {
                 let (mut stats, mut body) = if rand::random() {
                     let stats = comp::Stats::new(
                         "Humanoid".to_string(),
-                        Some(comp::Item::Tool {
-                            kind: comp::item::Tool::Sword,
-                            power: 5,
-                            stamina: 0,
-                            strength: 0,
-                            dexterity: 0,
-                            intelligence: 0,
-                        }),
+                        Some(assets::load_expect_cloned(
+                            "common.items.weapons.starter_sword",
+                        )),
                     );
                     let body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     (stats, body)
@@ -120,14 +116,9 @@ impl<'a> System<'a> for Sys {
                     if rand::random::<f32>() < 0.8 {
                         stats = comp::Stats::new(
                             "Humanoid".to_string(),
-                            Some(comp::Item::Tool {
-                                kind: comp::item::Tool::Sword,
-                                power: 10,
-                                stamina: 0,
-                                strength: 0,
-                                dexterity: 0,
-                                intelligence: 0,
-                            }),
+                            Some(assets::load_expect_cloned(
+                                "common.items.weapons.starter_sword",
+                            )),
                         );
                         body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     }

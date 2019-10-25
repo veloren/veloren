@@ -1,0 +1,8 @@
+Item(
+    name: "Your first staff",
+    description: "A dusty staff that looks surprisingly weak",
+    kind: Tool(
+        kind: Staff,
+        power: 10,
+    ),
+)

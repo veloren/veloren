@@ -5,7 +5,8 @@ use super::{
 use crate::{
     comp::{
         self, item, projectile, ActionState::*, Body, CharacterState, ControlEvent, Controller,
-        HealthChange, HealthSource, Item, MovementState::*, PhysicsState, Projectile, Stats, Vel,
+        HealthChange, HealthSource, ItemKind, MovementState::*, PhysicsState, Projectile, Stats,
+        Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
@@ -131,8 +132,8 @@ impl<'a> System<'a> for Sys {
                 };
             }
 
-            match stats.equipment.main {
-                Some(Item::Tool {
+            match stats.equipment.main.as_ref().map(|i| &i.kind) {
+                Some(ItemKind::Tool {
                     kind: item::Tool::Bow,
                     power,
                     ..
@@ -158,7 +159,7 @@ impl<'a> System<'a> for Sys {
                                         hit_wall: vec![projectile::Effect::Stick],
                                         hit_entity: vec![
                                             projectile::Effect::Damage(HealthChange {
-                                                amount: -(power as i32),
+                                                amount: -(*power as i32),
                                                 cause: HealthSource::Attack { by: *uid },
                                             }),
                                             projectile::Effect::Vanish,
@@ -170,7 +171,7 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                 }
-                Some(Item::Tool {
+                Some(ItemKind::Tool {
                     kind: item::Tool::Staff,
                     power,
                     ..
@@ -220,7 +221,7 @@ impl<'a> System<'a> for Sys {
                                         hit_wall: vec![projectile::Effect::Vanish],
                                         hit_entity: vec![
                                             projectile::Effect::Damage(HealthChange {
-                                                amount: -(power as i32),
+                                                amount: -(*power as i32),
                                                 cause: HealthSource::Attack { by: *uid },
                                             }),
                                             projectile::Effect::Vanish,
@@ -232,38 +233,10 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                 }
-                Some(Item::Tool { .. }) => {
-                    // Melee Attack
-                    if inputs.primary
-                        && (character.movement == Stand
-                            || character.movement == Run
-                            || character.movement == Jump)
-                    {
-                        if let Wield { time_left } = character.action {
-                            if time_left == Duration::default() {
-                                character.action = Attack {
-                                    time_left: ATTACK_DURATION,
-                                    applied: false,
-                                };
-                            }
-                        }
-                    }
-
-                    // Block
-                    if inputs.secondary
-                        && (character.movement == Stand || character.movement == Run)
-                        && character.action.is_wield()
-                    {
-                        character.action = Block {
-                            time_left: Duration::from_secs(5),
-                        };
-                    } else if !inputs.secondary && character.action.is_block() {
-                        character.action = Wield {
-                            time_left: Duration::default(),
-                        };
-                    }
-                }
-                Some(Item::Debug(item::Debug::Boost)) => {
+                Some(ItemKind::Tool {
+                    kind: item::Tool::Debug(item::Debug::Boost),
+                    ..
+                }) => {
                     if inputs.primary {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
@@ -278,7 +251,10 @@ impl<'a> System<'a> for Sys {
                         });
                     }
                 }
-                Some(Item::Debug(item::Debug::Possess)) => {
+                Some(ItemKind::Tool {
+                    kind: item::Tool::Debug(item::Debug::Possess),
+                    ..
+                }) => {
                     if inputs.primary
                         && (character.movement == Stand
                             || character.movement == Run
@@ -311,6 +287,38 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                     }
+                    // Block
+                    if inputs.secondary
+                        && (character.movement == Stand || character.movement == Run)
+                        && character.action.is_wield()
+                    {
+                        character.action = Block {
+                            time_left: Duration::from_secs(5),
+                        };
+                    } else if !inputs.secondary && character.action.is_block() {
+                        character.action = Wield {
+                            time_left: Duration::default(),
+                        };
+                    }
+                }
+                // All other tools
+                Some(ItemKind::Tool { .. }) => {
+                    // Attack
+                    if inputs.primary
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                    {
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                character.action = Attack {
+                                    time_left: ATTACK_DURATION,
+                                    applied: false,
+                                };
+                            }
+                        }
+                    }
+
                     // Block
                     if inputs.secondary
                         && (character.movement == Stand || character.movement == Run)

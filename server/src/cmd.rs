@@ -5,7 +5,7 @@
 use crate::{Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
-    comp,
+    assets, comp,
     event::{EventBus, ServerEvent},
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
@@ -82,6 +82,12 @@ impl ChatCommand {
 lazy_static! {
     /// Static list of chat commands available to the server.
     pub static ref CHAT_COMMANDS: Vec<ChatCommand> = vec![
+        ChatCommand::new(
+            "giveitem",
+            "{d}",
+            "/giveitem <name> : Give yourself an item.",
+            true,
+            handle_give,),
         ChatCommand::new(
             "jump",
             "{d} {d} {d}",
@@ -233,7 +239,23 @@ lazy_static! {
          ),
     ];
 }
-
+fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
+    if let Ok(item) = assets::load_cloned(&args) {
+        server
+            .state
+            .ecs()
+            .write_storage::<comp::Inventory>()
+            .get_mut(entity)
+            .map(|inv| inv.push(item));
+        let _ = server
+            .state
+            .ecs()
+            .write_storage::<comp::InventoryUpdate>()
+            .insert(entity, comp::InventoryUpdate);
+    } else {
+        server.notify_client(entity, ServerMsg::private(String::from("Invalid item!")));
+    }
+}
 fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     if let Ok((x, y, z)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
         match server.state.read_component_cloned::<comp::Pos>(entity) {
