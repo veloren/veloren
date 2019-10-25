@@ -38,69 +38,55 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-
         next.dragon_head.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.dragon_head.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.dragon_head.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.dragon_head.scale = Vec3::one() / 10.88;
 
-        next.dragon_chest_front.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_chest_front.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_chest_front.ori = Quaternion::rotation_x(0.0);
         next.dragon_chest_front.scale = Vec3::one() * 1.01;
 
-        next.dragon_chest_rear.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_chest_rear.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_chest_rear.ori = Quaternion::rotation_x(0.0);
         next.dragon_chest_rear.scale = Vec3::one() * 1.01;
 
-        next.dragon_tail_front.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_tail_front.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_tail_front.ori = Quaternion::rotation_x(0.0);
         next.dragon_tail_front.scale = Vec3::one() * 1.01;
 
-        next.dragon_tail_rear.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_tail_rear.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_tail_rear.ori = Quaternion::rotation_x(0.0);
         next.dragon_tail_rear.scale = Vec3::one() * 1.01;
 
-        next.dragon_wing_in_l.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_wing_in_l.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_wing_in_l.ori = Quaternion::rotation_x(0.0);
         next.dragon_wing_in_l.scale = Vec3::one() * 1.01;
 
-        next.dragon_wing_in_r.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_wing_in_r.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_wing_in_r.ori = Quaternion::rotation_x(0.0);
         next.dragon_wing_in_r.scale = Vec3::one() * 1.01;
 
-        next.dragon_wing_out_l.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_wing_out_l.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_wing_out_l.ori = Quaternion::rotation_x(0.0);
         next.dragon_wing_out_l.scale = Vec3::one() * 1.01;
 
-        next.dragon_wing_out_r.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_wing_out_r.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_wing_out_r.ori = Quaternion::rotation_x(0.0);
         next.dragon_wing_out_r.scale = Vec3::one() * 1.01;
 
-        next.dragon_foot_fl.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_foot_fl.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_foot_fl.ori = Quaternion::rotation_x(0.0);
         next.dragon_foot_fl.scale = Vec3::one() * 1.01;
 
-        next.dragon_foot_fr.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_foot_fr.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_foot_fr.ori = Quaternion::rotation_x(0.0);
         next.dragon_foot_fr.scale = Vec3::one() * 1.01;
 
-        next.dragon_foot_bl.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_foot_bl.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_foot_bl.ori = Quaternion::rotation_x(0.0);
         next.dragon_foot_bl.scale = Vec3::one() * 1.01;
 
-        next.dragon_foot_br.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.dragon_foot_br.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.dragon_foot_br.ori = Quaternion::rotation_x(0.0);
         next.dragon_foot_br.scale = Vec3::one() * 1.01;
         next

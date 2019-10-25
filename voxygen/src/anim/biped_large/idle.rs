@@ -38,60 +38,48 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-
         next.knight_head.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_head.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_head.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_head.scale = Vec3::one() / 10.88;
 
         next.knight_upper_torso.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_upper_torso.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_upper_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_upper_torso.scale = Vec3::one() / 10.88;
 
         next.knight_lower_torso.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_lower_torso.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_lower_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_lower_torso.scale = Vec3::one() / 10.88;
 
         next.knight_shoulder_l.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_shoulder_l.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_shoulder_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_shoulder_l.scale = Vec3::one() / 10.88;
 
         next.knight_shoulder_r.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_shoulder_r.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_shoulder_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_shoulder_r.scale = Vec3::one() / 10.88;
 
         next.knight_hand_l.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_hand_l.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_hand_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_hand_l.scale = Vec3::one() / 10.88;
 
         next.knight_hand_r.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_hand_r.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_hand_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_hand_r.scale = Vec3::one() / 10.88;
 
         next.knight_leg_l.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_leg_l.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_leg_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_leg_l.scale = Vec3::one() / 10.88;
 
         next.knight_leg_r.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_leg_r.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_leg_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_leg_r.scale = Vec3::one() / 10.88;
 
         next.knight_foot_l.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_foot_l.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_foot_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_foot_l.scale = Vec3::one() / 10.88;
 
         next.knight_foot_r.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.knight_foot_r.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.knight_foot_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.knight_foot_r.scale = Vec3::one() / 10.88;
         next
     }

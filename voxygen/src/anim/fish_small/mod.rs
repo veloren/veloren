@@ -14,7 +14,6 @@ use crate::render::FigureBoneData;
 pub struct FishSmallSkeleton {
     cardinalfish_torso: Bone,
     cardinalfish_tail: Bone,
-
 }
 
 impl FishSmallSkeleton {
@@ -29,7 +28,6 @@ impl FishSmallSkeleton {
 impl Skeleton for FishSmallSkeleton {
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let torso_mat = self.cardinalfish_torso.compute_base_matrix();
-
 
         [
             FigureBoneData::new(torso_mat),
@@ -54,6 +52,7 @@ impl Skeleton for FishSmallSkeleton {
     fn interpolate(&mut self, target: &Self, dt: f32) {
         self.cardinalfish_torso
             .interpolate(&target.cardinalfish_torso, dt);
-        self.cardinalfish_tail.interpolate(&target.cardinalfish_tail, dt);
+        self.cardinalfish_tail
+            .interpolate(&target.cardinalfish_tail, dt);
     }
 }
