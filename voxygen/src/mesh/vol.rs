@@ -1,7 +1,5 @@
 use vek::*;
 
-use common::vol::ReadVol;
-
 use crate::render::{
     mesh::{Mesh, Quad},
     Pipeline,
@@ -151,25 +149,18 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
     }
 }
 
-pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
+pub fn push_vox_verts<P: Pipeline>(
     mesh: &mut Mesh<P>,
-    vol: &V,
-    pos: Vec3<i32>,
+    faces: [bool; 6],
     offs: Vec3<f32>,
     cols: &[[[Rgba<u8>; 3]; 3]; 3],
     vcons: impl Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
-    error_makes_face: bool,
     darknesses: &[[[f32; 3]; 3]; 3],
-    should_add: impl Fn(&V::Vox) -> bool,
 ) {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
 
     // -x
-    if vol
-        .get(pos - Vec3::unit_x())
-        .map(|v| should_add(v))
-        .unwrap_or(error_makes_face)
-    {
+    if faces[0] {
         mesh.push_quad(create_quad(
             offs,
             Vec3::unit_z(),
@@ -181,11 +172,7 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
         ));
     }
     // +x
-    if vol
-        .get(pos + Vec3::unit_x())
-        .map(|v| should_add(v))
-        .unwrap_or(error_makes_face)
-    {
+    if faces[1] {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_x(),
             Vec3::unit_y(),
@@ -197,11 +184,7 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
         ));
     }
     // -y
-    if vol
-        .get(pos - Vec3::unit_y())
-        .map(|v| should_add(v))
-        .unwrap_or(error_makes_face)
-    {
+    if faces[2] {
         mesh.push_quad(create_quad(
             offs,
             Vec3::unit_x(),
@@ -213,11 +196,7 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
         ));
     }
     // +y
-    if vol
-        .get(pos + Vec3::unit_y())
-        .map(|v| should_add(v))
-        .unwrap_or(error_makes_face)
-    {
+    if faces[3] {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_y(),
             Vec3::unit_z(),
@@ -229,11 +208,7 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
         ));
     }
     // -z
-    if vol
-        .get(pos - Vec3::unit_z())
-        .map(|v| should_add(v))
-        .unwrap_or(error_makes_face)
-    {
+    if faces[4] {
         mesh.push_quad(create_quad(
             offs,
             Vec3::unit_y(),
@@ -245,11 +220,7 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
         ));
     }
     // +z
-    if vol
-        .get(pos + Vec3::unit_z())
-        .map(|v| should_add(v))
-        .unwrap_or(error_makes_face)
-    {
+    if faces[5] {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_z(),
             Vec3::unit_x(),

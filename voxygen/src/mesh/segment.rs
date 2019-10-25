@@ -27,8 +27,7 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
             if let Some(col) = vox.get_color() {
                 vol::push_vox_verts(
                     &mut mesh,
-                    self,
-                    pos,
+                    faces_to_make(self, pos, true, |vox| vox.is_empty()),
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
@@ -39,7 +38,6 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                             0,
                         )
                     },
-                    true,
                     &{
                         let mut ls = [[[0.0; 3]; 3]; 3];
                         for x in 0..3 {
@@ -59,7 +57,6 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                         }
                         ls
                     },
-                    |vox| vox.is_empty(),
                 );
             }
         }
@@ -83,8 +80,7 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
             if let Some(col) = vox.get_color() {
                 vol::push_vox_verts(
                     &mut mesh,
-                    self,
-                    pos,
+                    faces_to_make(self, pos, true, |vox| vox.is_empty()),
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
@@ -94,13 +90,35 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                             linear_to_srgb(srgb_to_linear(col) * ao * light),
                         )
                     },
-                    true,
                     &[[[1.0; 3]; 3]; 3],
-                    |vox| vox.is_empty(),
                 );
             }
         }
 
         (mesh, Mesh::new())
     }
+}
+
+/// Use the 6 voxels/blocks surrounding the one at the specified position
+/// to detemine which faces should be drawn
+fn faces_to_make<V: ReadVol>(
+    seg: &V,
+    pos: Vec3<i32>,
+    error_makes_face: bool,
+    should_add: impl Fn(&V::Vox) -> bool,
+) -> [bool; 6] {
+    let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
+    let make_face = |offset| {
+        seg.get(pos + offset)
+            .map(|v| should_add(v))
+            .unwrap_or(error_makes_face)
+    };
+    [
+        make_face(-x),
+        make_face(x),
+        make_face(-y),
+        make_face(y),
+        make_face(-z),
+        make_face(z),
+    ]
 }
