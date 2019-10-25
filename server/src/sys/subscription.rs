@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::client::{self, Client, RegionSubscription};
 use common::{
-    comp::{Player, Pos},
+    comp::{CharacterState, Ori, Player, Pos, Vel},
     msg::ServerMsg,
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
     state::Uid,
@@ -20,6 +20,9 @@ impl<'a> System<'a> for Sys {
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
+        ReadStorage<'a, Vel>,
+        ReadStorage<'a, Ori>,
+        ReadStorage<'a, CharacterState>,
         ReadStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, RegionSubscription>,
@@ -27,7 +30,19 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, region_map, mut timer, uids, positions, players, mut clients, mut subscriptions): Self::SystemData,
+        (
+            entities,
+            region_map,
+            mut timer,
+            uids,
+            positions,
+            velocities,
+            orientations,
+            character_states,
+            players,
+            mut clients,
+            mut subscriptions,
+        ): Self::SystemData,
     ) {
         timer.start();
 
@@ -119,8 +134,29 @@ impl<'a> System<'a> for Sys {
                     (vd as f32 * chunk_size)
                         + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
                 ) {
+                    // Send client intial info about the entities in this region
                     if subscription.regions.insert(key) {
-                        // TODO: send the client initial infromation for all the entities in this region
+                        if let Some(region) = region_map.get(key) {
+                            for (uid, pos, vel, ori, character_state, _) in (
+                                &uids,
+                                &positions,
+                                velocities.maybe(),
+                                orientations.maybe(),
+                                character_states.maybe(),
+                                region.entities(),
+                            )
+                                .join()
+                            {
+                                super::entity_sync::send_initial_unsynced_components(
+                                    client,
+                                    uid,
+                                    pos,
+                                    vel,
+                                    ori,
+                                    character_state,
+                                );
+                            }
+                        }
                     }
                 }
             }
