@@ -1,0 +1,11 @@
+Item(
+    name: "A mushroom",
+    description: "It's dirty, but looks edible",
+    kind: Consumable(
+        kind: Mushroom,
+        effect: Health((
+            amount: 10,
+            cause: Item,
+        )),
+    ),
+)

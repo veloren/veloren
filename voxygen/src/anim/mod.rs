@@ -154,6 +154,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Tool::Staff => 3.0,
                 Tool::Bow => 0.0,
                 Tool::Dagger => 0.0,
+                Tool::Debug(_) => 0.0,
             },
             weapon_y: match Tool::Hammer {
                 // TODO: Inventory
@@ -164,6 +165,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Tool::Staff => 0.0,
                 Tool::Bow => -2.0,
                 Tool::Dagger => -2.0,
+                Tool::Debug(_) => 0.0,
             },
         }
     }

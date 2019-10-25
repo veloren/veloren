@@ -1,0 +1,8 @@
+Item(
+    name: "Possession rod",
+    description: "Your body seems loose while holding this",
+    kind: Tool(
+        kind: Debug(Possess),
+        power: 0,
+    ),
+)

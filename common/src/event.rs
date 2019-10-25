@@ -51,7 +51,7 @@ pub enum ServerEvent {
         entity: EcsEntity,
         name: String,
         body: comp::Body,
-        main: Option<comp::Item>,
+        main: Option<String>,
     },
     CreateNpc {
         pos: comp::Pos,
