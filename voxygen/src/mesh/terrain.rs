@@ -180,19 +180,21 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                         .unwrap_or(Rgba::zero())
                 };
 
+                let mut blocks = [[[None; 3]; 3]; 3];
                 let mut colors = [[[Rgba::zero(); 3]; 3]; 3];
                 for i in 0..3 {
                     for j in 0..3 {
                         for k in 0..3 {
-                            colors[k][j][i] = get_color(
-                                vol_cached
-                                    .get(
-                                        Vec3::new(x, y, range.min.z)
-                                            + Vec3::new(i as i32, j as i32, k as i32)
-                                            - 1,
-                                    )
-                                    .ok(),
-                            );
+                            let block = vol_cached
+                                .get(
+                                    Vec3::new(x, y, range.min.z)
+                                        + Vec3::new(i as i32, j as i32, k as i32)
+                                        - 1,
+                                )
+                                .ok()
+                                .copied();
+                            colors[k][j][i] = get_color(block.as_ref());
+                            blocks[k][j][i] = block;
                         }
                     }
                 }
@@ -203,6 +205,8 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
                     lights[0] = lights[1];
                     lights[1] = lights[2];
+                    blocks[0] = blocks[1];
+                    blocks[1] = blocks[2];
                     colors[0] = colors[1];
                     colors[1] = colors[2];
 
@@ -213,44 +217,39 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     }
                     for i in 0..3 {
                         for j in 0..3 {
-                            colors[2][j][i] = get_color(
-                                vol_cached
-                                    .get(pos + Vec3::new(i as i32, j as i32, 2) - 1)
-                                    .ok(),
-                            );
+                            let block = vol_cached
+                                .get(pos + Vec3::new(i as i32, j as i32, 2) - 1)
+                                .ok()
+                                .copied();
+                            colors[2][j][i] = get_color(block.as_ref());
+                            blocks[2][j][i] = block;
                         }
                     }
 
-                    let block = vol_cached.get(pos).ok();
+                    let block = blocks[1][1][1];
 
                     // Create mesh polygons
                     if block.map(|vox| vox.is_opaque()).unwrap_or(false) {
                         vol::push_vox_verts(
                             &mut opaque_mesh,
-                            self,
-                            pos,
+                            faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
                             offs,
                             &colors, //&[[[colors[1][1][1]; 3]; 3]; 3],
                             |pos, norm, col, ao, light| {
                                 TerrainVertex::new(pos, norm, col, light.min(ao))
                             },
-                            false,
                             &lights,
-                            |vox| !vox.is_opaque(),
                         );
                     } else if block.map(|vox| vox.is_fluid()).unwrap_or(false) {
                         vol::push_vox_verts(
                             &mut fluid_mesh,
-                            self,
-                            pos,
+                            faces_to_make(&blocks, false, |vox| vox.is_air()),
                             offs,
                             &colors,
                             |pos, norm, col, _ao, light| {
                                 FluidVertex::new(pos, norm, col, light, 0.3)
                             },
-                            false,
                             &lights,
-                            |vox| vox.is_air(),
                         );
                     }
                 }
@@ -259,6 +258,28 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
         (opaque_mesh, fluid_mesh)
     }
+}
+
+/// Use the 6 voxels/blocks surrounding the center
+/// to detemine which faces should be drawn
+/// Unlike the one in segments.rs this uses a provided array of blocks instead
+/// of retrieving from a volume
+/// blocks[z][y][x]
+fn faces_to_make(
+    blocks: &[[[Option<Block>; 3]; 3]; 3],
+    error_makes_face: bool,
+    should_add: impl Fn(Block) -> bool,
+) -> [bool; 6] {
+    // Faces to draw
+    let make_face = |opt_v: Option<Block>| opt_v.map(|v| should_add(v)).unwrap_or(error_makes_face);
+    [
+        make_face(blocks[1][1][0]),
+        make_face(blocks[1][1][2]),
+        make_face(blocks[1][0][1]),
+        make_face(blocks[1][2][1]),
+        make_face(blocks[0][1][1]),
+        make_face(blocks[2][1][1]),
+    ]
 }
 
 /*
