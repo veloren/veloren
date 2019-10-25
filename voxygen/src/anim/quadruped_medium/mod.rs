@@ -12,57 +12,55 @@ use crate::render::FigureBoneData;
 
 #[derive(Clone)]
 pub struct QuadrupedMediumSkeleton {
-    wolf_head_upper: Bone,
-    wolf_jaw: Bone,
-    wolf_head_lower: Bone,
-    wolf_tail: Bone,
-    wolf_torso_back: Bone,
-    wolf_torso_mid: Bone,
-    wolf_ears: Bone,
-    wolf_foot_lf: Bone,
-    wolf_foot_rf: Bone,
-    wolf_foot_lb: Bone,
-    wolf_foot_rb: Bone,
+    head_upper: Bone,
+    jaw: Bone,
+    head_lower: Bone,
+    tail: Bone,
+    torso_back: Bone,
+    torso_mid: Bone,
+    ears: Bone,
+    foot_lf: Bone,
+    foot_rf: Bone,
+    foot_lb: Bone,
+    foot_rb: Bone,
 }
 
 impl QuadrupedMediumSkeleton {
     pub fn new() -> Self {
         Self {
-            wolf_head_upper: Bone::default(),
-            wolf_jaw: Bone::default(),
-            wolf_head_lower: Bone::default(),
-            wolf_tail: Bone::default(),
-            wolf_torso_back: Bone::default(),
-            wolf_torso_mid: Bone::default(),
-            wolf_ears: Bone::default(),
-            wolf_foot_lf: Bone::default(),
-            wolf_foot_rf: Bone::default(),
-            wolf_foot_lb: Bone::default(),
-            wolf_foot_rb: Bone::default(),
+            head_upper: Bone::default(),
+            jaw: Bone::default(),
+            head_lower: Bone::default(),
+            tail: Bone::default(),
+            torso_back: Bone::default(),
+            torso_mid: Bone::default(),
+            ears: Bone::default(),
+            foot_lf: Bone::default(),
+            foot_rf: Bone::default(),
+            foot_lb: Bone::default(),
+            foot_rb: Bone::default(),
         }
     }
 }
 
 impl Skeleton for QuadrupedMediumSkeleton {
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
-        let ears_mat = self.wolf_ears.compute_base_matrix();
-        let head_upper_mat = self.wolf_head_upper.compute_base_matrix();
-        let head_lower_mat = self.wolf_head_lower.compute_base_matrix();
+        let ears_mat = self.ears.compute_base_matrix();
+        let head_upper_mat = self.head_upper.compute_base_matrix();
+        let head_lower_mat = self.head_lower.compute_base_matrix();
 
         [
             FigureBoneData::new(head_upper_mat),
-            FigureBoneData::new(
-                head_upper_mat * head_lower_mat * self.wolf_jaw.compute_base_matrix(),
-            ),
+            FigureBoneData::new(head_upper_mat * head_lower_mat * self.jaw.compute_base_matrix()),
             FigureBoneData::new(head_upper_mat * head_lower_mat),
-            FigureBoneData::new(self.wolf_tail.compute_base_matrix()),
-            FigureBoneData::new(self.wolf_torso_back.compute_base_matrix()),
-            FigureBoneData::new(self.wolf_torso_mid.compute_base_matrix()),
+            FigureBoneData::new(self.tail.compute_base_matrix()),
+            FigureBoneData::new(self.torso_back.compute_base_matrix()),
+            FigureBoneData::new(self.torso_mid.compute_base_matrix()),
             FigureBoneData::new(head_upper_mat * ears_mat),
-            FigureBoneData::new(self.wolf_foot_lf.compute_base_matrix()),
-            FigureBoneData::new(self.wolf_foot_rf.compute_base_matrix()),
-            FigureBoneData::new(self.wolf_foot_lb.compute_base_matrix()),
-            FigureBoneData::new(self.wolf_foot_rb.compute_base_matrix()),
+            FigureBoneData::new(self.foot_lf.compute_base_matrix()),
+            FigureBoneData::new(self.foot_rf.compute_base_matrix()),
+            FigureBoneData::new(self.foot_lb.compute_base_matrix()),
+            FigureBoneData::new(self.foot_rb.compute_base_matrix()),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
@@ -72,19 +70,16 @@ impl Skeleton for QuadrupedMediumSkeleton {
     }
 
     fn interpolate(&mut self, target: &Self, dt: f32) {
-        self.wolf_head_upper
-            .interpolate(&target.wolf_head_upper, dt);
-        self.wolf_jaw.interpolate(&target.wolf_jaw, dt);
-        self.wolf_head_lower
-            .interpolate(&target.wolf_head_lower, dt);
-        self.wolf_tail.interpolate(&target.wolf_tail, dt);
-        self.wolf_torso_back
-            .interpolate(&target.wolf_torso_back, dt);
-        self.wolf_torso_mid.interpolate(&target.wolf_torso_mid, dt);
-        self.wolf_ears.interpolate(&target.wolf_ears, dt);
-        self.wolf_foot_lf.interpolate(&target.wolf_foot_lf, dt);
-        self.wolf_foot_rf.interpolate(&target.wolf_foot_rf, dt);
-        self.wolf_foot_lb.interpolate(&target.wolf_foot_lb, dt);
-        self.wolf_foot_rb.interpolate(&target.wolf_foot_rb, dt);
+        self.head_upper.interpolate(&target.head_upper, dt);
+        self.jaw.interpolate(&target.jaw, dt);
+        self.head_lower.interpolate(&target.head_lower, dt);
+        self.tail.interpolate(&target.tail, dt);
+        self.torso_back.interpolate(&target.torso_back, dt);
+        self.torso_mid.interpolate(&target.torso_mid, dt);
+        self.ears.interpolate(&target.ears, dt);
+        self.foot_lf.interpolate(&target.foot_lf, dt);
+        self.foot_rf.interpolate(&target.foot_rf, dt);
+        self.foot_lb.interpolate(&target.foot_lb, dt);
+        self.foot_rb.interpolate(&target.foot_rb, dt);
     }
 }
