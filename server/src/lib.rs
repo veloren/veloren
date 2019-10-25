@@ -764,12 +764,13 @@ impl Server {
         // 3) Handle inputs from clients
         frontend_events.append(&mut self.handle_new_connections()?);
 
-        // Handle game events
-        frontend_events.append(&mut self.handle_events());
-
         let before_tick_4 = Instant::now();
         // 4) Tick the client's LocalState.
         self.state.tick(dt, sys::add_server_systems);
+
+        let before_handle_events = Instant::now();
+        // Handle game events
+        frontend_events.append(&mut self.handle_events());
 
         // Tick the world
         self.world.tick(dt);
@@ -834,7 +835,11 @@ impl Server {
         self.metrics
             .tick_time
             .with_label_values(&["state tick"])
-            .set((before_tick_6 - before_tick_4).as_nanos() as i64 - total_sys_nanos);
+            .set((before_handle_events - before_tick_4).as_nanos() as i64 - total_sys_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["handle server events"])
+            .set((before_tick_6 - before_handle_events).as_nanos() as i64);
         self.metrics
             .tick_time
             .with_label_values(&["sphynx sync"])
