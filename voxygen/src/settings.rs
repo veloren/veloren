@@ -285,6 +285,14 @@ impl Settings {
     }
 
     fn get_settings_path() -> PathBuf {
+        if let Some(val) = std::env::var_os("VOXYGEN_CONFIG") {
+            let settings = PathBuf::from(val).join("settings.ron");
+            if settings.exists() || settings.parent().map(|x| x.exists()).unwrap_or(false) {
+                return settings;
+            }
+            log::warn!("VOXYGEN_CONFIG points to invalid path.");
+        }
+
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
             .expect("System's $HOME directory path not found!");
         proj_dirs
