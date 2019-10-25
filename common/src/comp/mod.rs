@@ -16,7 +16,10 @@ mod visual;
 // Reexports
 pub use admin::Admin;
 pub use agent::Agent;
-pub use body::{humanoid, object, quadruped, quadruped_medium, bird_medium, fish_medium, dragon, bird_small, fish_small, biped_large, Body};
+pub use body::{
+    biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small, humanoid, object,
+    quadruped_medium, quadruped_small, Body,
+};
 pub use character_state::{ActionState, CharacterState, MovementState};
 pub use controller::{
     ControlEvent, Controller, ControllerInputs, InventoryManip, MountState, Mounting,

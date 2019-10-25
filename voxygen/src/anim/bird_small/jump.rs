@@ -25,26 +25,20 @@ impl Animation for JumpAnimation {
         let wave_slow = (anim_time as f32 * 3.5 + PI).sin();
         let wave_slow_cos = (anim_time as f32 * 3.5 + PI).cos();
 
-
-
         next.crow_head.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.crow_head.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.crow_head.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.crow_head.scale = Vec3::one() / 10.88;
 
         next.crow_torso.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.crow_torso.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.crow_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.crow_torso.scale = Vec3::one() / 10.88;
 
         next.crow_wing_l.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.crow_wing_l.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.crow_wing_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.crow_wing_l.scale = Vec3::one() / 10.88;
 
         next.crow_wing_r.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.crow_wing_r.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.crow_wing_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.crow_wing_r.scale = Vec3::one() / 10.88;
 
         next

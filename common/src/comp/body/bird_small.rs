@@ -31,7 +31,6 @@ pub enum Torso {
 }
 const ALL_TORSOS: [Torso; 1] = [Torso::Default];
 
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum WingL {
     Default,

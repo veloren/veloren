@@ -38,14 +38,12 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-
         next.marlin_head.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
         next.marlin_head.ori =
             Quaternion::rotation_z(duck_m_look.x) * Quaternion::rotation_x(duck_m_look.y);
         next.marlin_head.scale = Vec3::one() / 10.88;
 
-        next.marlin_torso.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.marlin_torso.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.marlin_torso.ori = Quaternion::rotation_x(0.0);
         next.marlin_torso.scale = Vec3::one() * 1.01;
 
@@ -54,8 +52,7 @@ impl Animation for IdleAnimation {
         next.marlin_rear.scale = Vec3::one() * 0.98;
 
         next.marlin_tail.offset = Vec3::new(0.0, -13.0, 8.0) / 11.0;
-        next.marlin_tail.ori = Quaternion::rotation_z(0.0)
-            * Quaternion::rotation_x(0.0);
+        next.marlin_tail.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.marlin_tail.scale = Vec3::one() / 11.0;
 
         next.marlin_fin_l.offset = Vec3::new(0.0, -11.7, 11.0) / 11.0;

@@ -553,7 +553,7 @@ fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent>
 fn kind_to_body(kind: NpcKind) -> comp::Body {
     match kind {
         NpcKind::Humanoid => comp::Body::Humanoid(comp::humanoid::Body::random()),
-        NpcKind::Pig => comp::Body::Quadruped(comp::quadruped::Body::random()),
+        NpcKind::Pig => comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
         NpcKind::Wolf => comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
     }
 }
