@@ -1,7 +1,6 @@
 use super::SysTimer;
 use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
-    assets,
     comp::{Admin, Body, CanBuild, Controller, Ori, Player, Pos, Vel},
     event::{EventBus, ServerEvent},
     msg::{validate_chat_msg, ChatMsgValidationError, MAX_BYTES_CHAT_MSG},
@@ -169,8 +168,7 @@ impl<'a> System<'a> for Sys {
                                 entity,
                                 name,
                                 body,
-                                main: main
-                                    .and_then(|specifier| assets::load_cloned(&specifier).ok()),
+                                main,
                             });
                         }
                         ClientState::Character => client.error_state(RequestStateError::Already),
