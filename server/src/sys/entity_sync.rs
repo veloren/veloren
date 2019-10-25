@@ -90,15 +90,47 @@ impl<'a> System<'a> for Sys {
 
             for event in region.events() {
                 match event {
-                    RegionEvent::Entered(_, _) => {} // TODO use this
+                    RegionEvent::Entered(id, maybe_key) => {
+                        let entity = entities.entity(*id);
+                        if let Some((uid, pos, vel, ori, character_state)) =
+                            uids.get(entity).and_then(|uid| {
+                                positions.get(entity).map(|pos| {
+                                    (
+                                        uid,
+                                        pos,
+                                        velocities.get(entity),
+                                        orientations.get(entity),
+                                        character_states.get(entity),
+                                    )
+                                })
+                            })
+                        {
+                            for (client, regions, _, _) in &mut subscribers {
+                                if maybe_key
+                                    .as_ref()
+                                    .map(|key| !regions.contains(key))
+                                    .unwrap_or(true)
+                                {
+                                    send_initial_unsynced_components(
+                                        client,
+                                        uid,
+                                        pos,
+                                        vel,
+                                        ori,
+                                        character_state,
+                                    );
+                                }
+                            }
+                        }
+                    }
                     RegionEvent::Left(id, maybe_key) => {
                         // Lookup UID for entity
                         if let Some(&uid) = uids.get(entities.entity(*id)) {
                             for (client, regions, _, _) in &mut subscribers {
-                                if !maybe_key
+                                if maybe_key
                                     .as_ref()
-                                    .map(|key| regions.contains(key))
-                                    .unwrap_or(false)
+                                    .map(|key| !regions.contains(key))
+                                    .unwrap_or(true)
                                 {
                                     client.notify(ServerMsg::DeleteEntity(uid.into()));
                                 }
@@ -117,6 +149,8 @@ impl<'a> System<'a> for Sys {
                                 let distance_sq = client_pos.0.distance_squared(pos.0);
 
                                 // Throttle update rate based on distance to player
+                                // TODO: more entities will be farther away so it could be more
+                                // efficient to reverse the order of these checks
                                 let update = if !throttle || distance_sq < 100.0f32.powi(2) {
                                     true // Closer than 100.0 blocks
                                 } else if distance_sq < 150.0f32.powi(2) {
@@ -151,6 +185,8 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
             {
+                // TODO: An entity that stoppped moving on a tick that it wasn't sent to the player
+                // will never have it's position updated
                 if last_pos.get(entity).map(|&l| l.0 != pos).unwrap_or(true) {
                     let _ = last_pos.insert(entity, Last(pos));
                     send_msg(
@@ -229,5 +265,29 @@ impl<'a> System<'a> for Sys {
         inventory_updates.clear();
 
         timer.end();
+    }
+}
+
+pub fn send_initial_unsynced_components(
+    client: &mut Client,
+    uid: &Uid,
+    pos: &Pos,
+    vel: Option<&Vel>,
+    ori: Option<&Ori>,
+    character_state: Option<&CharacterState>,
+) {
+    let entity = (*uid).into();
+    client.notify(ServerMsg::EntityPos { entity, pos: *pos });
+    if let Some(&vel) = vel {
+        client.notify(ServerMsg::EntityVel { entity, vel });
+    }
+    if let Some(&ori) = ori {
+        client.notify(ServerMsg::EntityOri { entity, ori });
+    }
+    if let Some(&character_state) = character_state {
+        client.notify(ServerMsg::EntityCharacterState {
+            entity,
+            character_state,
+        });
     }
 }
