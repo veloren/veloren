@@ -539,15 +539,6 @@ pub fn mesh_draw() -> Mesh<FigurePipeline> {
     load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0))
 }
 
-//pub fn mesh_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
-//    load_mesh(
-//        match hand {
-//            Hand::Default => "figure/body/hand",
-//        },
-//        Vec3::new(-2.0, -2.5, -5.0),
-//    )
-//}
-
 /////////
 pub fn mesh_quadruped_small_head(head: quadruped_small::Head) -> Mesh<FigurePipeline> {
     load_mesh(
