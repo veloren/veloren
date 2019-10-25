@@ -19,7 +19,6 @@ impl Body {
             tail: *(&ALL_TAILS).choose(&mut rng).unwrap(),
             fin_l: *(&ALL_FIN_LS).choose(&mut rng).unwrap(),
             fin_r: *(&ALL_FIN_RS).choose(&mut rng).unwrap(),
-
         }
     }
 }

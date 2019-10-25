@@ -15,7 +15,6 @@ impl Body {
     }
 }
 
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Torso {
     Default,

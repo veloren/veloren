@@ -1,6 +1,6 @@
 use super::{
     super::{Animation, SkeletonAttr},
-    QuadrupedSkeleton,
+    QuadrupedSmallSkeleton,
 };
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
@@ -8,7 +8,7 @@ use vek::*;
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Skeleton = QuadrupedSkeleton;
+    type Skeleton = QuadrupedSmallSkeleton;
     type Dependency = (f64);
 
     fn update_skeleton(

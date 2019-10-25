@@ -11,7 +11,7 @@ use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 
 #[derive(Clone)]
-pub struct QuadrupedSkeleton {
+pub struct QuadrupedSmallSkeleton {
     pig_head: Bone,
     pig_chest: Bone,
     pig_leg_lf: Bone,
@@ -20,7 +20,7 @@ pub struct QuadrupedSkeleton {
     pig_leg_rb: Bone,
 }
 
-impl QuadrupedSkeleton {
+impl QuadrupedSmallSkeleton {
     pub fn new() -> Self {
         Self {
             pig_head: Bone::default(),
@@ -33,7 +33,7 @@ impl QuadrupedSkeleton {
     }
 }
 
-impl Skeleton for QuadrupedSkeleton {
+impl Skeleton for QuadrupedSmallSkeleton {
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         [
             FigureBoneData::new(self.pig_head.compute_base_matrix()),

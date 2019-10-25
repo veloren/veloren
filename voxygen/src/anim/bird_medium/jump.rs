@@ -25,15 +25,11 @@ impl Animation for JumpAnimation {
         let wave_slow = (anim_time as f32 * 3.5 + PI).sin();
         let wave_slow_cos = (anim_time as f32 * 3.5 + PI).cos();
 
-
-
         next.duck_m_head.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.duck_m_head.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.duck_m_head.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.duck_m_head.scale = Vec3::one() / 10.88;
 
-        next.duck_m_torso.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.duck_m_torso.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.duck_m_torso.ori = Quaternion::rotation_x(0.0);
         next.duck_m_torso.scale = Vec3::one() * 1.01;
 
@@ -42,8 +38,7 @@ impl Animation for JumpAnimation {
         next.duck_m_tail.scale = Vec3::one() * 0.98;
 
         next.duck_m_wing_l.offset = Vec3::new(0.0, -13.0, 8.0) / 11.0;
-        next.duck_m_wing_l.ori = Quaternion::rotation_z(0.0)
-            * Quaternion::rotation_x(0.0);
+        next.duck_m_wing_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.duck_m_wing_l.scale = Vec3::one() / 11.0;
 
         next.duck_m_wing_r.offset = Vec3::new(0.0, -11.7, 11.0) / 11.0;

@@ -38,14 +38,11 @@ impl Animation for RunAnimation {
                 * 0.25,
         );
 
-
         next.cardinalfish_torso.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.cardinalfish_torso.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.cardinalfish_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.cardinalfish_torso.scale = Vec3::one() / 10.88;
 
-        next.cardinalfish_tail.offset =
-            Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
+        next.cardinalfish_tail.offset = Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0);
         next.cardinalfish_tail.ori = Quaternion::rotation_x(0.0);
         next.cardinalfish_tail.scale = Vec3::one() * 1.01;
 

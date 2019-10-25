@@ -15,9 +15,6 @@ pub struct Body {
     pub foot_fr: FootFR,
     pub foot_bl: FootBL,
     pub foot_br: FootBR,
-
-
-
 }
 impl Body {
     pub fn random() -> Self {
@@ -36,8 +33,6 @@ impl Body {
             foot_fr: *(&ALL_FOOT_FRS).choose(&mut rng).unwrap(),
             foot_bl: *(&ALL_FOOT_BLS).choose(&mut rng).unwrap(),
             foot_br: *(&ALL_FOOT_BRS).choose(&mut rng).unwrap(),
-
-
         }
     }
 }

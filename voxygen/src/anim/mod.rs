@@ -1,14 +1,14 @@
+pub mod biped_large;
+pub mod bird_medium;
+pub mod bird_small;
 pub mod character;
+pub mod dragon;
+pub mod fish_medium;
+pub mod fish_small;
 pub mod fixture;
 pub mod object;
-pub mod quadruped;
-pub mod quadrupedmedium;
-pub mod birdmedium;
-pub mod fishmedium;
-pub mod dragon;
-pub mod bird_small;
-pub mod fish_small;
-pub mod biped_large;
+pub mod quadruped_medium;
+pub mod quadruped_small;
 
 use crate::render::FigureBoneData;
 use common::comp::{self, item::Tool};

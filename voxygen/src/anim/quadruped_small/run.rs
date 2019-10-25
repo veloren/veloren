@@ -1,13 +1,13 @@
 use super::{
     super::{Animation, SkeletonAttr},
-    QuadrupedSkeleton,
+    QuadrupedSmallSkeleton,
 };
 use vek::*;
 
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Skeleton = QuadrupedSkeleton;
+    type Skeleton = QuadrupedSmallSkeleton;
     type Dependency = (f32, f64);
 
     fn update_skeleton(
