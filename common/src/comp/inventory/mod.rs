@@ -1,8 +1,9 @@
 pub mod item;
 
 // Reexports
-pub use item::{Debug, Item, Tool};
+pub use item::{Debug, Item, ItemKind, Tool};
 
+use crate::assets;
 use specs::{Component, HashMapStorage, NullStorage};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -72,8 +73,8 @@ impl Default for Inventory {
             slots: vec![None; 25],
         };
 
-        inventory.push(Item::Debug(Debug::Boost));
-        inventory.push(Item::Debug(Debug::Possess));
+        inventory.push(assets::load_expect_cloned("common.items.debug.boost"));
+        inventory.push(assets::load_expect_cloned("common.items.debug.possess"));
         inventory
     }
 }

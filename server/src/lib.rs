@@ -21,7 +21,7 @@ use crate::{
     cmd::CHAT_COMMANDS,
 };
 use common::{
-    comp,
+    assets, comp,
     effect::Effect,
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
@@ -201,9 +201,12 @@ impl Server {
         entity: EcsEntity,
         name: String,
         body: comp::Body,
-        main: Option<comp::Item>,
+        main: Option<String>,
         server_settings: &ServerSettings,
     ) {
+        // Give no item when an invalid specifier is given
+        let main = main.and_then(|specifier| assets::load_cloned(&specifier).ok());
+
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
         state.write_component(entity, body);
@@ -428,40 +431,44 @@ impl Server {
                         }
 
                         comp::InventoryManip::Use(slot) => {
-                            let item = state
+                            let item_opt = state
                                 .ecs()
                                 .write_storage::<comp::Inventory>()
                                 .get_mut(entity)
                                 .and_then(|inv| inv.remove(slot));
 
-                            match item {
-                                Some(comp::Item::Tool { .. }) | Some(comp::Item::Debug(_)) => {
-                                    if let Some(stats) =
-                                        state.ecs().write_storage::<comp::Stats>().get_mut(entity)
-                                    {
-                                        // Insert old item into inventory
-                                        if let Some(old_item) = stats.equipment.main.take() {
-                                            state
-                                                .ecs()
-                                                .write_storage::<comp::Inventory>()
-                                                .get_mut(entity)
-                                                .map(|inv| inv.insert(slot, old_item));
-                                        }
+                            match item_opt {
+                                Some(item) => match item.kind {
+                                    comp::ItemKind::Tool { .. } => {
+                                        if let Some(stats) = state
+                                            .ecs()
+                                            .write_storage::<comp::Stats>()
+                                            .get_mut(entity)
+                                        {
+                                            // Insert old item into inventory
+                                            if let Some(old_item) = stats.equipment.main.take() {
+                                                state
+                                                    .ecs()
+                                                    .write_storage::<comp::Inventory>()
+                                                    .get_mut(entity)
+                                                    .map(|inv| inv.insert(slot, old_item));
+                                            }
 
-                                        stats.equipment.main = item;
+                                            stats.equipment.main = Some(item);
+                                        }
                                     }
-                                }
-                                Some(comp::Item::Consumable { effect, .. }) => {
-                                    state.apply_effect(entity, effect);
-                                }
-                                Some(item) => {
-                                    // Re-insert it if unused
-                                    let _ = state
-                                        .ecs()
-                                        .write_storage::<comp::Inventory>()
-                                        .get_mut(entity)
-                                        .map(|inv| inv.insert(slot, item));
-                                }
+                                    comp::ItemKind::Consumable { effect, .. } => {
+                                        state.apply_effect(entity, effect);
+                                    }
+                                    _ => {
+                                        // Re-insert it if unused
+                                        let _ = state
+                                            .ecs()
+                                            .write_storage::<comp::Inventory>()
+                                            .get_mut(entity)
+                                            .map(|inv| inv.insert(slot, item));
+                                    }
+                                },
                                 _ => {}
                             }
 
@@ -610,14 +617,15 @@ impl Server {
                                 {
                                     let mut inventories = ecs.write_storage::<comp::Inventory>();
                                     if let Some(inventory) = inventories.get_mut(possesse) {
-                                        inventory
-                                            .push(comp::Item::Debug(comp::item::Debug::Possess));
+                                        inventory.push(assets::load_expect_cloned(
+                                            "common.items.debug.possess",
+                                        ));
                                     } else {
                                         let _ = inventories.insert(
                                             possesse,
                                             comp::Inventory {
-                                                slots: vec![Some(comp::Item::Debug(
-                                                    comp::item::Debug::Possess,
+                                                slots: vec![Some(assets::load_expect_cloned(
+                                                    "common.items.debug.possess",
                                                 ))],
                                             },
                                         );

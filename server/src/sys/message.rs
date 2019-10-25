@@ -1,7 +1,8 @@
 use super::SysTimer;
 use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
-    comp::{Admin, Body, CanBuild, Controller, Item, Ori, Player, Pos, Vel},
+    assets,
+    comp::{Admin, Body, CanBuild, Controller, Ori, Player, Pos, Vel},
     event::{EventBus, ServerEvent},
     msg::{validate_chat_msg, ChatMsgValidationError, MAX_BYTES_CHAT_MSG},
     msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
@@ -168,14 +169,8 @@ impl<'a> System<'a> for Sys {
                                 entity,
                                 name,
                                 body,
-                                main: main.map(|t| Item::Tool {
-                                    kind: t,
-                                    power: 10,
-                                    stamina: 0,
-                                    strength: 0,
-                                    dexterity: 0,
-                                    intelligence: 0,
-                                }),
+                                main: main
+                                    .and_then(|specifier| assets::load_cloned(&specifier).ok()),
                             });
                         }
                         ClientState::Character => client.error_state(RequestStateError::Already),

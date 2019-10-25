@@ -72,6 +72,43 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     }
 }
 
+pub fn load_glob<A: Asset + 'static>(specifier: &str) -> Result<Arc<Vec<Arc<A>>>, Error> {
+    if let Some(assets) = ASSETS.read().unwrap().get(specifier) {
+        return Ok(Arc::clone(assets).downcast()?);
+    }
+
+    // Get glob matches
+    let glob_matches = read_dir(specifier.trim_end_matches(".*")).map(|dir| {
+        dir.filter_map(|direntry| {
+            direntry.ok().and_then(|file| {
+                file.file_name()
+                    .to_string_lossy()
+                    .rsplitn(2, '.')
+                    .last()
+                    .map(|s| s.to_owned())
+            })
+        })
+        .collect::<Vec<_>>()
+    });
+
+    match glob_matches {
+        Ok(glob_matches) => {
+            let assets = Arc::new(
+                glob_matches
+                    .into_iter()
+                    .filter_map(|name| load(&specifier.replace("*", &name)).ok())
+                    .collect::<Vec<_>>(),
+            );
+            let clone = Arc::clone(&assets);
+
+            let mut assets_write = ASSETS.write().unwrap();
+            assets_write.insert(specifier.to_owned(), clone);
+            Ok(assets)
+        }
+        Err(error) => Err(error),
+    }
+}
+
 /// Function used to load assets from the filesystem or the cache.
 /// Example usage:
 /// ```no_run
@@ -84,6 +121,11 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     load_map(specifier, |x| x)
 }
 
+/// Function used to load assets from the filesystem or the cache and return a clone.
+pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Result<A, Error> {
+    load::<A>(specifier).map(|asset| (*asset).clone())
+}
+
 /// Function used to load essential assets from the filesystem or the cache. It will panic if the asset is not found.
 /// Example usage:
 /// ```no_run
@@ -94,6 +136,11 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
 /// ```
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     load(specifier).unwrap_or_else(|_| panic!("Failed loading essential asset: {}", specifier))
+}
+
+/// Function used to load essential assets from the filesystem or the cache and return a clone. It will panic if the asset is not found.
+pub fn load_expect_cloned<A: Asset + Clone + 'static>(specifier: &str) -> A {
+    load_expect::<A>(specifier).as_ref().clone()
 }
 
 /// Load an asset while registering it to be watched and reloaded when it changes
@@ -129,8 +176,6 @@ pub fn load_watched<A: Asset + 'static>(
     Ok(asset)
 }
 
-/// The Asset trait, which is implemented by all structures that have their data stored in the
-/// filesystem.
 fn reload<A: Asset + 'static>(specifier: &str) -> Result<(), Error> {
     let asset = Arc::new(A::parse(load_file(specifier, A::ENDINGS)?)?);
     let clone = Arc::clone(&asset);
@@ -145,7 +190,8 @@ fn reload<A: Asset + 'static>(specifier: &str) -> Result<(), Error> {
     Ok(())
 }
 
-/// Asset Trait
+/// The Asset trait, which is implemented by all structures that have their data stored in the
+/// filesystem.
 pub trait Asset: Send + Sync + Sized {
     const ENDINGS: &'static [&'static str];
     /// Parse the input file and return the correct Asset.
@@ -242,6 +288,22 @@ fn unpack_specifier(specifier: &str) -> PathBuf {
 
 /// Loads a file based on the specifier and possible extensions
 pub fn load_file(specifier: &str, endings: &[&str]) -> Result<BufReader<File>, Error> {
+    let path = unpack_specifier(specifier);
+    for ending in endings {
+        let mut path = path.clone();
+        path.set_extension(ending);
+
+        debug!("Trying to access \"{:?}\"", path);
+        if let Ok(file) = File::open(path) {
+            return Ok(BufReader::new(file));
+        }
+    }
+
+    Err(Error::NotFound(path.to_string_lossy().into_owned()))
+}
+
+/// Loads a file based on the specifier and possible extensions
+pub fn load_file_glob(specifier: &str, endings: &[&str]) -> Result<BufReader<File>, Error> {
     let path = unpack_specifier(specifier);
     for ending in endings {
         let mut path = path.clone();

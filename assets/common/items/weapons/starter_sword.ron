@@ -1,0 +1,8 @@
+Item(
+    name: "Your first sword",
+    description: "A dusty sword that looks surprisingly weak",
+    kind: Tool(
+        kind: Sword,
+        power: 10,
+    ),
+)

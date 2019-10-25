@@ -1,0 +1,5 @@
+Item(
+    name: "A yellow flower",
+    description: "Look beautiful",
+    kind: Ingredient(Flower),
+)
