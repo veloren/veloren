@@ -280,19 +280,19 @@ pub enum Event {
     ScreenshotMessage(String),
 }
 
-pub type MouseButton = winit::MouseButton;
-pub type PressState = winit::ElementState;
+pub type MouseButton = winit::event::MouseButton;
+pub type PressState = winit::event::ElementState;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum KeyMouse {
-    Key(glutin::VirtualKeyCode),
-    Mouse(glutin::MouseButton),
+    Key(glutin::event::VirtualKeyCode),
+    Mouse(glutin::event::MouseButton),
 }
 
 impl fmt::Display for KeyMouse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use self::KeyMouse::*;
-        use glutin::{MouseButton, VirtualKeyCode::*};
+        use glutin::event::{MouseButton, VirtualKeyCode::*};
         write!(f, "{}", match self {
             Key(Key1) => "1",
             Key(Key2) => "2",
@@ -466,9 +466,9 @@ impl fmt::Display for KeyMouse {
 }
 
 pub struct Window {
-    events_loop: glutin::EventsLoop,
+    events_loop: glutin::event_loop::EventLoop<()>,
     renderer: Renderer,
-    window: glutin::ContextWrapper<glutin::PossiblyCurrent, winit::Window>,
+    window: glutin::ContextWrapper<glutin::PossiblyCurrent, winit::window::Window>,
     cursor_grabbed: bool,
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
@@ -476,7 +476,7 @@ pub struct Window {
     pub mouse_y_inversion: bool,
     fullscreen: bool,
     needs_refresh_resize: bool,
-    keypress_map: HashMap<GameInput, glutin::ElementState>,
+    keypress_map: HashMap<GameInput, winit::event::ElementState>,
     pub remapping_keybindings: Option<GameInput>,
     supplement_events: Vec<Event>,
     focused: bool,
@@ -491,11 +491,11 @@ pub struct Window {
 
 impl Window {
     pub fn new(settings: &Settings) -> Result<Window, Error> {
-        let events_loop = glutin::EventsLoop::new();
+        let events_loop = glutin::event_loop::EventLoop::new();
 
         let size = settings.graphics.window_size;
 
-        let win_builder = glutin::WindowBuilder::new()
+        let win_builder = glutin::window::WindowBuilder::new()
             .with_title("Veloren")
             .with_dimensions(glutin::dpi::LogicalSize::new(
                 size[0] as f64,
@@ -644,19 +644,22 @@ impl Window {
             }
 
             match event {
-                glutin::Event::WindowEvent { event, .. } => match event {
-                    glutin::WindowEvent::CloseRequested => events.push(Event::Close),
-                    glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
+                glutin::event::Event::WindowEvent { event, .. } => match event {
+                    glutin::event::WindowEvent::CloseRequested => events.push(Event::Close),
+                    glutin::event::WindowEvent::Resized(glutin::dpi::LogicalSize {
+                        width,
+                        height,
+                    }) => {
                         let (mut color_view, mut depth_view) = renderer.win_views_mut();
                         gfx_window_glutin::update_views(window, &mut color_view, &mut depth_view);
                         renderer.on_resize().unwrap();
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
                     },
-                    glutin::WindowEvent::Moved(glutin::dpi::LogicalPosition { x, y }) => {
+                    glutin::event::WindowEvent::Moved(glutin::dpi::LogicalPosition { x, y }) => {
                         events.push(Event::Moved(Vec2::new(x as u32, y as u32)))
                     },
-                    glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
-                    glutin::WindowEvent::MouseInput { button, state, .. } => {
+                    glutin::event::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
+                    glutin::event::WindowEvent::MouseInput { button, state, .. } => {
                         if let (true, Some(game_inputs)) = (
                             cursor_grabbed,
                             Window::map_input(
@@ -668,13 +671,13 @@ impl Window {
                             for game_input in game_inputs {
                                 events.push(Event::InputUpdate(
                                     *game_input,
-                                    state == glutin::ElementState::Pressed,
+                                    state == glutin::event::ElementState::Pressed,
                                 ));
                             }
                         }
                         events.push(Event::MouseButton(button, state));
                     },
-                    glutin::WindowEvent::KeyboardInput { input, .. } => {
+                    glutin::event::WindowEvent::KeyboardInput { input, .. } => {
                         if let Some(key) = input.virtual_keycode {
                             if let Some(game_inputs) = Window::map_input(
                                 KeyMouse::Key(key),
@@ -684,7 +687,7 @@ impl Window {
                                 for game_input in game_inputs {
                                     match game_input {
                                         GameInput::Fullscreen => {
-                                            if input.state == glutin::ElementState::Pressed
+                                            if input.state == glutin::event::ElementState::Pressed
                                                 && !Self::is_pressed(
                                                     keypress_map,
                                                     GameInput::Fullscreen,
@@ -700,7 +703,7 @@ impl Window {
                                         },
                                         GameInput::Screenshot => {
                                             take_screenshot = input.state
-                                                == glutin::ElementState::Pressed
+                                                == glutin::event::ElementState::Pressed
                                                 && !Self::is_pressed(
                                                     keypress_map,
                                                     GameInput::Screenshot,
@@ -713,25 +716,24 @@ impl Window {
                                         },
                                         _ => events.push(Event::InputUpdate(
                                             *game_input,
-                                            input.state == glutin::ElementState::Pressed,
+                                            input.state == glutin::event::ElementState::Pressed,
                                         )),
                                     }
                                 }
                             }
                         }
                     },
-
-                    glutin::WindowEvent::Focused(state) => {
+                    glutin::event::WindowEvent::Focused(state) => {
                         *focused = state;
                         events.push(Event::Focused(state));
                     },
-                    glutin::WindowEvent::CursorMoved { position, .. } => {
+                    glutin::event::WindowEvent::CursorMoved { position, .. } => {
                         cursor_position = Some(position);
                     },
                     _ => {},
                 },
-                glutin::Event::DeviceEvent { event, .. } => match event {
-                    glutin::DeviceEvent::MouseMotion {
+                glutin::event::Event::DeviceEvent { event, .. } => match event {
+                    glutin::event::DeviceEvent::MouseMotion {
                         delta: (dx, dy), ..
                     } if *focused => {
                         let delta = Vec2::new(
@@ -745,7 +747,9 @@ impl Window {
                             events.push(Event::CursorMove(delta));
                         }
                     },
-                    glutin::DeviceEvent::MouseWheel { delta, .. } if cursor_grabbed && *focused => {
+                    glutin::event::DeviceEvent::MouseWheel { delta, .. }
+                        if cursor_grabbed && *focused =>
+                    {
                         events.push(Event::Zoom({
                             // Since scrolling apparently acts different depending on platform
                             #[cfg(target_os = "windows")]
@@ -754,17 +758,19 @@ impl Window {
                             const PLATFORM_FACTOR: f32 = 1.0;
 
                             let y = match delta {
-                                glutin::MouseScrollDelta::LineDelta(_x, y) => y,
+                                glutin::event::MouseScrollDelta::LineDelta(_x, y) => y,
                                 // TODO: Check to see if there is a better way to find the "line
                                 // height" than just hardcoding 16.0 pixels.  Alternately we could
                                 // get rid of this and have the user set zoom sensitivity, since
                                 // it's unlikely people would expect a configuration file to work
                                 // across operating systems.
-                                glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
+                                glutin::event::MouseScrollDelta::PixelDelta(pos) => {
+                                    (pos.y / 16.0) as f32
+                                },
                             };
                             y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion * PLATFORM_FACTOR
                         }))
-                    },
+                    }
                     _ => {},
                 },
                 _ => {},
@@ -1004,8 +1010,8 @@ impl Window {
 
     pub fn grab_cursor(&mut self, grab: bool) {
         self.cursor_grabbed = grab;
-        self.window.window().hide_cursor(grab);
-        let _ = self.window.window().grab_cursor(grab);
+        self.window.window().set_cursor_visible(!grab);
+        let _ = self.window.window().set_cursor_grab(grab);
     }
 
     pub fn toggle_fullscreen(&mut self, settings: &mut Settings) {
@@ -1020,7 +1026,9 @@ impl Window {
         let window = self.window.window();
         self.fullscreen = fullscreen;
         if fullscreen {
-            window.set_fullscreen(Some(window.get_current_monitor()));
+            window.set_fullscreen(Some(winit::window::Fullscreen::Borderless(
+                window.current_monitor(),
+            )));
         } else {
             window.set_fullscreen(None);
         }
@@ -1030,12 +1038,7 @@ impl Window {
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn logical_size(&self) -> Vec2<f64> {
-        let (w, h) = self
-            .window
-            .window()
-            .get_inner_size()
-            .unwrap_or(glutin::dpi::LogicalSize::new(0.0, 0.0))
-            .into();
+        let (w, h) = self.window.window().inner_size().into();
         Vec2::new(w, h)
     }
 
@@ -1086,15 +1089,20 @@ impl Window {
         }
     }
 
-    fn is_pressed(map: &mut HashMap<GameInput, glutin::ElementState>, input: GameInput) -> bool {
-        *(map.entry(input).or_insert(glutin::ElementState::Released))
-            == glutin::ElementState::Pressed
+    fn is_pressed(
+        map: &mut HashMap<GameInput, glutin::event::ElementState>,
+        input: GameInput,
+    ) -> bool {
+        *(map
+            .entry(input)
+            .or_insert(glutin::event::ElementState::Released))
+            == glutin::event::ElementState::Pressed
     }
 
     fn set_pressed(
-        map: &mut HashMap<GameInput, glutin::ElementState>,
+        map: &mut HashMap<GameInput, glutin::event::ElementState>,
         input: GameInput,
-        state: glutin::ElementState,
+        state: glutin::event::ElementState,
     ) {
         map.insert(input, state);
     }

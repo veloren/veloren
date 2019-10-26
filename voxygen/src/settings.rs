@@ -6,11 +6,11 @@ use crate::{
     window::{GameInput, KeyMouse},
 };
 use directories_next::{ProjectDirs, UserDirs};
-use glutin::{MouseButton, VirtualKeyCode};
 use hashbrown::{HashMap, HashSet};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
 use tracing::warn;
+use winit::event::{MouseButton, VirtualKeyCode};
 
 // ControlSetting-like struct used by Serde, to handle not serializing/building
 // post-deserializing the inverse_keybindings hashmap
