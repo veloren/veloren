@@ -145,8 +145,8 @@ impl<'a> System<'a> for Sys {
         terrain
             .iter()
             .map(|(k, _)| k)
-            // Don't every chunk every tick (spread over 16 ticks)
-            .filter(|k| k.x.abs() as u64 % 4 + k.y.abs() as u64 % 8 * 4 == tick.0 % 16)
+            // Don't check every chunk every tick (spread over 16 ticks)
+            .filter(|k| k.x.abs() as u64 % 4 + (k.y.abs() as u64 % 4) * 4 == tick.0 % 16)
             // There shouldn't be to many pending chunks so we will just check them all
             .chain(chunk_generator.pending_chunks())
             .for_each(|chunk_key| {
