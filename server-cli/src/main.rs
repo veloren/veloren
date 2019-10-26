@@ -18,11 +18,13 @@ fn main() {
 
     // Load settings
     let settings = ServerSettings::load();
+    let metrics_port = &settings.metrics_address.port();
 
     // Create server
     let mut server = Server::new(settings).expect("Failed to create server instance!");
 
     info!("Server is ready to accept connections");
+    info!("Metrics port: {}", metrics_port);
 
     loop {
         let events = server
