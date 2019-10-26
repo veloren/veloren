@@ -11,10 +11,7 @@ use common::{
             Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder, Skin,
         },
         item::Tool,
-
-        object, quadruped_small, quadruped_medium, bird_medium, fish_medium, dragon, bird_small, fish_small, biped_large, Item, Itemkind
-
-
+        object, quadruped_medium, quadruped_small, Item, ItemKind,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
 };

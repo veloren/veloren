@@ -6,8 +6,11 @@ pub use load::load_mesh; // TODO: Don't make this public.
 
 use crate::{
     anim::{
-        self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, birdmedium::BirdMediumSkeleton, fishmedium::FishMediumSkeleton, dragon::DragonSkeleton, bird_small::BirdSmallSkeleton, fish_small::FishSmallSkeleton, biped_large::BipedLargeSkeleton, Animation, Skeleton,
+        self, biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
+        bird_small::BirdSmallSkeleton, character::CharacterSkeleton, dragon::DragonSkeleton,
+        fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton, object::ObjectSkeleton,
+        quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton,
+        Animation, Skeleton,
     },
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::camera::{Camera, CameraMode},
@@ -30,7 +33,7 @@ const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
 pub struct FigureMgr {
     model_cache: FigureModelCache,
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
-    quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
+    quadruped_small_states: HashMap<EcsEntity, FigureState<QuadrupedSmallSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
     bird_medium_states: HashMap<EcsEntity, FigureState<BirdMediumSkeleton>>,
     fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
@@ -46,7 +49,7 @@ impl FigureMgr {
         Self {
             model_cache: FigureModelCache::new(),
             character_states: HashMap::new(),
-            quadruped_states: HashMap::new(),
+            quadruped_small_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
             bird_medium_states: HashMap::new(),
             fish_medium_states: HashMap::new(),
@@ -99,8 +102,8 @@ impl FigureMgr {
                     Body::Humanoid(_) => {
                         self.character_states.remove(&entity);
                     }
-                    Body::Quadruped(_) => {
-                        self.quadruped_states.remove(&entity);
+                    Body::QuadrupedSmall(_) => {
+                        self.quadruped_small_states.remove(&entity);
                     }
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states.remove(&entity);
@@ -296,11 +299,13 @@ impl FigureMgr {
                         action_animation_rate,
                     );
                 }
-                Body::Quadruped(_) => {
+                Body::QuadrupedSmall(_) => {
                     let state = self
-                        .quadruped_states
+                        .quadruped_small_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, QuadrupedSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, QuadrupedSmallSkeleton::new())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -312,22 +317,22 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::quadruped::IdleAnimation::update_skeleton(
-                            &QuadrupedSkeleton::new(),
+                        Stand => anim::quadruped_small::IdleAnimation::update_skeleton(
+                            &QuadrupedSmallSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::quadruped::RunAnimation::update_skeleton(
-                            &QuadrupedSkeleton::new(),
+                        Run => anim::quadruped_small::RunAnimation::update_skeleton(
+                            &QuadrupedSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::quadruped::JumpAnimation::update_skeleton(
-                            &QuadrupedSkeleton::new(),
+                        Jump => anim::quadruped_small::JumpAnimation::update_skeleton(
+                            &QuadrupedSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
                             &mut movement_animation_rate,
@@ -369,21 +374,21 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::quadrupedmedium::IdleAnimation::update_skeleton(
+                        Stand => anim::quadruped_medium::IdleAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::quadrupedmedium::RunAnimation::update_skeleton(
+                        Run => anim::quadruped_medium::RunAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::quadrupedmedium::JumpAnimation::update_skeleton(
+                        Jump => anim::quadruped_medium::JumpAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -412,9 +417,7 @@ impl FigureMgr {
                     let state = self
                         .bird_medium_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, BirdMediumSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, BirdMediumSkeleton::new()));
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -426,21 +429,21 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::birdmedium::IdleAnimation::update_skeleton(
+                        Stand => anim::bird_medium::IdleAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::birdmedium::RunAnimation::update_skeleton(
+                        Run => anim::bird_medium::RunAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::birdmedium::JumpAnimation::update_skeleton(
+                        Jump => anim::bird_medium::JumpAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -469,9 +472,7 @@ impl FigureMgr {
                     let state = self
                         .fish_medium_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, FishMediumSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, FishMediumSkeleton::new()));
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -483,21 +484,21 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::fishmedium::IdleAnimation::update_skeleton(
+                        Stand => anim::fish_medium::IdleAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::fishmedium::RunAnimation::update_skeleton(
+                        Run => anim::fish_medium::RunAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::fishmedium::JumpAnimation::update_skeleton(
+                        Jump => anim::fish_medium::JumpAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -526,9 +527,7 @@ impl FigureMgr {
                     let state = self
                         .dragon_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, DragonSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, DragonSkeleton::new()));
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -583,9 +582,7 @@ impl FigureMgr {
                     let state = self
                         .bird_small_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, BirdSmallSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, BirdSmallSkeleton::new()));
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -640,9 +637,7 @@ impl FigureMgr {
                     let state = self
                         .fish_small_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer,FishSmallSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, FishSmallSkeleton::new()));
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -697,9 +692,7 @@ impl FigureMgr {
                     let state = self
                         .biped_large_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, BipedLargeSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, BipedLargeSkeleton::new()));
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -775,7 +768,7 @@ impl FigureMgr {
         // Clear states that have dead entities.
         self.character_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
-        self.quadruped_states
+        self.quadruped_small_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -840,8 +833,8 @@ impl FigureMgr {
                     .character_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
-                Body::Quadruped(_) => self
-                    .quadruped_states
+                Body::QuadrupedSmall(_) => self
+                    .quadruped_small_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::QuadrupedMedium(_) => self
