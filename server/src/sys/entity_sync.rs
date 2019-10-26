@@ -105,11 +105,13 @@ impl<'a> System<'a> for Sys {
                                 })
                             })
                         {
-                            for (client, regions, _, _) in &mut subscribers {
+                            for (client, regions, client_entity, _) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
+                                    && *client_entity != entity
+                                // Client doesn't need to know about itself
                                 {
                                     send_initial_unsynced_components(
                                         client,

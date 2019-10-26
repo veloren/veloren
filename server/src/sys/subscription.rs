@@ -58,10 +58,15 @@ impl<'a> System<'a> for Sys {
         // 7. Determine list of regions that are in range and iterate through it
         //    - check if in hashset (hash calc) if not add it
         let mut regions_to_remove = Vec::new();
-        for (client, subscription, pos, vd) in
-            (&mut clients, &mut subscriptions, &positions, &players)
-                .join()
-                .filter_map(|(c, s, pos, player)| player.view_distance.map(|v| (c, s, pos, v)))
+        for (client, subscription, pos, vd, client_entity) in (
+            &mut clients,
+            &mut subscriptions,
+            &positions,
+            &players,
+            &entities,
+        )
+            .join()
+            .filter_map(|(c, s, pos, player, e)| player.view_distance.map(|v| (c, s, pos, v, e)))
         {
             let chunk = (Vec2::<f32>::from(pos.0))
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
@@ -137,15 +142,17 @@ impl<'a> System<'a> for Sys {
                     // Send client intial info about the entities in this region
                     if subscription.regions.insert(key) {
                         if let Some(region) = region_map.get(key) {
-                            for (uid, pos, vel, ori, character_state, _) in (
+                            for (uid, pos, vel, ori, character_state, _, _) in (
                                 &uids,
                                 &positions,
                                 velocities.maybe(),
                                 orientations.maybe(),
                                 character_states.maybe(),
                                 region.entities(),
+                                &entities,
                             )
                                 .join()
+                                .filter(|(_, _, _, _, _, _, e)| *e != client_entity)
                             {
                                 super::entity_sync::send_initial_unsynced_components(
                                     client,
