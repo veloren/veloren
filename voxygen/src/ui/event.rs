@@ -5,24 +5,24 @@ use vek::*;
 pub struct Event(pub Input);
 impl Event {
     pub fn try_from(
-        event: glutin::Event,
-        window: &glutin::ContextWrapper<glutin::PossiblyCurrent, winit::Window>,
+        event: glutin::event::Event<()>,
+        window: &glutin::ContextWrapper<glutin::PossiblyCurrent, winit::window::Window>,
     ) -> Option<Self> {
         use conrod_winit::*;
         // A wrapper around the winit window that allows us to implement the trait
         // necessary for enabling the winit <-> conrod conversion functions.
-        struct WindowRef<'a>(&'a winit::Window);
+        struct WindowRef<'a>(&'a winit::window::Window);
 
         // Implement the `WinitWindow` trait for `WindowRef` to allow for generating
         // compatible conversion functions.
         impl<'a> conrod_winit::WinitWindow for WindowRef<'a> {
             fn get_inner_size(&self) -> Option<(u32, u32)> {
-                winit::Window::get_inner_size(&self.0).map(Into::into)
+                Some(winit::window::Window::inner_size(&self.0).into())
             }
 
-            fn hidpi_factor(&self) -> f32 { winit::Window::get_hidpi_factor(&self.0) as _ }
+            fn hidpi_factor(&self) -> f32 { winit::window::Window::get_hidpi_factor(&self.0) as _ }
         }
-        convert_event!(event, &WindowRef(window.window())).map(Self)
+        convert_event!(event, &WindowRef(window.window())).map(|input| Self(input))
     }
 
     pub fn is_keyboard_or_mouse(&self) -> bool {
