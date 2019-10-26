@@ -31,6 +31,7 @@ use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
 // The duration of network inactivity until the player is kicked to the main menu
+// @TODO in the future, this should be configurable on the server, and be provided to the client
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
 
 // After this duration has elapsed, the user will begin getting kick warnings in their chat window
