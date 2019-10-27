@@ -1,6 +1,6 @@
 Item(
-    name: "Your first dagger",
-    description: "A dusty dagger that looks surprisingly weak",
+    name: "Sharp Kitchen Knife",
+    description: "Great for cutting meat.",
     kind: Tool(
         kind: Dagger,
         power: 10,

@@ -1,6 +1,6 @@
 Item(
-    name: "An apple",
-    description: "Looks refreshing",
+    name: "Apple",
+    description: "Red and juicy.",
     kind: Consumable(
         kind: Apple,
         effect: Health((

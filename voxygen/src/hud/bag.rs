@@ -196,7 +196,7 @@ impl<'a> Widget for Bag<'a> {
                     .with_tooltip(
                         self.tooltip_manager,
                         &item.name(),
-                        &format!("{}\n{}", item.name(), item.description()),
+                        &format!("{}", /*item.kind, item.effect(), */ item.description()),
                         &item_tooltip,
                     )
                     .set(state.ids.inv_slots[i], ui)
