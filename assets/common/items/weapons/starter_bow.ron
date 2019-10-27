@@ -1,6 +1,6 @@
 Item(
-    name: "Your first bow",
-    description: "A dusty bow that looks surprisingly weak",
+    name: "Uneven Bow",
+    description: "Someone carved his initials into it...",
     kind: Tool(
         kind: Bow,
         power: 10,

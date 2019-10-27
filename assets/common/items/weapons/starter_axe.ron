@@ -1,6 +1,6 @@
 Item(
-    name: "Your first axe",
-    description: "A dusty axe that looks surprisingly weak",
+    name: "Notched Axe",
+    description: "Every dent tells the story of a chopped tree.",
     kind: Tool(
         kind: Axe,
         power: 10,
