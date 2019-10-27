@@ -1,6 +1,6 @@
 Item(
-    name: "Your first hammer",
-    description: "A dusty hammer that looks surprisingly weak",
+    name: "Sturdy Old Hammer",
+    description: "'Property of...' The rest is missing. ",
     kind: Tool(
         kind: Hammer,
         power: 10,

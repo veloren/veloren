@@ -1,6 +1,6 @@
 Item(
-    name: "Your first sword",
-    description: "A dusty sword that looks surprisingly weak",
+    name: "Battered Sword",
+    description: "Held together by Rust and hope.",
     kind: Tool(
         kind: Sword,
         power: 10,

@@ -1,6 +1,6 @@
 Item(
     name: "Velorite Fragment",
-    description: "It's dirty, but looks edible",
+    description: "Small runes sparkle on its surface.",
     kind: Consumable(
         kind: VeloriteFrag,
         effect: Xp(20),

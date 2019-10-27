@@ -113,7 +113,7 @@ impl<'a> Widget for MiniMap<'a> {
 
             let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
             let x = player_pos.x as f64 / worldsize * 92.0 * 2.0;
-            let y = player_pos.y as f64 / worldsize * 82.0 * 2.0;
+            let y = (1.0 - player_pos.y as f64 / worldsize) * 82.0 * 2.0;
             // Indicator
             Image::new(self.imgs.indicator_mmap)
                 .bottom_left_with_margins_on(state.ids.grid, y, x - 2.5)
