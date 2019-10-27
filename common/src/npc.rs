@@ -30,6 +30,7 @@ impl FromStr for NpcKind {
             "humanoid" => Ok(NpcKind::Humanoid),
             "wolf" => Ok(NpcKind::Wolf),
             "pig" => Ok(NpcKind::Pig),
+
             _ => Err(()),
         }
     }

@@ -6,11 +6,12 @@ use common::comp::humanoid::Body;
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
     comp::{
+        biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small,
         humanoid::{
             Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder, Skin,
         },
         item::Tool,
-        object, quadruped, quadruped_medium, Item, ItemKind,
+        object, quadruped_medium, quadruped_small, Item, ItemKind,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
 };
@@ -535,169 +536,557 @@ pub fn mesh_draw() -> Mesh<FigurePipeline> {
     load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0))
 }
 
-//pub fn mesh_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
-//    load_mesh(
-//        match hand {
-//            Hand::Default => "figure/body/hand",
-//        },
-//        Vec3::new(-2.0, -2.5, -5.0),
-//    )
-//}
-
 /////////
-pub fn mesh_pig_head(head: quadruped::Head) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_small_head(head: quadruped_small::Head) -> Mesh<FigurePipeline> {
     load_mesh(
         match head {
-            quadruped::Head::Default => "npc.pig_purple.pig_head",
+            quadruped_small::Head::Default => "npc.pig_purple.head",
         },
         Vec3::new(-6.0, 4.5, 3.0),
     )
 }
 
-pub fn mesh_pig_chest(chest: quadruped::Chest) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_small_chest(chest: quadruped_small::Chest) -> Mesh<FigurePipeline> {
     load_mesh(
         match chest {
-            quadruped::Chest::Default => "npc.pig_purple.pig_chest",
+            quadruped_small::Chest::Default => "npc.pig_purple.chest",
         },
         Vec3::new(-5.0, 4.5, 0.0),
     )
 }
 
-pub fn mesh_pig_leg_lf(leg_l: quadruped::LegL) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_small_leg_lf(leg_l: quadruped_small::LegL) -> Mesh<FigurePipeline> {
     load_mesh(
         match leg_l {
-            quadruped::LegL::Default => "npc.pig_purple.pig_leg_l",
+            quadruped_small::LegL::Default => "npc.pig_purple.leg_l",
         },
         Vec3::new(0.0, -1.0, -1.5),
     )
 }
 
-pub fn mesh_pig_leg_rf(leg_r: quadruped::LegR) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_small_leg_rf(leg_r: quadruped_small::LegR) -> Mesh<FigurePipeline> {
     load_mesh(
         match leg_r {
-            quadruped::LegR::Default => "npc.pig_purple.pig_leg_r",
+            quadruped_small::LegR::Default => "npc.pig_purple.leg_r",
         },
         Vec3::new(0.0, -1.0, -1.5),
     )
 }
 
-pub fn mesh_pig_leg_lb(leg_l: quadruped::LegL) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_small_leg_lb(leg_l: quadruped_small::LegL) -> Mesh<FigurePipeline> {
     load_mesh(
         match leg_l {
-            quadruped::LegL::Default => "npc.pig_purple.pig_leg_l",
+            quadruped_small::LegL::Default => "npc.pig_purple.leg_l",
         },
         Vec3::new(0.0, -1.0, -1.5),
     )
 }
 
-pub fn mesh_pig_leg_rb(leg_r: quadruped::LegR) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_small_leg_rb(leg_r: quadruped_small::LegR) -> Mesh<FigurePipeline> {
     load_mesh(
         match leg_r {
-            quadruped::LegR::Default => "npc.pig_purple.pig_leg_r",
+            quadruped_small::LegR::Default => "npc.pig_purple.leg_r",
         },
         Vec3::new(0.0, -1.0, -1.5),
     )
 }
 //////
-pub fn mesh_wolf_head_upper(upper_head: quadruped_medium::HeadUpper) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_head_upper(
+    upper_head: quadruped_medium::HeadUpper,
+) -> Mesh<FigurePipeline> {
     load_mesh(
         match upper_head {
-            quadruped_medium::HeadUpper::Default => "npc.wolf.wolf_head_upper",
+            quadruped_medium::HeadUpper::Default => "npc.wolf.head_upper",
         },
         Vec3::new(-7.0, -6.0, -5.5),
     )
 }
 
-pub fn mesh_wolf_jaw(jaw: quadruped_medium::Jaw) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_jaw(jaw: quadruped_medium::Jaw) -> Mesh<FigurePipeline> {
     load_mesh(
         match jaw {
-            quadruped_medium::Jaw::Default => "npc.wolf.wolf_jaw",
+            quadruped_medium::Jaw::Default => "npc.wolf.jaw",
         },
         Vec3::new(-3.0, -3.0, -2.5),
     )
 }
 
-pub fn mesh_wolf_head_lower(head_lower: quadruped_medium::HeadLower) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_head_lower(
+    head_lower: quadruped_medium::HeadLower,
+) -> Mesh<FigurePipeline> {
     load_mesh(
         match head_lower {
-            quadruped_medium::HeadLower::Default => "npc.wolf.wolf_head_lower",
+            quadruped_medium::HeadLower::Default => "npc.wolf.head_lower",
         },
         Vec3::new(-7.0, -6.0, -5.5),
     )
 }
 
-pub fn mesh_wolf_tail(tail: quadruped_medium::Tail) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_tail(tail: quadruped_medium::Tail) -> Mesh<FigurePipeline> {
     load_mesh(
         match tail {
-            quadruped_medium::Tail::Default => "npc.wolf.wolf_tail",
+            quadruped_medium::Tail::Default => "npc.wolf.tail",
         },
         Vec3::new(-2.0, -12.0, -5.0),
     )
 }
 
-pub fn mesh_wolf_torso_back(torso_back: quadruped_medium::TorsoBack) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_torso_back(
+    torso_back: quadruped_medium::TorsoBack,
+) -> Mesh<FigurePipeline> {
     load_mesh(
         match torso_back {
-            quadruped_medium::TorsoBack::Default => "npc.wolf.wolf_torso_back",
+            quadruped_medium::TorsoBack::Default => "npc.wolf.torso_back",
         },
         Vec3::new(-7.0, -6.0, -6.0),
     )
 }
 
-pub fn mesh_wolf_torso_mid(torso_mid: quadruped_medium::TorsoMid) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_torso_mid(
+    torso_mid: quadruped_medium::TorsoMid,
+) -> Mesh<FigurePipeline> {
     load_mesh(
         match torso_mid {
-            quadruped_medium::TorsoMid::Default => "npc.wolf.wolf_torso_mid",
+            quadruped_medium::TorsoMid::Default => "npc.wolf.torso_mid",
         },
         Vec3::new(-8.0, -5.5, -6.0),
     )
 }
 
-pub fn mesh_wolf_ears(ears: quadruped_medium::Ears) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_ears(ears: quadruped_medium::Ears) -> Mesh<FigurePipeline> {
     load_mesh(
         match ears {
-            quadruped_medium::Ears::Default => "npc.wolf.wolf_ears",
+            quadruped_medium::Ears::Default => "npc.wolf.ears",
         },
         Vec3::new(-4.0, -1.0, -1.0),
     )
 }
 
-pub fn mesh_wolf_foot_lf(foot_lf: quadruped_medium::FootLF) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_foot_lf(foot_lf: quadruped_medium::FootLF) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot_lf {
-            quadruped_medium::FootLF::Default => "npc.wolf.wolf_foot_lf",
+            quadruped_medium::FootLF::Default => "npc.wolf.foot_lf",
         },
         Vec3::new(-2.5, -4.0, -2.5),
     )
 }
 
-pub fn mesh_wolf_foot_rf(foot_rf: quadruped_medium::FootRF) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_foot_rf(foot_rf: quadruped_medium::FootRF) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot_rf {
-            quadruped_medium::FootRF::Default => "npc.wolf.wolf_foot_rf",
+            quadruped_medium::FootRF::Default => "npc.wolf.foot_rf",
         },
         Vec3::new(-2.5, -4.0, -2.5),
     )
 }
 
-pub fn mesh_wolf_foot_lb(foot_lb: quadruped_medium::FootLB) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_foot_lb(foot_lb: quadruped_medium::FootLB) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot_lb {
-            quadruped_medium::FootLB::Default => "npc.wolf.wolf_foot_lb",
+            quadruped_medium::FootLB::Default => "npc.wolf.foot_lb",
         },
         Vec3::new(-2.5, -4.0, -2.5),
     )
 }
 
-pub fn mesh_wolf_foot_rb(foot_rb: quadruped_medium::FootRB) -> Mesh<FigurePipeline> {
+pub fn mesh_quadruped_medium_foot_rb(foot_rb: quadruped_medium::FootRB) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot_rb {
-            quadruped_medium::FootRB::Default => "npc.wolf.wolf_foot_rb",
+            quadruped_medium::FootRB::Default => "npc.wolf.foot_rb",
+        },
+        Vec3::new(-2.5, -4.0, -2.5),
+    )
+}
+////
+pub fn mesh_bird_medium_head(head: bird_medium::Head) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match head {
+            bird_medium::Head::Default => "npc.duck_m.head",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_bird_medium_torso(torso: bird_medium::Torso) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match torso {
+            bird_medium::Torso::Default => "npc.duck_m.body",
+        },
+        Vec3::new(-8.0, -5.5, -6.0),
+    )
+}
+
+pub fn mesh_bird_medium_tail(tail: bird_medium::Tail) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail {
+            bird_medium::Tail::Default => "npc.duck_m.tail",
+        },
+        Vec3::new(-4.0, -1.0, -1.0),
+    )
+}
+
+pub fn mesh_bird_medium_wing_l(wing_l: bird_medium::WingL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_l {
+            bird_medium::WingL::Default => "npc.duck_m.wing",
         },
         Vec3::new(-2.5, -4.0, -2.5),
     )
 }
 
+pub fn mesh_bird_medium_wing_r(wing_r: bird_medium::WingR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_r {
+            bird_medium::WingR::Default => "npc.duck_m.wing",
+        },
+        Vec3::new(-2.5, -4.0, -2.5),
+    )
+}
+
+pub fn mesh_bird_medium_leg_l(leg_l: bird_medium::LegL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match leg_l {
+            bird_medium::LegL::Default => "npc.duck_m.leg_l",
+        },
+        Vec3::new(-2.5, -4.0, -2.5),
+    )
+}
+
+pub fn mesh_bird_medium_leg_r(leg_r: bird_medium::LegR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match leg_r {
+            bird_medium::LegR::Default => "npc.duck_m.leg_r",
+        },
+        Vec3::new(-2.5, -4.0, -2.5),
+    )
+}
+////
+pub fn mesh_fish_medium_head(head: fish_medium::Head) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match head {
+            fish_medium::Head::Default => "npc.marlin.head",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_fish_medium_torso(torso: fish_medium::Torso) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match torso {
+            fish_medium::Torso::Default => "npc.marlin.torso",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_fish_medium_rear(rear: fish_medium::Rear) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match rear {
+            fish_medium::Rear::Default => "npc.marlin.rear",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_fish_medium_tail(tail: fish_medium::Tail) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail {
+            fish_medium::Tail::Default => "npc.marlin.tail",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_fish_medium_fin_l(fin_l: fish_medium::FinL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match fin_l {
+            fish_medium::FinL::Default => "npc.marlin.fin_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_fish_medium_fin_r(fin_r: fish_medium::FinR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match fin_r {
+            fish_medium::FinR::Default => "npc.marlin.fin_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+////
+pub fn mesh_dragon_head(head: dragon::Head) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match head {
+            dragon::Head::Default => "npc.dragon.head",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_chest_front(chest_front: dragon::ChestFront) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match chest_front {
+            dragon::ChestFront::Default => "npc.dragon.chest_front",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_chest_rear(chest_rear: dragon::ChestRear) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match chest_rear {
+            dragon::ChestRear::Default => "npc.dragon.chest_rear",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_tail_front(tail_front: dragon::TailFront) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail_front {
+            dragon::TailFront::Default => "npc.dragon.tail_front",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_tail_rear(tail_rear: dragon::TailRear) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail_rear {
+            dragon::TailRear::Default => "npc.dragon.tail_rear",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_wing_in_l(wing_in_l: dragon::WingInL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_in_l {
+            dragon::WingInL::Default => "npc.dragon.wing_in_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_wing_in_r(wing_in_r: dragon::WingInR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_in_r {
+            dragon::WingInR::Default => "npc.dragon.wing_in_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_wing_out_l(wing_out_l: dragon::WingOutL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_out_l {
+            dragon::WingOutL::Default => "npc.dragon.wing_out_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_wing_out_r(wing_out_r: dragon::WingOutR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_out_r {
+            dragon::WingOutR::Default => "npc.dragon.wing_out_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_foot_fl(foot_fl: dragon::FootFL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_fl {
+            dragon::FootFL::Default => "npc.dragon.foot_fl",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_foot_fr(foot_fr: dragon::FootFR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_fr {
+            dragon::FootFR::Default => "npc.dragon.foot_fr",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_foot_bl(foot_bl: dragon::FootBL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_bl {
+            dragon::FootBL::Default => "npc.dragon.foot_bl",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_dragon_foot_br(foot_br: dragon::FootBR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_br {
+            dragon::FootBR::Default => "npc.dragon.foot_br",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+////
+pub fn mesh_bird_small_head(head: bird_small::Head) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match head {
+            bird_small::Head::Default => "npc.crow.head",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_bird_small_torso(torso: bird_small::Torso) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match torso {
+            bird_small::Torso::Default => "npc.crow.torso",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_bird_small_wing_l(wing_l: bird_small::WingL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_l {
+            bird_small::WingL::Default => "npc.crow.wing_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_bird_small_wing_r(wing_r: bird_small::WingR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match wing_r {
+            bird_small::WingR::Default => "npc.crow.wing_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+////
+pub fn mesh_fish_small_torso(torso: fish_small::Torso) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match torso {
+            fish_small::Torso::Default => "npc.cardinalfish.torso",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_fish_small_tail(tail: fish_small::Tail) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match tail {
+            fish_small::Tail::Default => "npc.cardinalfish.tail",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+////
+pub fn mesh_biped_large_head(head: biped_large::Head) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match head {
+            biped_large::Head::Default => "npc.knight.head",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_upper_torso(upper_torso: biped_large::UpperTorso) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match upper_torso {
+            biped_large::UpperTorso::Default => "npc.knight.upper_torso",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_lower_torso(lower_torso: biped_large::LowerTorso) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match lower_torso {
+            biped_large::LowerTorso::Default => "npc.knight.lower_torso",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_shoulder_l(shoulder_l: biped_large::ShoulderL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match shoulder_l {
+            biped_large::ShoulderL::Default => "npc.knight.shoulder_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_shoulder_r(shoulder_r: biped_large::ShoulderR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match shoulder_r {
+            biped_large::ShoulderR::Default => "npc.knight.shoulder_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_hand_l(hand_l: biped_large::HandL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match hand_l {
+            biped_large::HandL::Default => "npc.knight.hand_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_hand_r(hand_r: biped_large::HandR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match hand_r {
+            biped_large::HandR::Default => "npc.knight.hand_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_leg_l(leg_l: biped_large::LegL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match leg_l {
+            biped_large::LegL::Default => "npc.knight.leg_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_leg_r(leg_r: biped_large::LegR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match leg_r {
+            biped_large::LegR::Default => "npc.knight.leg_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_foot_l(foot_l: biped_large::FootL) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_l {
+            biped_large::FootL::Default => "npc.knight.foot_l",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+pub fn mesh_biped_large_foot_r(foot_r: biped_large::FootR) -> Mesh<FigurePipeline> {
+    load_mesh(
+        match foot_r {
+            biped_large::FootR::Default => "npc.knight.foot_r",
+        },
+        Vec3::new(-7.0, -6.0, -6.0),
+    )
+}
+
+////
 pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
     use object::Body;
 
