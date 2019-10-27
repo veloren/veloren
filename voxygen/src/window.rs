@@ -508,7 +508,7 @@ impl Window {
             .with_vsync(false);
 
         let (window, device, factory, win_color_view, win_depth_view) =
-            gfx_window_glutin::init::<WinColorFmt, WinDepthFmt>(
+            gfx_window_glutin::init::<WinColorFmt, WinDepthFmt, ()>(
                 win_builder,
                 ctx_builder,
                 &events_loop,
