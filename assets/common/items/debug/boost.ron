@@ -1,8 +1,9 @@
 Item(
-    name: "Boost rod",
-    description: "Your legs feel full of energy while holding this",
+    name: "Weightless Rod",
+    description: "The sky is the limit.",
     kind: Tool(
         kind: Debug(Boost),
         power: 0,
     ),
 )
+// And the ground is pretty hard at maximum velocity...

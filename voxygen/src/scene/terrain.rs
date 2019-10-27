@@ -124,7 +124,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.0,
         }),
         BlockKind::Mushroom => Some(SpriteConfig {
-            variations: 10,
+            variations: 11,
             wind_sway: 0.0,
         }),
         BlockKind::Liana => Some(SpriteConfig {
@@ -620,6 +620,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::Mushroom, 9),
                     make_model(
                         "voxygen.voxel.sprite.mushrooms.mushroom-9",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 10),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-10",
                         Vec3::new(-6.0, -6.0, 0.0),
                     ),
                 ),
