@@ -255,6 +255,7 @@ impl State {
             .map(|(key, _)| key)
             .collect::<Vec<_>>();
 
+        // TODO: fix that this does nothing
         for key in keys {
             self.remove_chunk(key);
         }
