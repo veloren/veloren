@@ -1,6 +1,6 @@
 Item(
     name: "Your first staff",
-    description: "A dusty staff that looks surprisingly weak",
+    description: "Smells like resin and magic.",
     kind: Tool(
         kind: Staff,
         power: 10,

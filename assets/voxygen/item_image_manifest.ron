@@ -41,7 +41,7 @@
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
     Consumable(Mushroom): VoxTrans(
-        "voxel.sprite.mushrooms.mushroom-4",
+        "voxel.sprite.mushrooms.mushroom-10",
         (0.0, 0.0, 0.0), (-50.0, 70.0, 40.0), 1.0,
     ),
     Consumable(Velorite): VoxTrans(
