@@ -1,5 +1,5 @@
 Item(
-    name: "Short grass",
-    description: "Just some grass",
-    kind: Ingredient(Grass),
+    name: "Short Grass",
+    description: "Greener than an orc's snout.",
+    kind: Ingredient,
 )

@@ -1,6 +1,6 @@
 Item(
-    name: "A mushroom",
-    description: "It's dirty, but looks edible",
+    name: "Mushroom",
+    description: "Hopefully this one is not poisonous.",
     kind: Consumable(
         kind: Mushroom,
         effect: Health((
