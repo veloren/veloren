@@ -29,8 +29,14 @@ Currently the communication of contributors happens mainly on our [official Disc
 
 ## Get Veloren
 
-You can download up-to-date builds for Windows and Linux from [Gitlab CI pipelines](https://gitlab.com/veloren/veloren/pipelines) (refer to the [Download chapter in the book](https://book.veloren.net/download/index.html) for more information).
-As of 0.2, due to rapid developement stable versions are **outdated** and **incompatible with the public server**.
+Currently we provide 64-bit builds for Linux and Windows:
+
+**Windows**: https://www.airshipper.songtronix.com/latest/windows  
+**Linux**: https://www.airshipper.songtronix.com/latest/linux
+
+*Note: Mac and 32-bit systems are supported but you need to [compile the game for them yourself](https://book.veloren.net/compile/index.html).*
+
+Due to rapid developement stable versions become outdated fast and might be **incompatible with the public server**.
 
 If you want to compile Veloren yourself, take a look at the [How to Compile Guide](https://book.veloren.net/compile/index.html) in the book.
 
