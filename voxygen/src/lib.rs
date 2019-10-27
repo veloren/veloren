@@ -17,6 +17,7 @@ pub mod menu;
 pub mod mesh;
 pub mod profile;
 pub mod render;
+pub mod run;
 pub mod scene;
 pub mod session;
 pub mod settings;
@@ -28,9 +29,14 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{
-    audio::AudioFrontend, profile::Profile, settings::Settings, singleplayer::Singleplayer,
-    window::Window,
+    audio::AudioFrontend,
+    profile::Profile,
+    render::Renderer,
+    settings::Settings,
+    singleplayer::Singleplayer,
+    window::{Event, Window},
 };
+use common::{assets::watch, clock::Clock};
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
@@ -39,7 +45,11 @@ pub struct GlobalState {
     pub window: Window,
     pub audio: AudioFrontend,
     pub info_message: Option<String>,
+    pub clock: Clock,
+    #[cfg(feature = "singleplayer")]
     pub singleplayer: Option<Singleplayer>,
+    // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
+    localization_watcher: watch::ReloadIndicator,
 }
 
 impl GlobalState {
@@ -61,6 +71,8 @@ pub enum Direction {
 /// States can either close (and revert to a previous state), push a new state
 /// on top of themselves, or switch to a totally different state.
 pub enum PlayStateResult {
+    /// Keep running this play state.
+    Continue,
     /// Pop all play states in reverse order and shut down the program.
     Shutdown,
     /// Close the current play state and pop it from the play state stack.
@@ -74,10 +86,16 @@ pub enum PlayStateResult {
 /// A trait representing a playable game state. This may be a menu, a game
 /// session, the title screen, etc.
 pub trait PlayState {
-    /// Play the state until some change of state is required (i.e: a menu is
-    /// opened or the game is closed).
-    fn play(&mut self, direction: Direction, global_state: &mut GlobalState) -> PlayStateResult;
+    /// Get a descriptive name for this state type.
+    /// Called when entering this play state from another
+    fn enter(&mut self, global_state: &mut GlobalState, direction: Direction);
+
+    /// Tick the play state
+    fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult;
 
     /// Get a descriptive name for this state type.
     fn name(&self) -> &'static str;
+
+    /// Draw the play state.
+    fn render(&mut self, renderer: &mut Renderer, settings: &Settings);
 }

@@ -20,7 +20,7 @@ impl Event {
                 Some(winit::window::Window::inner_size(&self.0).into())
             }
 
-            fn hidpi_factor(&self) -> f32 { winit::window::Window::get_hidpi_factor(&self.0) as _ }
+            fn hidpi_factor(&self) -> f32 { winit::window::Window::hidpi_factor(&self.0) as _ }
         }
         convert_event!(event, &WindowRef(window.window())).map(|input| Self(input))
     }
