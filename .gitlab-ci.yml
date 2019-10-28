@@ -142,11 +142,12 @@ code-quality:
 
 security:
     stage: check-compile
+    allow_failure: true
     tags:
         - veloren-docker
     script:
-        cargo install cargo-audit
-        cargo audit
+        - cargo install cargo-audit
+        - cargo audit
 
 # --
 
