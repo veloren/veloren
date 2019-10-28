@@ -140,6 +140,14 @@ code-quality:
         - cargo clippy -- --warn clippy::all
         - cargo fmt --all -- --check
 
+security:
+    stage: check-compile
+    tags:
+        - veloren-docker
+    script:
+        cargo install cargo-audit
+        cargo audit
+
 # --
 
 # -- post build
