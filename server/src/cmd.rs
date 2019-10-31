@@ -997,15 +997,20 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
 }
 
 use common::comp::Item;
-fn handle_debug_items(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+fn handle_debug_items(
+    server: &mut Server,
+    entity: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
     if let Ok(items) = assets::load_glob::<Item>("common.items.debug.*") {
-       server
-           .state()
-           .ecs()
-           .write_storage::<comp::Inventory>()
-           .get_mut(entity)
-           // TODO: Consider writing a `load_glob_cloned` in `assets` and using that here
-           .map(|inv| inv.push_all_unique(items.iter().map(|item| item.as_ref().clone())));
+        server
+            .state()
+            .ecs()
+            .write_storage::<comp::Inventory>()
+            .get_mut(entity)
+            // TODO: Consider writing a `load_glob_cloned` in `assets` and using that here
+            .map(|inv| inv.push_all_unique(items.iter().map(|item| item.as_ref().clone())));
         let _ = server
             .state
             .ecs()
@@ -1013,8 +1018,10 @@ fn handle_debug_items(server: &mut Server, entity: EcsEntity, _args: String, _ac
             .insert(entity, comp::InventoryUpdate);
     } else {
         server.notify_client(
-            entity, 
-            ServerMsg::private(String::from("Debug items not found? Something is very broken."))
+            entity,
+            ServerMsg::private(String::from(
+                "Debug items not found? Something is very broken.",
+            )),
         );
     }
 }
