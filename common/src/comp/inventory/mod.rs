@@ -5,10 +5,18 @@ pub use item::{Debug, Item, ItemKind, Tool};
 
 use crate::assets;
 use specs::{Component, HashMapStorage, NullStorage};
+use std::ops::Not;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
     pub slots: Vec<Option<Item>>,
+}
+
+/// Errors which the methods on `Inventory` produce
+#[derive(Debug)]
+pub enum Error {
+    /// The inventory is full and items could not be added. The extra items have been returned.
+    Full(Vec<Item>),
 }
 
 impl Inventory {
@@ -32,6 +40,47 @@ impl Inventory {
         }
     }
 
+    /// Add a series of items to inventory, returning any which do not fit as an error.
+    pub fn push_all<I: Iterator<Item=Item>>(&mut self, mut items: I) -> Result<(), Error> {
+        // Vec doesn't allocate for zero elements so this should be cheap
+        let mut leftovers = Vec::new();
+        let mut slots = self.slots.iter_mut();
+        for item in &mut items {
+            if let Some(slot) = slots.find(|slot| slot.is_none()) {
+                slot.replace(item);
+            } else {
+                leftovers.push(item);
+            }
+        }
+        if leftovers.len() > 0 {
+            Err(Error::Full(leftovers))
+        } else {
+            Ok(())
+        }
+    }
+
+    /** Add a series of items to an inventory without giving duplicates. (n * m complexity)
+     *
+     *  Error if inventory cannot contain the items (is full), returning the un-added items.
+     *  This is a lazy inefficient implementation, as it iterates over the inventory more times
+     *  than necessary (n^2) and with the proper structure wouldn't need to iterate at all, but because
+     *  this should be fairly cold code, clarity has been favored over efficiency.
+     */
+    pub fn push_all_unique<I: Iterator<Item=Item>>(&mut self, mut items: I) -> Result<(), Error> {
+        let mut leftovers = Vec::new();
+        for item in &mut items {
+            if self.contains(&item).not() {
+                self.push(item)
+                    .map(|overflow| leftovers.push(overflow));
+            } // else drop item if it was already in
+        }
+        if leftovers.len() > 0 {
+            Err(Error::Full(leftovers))
+        } else {
+            Ok(())
+        }
+    }
+
     /// Replaces an item in a specific slot of the inventory. Returns the old item or the same item again if that slot
     /// was not found.
     pub fn insert(&mut self, cell: usize, item: Item) -> Result<Option<Item>, Item> {
@@ -47,6 +96,16 @@ impl Inventory {
 
     pub fn is_full(&self) -> bool {
         self.slots.iter().all(|slot| slot.is_some())
+    }
+
+    /// O(n) count the number of items in this inventory.
+    pub fn count(&self) -> usize {
+        self.slots.iter().fold(0, |count, slot| count + if slot.is_some() { 1 } else { 0 })
+    }
+
+    /// O(n) check if an item is in this inventory.
+    pub fn contains(&self, item: &Item) -> bool {
+        self.slots.iter().any(|slot| slot.as_ref().map(|other_item| item == other_item).unwrap_or(false))
     }
 
     /// Get content of a slot
@@ -89,4 +148,68 @@ pub struct InventoryUpdate;
 
 impl Component for InventoryUpdate {
     type Storage = NullStorage<Self>;
+}
+
+#[cfg(test)]
+mod test {
+    use lazy_static::lazy_static;
+    use super::*;
+    lazy_static! {
+        static ref TEST_ITEMS: Vec<Item> =
+            vec![
+                assets::load_expect_cloned("common.items.debug.boost"),
+                assets::load_expect_cloned("common.items.debug.possess")
+            ];
+    }
+    /// The `Default` inventory should contain two items
+    #[test]
+    fn create_default_count() {
+        assert_eq!(Inventory::default().count(), 2)
+    }
+
+    /// Attempting to push into a full inventory should return the same item.
+    #[test]
+    fn push_full() {
+        let mut inv = Inventory { slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect() };
+        assert_eq!(
+            inv.push(TEST_ITEMS[0].clone()).unwrap(),
+            TEST_ITEMS[0].clone()
+        )
+    }
+
+    /// Attempting to push a series into a full inventory should return them all.
+    #[test]
+    fn push_all_full() {
+        let mut inv = Inventory { slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect() };
+        let Error::Full(leftovers) = inv.push_all(TEST_ITEMS.iter().map(|a| a.clone()))
+            .expect_err("Pushing into a full inventory somehow worked!");
+        assert_eq!(
+            leftovers,
+            TEST_ITEMS.clone()
+        )
+    }
+
+    /// Attempting to push uniquely into an inventory containing all the items should work fine.
+    #[test]
+    fn push_unique_all_full() {
+        let mut inv = Inventory { slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect() };
+        inv.push_all_unique(TEST_ITEMS.iter().map(|a| a.clone()))
+            .expect("Pushing unique items into an inventory that already contains them didn't work!");
+    }
+
+    /// Attempting to push uniquely into an inventory containing all the items should work fine.
+    #[test]
+    fn push_all_empty() {
+        let mut inv = Inventory { slots: vec![None, None] };
+        inv.push_all(TEST_ITEMS.iter().map(|a| a.clone()))
+            .expect("Pushing items into an empty inventory didn't work!");
+    }
+
+    /// Attempting to push uniquely into an inventory containing all the items should work fine.
+    #[test]
+    fn push_all_unique_empty() {
+        let mut inv = Inventory { slots: vec![None, None] };
+        inv.push_all_unique(TEST_ITEMS.iter().map(|a| a.clone()))
+            .expect("Pushing unique items into an empty inventory that didn't contain them didn't work!");
+    }
 }
