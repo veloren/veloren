@@ -41,8 +41,7 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::World;
-
+use world::{sim::WORLD_SIZE, World};
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
@@ -86,9 +85,6 @@ impl Server {
         let mut state = State::default();
         state
             .ecs_mut()
-            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 600.0)));
-        state
-            .ecs_mut()
             .add_resource(EventBus::<ServerEvent>::default());
         // TODO: anything but this
         state.ecs_mut().add_resource(AuthProvider::new());
@@ -110,12 +106,61 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
+        let world = World::generate(settings.world_seed);
+
+        let spawn_point = {
+            // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
+            // but are needed to be explicit about casting (and to make the compiler stop complaining)
+
+            // spawn in the chunk, that is in the middle of the world
+            let spawn_chunk: Vec2<i32> = WORLD_SIZE.map(|e| e as i32) / 2;
+            // calculate the absolute position of the chunk in the world
+            // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the midde of the chunk)
+            let spawn_location = spawn_chunk * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+
+            // get a z cache for the collumn in which we want to spawn
+            let mut block_sampler = world.sample_blocks();
+            let z_cache = block_sampler
+                .get_z_cache(spawn_location)
+                .expect(&format!("no z_cache found for chunk: {}", spawn_chunk));
+
+            // get the minimum and maximum z values at which there could be soild blocks
+            let (min_z, _, max_z) = z_cache.get_z_limits(&mut block_sampler);
+            // round range outwards, so no potential air block is missed
+            let min_z = min_z.floor() as i32;
+            let max_z = max_z.ceil() as i32;
+
+            // loop over all blocks from min_z to max_z + 1
+            // until the first air block is found
+            // (up to max_z + 1, because max_z could still be a soild block)
+            // if no air block is found default to max_z + 1
+            let z = (min_z..=max_z + 1)
+                .find(|z| {
+                    block_sampler
+                        .get_with_z_cache(
+                            Vec3::new(spawn_location.x, spawn_location.y, *z),
+                            Some(&z_cache),
+                            false,
+                        )
+                        .map(|b| b.is_air())
+                        .unwrap_or(false)
+                })
+                .unwrap_or(max_z + 1);
+
+            // build the actual spawn point and
+            // add 0.5, so that the player spawns in the middle of the block
+            Vec3::new(spawn_location.x, spawn_location.y, z).map(|e| (e as f32)) + 0.5
+        };
+
+        // set the spawn point we calculated above
+        state.ecs_mut().add_resource(SpawnPoint(spawn_point));
+
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
 
         let this = Self {
             state,
-            world: Arc::new(World::generate(settings.world_seed)),
+            world: Arc::new(world),
 
             postoffice: PostOffice::bind(settings.gameserver_address)?,
 
