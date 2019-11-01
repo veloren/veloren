@@ -60,6 +60,10 @@ widget_ids! {
         error_frame,
         button_ok,
         version,
+        // Info Window
+        info_frame,
+        info_text,
+        info_bottom
     }
 }
 
@@ -75,6 +79,7 @@ image_ids! {
         info_frame: "voxygen.element.frames.info_frame_2",
         banner: "voxygen.element.frames.banner",
         banner_top: "voxygen.element.frames.banner_top",
+        banner_bottom: "voxygen.element.frames.banner_bottom",
 
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
@@ -186,6 +191,19 @@ impl MainMenuUi {
         );
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
+        let intro_text: &'static str = "Information on the Login Process:\n\
+                                        \n\
+                                        Choose whatever Username and Password you want.\n\
+                                        (The middle box is for Password input)\n\
+                                        They will be saved until server restart.\n\
+                                        \n\
+                                        The name you put in will be your character name ingame.\n\
+                                        \n\
+                                        Starting Singleplayer needs some time to load.\n\
+                                        During this time the game may appear unresponsive.\n\
+                                        \n\
+                                        As of now you can't save your characters.\n\
+                                        Changing their appearance is possible though.";
 
         // Tooltip
         let _tooltip = Tooltip::new({
@@ -312,6 +330,22 @@ impl MainMenuUi {
                     });
                 };
             }
+            // Info Window
+            Rectangle::fill_with([550.0, 280.0], color::BLACK)
+                .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
+                .set(self.ids.info_frame, ui_widgets);
+            Image::new(self.imgs.banner_bottom)
+                .mid_bottom_with_margin_on(self.ids.info_frame, -50.0)
+                .w_h(550.0, 50.0)
+                .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.95)))
+                .set(self.ids.info_bottom, ui_widgets);
+            Text::new(intro_text)
+                .top_left_with_margins_on(self.ids.info_frame, 15.0, 15.0)
+                .font_size(20)
+                .font_id(self.fonts.cyri)
+                .color(TEXT_COLOR)
+                .set(self.ids.info_text, ui_widgets);
 
             // Singleplayer
             // Used when the singleplayer button is pressed
