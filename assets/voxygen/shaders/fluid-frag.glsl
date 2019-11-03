@@ -38,6 +38,9 @@ void main() {
 	// Use an array to avoid conditional branching
 	vec3 f_norm = normals[norm_axis + norm_dir];
 
+	vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
+	float frag_dist = length(f_pos - cam_pos.xyz);
+
 	/*
 	// Round the position to the nearest triangular grid cell
 	vec3 hex_pos = f_pos * 2.0;
@@ -58,13 +61,21 @@ void main() {
 	}
 	vec3 c_norm = cross(f_norm, b_norm);
 
-	vec3 nmap = normalize(
-		(srgb_to_linear(texture(t_waves, fract(f_pos.xy * 0.3 + tick.x * 0.04)).rgb) - 0.0) * 0.05
-		+ (srgb_to_linear(texture(t_waves, fract(f_pos.xy * 0.1 - tick.x * 0.08)).rgb) - 0.0) * 0.1
-		+ (srgb_to_linear(texture(t_waves, fract(-f_pos.yx * 0.06 - tick.x * 0.1)).rgb) - 0.0) * 0.1
-		+ (srgb_to_linear(texture(t_waves, fract(-f_pos.yx * 0.03 - tick.x * 0.01)).rgb) - 0.0) * 0.2
-		+ vec3(0, 0, 0.0)
+	vec3 nwarp = normalize(
+		texture(t_waves, fract(f_pos.xy * 0.03 + tick.x * 0.01)).xyz * 0.7 +
+		texture(t_waves, fract(-f_pos.yx * 0.03 + tick.x * 0.01)).xyz * 0.7 +
+		texture(t_waves, fract(f_pos.xy * 0.07 + tick.x * 0.02)).xyz * 0.5 +
+		texture(t_waves, fract(-f_pos.yx * 0.15 + tick.x * 0.02)).xyz * 0.3 +
+		texture(t_waves, fract(f_pos.xy * 0.25 + tick.x * 0.06)).xyz * 0.05 +
+		texture(t_waves, fract(-f_pos.yx * 0.5 + tick.x * 0.06)).xyz * 0.05
 	);
+	vec3 nmap = mix(vec3(0, 0, 1), normalize(
+		texture(t_waves, fract(f_pos.xy * 0.01 + nwarp.xy)).rgb * 1.0 +
+		texture(t_waves, fract(f_pos.xy * 0.1 + nwarp.xy)).rgb * 0.8 +
+		texture(t_waves, fract(f_pos.xy * 0.3 + nwarp.xy)).rgb * 0.6 +
+		texture(t_waves, fract(f_pos.xy * 0.9 + nwarp.xy * 0.3)).rgb * 0.2
+		+ vec3(-0.5, -0.5, 0)
+	), clamp(2.0 / pow(frag_dist, 0.5), 0, 1));
 
 	vec3 norm = f_norm * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
 
@@ -81,7 +92,6 @@ void main() {
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
     vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, true);
 
-	vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
 	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
@@ -89,7 +99,7 @@ void main() {
 	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, false) * f_light;
 	//reflect_color = vec3(reflect_color.r + reflect_color.g + reflect_color.b) / 3.0;
 	// 0 = 100% reflection, 1 = translucent water
-	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.3);
+	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
 
 	vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 4.0 / (1.0 + diffuse_light * 2.0)), passthrough);
 
