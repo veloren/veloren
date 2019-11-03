@@ -62,20 +62,20 @@ void main() {
 	vec3 c_norm = cross(f_norm, b_norm);
 
 	vec3 nwarp = normalize(
-		texture(t_waves, fract(f_pos.xy * 0.03 + tick.x * 0.01)).xyz * 0.7 +
-		texture(t_waves, fract(-f_pos.yx * 0.03 + tick.x * 0.01)).xyz * 0.7 +
-		texture(t_waves, fract(f_pos.xy * 0.07 + tick.x * 0.02)).xyz * 0.5 +
-		texture(t_waves, fract(-f_pos.yx * 0.15 + tick.x * 0.02)).xyz * 0.3 +
-		texture(t_waves, fract(f_pos.xy * 0.25 + tick.x * 0.06)).xyz * 0.05 +
-		texture(t_waves, fract(-f_pos.yx * 0.5 + tick.x * 0.06)).xyz * 0.05
-	);
-	vec3 nmap = mix(vec3(0, 0, 1), normalize(
+		texture(t_waves, fract(f_pos.xy * 0.03 + tick.x * 0.02)).xyz * 0.7 +
+		texture(t_waves, fract(-f_pos.yx * 0.03 + tick.x * 0.02)).xyz * 0.7 +
+		texture(t_waves, fract(f_pos.xy * 0.07 + tick.x * 0.04)).xyz * 0.5 +
+		texture(t_waves, fract(-f_pos.yx * 0.15 + tick.x * 0.04)).xyz * 0.3 +
+		texture(t_waves, fract(f_pos.xy * 0.25 + tick.x * 0.12)).xyz * 0.05 +
+		texture(t_waves, fract(-f_pos.yx * 0.5 + tick.x * 0.12)).xyz * 0.05
+	) * 0.4;
+	vec3 nmap = mix(vec3(0, 0, 1), normalize((
 		texture(t_waves, fract(f_pos.xy * 0.01 + nwarp.xy)).rgb * 1.0 +
 		texture(t_waves, fract(f_pos.xy * 0.1 + nwarp.xy)).rgb * 0.8 +
 		texture(t_waves, fract(f_pos.xy * 0.3 + nwarp.xy)).rgb * 0.6 +
 		texture(t_waves, fract(f_pos.xy * 0.9 + nwarp.xy * 0.3)).rgb * 0.2
 		+ vec3(-0.5, -0.5, 0)
-	), clamp(2.0 / pow(frag_dist, 0.5), 0, 1));
+	) * nwarp.z), clamp(2.0 / pow(frag_dist, 0.5), 0, 1));
 
 	vec3 norm = f_norm * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
 
