@@ -40,6 +40,8 @@ optional-debug:linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
         - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
         - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
+        - strip --strip-all veloren-server-cli
+        - strip --strip-all veloren-voxygen
     artifacts:
         paths:
             - veloren-server-cli
@@ -86,6 +88,8 @@ optional-release:linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
         - cp target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp target/release/veloren-voxygen $CI_PROJECT_DIR
+        - strip --strip-all veloren-server-cli
+        - strip --strip-all veloren-voxygen
     artifacts:
         paths:
             - veloren-server-cli
@@ -200,6 +204,8 @@ linux:
         - cd server-cli && VELOREN_ASSETS=assets cargo build --release && cd ..
         - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
+        - strip --strip-all veloren-server-cli
+        - strip --strip-all veloren-voxygen
     artifacts:
         paths:
             - veloren-server-cli
