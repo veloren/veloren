@@ -9,7 +9,7 @@ pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
     type Skeleton = FishSmallSkeleton;
-    type Dependency = (f64);
+    type Dependency = f64;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
