@@ -1,9 +1,6 @@
 #![deny(unsafe_code)]
 #![type_length_limit = "1664759"]
-#![feature(
-    trait_alias,
-    option_flattening, // Converts Option<Option<Item>> into Option<Item> TODO: Remove this once this feature becomes stable
-)]
+#![feature(trait_alias)]
 
 #[macro_use]
 extern crate serde_derive;
