@@ -19,6 +19,7 @@ use crate::{
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::CHAT_COMMANDS,
+    sys::sentinel::{TrackedComps, TrackedResources},
 };
 use common::{
     assets, comp,
@@ -26,6 +27,7 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
+    sphynx::WorldSyncExt,
     state::{BlockChange, State, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
@@ -33,7 +35,9 @@ use common::{
 use log::debug;
 use metrics::ServerMetrics;
 use rand::Rng;
-use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
+use specs::{
+    join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, SystemData,
+};
 use std::{
     i32,
     sync::Arc,
@@ -90,11 +94,12 @@ impl Server {
         state.ecs_mut().add_resource(AuthProvider::new());
         state.ecs_mut().add_resource(Tick(0));
         state.ecs_mut().add_resource(ChunkGenerator::new());
-        // System timers
+        // System timers for performance monitoring
         state
             .ecs_mut()
             .add_resource(sys::EntitySyncTimer::default());
         state.ecs_mut().add_resource(sys::MessageTimer::default());
+        state.ecs_mut().add_resource(sys::SentinelTimer::default());
         state
             .ecs_mut()
             .add_resource(sys::SubscriptionTimer::default());
@@ -157,6 +162,9 @@ impl Server {
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
+
+        // Register trackers
+        sys::sentinel::register_trackers(&mut state.ecs_mut());
 
         let this = Self {
             state,
@@ -449,7 +457,7 @@ impl Server {
                             };
 
                             if let Some(item_entity) = item_entity {
-                                let _ = state.ecs_mut().delete_entity_synced(item_entity);
+                                let _ = state.ecs_mut().delete_entity(item_entity);
                             }
 
                             state.write_component(entity, comp::InventoryUpdate);
@@ -605,8 +613,8 @@ impl Server {
                     {
                         let not_mounting_yet = if let Some(comp::MountState::Unmounted) = state
                             .ecs()
-                            .write_storage::<comp::MountState>()
-                            .get_mut(mountee)
+                            .read_storage::<comp::MountState>()
+                            .get(mountee)
                             .cloned()
                         {
                             true
@@ -738,7 +746,7 @@ impl Server {
                 }
 
                 ServerEvent::ClientDisconnect(entity) => {
-                    if let Err(err) = state.ecs_mut().delete_entity_synced(entity) {
+                    if let Err(err) = state.ecs_mut().delete_entity(entity) {
                         debug!("Failed to delete disconnected client: {:?}", err);
                     }
 
@@ -756,7 +764,7 @@ impl Server {
 
             // TODO: is this needed?
             if let Some(entity) = todo_remove {
-                let _ = state.ecs_mut().delete_entity_synced(entity);
+                let _ = state.ecs_mut().delete_entity(entity);
             }
         }
 
@@ -832,11 +840,6 @@ impl Server {
 
         let before_tick_6 = Instant::now();
         // 6) Synchronise clients with the new state of the world.
-        // TODO: Remove sphynx
-        // Sync 'logical' state using Sphynx.
-        let sync_package = self.state.ecs_mut().next_sync_package();
-        self.state
-            .notify_registered_clients(ServerMsg::EcsSync(sync_package));
 
         // Remove NPCs that are outside the view distances of all players
         // This is done by removing NPCs in unloaded chunks
@@ -853,7 +856,7 @@ impl Server {
                 .collect::<Vec<_>>()
         };
         for entity in to_delete {
-            let _ = self.state.ecs_mut().delete_entity_synced(entity);
+            let _ = self.state.ecs_mut().delete_entity(entity);
         }
 
         let before_tick_7 = Instant::now();
@@ -864,6 +867,7 @@ impl Server {
             .read_resource::<sys::EntitySyncTimer>()
             .nanos as i64;
         let message_nanos = self.state.ecs().read_resource::<sys::MessageTimer>().nanos as i64;
+        let sentinel_nanos = self.state.ecs().read_resource::<sys::SentinelTimer>().nanos as i64;
         let subscription_nanos = self
             .state
             .ecs()
@@ -877,6 +881,7 @@ impl Server {
         let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
         let total_sys_nanos = entity_sync_nanos
             + message_nanos
+            + sentinel_nanos
             + subscription_nanos
             + terrain_sync_nanos
             + terrain_nanos;
@@ -979,7 +984,13 @@ impl Server {
                     .get_mut(entity)
                     .unwrap()
                     .notify(ServerMsg::InitialSync {
-                        ecs_state: self.state.ecs().gen_state_package(),
+                        ecs_state: TrackedResources::fetch(&self.state.ecs().res)
+                            .state_package()
+                            // Send client their entity
+                            .with_entity(
+                                TrackedComps::fetch(&self.state.ecs().res)
+                                    .create_entity_package(entity),
+                            ),
                         entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
                         server_info: self.server_info.clone(),
                         // world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),

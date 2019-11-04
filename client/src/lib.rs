@@ -14,6 +14,7 @@ use common::{
         ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     net::PostBox,
+    sphynx::WorldSyncExt,
     state::{State, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
@@ -94,7 +95,8 @@ impl Client {
                     );
                 }
 
-                let state = State::from_state_package(ecs_state);
+                let mut state = State::default();
+                state.ecs_mut().apply_state_package(ecs_state);
                 let entity = state
                     .ecs()
                     .entity_from_uid(entity_uid)
@@ -550,7 +552,14 @@ impl Client {
                         }
                     }
                     ServerMsg::EcsSync(sync_package) => {
-                        self.state.ecs_mut().sync_with_package(sync_package)
+                        self.state.ecs_mut().apply_sync_package(sync_package)
+                    }
+                    ServerMsg::EcsResSync(res_sync_package) => self
+                        .state
+                        .ecs_mut()
+                        .apply_res_sync_package(res_sync_package),
+                    ServerMsg::CreateEntity(entity_package) => {
+                        self.state.ecs_mut().apply_entity_package(entity_package)
                     }
                     ServerMsg::DeleteEntity(entity) => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {

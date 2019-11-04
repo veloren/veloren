@@ -23,6 +23,7 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_event_emitter = server_event_bus.emitter();
 
+        // Mutates all stats every tick causing the server to resend this component for every entity every tick
         for (entity, mut stat) in (&entities, &mut stats).join() {
             if stat.should_die() && !stat.is_dead {
                 server_event_emitter.emit(ServerEvent::Destroy {

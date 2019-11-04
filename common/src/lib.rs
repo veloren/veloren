@@ -7,6 +7,9 @@ extern crate serde_derive;
 #[macro_use]
 extern crate log;
 
+// Re-export sphynx
+pub use sphynx;
+
 pub mod assets;
 pub mod astar;
 pub mod clock;

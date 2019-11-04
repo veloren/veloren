@@ -40,7 +40,9 @@ pub enum ServerMsg {
         message: String,
     },
     SetPlayerEntity(u64),
-    EcsSync(sphynx::SyncPackage<EcsCompPacket, EcsResPacket>),
+    EcsSync(sphynx::SyncPackage<EcsCompPacket>),
+    EcsResSync(sphynx::ResSyncPackage<EcsResPacket>),
+    CreateEntity(sphynx::EntityPackage<EcsCompPacket>),
     DeleteEntity(u64),
     EntityPos {
         entity: u64,
