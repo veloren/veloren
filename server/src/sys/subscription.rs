@@ -1,4 +1,4 @@
-use super::SysTimer;
+use super::{sentinel::TrackedComps, SysTimer};
 use crate::client::{self, Client, RegionSubscription};
 use common::{
     comp::{CharacterState, Ori, Player, Pos, Vel},
@@ -26,6 +26,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, RegionSubscription>,
+        TrackedComps<'a>,
     );
 
     fn run(
@@ -42,6 +43,7 @@ impl<'a> System<'a> for Sys {
             players,
             mut clients,
             mut subscriptions,
+            tracked_comps,
         ): Self::SystemData,
     ) {
         timer.start();
@@ -142,7 +144,7 @@ impl<'a> System<'a> for Sys {
                     // Send client intial info about the entities in this region
                     if subscription.regions.insert(key) {
                         if let Some(region) = region_map.get(key) {
-                            for (uid, pos, vel, ori, character_state, _, _) in (
+                            for (uid, pos, vel, ori, character_state, _, entity) in (
                                 &uids,
                                 &positions,
                                 velocities.maybe(),
@@ -154,6 +156,11 @@ impl<'a> System<'a> for Sys {
                                 .join()
                                 .filter(|(_, _, _, _, _, _, e)| *e != client_entity)
                             {
+                                // Send message to create entity and tracked components
+                                client.notify(ServerMsg::CreateEntity(
+                                    tracked_comps.create_entity_package(entity),
+                                ));
+                                // Send message to create physics components
                                 super::entity_sync::send_initial_unsynced_components(
                                     client,
                                     uid,

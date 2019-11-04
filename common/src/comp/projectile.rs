@@ -15,6 +15,7 @@ pub enum Effect {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Projectile {
     pub owner: Uid,
+    // TODO: use SmallVec for these effects
     pub hit_ground: Vec<Effect>,
     pub hit_wall: Vec<Effect>,
     pub hit_entity: Vec<Effect>,

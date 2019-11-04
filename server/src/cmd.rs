@@ -10,6 +10,7 @@ use common::{
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     pathfinding::WorldPath,
+    sphynx::WorldSyncExt,
     state::TimeOfDay,
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::RectVolSize,
@@ -1117,7 +1118,7 @@ fn handle_remove_lights(
     let size = to_delete.len();
 
     for entity in to_delete {
-        let _ = server.state.ecs_mut().delete_entity_synced(entity);
+        let _ = server.state.ecs_mut().delete_entity(entity);
     }
 
     server.notify_client(
