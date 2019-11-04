@@ -12,6 +12,8 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 log = "0.4.8"
 specs = "0.14.2"
+shred-derive = "0.5.0"
+shred = "0.7.0"
 vek = "0.9.9"
 uvth = "3.1.1"
 lazy_static = "1.4.0"

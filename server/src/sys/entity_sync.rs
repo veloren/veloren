@@ -1,4 +1,7 @@
-use super::SysTimer;
+use super::{
+    sentinel::{ReadTrackers, TrackedComps, TrackedResources},
+    SysTimer,
+};
 use crate::{
     client::{Client, RegionSubscription},
     Tick,
@@ -35,6 +38,9 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
+        TrackedComps<'a>,
+        ReadTrackers<'a>,
+        TrackedResources<'a>,
     );
 
     fn run(
@@ -58,6 +64,9 @@ impl<'a> System<'a> for Sys {
             mut clients,
             mut force_updates,
             mut inventory_updates,
+            tracked_comps,
+            read_trackers,
+            tracked_resources,
         ): Self::SystemData,
     ) {
         timer.start();
@@ -105,14 +114,18 @@ impl<'a> System<'a> for Sys {
                                 })
                             })
                         {
+                            let create_msg = ServerMsg::CreateEntity(
+                                tracked_comps.create_entity_package(entity),
+                            );
                             for (client, regions, client_entity, _) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
+                                    // Client doesn't need to know about itself
                                     && *client_entity != entity
-                                // Client doesn't need to know about itself
                                 {
+                                    client.notify(create_msg.clone());
                                     send_initial_unsynced_components(
                                         client,
                                         uid,
@@ -142,39 +155,52 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            let mut send_msg =
-                |msg: ServerMsg, entity: EcsEntity, pos: Pos, force_update, throttle: bool| {
-                    for (client, _, client_entity, client_pos) in &mut subscribers {
-                        match force_update {
-                            None if client_entity == &entity => {}
-                            _ => {
-                                let distance_sq = client_pos.0.distance_squared(pos.0);
+            // Sync tracked components
+            let sync_msg = ServerMsg::EcsSync(
+                read_trackers.create_sync_package(&tracked_comps, region.entities()),
+            );
+            for (client, _, _, _) in &mut subscribers {
+                client.notify(sync_msg.clone());
+            }
 
-                                // Throttle update rate based on distance to player
-                                // TODO: more entities will be farther away so it could be more
-                                // efficient to reverse the order of these checks
-                                let update = if !throttle || distance_sq < 100.0f32.powi(2) {
-                                    true // Closer than 100.0 blocks
-                                } else if distance_sq < 150.0f32.powi(2) {
-                                    (tick + entity.id() as u64) % 2 == 0
-                                } else if distance_sq < 200.0f32.powi(2) {
-                                    (tick + entity.id() as u64) % 4 == 0
-                                } else if distance_sq < 250.0f32.powi(2) {
-                                    (tick + entity.id() as u64) % 8 == 0
-                                } else if distance_sq < 300.0f32.powi(2) {
-                                    (tick + entity.id() as u64) % 16 == 0
-                                } else {
-                                    (tick + entity.id() as u64) % 32 == 0
-                                };
-
-                                if update {
-                                    client.notify(msg.clone());
-                                }
-                            }
+            let mut send_msg = |msg: ServerMsg,
+                                entity: EcsEntity,
+                                pos: Pos,
+                                force_update: Option<&ForceUpdate>,
+                                throttle: bool| {
+                for (client, _, client_entity, client_pos) in &mut subscribers {
+                    let update = if client_entity == &entity && force_update.is_none() {
+                        // Don't send client physics update about itself
+                        false
+                    } else if !throttle {
+                        // Update rate not thottled by distance
+                        true
+                    } else {
+                        // Throttle update rate based on distance to client
+                        let distance_sq = client_pos.0.distance_squared(pos.0);
+                        // More entities farther away so checks start there
+                        if distance_sq > 300.0f32.powi(2) {
+                            (tick + entity.id() as u64) % 32 == 0
+                        } else if distance_sq > 250.0f32.powi(2) {
+                            (tick + entity.id() as u64) % 16 == 0
+                        } else if distance_sq > 200.0f32.powi(2) {
+                            (tick + entity.id() as u64) % 8 == 0
+                        } else if distance_sq > 150.0f32.powi(2) {
+                            (tick + entity.id() as u64) % 4 == 0
+                        } else if distance_sq > 100.0f32.powi(2) {
+                            (tick + entity.id() as u64) % 2 == 0
+                        } else {
+                            true // Closer than 100 blocks
                         }
-                    }
-                };
+                    };
 
+                    if update {
+                        client.notify(msg.clone());
+                    }
+                }
+            };
+
+            // Sync physics components
             for (_, entity, &uid, &pos, maybe_vel, maybe_ori, character_state, force_update) in (
                 region.entities(),
                 &entities,
@@ -257,6 +283,8 @@ impl<'a> System<'a> for Sys {
             }
         }
 
+        // TODO: Sync clients that don't have a position?
+
         // Sync inventories
         for (client, inventory, _) in (&mut clients, &inventories, &inventory_updates).join() {
             client.notify(ServerMsg::InventoryUpdate(inventory.clone()));
@@ -265,6 +293,13 @@ impl<'a> System<'a> for Sys {
         // Remove all force flags.
         force_updates.clear();
         inventory_updates.clear();
+
+        // Sync resources
+        // TODO: doesn't really belong in this system
+        let res_msg = ServerMsg::EcsResSync(tracked_resources.create_res_sync_package());
+        for client in (&mut clients).join() {
+            client.notify(res_msg.clone());
+        }
 
         timer.end();
     }

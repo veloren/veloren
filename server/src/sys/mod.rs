@@ -1,5 +1,6 @@
 pub mod entity_sync;
 pub mod message;
+pub mod sentinel;
 pub mod subscription;
 pub mod terrain;
 pub mod terrain_sync;
@@ -9,20 +10,27 @@ use std::{marker::PhantomData, time::Instant};
 
 pub type EntitySyncTimer = SysTimer<entity_sync::Sys>;
 pub type MessageTimer = SysTimer<message::Sys>;
+pub type SentinelTimer = SysTimer<sentinel::Sys>;
 pub type SubscriptionTimer = SysTimer<subscription::Sys>;
 pub type TerrainTimer = SysTimer<terrain::Sys>;
 pub type TerrainSyncTimer = SysTimer<terrain_sync::Sys>;
 
 // System names
 const ENTITY_SYNC_SYS: &str = "server_entity_sync_sys";
+const SENTINEL_SYS: &str = "sentinel_sys";
 const SUBSCRIPTION_SYS: &str = "server_subscription_sys";
 const TERRAIN_SYNC_SYS: &str = "server_terrain_sync_sys";
 const TERRAIN_SYS: &str = "server_terrain_sys";
 const MESSAGE_SYS: &str = "server_message_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
+    dispatch_builder.add(sentinel::Sys, SENTINEL_SYS, &[]);
     dispatch_builder.add(subscription::Sys, SUBSCRIPTION_SYS, &[]);
-    dispatch_builder.add(entity_sync::Sys, ENTITY_SYNC_SYS, &[SUBSCRIPTION_SYS]);
+    dispatch_builder.add(
+        entity_sync::Sys,
+        ENTITY_SYNC_SYS,
+        &[SUBSCRIPTION_SYS, SENTINEL_SYS],
+    );
     dispatch_builder.add(terrain_sync::Sys, TERRAIN_SYS, &[]);
     dispatch_builder.add(terrain::Sys, TERRAIN_SYNC_SYS, &[TERRAIN_SYS]);
     dispatch_builder.add(message::Sys, MESSAGE_SYS, &[]);
