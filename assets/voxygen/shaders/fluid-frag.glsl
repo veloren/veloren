@@ -27,6 +27,30 @@ vec3 warp_normal(vec3 norm, vec3 pos, float time) {
 		+ smooth_rand(pos * 0.25, time * 0.25) * 0.1);
 }
 
+float wave_height(vec3 pos) {
+	vec3 big_warp = (
+		texture(t_waves, fract(pos.xy * 0.03 + tick.x * 0.01)).xyz * 0.5 +
+		texture(t_waves, fract(pos.yx * 0.03 - tick.x * 0.01)).xyz * 0.5 +
+		vec3(0)
+	);
+
+	vec3 warp = (
+		texture(t_waves, fract(pos.yx * 0.1 + tick.x * 0.02)).xyz * 0.3 +
+		texture(t_waves, fract(pos.yx * 0.1 - tick.x * 0.02)).xyz * 0.3 +
+		vec3(0)
+	);
+
+	float height = (
+		(texture(t_waves, pos.xy * 0.03 + big_warp.xy + tick.x * 0.05).y - 0.5) * 1.0 +
+		(texture(t_waves, pos.yx * 0.03 + big_warp.yx - tick.x * 0.05).y - 0.5) * 1.0 +
+		(texture(t_waves, pos.xy * 0.1 + warp.xy + tick.x * 0.1).x - 0.5) * 0.5 +
+		(texture(t_waves, pos.yx * 0.1 + warp.yx - tick.x * 0.1).x - 0.5) * 0.5 +
+		0.0
+	);
+
+	return pow(abs(height), 0.5) * sign(height) * 3.0;
+}
+
 void main() {
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[]( vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) );
@@ -61,30 +85,27 @@ void main() {
 	}
 	vec3 c_norm = cross(f_norm, b_norm);
 
-	vec3 nwarp = normalize(
-		texture(t_waves, fract(f_pos.xy * 0.03 + tick.x * 0.02)).xyz * 0.7 +
-		texture(t_waves, fract(-f_pos.yx * 0.03 + tick.x * 0.02)).xyz * 0.7 +
-		texture(t_waves, fract(f_pos.xy * 0.07 + tick.x * 0.04)).xyz * 0.5 +
-		texture(t_waves, fract(-f_pos.yx * 0.15 + tick.x * 0.04)).xyz * 0.3 +
-		texture(t_waves, fract(f_pos.xy * 0.25 + tick.x * 0.12)).xyz * 0.05 +
-		texture(t_waves, fract(-f_pos.yx * 0.5 + tick.x * 0.12)).xyz * 0.05
-	) * 0.4;
-	vec3 nmap = mix(vec3(0, 0, 1), normalize((
-		texture(t_waves, fract(f_pos.xy * 0.01 + nwarp.xy)).rgb * 1.0 +
-		texture(t_waves, fract(f_pos.xy * 0.1 + nwarp.xy)).rgb * 0.8 +
-		texture(t_waves, fract(f_pos.xy * 0.3 + nwarp.xy)).rgb * 0.6 +
-		texture(t_waves, fract(f_pos.xy * 0.9 + nwarp.xy * 0.3)).rgb * 0.2
-		+ vec3(-0.5, -0.5, 0)
-	) * nwarp.z), clamp(2.0 / pow(frag_dist, 0.5), 0, 1));
+	float wave00 = wave_height(f_pos);
+	float wave10 = wave_height(f_pos + vec3(0.1, 0, 0));
+	float wave01 = wave_height(f_pos + vec3(0, 0.1, 0));
+
+	float slope = abs(wave00 - wave10) * abs(wave00 - wave01);
+	vec3 nmap = vec3(
+		-(wave10 - wave00) / 0.1,
+		-(wave01 - wave00) / 0.1,
+		0.1 / slope
+	);
+
+	nmap = mix(vec3(0, 0, 1), normalize(nmap), clamp(2.0 / pow(frag_dist, 0.5), 0, 1));
 
 	vec3 norm = f_norm * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
 
 	vec3 light, diffuse_light, ambient_light;
-	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
-	float point_shadow = shadow_at(f_pos, f_norm);
+	get_sun_diffuse(norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
+	float point_shadow = shadow_at(f_pos, norm);
 	diffuse_light *= f_light * point_shadow;
 	ambient_light *= f_light, point_shadow;
-	vec3 point_light = light_at(f_pos, f_norm);
+	vec3 point_light = light_at(f_pos, norm);
 	light += point_light;
 	diffuse_light += point_light;
 	vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
@@ -97,7 +118,6 @@ void main() {
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
 
 	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, false) * f_light;
-	//reflect_color = vec3(reflect_color.r + reflect_color.g + reflect_color.b) / 3.0;
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
 
