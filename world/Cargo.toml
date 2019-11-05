@@ -6,20 +6,20 @@ edition = "2018"
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
-bitvec = "0.15.1"
+bitvec = "0.15.2"
 vek = "0.9.9"
-noise = "0.5.1"
+noise = { version = "0.6.0", default-features = false }
 num = "0.2.0"
 ordered-float = "1.0"
-hashbrown = { version = "0.6.0", features = ["serde"] }
+hashbrown = { version = "0.6.2", features = ["serde"] }
 lazy_static = "1.4.0"
 log = "0.4.8"
 rand = "0.7.2"
 rand_chacha = "0.2.1"
 arr_macro = "0.1.2"
-rayon = "1.1.0"
+rayon = "1.2.0"
 roots = "0.0.5"
-serde = "1.0.101"
+serde = "1.0.102"
 ron = "0.5.1"
 
 [dev-dependencies]
