@@ -238,11 +238,11 @@ lazy_static! {
              handle_remove_lights,
          ),
         ChatCommand::new(
-            "debug_items",
+            "debug",
             "",
-            "/debug_items : Place all debug items into your pack.",
+            "/debug : Place all debug items into your pack.",
             true,
-            handle_debug_items,
+            handle_debug,
         ),
 
     ];
@@ -997,7 +997,7 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
 }
 
 use common::comp::Item;
-fn handle_debug_items(
+fn handle_debug(
     server: &mut Server,
     entity: EcsEntity,
     _args: String,
