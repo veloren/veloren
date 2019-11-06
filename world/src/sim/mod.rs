@@ -67,13 +67,13 @@ struct GenCdf {
     rivers: Box<[RiverData]>,
 }
 
-pub(crate) struct GenCtx {
+    pub(crate) struct GenCtx {
     pub turb_x_nz: SuperSimplex,
     pub turb_y_nz: SuperSimplex,
     pub chaos_nz: RidgedMulti,
     pub alt_nz: HybridMulti,
     pub hill_nz: SuperSimplex,
-    pub temp_nz: SuperSimplex,
+    pub temp_nz: Fbm,
     // Humidity noise
     pub humid_nz: Billow,
     // Small amounts of noise for simulating rough terrain.
@@ -112,20 +112,26 @@ impl WorldSim {
         let gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
             turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
-            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(rng.gen()),
+            chaos_nz: RidgedMulti::new().set_octaves(2).set_seed(rng.gen()),
             hill_nz: SuperSimplex::new().set_seed(rng.gen()),
             alt_nz: HybridMulti::new()
-                .set_octaves(8)
+                .set_octaves(2)
                 .set_persistence(0.1)
                 .set_seed(rng.gen()),
-            temp_nz: SuperSimplex::new().set_seed(rng.gen()),
-            small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
+            //temp_nz: SuperSimplex::new().set_seed(rng.gen()),
+
+	    temp_nz: Fbm::new()
+            .set_octaves(8)
+            .set_persistence(0.9)
+            .set_seed(rng.gen()),
+
+            small_nz: BasicMulti::new().set_octaves(1).set_seed(rng.gen()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
-            warp_nz: FastNoise::new(rng.gen()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
+            cliff_nz: HybridMulti::new().set_persistence(0.1).set_seed(rng.gen()),
+            warp_nz: FastNoise::new(rng.gen()), //BasicMulti::new().set_octaves(1).set_seed(gen_seed()),
             tree_nz: BasicMulti::new()
-                .set_octaves(12)
-                .set_persistence(0.75)
+                .set_octaves(1)
+                .set_persistence(0.1)
                 .set_seed(rng.gen()),
             cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
             cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
@@ -134,9 +140,9 @@ impl WorldSim {
             region_gen: StructureGen2d::new(rng.gen(), 400, 96),
             cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
-                .set_octaves(12)
-                .set_persistence(0.125)
-                .set_frequency(1.0)
+                .set_octaves(9)
+                .set_persistence(0.7)
+                .set_frequency(0.2)
                 // .set_octaves(6)
                 // .set_persistence(0.5)
                 .set_seed(rng.gen()),
@@ -186,7 +192,7 @@ impl WorldSim {
                             .get((wposf.div(400.0)).into_array())
                             .min(1.0)
                             .max(-1.0)
-                            .mul(0.3))
+                            .mul(0.9))
                     .add(0.3)
                     .max(0.0);
 
@@ -1024,7 +1030,7 @@ impl SimChunk {
         // Take the weighted average of our randomly generated base humidity, the scaled
         // negative altitude, and the calculated water flux over this point in order to compute
         // humidity.
-        const HUMID_WEIGHTS: [f32; 3] = [4.0, 1.0, 1.0];
+        const HUMID_WEIGHTS: [f32; 3] = [4.0, 0.1, 0.1];
         let humidity = cdf_irwin_hall(
             &HUMID_WEIGHTS,
             [humid_uniform, flux_uniform, 1.0 - alt_uniform],
@@ -1032,7 +1038,7 @@ impl SimChunk {
 
         // We also correlate temperature negatively with altitude and absolute latitude, using
         // different weighting than we use for humidity.
-        const TEMP_WEIGHTS: [f32; 2] = [2.0, 1.0 /*, 1.0*/];
+        const TEMP_WEIGHTS: [f32; 2] = [2.0, 16.0 /*, 1.0*/];
         let temp = cdf_irwin_hall(
             &TEMP_WEIGHTS,
             [
