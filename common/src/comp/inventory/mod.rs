@@ -59,13 +59,12 @@ impl Inventory {
         }
     }
 
-    /** Add a series of items to an inventory without giving duplicates. (n * m complexity)
-     *
-     *  Error if inventory cannot contain the items (is full), returning the un-added items.
-     *  This is a lazy inefficient implementation, as it iterates over the inventory more times
-     *  than necessary (n^2) and with the proper structure wouldn't need to iterate at all, but because
-     *  this should be fairly cold code, clarity has been favored over efficiency.
-     */
+    /// Add a series of items to an inventory without giving duplicates. (n * m complexity)
+    /// 
+    /// Error if inventory cannot contain the items (is full), returning the un-added items.
+    /// This is a lazy inefficient implementation, as it iterates over the inventory more times
+    /// than necessary (n^2) and with the proper structure wouldn't need to iterate at all, but because
+    /// this should be fairly cold code, clarity has been favored over efficiency.
     pub fn push_all_unique<I: Iterator<Item = Item>>(&mut self, mut items: I) -> Result<(), Error> {
         let mut leftovers = Vec::new();
         for item in &mut items {
