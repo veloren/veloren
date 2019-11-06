@@ -6,7 +6,7 @@ use crate::{
     window::{Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, error::Error as ClientError, Client, Event::Chat};
+use client::{self, Client, Event::Chat};
 use common::{
     clock::Clock,
     comp,
@@ -337,19 +337,11 @@ impl PlayState for SessionState {
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_avg_delta()) {
-                match err {
-                    Error::ClientError(ClientError::ServerTimeout) => {
-                        global_state.info_message = Some(
-                            "Connection lost!\nDid the server restart?\nIs the client up to date?"
-                                .to_owned(),
-                        );
-
-                        error!("[session] ServerTimeout: {:?}", err);
-                    }
-                    _ => {
-                        error!("[session] Failed to tick the scene: {:?}", err);
-                    }
-                }
+                global_state.info_message = Some(
+                    "Connection lost!\nDid the server restart?\nIs the client up to date?"
+                        .to_owned(),
+                );
+                error!("[session] Failed to tick the scene: {:?}", err);
 
                 return PlayStateResult::Pop;
             }
