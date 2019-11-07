@@ -60,7 +60,7 @@ impl Inventory {
     }
 
     /// Add a series of items to an inventory without giving duplicates. (n * m complexity)
-    /// 
+    ///
     /// Error if inventory cannot contain the items (is full), returning the un-added items.
     /// This is a lazy inefficient implementation, as it iterates over the inventory more times
     /// than necessary (n^2) and with the proper structure wouldn't need to iterate at all, but because
@@ -98,10 +98,7 @@ impl Inventory {
 
     /// O(n) count the number of items in this inventory.
     pub fn count(&self) -> usize {
-        self.slots
-            .iter()
-            .filter_map(|slot| slot.as_ref())
-            .count()
+        self.slots.iter().filter_map(|slot| slot.as_ref()).count()
     }
 
     /// O(n) check if an item is in this inventory.

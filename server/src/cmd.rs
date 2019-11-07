@@ -997,12 +997,7 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
 }
 
 use common::comp::Item;
-fn handle_debug(
-    server: &mut Server,
-    entity: EcsEntity,
-    _args: String,
-    _action: &ChatCommand,
-) {
+fn handle_debug(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     if let Ok(items) = assets::load_glob::<Item>("common.items.debug.*") {
         server
             .state()
