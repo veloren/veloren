@@ -77,8 +77,17 @@ fn main() {
             match event {
                 Event::Chat { message, .. } => println!("{}", message),
                 Event::Disconnect => {} // TODO
+                Event::DisconnectionNotification(time) => {
+                    let message = match time {
+                        0 => String::from("Goodbye!"),
+                        _ => format!("Connection lost. Kicking in {} seconds", time),
+                    };
+
+                    println!("{}", message)
+                }
             }
         }
+
         // Clean up the server after a tick.
         client.cleanup();
 
