@@ -112,26 +112,30 @@ impl WorldSim {
         let gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
             turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
-            chaos_nz: RidgedMulti::new().set_octaves(2).set_seed(rng.gen()),
+            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(rng.gen()),
             hill_nz: SuperSimplex::new().set_seed(rng.gen()),
             alt_nz: HybridMulti::new()
-                .set_octaves(2)
+                .set_octaves(8)
                 .set_persistence(0.1)
                 .set_seed(rng.gen()),
             //temp_nz: SuperSimplex::new().set_seed(rng.gen()),
 
 	    temp_nz: Fbm::new()
-            .set_octaves(8)
-            .set_persistence(0.9)
+            .set_octaves(6)
+            .set_persistence(0.5)
+            .set_frequency(/*4.0 / /*(1024.0 * 4.0/* * 8.0*/)*//*32.0*/((1 << 6) * (WORLD_SIZE.x)) as f64*/1.0 / (((1 << 6) * 64) as f64))
+            // .set_frequency(1.0 / 1024.0)
+            // .set_frequency(1.0 / (1024.0 * 8.0))
+            .set_lacunarity(2.0)
             .set_seed(rng.gen()),
 
-            small_nz: BasicMulti::new().set_octaves(1).set_seed(rng.gen()),
+            small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
-            cliff_nz: HybridMulti::new().set_persistence(0.1).set_seed(rng.gen()),
-            warp_nz: FastNoise::new(rng.gen()), //BasicMulti::new().set_octaves(1).set_seed(gen_seed()),
+            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
+            warp_nz: FastNoise::new(rng.gen()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
             tree_nz: BasicMulti::new()
-                .set_octaves(1)
-                .set_persistence(0.1)
+                .set_octaves(12)
+                .set_persistence(0.75)
                 .set_seed(rng.gen()),
             cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
             cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
@@ -141,7 +145,7 @@ impl WorldSim {
             cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
                 .set_octaves(9)
-                .set_persistence(0.7)
+                .set_persistence(0.4)
                 .set_frequency(0.2)
                 // .set_octaves(6)
                 // .set_persistence(0.5)
@@ -159,6 +163,7 @@ impl WorldSim {
             .set_persistence(0.9)
             .set_seed(rng.gen());
 
+        // No NaNs in these uniform vectors, since the original noise value always returns Some.
         let ((alt_base, _), (chaos, _)) = rayon::join(
             || {
                 uniform_noise(|_, wposf| {
@@ -192,7 +197,7 @@ impl WorldSim {
                             .get((wposf.div(400.0)).into_array())
                             .min(1.0)
                             .max(-1.0)
-                            .mul(0.9))
+                            .mul(0.3))
                     .add(0.3)
                     .max(0.0);
 
@@ -232,6 +237,8 @@ impl WorldSim {
         // We ignore sea level because we actually want to be relative to sea level here and want
         // things in CONFIG.mountain_scale units, but otherwise this is a correct altitude
         // calculation.  Note that this is using the "unadjusted" temperature.
+        //
+        // No NaNs in these uniform vectors, since the original noise value always returns Some.
         let (alt_old, alt_old_inverse) = uniform_noise(|posi, wposf| {
             // This is the extension upwards from the base added to some extra noise from -1 to
             // 1.
@@ -289,7 +296,7 @@ impl WorldSim {
             // = [-.3675, .3325] + ([-0.5785, 0.7345])
             // = [-0.946, 1.067]
             Some(
-                ((alt_base[posi].1 + alt_main.mul((chaos[posi].1 as f64).powf(1.2)))
+                ((alt_base[posi].1 + alt_main.mul((chaos[posi].1 as f64).powf(1.2)/*0.25*/))
                     .mul(map_edge_factor(posi) as f64)
                     .add(
                         (CONFIG.sea_level as f64)
@@ -301,9 +308,28 @@ impl WorldSim {
             )
         });
 
+        // Calculate oceans.
+        let old_height = |posi: usize| alt_old[posi].1;
+        let is_ocean = get_oceans(old_height);
+        let is_ocean_fn = |posi: usize| is_ocean[posi];
+
+        /* // Recalculate altitudes without oceans.
+        // NaNs in these uniform vectors wherever pure_water() returns true.
+        let (alt_old_no_ocean, /*alt_old_inverse*/_) = uniform_noise(|posi, _| {
+            if is_ocean_fn(posi) {
+                None
+            } else {
+                Some(old_height(posi)/*.abs()*/)
+            }
+        });
+
+        let old_height_uniform = |posi: usize| alt_old_no_ocean[posi].0;
+        let alt_old_min_uniform = 0.0;
+        let alt_old_max_uniform = 1.0; */
         // Find the minimum and maximum original altitudes.
         // NOTE: Will panic if there is no land, and will not work properly if the minimum and
         // maximum land altitude are identical (will most likely panic later).
+        let old_height_uniform = |posi: usize| alt_old[posi].0;
         let (alt_old_min_index, _alt_old_min) = alt_old_inverse
             .iter()
             .copied()
@@ -312,12 +338,6 @@ impl WorldSim {
         let &(alt_old_max_index, _alt_old_max) = alt_old_inverse.last().unwrap();
         let alt_old_min_uniform = alt_old[alt_old_min_index].0;
         let alt_old_max_uniform = alt_old[alt_old_max_index].0;
-
-        // Calculate oceans.
-        let old_height = |posi: usize| alt_old[posi].1;
-        let old_height_uniform = |posi: usize| alt_old[posi].0;
-        let is_ocean = get_oceans(old_height);
-        let is_ocean_fn = |posi: usize| is_ocean[posi];
 
         // Perform some erosion.
         let max_erosion_per_delta_t = 32.0 / CONFIG.mountain_scale as f64;
@@ -349,9 +369,12 @@ impl WorldSim {
             |posi| {
                 let height = ((old_height_uniform(posi) - alt_old_min_uniform) as f64
                     / (alt_old_max_uniform - alt_old_min_uniform) as f64)
+                    /*.mul(1.0 - f64::EPSILON * 0.5)
+                    .add(f64::EPSILON * 0.5);*/
                     .max(1e-7 / CONFIG.mountain_scale as f64)
                     .min(1.0f64 - 1e-7);
                 let height = erosion_factor(height);
+                assert!(height >= 0.0);
                 let height = height
                     .mul(max_erosion_per_delta_t * 7.0 / 8.0)
                     .add(max_erosion_per_delta_t / 8.0);
@@ -473,25 +496,31 @@ impl WorldSim {
             true
         };
 
-        let (pure_flux, _) = uniform_noise(|posi, _| {
-            if pure_water(posi) {
-                None
-            } else {
-                Some(flux_old[posi])
-            }
-        });
-
-        let ((alt_no_water, _), ((temp_base, _), (humid_base, _))) = rayon::join(
+        // NaNs in these uniform vectors wherever pure_water() returns true.
+        let (((alt_no_water, _), (pure_flux, _)), ((temp_base, _), (humid_base, _))) = rayon::join(
             || {
-                uniform_noise(|posi, _| {
-                    if pure_water(posi) {
-                        None
-                    } else {
-                        // A version of alt that is uniform over *non-water* (or land-adjacent water)
-                        // chunks.
-                        Some(alt[posi])
-                    }
-                })
+                rayon::join(
+                    || {
+                        uniform_noise(|posi, _| {
+                            if pure_water(posi) {
+                                None
+                            } else {
+                                // A version of alt that is uniform over *non-water* (or land-adjacent water)
+                                // chunks.
+                                Some(alt[posi])
+                            }
+                        })
+                    },
+                    || {
+                        uniform_noise(|posi, _| {
+                            if pure_water(posi) {
+                                None
+                            } else {
+                                Some(flux_old[posi])
+                            }
+                        })
+                    },
+                )
             },
             || {
                 rayon::join(
@@ -501,7 +530,7 @@ impl WorldSim {
                                 None
                             } else {
                                 // -1 to 1.
-                                Some(gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32)
+                                Some(gen_ctx.temp_nz.get((wposf/*.div(12000.0)*/).into_array()) as f32)
                             }
                         })
                     },
@@ -1007,15 +1036,18 @@ impl SimChunk {
 
         let _map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
-        let (humid_uniform, _) = gen_cdf.humid_base[posi];
         let alt_pre = gen_cdf.alt[posi];
         let water_alt_pre = gen_cdf.water_alt[posi];
         let downhill_pre = gen_cdf.dh[posi];
-        let (flux_uniform, _) = gen_cdf.pure_flux[posi];
         let flux = gen_cdf.flux[posi];
+        let river = gen_cdf.rivers[posi].clone();
+
+        // Can have NaNs in non-uniform part where pure_water returned true.  We just test one of
+        // the four in order to find out whether this is the case.
+        let (flux_uniform, /*flux_non_uniform*/_) = gen_cdf.pure_flux[posi];
         let (alt_uniform, _) = gen_cdf.alt_no_water[posi];
         let (temp_uniform, _) = gen_cdf.temp_base[posi];
-        let river = gen_cdf.rivers[posi].clone();
+        let (humid_uniform, _) = gen_cdf.humid_base[posi];
 
         /* // Vertical difference from the equator (NOTE: "uniform" with much lower granularity than
         // other uniform quantities, but hopefully this doesn't matter *too* much--if it does, we
@@ -1030,25 +1062,36 @@ impl SimChunk {
         // Take the weighted average of our randomly generated base humidity, the scaled
         // negative altitude, and the calculated water flux over this point in order to compute
         // humidity.
-        const HUMID_WEIGHTS: [f32; 3] = [4.0, 0.1, 0.1];
-        let humidity = cdf_irwin_hall(
-            &HUMID_WEIGHTS,
-            [humid_uniform, flux_uniform, 1.0 - alt_uniform],
-        );
+        const HUMID_WEIGHTS: [f32; /*3*/2] = [4.0, 1.0/*, 1.0*/];
+        let humidity = /*if flux_non_uniform.is_nan() {
+            0.0
+        } else */{
+            cdf_irwin_hall(
+                &HUMID_WEIGHTS,
+                [humid_uniform, flux_uniform/*, 1.0 - alt_uniform*/],
+            )
+        };
 
         // We also correlate temperature negatively with altitude and absolute latitude, using
         // different weighting than we use for humidity.
-        const TEMP_WEIGHTS: [f32; 2] = [2.0, 16.0 /*, 1.0*/];
-        let temp = cdf_irwin_hall(
-            &TEMP_WEIGHTS,
-            [
-                temp_uniform,
-                1.0 - alt_uniform, /* 1.0 - abs_lat_uniform*/
-            ],
-        )
+        const TEMP_WEIGHTS: [f32; 2] = [/*1.5, */1.0, 2.0];
+        let temp = /*if flux_non_uniform.is_nan() {
+            0.0
+        } else */{
+            cdf_irwin_hall(
+                &TEMP_WEIGHTS,
+                [
+                    temp_uniform,
+                    1.0 - alt_uniform, /* 1.0 - abs_lat_uniform*/
+                ],
+            )
+        }
         // Convert to [-1, 1]
         .sub(0.5)
         .mul(2.0);
+        /* if (temp - (1.0 - alt_uniform).sub(0.5).mul(2.0)).abs() >= 1e-7 {
+            panic!("Halp!");
+        } */
 
         let mut alt = CONFIG.sea_level.add(alt_pre.mul(CONFIG.mountain_scale));
         let water_alt = CONFIG

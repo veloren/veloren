@@ -74,13 +74,13 @@ pub fn cdf_irwin_hall<const N: usize>(weights: &[f32; N], samples: [f32; N]) -> 
     // We should be able to iterate through the whole power set
     // instead, and figure out K by calling count_ones(), so we can compute the result in O(2^N)
     // iterations.
-    let x: f32 = weights
+    let x: f64 = weights
         .iter()
         .zip(samples.iter())
-        .map(|(weight, sample)| weight * sample)
+        .map(|(&weight, &sample)| weight as f64 * sample as f64)
         .sum();
 
-    let mut y = 0.0f32;
+    let mut y = 0.0f64;
     for subset in 0u32..(1 << N) {
         // Number of set elements
         let k = subset.count_ones();
@@ -89,8 +89,8 @@ pub fn cdf_irwin_hall<const N: usize>(weights: &[f32; N], samples: [f32; N]) -> 
             .iter()
             .enumerate()
             .filter(|(i, _)| subset & (1 << i) as u32 != 0)
-            .map(|(_, k)| k)
-            .sum::<f32>();
+            .map(|(_, &k)| k as f64)
+            .sum::<f64>();
         // Compute max(0, x - B_subset)^N
         let z = (x - z).max(0.0).powi(N as i32);
         // The parity of k determines whether the sum is negated.
@@ -98,10 +98,10 @@ pub fn cdf_irwin_hall<const N: usize>(weights: &[f32; N], samples: [f32; N]) -> 
     }
 
     // Divide by the product of the weights.
-    y /= weights.iter().product::<f32>();
+    y /= weights.iter().map(|&k| k as f64).product::<f64>();
 
     // Remember to multiply by 1 / N! at the end.
-    y / (1..(N as i32) + 1).product::<i32>() as f32
+    (y / (1..(N as i32) + 1).product::<i32>() as f64) as f32
 }
 
 /// First component of each element of the vector is the computed CDF of the noise function at this
@@ -148,7 +148,7 @@ pub fn vec2_as_uniform_idx(idx: Vec2<i32>) -> usize {
 /// vector returned by uniform_noise, and (for convenience) the float-translated version of those
 /// coordinates.
 /// f should return a value with no NaNs.  If there is a NaN, it will panic.  There are no other
-/// conditions on f.  If f returns None, the value will be set to 0.0, and will be ignored for the
+/// conditions on f.  If f returns None, the value will be set to NaN, and will be ignored for the
 /// purposes of computing the uniform range.
 ///
 /// Returns a vec of (f32, f32) pairs consisting of the percentage of chunks with a value lower than
@@ -179,7 +179,7 @@ pub fn uniform_noise<F: Float + Send>(
     // position of the noise in the sorted vector (divided by the vector length).
     // This guarantees a uniform distribution among the samples (excluding those that returned
     // None, which will remain at zero).
-    let mut uniform_noise = vec![(0.0, F::zero()); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut uniform_noise = vec![(0.0, F::nan()/*zero()*/); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     // NOTE: Consider using try_into here and elsewhere in this function, since i32::MAX
     // technically doesn't fit in an f32 (even if we should never reach that limit).
     let total = noise.len() as f32;
