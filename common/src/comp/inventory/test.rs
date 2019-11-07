@@ -1,4 +1,3 @@
-
 use super::*;
 use lazy_static::lazy_static;
 lazy_static! {
@@ -44,9 +43,7 @@ fn push_unique_all_full() {
         slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect(),
     };
     inv.push_all_unique(TEST_ITEMS.iter().map(|a| a.clone()))
-        .expect(
-            "Pushing unique items into an inventory that already contains them didn't work!",
-        );
+        .expect("Pushing unique items into an inventory that already contains them didn't work!");
 }
 
 /// Attempting to push uniquely into an inventory containing all the items should work fine.
@@ -67,6 +64,6 @@ fn push_all_unique_empty() {
     };
     inv.push_all_unique(TEST_ITEMS.iter().map(|a| a.clone()))
         .expect(
-        "Pushing unique items into an empty inventory that didn't contain them didn't work!",
-    );
+            "Pushing unique items into an empty inventory that didn't contain them didn't work!",
+        );
 }
