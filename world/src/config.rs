@@ -48,7 +48,7 @@ pub const CONFIG: Config = Config {
     mountain_scale: 2048.0,
     snow_temp: -0.6,
     tropical_temp: 0.2,
-    desert_temp: 0.9,
+    desert_temp: 0.6,
     desert_hum: 0.15,
     forest_hum: 0.5,
     jungle_hum: 0.85,
