@@ -30,7 +30,12 @@ use std::{
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
+// The duration of network inactivity until the player is kicked to the main menu
+// @TODO in the future, this should be configurable on the server, and be provided to the client
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
+
+// After this duration has elapsed, the user will begin getting kick warnings in their chat window
+const SERVER_TIMEOUT_GRACE_PERIOD: Duration = Duration::from_secs(14);
 
 pub enum Event {
     Chat {
@@ -38,6 +43,7 @@ pub enum Event {
         message: String,
     },
     Disconnect,
+    DisconnectionNotification(u64),
 }
 
 pub struct Client {
@@ -49,6 +55,7 @@ pub struct Client {
     postbox: PostBox<ClientMsg, ServerMsg>,
 
     last_server_ping: Instant,
+    last_server_pong: Instant,
     last_ping_delta: f64,
 
     tick: u64,
@@ -134,6 +141,7 @@ impl Client {
             postbox,
 
             last_server_ping: Instant::now(),
+            last_server_pong: Instant::now(),
             last_ping_delta: 0.0,
 
             tick: 0,
@@ -494,6 +502,23 @@ impl Client {
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
+        // Check that we have an valid connection.
+        // Use the last ping time as a 1s rate limiter, we only notify the user once per second
+        if Instant::now().duration_since(self.last_server_ping) > Duration::from_secs(1) {
+            let duration_since_last_pong = Instant::now().duration_since(self.last_server_pong);
+
+            // Dispatch a notification to the HUD warning they will be kicked in {n} seconds
+            if duration_since_last_pong.as_secs() >= SERVER_TIMEOUT_GRACE_PERIOD.as_secs() {
+                if let Some(seconds_until_kick) =
+                    SERVER_TIMEOUT.checked_sub(duration_since_last_pong)
+                {
+                    frontend_events.push(Event::DisconnectionNotification(
+                        seconds_until_kick.as_secs(),
+                    ));
+                }
+            }
+        }
+
         let new_msgs = self.postbox.new_messages();
 
         if new_msgs.len() > 0 {
@@ -508,6 +533,8 @@ impl Client {
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {
+                        self.last_server_pong = Instant::now();
+
                         self.last_ping_delta = Instant::now()
                             .duration_since(self.last_server_ping)
                             .as_secs_f64()
@@ -591,7 +618,7 @@ impl Client {
         } else if let Some(err) = self.postbox.error() {
             return Err(err.into());
         // We regularily ping in the tick method
-        } else if Instant::now().duration_since(self.last_server_ping) > SERVER_TIMEOUT {
+        } else if Instant::now().duration_since(self.last_server_pong) > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
         }
         Ok(frontend_events)

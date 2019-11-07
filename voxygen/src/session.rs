@@ -6,7 +6,7 @@ use crate::{
     window::{Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client};
+use client::{self, Client, Event::Chat};
 use common::{
     clock::Clock,
     comp,
@@ -14,6 +14,7 @@ use common::{
     msg::ClientState,
     terrain::{Block, BlockKind},
     vol::ReadVol,
+    ChatType,
 };
 use log::error;
 use specs::Join;
@@ -55,13 +56,24 @@ impl SessionState {
     fn tick(&mut self, dt: Duration) -> Result<(), Error> {
         for event in self.client.borrow_mut().tick(self.inputs.clone(), dt)? {
             match event {
-                client::Event::Chat {
+                Chat {
                     chat_type: _,
                     message: _,
                 } => {
                     self.hud.new_message(event);
                 }
                 client::Event::Disconnect => {} // TODO
+                client::Event::DisconnectionNotification(time) => {
+                    let message = match time {
+                        0 => String::from("Goodbye!"),
+                        _ => format!("Connection lost. Kicking in {} seconds", time),
+                    };
+
+                    self.hud.new_message(Chat {
+                        chat_type: ChatType::Meta,
+                        message,
+                    });
+                }
             }
         }
 
@@ -325,7 +337,12 @@ impl PlayState for SessionState {
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_avg_delta()) {
-                error!("Failed to tick the scene: {:?}", err);
+                global_state.info_message = Some(
+                    "Connection lost!\nDid the server restart?\nIs the client up to date?"
+                        .to_owned(),
+                );
+                error!("[session] Failed to tick the scene: {:?}", err);
+
                 return PlayStateResult::Pop;
             }
 

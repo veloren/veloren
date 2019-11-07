@@ -1,22 +1,23 @@
 mod client_init;
 #[cfg(feature = "singleplayer")]
-mod start_singleplayer;
 mod ui;
 
 use super::char_selection::CharSelectionState;
-use crate::{window::Event, Direction, GlobalState, PlayState, PlayStateResult};
+use crate::{
+    singleplayer::Singleplayer, window::Event, Direction, GlobalState, PlayState, PlayStateResult,
+};
 use argon2::{self, Config};
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use log::warn;
 #[cfg(feature = "singleplayer")]
-use start_singleplayer::StartSingleplayerState;
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
     title_music_channel: Option<usize>,
+    singleplayer: Option<Singleplayer>,
 }
 
 impl MainMenuState {
@@ -25,6 +26,7 @@ impl MainMenuState {
         Self {
             main_menu_ui: MainMenuUi::new(global_state),
             title_music_channel: None,
+            singleplayer: None,
         }
     }
 }
@@ -47,6 +49,9 @@ impl PlayState for MainMenuState {
                     .play_music("voxygen.audio.soundtrack.veloren_title_tune-3"),
             )
         }
+
+        // Reset singleplayer server if it was running already
+        self.singleplayer = None;
 
         loop {
             // Handle window events.
@@ -75,11 +80,11 @@ impl PlayState for MainMenuState {
                 }
                 Some(Err(err)) => {
                     client_init = None;
-                    self.main_menu_ui.login_error(
+                    global_state.info_message = Some(
                         match err {
                             InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
                             InitError::InvalidAuth => "Invalid credentials",
-                            InitError::ServerIsFull => "Server is Full!",
+                            InitError::ServerIsFull => "Server is full",
                             InitError::ConnectionFailed(_) => "Connection failed",
                             InitError::ClientCrashed => "Client crashed",
                         }
@@ -100,49 +105,37 @@ impl PlayState for MainMenuState {
                         password,
                         server_address,
                     } => {
-                        let mut net_settings = &mut global_state.settings.networking;
-                        net_settings.username = username.clone();
-                        net_settings.password = password.clone();
-                        if !net_settings.servers.contains(&server_address) {
-                            net_settings.servers.push(server_address.clone());
-                        }
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings: {:?}", err);
-                        }
-
-                        let player = comp::Player::new(
-                            username.clone(),
-                            Some(global_state.settings.graphics.view_distance),
+                        attempt_login(
+                            global_state,
+                            username,
+                            password,
+                            server_address,
+                            DEFAULT_PORT,
+                            &mut client_init,
                         );
-
-                        if player.is_valid() {
-                            // Don't try to connect if there is already a connection in progress.
-                            client_init = client_init.or(Some(ClientInit::new(
-                                (server_address, DEFAULT_PORT, false),
-                                player,
-                                {
-                                    let salt = b"staticsalt_zTuGkGvybZIjZbNUDtw15";
-                                    let config = Config::default();
-                                    argon2::hash_encoded(password.as_bytes(), salt, &config)
-                                        .unwrap()
-                                },
-                                false,
-                            )));
-                        } else {
-                            self.main_menu_ui
-                                .login_error("Invalid username or password".to_string());
-                        }
                     }
                     MainMenuEvent::CancelLoginAttempt => {
                         // client_init contains Some(ClientInit), which spawns a thread which contains a TcpStream::connect() call
                         // This call is blocking
                         // TODO fix when the network rework happens
+                        self.singleplayer = None;
                         client_init = None;
                         self.main_menu_ui.cancel_connection();
                     }
                     #[cfg(feature = "singleplayer")]
                     MainMenuEvent::StartSingleplayer => {
-                        return PlayStateResult::Push(Box::new(StartSingleplayerState::new()));
+                        let (singleplayer, server_settings) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
+
+                        self.singleplayer = Some(singleplayer);
+
+                        attempt_login(
+                            global_state,
+                            "singleplayer".to_owned(),
+                            "".to_owned(),
+                            server_settings.gameserver_address.ip().to_string(),
+                            server_settings.gameserver_address.port(),
+                            &mut client_init,
+                        );
                     }
                     MainMenuEvent::Settings => {} // TODO
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
@@ -150,6 +143,10 @@ impl PlayState for MainMenuState {
                         global_state.settings.show_disclaimer = false
                     }
                 }
+            }
+
+            if let Some(info) = global_state.info_message.take() {
+                self.main_menu_ui.show_info(info);
             }
 
             // Draw the UI to the screen.
@@ -171,5 +168,46 @@ impl PlayState for MainMenuState {
 
     fn name(&self) -> &'static str {
         "Title"
+    }
+}
+
+fn attempt_login(
+    global_state: &mut GlobalState,
+    username: String,
+    password: String,
+    server_address: String,
+    server_port: u16,
+    client_init: &mut Option<ClientInit>,
+) {
+    let mut net_settings = &mut global_state.settings.networking;
+    net_settings.username = username.clone();
+    net_settings.password = password.clone();
+    if !net_settings.servers.contains(&server_address) {
+        net_settings.servers.push(server_address.clone());
+    }
+    if let Err(err) = global_state.settings.save_to_file() {
+        warn!("Failed to save settings: {:?}", err);
+    }
+
+    let player = comp::Player::new(
+        username.clone(),
+        Some(global_state.settings.graphics.view_distance),
+    );
+
+    if player.is_valid() {
+        // Don't try to connect if there is already a connection in progress.
+        if client_init.is_none() {
+            *client_init = Some(ClientInit::new(
+                (server_address, server_port, false),
+                player,
+                {
+                    let salt = b"staticsalt_zTuGkGvybZIjZbNUDtw15";
+                    let config = Config::default();
+                    argon2::hash_encoded(password.as_bytes(), salt, &config).unwrap()
+                },
+            ));
+        }
+    } else {
+        global_state.info_message = Some("Invalid username or password".to_string());
     }
 }
