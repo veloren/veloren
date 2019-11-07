@@ -30,14 +30,18 @@ impl Singleplayer {
 
         // Create server
         let settings = ServerSettings::singleplayer();
-        let server = Server::new(settings.clone()).expect("Failed to create server instance!");
 
-        let server = match client {
-            Some(client) => server.with_thread_pool(client.thread_pool().clone()),
-            None => server,
-        };
+        let thread_pool = client.map(|c| c.thread_pool().clone());
+        let settings2 = settings.clone();
 
         let thread = thread::spawn(move || {
+            let server = Server::new(settings2).expect("Failed to create server instance!");
+
+            let server = match thread_pool {
+                Some(pool) => server.with_thread_pool(pool),
+                None => server,
+            };
+
             run_server(server, receiver);
         });
 

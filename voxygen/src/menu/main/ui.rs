@@ -353,10 +353,11 @@ impl MainMenuUi {
             macro_rules! singleplayer {
                 () => {
                     events.push(Event::StartSingleplayer);
-                    events.push(Event::LoginAttempt {
-                        username: "singleplayer".to_string(),
-                        password: String::default(),
-                        server_address: "localhost".to_string(),
+                    self.connecting = Some(std::time::Instant::now());
+                    self.popup = Some(PopupData {
+                        msg: "Connecting...".to_string(),
+                        button_text: "Cancel".to_string(),
+                        popup_type: PopupType::ConnectionInfo,
                     });
                 };
             }
@@ -425,20 +426,20 @@ impl MainMenuUi {
                     .rgba(1.0, 1.0, 1.0, 1.0)
                     .font_size(25)
                     .font_id(self.fonts.cyri);
-                Rectangle::fill_with([65.0 * 6.0, 100.0], color::TRANSPARENT)
+                Rectangle::fill_with([65.0 * 6.0, 140.0], color::TRANSPARENT)
                     .rgba(0.1, 0.1, 0.1, 1.0)
                     .parent(ui_widgets.window)
-                    .up_from(self.ids.banner_top, 20.0)
+                    .up_from(self.ids.banner_top, 15.0)
                     .set(self.ids.login_error_bg, ui_widgets);
                 Image::new(self.imgs.info_frame)
-                    .w_h(65.0 * 6.0, 100.0)
+                    .w_h(65.0 * 6.0, 140.0)
                     .middle_of(self.ids.login_error_bg)
                     .set(self.ids.error_frame, ui_widgets);
                 text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
                     .set(self.ids.login_error, ui_widgets);
                 if Button::image(self.imgs.button)
                     .w_h(100.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.login_error_bg, 5.0)
+                    .mid_bottom_with_margin_on(self.ids.login_error_bg, 10.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
@@ -650,7 +651,7 @@ impl MainMenuUi {
         events
     }
 
-    pub fn login_error(&mut self, msg: String) {
+    pub fn show_info(&mut self, msg: String) {
         self.popup = Some(PopupData {
             msg,
             button_text: "Okay".to_string(),
