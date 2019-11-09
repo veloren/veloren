@@ -46,10 +46,12 @@ pub enum Armor {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
     Apple,
+    Cheese,
     Potion,
     Mushroom,
     Velorite,
     VeloriteFrag,
+    PotionMinor,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -110,7 +112,7 @@ impl Item {
                 Some(assets::load_expect_cloned("common.items.grasses.medium"))
             }
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
-            BlockKind::Chest => Some(match rand::random::<usize>() % 4 {
+            BlockKind::Chest => Some(match rand::random::<usize>() % 6 {
                 0 => assets::load_expect_cloned("common.items.apple"),
                 1 => assets::load_expect_cloned("common.items.velorite"),
                 2 => (**assets::load_glob::<Item>("common.items.weapons.*")
@@ -119,6 +121,8 @@ impl Item {
                     .expect("Empty glob"))
                 .clone(),
                 3 => assets::load_expect_cloned("common.items.veloritefrag"),
+                4 => assets::load_expect_cloned("common.items.cheese"),
+                5 => assets::load_expect_cloned("common.items.potion_minor"),
                 _ => unreachable!(),
             }),
             _ => None,
