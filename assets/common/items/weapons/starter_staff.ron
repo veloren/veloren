@@ -1,5 +1,5 @@
 Item(
-    name: "Your first staff",
+    name: "Gnarled Rod",
     description: "Smells like resin and magic.",
     kind: Tool(
         kind: Staff,
