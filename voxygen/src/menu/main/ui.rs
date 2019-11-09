@@ -191,11 +191,8 @@ impl MainMenuUi {
         );
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
+        //const INACTIVE: Color = Color::Rgba(0.47, 0.47, 0.47, 0.47);
         let intro_text: &'static str = "Information on the Login Process:\n\
-                                        \n\
-                                        Choose whatever Username and Password you want.\n\
-                                        (The middle box is for Password input)\n\
-                                        They will be saved until server restart.\n\
                                         \n\
                                         The name you put in will be your character name ingame.\n\
                                         \n\
@@ -331,7 +328,7 @@ impl MainMenuUi {
                 };
             }
             // Info Window
-            Rectangle::fill_with([550.0, 280.0], color::BLACK)
+            Rectangle::fill_with([550.0, 200.0], color::BLACK)
                 .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
                 .set(self.ids.info_frame, ui_widgets);
@@ -392,12 +389,14 @@ impl MainMenuUi {
                 }
             }
             // Password
-            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
+            // TODO: REACTIVATE THIS WHEN A PROPER ACCOUNT SYSTEM IS IN PLACE
+            /*Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                 .down_from(self.ids.usrnm_bg, 30.0)
                 .set(self.ids.passwd_bg, ui_widgets);
             Image::new(self.imgs.input_bg)
                 .w_h(337.0, 67.0)
                 .middle_of(self.ids.passwd_bg)
+                .color(Some(INACTIVE))
                 .set(self.ids.password_bg, ui_widgets);
             for event in TextBox::new(&self.password)
                 .w_h(290.0, 30.0)
@@ -419,7 +418,7 @@ impl MainMenuUi {
                         login!();
                     }
                 }
-            }
+            }*/
             // Popup (Error/Info)
             if let Some(popup_data) = &self.popup {
                 let text = Text::new(&popup_data.msg)
@@ -524,7 +523,7 @@ impl MainMenuUi {
             }
             // Server address
             Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-                .down_from(self.ids.passwd_bg, 30.0)
+                .down_from(self.ids.usrnm_bg, 30.0)
                 .set(self.ids.srvr_bg, ui_widgets);
             Image::new(self.imgs.input_bg)
                 .w_h(337.0, 67.0)
@@ -557,10 +556,10 @@ impl MainMenuUi {
                 .w_h(258.0, 55.0)
                 .down_from(self.ids.address_bg, 20.0)
                 .align_middle_x_of(self.ids.address_bg)
-                .label("Login")
+                .label("Multiplayer")
                 .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
-                .label_font_size(26)
+                .label_font_size(22)
                 .label_y(Relative::Scalar(5.0))
                 /*.with_tooltip(
                     tooltip_manager,
