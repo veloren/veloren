@@ -1,0 +1,11 @@
+Item(
+    name: "Dwarven Cheese",
+    description: "Aromatic and nutritious.",
+    kind: Consumable(
+        kind: Cheese,
+        effect: Health((
+            amount: 40,
+            cause: Item,
+        )),
+    ),
+)

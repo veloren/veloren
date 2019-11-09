@@ -85,7 +85,8 @@ lazy_static! {
         ChatCommand::new(
             "giveitem",
             "{d}",
-            "/giveitem <name> : Give yourself an item.",
+            "/giveitem <path to item>\n\
+            Example: common/items/debug/boost",
             true,
             handle_give,),
         ChatCommand::new(

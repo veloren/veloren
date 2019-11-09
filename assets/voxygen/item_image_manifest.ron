@@ -36,6 +36,13 @@
         "element.icons.item_apple",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 1.0,
     ),
+    Consumable(PotionMinor): VoxTrans(
+        "voxel.object.potion_red",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Consumable(Cheese): Png(
+        "element.icons.item_cheese",        
+    ),
     Consumable(Potion): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,

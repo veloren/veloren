@@ -72,9 +72,8 @@ impl Default for Inventory {
         let mut inventory = Inventory {
             slots: vec![None; 25],
         };
-
-        inventory.push(assets::load_expect_cloned("common.items.debug.boost"));
-        inventory.push(assets::load_expect_cloned("common.items.debug.possess"));
+        inventory.push(assets::load_expect_cloned("common.items.cheese"));
+        inventory.push(assets::load_expect_cloned("common.items.apple"));
         inventory
     }
 }
