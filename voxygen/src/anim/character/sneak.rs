@@ -8,7 +8,7 @@ use vek::*;
 
 pub struct SneakAnimation;
 
-impl Animation for SneakAnimation {
+impl Animation<'_>for SneakAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
 
@@ -45,12 +45,12 @@ impl Animation for SneakAnimation {
         let wave_diff = (anim_time as f32 * 0.6).sin();
         let wave_stop = (anim_time as f32 * 2.6).min(PI / 2.0).sin();
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 *0.25)
+            ((global_time + anim_time) as f32 * 0.25)
                 .floor()
                 .mul(7331.0)
                 .sin()
                 * 0.4,
-            ((global_time + anim_time) as f32 *0.25)
+            ((global_time + anim_time) as f32 * 0.25)
                 .floor()
                 .mul(1337.0)
                 .sin()
@@ -81,7 +81,7 @@ impl Animation for SneakAnimation {
             * Quaternion::rotation_x(head_look.y + 0.05);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
-        next.chest.offset = Vec3::new(0.0, -1.5, 3.0 +wave_slow * 2.0);
+        next.chest.offset = Vec3::new(0.0, -1.5, 3.0 + wave_slow * 2.0);
         next.chest.ori = Quaternion::rotation_x(-0.5) * Quaternion::rotation_z(wave * 0.15);
         next.chest.scale = Vec3::one();
 
@@ -90,32 +90,24 @@ impl Animation for SneakAnimation {
         next.belt.scale = Vec3::one();
 
         next.shorts.offset = Vec3::new(0.0, 1.0, -1.0 + wave_cos * 0.3);
-        next.shorts.ori = Quaternion::rotation_x(0.2) *Quaternion::rotation_z(wave * 0.4);
+        next.shorts.ori = Quaternion::rotation_x(0.2) * Quaternion::rotation_z(wave * 0.4);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(
-            -5.0 + wave_stop * -0.5,
-            2.25,
-            4.0 - wave * 1.0,
-        );
+        next.l_hand.offset = Vec3::new(-5.0 + wave_stop * -0.5, 2.25, 4.0 - wave * 1.0);
         next.l_hand.ori =
             Quaternion::rotation_x(1.5 + wave_cos * 0.1) * Quaternion::rotation_y(wave_stop * 0.1);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(
-            5.0 + wave_stop * 0.5,
-            2.25,
-            4.0 + wave * 1.0,
-        );
+        next.r_hand.offset = Vec3::new(5.0 + wave_stop * 0.5, 2.25, 4.0 + wave * 1.0);
         next.r_hand.ori = Quaternion::rotation_x(1.5 + wave_cos * -0.1)
             * Quaternion::rotation_y(wave_stop * -0.1);
         next.r_hand.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, 5.0+ wave * -3.0, 4.0);
+        next.l_foot.offset = Vec3::new(-3.4, 5.0 + wave * -3.0, 4.0);
         next.l_foot.ori = Quaternion::rotation_x(-0.8 + wavecos * 0.15);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, 5.0+ wave * 3.0, 4.0);
+        next.r_foot.offset = Vec3::new(3.4, 5.0 + wave * 3.0, 4.0);
         next.r_foot.ori = Quaternion::rotation_x(-0.8 - wavecos * 0.15);
         next.r_foot.scale = Vec3::one();
 
