@@ -13,11 +13,11 @@ pub struct BlockAnimation;
 
 impl Animation for BlockAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = f64;
+    type Dependency = (Option<Tool>, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        global_time: f64,
+        (active_tool_kind, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -63,9 +63,9 @@ impl Animation for BlockAnimation {
         next.shorts.ori = Quaternion::rotation_x(0.1);
         next.shorts.scale = Vec3::one();
 
-        match Tool::Hammer {
+        match active_tool_kind {
             //TODO: Inventory
-            Tool::Sword => {
+            Some(Tool::Sword) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0 + wave_ultra_slow * 1.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -82,7 +82,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Axe => {
+            Some(Tool::Axe) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -107,7 +107,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Hammer => {
+            Some(Tool::Hammer) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
@@ -128,7 +128,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(-0.85);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Staff => {
+            Some(Tool::Staff) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -153,7 +153,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Shield => {
+            Some(Tool::Shield) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -178,7 +178,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Bow => {
+            Some(Tool::Bow) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -203,7 +203,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Dagger => {
+            Some(Tool::Dagger) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -224,7 +224,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Debug(_) => {
+            Some(Tool::Debug(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
@@ -245,6 +245,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_z(-0.85);
                 next.weapon.scale = Vec3::one();
             }
+            _ => {}
         }
         //next.l_foot.offset = Vec3::new(-3.4, 0.3, 8.0 + wave_ultra_slow_cos * 0.1);
         //next.l_foot.ori = Quaternion::rotation_x(-0.3);

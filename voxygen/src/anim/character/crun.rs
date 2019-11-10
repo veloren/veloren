@@ -9,7 +9,7 @@ use vek::*;
 
 pub struct WieldAnimation;
 
-impl Animation for WieldAnimation {
+impl Animation<'_>for WieldAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = (f32, f64);
 
@@ -133,20 +133,12 @@ impl Animation for WieldAnimation {
                 next.weapon.scale = Vec3::one();
             }
             Tool::Bow => {
-                next.l_hand.offset = Vec3::new(
-                    -4.0,
-                    5.0,
-                    0.0,
-                );
+                next.l_hand.offset = Vec3::new(-4.0, 5.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(-1.9)
                     * Quaternion::rotation_z(0.85);
                 next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.offset = Vec3::new(
-                    2.0,
-                    8.0,
-                    -3.5,
-                );
+                next.r_hand.offset = Vec3::new(2.0, 8.0, -3.5);
                 next.r_hand.ori = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(-1.7)
                     * Quaternion::rotation_z(0.85);
@@ -158,7 +150,7 @@ impl Animation for WieldAnimation {
                 );
                 next.weapon.ori = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(-1.7)
-                    * Quaternion::rotation_z(0.85+3.14);
+                    * Quaternion::rotation_z(0.85 + 3.14);
                 next.weapon.scale = Vec3::one();
             }
             Tool::Daggers => {
