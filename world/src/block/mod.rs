@@ -168,7 +168,7 @@ impl<'a> BlockGen<'a> {
             temp,
             humidity,
             chunk,
-	    stone_col,
+            stone_col,
             ..
         } = sample;
 
@@ -253,7 +253,6 @@ impl<'a> BlockGen<'a> {
                     saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
                     stone_col,
                     (height - grass_depth - wposf.z as f32) * 0.15,
-             
                 );
 
                 // Underground
