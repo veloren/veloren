@@ -232,8 +232,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
-        let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
-
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
         let my_chunk_idx = vec2_as_uniform_idx(chunk_pos);
@@ -408,6 +406,41 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             )
         });
 
+        let downhill = sim_chunk.downhill;
+        let downhill_pos = downhill.and_then(|downhill_pos| sim.get(downhill_pos));
+        debug_assert!(sim_chunk.water_alt >= CONFIG.sea_level);
+
+        let downhill_water_alt = downhill_pos
+            .map(|downhill_chunk| {
+                downhill_chunk
+                    .water_alt
+                    .min(sim_chunk.water_alt)
+                    .max(sim_chunk.alt.min(sim_chunk.water_alt))
+            })
+            .unwrap_or(CONFIG.sea_level);
+
+        let is_cliffs = sim_chunk.is_cliffs;
+        let near_cliffs = sim_chunk.near_cliffs;
+
+        let is_rocky = sim_chunk.humidity < CONFIG.desert_hum
+            && (/*sim_chunk.temp < CONFIG.snow_temp || */sim_chunk.alt.sub(CONFIG.sea_level) >= CONFIG.mountain_scale * 0.25);
+        /* let downhill_alt_rocky = downhill_pos
+        .map(|downhill_chunk| {
+            downhill_chunk.humidity < CONFIG.forest_hum &&
+            (downhill_chunk.temperature < CONFIG.|| downhill_chunk.alt.sub(CONFIG.sea_level) >= CONFIG.mountain_scale * 0.25)
+        })
+        .unwrap_or(CONFIG.sea_level); */
+
+        let alt = if
+        /*humidity < CONFIG.desert_hum &&
+        (temp < CONFIG.snow_temp ||
+         downhill_alt.sub(CONFIG.sea_level) >= CONFIG.mountain_scale * 0.25)*/
+        is_rocky {
+            sim.get_interpolated_bilinear(wpos, |chunk| chunk.alt)?
+        } else {
+            sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
+        };
+
         // Find the average distance to each neighboring body of water.
         let mut river_count = 0.0f64;
         let mut overlap_count = 0.0f64;
@@ -542,13 +575,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             }
         };
 
-        let alt_for_river = alt
-            + if overlap_count == 0.0 {
-                0.0
-            } else {
-                river_overlap_distance_product / overlap_count
-            } as f32;
-
         let cliff_hill = (sim
             .gen_ctx
             .small_nz
@@ -558,34 +584,26 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let riverless_alt_delta = (sim
             .gen_ctx
             .small_nz
-            .get((wposf_turb.div(200.0)).into_array()) as f32)
+            .get((wposf_turb.div(/*200.0*//*50.0*//*24.0*//*56.0 / (chaos as f64).max(0.05)*/50.0)).into_array()) as f32)
             .abs()
-            .mul(chaos.max(0.05))
-            .mul(27.0)
-            + (sim
+            .mul(3.0)
+            /* .mul(chaos.max(0.05))
+            .mul(27.0) */
+            /* + (sim
                 .gen_ctx
                 .small_nz
                 .get((wposf_turb.div(400.0)).into_array()) as f32)
                 .abs()
                 .mul((1.0 - chaos).max(0.3))
                 .mul(1.0 - humidity)
-                .mul(32.0);
+                .mul(32.0) */;
 
-        let downhill = sim_chunk.downhill;
-        let downhill_pos = downhill.and_then(|downhill_pos| sim.get(downhill_pos));
-        debug_assert!(sim_chunk.water_alt >= CONFIG.sea_level);
-
-        let downhill_water_alt = downhill_pos
-            .map(|downhill_chunk| {
-                downhill_chunk
-                    .water_alt
-                    .min(sim_chunk.water_alt)
-                    .max(sim_chunk.alt.min(sim_chunk.water_alt))
-            })
-            .unwrap_or(CONFIG.sea_level);
-
-        let is_cliffs = sim_chunk.is_cliffs;
-        let near_cliffs = sim_chunk.near_cliffs;
+        let alt_for_river = alt
+            + if overlap_count == 0.0 {
+                0.0
+            } else {
+                river_overlap_distance_product / overlap_count
+            } as f32;
 
         let river_gouge = 0.5;
         let (in_water, alt_, water_level, warp_factor) = if let Some((
@@ -848,9 +866,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let snow = Rgb::new(0.8, 0.85, 1.0);
         // let snow = Rgb::new(0.0, 0.0, 0.1);
 
-	// let stone_col = Rgb::new(152, 98, 16);
-    let stone_col = Rgb::new(195, 187, 201);
-	/*let dirt = Lerp::lerp(
+        // let stone_col = Rgb::new(152, 98, 16);
+        let stone_col = Rgb::new(195, 187, 201);
+        /*let dirt = Lerp::lerp(
             Rgb::new(0.4, 0.4, 0.4),
             Rgb::new(0.4, 0.4, 0.4),
             marble,
@@ -896,10 +914,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 sand,
                 temp.sub(CONFIG.snow_temp)
                     .div(CONFIG.desert_temp.sub(CONFIG.snow_temp))
-                    .mul(/*4.5*/0.5),
+                    .mul(/*4.5*/ 0.5),
             ),
             cliff,
-            alt.sub(CONFIG.mountain_scale * 0.25)
+            alt.sub(CONFIG.sea_level)
+                .sub(CONFIG.mountain_scale * 0.25)
                 .div(CONFIG.mountain_scale * 0.125),
         );
         // From desert to forest humidity, we go from tundra to dirt to grass to moss to sand,
@@ -918,7 +937,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                 /*.sub((marble - 0.5) * 0.05)
                                 .mul(256.0)*/
                                 .mul(1.0),
-                                // .mul(2.0),
+                            // .mul(2.0),
                         ),
                         // 0 to tropical_temp
                         grass,
@@ -929,20 +948,20 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     temp.sub(CONFIG.tropical_temp)
                         .div(CONFIG.desert_temp.sub(CONFIG.tropical_temp))
                         .mul(1.0),
-                        // .mul(2.0),
+                    // .mul(2.0),
                 ),
                 // above desert_temp
                 sand,
                 temp.sub(CONFIG.desert_temp)
                     .div(1.0 - CONFIG.desert_temp)
                     .mul(4.0),
-                    // .mul(2.0),
+                // .mul(2.0),
             ),
             humidity
                 .sub(CONFIG.desert_hum)
                 .div(CONFIG.forest_hum.sub(CONFIG.desert_hum))
                 .mul(1.0),
-                // .mul(2.0),
+            // .mul(2.0),
         );
         // From forest to jungle humidity, we go from snow to dark grass to grass to tropics to sand
         // depending on temperature.
@@ -961,20 +980,20 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     temp.sub(CONFIG.tropical_temp)
                         .div(CONFIG.desert_temp.sub(CONFIG.tropical_temp))
                         .mul(1.0),
-                        // .mul(2.0),
+                    // .mul(2.0),
                 ),
                 // above desert_temp
                 sand,
                 temp.sub(CONFIG.desert_temp)
                     .div(1.0 - CONFIG.desert_temp)
                     .mul(4.0),
-                    // .mul(2.0),
+                // .mul(2.0),
             ),
             humidity
                 .sub(CONFIG.forest_hum)
                 .div(CONFIG.jungle_hum.sub(CONFIG.forest_hum))
                 .mul(1.0),
-                // .mul(2.0),
+            // .mul(2.0),
         );
         // From jungle humidity upwards, we go from snow to grass to rainforest to tropics to sand.
         let ground = Rgb::lerp(
@@ -992,14 +1011,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     temp.sub(CONFIG.tropical_temp)
                         .div(CONFIG.desert_temp.sub(CONFIG.tropical_temp))
                         .mul(4.0),
-                        // .mul(2.0),
+                    // .mul(2.0),
                 ),
                 // above desert_temp
                 sand,
                 temp.sub(CONFIG.desert_temp)
                     .div(1.0 - CONFIG.desert_temp)
                     .mul(4.0),
-                    // .mul(2.0),
+                // .mul(2.0),
             ),
             humidity.sub(CONFIG.jungle_hum).mul(1.0),
         );

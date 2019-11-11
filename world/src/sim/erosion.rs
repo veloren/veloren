@@ -485,7 +485,11 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
             // Normalized to be between 6 and and 54 degrees.
             let div_factor = 32.0;
             let rock_strength = rock_strength_nz
-                .get([wposf.x / div_factor, wposf.y / div_factor, wposz])
+                .get([
+                    wposf.x, /* / div_factor*/
+                    wposf.y, /* / div_factor*/
+                    wposz,
+                ])
                 .max(-1.0)
                 .min(1.0)
                 * 0.5
@@ -581,6 +585,9 @@ fn erode(
 ) {
     log::debug!("Done draining...");
     let mmaxh = 1.0;
+    // Landslide constant: ideally scaled to 10 m^-2 / y^-1
+    let l = 200.0 * max_uplift as f64;
+    // Erosion constant.
     let k = erosion_base as f64 + 2.244 / mmaxh as f64 * max_uplift as f64;
     let ((dh, indirection, newh, area), max_slope) = rayon::join(
         || {
@@ -640,8 +647,8 @@ fn erode(
             let is_lake_bottom = indirection_idx < 0;
             // Test the slope.
             let max_slope = max_slope[posi] as f64;
-            let dz = (new_h_i - h_j) * CONFIG.mountain_scale as f64;
-            let mag_slope = dz.abs() / neighbor_distance;
+            let dz = (new_h_i - h_j).max(0.0) * CONFIG.mountain_scale as f64;
+            let mag_slope = dz/*.abs()*/ / neighbor_distance;
             let _fake_neighbor = is_lake_bottom && dxy.x.abs() > 1.0 && dxy.y.abs() > 1.0;
             // If you're on the lake bottom and not right next to your neighbor, don't compute a
             // slope.
@@ -656,9 +663,14 @@ fn erode(
                     // exactly max_slope.
                     // max_slope = (old_h_i + dh - h_j) * CONFIG.mountain_scale / NEIGHBOR_DISTANCE
                     // dh = max_slope * NEIGHBOR_DISTANCE / CONFIG.mountain_scale + h_j - old_h_i.
-                    let slope = dz.signum() * max_slope;
-                    sums += max_slope;
-                    new_h_i = slope * neighbor_distance / CONFIG.mountain_scale as f64 + h_j;
+                    let dh = max_slope * neighbor_distance / CONFIG.mountain_scale as f64;
+                    new_h_i = (h_j + dh).max(new_h_i - l * (mag_slope - max_slope));
+                    let dz = (new_h_i - h_j).max(0.0) * CONFIG.mountain_scale as f64;
+                    let slope = dz/*.abs()*/ / neighbor_distance;
+                    sums += slope;
+                // let slope = dz.signum() * max_slope;
+                // new_h_i = slope * neighbor_distance / CONFIG.mountain_scale as f64 + h_j;
+                // sums += max_slope;
                 } else {
                     sums += mag_slope;
                     // Just use the computed rate.

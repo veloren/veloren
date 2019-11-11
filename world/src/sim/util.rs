@@ -179,7 +179,8 @@ pub fn uniform_noise<F: Float + Send>(
     // position of the noise in the sorted vector (divided by the vector length).
     // This guarantees a uniform distribution among the samples (excluding those that returned
     // None, which will remain at zero).
-    let mut uniform_noise = vec![(0.0, F::nan()/*zero()*/); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut uniform_noise =
+        vec![(0.0, F::nan() /*zero()*/); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     // NOTE: Consider using try_into here and elsewhere in this function, since i32::MAX
     // technically doesn't fit in an f32 (even if we should never reach that limit).
     let total = noise.len() as f32;
