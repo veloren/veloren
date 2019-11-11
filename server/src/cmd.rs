@@ -238,6 +238,14 @@ lazy_static! {
              true,
              handle_remove_lights,
          ),
+        ChatCommand::new(
+            "debug",
+            "",
+            "/debug : Place all debug items into your pack.",
+            true,
+            handle_debug,
+        ),
+
     ];
 }
 fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
@@ -257,6 +265,7 @@ fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &C
         server.notify_client(entity, ServerMsg::private(String::from("Invalid item!")));
     }
 }
+
 fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     if let Ok((x, y, z)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
         match server.state.read_component_cloned::<comp::Pos>(entity) {
@@ -985,6 +994,31 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
         if let Some(msg) = error_msg {
             server.notify_client(entity, msg);
         }
+    }
+}
+
+use common::comp::Item;
+fn handle_debug(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    if let Ok(items) = assets::load_glob::<Item>("common.items.debug.*") {
+        server
+            .state()
+            .ecs()
+            .write_storage::<comp::Inventory>()
+            .get_mut(entity)
+            // TODO: Consider writing a `load_glob_cloned` in `assets` and using that here
+            .map(|inv| inv.push_all_unique(items.iter().map(|item| item.as_ref().clone())));
+        let _ = server
+            .state
+            .ecs()
+            .write_storage::<comp::InventoryUpdate>()
+            .insert(entity, comp::InventoryUpdate);
+    } else {
+        server.notify_client(
+            entity,
+            ServerMsg::private(String::from(
+                "Debug items not found? Something is very broken.",
+            )),
+        );
     }
 }
 
