@@ -2,6 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
+use common::comp::item::Tool;
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
@@ -9,11 +10,11 @@ pub struct GlidingAnimation;
 
 impl Animation for GlidingAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (Option<Tool>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, global_time): Self::Dependency,
+        (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
