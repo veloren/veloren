@@ -2,17 +2,18 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
+use common::comp::item::Tool;
 use vek::*;
 
 pub struct ClimbAnimation;
 
 impl Animation for ClimbAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (Option<Tool>, Vec3<f32>, Vec3<f32>, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (velocity, _orientation, _global_time): Self::Dependency,
+        (_active_tool_kind, velocity, _orientation, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,

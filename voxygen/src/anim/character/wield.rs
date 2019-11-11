@@ -9,11 +9,11 @@ pub struct WieldAnimation;
 
 impl Animation for WieldAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (f32, f64);
+    type Dependency = (Option<Tool>, f32, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (_velocity, _global_time): Self::Dependency,
+        (active_tool_kind, _velocity, _global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -22,9 +22,9 @@ impl Animation for WieldAnimation {
 
         let wave = (anim_time as f32 * 12.0).sin();
 
-        match Tool::Bow {
+        match active_tool_kind {
             //TODO: Inventory
-            Tool::Sword => {
+            Some(Tool::Sword) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.75, 0.25);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -41,7 +41,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Axe => {
+            Some(Tool::Axe) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -58,7 +58,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Hammer => {
+            Some(Tool::Hammer) => {
                 next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27 + wave * 0.25)
                     * Quaternion::rotation_y(0.0)
@@ -79,7 +79,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(wave * -0.25);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Staff => {
+            Some(Tool::Staff) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -96,7 +96,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Shield => {
+            Some(Tool::Shield) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -113,7 +113,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Bow => {
+            Some(Tool::Bow) => {
                 next.l_hand.offset = Vec3::new(-4.0, 5.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(-1.9)
@@ -134,7 +134,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.85);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Dagger => {
+            Some(Tool::Dagger) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -151,7 +151,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Tool::Debug(_) => {
+            Some(Tool::Debug(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27 + wave * 0.25)
                     * Quaternion::rotation_y(0.0)
@@ -172,6 +172,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_z(wave * -0.25);
                 next.weapon.scale = Vec3::one();
             }
+            _ => {}
         }
 
         next
