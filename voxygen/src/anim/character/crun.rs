@@ -9,7 +9,7 @@ use vek::*;
 
 pub struct WieldAnimation;
 
-impl Animation<'_>for WieldAnimation {
+impl Animation for WieldAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = (f32, f64);
 

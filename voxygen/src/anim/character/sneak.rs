@@ -8,7 +8,7 @@ use vek::*;
 
 pub struct SneakAnimation;
 
-impl Animation<'_>for SneakAnimation {
+impl Animation for SneakAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
 
