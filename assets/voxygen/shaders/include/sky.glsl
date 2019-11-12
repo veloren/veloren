@@ -150,7 +150,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
 	const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
 
 	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
-	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.0045, 0.0), 1000.0) * SUN_SURF_COLOR;
+	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR;
 	vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
 
 	return sky_color + sun_light;
