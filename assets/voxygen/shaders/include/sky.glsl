@@ -40,7 +40,7 @@ float get_sun_brightness(vec3 sun_dir) {
 }
 
 float get_moon_brightness(vec3 moon_dir) {
-	return max(-moon_dir.z + 0.6, 0.0) * 0.05;
+	return max(-moon_dir.z + 0.6, 0.0) * 0.07;
 }
 
 void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion) {
@@ -64,7 +64,7 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 		max(-sun_dir.z, 0)
 	);
 
-	vec3 moon_color = vec3(0.1, 0.1, 1) * 2.5;
+	vec3 moon_color = vec3(0.1, 0.1, 1) * 1.5;
 
 	vec3 sun_chroma = sun_color * sun_light;
 	vec3 moon_chroma = moon_color * moon_light;
