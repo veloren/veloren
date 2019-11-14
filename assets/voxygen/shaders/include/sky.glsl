@@ -30,7 +30,7 @@ vec3 get_moon_dir(float time_of_day) {
 	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
 
 	float moon_angle_rad = time_of_day * TIME_FACTOR;
-	return -vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad));
+	return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 }
 
 const float PERSISTENT_AMBIANCE = 0.1;
