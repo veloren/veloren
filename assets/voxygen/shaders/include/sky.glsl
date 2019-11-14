@@ -23,9 +23,14 @@ vec3 get_sun_dir(float time_of_day) {
 	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
 
 	float sun_angle_rad = time_of_day * TIME_FACTOR;
-	vec3 sun_dir = vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
+	return vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
+}
 
-	return sun_dir;
+vec3 get_moon_dir(float time_of_day) {
+	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
+
+	float moon_angle_rad = time_of_day * TIME_FACTOR;
+	return -vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad));
 }
 
 const float PERSISTENT_AMBIANCE = 0.1;
@@ -34,12 +39,18 @@ float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0) * 0.9;
 }
 
+float get_moon_brightness(vec3 moon_dir) {
+	return max(-moon_dir.z + 0.6, 0.0) * 0.05;
+}
+
 void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion) {
 	const float SUN_AMBIANCE = 0.1;
 
 	vec3 sun_dir = get_sun_dir(time_of_day);
+	vec3 moon_dir = get_moon_dir(time_of_day);
 
 	float sun_light = get_sun_brightness(sun_dir);
+	float moon_light = get_moon_brightness(moon_dir);
 
 	// clamp() changed to max() as sun_dir.z is produced from a cos() function and therefore never greater than 1
 
@@ -53,11 +64,17 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 		max(-sun_dir.z, 0)
 	);
 
-	vec3 sun_chroma = sun_color * sun_light;
+	vec3 moon_color = vec3(0.1, 0.1, 1) * 2.5;
 
-	light = sun_chroma + PERSISTENT_AMBIANCE;
-	diffuse_light = sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.6 + 0.4, 0.0), diffusion) + PERSISTENT_AMBIANCE;
-	ambient_light = vec3(SUN_AMBIANCE * sun_light);
+	vec3 sun_chroma = sun_color * sun_light;
+	vec3 moon_chroma = moon_color * moon_light;
+
+	light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
+	diffuse_light =
+		sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.6 + 0.4, 0.0), diffusion) +
+		moon_chroma * mix(1.0, pow(max(dot(-norm, moon_dir), 0.0), 2.0), diffusion) +
+		PERSISTENT_AMBIANCE;
+	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light);
 }
 
 // This has been extracted into a function to allow quick exit when detecting a star.
@@ -90,6 +107,7 @@ float is_star_at(vec3 dir) {
 vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
 	// Sky color
 	vec3 sun_dir = get_sun_dir(time_of_day);
+	vec3 moon_dir = get_moon_dir(time_of_day);
 
 	// Add white dots for stars. Note these flicker and jump due to FXAA
 	float star = 0.0;
@@ -139,21 +157,29 @@ vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
 		max(dir.z, 0)
 	);
 
+	// Sun
+	const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
+
 	vec3 sun_halo_color = mix(
 		SUN_HALO_DUSK,
 		SUN_HALO_DAY,
 		max(-sun_dir.z, 0)
 	);
 
-	// Sun
-
-	const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
-
 	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
 	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR;
 	vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
 
-	return sky_color + sun_light;
+	// Moon
+	const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
+
+	vec3 moon_halo_color = vec3(0.01, 0.01, 0.02);
+
+	vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * moon_halo_color;
+	vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
+	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(clamp(dir.z * 3.0, 0, 1)));
+
+	return sky_color + sun_light + moon_light;
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
