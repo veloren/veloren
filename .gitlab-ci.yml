@@ -11,6 +11,7 @@ stages:
     - post
 
 before_script:
+    - date
     - source $HOME/.cargo/env
     - df -h
     - free -h
@@ -18,6 +19,11 @@ before_script:
     - cargo --version
     - export DISABLE_GIT_LFS_CHECK=true
     - find assets | md5sum
+    - ls -la target/debug
+    - ls -la target/release
+    - ls -la target
+    - find target/debug/deps -type f | wc -l
+    - date
 
 # -- optional build
 
@@ -130,7 +136,9 @@ check:
     tags:
         - veloren-docker
     script:
+        - date
         - RUSTFLAGS="-D warnings" cargo check --verbose
+        - date
 
 code-quality:
     stage: check-compile
@@ -141,8 +149,11 @@ code-quality:
     tags:
         - veloren-docker
     script:
+        - date
         - cargo clippy -- --warn clippy::all
+        - date
         - cargo fmt --all -- --check
+        - date
 
 security:
     stage: check-compile
@@ -150,8 +161,11 @@ security:
     tags:
         - veloren-docker
     script:
+        - date
         - cargo install cargo-audit
+        - date
         - cargo audit
+        - date
 
 # --
 
@@ -168,7 +182,9 @@ unittests:
     tags:
         - veloren-docker
     script:
+        - date
         - cargo test
+        - date
 
 benchmarks:
     stage: post
@@ -181,7 +197,9 @@ benchmarks:
     tags:
         - veloren-docker
     script:
+        - date
         - cargo bench
+        - date
     allow_failure: true
 
 linux:
@@ -200,12 +218,19 @@ linux:
     tags:
         - veloren-docker
     script:
+        - date
         - cd voxygen && VELOREN_ASSETS=assets cargo build --release && cd ..
+        - date
         - cd server-cli && VELOREN_ASSETS=assets cargo build --release && cd ..
+        - date
         - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
+        - date
         - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
+        - date
         - strip --strip-all veloren-server-cli
+        - date
         - strip --strip-all veloren-voxygen
+        - date
     artifacts:
         paths:
             - veloren-server-cli
