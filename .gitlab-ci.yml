@@ -19,10 +19,10 @@ before_script:
     - cargo --version
     - export DISABLE_GIT_LFS_CHECK=true
     - find assets | md5sum
-    - ls -la target/debug
-    - ls -la target/release
-    - ls -la target
-    - find target/debug/deps -type f | wc -l
+    - ls -la target/debug || echo "upsi"
+    - ls -la target/release || echo "upsi"
+    - ls -la target || echo "upsi"
+    - find target/debug/deps -type f | wc -l || echo "upsi"
     - date
 
 # -- optional build
