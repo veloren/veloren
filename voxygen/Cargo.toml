@@ -59,7 +59,7 @@ frustum_query = "0.1.2"
 # context for pinning to commit: https://gitlab.com/veloren/veloren/issues/280
 rodio = { git = "https://github.com/RustAudio/rodio", rev = "e5474a2"}
 cpal = "0.10"
-crossbeam = "0.7.2"
+crossbeam = "=0.7.2"
 hashbrown = { version = "0.6.2", features = ["serde", "nightly"] }
 chrono = "0.4.9"
 rust-argon2 = "0.5"
