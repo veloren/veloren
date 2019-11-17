@@ -212,7 +212,7 @@ pub struct Terrain<V: RectRasterableVol> {
 
     // GPU data
     sprite_models: HashMap<(BlockKind, usize), Model<SpritePipeline>>,
-    waves: Texture<FluidPipeline>,
+    waves: Texture,
 
     phantom: PhantomData<V>,
 }

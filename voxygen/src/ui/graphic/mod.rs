@@ -84,7 +84,7 @@ pub struct GraphicCache {
 
     // Atlases with the index of their texture in the textures vec
     atlases: Vec<(SimpleAtlasAllocator, usize)>,
-    textures: Vec<Texture<UiPipeline>>,
+    textures: Vec<Texture>,
     // Stores the location of graphics rendered at a particular resolution and cached on the cpu
     cache_map: HashMap<Parameters, CachedDetails>,
 }
@@ -131,7 +131,7 @@ impl GraphicCache {
         self.graphic_map.get(&id)
     }
     /// Used to aquire textures for rendering
-    pub fn get_tex(&self, id: TexId) -> &Texture<UiPipeline> {
+    pub fn get_tex(&self, id: TexId) -> &Texture {
         self.textures.get(id.0).expect("Invalid TexId used")
     }
     pub fn clear_cache(&mut self, renderer: &mut Renderer) {
@@ -302,7 +302,7 @@ fn draw_graphic(graphic_map: &GraphicMap, graphic_id: Id, dims: Vec2<u16>) -> Op
     }
 }
 
-fn create_atlas_texture(renderer: &mut Renderer) -> (SimpleAtlasAllocator, Texture<UiPipeline>) {
+fn create_atlas_texture(renderer: &mut Renderer) -> (SimpleAtlasAllocator, Texture) {
     let (w, h) = renderer.get_resolution().into_tuple();
 
     let max_texture_size = renderer.max_texture_size();
@@ -326,12 +326,7 @@ fn aabr_from_alloc_rect(rect: guillotiere::Rectangle) -> Aabr<u16> {
     }
 }
 
-fn upload_image(
-    renderer: &mut Renderer,
-    aabr: Aabr<u16>,
-    tex: &Texture<UiPipeline>,
-    image: &RgbaImage,
-) {
+fn upload_image(renderer: &mut Renderer, aabr: Aabr<u16>, tex: &Texture, image: &RgbaImage) {
     let offset = aabr.min.into_array();
     let size = aabr.size().into_array();
     if let Err(err) = renderer.update_texture(
