@@ -1,5 +1,7 @@
 #include <random.glsl>
 
+uniform sampler2D t_noise;
+
 const float PI = 3.141592;
 
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
@@ -43,6 +45,22 @@ float get_moon_brightness(vec3 moon_dir) {
 	return max(-moon_dir.z + 0.6, 0.0) * 0.07;
 }
 
+vec3 get_sun_color(vec3 sun_dir) {
+	return mix(
+		mix(
+			DUSK_LIGHT,
+			NIGHT_LIGHT,
+			max(sun_dir.z, 0)
+		),
+		DAY_LIGHT,
+		max(-sun_dir.z, 0)
+	);
+}
+
+vec3 get_moon_color(vec3 moon_dir) {
+	return vec3(0.15, 0.15, 1.5);
+}
+
 void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion) {
 	const float SUN_AMBIANCE = 0.1;
 
@@ -54,17 +72,9 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 
 	// clamp() changed to max() as sun_dir.z is produced from a cos() function and therefore never greater than 1
 
-	vec3 sun_color = mix(
-		mix(
-			DUSK_LIGHT,
-			NIGHT_LIGHT,
-			max(sun_dir.z, 0)
-		),
-		DAY_LIGHT,
-		max(-sun_dir.z, 0)
-	);
+	vec3 sun_color = get_sun_color(sun_dir);
 
-	vec3 moon_color = vec3(0.1, 0.1, 1) * 1.5;
+	vec3 moon_color = get_moon_color(moon_dir);
 
 	vec3 sun_chroma = sun_color * sun_light;
 	vec3 moon_chroma = moon_color * moon_light;
@@ -104,7 +114,70 @@ float is_star_at(vec3 dir) {
 	return 0.0;
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
+vec3 pos_at_height(vec3 dir, float height) {
+	float dist = height / dir.z;
+	return dir * dist;
+}
+
+const float CLOUD_AVG_HEIGHT = 1500.0;
+const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 100.0;
+const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 100.0;
+const float CLOUD_THRESHOLD = 0.3;
+const float CLOUD_SCALE = 1.0;
+const float CLOUD_DENSITY = 50.0;
+
+float spow(float x, float e) {
+	return sign(x) * pow(abs(x), e);
+}
+
+vec4 cloud_at(vec3 pos) {
+	float hdist = distance(pos.xy, cam_pos.xy) / 100000.0;
+	if (hdist > 1.0) { // Maximum cloud distance
+		return vec4(0.0);
+	}
+
+	float value = (
+		0.0
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0003 - tick.x * 0.01).x
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0009 + tick.x * 0.03).x * 0.5
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0025 - tick.x * 0.05).x * 0.25
+	) / 2.75;
+
+	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 2000.0, 0.0) * CLOUD_DENSITY;
+
+	vec3 color = vec3(1.0) * (1.0 - pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.25) / 2.5);
+
+	return vec4(color, density / max((hdist - 0.7) * 100.0, 1.0));
+}
+
+vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist) {
+	float mind = (CLOUD_HEIGHT_MIN - cam_pos.z) / dir.z;
+	float maxd = (CLOUD_HEIGHT_MAX - cam_pos.z) / dir.z;
+
+	float start = max(min(mind, maxd), 0.0);
+	float delta = abs(mind - maxd);
+
+	if (delta <= 0.0) {
+		return vec4(0);
+	}
+
+	vec3 cloud_col = vec3(1);
+	float passthrough = 1.0;
+	const float INCR = 0.05;
+	for (float d = 0.0; d < 1.0; d += INCR) {
+		float dist = start + d * delta;
+		vec3 pos = cam_pos.xyz + dir * dist;
+		vec4 sample = cloud_at(pos);
+		if (dist < max_dist) {
+			passthrough *= (1.0 - sample.a * INCR);
+			cloud_col = mix(cloud_col, sample.rgb, passthrough * sample.a * INCR);
+		}
+	}
+
+	return vec4(cloud_col, 1.0 - passthrough / (1.0 + delta * 0.0003));
+}
+
+vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, bool with_stars) {
 	// Sky color
 	vec3 sun_dir = get_sun_dir(time_of_day);
 	vec3 moon_dir = get_moon_dir(time_of_day);
@@ -179,7 +252,11 @@ vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
 	vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
 	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(clamp(dir.z * 3.0, 0, 1)));
 
-	return sky_color + sun_light + moon_light;
+	// Clouds
+	vec4 clouds = get_cloud_color(dir, time_of_day, distance(cam_pos.xyz, f_pos));
+	clouds.rgb *= get_sun_brightness(sun_dir) * get_sun_color(sun_dir) + get_moon_brightness(moon_dir) * get_moon_color(moon_dir);
+
+	return mix(sky_color + sun_light + moon_light, clouds.rgb, clouds.a);
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {

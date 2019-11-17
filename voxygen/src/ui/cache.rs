@@ -14,7 +14,7 @@ const POSITION_TOLERANCE: f32 = 0.1;
 
 pub struct Cache {
     glyph_cache: GlyphCache<'static>,
-    glyph_cache_tex: Texture<UiPipeline>,
+    glyph_cache_tex: Texture,
     graphic_cache: GraphicCache,
 }
 
@@ -38,10 +38,10 @@ impl Cache {
             graphic_cache: GraphicCache::new(renderer),
         })
     }
-    pub fn glyph_cache_tex(&self) -> &Texture<UiPipeline> {
+    pub fn glyph_cache_tex(&self) -> &Texture {
         &self.glyph_cache_tex
     }
-    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture<UiPipeline>) {
+    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture) {
         (&mut self.glyph_cache, &self.glyph_cache_tex)
     }
     pub fn graphic_cache(&self) -> &GraphicCache {
