@@ -173,19 +173,13 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality)
 		vec3 pos = cam_pos.xyz + dir * dist;
 		vec2 sample = cloud_at(pos);
 		float factor;
-		if (dist < max_dist) {
-			factor = 1.0;
-		} else {
-			factor = incr * (dist - max_dist) / delta;
-		}
-
-		float integral = sample.y * incr * factor;
-		passthrough *= 1.0 - integral;
-		cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
-
-		if (factor < 1.0) {
+		if (dist > max_dist) {
 			break;
 		}
+
+		float integral = sample.y * incr;
+		passthrough *= 1.0 - integral;
+		cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
 	}
 
 	return vec4(vec3(cloud_shade), 1.0 - passthrough / (1.0 + min(delta, max_dist) * 0.0003));
@@ -202,12 +196,34 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, float quality, bool 
 		star = is_star_at(dir);
 	}
 
+	// Sun
+	const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
+
+	vec3 sun_halo_color = mix(
+		SUN_HALO_DUSK,
+		SUN_HALO_DAY,
+		max(-sun_dir.z, 0)
+	);
+
+	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
+	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR;
+	vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
+
+	// Moon
+	const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
+
+	vec3 moon_halo_color = vec3(0.015, 0.015, 0.03);
+
+	vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * moon_halo_color;
+	vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
+	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(clamp(dir.z * 3.0, 0, 1)));
+
 	// Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
 
 	vec3 sky_top = mix(
 		mix(
-			SKY_DUSK_TOP + star,
-			SKY_NIGHT_TOP + star,
+			SKY_DUSK_TOP + star / (1.0 + moon_surf * 100.0),
+			SKY_NIGHT_TOP + star / (1.0 + moon_surf * 100.0),
 			max(pow(sun_dir.z, 0.2), 0)
 		),
 		SKY_DAY_TOP,
@@ -243,28 +259,6 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, float quality, bool 
 		sky_top,
 		max(dir.z, 0)
 	);
-
-	// Sun
-	const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
-
-	vec3 sun_halo_color = mix(
-		SUN_HALO_DUSK,
-		SUN_HALO_DAY,
-		max(-sun_dir.z, 0)
-	);
-
-	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
-	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR;
-	vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
-
-	// Moon
-	const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
-
-	vec3 moon_halo_color = vec3(0.015, 0.015, 0.03);
-
-	vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * moon_halo_color;
-	vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
-	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(clamp(dir.z * 3.0, 0, 1)));
 
 	// Clouds
 	vec4 clouds = get_cloud_color(dir, time_of_day, vsum(abs(cam_pos.xyz - f_pos)), quality);
