@@ -35,22 +35,22 @@ float wave_height(vec3 pos) {
 	);
 
 	vec3 warp = (
-		texture(t_waves, fract(pos.yx * 0.1 + tick.x * 0.02)).xyz * 0.3 +
-		texture(t_waves, fract(pos.yx * 0.1 - tick.x * 0.02)).xyz * 0.3 +
+		texture(t_noise, fract(pos.yx * 0.1 + tick.x * 0.02)).xyz * 0.3 +
+		texture(t_noise, fract(pos.yx * 0.1 - tick.x * 0.02)).xyz * 0.3 +
 		vec3(0)
 	);
 
 	float height = (
-		(texture(t_waves, pos.xy * 0.03 + big_warp.xy + tick.x * 0.05).y - 0.5) * 1.0 +
-		(texture(t_waves, pos.yx * 0.03 + big_warp.yx - tick.x * 0.05).y - 0.5) * 1.0 +
+		(texture(t_noise, pos.xy * 0.03 + big_warp.xy + tick.x * 0.05).y - 0.5) * 1.0 +
+		(texture(t_noise, pos.yx * 0.03 + big_warp.yx - tick.x * 0.05).y - 0.5) * 1.0 +
 		(texture(t_waves, pos.xy * 0.1 + warp.xy + tick.x * 0.1).x - 0.5) * 0.5 +
 		(texture(t_waves, pos.yx * 0.1 + warp.yx - tick.x * 0.1).x - 0.5) * 0.5 +
-		(texture(t_waves, pos.yx * 0.3 + warp.xy * 0.5 + tick.x * 0.1).x - 0.5) * 0.2 +
-		(texture(t_waves, pos.yx * 0.3 + warp.yx * 0.5 - tick.x * 0.1).x - 0.5) * 0.2 +
+		(texture(t_noise, pos.yx * 0.3 + warp.xy * 0.5 + tick.x * 0.1).x - 0.5) * 0.2 +
+		(texture(t_noise, pos.yx * 0.3 + warp.yx * 0.5 - tick.x * 0.1).x - 0.5) * 0.2 +
 		0.0
 	);
 
-	return pow(abs(height), 0.5) * sign(height) * 1.5;
+	return pow(abs(height), 0.5) * sign(height) * 5.5;
 }
 
 void main() {
@@ -113,7 +113,9 @@ void main() {
 	vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-    vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, f_pos, true);
+    vec3 fog_color = vec3(0);
+	if (fog_level > 0.0)
+		fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, f_pos, true);
 
 	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
