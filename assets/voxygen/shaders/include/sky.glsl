@@ -260,11 +260,18 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, float quality, bool 
 		max(dir.z, 0)
 	);
 
+	// Approximate distance to fragment
+	float f_dist = vsum(abs(cam_pos.xyz - f_pos));
+
 	// Clouds
-	vec4 clouds = get_cloud_color(dir, time_of_day, vsum(abs(cam_pos.xyz - f_pos)), quality);
+	vec4 clouds = get_cloud_color(dir, time_of_day, f_dist, quality);
 	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 2.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 20.5 + get_moon_color(moon_dir));
 
-	return mix(sky_color + sun_light + moon_light, clouds.rgb, clouds.a);
+	if (f_dist > 1000.0) {
+		sky_color += sun_light + moon_light;
+	}
+
+	return mix(sky_color, clouds.rgb, clouds.a);
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
