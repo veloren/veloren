@@ -47,6 +47,7 @@ float wave_height(vec3 pos) {
 		(texture(t_waves, pos.yx * 0.1 + warp.yx - tick.x * 0.1).x - 0.5) * 0.5 +
 		(texture(t_noise, pos.yx * 0.3 + warp.xy * 0.5 + tick.x * 0.1).x - 0.5) * 0.2 +
 		(texture(t_noise, pos.yx * 0.3 + warp.yx * 0.5 - tick.x * 0.1).x - 0.5) * 0.2 +
+		(texture(t_noise, pos.yx * 1.0 + warp.yx * 0.0 - tick.x * 0.1).x - 0.5) * 0.05 +
 		0.0
 	);
 
@@ -115,13 +116,15 @@ void main() {
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
     vec3 fog_color = vec3(0);
 	if (fog_level > 0.0)
-		fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, f_pos, true);
+		fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, f_pos, 0.25, true);
 
 	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
 
-	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, vec3(-100000), false) * f_light;
+	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, vec3(-100000), 0.5, false) * f_light;
+	// Tint
+	reflect_color = mix(reflect_color, surf_color, 0.6);
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
 
