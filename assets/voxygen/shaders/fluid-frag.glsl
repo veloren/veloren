@@ -128,7 +128,7 @@ void main() {
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
 
-	vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 4.0 / (1.0 + diffuse_light * 2.0)), passthrough);
+	vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 4.0 / (4.0 + diffuse_light * 1.0)), passthrough);
 
     tgt_color = mix(color, vec4(fog_color, 0.0), fog_level);
 }
