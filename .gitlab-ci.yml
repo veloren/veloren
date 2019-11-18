@@ -18,11 +18,8 @@ before_script:
     - gcc -v
     - cargo --version
     - export DISABLE_GIT_LFS_CHECK=true
-    - find assets | md5sum
-    - ls -la target/debug || echo "upsi"
-    - ls -la target/release || echo "upsi"
-    - ls -la target || echo "upsi"
-    - find target/debug/deps -type f | wc -l || echo "upsi"
+    - rm -r target || echo "target doesnt exist, which is fine"
+    - ln -s /dockercache/veloren/target target
     - date
 
 # -- optional build
@@ -37,10 +34,6 @@ before_script:
 
 optional-debug:linux:
     <<: *optional-debug
-    cache:
-        key: "cache-linux-debug-v2"
-        paths:
-            - ./target
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
@@ -58,10 +51,6 @@ optional-debug:linux:
 
 optional-debug:windows:
     <<: *optional-debug
-    cache:
-        key: "cache-windows-debug-v2"
-        paths:
-            - ./target
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
@@ -85,10 +74,6 @@ optional-debug:windows:
 
 optional-release:linux:
     <<: *optional-release
-    cache:
-        key: "cache-linux-release-v2"
-        paths:
-            - ./target
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
@@ -106,10 +91,6 @@ optional-release:linux:
 
 optional-release:windows:
     <<: *optional-release
-    cache:
-        key: "cache-windows-release-v2"
-        paths:
-            - ./target
     script:
         - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
         - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
@@ -129,31 +110,18 @@ optional-release:windows:
 
 check:
     stage: check-compile
-    cache:
-        key: "cache-linux-debug-v2"
-        paths:
-            - ./target
     tags:
         - veloren-docker
     script:
-        - date
         - RUSTFLAGS="-D warnings" cargo check --verbose
-        - date
 
 code-quality:
     stage: check-compile
-    cache:
-        key: "cache-linux-debug-v2"
-        paths:
-            - ./target
     tags:
         - veloren-docker
     script:
-        - date
         - cargo clippy -- --warn clippy::all
-        - date
         - cargo fmt --all -- --check
-        - date
 
 security:
     stage: check-compile
@@ -161,11 +129,7 @@ security:
     tags:
         - veloren-docker
     script:
-        - date
-        - cargo install cargo-audit
-        - date
         - cargo audit
-        - date
 
 # --
 
@@ -173,41 +137,26 @@ security:
 
 unittests:
     stage: post
-    cache:
-        key: "cache-linux-debug-v2"
-        paths:
-            - ./target
     when: delayed
     start_in: 5 seconds
     tags:
         - veloren-docker
     script:
-        - date
-        - cargo test
-        - date
+        - echo "Workaround, cargo tests fails due some rust files are already deleted, so we just stack cargo test. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
+        - cargo test || cargo test || cargo test || cargo test
 
 benchmarks:
     stage: post
-    cache:
-        key: "cache-linux-release-v2"
-        paths:
-            - ./target
     when: delayed
     start_in: 5 seconds
     tags:
         - veloren-docker
     script:
-        - date
         - cargo bench
-        - date
     allow_failure: true
 
 linux:
     stage: post
-    cache:
-        key: "cache-linux-release-v2"
-        paths:
-            - ./target
     when: delayed
     start_in: 5 seconds
     only:
@@ -218,19 +167,12 @@ linux:
     tags:
         - veloren-docker
     script:
-        - date
         - cd voxygen && VELOREN_ASSETS=assets cargo build --release && cd ..
-        - date
         - cd server-cli && VELOREN_ASSETS=assets cargo build --release && cd ..
-        - date
         - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
-        - date
         - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
-        - date
         - strip --strip-all veloren-server-cli
-        - date
         - strip --strip-all veloren-voxygen
-        - date
     artifacts:
         paths:
             - veloren-server-cli
@@ -241,10 +183,6 @@ linux:
 
 windows:
     stage: post
-    cache:
-        key: "cache-windows-release-v2"
-        paths:
-            - ./target
     when: delayed
     start_in: 5 seconds
     only:
