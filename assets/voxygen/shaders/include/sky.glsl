@@ -121,33 +121,28 @@ const float CLOUD_THRESHOLD = 0.3;
 const float CLOUD_SCALE = 1.0;
 const float CLOUD_DENSITY = 100.0;
 
-float spow(float x, float e) {
-	return sign(x) * pow(abs(x), e);
-}
-
 float vsum(vec3 v) {
 	return v.x + v.y + v.z;
 }
 
 vec2 cloud_at(vec3 pos) {
 	float tick_offs = 0.0
-		+ texture(t_noise, pos.xy * 0.0001).x * 1.0
+		+ texture(t_noise, pos.xy * 0.0001 + tick.x * 0.001).x * 1.0
 		+ texture(t_noise, pos.xy * 0.000003).x * 5.0;
 
 	float value = (
 		0.0
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0003 - tick.x * 0.002 + tick_offs).x
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0009 + tick.x * 0.005).x * 0.5
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0025 - tick.x * 0.02).x * 0.25
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.02 - tick.x * 0.03).x * 0.03
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.05 - tick.x * 0.03).x * 0.02
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0003 + tick_offs).x
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0009 - tick_offs).x * 0.5
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0025 - tick.x * 0.01).x * 0.25
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.008 + tick.x * 0.02).x * 0.1
 	) / 3.0;
 
 	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 500.0, 0.0) * CLOUD_DENSITY;
 
-	float shade = 1.0 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.15) * 0.5, 1.0) / 0.6;
+	float shade = 1.0 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.15) * 0.5, 1.0) / 0.5;
 
-	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 3000));
+	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 5000));
 }
 
 vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality) {
@@ -158,15 +153,15 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality)
 
 	float start = max(min(mind, maxd), 0.0);
 	float delta = min(abs(mind - maxd), 5000.0);
-	delta = min(max_dist - start, delta);
+	delta = min(delta, max_dist);
+
+	if (delta < 0.0) {
+		return vec4(0);
+	}
 
 	float incr = min(INCR + start / 100000.0, INCR * 2.0) / quality;
 
-	float fuzz = sin(texture(t_noise, dir.xz * 100000.0).x * 100.0) * 0.5 * incr * delta;
-
-	if (delta <= 0.0) {
-		return vec4(0);
-	}
+	float fuzz = sin(texture(t_noise, dir.xz * 100000.0).x * 100.0) * 1.0 * incr * delta;
 
 	float cloud_shade = 1.0;
 	float passthrough = 1.0;
@@ -177,23 +172,14 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality)
 		vec3 pos = cam_pos.xyz + dir * min(dist, max_dist);
 		vec2 sample = cloud_at(pos);
 
-		float factor = 1.0;
-		if (dist > max_dist) {
-			factor -= (dist - max_dist) / (incr * delta);
-		}
-
-		float integral = sample.y * incr * factor;
+		float integral = sample.y * incr;
 		passthrough *= 1.0 - integral;
 		cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
-
-		if (factor < 1.0) {
-			break;
-		}
 	}
 
 	float total_density = 1.0 - passthrough / (1.0 + min(delta, max_dist) * 0.0003);
 
-	total_density = max(total_density - 2.0 / pow(max_dist, 0.5), 0.0); // Hack
+	total_density = max(total_density - 1.0 / pow(max_dist, 0.25), 0.0); // Hack
 
 	return vec4(vec3(cloud_shade), total_density);
 }
