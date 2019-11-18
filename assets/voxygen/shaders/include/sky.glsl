@@ -114,7 +114,7 @@ float is_star_at(vec3 dir) {
 	return 0.0;
 }
 
-const float CLOUD_AVG_HEIGHT = 1200.0;
+const float CLOUD_AVG_HEIGHT = 900.0;
 const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 100.0;
 const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 100.0;
 const float CLOUD_THRESHOLD = 0.3;
@@ -125,7 +125,11 @@ float spow(float x, float e) {
 	return sign(x) * pow(abs(x), e);
 }
 
-vec4 cloud_at(vec3 pos) {
+float vsum(vec3 v) {
+	return v.x + v.y + v.z;
+}
+
+vec2 cloud_at(vec3 pos) {
 	float tick_offs = 0.0
 		+ texture(t_noise, pos.xy * 0.0001).x
 		+ texture(t_noise, pos.xy * 0.000003).x * 10.0;
@@ -140,13 +144,13 @@ vec4 cloud_at(vec3 pos) {
 
 	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 800.0, 0.0) * CLOUD_DENSITY;
 
-	vec3 color = vec3(1.0) * (0.5 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.5), 1.0) / 1.0);
+	float shade = 0.5 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.5), 1.0) / 1.0;
 
-	return vec4(color, density / (1.0 + distance(pos, cam_pos.xyz) / 10000));
+	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 10000));
 }
 
 vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist) {
-	const float INCR = 0.04;
+	const float INCR = 0.05;
 
 	float mind = (CLOUD_HEIGHT_MIN - cam_pos.z) / dir.z;
 	float maxd = (CLOUD_HEIGHT_MAX - cam_pos.z) / dir.z;
@@ -154,20 +158,20 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist) {
 	float start = max(min(mind, maxd), 0.0);
 	float delta = abs(mind - maxd);
 
-	float incr = INCR;//min(INCR + start / 100000.0, INCR * 2.0);
+	float incr = min(INCR + start / 100000.0, INCR * 2.0);
 
-	float fuzz = texture(t_noise, dir.xy * 1000000.0).x * 0.75 * incr * delta;
+	float fuzz = texture(t_noise, dir.xy * 1000000.0).x * 1.75 * incr * delta;
 
 	if (delta <= 0.0) {
 		return vec4(0);
 	}
 
-	vec3 cloud_col = vec3(1);
+	float cloud_shade = 1.0;
 	float passthrough = 1.0;
 	for (float d = 0.0; d < 1.0; d += incr) {
 		float dist = start + d * delta + fuzz;
 		vec3 pos = cam_pos.xyz + dir * dist;
-		vec4 sample = cloud_at(pos);
+		vec2 sample = cloud_at(pos);
 		float factor;
 		if (dist < max_dist) {
 			factor = 1.0;
@@ -175,15 +179,16 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist) {
 			factor = incr * (dist - max_dist) / delta;
 		}
 
-		passthrough *= (1.0 - sample.a * incr * factor);
-		cloud_col = mix(cloud_col, sample.rgb, passthrough * sample.a * incr * factor);
+		float integral = sample.y * incr * factor;
+		passthrough *= 1.0 - integral;
+		cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
 
 		if (factor < 1.0) {
 			break;
 		}
 	}
 
-	return vec4(cloud_col, 1.0 - passthrough / (1.0 + delta * 0.0003));
+	return vec4(vec3(cloud_shade), 1.0 - passthrough / (1.0 + delta * 0.0003));
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, bool with_stars) {
