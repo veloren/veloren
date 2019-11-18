@@ -114,7 +114,7 @@ float is_star_at(vec3 dir) {
 	return 0.0;
 }
 
-const float CLOUD_AVG_HEIGHT = 900.0;
+const float CLOUD_AVG_HEIGHT = 1125.0;
 const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 100.0;
 const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 100.0;
 const float CLOUD_THRESHOLD = 0.3;
@@ -131,25 +131,25 @@ float vsum(vec3 v) {
 
 vec2 cloud_at(vec3 pos) {
 	float tick_offs = 0.0
-		+ texture(t_noise, pos.xy * 0.0001).x
-		+ texture(t_noise, pos.xy * 0.000003).x * 10.0;
+		+ texture(t_noise, pos.xy * 0.0001).x * 1.0
+		+ texture(t_noise, pos.xy * 0.000003).x * 5.0;
 
 	float value = (
 		0.0
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0003 - tick.x * 0.003 + tick_offs).x
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0009 + tick.x * 0.01).x * 0.5
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0003 - tick.x * 0.002 + tick_offs).x
+		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0009 + tick.x * 0.005).x * 0.5
 		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0025 - tick.x * 0.02).x * 0.25
 		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0075 - tick.x * 0.03).x * 0.07
 	) / 2.85;
 
 	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 800.0, 0.0) * CLOUD_DENSITY;
 
-	float shade = 0.5 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.5), 1.0) / 1.0;
+	float shade = 1.0 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.5) * 0.5, 1.0) / 0.75;
 
 	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 10000));
 }
 
-vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist) {
+vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality) {
 	const float INCR = 0.05;
 
 	float mind = (CLOUD_HEIGHT_MIN - cam_pos.z) / dir.z;
@@ -158,9 +158,9 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist) {
 	float start = max(min(mind, maxd), 0.0);
 	float delta = abs(mind - maxd);
 
-	float incr = min(INCR + start / 100000.0, INCR * 2.0);
+	float incr = min(INCR + start / 100000.0, INCR * 2.0) / quality;
 
-	float fuzz = texture(t_noise, dir.xy * 1000000.0).x * 1.75 * incr * delta;
+	float fuzz = texture(t_noise, dir.xy * 100000.0).x * 1.75 * incr * delta;
 
 	if (delta <= 0.0) {
 		return vec4(0);
@@ -191,7 +191,7 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist) {
 	return vec4(vec3(cloud_shade), 1.0 - passthrough / (1.0 + delta * 0.0003));
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, bool with_stars) {
+vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, float quality, bool with_stars) {
 	// Sky color
 	vec3 sun_dir = get_sun_dir(time_of_day);
 	vec3 moon_dir = get_moon_dir(time_of_day);
@@ -267,8 +267,8 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, bool with_stars) {
 	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(clamp(dir.z * 3.0, 0, 1)));
 
 	// Clouds
-	vec4 clouds = get_cloud_color(dir, time_of_day, distance(cam_pos.xyz, f_pos));
-	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo + get_moon_color(moon_dir));
+	vec4 clouds = get_cloud_color(dir, time_of_day, distance(cam_pos.xyz, f_pos), quality);
+	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 2.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 2.5 + get_moon_color(moon_dir));
 
 	return mix(sky_color + sun_light + moon_light, clouds.rgb, clouds.a);
 }
