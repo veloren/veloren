@@ -13,5 +13,5 @@ uniform u_locals {
 out vec4 tgt_color;
 
 void main() {
-	tgt_color = vec4(get_sky_color(normalize(f_pos), time_of_day.x, vec3(100000), true), 1.0);
+	tgt_color = vec4(get_sky_color(normalize(f_pos), time_of_day.x, vec3(-100000), true), 1.0);
 }

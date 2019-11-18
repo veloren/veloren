@@ -18,6 +18,5 @@ void main() {
 	gl_Position =
 		proj_mat *
 		view_mat *
-		vec4(v_pos + cam_pos.xyz, 1);
-	gl_Position.z = 0.0;
+		vec4(v_pos * 2000.0 + cam_pos.xyz, 1);
 }

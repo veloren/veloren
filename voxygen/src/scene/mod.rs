@@ -293,7 +293,7 @@ impl Scene {
 
     /// Render the scene using the provided `Renderer`.
     pub fn render(&mut self, renderer: &mut Renderer, client: &mut Client) {
-        // Render the skybox first (it appears over everything else so must be rendered first).
+        // Render the skybox.
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         // Render terrain and figures.
