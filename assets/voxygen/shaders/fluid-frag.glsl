@@ -114,21 +114,21 @@ void main() {
 	vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-    vec3 fog_color = vec3(0);
-	if (fog_level > 0.0)
-		fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, f_pos, 0.25, true);
+	vec4 clouds;
+    vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, f_pos, 0.25, true, clouds);
 
 	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
 
-	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, vec3(-100000), 0.5, false) * f_light;
+	vec4 _clouds;
+	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, vec3(-100000), 0.5, false, _clouds) * f_light;
 	// Tint
 	reflect_color = mix(reflect_color, surf_color, 0.6);
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
 
-	vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 4.0 / (4.0 + diffuse_light * 1.0)), passthrough);
+	vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 1.0 / (1.0 + diffuse_light * 0.25)), passthrough);
 
-    tgt_color = mix(color, vec4(fog_color, 0.0), fog_level);
+    tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
 }
