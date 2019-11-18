@@ -12,7 +12,7 @@ const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
-const vec3 SKY_DUSK_BOT = vec3(0.0, 0.3, 0.13);
+const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
 const vec3 DUSK_LIGHT   = vec3(3.0, 1.5, 0.3);
 const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.0);
 
@@ -119,7 +119,7 @@ const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 50.0;
 const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 50.0;
 const float CLOUD_THRESHOLD = 0.3;
 const float CLOUD_SCALE = 1.0;
-const float CLOUD_DENSITY = 150.0;
+const float CLOUD_DENSITY = 100.0;
 
 float spow(float x, float e) {
 	return sign(x) * pow(abs(x), e);
@@ -190,7 +190,7 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality)
 
 	float total_density = 1.0 - passthrough / (1.0 + min(delta, max_dist) * 0.0003);
 
-	total_density *= min(max_dist * 0.02, 1.0); // Hack
+	total_density = max(total_density - 10.0 / max_dist, 0.0); // Hack
 
 	return vec4(vec3(cloud_shade), total_density);
 }
