@@ -6,19 +6,19 @@ const float PI = 3.141592;
 
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.08, 0.8);
-const vec3 SKY_DAY_BOT = vec3(0.02, 0.1, 0.3);
+const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
 const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0);
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
-const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.13);
+const vec3 SKY_DUSK_BOT = vec3(0.0, 0.3, 0.13);
 const vec3 DUSK_LIGHT   = vec3(3.0, 1.5, 0.3);
 const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.0);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
-const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.002, 0.005);
+const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.004, 0.004);
 const vec3 NIGHT_LIGHT   = vec3(0.002, 0.01, 0.03);
 
 vec3 get_sun_dir(float time_of_day) {
@@ -58,7 +58,7 @@ vec3 get_sun_color(vec3 sun_dir) {
 }
 
 vec3 get_moon_color(vec3 moon_dir) {
-	return vec3(0.15, 0.15, 1.5);
+	return vec3(0.05, 0.05, 0.6);
 }
 
 void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion) {
@@ -143,11 +143,13 @@ vec2 cloud_at(vec3 pos) {
 		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.02 - tick.x * 0.03).x * 0.03
 	) / 2.85;
 
-	float density = min(max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 500.0, 0.0) * CLOUD_DENSITY, 3.0);
+	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 500.0, 0.0) * CLOUD_DENSITY;
+
+	//density = min(density, 3.0);
 
 	float shade = 1.0 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.15) * 0.5, 1.0) / 0.6;
 
-	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 2500));
+	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 3000));
 }
 
 vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality) {
@@ -181,7 +183,7 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality)
 		}
 
 		float integral = sample.y * incr * factor;
-		passthrough *= clamp(1.0 - integral, 0.0, 1.0);
+		passthrough *= 1.0 - integral;
 		cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
 
 		if (factor < 1.0) {
@@ -189,7 +191,11 @@ vec4 get_cloud_color(vec3 dir, float time_of_day, float max_dist, float quality)
 		}
 	}
 
-	return vec4(vec3(cloud_shade), 1.0 - passthrough / (1.0 + min(delta, max_dist) * 0.0003));
+	float total_density = 1.0 - passthrough / (1.0 + min(delta, max_dist) * 0.0003);
+
+	total_density *= min(max_dist * 0.01, 1.0); // Hack
+
+	return vec4(vec3(cloud_shade), total_density);
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, float quality, bool with_stars, out vec4 clouds) {
