@@ -119,7 +119,7 @@ void main() {
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
 
-	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, false) * f_light;
+	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, vec3(-100000), false) * f_light;
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
 
