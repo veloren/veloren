@@ -14,7 +14,7 @@ const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.13);
 const vec3 DUSK_LIGHT   = vec3(3.0, 1.5, 0.3);
-const vec3 SUN_HALO_DUSK = vec3(0.6, 0.1, 0.0);
+const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.0);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
@@ -115,8 +115,8 @@ float is_star_at(vec3 dir) {
 }
 
 const float CLOUD_AVG_HEIGHT = 1125.0;
-const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 100.0;
-const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 100.0;
+const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 60.0;
+const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 60.0;
 const float CLOUD_THRESHOLD = 0.3;
 const float CLOUD_SCALE = 1.0;
 const float CLOUD_DENSITY = 100.0;
@@ -144,7 +144,7 @@ vec2 cloud_at(vec3 pos) {
 
 	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 800.0, 0.0) * CLOUD_DENSITY;
 
-	float shade = 1.0 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.5) * 0.5, 1.0) / 0.75;
+	float shade = 1.0 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.5) * 0.5, 1.0) / 0.8;
 
 	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 10000));
 }
@@ -211,10 +211,9 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, float quality, bool 
 
 	// Moon
 	const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
+	const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05);
 
-	vec3 moon_halo_color = vec3(0.015, 0.015, 0.03);
-
-	vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * moon_halo_color;
+	vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * MOON_HALO_COLOR;
 	vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
 	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(clamp(dir.z * 3.0, 0, 1)));
 
@@ -265,7 +264,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, float quality, bool 
 
 	// Clouds
 	clouds = get_cloud_color(dir, time_of_day, f_dist, quality);
-	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 2.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 20.5 + get_moon_color(moon_dir));
+	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 2.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 80.0 + get_moon_color(moon_dir));
 
 	if (f_dist > 5000.0) {
 		sky_color += sun_light + moon_light;
