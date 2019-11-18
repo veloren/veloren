@@ -267,7 +267,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 f_pos, float quality, bool 
 	vec4 clouds = get_cloud_color(dir, time_of_day, f_dist, quality);
 	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 2.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 20.5 + get_moon_color(moon_dir));
 
-	if (f_dist > 1000.0) {
+	if (f_dist > 5000.0) {
 		sky_color += sun_light + moon_light;
 	}
 
