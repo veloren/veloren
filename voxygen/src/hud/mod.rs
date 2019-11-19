@@ -119,6 +119,8 @@ widget_ids! {
         loaded_distance,
         time,
         entity_count,
+        num_chunks,
+        num_figures,
 
         // Game Version
         version,
@@ -172,6 +174,10 @@ pub struct DebugInfo {
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
     pub velocity: Option<comp::Vel>,
+    pub num_chunks: u32,
+    pub num_visible_chunks: u32,
+    pub num_figures: u32,
+    pub num_figures_visible: u32,
 }
 
 pub enum Event {
@@ -979,6 +985,7 @@ impl Hud {
             .font_id(self.fonts.cyri)
             .font_size(14)
             .set(self.ids.time, ui_widgets);
+
             // Number of entities
             let entity_count = client.state().ecs().entities().join().count();
             Text::new(&format!("Entity count: {}", entity_count))
@@ -987,11 +994,33 @@ impl Hud {
                 .font_id(self.fonts.cyri)
                 .font_size(14)
                 .set(self.ids.entity_count, ui_widgets);
+            
+            // Number of chunks
+            Text::new(&format!(
+                "Chunks: {} ({} visible)",
+                debug_info.num_chunks, debug_info.num_visible_chunks,
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.entity_count, 5.0)
+            .font_id(self.fonts.cyri)
+            .font_size(14)
+            .set(self.ids.num_chunks, ui_widgets);
+
+            // Number of figures
+            Text::new(&format!(
+                "Figures: {} ({} visible)",
+                debug_info.num_figures, debug_info.num_figures_visible,
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.num_chunks, 5.0)
+            .font_id(self.fonts.cyri)
+            .font_size(14)
+            .set(self.ids.num_figures, ui_widgets);
 
             // Help Window
             Text::new("Press 'F1' to show Keybindings")
                 .color(TEXT_COLOR)
-                .down_from(self.ids.entity_count, 5.0)
+                .down_from(self.ids.num_figures, 5.0)
                 .font_id(self.fonts.cyri)
                 .font_size(14)
                 .set(self.ids.help_info, ui_widgets);
