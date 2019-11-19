@@ -1064,7 +1064,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "frustum_culling"
 version = "0.1.0"
-source = "git+https://gitlab.com/yusdacra/frustum_culling#735aef658c7e5eb0c4d543cacbea2f3e06216438"
+source = "git+https://gitlab.com/yusdacra/frustum_culling#7145dbee5eadf4df0cbe5aeda856a0967f47ace4"
 
 [[package]]
 name = "fsevent"
