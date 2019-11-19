@@ -55,7 +55,7 @@ directories = "2.0.2"
 num = "0.2.0"
 backtrace = "0.3.40"
 rand = "0.7.2"
-frustum_query = "0.1.2"
+frustum_query = { git = "https://github.com/yusdacra/frustum_query" }
 # context for pinning to commit: https://gitlab.com/veloren/veloren/issues/280
 rodio = { git = "https://github.com/RustAudio/rodio", rev = "e5474a2"}
 cpal = "0.10"

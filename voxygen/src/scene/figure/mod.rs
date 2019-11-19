@@ -43,6 +43,8 @@ pub struct FigureMgr {
     fish_small_states: HashMap<EcsEntity, FigureState<FishSmallSkeleton>>,
     biped_large_states: HashMap<EcsEntity, FigureState<BipedLargeSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
+    figure_count: usize,
+    visible_figure_count: usize,
 }
 
 impl FigureMgr {
@@ -59,6 +61,8 @@ impl FigureMgr {
             fish_small_states: HashMap::new(),
             biped_large_states: HashMap::new(),
             object_states: HashMap::new(),
+            figure_count: 0,
+            visible_figure_count: 0,
         }
     }
 
@@ -78,6 +82,8 @@ impl FigureMgr {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
+        self.figure_count = 0;
+
         for (entity, pos, ori, scale, body, character, last_character, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -90,6 +96,7 @@ impl FigureMgr {
         )
             .join()
         {
+            self.figure_count += 1;
             // Don't process figures outside the vd
             let vd_frac = Vec2::from(pos.0 - player_pos)
                 .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
@@ -823,6 +830,8 @@ impl FigureMgr {
             .read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(client.entity());
 
+        self.visible_figure_count = 0;
+
         for (entity, _, _, body, stats, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -835,15 +844,14 @@ impl FigureMgr {
             // Don't render figures outside of frustum (camera viewport, max draw distance is farplane)
             .filter(|(_, pos, _, _, _, scale)| {
                 frustum.sphere_intersecting(
-                    &pos.0.x,
-                    &pos.0.y,
-                    &pos.0.z,
-                    &(scale.unwrap_or(&Scale(1.0)).0 * 2.0),
+                    pos.0.into_array(),
+                    scale.unwrap_or(&Scale(1.0)).0 * 2.0,
                 )
             })
             // Don't render dead entities
             .filter(|(_, _, _, _, stats, _)| stats.map_or(true, |s| !s.is_dead))
         {
+            self.visible_figure_count += 1;
             if let Some((locals, bone_consts)) = match body {
                 Body::Humanoid(_) => self
                     .character_states
@@ -911,6 +919,14 @@ impl FigureMgr {
                 trace!("Body has no saved figure");
             }
         }
+    }
+
+    pub fn figure_count(&self) -> usize {
+        self.figure_count
+    }
+
+    pub fn figure_count_visible(&self) -> usize {
+        self.visible_figure_count
     }
 }
 

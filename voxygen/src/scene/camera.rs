@@ -103,10 +103,7 @@ impl Camera {
     pub fn frustum(&self, client: &Client) -> Frustum {
         let (view_mat, proj_mat, _) = self.compute_dependents(client);
 
-        Frustum::from_modelview_and_projection(
-            &view_mat.into_col_array(),
-            &proj_mat.into_col_array(),
-        )
+        Frustum::from_modelview_projection((proj_mat * view_mat).into_col_arrays())
     }
 
     /// Rotate the camera about its focus by the given delta, limiting the input accordingly.
