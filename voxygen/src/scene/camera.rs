@@ -1,6 +1,6 @@
 use client::Client;
 use common::vol::{ReadVol, Vox};
-use frustum_query::frustum::Frustum;
+use frustum_culling::Frustum;
 use std::f32::consts::PI;
 use vek::*;
 
