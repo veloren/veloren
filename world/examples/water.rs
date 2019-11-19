@@ -26,6 +26,8 @@ fn main() {
     let light_direction = Vec3::new(-0.8, -1.0, 0.3).normalized();
     let light_res = 3;
 
+    let mut is_basement = false;
+
     while win.is_open() {
         let mut buf = vec![0; W * H];
         const QUADRANTS: usize = 4;
@@ -34,6 +36,8 @@ fn main() {
         let mut lakes = 0u32;
         let mut oceans = 0u32;
 
+        // let water_light = (light_direction.z + 1.0) / 2.0 * 0.8 + 0.2;
+
         for i in 0..W {
             for j in 0..H {
                 let pos = focus + Vec2::new(i as i32, j as i32) * scale;
@@ -41,11 +45,12 @@ fn main() {
                 let top_right = focus + Vec2::new(i as i32 + light_res, j as i32) * scale;
                 let bottom_left = focus + Vec2::new(i as i32, j as i32 + light_res) * scale; */
 
-                let (alt, water_alt, humidity, temperature, downhill, river_kind) = sampler
+                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind) = sampler
                     .get(pos)
                     .map(|sample| {
                         (
                             sample.alt,
+                            sample.basement,
                             sample.water_alt,
                             sample.humidity,
                             sample.temp,
@@ -53,7 +58,7 @@ fn main() {
                             sample.river.river_kind,
                         )
                     })
-                    .unwrap_or((CONFIG.sea_level, CONFIG.sea_level, 0.0, 0.0, None, None));
+                    .unwrap_or((CONFIG.sea_level, CONFIG.sea_level, CONFIG.sea_level, 0.0, 0.0, None, None));
                 let humidity = humidity.min(1.0).max(0.0);
                 let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
                 let downhill_pos = (downhill
@@ -63,8 +68,9 @@ fn main() {
                     + pos;
                 let downhill_alt = sampler
                     .get(downhill_pos)
-                    .map(|s| s.alt)
+                    .map(|s| if is_basement { s.basement } else { s.alt })
                     .unwrap_or(CONFIG.sea_level);
+                let alt = if is_basement { basement } else { alt };
                 /* let alt_tl = sampler.get(top_left).map(|s| s.alt)
                     .unwrap_or(CONFIG.sea_level);
                 let alt_tr = sampler.get(top_right).map(|s| s.alt)
@@ -78,7 +84,7 @@ fn main() {
                         .map(|e| e as i32));
                 let cross_alt = sampler
                     .get(cross_pos)
-                    .map(|s| s.alt)
+                    .map(|s| if is_basement { s.basement } else { s.alt })
                     .unwrap_or(CONFIG.sea_level);
                 let forward_vec = Vec3::new(
                     (downhill_pos.x - pos.x) as f64,
@@ -98,7 +104,11 @@ fn main() {
                 let water_alt = ((alt.max(water_alt) - CONFIG.sea_level) as f64 / gain as f64)
                     .min(1.0)
                     .max(0.0);
-                let alt = ((alt - CONFIG.sea_level) as f64 / gain as f64)
+                let true_alt = (alt - CONFIG.sea_level) as f64 / gain as f64;
+                let water_depth = (water_alt - true_alt)
+                    .min(1.0)
+                    .max(0.0);
+                let alt = true_alt
                     .min(1.0)
                     .max(0.0);
                 let quad =
@@ -120,10 +130,15 @@ fn main() {
                 }
 
                 buf[j * W + i] = match river_kind {
-                    Some(RiverKind::Ocean) => u32::from_le_bytes([64, 32, 0, 255]),
+                    Some(RiverKind::Ocean) => u32::from_le_bytes([
+                        ((64.0 - water_depth * 64.0) * 1.0) as u8,
+                        ((32.0 - water_depth * 32.0) * 1.0) as u8,
+                        0,
+                        255,
+                    ]),
                     Some(RiverKind::Lake { .. }) => u32::from_le_bytes([
-                        64 + (water_alt * 191.0) as u8,
-                        32 + (water_alt * 95.0) as u8,
+                        (((64.0 + water_alt * 191.0) + (- water_depth * 64.0)) * 1.0) as u8,
+                        (((32.0 + water_alt * 95.0) + (- water_depth * 32.0)) * 1.0) as u8,
                         0,
                         255,
                     ]),
@@ -182,6 +197,9 @@ fn main() {
                     pos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e * f as i32)
                 );
             }
+        }
+        if win.is_key_down(minifb::Key::B) {
+            is_basement ^= true;
         }
         if win.is_key_down(minifb::Key::W) {
             focus.y -= spd * scale;
