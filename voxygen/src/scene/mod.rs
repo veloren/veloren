@@ -301,7 +301,7 @@ impl Scene {
         );
 
         // Maintain the figures.
-        self.figure_mgr.maintain(renderer, client);
+        self.figure_mgr.maintain(renderer, client, &self.camera);
 
         // Remove unused figures.
         self.figure_mgr.clean(client.get_tick());
