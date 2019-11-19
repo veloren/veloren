@@ -82,7 +82,7 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 	light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 	diffuse_light =
 		sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.6 + 0.4, 0.0), diffusion) +
-		moon_chroma * mix(1.0, pow(max(dot(-norm, moon_dir), 0.0), 2.0), diffusion) +
+		moon_chroma * mix(1.0, pow(max(dot(-norm, moon_dir) * 2.0, 0.0), 2.0), diffusion) +
 		PERSISTENT_AMBIANCE;
 	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light);
 }
