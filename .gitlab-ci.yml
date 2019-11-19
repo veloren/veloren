@@ -11,16 +11,13 @@ stages:
     - post
 
 before_script:
-    - date
     - source $HOME/.cargo/env
-    - df -h
+    - df -h /
     - free -h
-    - gcc -v
     - cargo --version
     - export DISABLE_GIT_LFS_CHECK=true
     - rm -r target || echo "target doesnt exist, which is fine"
     - ln -s /dockercache/veloren/target target
-    - date
 
 # -- optional build
 
