@@ -142,6 +142,16 @@ unittests:
         - echo "Workaround, cargo tests fails due some rust files are already deleted, so we just stack cargo test. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
         - cargo test || cargo test || cargo test || cargo test
 
+coverage:
+    stage: post
+    when: delayed
+    start_in: 5 seconds
+    tags:
+        - veloren-docker
+    script:
+        - cargo tarpaulin -v
+    allow_failure: true
+
 benchmarks:
     stage: post
     when: delayed
