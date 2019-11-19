@@ -907,7 +907,7 @@ impl WorldSim {
             rng,
         };
 
-        // this.seed_elements();
+        this.seed_elements();
 
         this
     }
