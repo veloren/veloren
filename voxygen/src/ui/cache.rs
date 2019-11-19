@@ -1,6 +1,6 @@
 use super::graphic::{Graphic, GraphicCache, Id as GraphicId};
 use crate::{
-    render::{Renderer, Texture, UiPipeline},
+    render::{Renderer, Texture},
     Error,
 };
 use conrod_core::text::GlyphCache;

@@ -99,7 +99,7 @@ void main() {
 		0.1 / slope
 	);
 
-	nmap = mix(vec3(0, 0, 1), normalize(nmap), clamp(2.0 / pow(frag_dist, 0.5), 0, 1));
+	nmap = mix(vec3(0, 0, 1), normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
 
 	vec3 norm = f_norm * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
 
