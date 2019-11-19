@@ -115,14 +115,14 @@ void main() {
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
-    vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, f_pos, 0.25, true, clouds);
+    vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 0.25, true, clouds);
 
 	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
 
 	vec4 _clouds;
-	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, vec3(-100000), 0.5, false, _clouds) * f_light;
+	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
 	// Tint
 	reflect_color = mix(reflect_color, surf_color, 0.6);
 	// 0 = 100% reflection, 1 = translucent water
