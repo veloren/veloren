@@ -31,7 +31,7 @@ gfx_defines! {
         noise: gfx::TextureSampler<f32> = "t_noise",
 
         tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::PASS_TEST,
+        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }
 }
 

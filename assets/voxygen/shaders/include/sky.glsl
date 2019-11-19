@@ -146,7 +146,8 @@ vec2 cloud_at(vec3 pos) {
 }
 
 vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, float quality) {
-	const float INCR = 0.07;
+
+	const float INCR = 0.06;
 
 	float mind = (CLOUD_HEIGHT_MIN - origin.z) / dir.z;
 	float maxd = (CLOUD_HEIGHT_MAX - origin.z) / dir.z;
