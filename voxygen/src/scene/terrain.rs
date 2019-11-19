@@ -16,7 +16,7 @@ use common::{
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
-use frustum_query::frustum::Frustum;
+use frustum_query::Frustum;
 use hashbrown::{hash_map::Entry, HashMap};
 use std::{f32, fmt::Debug, i32, marker::PhantomData, ops::Mul, time::Duration};
 use vek::*;
@@ -31,6 +31,7 @@ struct TerrainChunkData {
 
     visible: bool,
     z_bounds: (f32, f32),
+    frustum_last_plane_index: u8,
 }
 
 struct ChunkMeshState {
@@ -1021,6 +1022,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 .expect("Failed to upload chunk locals to the GPU!"),
                             visible: false,
                             z_bounds: response.z_bounds,
+                            frustum_last_plane_index: 0,
                         },
                     );
 
@@ -1060,8 +1062,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                 chunk.z_bounds.1,
             ];
 
-            let in_frustum = frustum.aabb_intersecting(chunk_min, chunk_max);
+            let (in_frustum, last_plane_index) = frustum.test_aabb_coherence(chunk_min, chunk_max, chunk.frustum_last_plane_index);
 
+            chunk.frustum_last_plane_index = last_plane_index;
             chunk.visible = in_frustum;
         }
     }

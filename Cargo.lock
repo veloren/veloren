@@ -1062,9 +1062,9 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "frustum_query"
-version = "0.1.2"
-source = "git+https://github.com/yusdacra/frustum_query#866b36607a3a80356f0fc7a1cb29c2c59a70fdab"
+name = "frustum_culling"
+version = "0.1.0"
+source = "git+https://gitlab.com/yusdacra/frustum_culling#735aef658c7e5eb0c4d543cacbea2f3e06216438"
 
 [[package]]
 name = "fsevent"
@@ -3549,8 +3549,8 @@ dependencies = [
  "dot_vox 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "euc 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "fern 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "frustum_query 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fern 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)", 
+ "frustum_culling 0.1.0 (git+https://gitlab.com/yusdacra/frustum_culling)",
  "gfx 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx_device_gl 0.16.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx_window_glutin 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3981,7 +3981,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)" = "2fad85553e09a6f881f739c29f0b00b0f01357c743266d478b68951ce23285f3"
 "checksum foreign-types 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f6f339eb8adc052cd2ca78910fda869aefa38d22d5cb648e6485e4d3fc06f3b1"
 "checksum foreign-types-shared 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
-"checksum frustum_query 0.1.2 (git+https://github.com/yusdacra/frustum_query)" = "<none>"
+"checksum frustum_culling 0.1.0 (git+https://gitlab.com/yusdacra/frustum_culling)" = "<none>"
 "checksum fsevent 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5ab7d1bd1bd33cc98b0889831b72da23c0aa4df9cec7e0702f46ecea04b35db6"
 "checksum fsevent-sys 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f41b048a94555da0f42f1d632e2e19510084fb8e303b0daa2816e733fb3644a0"
 "checksum fuchsia-cprng 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
