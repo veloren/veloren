@@ -1,9 +1,10 @@
 use super::WORLD_SIZE;
 use bitvec::prelude::{bitbox, bitvec, BitBox};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use noise::{MultiFractal, NoiseFn, Perlin, Point2, Point3, Point4, Seedable};
 use num::Float;
 use rayon::prelude::*;
-use std::{f32, f64, u32};
+use std::{f32, f64, ops::Mul, u32};
 use vek::*;
 
 /// Calculates the smallest distance along an axis (x, y) from an edge of
@@ -301,3 +302,392 @@ pub fn get_oceans(oldh: impl Fn(usize) -> f32 + Sync) -> BitBox {
     }
     is_ocean
 }
+
+/// A 2-dimensional vector, for internal use.
+type Vector2<T> = [T; 2];
+/// A 3-dimensional vector, for internal use.
+type Vector3<T> = [T; 3];
+/// A 4-dimensional vector, for internal use.
+type Vector4<T> = [T; 4];
+
+#[inline]
+fn zip_with2<T, U, V, F>(a: Vector2<T>, b: Vector2<U>, f: F) -> Vector2<V>
+where
+    T: Copy,
+    U: Copy,
+    F: Fn(T, U) -> V,
+{
+    let (ax, ay) = (a[0], a[1]);
+    let (bx, by) = (b[0], b[1]);
+    [f(ax, bx), f(ay, by)]
+}
+
+#[inline]
+fn zip_with3<T, U, V, F>(a: Vector3<T>, b: Vector3<U>, f: F) -> Vector3<V>
+where
+    T: Copy,
+    U: Copy,
+    F: Fn(T, U) -> V,
+{
+    let (ax, ay, az) = (a[0], a[1], a[2]);
+    let (bx, by, bz) = (b[0], b[1], b[2]);
+    [f(ax, bx), f(ay, by), f(az, bz)]
+}
+
+#[inline]
+fn zip_with4<T, U, V, F>(a: Vector4<T>, b: Vector4<U>, f: F) -> Vector4<V>
+where
+    T: Copy,
+    U: Copy,
+    F: Fn(T, U) -> V,
+{
+    let (ax, ay, az, aw) = (a[0], a[1], a[2], a[3]);
+    let (bx, by, bz, bw) = (b[0], b[1], b[2], b[3]);
+    [f(ax, bx), f(ay, by), f(az, bz), f(aw, bw)]
+}
+
+#[inline]
+fn mul2<T>(a: Vector2<T>, b: T) -> Vector2<T>
+where
+    T: Copy + Mul<T, Output = T>,
+{
+    zip_with2(a, const2(b), Mul::mul)
+}
+
+#[inline]
+fn mul3<T>(a: Vector3<T>, b: T) -> Vector3<T>
+where
+    T: Copy + Mul<T, Output = T>,
+{
+    zip_with3(a, const3(b), Mul::mul)
+}
+
+#[inline]
+fn mul4<T>(a: Vector4<T>, b: T) -> Vector4<T>
+where
+    T: Copy + Mul<T, Output = T>,
+{
+    zip_with4(a, const4(b), Mul::mul)
+}
+
+#[inline]
+fn const2<T: Copy>(x: T) -> Vector2<T> {
+    [x, x]
+}
+
+#[inline]
+fn const3<T: Copy>(x: T) -> Vector3<T> {
+    [x, x, x]
+}
+
+#[inline]
+fn const4<T: Copy>(x: T) -> Vector4<T> {
+    [x, x, x, x]
+}
+
+fn build_sources(seed: u32, octaves: usize) -> Vec<Perlin> {
+    let mut sources = Vec::with_capacity(octaves);
+    for x in 0..octaves {
+        sources.push(Perlin::new().set_seed(seed + x as u32));
+    }
+    sources
+}
+
+/// Noise function that outputs hybrid Multifractal noise.
+///
+/// The result of this multifractal noise is that valleys in the noise should
+/// have smooth bottoms at all altitudes.
+#[derive(Clone, Debug)]
+pub struct HybridMulti {
+    /// Total number of frequency octaves to generate the noise with.
+    ///
+    /// The number of octaves control the _amount of detail_ in the noise
+    /// function. Adding more octaves increases the detail, with the drawback
+    /// of increasing the calculation time.
+    pub octaves: usize,
+
+    /// The number of cycles per unit length that the noise function outputs.
+    pub frequency: f64,
+
+    /// A multiplier that determines how quickly the frequency increases for
+    /// each successive octave in the noise function.
+    ///
+    /// The frequency of each successive octave is equal to the product of the
+    /// previous octave's frequency and the lacunarity value.
+    ///
+    /// A lacunarity of 2.0 results in the frequency doubling every octave. For
+    /// almost all cases, 2.0 is a good value to use.
+    pub lacunarity: f64,
+
+    /// A multiplier that determines how quickly the amplitudes diminish for
+    /// each successive octave in the noise function.
+    ///
+    /// The amplitude of each successive octave is equal to the product of the
+    /// previous octave's amplitude and the persistence value. Increasing the
+    /// persistence produces "rougher" noise.
+    ///
+    /// H = 1.0 - fractal increment = -ln(persistence) / ln(lacunarity).  For
+    /// a fractal increment between 0 (inclusive) and 1 (exclusive), keep
+    /// persistence between 1 / lacunarity (inclusive, for low fractal
+    /// dimension) and 1 (exclusive, for high fractal dimension).
+    pub persistence: f64,
+
+    /// An offset that is added to the output of each sample of the underlying
+    /// Perlin noise function.  Because each successive octave is weighted in
+    /// part by the previous signal's output, increasing the offset will weight
+    /// the output more heavily towards 1.0.
+    pub offset: f64,
+
+    seed: u32,
+    sources: Vec<Perlin>,
+}
+
+impl HybridMulti {
+    pub const DEFAULT_SEED: u32 = 0;
+    pub const DEFAULT_OCTAVES: usize = 6;
+    pub const DEFAULT_FREQUENCY: f64 = 2.0;
+    pub const DEFAULT_LACUNARITY: f64 = /* std::f64::consts::PI * 2.0 / 3.0 */2.0;
+    // -ln(2^(-0.25))/ln(2) = 0.25
+    // 2^(-0.25) ~ 13/16
+    pub const DEFAULT_PERSISTENCE: f64 = /* 0.25 *//* 0.5*/ 13.0 / 16.0;
+    pub const DEFAULT_OFFSET: f64 = /* 0.25 *//* 0.5*/ 0.7;
+    pub const MAX_OCTAVES: usize = 32;
+
+    pub fn new() -> Self {
+        Self {
+            seed: Self::DEFAULT_SEED,
+            octaves: Self::DEFAULT_OCTAVES,
+            frequency: Self::DEFAULT_FREQUENCY,
+            lacunarity: Self::DEFAULT_LACUNARITY,
+            persistence: Self::DEFAULT_PERSISTENCE,
+            offset: Self::DEFAULT_OFFSET,
+            sources: build_sources(Self::DEFAULT_SEED, Self::DEFAULT_OCTAVES),
+        }
+    }
+
+    pub fn set_offset(self, offset: f64) -> Self {
+        Self { offset, ..self }
+    }
+}
+
+impl Default for HybridMulti {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl MultiFractal for HybridMulti {
+    fn set_octaves(self, mut octaves: usize) -> Self {
+        if self.octaves == octaves {
+            return self;
+        }
+
+        octaves = octaves.max(1).min(Self::MAX_OCTAVES);
+        Self {
+            octaves,
+            sources: build_sources(self.seed, octaves),
+            ..self
+        }
+    }
+
+    fn set_frequency(self, frequency: f64) -> Self {
+        Self { frequency, ..self }
+    }
+
+    fn set_lacunarity(self, lacunarity: f64) -> Self {
+        Self { lacunarity, ..self }
+    }
+
+    fn set_persistence(self, persistence: f64) -> Self {
+        Self {
+            persistence,
+            ..self
+        }
+    }
+}
+
+impl Seedable for HybridMulti {
+    fn set_seed(self, seed: u32) -> Self {
+        if self.seed == seed {
+            return self;
+        }
+
+        Self {
+            seed,
+            sources: build_sources(seed, self.octaves),
+            ..self
+        }
+    }
+
+    fn seed(&self) -> u32 {
+        self.seed
+    }
+}
+
+/// 2-dimensional `HybridMulti` noise
+impl NoiseFn<Point2<f64>> for HybridMulti {
+    fn get(&self, mut point: Point2<f64>) -> f64 {
+        // First unscaled octave of function; later octaves are scaled.
+        point = mul2(point, self.frequency);
+        // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
+        let bias = 1.0;
+        let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
+        let mut scale = self.persistence;
+        let mut weight = result;
+
+        // Spectral construction inner loop, where the fractal is built.
+        for x in 1..self.octaves {
+            // Prevent divergence.
+            weight = weight.min(1.0);
+
+            // Raise the spatial frequency.
+            point = mul2(point, self.lacunarity);
+
+            // Get noise value, and scale it to the [offset - 1.0, 1.0 + offset] range.
+            let mut signal = (self.sources[x].get(point) + self.offset) * bias;
+
+            // Scale the amplitude appropriately for this frequency.
+            let exp_scale = self.persistence.powi(x as i32);
+            signal *= exp_scale;
+
+            // Add it in, weighted by previous octave's noise value.
+            result += weight * signal;
+
+            // Update the weighting value.
+            weight *= signal;
+            scale += exp_scale;
+        }
+
+        // Scale the result to the [-1,1] range
+        (result / scale) / bias - self.offset
+    }
+}
+
+/// 3-dimensional `HybridMulti` noise
+impl NoiseFn<Point3<f64>> for HybridMulti {
+    fn get(&self, mut point: Point3<f64>) -> f64 {
+        // First unscaled octave of function; later octaves are scaled.
+        point = mul3(point, self.frequency);
+        // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
+        let bias = 1.0;
+        let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
+        let mut scale = self.persistence;
+        let mut weight = result;
+
+        // Spectral construction inner loop, where the fractal is built.
+        for x in 1..self.octaves {
+            // Prevent divergence.
+            weight = weight.min(1.0);
+
+            // Raise the spatial frequency.
+            point = mul3(point, self.lacunarity);
+
+            // Get noise value, and scale it to the [0, 1.0] range.
+            let mut signal = (self.sources[x].get(point) + self.offset) * bias;
+
+            // Scale the amplitude appropriately for this frequency.
+            let exp_scale = self.persistence.powi(x as i32);
+            signal *= exp_scale;
+
+            // Add it in, weighted by previous octave's noise value.
+            result += weight * signal;
+
+            // Update the weighting value.
+            weight *= signal;
+            scale += exp_scale;
+        }
+
+        // Scale the result to the [-1,1] range
+        (result / scale) / bias - self.offset
+    }
+}
+
+/// 4-dimensional `HybridMulti` noise
+impl NoiseFn<Point4<f64>> for HybridMulti {
+    fn get(&self, mut point: Point4<f64>) -> f64 {
+        // First unscaled octave of function; later octaves are scaled.
+        point = mul4(point, self.frequency);
+        // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
+        let bias = 1.0;
+        let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
+        let mut exp_scale = self.persistence;
+        let mut scale = self.persistence;
+        let mut weight = result;
+
+        // Spectral construction inner loop, where the fractal is built.
+        for x in 1..self.octaves {
+            // Prevent divergence.
+            weight = weight.min(1.0);
+
+            // Raise the spatial frequency.
+            point = mul4(point, self.lacunarity);
+
+            // Get noise value, and scale it to the [0, 1.0] range.
+            let mut signal = (self.sources[x].get(point) + self.offset) * bias;
+
+            // Scale the amplitude appropriately for this frequency.
+            exp_scale *= self.persistence;
+            signal *= exp_scale;
+
+            // Add it in, weighted by previous octave's noise value.
+            result += weight * signal;
+
+            // Update the weighting value.
+            weight *= signal;
+            scale += exp_scale;
+        }
+
+        // Scale the result to the [-1,1] range
+        (result / scale) / bias - self.offset
+    }
+}
+
+/// Noise function that applies a scaling factor and a bias to the output value
+/// from the source function.
+///
+/// The function retrieves the output value from the source function, multiplies
+/// it with the scaling factor, adds the bias to it, then outputs the value.
+pub struct ScaleBias<'a, F: 'a> {
+    /// Outputs a value.
+    pub source: &'a F,
+
+    /// Scaling factor to apply to the output value from the source function.
+    /// The default value is 1.0.
+    pub scale: f64,
+
+    /// Bias to apply to the scaled output value from the source function.
+    /// The default value is 0.0.
+    pub bias: f64,
+}
+
+impl<'a, F> ScaleBias<'a, F> {
+    pub fn new(source: &'a F) -> Self {
+        ScaleBias {
+            source,
+            scale: 1.0,
+            bias: 0.0,
+        }
+    }
+
+    pub fn set_scale(self, scale: f64) -> Self {
+        ScaleBias { scale, ..self }
+    }
+
+    pub fn set_bias(self, bias: f64) -> Self {
+        ScaleBias { bias, ..self }
+    }
+}
+
+impl<'a, F: NoiseFn<T> + 'a, T> NoiseFn<T> for ScaleBias<'a, F> {
+    #[cfg(not(target_os = "emscripten"))]
+    fn get(&self, point: T) -> f64 {
+        (self.source.get(point)).mul_add(self.scale, self.bias)
+    }
+
+    #[cfg(target_os = "emscripten")]
+    fn get(&self, point: T) -> f64 {
+        (self.source.get(point) * self.scale) + self.bias
+    }
+}
+
+

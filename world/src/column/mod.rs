@@ -436,9 +436,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         (temp < CONFIG.snow_temp ||
          downhill_alt.sub(CONFIG.sea_level) >= CONFIG.mountain_scale * 0.25)*/
         is_rocky {
-            sim.get_interpolated_bilinear(wpos, |chunk| chunk.alt)?
+            sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
+            // sim.get_interpolated_bilinear(wpos, |chunk| chunk.alt)?
+            // sim.get_interpolated(wpos, |chunk| chunk.alt)?
         } else {
             sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
+            // sim.get_interpolated(wpos, |chunk| chunk.alt)?
         };
 
         // Find the average distance to each neighboring body of water.
@@ -580,23 +583,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .small_nz
             .get((wposf_turb.div(128.0)).into_array()) as f32)
             .mul(24.0);
-
-        let riverless_alt_delta = (sim
-            .gen_ctx
-            .small_nz
-            .get((wposf_turb.div(/*200.0*//*50.0*//*24.0*//*56.0 / (chaos as f64).max(0.05)*/50.0)).into_array()) as f32)
-            .abs()
-            .mul(3.0)
-            /* .mul(chaos.max(0.05))
-            .mul(27.0) */
-            /* + (sim
-                .gen_ctx
-                .small_nz
-                .get((wposf_turb.div(400.0)).into_array()) as f32)
-                .abs()
-                .mul((1.0 - chaos).max(0.3))
-                .mul(1.0 - humidity)
-                .mul(32.0) */;
 
         let alt_for_river = alt
             + if overlap_count == 0.0 {
@@ -817,6 +803,28 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             (false, alt_for_river, downhill_water_alt, 1.0)
         };
+
+        let riverless_alt_delta = (sim
+            .gen_ctx
+            .small_nz
+            .get((wposf_turb.div(/*200.0*/50.0/*24.0*//*56.0 / (chaos as f64).max(0.05)*//*50.0*/)).into_array()) as f32)
+            .min(1.0).max(-1.0)
+            // .mul(0.5).add(0.5)
+            .abs()
+            .mul(3.0)
+            /* .mul(chaos.max(0.05))
+            .mul(27.0)
+            + (sim
+                .gen_ctx
+                .small_nz
+                .get((wposf_turb.div(400.0)).into_array()) as f32)
+                .min(1.0).max(-1.0)
+                // .mul(0.5).add(0.5)
+                .abs()
+                .mul((1.0 - chaos).max(0.3))
+                .mul(1.0 - humidity)
+                .mul(32.0) */;
+
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt_ + riverless_alt_delta;
