@@ -176,7 +176,7 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 			vec2 sample = cloud_at(pos);
 
 			float integral = sample.y * incr;
-			passthrough *= 1.0 - integral;
+			passthrough *= max(1.0 - integral, 0.0);
 			cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
 		}
 	}
