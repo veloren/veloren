@@ -115,8 +115,8 @@ float is_star_at(vec3 dir) {
 }
 
 const float CLOUD_AVG_HEIGHT = 1025.0;
-const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 30.0;
-const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 30.0;
+const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 35.0;
+const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 35.0;
 const float CLOUD_THRESHOLD = 0.3;
 const float CLOUD_SCALE = 1.0;
 const float CLOUD_DENSITY = 100.0;
@@ -140,7 +140,7 @@ vec2 cloud_at(vec3 pos) {
 
 	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 500.0, 0.0) * CLOUD_DENSITY;
 
-	float shade = 1.0 - min(pow(max(CLOUD_AVG_HEIGHT - pos.z, 0.0), 0.15) * 0.5, 1.0) / 0.5;
+	float shade = ((pos.z - CLOUD_AVG_HEIGHT) / (CLOUD_AVG_HEIGHT - CLOUD_HEIGHT_MIN) + 0.5);
 
 	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 5000));
 }
@@ -153,17 +153,16 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 	float maxd = (CLOUD_HEIGHT_MAX - origin.z) / dir.z;
 
 	float start = max(min(mind, maxd), 0.0);
-	float delta = min(abs(mind - maxd), 5000.0);
-	delta = min(delta, max_dist);
+	float delta = min(abs(mind - maxd), max_dist);
 
 	bool do_cast = true;
 	if (mind < 0.0 && maxd < 0.0) {
 		do_cast = false;
 	}
 
-	float incr = clamp(INCR / (0.01 * delta * quality), INCR, INCR * 3.0);
+	float incr = INCR;
 
-	float fuzz = sin(texture(t_noise, dir.xz * 100000.0).x * 100.0) * 1.0 * incr * delta;
+	float fuzz = sin(texture(t_noise, dir.xz * 100000.0).x * 100.0) * incr * delta;
 
 	float cloud_shade = 1.0;
 	float passthrough = 1.0;
@@ -181,7 +180,7 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 		}
 	}
 
-	float total_density = 1.0 - passthrough / (1.0 + min(delta, max_dist) * 0.0003);
+	float total_density = 1.0 - passthrough / (1.0 + delta * 0.0001);
 
 	total_density = max(total_density - 1.0 / pow(max_dist, 0.25), 0.0); // Hack
 
