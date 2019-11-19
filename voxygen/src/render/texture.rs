@@ -1,7 +1,6 @@
 use super::{gfx_backend, RenderError};
 use gfx::{self, traits::Factory};
 use image::{DynamicImage, GenericImageView};
-use std::marker::PhantomData;
 use vek::Vec2;
 
 type DefaultShaderFormat = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);

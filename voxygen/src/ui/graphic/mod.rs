@@ -1,6 +1,6 @@
 mod renderer;
 
-use crate::render::{Renderer, Texture, UiPipeline};
+use crate::render::{Renderer, Texture};
 use dot_vox::DotVoxData;
 use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::HashMap;
