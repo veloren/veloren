@@ -990,6 +990,7 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
         let foo = || {
             // let sim_chunk = sim.get(chunk_pos)?;
             let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
+            let basement = sim.get_interpolated(wpos, |chunk| chunk.basement)?;
             let water_alt = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;
             let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
             let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
@@ -1008,6 +1009,7 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
                 r#"wpos: {:?}
 alt {:?} ({:?})
 water_alt {:?} ({:?})
+basement {:?}
 river {:?}
 downhill {:?}
 chaos {:?}
@@ -1022,6 +1024,7 @@ spawn_rate {:?} "#,
                 col.alt,
                 water_alt,
                 col.water_level,
+                basement,
                 river,
                 downhill,
                 chaos,
