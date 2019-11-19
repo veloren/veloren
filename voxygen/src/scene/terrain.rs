@@ -1035,10 +1035,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         }
 
         // Construct view frustum
-        let frustum = Frustum::from_modelview_and_projection(
-            &view_mat.into_col_array(),
-            &proj_mat.into_col_array(),
-        );
+        let frustum = Frustum::from_modelview_projection((proj_mat * view_mat).into_col_arrays());
 
         // Update chunk visibility
         let chunk_sz = V::RECT_SIZE.x as f32;
@@ -1050,26 +1047,31 @@ impl<V: RectRasterableVol> Terrain<V> {
             let in_range = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk)
                 < loaded_distance.powf(2.0);
 
-            // Ensure the chunk is within the view frustrum
-            let chunk_mid = Vec3::new(
-                chunk_pos.x + chunk_sz / 2.0,
-                chunk_pos.y + chunk_sz / 2.0,
-                (chunk.z_bounds.0 + chunk.z_bounds.1) * 0.5,
-            );
-            let chunk_radius = ((chunk.z_bounds.1 - chunk.z_bounds.0) / 2.0)
-                .max(chunk_sz / 2.0)
-                .powf(2.0)
-                .mul(2.0)
-                .sqrt();
-            let in_frustum = frustum.sphere_intersecting(
-                &chunk_mid.x,
-                &chunk_mid.y,
-                &chunk_mid.z,
-                &chunk_radius,
-            );
+            if !in_range {
+                chunk.visible = in_range;
+                continue;
+            }
 
-            chunk.visible = in_range && in_frustum;
+            // Ensure the chunk is within the view frustum
+            let chunk_min = [chunk_pos.x, chunk_pos.y, chunk.z_bounds.0];
+            let chunk_max = [
+                chunk_pos.x + chunk_sz,
+                chunk_pos.y + chunk_sz,
+                chunk.z_bounds.1,
+            ];
+
+            let in_frustum = frustum.aabb_intersecting(chunk_min, chunk_max);
+
+            chunk.visible = in_frustum;
         }
+    }
+
+    pub fn chunk_count(&self) -> usize {
+        self.chunks.len()
+    }    
+    
+    pub fn visible_chunk_count(&self) -> usize {
+        self.chunks.iter().filter(|(_, c)| c.visible).count()
     }
 
     pub fn render(
