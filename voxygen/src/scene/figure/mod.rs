@@ -843,7 +843,7 @@ impl FigureMgr {
             .join()
             // Don't render figures outside of frustum (camera viewport, max draw distance is farplane)
             .filter(|(_, pos, _, _, _, scale)| {
-                frustum.sphere_intersecting(
+                frustum.test_sphere(
                     pos.0.into_array(),
                     scale.unwrap_or(&Scale(1.0)).0 * 2.0,
                 )
