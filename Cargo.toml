@@ -1,3 +1,5 @@
+cargo-features = ["named-profiles","profile-overrides"]
+
 [workspace]
 members = [
 	"common",
@@ -9,14 +11,45 @@ members = [
 	"world",
 ]
 
+# default profile for devs, fast to compile, okay enough to run, no debug information
 [profile.dev]
 opt-level = 2
 overflow-checks = false
+debug-assertions = true
 panic = "abort"
-# debug = false
-
-[profile.release]
-# panic = "abort"
 debug = false
-codegen-units = 1
+codegen-units = 8
+lto = false
+incremental = true
+# All dependencies (but not this crate itself)
+[profile.dev.overrides."*"]
+opt-level = 3
+[profile.dev.overrides."veloren-common"]
+opt-level = 2
+[profile.dev.overrides."veloren-client"]
+opt-level = 2
+[profile.dev.overrides."veloren-chat-cli"]
+opt-level = 2
+[profile.dev.overrides."veloren-server"]
+opt-level = 2
+[profile.dev.overrides."veloren-server-cli"]
+opt-level = 2
+[profile.dev.overrides."veloren-voxygen"]
+opt-level = 2
+[profile.dev.overrides."veloren-world"]
+opt-level = 2
+
+# this profile is used by developers if dev doesn't has enough debug information, the name must != debug, as debug is used by dev because....
+[profile.debuginfo]
+inherits= 'dev'
+debug = true
+
+# this profil is used for veloren releases, compile time doesn't matter
+# we need stacktraces, light debug information, as much checks as possible
+# i would like to put it in a seperate `official_release` target, but that doesnt share caches with `cargo test` and `cargo bench`
+[profile.release]
+opt-level = 3
+overflow-checks = true
+debug-assertions = false
 lto = true
+debug = false
