@@ -1,6 +1,6 @@
 uniform sampler2D src_color;
 
-const float FXAA_SCALE = 1.5;
+const float FXAA_SCALE = 1.25;
 
 /**
 Basic FXAA implementation based on the code on geeks3d.com with the

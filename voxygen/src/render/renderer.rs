@@ -72,6 +72,8 @@ pub struct Renderer {
 
     shader_reload_indicator: ReloadIndicator,
 
+    noise_tex: Texture<(gfx::format::R8, gfx::format::Unorm)>,
+
     aa_mode: AaMode,
 }
 
@@ -102,6 +104,13 @@ impl Renderer {
 
         let sampler = factory.create_sampler_linear();
 
+        let noise_tex = Texture::new(
+            &mut factory,
+            &assets::load_expect("voxygen.texture.noise"),
+            Some(gfx::texture::FilterMethod::Trilinear),
+            Some(gfx::texture::WrapMode::Tile),
+        )?;
+
         Ok(Self {
             device,
             encoder: factory.create_command_buffer().into(),
@@ -125,6 +134,8 @@ impl Renderer {
             postprocess_pipeline,
 
             shader_reload_indicator,
+
+            noise_tex,
 
             aa_mode,
         })
@@ -351,27 +362,24 @@ impl Renderer {
     }
 
     /// Create a new texture from the provided image.
-    pub fn create_texture<P: Pipeline>(
+    pub fn create_texture(
         &mut self,
         image: &image::DynamicImage,
         filter_method: Option<gfx::texture::FilterMethod>,
         wrap_mode: Option<gfx::texture::WrapMode>,
-    ) -> Result<Texture<P>, RenderError> {
+    ) -> Result<Texture, RenderError> {
         Texture::new(&mut self.factory, image, filter_method, wrap_mode)
     }
 
     /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the specified dimensions.
-    pub fn create_dynamic_texture<P: Pipeline>(
-        &mut self,
-        dims: Vec2<u16>,
-    ) -> Result<Texture<P>, RenderError> {
+    pub fn create_dynamic_texture(&mut self, dims: Vec2<u16>) -> Result<Texture, RenderError> {
         Texture::new_dynamic(&mut self.factory, dims.x, dims.y)
     }
 
     /// Update a texture with the provided offset, size, and data.
-    pub fn update_texture<P: Pipeline>(
+    pub fn update_texture(
         &mut self,
-        texture: &Texture<P>,
+        texture: &Texture,
         offset: [u16; 2],
         size: [u16; 2],
         data: &[[u8; 4]],
@@ -444,6 +452,7 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -476,6 +485,7 @@ impl Renderer {
                 bones: bones.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -506,6 +516,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -520,7 +531,7 @@ impl Renderer {
         locals: &Consts<terrain::Locals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
-        waves: &Texture<fluid::FluidPipeline>,
+        waves: &Texture,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -537,6 +548,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 waves: (waves.srv.clone(), waves.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
@@ -568,6 +580,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -578,7 +591,7 @@ impl Renderer {
     pub fn render_ui_element(
         &mut self,
         model: &Model<ui::UiPipeline>,
-        tex: &Texture<ui::UiPipeline>,
+        tex: &Texture,
         scissor: Aabr<u16>,
         globals: &Consts<Globals>,
         locals: &Consts<ui::Locals>,
