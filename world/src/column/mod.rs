@@ -436,13 +436,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         (temp < CONFIG.snow_temp ||
          downhill_alt.sub(CONFIG.sea_level) >= CONFIG.mountain_scale * 0.25)*/
         is_rocky {
-            sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
+            // sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
             // sim.get_interpolated_bilinear(wpos, |chunk| chunk.alt)?
-            // sim.get_interpolated(wpos, |chunk| chunk.alt)?
+            sim.get_interpolated(wpos, |chunk| chunk.alt)?
         } else {
-            sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
-            // sim.get_interpolated(wpos, |chunk| chunk.alt)?
+            // sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
+            sim.get_interpolated(wpos, |chunk| chunk.alt)?
         };
+        let basement = sim.get_interpolated/*get_interpolated_monotone*/(wpos, |chunk| chunk.basement)?;
 
         // Find the average distance to each neighboring body of water.
         let mut river_count = 0.0f64;
@@ -828,6 +829,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt_ + riverless_alt_delta;
+        let basement = basement.min(alt);
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)
@@ -917,6 +919,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // For below desert humidity, we are always sand or rock, depending on altitude and
         // temperature.
         let ground = Rgb::lerp(
+            cliff,
             Rgb::lerp(
                 dead_tundra,
                 sand,
@@ -924,10 +927,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     .div(CONFIG.desert_temp.sub(CONFIG.snow_temp))
                     .mul(/*4.5*/ 0.5),
             ),
-            cliff,
-            alt.sub(CONFIG.sea_level)
+            alt.sub(basement)
+            .mul(0.25)
+            /* alt.sub(CONFIG.sea_level)
                 .sub(CONFIG.mountain_scale * 0.25)
-                .div(CONFIG.mountain_scale * 0.125),
+                .div(CONFIG.mountain_scale * 0.125), */
         );
         // From desert to forest humidity, we go from tundra to dirt to grass to moss to sand,
         // depending on temperature.
@@ -1091,14 +1095,15 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             water_level,
             warp_factor,
             surface_color: Rgb::lerp(
-                sand,
+                Rgb::lerp(cliff, sand, alt.sub(basement).mul(0.25)),
                 // Land
                 ground,
                 // Beach
                 ((ocean_level - 1.0) / 2.0).max(0.0),
             ),
-            sub_surface_color: /*warm_grass*/dirt,
-            tree_density,
+            sub_surface_color: /*warm_grass*/Lerp::lerp(cliff, dirt, alt.sub(basement).mul(0.25)),
+            // No growing directly on bedrock.
+            tree_density: if alt - basement < 2.0 { 0.0 } else { tree_density },
             forest_kind: sim_chunk.forest_kind,
             close_structures: self.gen_close_structures(wpos),
             cave_xy,
