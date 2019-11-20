@@ -164,10 +164,7 @@ impl Stats {
                 current: 0,
                 maximum: 50,
             },
-            equipment: Equipment {
-                main: main,
-                alt: None,
-            },
+            equipment: Equipment { main, alt: None },
             is_dead: false,
         };
 

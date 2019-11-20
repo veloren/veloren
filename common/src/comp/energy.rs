@@ -5,6 +5,7 @@ use specs_idvs::IDVStorage;
 pub struct Energy {
     current: u32,
     maximum: u32,
+    pub regen_rate: i32,
     pub last_change: Option<(i32, f64, EnergySource)>,
 }
 
@@ -12,6 +13,7 @@ pub struct Energy {
 pub enum EnergySource {
     CastSpell,
     LevelUp,
+    Regen,
     Unknown,
 }
 
@@ -20,6 +22,7 @@ impl Energy {
         Energy {
             current: amount,
             maximum: amount,
+            regen_rate: 0,
             last_change: None,
         }
     }
