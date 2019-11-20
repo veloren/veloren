@@ -35,22 +35,23 @@ float wave_height(vec3 pos) {
 	);
 
 	vec3 warp = (
-		texture(t_waves, fract(pos.yx * 0.1 + tick.x * 0.02)).xyz * 0.3 +
-		texture(t_waves, fract(pos.yx * 0.1 - tick.x * 0.02)).xyz * 0.3 +
+		texture(t_noise, fract(pos.yx * 0.1 + tick.x * 0.02)).xyz * 0.3 +
+		texture(t_noise, fract(pos.yx * 0.1 - tick.x * 0.02)).xyz * 0.3 +
 		vec3(0)
 	);
 
 	float height = (
-		(texture(t_waves, pos.xy * 0.03 + big_warp.xy + tick.x * 0.05).y - 0.5) * 1.0 +
-		(texture(t_waves, pos.yx * 0.03 + big_warp.yx - tick.x * 0.05).y - 0.5) * 1.0 +
+		(texture(t_noise, pos.xy * 0.03 + big_warp.xy + tick.x * 0.05).y - 0.5) * 1.0 +
+		(texture(t_noise, pos.yx * 0.03 + big_warp.yx - tick.x * 0.05).y - 0.5) * 1.0 +
 		(texture(t_waves, pos.xy * 0.1 + warp.xy + tick.x * 0.1).x - 0.5) * 0.5 +
 		(texture(t_waves, pos.yx * 0.1 + warp.yx - tick.x * 0.1).x - 0.5) * 0.5 +
-		(texture(t_waves, pos.yx * 0.3 + warp.xy * 0.5 + tick.x * 0.1).x - 0.5) * 0.2 +
-		(texture(t_waves, pos.yx * 0.3 + warp.yx * 0.5 - tick.x * 0.1).x - 0.5) * 0.2 +
+		(texture(t_noise, pos.yx * 0.3 + warp.xy * 0.5 + tick.x * 0.1).x - 0.5) * 0.2 +
+		(texture(t_noise, pos.yx * 0.3 + warp.yx * 0.5 - tick.x * 0.1).x - 0.5) * 0.2 +
+		(texture(t_noise, pos.yx * 1.0 + warp.yx * 0.0 - tick.x * 0.1).x - 0.5) * 0.05 +
 		0.0
 	);
 
-	return pow(abs(height), 0.5) * sign(height) * 3.0;
+	return pow(abs(height), 0.5) * sign(height) * 5.5;
 }
 
 void main() {
@@ -98,7 +99,7 @@ void main() {
 		0.1 / slope
 	);
 
-	nmap = mix(vec3(0, 0, 1), normalize(nmap), clamp(2.0 / pow(frag_dist, 0.5), 0, 1));
+	nmap = mix(vec3(0, 0, 1), normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
 
 	vec3 norm = f_norm * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
 
@@ -113,17 +114,21 @@ void main() {
 	vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-    vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, true);
+	vec4 clouds;
+    vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 0.25, true, clouds);
 
 	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
 
-	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, false) * f_light;
+	vec4 _clouds;
+	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
+	// Tint
+	reflect_color = mix(reflect_color, surf_color, 0.6);
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
 
-	vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 4.0 / (1.0 + diffuse_light * 2.0)), passthrough);
+	vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 1.0 / (1.0 + diffuse_light * 0.25)), passthrough);
 
-    tgt_color = mix(color, vec4(fog_color, 0.0), fog_level);
+    tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
 }

@@ -28,8 +28,10 @@ gfx_defines! {
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
 
+        noise: gfx::TextureSampler<f32> = "t_noise",
+
         tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::PASS_TEST,
+        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }
 }
 

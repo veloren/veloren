@@ -212,7 +212,7 @@ pub struct Terrain<V: RectRasterableVol> {
 
     // GPU data
     sprite_models: HashMap<(BlockKind, usize), Model<SpritePipeline>>,
-    waves: Texture<FluidPipeline>,
+    waves: Texture,
 
     phantom: PhantomData<V>,
 }
@@ -1092,6 +1092,32 @@ impl<V: RectRasterableVol> Terrain<V> {
                 );
             }
         }
+    }
+
+    pub fn render_translucent(
+        &self,
+        renderer: &mut Renderer,
+        globals: &Consts<Globals>,
+        lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
+        focus_pos: Vec3<f32>,
+    ) {
+        let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
+            (e as i32).div_euclid(sz as i32)
+        });
+
+        let chunks = &self.chunks;
+        let chunk_iter = Spiral2d::new()
+            .scan(0, |n, rpos| {
+                if *n >= chunks.len() {
+                    None
+                } else {
+                    *n += 1;
+                    let pos = focus_chunk + rpos;
+                    Some(chunks.get(&pos).map(|c| (pos, c)))
+                }
+            })
+            .filter_map(|x| x);
 
         // Terrain sprites
         for (pos, chunk) in chunk_iter.clone() {
