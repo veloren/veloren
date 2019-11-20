@@ -190,7 +190,7 @@ impl WorldSim {
         let river_seed = RandomField::new(rng.gen());
         let rock_lacunarity = 0.5/*HybridMulti::DEFAULT_LACUNARITY*/;
         let rock_strength_nz = /*Fbm*/HybridMulti_/*BasicMulti*//*Fbm*/::new()
-            .set_octaves(/*6*//*5*//*4*//*5*/4)
+            .set_octaves(/*6*//*5*//*4*//*5*//*4*/6)
             // persistence = lacunarity^(-(1.0 - fractal increment))
             .set_persistence(/*0.9*/ /*2.0*//*1.5*//*HybridMulti::DEFAULT_LACUNARITY*/rock_lacunarity.powf(-(1.0 - 0.9)))
             // 256*32/2^4
@@ -199,7 +199,7 @@ impl WorldSim {
             // (0.5^(-(1.0-0.9)))^1/256/32*2^4*256*4
             // (2^(-(1.0-0.9)))^4
             // 16.0
-            .set_frequency(/*0.9*/ /*Fbm*/HybridMulti_::DEFAULT_FREQUENCY / (/*64.0*/256.0/*1.0*//*16.0*/ * 32.0/* TerrainChunkSize::RECT_SIZE.x as f64 */))
+            .set_frequency(/*0.9*/ /*Fbm*/HybridMulti_::DEFAULT_FREQUENCY / (64.0/*256.0*//*1.0*//*16.0*/ * 32.0/* TerrainChunkSize::RECT_SIZE.x as f64 */))
             // .set_persistence(/*0.9*/ /*2.0*/0.67)
             // .set_frequency(/*0.9*/ Fbm::DEFAULT_FREQUENCY / (2.0 * 32.0))
             // .set_lacunarity(0.5)
@@ -216,12 +216,12 @@ impl WorldSim {
             .set_scale(1.0 / rock_strength_scale); */
 
         let height_scale = 1.0f64; // 1.0 / CONFIG.mountain_scale as f64;
-        let max_erosion_per_delta_t = 32.0 * height_scale;
+        let max_erosion_per_delta_t = /*32.0*//*128.0*/128.0 * height_scale;
         let erosion_pow_low = /*0.25*//*1.5*//*2.0*//*0.5*//*4.0*//*0.25*//*1.0*//*2.0*//*1.5*//*1.5*//*0.35*//*0.43*//*0.5*//*0.45*//*0.37*/1.002;
         let erosion_pow_high = /*1.5*//*1.0*//*0.55*//*0.51*//*2.0*/1.002;
         let erosion_center = /*0.45*//*0.75*//*0.75*//*0.5*//*0.75*/0.5;
-        let n_steps = 150;//37/*100*/;//50;//50;//37;//50;//37; // /*37*//*29*//*40*//*150*/37; //150;//200;
-        let n_small_steps = 0;//8;//8; // 8
+        let n_steps = /*100*/25/*100*//*37*/;//150;//37/*100*/;//50;//50;//37;//50;//37; // /*37*//*29*//*40*//*150*/37; //150;//200;
+        let n_small_steps = 8;//8;//8; // 8
 
         // fractal dimension should be between 0 and 0.9999...
         // (lacunarity^octaves)^(-H) = persistence^(octaves)
@@ -525,7 +525,7 @@ impl WorldSim {
         /* let erosion_factor = |x: f64| logistic_cdf(logistic_base * if x <= /*erosion_center*/alt_old_center_uniform/*alt_old_center*/ { erosion_pow_low.ln() } else { erosion_pow_high.ln() } * log_odds(x))/*0.5 + (x - 0.5).signum() * ((x - 0.5).mul(2.0).abs(
         ).powf(erosion_pow).mul(0.5))*/; */
         let erosion_factor = |x: f64| (/*if x <= /*erosion_center*/alt_old_center_uniform/*alt_old_center*/ { erosion_pow_low.ln() } else { erosion_pow_high.ln() } * */(/*exp_inverse_cdf*//*logit*/inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform))/*0.5 + (x - 0.5).signum() * ((x - 0.5).mul(2.0).abs(
-).powf(erosion_pow).mul(0.5))*//*.powf(0.5)*//*.powf(1.5)*//*.powf(2.0)*/;
+).powf(erosion_pow).mul(0.5))*//*.powf(0.5)*//*.powf(1.5)*/.powf(2.0);
         let uplift_fn =
             |posi| {
                 if is_ocean_fn(posi) {
@@ -606,7 +606,7 @@ impl WorldSim {
                 // assert!(alt_main >= 0.0);
                 let (bump_factor, bump_max) = if
                 /*height < f32::EPSILON as f64 * 0.5/*false*/*/
-                false {
+                true {
                     (
                         /*(alt_main./*to_le_bytes()[7]*/to_bits() & 1) as f64*/
                         (alt_main / CONFIG.mountain_scale as f64 * 128.0).mul(0.1).powf(1.2) * /*(1.0 / CONFIG.mountain_scale as f64)*/(f32::EPSILON * 0.5) as f64,
@@ -615,11 +615,13 @@ impl WorldSim {
                 } else {
                     (0.0, 0.0)
                 };
-                let height = 1.0f64;
+                // let height = 1.0f64;
                 // let height = 1.0 / 7.0f64;
                 let height = height
                     /* .mul(15.0 / 16.0)
                     .add(1.0 / 16.0) */
+                    /* .mul(5.0 / 8.0)
+                    .add(3.0 / 8.0) */
                     .mul(7.0 / 8.0)
                     .add(1.0 / 8.0)
                     .mul(max_erosion_per_delta_t)
@@ -670,7 +672,7 @@ impl WorldSim {
                         /* + spring(alt_main.abs().powf(0.5).min(0.75).mul(60.0).sin(), 4.0)
                             .mul(0.045)*/)
                 };
-                old_height_uniform(posi)
+                old_height_uniform(posi)/*.powf(2.0)*/
                 /* // 0.0
                 // -/*CONFIG.sea_level / CONFIG.mountain_scale*//* 0.75 */1.0
                 // ((old_height(posi) - alt_old_min) as f64 / (alt_old_max - alt_old_min) as f64) as f32
@@ -1485,8 +1487,8 @@ impl SimChunk {
             _ => {}
         }
 
-        // No trees in the ocean or with zero humidity (currently)
-        let tree_density = if is_underwater {
+        // No trees in the ocean, with zero humidity (currently), or directly on bedrock.
+        let tree_density = if is_underwater/* || alt - basement.min(alt) < 2.0 */ {
             0.0
         } else {
             let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()))
