@@ -27,6 +27,9 @@ fn main() {
     let light_res = 3;
 
     let mut is_basement = false;
+    let mut is_shaded = true;
+    let mut is_temperature = true;
+    let mut is_humidity = true;
 
     while win.is_open() {
         let mut buf = vec![0; W * H];
@@ -150,10 +153,15 @@ fn main() {
                     ]),
                     None => {
                         let (r, g, b) = (
-                            (alt * humidity/*alt*/ as f64).sqrt(),
-                            0.2 + (alt * 0.8),
-                            (alt * temperature/*alt*/ as f64).sqrt(),
+                            (alt * if is_temperature { temperature as f64 } else if is_shaded { alt } else { 0.0 }).sqrt(),
+                            if is_shaded { 0.2 + (alt * 0.8) } else { alt },
+                            (alt * if is_humidity { humidity as f64 } else if is_shaded { alt } else { 0.0 }).sqrt(),
                         );
+                        let light = if is_shaded {
+                            light
+                        } else {
+                            1.0
+                        };
                         u32::from_le_bytes([
                             (b * light * 255.0) as u8,
                             (g * light * 255.0) as u8,
@@ -200,6 +208,15 @@ fn main() {
         }
         if win.is_key_down(minifb::Key::B) {
             is_basement ^= true;
+        }
+        if win.is_key_down(minifb::Key::H) {
+            is_humidity ^= true;
+        }
+        if win.is_key_down(minifb::Key::T) {
+            is_temperature ^= true;
+        }
+        if win.is_key_down(minifb::Key::L) {
+            is_shaded ^= true;
         }
         if win.is_key_down(minifb::Key::W) {
             focus.y -= spd * scale;
