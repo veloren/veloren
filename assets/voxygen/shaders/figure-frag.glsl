@@ -39,8 +39,9 @@ void main() {
 	vec3 surf_color = illuminate(srgb_to_linear(model_col.rgb * f_col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, true);
-	vec3 color = mix(surf_color, fog_color, fog_level);
+	vec4 clouds;
+	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 0.5, true, clouds);
+	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
 
 	tgt_color = vec4(color, 1.0);
 }

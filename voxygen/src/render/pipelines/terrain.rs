@@ -34,6 +34,8 @@ gfx_defines! {
         lights: gfx::ConstantBuffer<Light> = "u_lights",
         shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
+        noise: gfx::TextureSampler<f32> = "t_noise",
+
         tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
         tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }

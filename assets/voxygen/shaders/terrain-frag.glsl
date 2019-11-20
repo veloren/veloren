@@ -20,7 +20,7 @@ out vec4 tgt_color;
 
 void main() {
 	// First 3 normals are negative, next 3 are positive
-	vec3 normals[6] = vec3[]( vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) );
+	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1));
 
 	// TODO: last 3 bits in v_pos_norm should be a number between 0 and 5, rather than 0-2 and a direction.
 	uint norm_axis = (f_pos_norm >> 30) & 0x3u;
@@ -40,8 +40,9 @@ void main() {
 	vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, true);
-	vec3 color = mix(surf_color, fog_color, fog_level);
+	vec4 clouds;
+	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 1.0, true, clouds);
+	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
 
 	tgt_color = vec4(color, 1.0);
 }
