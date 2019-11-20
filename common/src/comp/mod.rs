@@ -26,7 +26,7 @@ pub use controller::{
     ControlEvent, Controller, ControllerInputs, Input, InputState, InventoryManip, MountState,
     Mounting,
 };
-pub use energy::Energy;
+pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;
 pub use inventory::{item, Inventory, InventoryUpdate, Item, ItemKind};
 pub use last::Last;
