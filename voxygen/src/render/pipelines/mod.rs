@@ -1,5 +1,6 @@
 pub mod figure;
 pub mod fluid;
+pub mod lod_terrain;
 pub mod postprocess;
 pub mod skybox;
 pub mod sprite;

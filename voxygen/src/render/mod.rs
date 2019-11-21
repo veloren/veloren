@@ -18,6 +18,7 @@ pub use self::{
     pipelines::{
         figure::{BoneData as FigureBoneData, FigurePipeline, Locals as FigureLocals},
         fluid::FluidPipeline,
+        lod_terrain::{Locals as LodTerrainLocals, LodTerrainPipeline},
         postprocess::{
             create_mesh as create_pp_mesh, Locals as PostProcessLocals, PostProcessPipeline,
         },

@@ -54,6 +54,7 @@ pub struct Scene {
     skybox: Skybox,
     postprocess: PostProcess,
     terrain: Terrain<TerrainChunk>,
+    lod: Lod,
     loaded_distance: f32,
     select_pos: Option<Vec3<i32>>,
 
@@ -88,6 +89,7 @@ impl Scene {
                     .unwrap(),
             },
             terrain: Terrain::new(renderer),
+            lod: Lod::new(renderer),
             loaded_distance: 0.0,
             select_pos: None,
 
@@ -340,6 +342,7 @@ impl Scene {
             &self.shadows,
             self.camera.get_focus_pos(),
         );
+        self.lod.render(renderer, &self.globals);
 
         // Render the skybox.
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);

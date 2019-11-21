@@ -4,7 +4,10 @@ use super::{
     instances::Instances,
     mesh::Mesh,
     model::{DynamicModel, Model},
-    pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light, Shadow},
+    pipelines::{
+        figure, fluid, lod_terrain, postprocess, skybox, sprite, terrain, ui, Globals, Light,
+        Shadow,
+    },
     texture::Texture,
     AaMode, CloudMode, FluidMode, Pipeline, RenderError,
 };
@@ -69,6 +72,7 @@ pub struct Renderer {
     fluid_pipeline: GfxPipeline<fluid::pipe::Init<'static>>,
     sprite_pipeline: GfxPipeline<sprite::pipe::Init<'static>>,
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
+    lod_terrain_pipeline: GfxPipeline<lod_terrain::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
 
     shader_reload_indicator: ReloadIndicator,
@@ -101,6 +105,7 @@ impl Renderer {
             fluid_pipeline,
             sprite_pipeline,
             ui_pipeline,
+            lod_terrain_pipeline,
             postprocess_pipeline,
         ) = create_pipelines(
             &mut factory,
@@ -143,6 +148,7 @@ impl Renderer {
             fluid_pipeline,
             sprite_pipeline,
             ui_pipeline,
+            lod_terrain_pipeline,
             postprocess_pipeline,
 
             shader_reload_indicator,
@@ -335,6 +341,7 @@ impl Renderer {
                 fluid_pipeline,
                 sprite_pipeline,
                 ui_pipeline,
+                lod_terrain_pipeline,
                 postprocess_pipeline,
             )) => {
                 self.skybox_pipeline = skybox_pipeline;
@@ -343,6 +350,7 @@ impl Renderer {
                 self.fluid_pipeline = fluid_pipeline;
                 self.sprite_pipeline = sprite_pipeline;
                 self.ui_pipeline = ui_pipeline;
+                self.lod_terrain_pipeline = lod_terrain_pipeline;
                 self.postprocess_pipeline = postprocess_pipeline;
             },
             Err(e) => error!(
@@ -638,6 +646,33 @@ impl Renderer {
         );
     }
 
+    /// Queue the rendering of the provided LoD terrain model in the upcoming frame.
+    pub fn render_lod_terrain(
+        &mut self,
+        model: &Model<lod_terrain::LodTerrainPipeline>,
+        globals: &Consts<Globals>,
+        locals: &Consts<lod_terrain::Locals>,
+    ) {
+        self.encoder.draw(
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
+            &self.lod_terrain_pipeline.pso,
+            &lod_terrain::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth: self.tgt_depth_view.clone(),
+            },
+        );
+    }
+
     /// Queue the rendering of the provided UI element in the upcoming frame.
     pub fn render_ui_element(
         &mut self,
@@ -720,10 +755,13 @@ fn create_pipelines(
         GfxPipeline<fluid::pipe::Init<'static>>,
         GfxPipeline<sprite::pipe::Init<'static>>,
         GfxPipeline<ui::pipe::Init<'static>>,
+        GfxPipeline<lod_terrain::pipe::Init<'static>>,
         GfxPipeline<postprocess::pipe::Init<'static>>,
     ),
     RenderError,
 > {
+    dbg!("start");
+
     let globals =
         assets::load_watched::<String>("voxygen.shaders.include.globals", shader_reload_indicator)
             .unwrap();
@@ -851,6 +889,23 @@ fn create_pipelines(
         gfx::state::CullFace::Back,
     )?;
 
+    // Construct a pipeline for rendering terrain
+    let lod_terrain_pipeline = create_pipeline(
+        factory,
+        lod_terrain::pipe::new(),
+        &assets::load_watched::<String>(
+            "voxygen.shaders.lod-terrain-vert",
+            shader_reload_indicator,
+        )
+        .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.terrain-frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Back,
+    )?;
+
+    dbg!("created lod pipeline");
+
     // Construct a pipeline for rendering our post-processing
     let postprocess_pipeline = create_pipeline(
         factory,
@@ -869,6 +924,8 @@ fn create_pipelines(
         gfx::state::CullFace::Back,
     )?;
 
+    dbg!("created pipelines");
+
     Ok((
         skybox_pipeline,
         figure_pipeline,
@@ -876,6 +933,7 @@ fn create_pipelines(
         fluid_pipeline,
         sprite_pipeline,
         ui_pipeline,
+        lod_terrain_pipeline,
         postprocess_pipeline,
     ))
 }
@@ -889,12 +947,23 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
     ctx: &IncludeContext,
     cull_face: gfx::state::CullFace,
 ) -> Result<GfxPipeline<P>, RenderError> {
+    dbg!("Expanding context...");
+
     let vs = ctx.expand(vs)?;
+
+    dbg!("expanded vs!");
+
     let fs = ctx.expand(fs)?;
+
+    dbg!("expanded fs!");
+
+    dbg!("vs = {}, fs = {}", vs.as_bytes().len(), fs.as_bytes().len());
 
     let program = factory.link_program(vs.as_bytes(), fs.as_bytes())?;
 
-    Ok(GfxPipeline {
+    dbg!("linked");
+
+    let result = Ok(GfxPipeline {
         pso: factory.create_pipeline_from_program(
             &program,
             gfx::Primitive::TriangleList,
@@ -907,5 +976,9 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
             },
             pipe,
         )?,
-    })
+    });
+
+    dbg!("finished pipeline");
+
+    result
 }

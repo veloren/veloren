@@ -3,15 +3,9 @@
 #include <globals.glsl>
 
 in vec3 f_pos;
-flat in uint f_pos_norm;
+in vec3 f_norm;
 in vec3 f_col;
 in float f_light;
-
-layout (std140)
-uniform u_locals {
-	vec3 model_offs;
-	float load_time;
-};
 
 out vec4 tgt_color;
 
