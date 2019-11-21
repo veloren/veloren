@@ -760,8 +760,6 @@ fn create_pipelines(
     ),
     RenderError,
 > {
-    dbg!("start");
-
     let globals =
         assets::load_watched::<String>("voxygen.shaders.include.globals", shader_reload_indicator)
             .unwrap();
@@ -776,6 +774,9 @@ fn create_pipelines(
             .unwrap();
     let random =
         assets::load_watched::<String>("voxygen.shaders.include.random", shader_reload_indicator)
+            .unwrap();
+    let lod =
+        assets::load_watched::<String>("voxygen.shaders.include.lod", shader_reload_indicator)
             .unwrap();
 
     let anti_alias = assets::load_watched::<String>(
@@ -807,6 +808,7 @@ fn create_pipelines(
     include_ctx.include("light.glsl", &light);
     include_ctx.include("srgb.glsl", &srgb);
     include_ctx.include("random.glsl", &random);
+    include_ctx.include("lod.glsl", &lod);
     include_ctx.include("anti-aliasing.glsl", &anti_alias);
     include_ctx.include("cloud.glsl", &cloud);
 
@@ -898,13 +900,14 @@ fn create_pipelines(
             shader_reload_indicator,
         )
         .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.terrain-frag", shader_reload_indicator)
-            .unwrap(),
+        &assets::load_watched::<String>(
+            "voxygen.shaders.lod-terrain-frag",
+            shader_reload_indicator,
+        )
+        .unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
-
-    dbg!("created lod pipeline");
 
     // Construct a pipeline for rendering our post-processing
     let postprocess_pipeline = create_pipeline(
@@ -923,8 +926,6 @@ fn create_pipelines(
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
-
-    dbg!("created pipelines");
 
     Ok((
         skybox_pipeline,
@@ -947,21 +948,10 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
     ctx: &IncludeContext,
     cull_face: gfx::state::CullFace,
 ) -> Result<GfxPipeline<P>, RenderError> {
-    dbg!("Expanding context...");
-
     let vs = ctx.expand(vs)?;
-
-    dbg!("expanded vs!");
-
     let fs = ctx.expand(fs)?;
 
-    dbg!("expanded fs!");
-
-    dbg!("vs = {}, fs = {}", vs.as_bytes().len(), fs.as_bytes().len());
-
     let program = factory.link_program(vs.as_bytes(), fs.as_bytes())?;
-
-    dbg!("linked");
 
     let result = Ok(GfxPipeline {
         pso: factory.create_pipeline_from_program(
@@ -977,8 +967,6 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
             pipe,
         )?,
     });
-
-    dbg!("finished pipeline");
 
     result
 }

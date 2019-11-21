@@ -13,7 +13,7 @@ impl Lod {
     pub fn new(renderer: &mut Renderer) -> Self {
         Self {
             model: renderer
-                .create_model(&create_lod_terrain_mesh(256))
+                .create_model(&create_lod_terrain_mesh(100))
                 .unwrap(),
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
         }
@@ -25,7 +25,7 @@ impl Lod {
 }
 
 fn create_lod_terrain_mesh(detail: usize) -> Mesh<LodTerrainPipeline> {
-    let transform = |x| (2.0 * x as f32) / detail as f32 - 2.0;
+    let transform = |x| (2.0 * x as f32) / detail as f32 - 1.0;
 
     let mut mesh = Mesh::new();
 

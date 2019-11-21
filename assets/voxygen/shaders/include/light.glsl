@@ -1,3 +1,5 @@
+#include <srgb.glsl>
+
 struct Light {
 	vec4 light_pos;
 	vec4 light_col;
@@ -16,13 +18,6 @@ layout (std140)
 uniform u_shadows {
 	Shadow shadows[24];
 };
-
-#include <srgb.glsl>
-
-vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
-	float avg_col = (color.r + color.g + color.b) / 3.0;
-	return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse + ambience);
-}
 
 float attenuation_strength(vec3 rpos) {
 	return 1.0 / (rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z);
