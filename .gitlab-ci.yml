@@ -11,16 +11,13 @@ stages:
     - post
 
 before_script:
-    - date
     - source $HOME/.cargo/env
-    - df -h
+    - df -h /
     - free -h
-    - gcc -v
     - cargo --version
     - export DISABLE_GIT_LFS_CHECK=true
     - rm -r target || echo "target doesnt exist, which is fine"
     - ln -s /dockercache/veloren/target target
-    - date
 
 # -- optional build
 
@@ -35,8 +32,7 @@ before_script:
 optional-debug:linux:
     <<: *optional-debug
     script:
-        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose && cd ..
-        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose && cd ..
+        - VELOREN_ASSETS=assets cargo build --verbose
         - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
         - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
         - strip --strip-all veloren-server-cli
@@ -52,8 +48,7 @@ optional-debug:linux:
 optional-debug:windows:
     <<: *optional-debug
     script:
-        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
-        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu && cd ..
+        - VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu
         - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
     artifacts:
@@ -75,8 +70,7 @@ optional-debug:windows:
 optional-release:linux:
     <<: *optional-release
     script:
-        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
-        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --release && cd ..
+        - VELOREN_ASSETS=assets cargo build --verbose --release
         - cp target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp target/release/veloren-voxygen $CI_PROJECT_DIR
         - strip --strip-all veloren-server-cli
@@ -92,8 +86,7 @@ optional-release:linux:
 optional-release:windows:
     <<: *optional-release
     script:
-        - cd voxygen && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
-        - cd server-cli && VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release && cd ..
+        - VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release
         - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
     artifacts:
@@ -113,7 +106,7 @@ check:
     tags:
         - veloren-docker
     script:
-        - RUSTFLAGS="-D warnings" cargo check --verbose
+        - RUSTFLAGS="-D warnings" cargo check
 
 code-quality:
     stage: check-compile
@@ -145,6 +138,18 @@ unittests:
         - echo "Workaround, cargo tests fails due some rust files are already deleted, so we just stack cargo test. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
         - cargo test || cargo test || cargo test || cargo test
 
+coverage:
+    stage: post
+    when: delayed
+    start_in: 5 seconds
+    tags:
+        - veloren-docker
+    script:
+        - sed -i '/cargo-features/d' Cargo.toml
+        - sed -i '/profile.dev.overrides/,+1d' Cargo.toml
+        - cargo tarpaulin -v
+    allow_failure: true
+
 benchmarks:
     stage: post
     when: delayed
@@ -167,8 +172,7 @@ linux:
     tags:
         - veloren-docker
     script:
-        - cd voxygen && VELOREN_ASSETS=assets cargo build --release && cd ..
-        - cd server-cli && VELOREN_ASSETS=assets cargo build --release && cd ..
+        - VELOREN_ASSETS=assets cargo build --release
         - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
         - strip --strip-all veloren-server-cli
@@ -193,8 +197,7 @@ windows:
     tags:
         - veloren-docker
     script:
-        - cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
-        - cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release && cd ..
+        - VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
     artifacts:
