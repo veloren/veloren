@@ -2,8 +2,8 @@ use super::movement::ROLL_DURATION;
 use crate::{
     comp::{
         self, item, projectile, ActionState, ActionState::*, Body, CharacterState, ControlEvent,
-        Controller, ControllerInputs, HealthChange, HealthSource, ItemKind, Mounting,
-        MovementState, MovementState::*, PhysicsState, Projectile, Stats, Vel,
+        Controller, ControllerInputs, Energy, EnergySource, HealthChange, HealthSource, ItemKind,
+        Mounting, MovementState, MovementState::*, PhysicsState, Projectile, Stats, Vel,
     },
     event::{Emitter, EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -15,6 +15,8 @@ use specs::{
 };
 use std::time::Duration;
 use vek::*;
+
+const CHARGE_COST: i32 = 50;
 
 /// # Controller System
 /// #### Responsible for validating controller inputs and setting new Character States
@@ -247,6 +249,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Controller>,
         WriteStorage<'a, CharacterState>,
         ReadStorage<'a, Stats>,
+        WriteStorage<'a, Energy>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, PhysicsState>,
@@ -264,6 +267,7 @@ impl<'a> System<'a> for Sys {
             mut controllers,
             mut character_states,
             stats,
+            mut energies,
             bodies,
             velocities,
             physics_states,
@@ -273,12 +277,13 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
-        for (entity, uid, controller, mut character, stats, body, vel, physics, mount) in (
+        for (entity, uid, controller, mut character, stats, energy, body, vel, physics, mount) in (
             &entities,
             &uids,
             &mut controllers,
             &mut character_states,
             &stats,
+            &mut energies,
             &bodies,
             &velocities,
             &physics_states,
@@ -579,9 +584,14 @@ impl<'a> System<'a> for Sys {
 
                         // Try to charge
                         if inputs.charge.is_pressed() && !inputs.charge.is_held_down() {
-                            character.action = Charge {
-                                time_left: Duration::from_millis(250),
-                            };
+                            if energy
+                                .try_change_by(-CHARGE_COST, EnergySource::CastSpell)
+                                .is_ok()
+                            {
+                                character.action = Charge {
+                                    time_left: Duration::from_millis(250),
+                                }
+                            }
                             continue;
                         }
 
