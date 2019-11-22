@@ -25,7 +25,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use hashbrown::HashMap;
-use log::debug;
+use log::trace;
 use specs::{Entity as EcsEntity, Join};
 use vek::*;
 
@@ -902,7 +902,7 @@ impl FigureMgr {
 
                 renderer.render_figure(model, globals, locals, bone_consts, lights, shadows);
             } else {
-                debug!("Body has no saved figure");
+                trace!("Body has no saved figure");
             }
         }
     }
