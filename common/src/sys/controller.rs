@@ -362,7 +362,9 @@ impl<'a> System<'a> for Sys {
             }
 
             // Jump
-            if inputs.jump && physics.on_ground && vel.0.z <= 0.0 && !character.movement.is_roll() {
+            if (inputs.jump && physics.on_ground && vel.0.z <= 0.0 && !character.movement.is_roll())
+                || (inputs.jump && character.movement == Swim)
+            {
                 local_emitter.emit(LocalEvent::Jump(entity));
             }
 
