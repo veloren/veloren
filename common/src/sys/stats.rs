@@ -5,12 +5,9 @@ use crate::{
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
-const ENERGY_REGEN_ACCEL: i32 = 1;
-const BLOCK_COST: i32 = 50;
-const ROLL_CHARGE_COST: i32 = 200;
+const ENERGY_REGEN_ACCEL: f32 = 1.0;
 
-/// This system kills players
-/// and handles players levelling up
+/// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
@@ -75,25 +72,15 @@ impl<'a> System<'a> for Sys {
                     .set_to(stat.health.maximum(), HealthSource::LevelUp)
             }
 
-            // Recharge energy if not wielding, and accelerate.
+            // Accelerate recharging energy if not wielding.
             match character_state.action {
-                ActionState::Wield { .. } | ActionState::Attack { .. } => energy.regen_rate = 0,
-                ActionState::Block { .. } => {
-                    energy.change_by(framerate_dt(-BLOCK_COST, dt.0), EnergySource::CastSpell)
-                }
-                ActionState::Roll { .. } | ActionState::Charge { .. } => energy.change_by(
-                    framerate_dt(-ROLL_CHARGE_COST, dt.0),
-                    EnergySource::CastSpell,
-                ),
                 ActionState::Idle => {
-                    energy.regen_rate += ENERGY_REGEN_ACCEL;
-                    energy.change_by(energy.regen_rate, EnergySource::Regen);
+                    energy.regen_rate += ENERGY_REGEN_ACCEL * dt.0;
+                    energy.change_by(energy.regen_rate as i32, EnergySource::Regen);
                 }
+                // All other states do not regen and set the rate back to zero.
+                _ => energy.regen_rate = 0.0,
             }
         }
     }
-}
-/// Convience method to scale an integer by dt
-fn framerate_dt(a: i32, dt: f32) -> i32 {
-    (a as f32 * (dt)) as i32
 }

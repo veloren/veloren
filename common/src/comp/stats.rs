@@ -76,6 +76,26 @@ impl Health {
         self.current = self.current.min(self.maximum);
     }
 }
+#[derive(Debug)]
+pub enum StatChangeError {
+    Underflow,
+    Overflow,
+}
+use std::error::Error;
+use std::fmt;
+impl fmt::Display for StatChangeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Underflow => "insufficient stat quantity",
+                Self::Overflow => "stat quantity would overflow",
+            }
+        )
+    }
+}
+impl Error for StatChangeError {}
 
 impl Exp {
     pub fn current(&self) -> u32 {
