@@ -132,7 +132,7 @@ vec2 cloud_at(vec3 pos) {
 
 	float shade = ((pos.z - CLOUD_AVG_HEIGHT) / (CLOUD_AVG_HEIGHT - CLOUD_HEIGHT_MIN) + 0.5);
 
-	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 5000));
+	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 10000));
 }
 
 vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, float quality) {
@@ -143,7 +143,8 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 	float maxd = (CLOUD_HEIGHT_MAX - origin.z) / dir.z;
 
 	float start = max(min(mind, maxd), 0.0);
-	float delta = min(abs(mind - maxd), max_dist);
+	float cloud_delta = abs(mind - maxd);
+	float delta = min(cloud_delta, max_dist);
 
 	bool do_cast = true;
 	if (mind < 0.0 && maxd < 0.0) {
@@ -170,7 +171,7 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 		}
 	}
 
-	float total_density = 1.0 - passthrough;// / (1.0 + max(max_dist, start) * 0.0001);
+	float total_density = 1.0 - passthrough / (1.0 + (max_dist / (1.0 + max(abs(dir.z), 0.03) * 100.0)) * 0.00003);
 
 	total_density = max(total_density - 1.0 / pow(max_dist, 0.25), 0.0); // Hack
 
@@ -267,7 +268,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
-	return max(1.0 - 10000.0 / (1.0 + distance(f_pos.xy, focus_pos.xy)), 0.0);
+	return max(1.0 - 5000.0 / (1.0 + distance(f_pos.xy, focus_pos.xy)), 0.0);
 
 	float fog_radius = view_distance.x;
 	float mist_radius = 10000000.0;

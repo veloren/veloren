@@ -124,7 +124,7 @@ impl Renderer {
         let noise_tex = Texture::new(
             &mut factory,
             &assets::load_expect("voxygen.texture.noise"),
-            Some(gfx::texture::FilterMethod::Trilinear),
+            Some(gfx::texture::FilterMethod::Bilinear),
             Some(gfx::texture::WrapMode::Tile),
         )?;
 

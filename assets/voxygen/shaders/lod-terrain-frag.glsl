@@ -23,7 +23,7 @@ void main() {
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
 	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 1.0, true, clouds);
-	vec3 color = mix(mix(surf_color, vec3(1), fog_level), clouds.rgb, clouds.a);
+	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
 
 	tgt_color = vec4(color, 1.0);
 }
