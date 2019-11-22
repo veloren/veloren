@@ -35,8 +35,8 @@ pub use crate::error::Error;
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
 use log::{self, debug, error, info};
 
-use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
-use std::{fs::File, mem, panic, str::FromStr};
+use fern::colors::{Color, ColoredLevelConfig};
+use std::{mem, panic, str::FromStr};
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
@@ -126,15 +126,57 @@ fn main() {
         .and_then(|env| env.to_str().map(|s| s.to_owned()))
         .and_then(|s| log::LevelFilter::from_str(&s).ok())
         .unwrap_or(log::LevelFilter::Warn);
-    CombinedLogger::init(vec![
-        TermLogger::new(term_log_level, Config::default(), TerminalMode::Mixed).unwrap(),
-        WriteLogger::new(
-            log::LevelFilter::Info,
-            Config::default(),
-            File::create(&settings.log.file).unwrap(),
-        ),
-    ])
-    .unwrap();
+
+    let colors = ColoredLevelConfig::new()
+        .error(Color::Red)
+        .warn(Color::Yellow)
+        .info(Color::Cyan)
+        .debug(Color::Green)
+        .trace(Color::BrightBlack);
+
+    let base = fern::Dispatch::new()
+        .level_for("dot_vox::parser", log::LevelFilter::Warn)
+        .level_for("gfx_device_gl::factory", log::LevelFilter::Warn)
+        .level_for("veloren_voxygen::discord", log::LevelFilter::Warn);
+    // TODO: Filter tracing better such that our own tracing gets seen more easily
+
+    let time = chrono::offset::Utc::now();
+
+    let file_cfg = fern::Dispatch::new()
+        .level(log::LevelFilter::Trace)
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{}[{}:{}][{}] {}",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                record.target(),
+                record
+                    .line()
+                    .map(|x| x.to_string())
+                    .unwrap_or("X".to_string()),
+                record.level(),
+                message
+            ))
+        })
+        .chain(
+            fern::log_file(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H")))
+                .expect("Failed to create log file!"),
+        );
+
+    let stdout_cfg = fern::Dispatch::new()
+        .level(term_log_level)
+        .format(move |out, message, record| {
+            out.finish(format_args!(
+                "[{}] {}",
+                colors.color(record.level()),
+                message
+            ))
+        })
+        .chain(std::io::stdout());
+
+    base.chain(file_cfg)
+        .chain(stdout_cfg)
+        .apply()
+        .expect("Failed to setup logging!");
 
     // Set up panic handler to relay swish panic messages to the user
     let settings_clone = settings.clone();
