@@ -101,6 +101,9 @@ pub(crate) struct GenCtx {
     pub fast_turb_y_nz: FastNoise,
 
     pub town_gen: StructureGen2d,
+
+    pub river_seed: RandomField,
+    pub rock_strength_nz: HybridMulti_,
 }
 
 pub struct WorldSim {
@@ -116,6 +119,7 @@ impl WorldSim {
     pub fn generate(seed: u32) -> Self {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let continent_scale = 5_000.0f64/*32768.0*/.div(32.0).mul(TerrainChunkSize::RECT_SIZE.x as f64);
+        let rock_lacunarity = 0.5/*HybridMulti::DEFAULT_LACUNARITY*/;
 
         let gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
@@ -185,14 +189,12 @@ impl WorldSim {
             fast_turb_y_nz: FastNoise::new(rng.gen()),
 
             town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
-        };
-
-        let river_seed = RandomField::new(rng.gen());
-        let rock_lacunarity = 0.5/*HybridMulti::DEFAULT_LACUNARITY*/;
-        let rock_strength_nz = /*Fbm*/HybridMulti_/*BasicMulti*//*Fbm*/::new()
+            river_seed: RandomField::new(rng.gen()),
+            rock_strength_nz: /*Fbm*/HybridMulti_/*BasicMulti*//*Fbm*/::new()
             .set_octaves(/*6*//*5*//*4*//*5*//*4*/6)
             // persistence = lacunarity^(-(1.0 - fractal increment))
-            .set_persistence(/*0.9*/ /*2.0*//*1.5*//*HybridMulti::DEFAULT_LACUNARITY*/rock_lacunarity.powf(-(1.0 - 0.9)))
+            // NOTE: In paper, fractal increment is roughly 0.25.
+            .set_persistence(/*0.9*/ /*2.0*//*1.5*//*HybridMulti::DEFAULT_LACUNARITY*/rock_lacunarity.powf(-(1.0 - 0.25/*0.9*/)))
             // 256*32/2^4
             // (0.5^(-(1.0-0.9)))^4/256/32*2^4*16*32
             // (0.5^(-(1.0-0.9)))^4/256/32*2^4*256*4
@@ -203,7 +205,11 @@ impl WorldSim {
             // .set_persistence(/*0.9*/ /*2.0*/0.67)
             // .set_frequency(/*0.9*/ Fbm::DEFAULT_FREQUENCY / (2.0 * 32.0))
             // .set_lacunarity(0.5)
-            .set_seed(rng.gen());
+            .set_seed(rng.gen()),
+        };
+
+        let river_seed = &gen_ctx.river_seed;
+        let rock_strength_nz = &gen_ctx.rock_strength_nz;
         // NOTE: octaves should definitely fit into i32, but we should check anyway to make
         // sure.
         /* assert!(rock_strength_nz.persistence > 0.0);
@@ -216,11 +222,11 @@ impl WorldSim {
             .set_scale(1.0 / rock_strength_scale); */
 
         let height_scale = 1.0f64; // 1.0 / CONFIG.mountain_scale as f64;
-        let max_erosion_per_delta_t = /*32.0*//*128.0*/128.0 * height_scale;
+        let max_erosion_per_delta_t = /*32.0*//*128.0*/32.0 * height_scale;
         let erosion_pow_low = /*0.25*//*1.5*//*2.0*//*0.5*//*4.0*//*0.25*//*1.0*//*2.0*//*1.5*//*1.5*//*0.35*//*0.43*//*0.5*//*0.45*//*0.37*/1.002;
         let erosion_pow_high = /*1.5*//*1.0*//*0.55*//*0.51*//*2.0*/1.002;
         let erosion_center = /*0.45*//*0.75*//*0.75*//*0.5*//*0.75*/0.5;
-        let n_steps = /*100*/25/*100*//*37*/;//150;//37/*100*/;//50;//50;//37;//50;//37; // /*37*//*29*//*40*//*150*/37; //150;//200;
+        let n_steps = /*100*//*50*/100/*100*//*37*/;//150;//37/*100*/;//50;//50;//37;//50;//37; // /*37*//*29*//*40*//*150*/37; //150;//200;
         let n_small_steps = 8;//8;//8; // 8
 
         // fractal dimension should be between 0 and 0.9999...
@@ -509,7 +515,8 @@ impl WorldSim {
             1.0 / (WORLD_SIZE.x as f64 * WORLD_SIZE.y as f64).max(f64::EPSILON as f64 * 0.5);
         let max_epsilon = (1.0 - 1.0 / (WORLD_SIZE.x as f64 * WORLD_SIZE.y as f64))
             .min(1.0 - f64::EPSILON as f64 * 0.5);
-        let inv_func = /*|x: f64| x*//*exp_inverse_cdf*/logit/*hypsec_inverse_cdf*/;
+        // ((ln(0.6)-ln(1-0.6)) - (ln(1/(2048*2048))-ln((1-1/(2048*2048)))))/((ln(1-1/(2048*2048))-ln(1-(1-1/(2048*2048)))) - (ln(1/(2048*2048))-ln((1-1/(2048*2048)))))
+        let inv_func = /*|x: f64| x*/exp_inverse_cdf/*logit*//*hypsec_inverse_cdf*/;
         let alt_exp_min_uniform = /*exp_inverse_cdf*//*logit*/inv_func(min_epsilon);
         let alt_exp_max_uniform = /*exp_inverse_cdf*//*logit*/inv_func(max_epsilon);
 
@@ -525,7 +532,7 @@ impl WorldSim {
         /* let erosion_factor = |x: f64| logistic_cdf(logistic_base * if x <= /*erosion_center*/alt_old_center_uniform/*alt_old_center*/ { erosion_pow_low.ln() } else { erosion_pow_high.ln() } * log_odds(x))/*0.5 + (x - 0.5).signum() * ((x - 0.5).mul(2.0).abs(
         ).powf(erosion_pow).mul(0.5))*/; */
         let erosion_factor = |x: f64| (/*if x <= /*erosion_center*/alt_old_center_uniform/*alt_old_center*/ { erosion_pow_low.ln() } else { erosion_pow_high.ln() } * */(/*exp_inverse_cdf*//*logit*/inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform))/*0.5 + (x - 0.5).signum() * ((x - 0.5).mul(2.0).abs(
-).powf(erosion_pow).mul(0.5))*//*.powf(0.5)*//*.powf(1.5)*/.powf(2.0);
+).powf(erosion_pow).mul(0.5))*/.powf(0.5)/*.powf(1.5)*//*.powf(2.0)*/;
         let uplift_fn =
             |posi| {
                 if is_ocean_fn(posi) {
@@ -615,8 +622,15 @@ impl WorldSim {
                 } else {
                     (0.0, 0.0)
                 };
+                // tan(6/360*2*pi)*32 ~ 3.4
+                // 3.4/32*512 ~ 54
+                // 18/32*512 ~ 288
+                // tan(pi/6)*32 ~ 18
+                // tan(54/360*2*pi)*32
                 // let height = 1.0f64;
                 // let height = 1.0 / 7.0f64;
+                let bfrac = erosion_factor(0.5);
+                let height = (height - bfrac).abs().div(1.0 - bfrac);
                 let height = height
                     /* .mul(15.0 / 16.0)
                     .add(1.0 / 16.0) */
@@ -637,6 +651,7 @@ impl WorldSim {
                 // -1.0 / CONFIG.mountain_scale
                 // -0.75
                 // -CONFIG.sea_level / CONFIG.mountain_scale
+                // 0.0
                 // 0.0
                 old_height(posi) // 0.0
             } else {
@@ -673,6 +688,7 @@ impl WorldSim {
                             .mul(0.045)*/)
                 };
                 old_height_uniform(posi)/*.powf(2.0)*/
+                // 0.0
                 /* // 0.0
                 // -/*CONFIG.sea_level / CONFIG.mountain_scale*//* 0.75 */1.0
                 // ((old_height(posi) - alt_old_min) as f64 / (alt_old_max - alt_old_min) as f64) as f32
@@ -723,10 +739,10 @@ impl WorldSim {
             } else {
                 indirection_idx as usize
             };
-            // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+            /* // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
             // pushed towards the point identified by pass_idx).
-            let neighbor_pass_idx = dh[lake_idx];
-            let chunk_water_alt = if neighbor_pass_idx < 0 {
+            let neighbor_pass_idx = dh[lake_idx]; */
+            let chunk_water_alt = if /*neighbor_pass_idx*/dh[lake_idx] < 0 {
                 // This is either a boundary node (dh[chunk_idx] == -2, i.e. water is at sea level)
                 // or part of a lake that flows directly into the ocean.  In the former case, water
                 // is at sea level so we just return 0.0.  In the latter case, the lake bottom must
@@ -740,12 +756,15 @@ impl WorldSim {
                 // figure out the initial water height (which fill_sinks will then extend to make
                 // sure it fills the entire basin).
 
-                // Find the height of the pass into which our lake is flowing.
-                let pass_height_j = alt[neighbor_pass_idx as usize];
                 // Find the height of "our" side of the pass (the part of it that drains into this
                 // chunk's lake).
-                let pass_idx = -indirection[lake_idx];
-                let pass_height_i = alt[pass_idx as usize];
+                let pass_idx = -indirection[lake_idx] as usize;
+                let pass_height_i = alt[pass_idx];
+                // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+                // pushed towards the point identified by pass_idx).
+                let neighbor_pass_idx = dh[pass_idx/*lake_idx*/];
+                // Find the height of the pass into which our lake is flowing.
+                let pass_height_j = alt[neighbor_pass_idx as usize];
                 // Find the maximum of these two heights.
                 let pass_height = pass_height_i.max(pass_height_j);
                 // Use the pass height as the initial water altitude.
@@ -769,10 +788,10 @@ impl WorldSim {
                 } else {
                     indirection_idx as usize
                 };
-                // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+                /* // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
                 // pushed towards the point identified by pass_idx).
-                let neighbor_pass_idx = dh[lake_idx];
-                if neighbor_pass_idx < 0 {
+                let neighbor_pass_idx = dh[lake_idx]; */
+                if /*neighbor_pass_idx*/dh[lake_idx] < 0 {
                     // This is either a boundary node (dh[chunk_idx] == -2, i.e. water is at sea level)
                     // or part of a lake that flows directly into the ocean.  In the former case, water
                     // is at sea level so we just return 0.0.  In the latter case, the lake bottom must

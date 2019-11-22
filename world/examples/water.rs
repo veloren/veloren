@@ -64,8 +64,9 @@ fn main() {
                     .unwrap_or((CONFIG.sea_level, CONFIG.sea_level, CONFIG.sea_level, 0.0, 0.0, None, None));
                 let humidity = humidity.min(1.0).max(0.0);
                 let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
+                let pos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
                 let downhill_pos = (downhill
-                    .map(|downhill_pos| downhill_pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32))
+                    .map(|downhill_pos| downhill_pos/*.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32)*/)
                     .unwrap_or(pos)
                     - pos)/* * scale*/
                     + pos;
@@ -92,12 +93,12 @@ fn main() {
                 let forward_vec = Vec3::new(
                     (downhill_pos.x - pos.x) as f64,
                     (downhill_pos.y - pos.y) as f64,
-                    (downhill_alt - alt) as f64,
+                    (downhill_alt - alt) as f64 * (CONFIG.mountain_scale as f64 / gain as f64),
                 );
                 let up_vec = Vec3::new(
                     (cross_pos.x - pos.x) as f64,
                     (cross_pos.y - pos.y) as f64,
-                    (cross_alt - alt) as f64,
+                    (cross_alt - alt) as f64 * (CONFIG.mountain_scale as f64 / gain as f64),
                 );
                 let surface_normal = forward_vec.cross(up_vec).normalized();
                 // let surface_normal = Vec3::new((alt_tl - alt_tr) as f64, 1.0, (alt_tl - alt_bl) as f64).normalized();
@@ -139,23 +140,17 @@ fn main() {
                         0,
                         255,
                     ]),
-                    Some(RiverKind::Lake { .. }) => u32::from_le_bytes([
-                        (((64.0 + water_alt * 191.0) + (- water_depth * 64.0)) * 1.0) as u8,
-                        (((32.0 + water_alt * 95.0) + (- water_depth * 32.0)) * 1.0) as u8,
-                        0,
-                        255,
-                    ]),
                     Some(RiverKind::River { .. }) => u32::from_le_bytes([
                         64 + (alt * 191.0) as u8,
                         32 + (alt * 95.0) as u8,
                         0,
                         255,
                     ]),
-                    None => {
+                    None if water_alt >= water_depth => {
                         let (r, g, b) = (
-                            (alt * if is_temperature { temperature as f64 } else if is_shaded { alt } else { 0.0 }).sqrt(),
+                            (if is_shaded { alt } else { alt } * if is_temperature { temperature as f64 } else if is_shaded { alt } else { 0.0 }).sqrt(),
                             if is_shaded { 0.2 + (alt * 0.8) } else { alt },
-                            (alt * if is_humidity { humidity as f64 } else if is_shaded { alt } else { 0.0 }).sqrt(),
+                            (if is_shaded { alt } else { alt } * if is_humidity { humidity as f64 } else if is_shaded { alt } else { 0.0 }).sqrt(),
                         );
                         let light = if is_shaded {
                             light
@@ -174,7 +169,13 @@ fn main() {
                             (/*alt*//*alt * *//*(1.0 - humidity)*/(alt * temperature).sqrt() * 255.0) as u8,
                             255,
                         ]) */
-                    }
+                    },
+                    None | Some(RiverKind::Lake { .. }) => u32::from_le_bytes([
+                        (((64.0 + water_alt * 191.0) + (- water_depth * 64.0)) * 1.0) as u8,
+                        (((32.0 + water_alt * 95.0) + (- water_depth * 32.0)) * 1.0) as u8,
+                        0,
+                        255,
+                    ]),
                 };
             }
         }
@@ -183,12 +184,16 @@ fn main() {
         if win.is_key_down(minifb::Key::P) {
             println!(
                 "\
+                 Gain: {:?}\n\
+                 Scale: {:?}\n\
                  Land(adjacent): (X = temp, Y = humidity): {:?}\n\
                  Rivers: {:?}\n\
                  Lakes: {:?}\n\
                  Oceans: {:?}\n\
                  Total water: {:?}\n\
                  Total land(adjacent): {:?}",
+                gain,
+                scale,
                 quads,
                 rivers,
                 lakes,

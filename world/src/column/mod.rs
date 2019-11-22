@@ -436,14 +436,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         (temp < CONFIG.snow_temp ||
          downhill_alt.sub(CONFIG.sea_level) >= CONFIG.mountain_scale * 0.25)*/
         is_rocky {
-            // sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
+            sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
             // sim.get_interpolated_bilinear(wpos, |chunk| chunk.alt)?
-            sim.get_interpolated(wpos, |chunk| chunk.alt)?
+            // sim.get_interpolated(wpos, |chunk| chunk.alt)?
         } else {
-            // sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
-            sim.get_interpolated(wpos, |chunk| chunk.alt)?
+            sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
+            // sim.get_interpolated(wpos, |chunk| chunk.alt)?
         };
-        let basement = sim.get_interpolated/*get_interpolated_monotone*/(wpos, |chunk| chunk.basement)?;
+        let basement = sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement)?;
 
         // Find the average distance to each neighboring body of water.
         let mut river_count = 0.0f64;
