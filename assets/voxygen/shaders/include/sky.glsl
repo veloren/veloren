@@ -267,6 +267,8 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
+	return max(1.0 - 10000.0 / (1.0 + distance(f_pos.xy, focus_pos.xy)), 0.0);
+
 	float fog_radius = view_distance.x;
 	float mist_radius = 10000000.0;
 

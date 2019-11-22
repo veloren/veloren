@@ -13,7 +13,7 @@ impl Lod {
     pub fn new(renderer: &mut Renderer) -> Self {
         Self {
             model: renderer
-                .create_model(&create_lod_terrain_mesh(100))
+                .create_model(&create_lod_terrain_mesh(175))
                 .unwrap(),
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
         }
@@ -31,12 +31,14 @@ fn create_lod_terrain_mesh(detail: usize) -> Mesh<LodTerrainPipeline> {
 
     for x in 0..detail {
         for y in 0..detail {
-            mesh.push_quad(Quad::new(
-                Vertex::new(Vec2::new(x + 0, y + 0).map(transform)),
-                Vertex::new(Vec2::new(x + 1, y + 0).map(transform)),
-                Vertex::new(Vec2::new(x + 1, y + 1).map(transform)),
-                Vertex::new(Vec2::new(x + 0, y + 1).map(transform)),
-            ));
+            if Vec2::new(x, y).map(transform).magnitude() <= 1.0 {
+                mesh.push_quad(Quad::new(
+                    Vertex::new(Vec2::new(x + 0, y + 0).map(transform)),
+                    Vertex::new(Vec2::new(x + 1, y + 0).map(transform)),
+                    Vertex::new(Vec2::new(x + 1, y + 1).map(transform)),
+                    Vertex::new(Vec2::new(x + 0, y + 1).map(transform)),
+                ));
+            }
         }
     }
 

@@ -31,14 +31,14 @@ vec3 lod_norm(vec2 pos) {
 
 vec3 lod_col(vec2 pos) {
 	vec3 warmth = mix(
-		vec3(0.05, 0.4, 0.15),
+		vec3(0.05, 0.4, 0.1),
 		vec3(0.5, 0.4, 0.0),
 		(texture(t_noise, pos * 0.0002).x - 0.5) * 2.0 + 0.5
 	);
 
 	vec3 color = mix(
 		warmth,
-		vec3(0.5, 0.5, 0.5),
+		vec3(0.3, 0.3, 0.4),
 		alt_at(pos) / 1200.0
 	);
 

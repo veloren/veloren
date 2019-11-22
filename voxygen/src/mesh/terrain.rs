@@ -371,7 +371,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     if block.map_or(false, |vox| vox.is_opaque()) {
                         vol::push_vox_verts(
                             &mut opaque_mesh,
-                            faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
+                            faces_to_make(&blocks, true, |vox| !vox.is_opaque()),
                             offs,
                             &colors,
                             |pos, norm, col, ao, light| {
@@ -390,7 +390,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     } else if block.map_or(false, |vox| vox.is_fluid()) {
                         vol::push_vox_verts(
                             &mut fluid_mesh,
-                            faces_to_make(&blocks, false, |vox| vox.is_air()),
+                            faces_to_make(&blocks, true, |vox| vox.is_air()),
                             offs,
                             &colors,
                             |pos, norm, col, _ao, light| {
