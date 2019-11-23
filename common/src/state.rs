@@ -3,7 +3,7 @@ pub use sphynx::Uid;
 
 use crate::{
     comp,
-    event::{EventBus, LocalEvent, ServerEvent},
+    event::{EventBus, LocalEvent, ServerEvent, SfxEventItem},
     msg::{EcsCompPacket, EcsResPacket},
     region::RegionMap,
     sys,
@@ -173,6 +173,7 @@ impl State {
         ecs.add_resource(TerrainChanges::default());
         ecs.add_resource(EventBus::<ServerEvent>::default());
         ecs.add_resource(EventBus::<LocalEvent>::default());
+        ecs.add_resource(EventBus::<SfxEventItem>::default());
         ecs.add_resource(RegionMap::new());
     }
 
