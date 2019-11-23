@@ -1083,7 +1083,7 @@ impl SimChunk {
                     ); */
                 }
                 if river_slope.abs() >= 1.0 && cross_section.x >= 1.0 {
-                    log::info!(
+                    log::debug!(
                         "Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}",
                         wposf,
                         river,

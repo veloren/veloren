@@ -579,22 +579,22 @@ fn erode(
     uplift: impl Fn(usize) -> f32,
     is_ocean: impl Fn(usize) -> bool + Sync,
 ) {
-    log::info!("Done draining...");
+    log::debug!("Done draining...");
     let mmaxh = 1.0;
     let k = erosion_base as f64 + 2.244 / mmaxh as f64 * max_uplift as f64;
     let ((dh, indirection, newh, area), max_slope) = rayon::join(
         || {
             let mut dh = downhill(h, |posi| is_ocean(posi));
-            log::info!("Computed downhill...");
+            log::debug!("Computed downhill...");
             let (boundary_len, indirection, newh) = get_lakes(&h, &mut dh);
-            log::info!("Got lakes...");
+            log::debug!("Got lakes...");
             let area = get_drainage(&newh, &dh, boundary_len);
-            log::info!("Got flux...");
+            log::debug!("Got flux...");
             (dh, indirection, newh, area)
         },
         || {
             let max_slope = get_max_slope(h, rock_strength_nz);
-            log::info!("Got max slopes...");
+            log::debug!("Got max slopes...");
             max_slope
         },
     );
@@ -669,7 +669,7 @@ fn erode(
         }
         maxh = h[posi].max(maxh);
     }
-    log::info!(
+    log::debug!(
         "Done eroding (max height: {:?}) (avg height: {:?}) (avg slope: {:?})",
         maxh,
         if nland == 0 {
@@ -841,7 +841,7 @@ pub fn get_lakes(h: &[f32], downhill: &mut [isize]) -> (usize, Box<[i32]>, Box<[
     }
     assert_eq!(newh.len(), downhill.len());
 
-    log::info!("Old lake roots: {:?}", lake_roots.len());
+    log::debug!("Old lake roots: {:?}", lake_roots.len());
 
     let newh = newh.into_boxed_slice();
     // Now, we know that the sum of all the indirection nodes will be the same as the number of
@@ -1067,7 +1067,7 @@ pub fn get_lakes(h: &[f32], downhill: &mut [isize]) -> (usize, Box<[i32]>, Box<[
         }
         // println!("I am a pass: {:?}", (uniform_idx_as_vec2(chunk_idx as usize), uniform_idx_as_vec2(neighbor_idx as usize)));
     }
-    log::info!("Total lakes: {:?}", pass_flows_sorted.len());
+    log::debug!("Total lakes: {:?}", pass_flows_sorted.len());
 
     // Perform the bfs once again.
     let mut newh = Vec::with_capacity(downhill.len());
@@ -1130,17 +1130,17 @@ pub fn do_erosion(
         .cloned()
         .map(|e| e as f64)
         .sum::<f64>();
-    log::info!("Sum uplifts: {:?}", sum_uplift);
+    log::debug!("Sum uplifts: {:?}", sum_uplift);
 
     let max_uplift = uplift
         .into_par_iter()
         .cloned()
         .max_by(|a, b| a.partial_cmp(&b).unwrap())
         .unwrap();
-    log::info!("Max uplift: {:?}", max_uplift);
+    log::debug!("Max uplift: {:?}", max_uplift);
     let mut h = oldh_;
     for i in 0..n {
-        log::info!("Erosion iteration #{:?}", i);
+        log::debug!("Erosion iteration #{:?}", i);
         erode(
             &mut h,
             erosion_base,

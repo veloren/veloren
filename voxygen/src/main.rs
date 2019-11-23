@@ -19,6 +19,7 @@ pub mod audio;
 pub mod error;
 pub mod hud;
 pub mod key_state;
+mod logging;
 pub mod menu;
 pub mod mesh;
 pub mod render;
@@ -33,9 +34,7 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
-use log::{self, debug, error, info};
-
-use fern::colors::{Color, ColoredLevelConfig};
+use log::{self, debug, error};
 use std::{mem, panic, str::FromStr};
 
 /// A type used to store state that is shared between all play states.
@@ -97,6 +96,16 @@ lazy_static! {
 }
 
 fn main() {
+    // Initialize logging.
+    let term_log_level = std::env::var_os("VOXYGEN_LOG")
+        .and_then(|env| env.to_str().map(|s| s.to_owned()))
+        .and_then(|s| log::LevelFilter::from_str(&s).ok())
+        .unwrap_or(log::LevelFilter::Warn);
+
+    // TODO: Use another environment variable for this?
+    let file_log_level = log::LevelFilter::Debug;
+    logging::init(term_log_level, file_log_level);
+
     // Load the settings
     let settings = Settings::load();
     // Save settings to add new fields or create the file if it is not already there
@@ -125,63 +134,6 @@ fn main() {
     };
 
     let settings = &global_state.settings;
-
-    // Initialize logging.
-    let term_log_level = std::env::var_os("VOXYGEN_LOG")
-        .and_then(|env| env.to_str().map(|s| s.to_owned()))
-        .and_then(|s| log::LevelFilter::from_str(&s).ok())
-        .unwrap_or(log::LevelFilter::Warn);
-
-    let colors = ColoredLevelConfig::new()
-        .error(Color::Red)
-        .warn(Color::Yellow)
-        .info(Color::Cyan)
-        .debug(Color::Green)
-        .trace(Color::BrightBlack);
-
-    let base = fern::Dispatch::new()
-        .level_for("dot_vox::parser", log::LevelFilter::Warn)
-        .level_for("gfx_device_gl::factory", log::LevelFilter::Warn)
-        .level_for("veloren_voxygen::discord", log::LevelFilter::Warn);
-    // TODO: Filter tracing better such that our own tracing gets seen more easily
-
-    let time = chrono::offset::Utc::now();
-
-    let file_cfg = fern::Dispatch::new()
-        .level(log::LevelFilter::Trace)
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{}[{}:{}][{}] {}",
-                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-                record.target(),
-                record
-                    .line()
-                    .map(|x| x.to_string())
-                    .unwrap_or("X".to_string()),
-                record.level(),
-                message
-            ))
-        })
-        .chain(
-            fern::log_file(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H")))
-                .expect("Failed to create log file!"),
-        );
-
-    let stdout_cfg = fern::Dispatch::new()
-        .level(term_log_level)
-        .format(move |out, message, record| {
-            out.finish(format_args!(
-                "[{}] {}",
-                colors.color(record.level()),
-                message
-            ))
-        })
-        .chain(std::io::stdout());
-
-    base.chain(file_cfg)
-        .chain(stdout_cfg)
-        .apply()
-        .expect("Failed to setup logging!");
 
     // Set up panic handler to relay swish panic messages to the user
     let settings_clone = settings.clone();
@@ -261,7 +213,7 @@ fn main() {
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states
         .last()
-        .map(|current_state| info!("Started game with state '{}'", current_state.name()));
+        .map(|current_state| debug!("Started game with state '{}'", current_state.name()));
 
     // What's going on here?
     // ---------------------
@@ -279,7 +231,7 @@ fn main() {
         match state_result {
             PlayStateResult::Shutdown => {
                 direction = Direction::Backwards;
-                info!("Shutting down all states...");
+                debug!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {
                         debug!("Popped state '{}'.", old_state.name());
