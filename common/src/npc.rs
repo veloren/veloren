@@ -5,7 +5,7 @@ use serde_json;
 use std::str::FromStr;
 use std::sync::Arc;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum NpcKind {
     Humanoid,
     Wolf,

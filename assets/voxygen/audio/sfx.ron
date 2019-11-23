@@ -1,0 +1,67 @@
+(
+    items: [
+        (
+            trigger: Run,
+            files: [
+                "voxygen.audio.sfx.footsteps.stepdirt_1",
+                "voxygen.audio.sfx.footsteps.stepdirt_2",
+                "voxygen.audio.sfx.footsteps.stepdirt_3",
+                "voxygen.audio.sfx.footsteps.stepdirt_4",
+                "voxygen.audio.sfx.footsteps.stepdirt_5",
+                "voxygen.audio.sfx.footsteps.stepdirt_6",
+                "voxygen.audio.sfx.footsteps.stepdirt_7",
+                "voxygen.audio.sfx.footsteps.stepdirt_8",
+            ],
+            threshold: 0.25,
+        ),
+        (
+            trigger: GliderOpen,
+            files: [
+                "voxygen.audio.sfx.glider_open",
+            ],
+            threshold: 0.5,
+        ),
+        (
+            trigger: GliderClose,
+            files: [
+                "voxygen.audio.sfx.glider_close",
+            ],
+            threshold: 0.5,
+        ),
+        (
+            trigger: Attack(Sword),
+            files: [
+                "voxygen.audio.sfx.weapon.sword",
+            ],
+            threshold: 0.5,
+        ),
+        (
+            trigger: Attack(Hammer),
+            files: [
+                "voxygen.audio.sfx.weapon.sword",
+            ],
+            threshold: 0.5,
+        ),
+        (
+            trigger: Attack(Bow),
+            files: [
+                "voxygen.audio.sfx.weapon.bow",
+            ],
+            threshold: 0.5,
+        ),
+        (
+            trigger: LevelUp,
+            files: [
+                "voxygen.audio.sfx.chat_message_received"
+            ],
+            threshold: 0.2,
+        ),
+        (
+            trigger: InventoryAdd,
+            files: [
+                "voxygen.audio.sfx.inventory_add"
+            ],
+            threshold: 0.2,
+        ),
+    ],
+)
