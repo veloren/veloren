@@ -1,16 +1,14 @@
 pub mod camera;
 pub mod figure;
-pub mod sound;
 pub mod terrain;
 
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
-    sound::SoundMgr,
     terrain::Terrain,
 };
 use crate::{
-    audio::AudioFrontend,
+    audio::{sfx::SfxMgr, AudioFrontend},
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
@@ -58,7 +56,7 @@ pub struct Scene {
     select_pos: Option<Vec3<i32>>,
 
     figure_mgr: FigureMgr,
-    sound_mgr: SoundMgr,
+    sfx_mgr: SfxMgr,
 }
 
 impl Scene {
@@ -91,7 +89,7 @@ impl Scene {
             select_pos: None,
 
             figure_mgr: FigureMgr::new(),
-            sound_mgr: SoundMgr::new(),
+            sfx_mgr: SfxMgr::new(),
         }
     }
 
@@ -287,8 +285,8 @@ impl Scene {
         // Remove unused figures.
         self.figure_mgr.clean(client.get_tick());
 
-        // Maintain audio
-        self.sound_mgr.maintain(audio, client);
+        // Maintain sfx
+        self.sfx_mgr.maintain(audio, client);
     }
 
     /// Render the scene using the provided `Renderer`.
