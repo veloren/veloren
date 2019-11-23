@@ -332,10 +332,10 @@ impl Race {
         match (self, body_type) {
             (Race::Danari, BodyType::Female) => 2,
             (Race::Danari, BodyType::Male) => 2,
-            (Race::Dwarf, BodyType::Female) => 1,
+            (Race::Dwarf, BodyType::Female) => 2,
             (Race::Dwarf, BodyType::Male) => 3,
             (Race::Elf, BodyType::Female) => 21,
-            (Race::Elf, BodyType::Male) => 3,
+            (Race::Elf, BodyType::Male) => 4,
             (Race::Human, BodyType::Female) => 19,
             (Race::Human, BodyType::Male) => 17,
             (Race::Orc, BodyType::Female) => 1,
