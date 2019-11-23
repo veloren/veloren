@@ -1,6 +1,8 @@
 pub mod channel;
 pub mod fader;
+pub mod sfx;
 pub mod soundcache;
+
 use channel::{AudioType, Channel};
 use fader::Fader;
 use soundcache::SoundCache;
