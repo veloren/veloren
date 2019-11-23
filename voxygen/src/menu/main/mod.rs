@@ -98,7 +98,10 @@ impl PlayState for MainMenuState {
             global_state.maintain(clock.get_last_delta().as_secs_f32());
 
             // Maintain the UI.
-            for event in self.main_menu_ui.maintain(global_state) {
+            for event in self
+                .main_menu_ui
+                .maintain(global_state, clock.get_last_delta())
+            {
                 match event {
                     MainMenuEvent::LoginAttempt {
                         username,
