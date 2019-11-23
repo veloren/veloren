@@ -1,9 +1,52 @@
 use crate::comp;
+use comp::item::Tool;
 use parking_lot::Mutex;
+use serde::Deserialize;
 use specs::Entity as EcsEntity;
 use sphynx::Uid;
 use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
+
+pub struct SfxEventItem {
+    pub sfx: SfxEvent,
+    pub pos: Option<Vec3<f32>>,
+}
+
+impl SfxEventItem {
+    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>) -> Self {
+        Self { sfx, pos }
+    }
+
+    pub fn at_player_position(sfx: SfxEvent) -> Self {
+        Self { sfx, pos: None }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
+pub enum SfxEvent {
+    Idle,
+    PlaceBlock,
+    RemoveBlock,
+    OpenChest,
+    ChatMessageReceived,
+    OpenBag,
+    LevelUp,
+    Roll,
+    Climb,
+    Swim,
+    Run,
+    GliderOpen,
+    Glide,
+    GliderClose,
+    Jump,
+    Fall,
+    InventoryAdd,
+    InventoryDrop,
+    LightLantern,
+    ExtinguishLantern,
+    Attack(Tool),
+    AttackWolf,
+}
 
 pub enum LocalEvent {
     Jump(EcsEntity),
