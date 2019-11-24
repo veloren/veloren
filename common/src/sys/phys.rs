@@ -3,11 +3,11 @@ use {
         comp::{Body, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
         event::{EventBus, ServerEvent},
         state::DeltaTime,
+        sync::Uid,
         terrain::{Block, TerrainGrid},
         vol::ReadVol,
     },
     specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
-    sphynx::Uid,
     vek::*,
 };
 

@@ -27,8 +27,8 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
-    sphynx::WorldSyncExt,
-    state::{BlockChange, State, TimeOfDay, Uid},
+    state::{BlockChange, State, TimeOfDay},
+    sync::{Uid, WorldSyncExt},
     terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
@@ -899,7 +899,7 @@ impl Server {
             .set((before_tick_6 - before_handle_events).as_nanos() as i64);
         self.metrics
             .tick_time
-            .with_label_values(&["sphynx sync"])
+            .with_label_values(&["entity deletion"])
             .set((before_tick_7 - before_tick_6).as_nanos() as i64);
         self.metrics
             .tick_time

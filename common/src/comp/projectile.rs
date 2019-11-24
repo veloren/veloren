@@ -1,5 +1,4 @@
-use crate::comp;
-use crate::state::Uid;
+use crate::{comp, sync::Uid};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;

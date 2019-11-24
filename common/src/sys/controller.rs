@@ -7,12 +7,12 @@ use crate::{
     },
     event::{Emitter, EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
+    sync::{Uid, UidAllocator},
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Entity, Join, Read, ReadStorage, System, WriteStorage,
 };
-use sphynx::{Uid, UidAllocator};
 use std::time::Duration;
 use vek::*;
 
