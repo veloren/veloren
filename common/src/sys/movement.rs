@@ -5,10 +5,10 @@ use crate::{
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
+    sync::Uid,
     terrain::TerrainGrid,
 };
-use specs::prelude::*;
-use sphynx::Uid;
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 use vek::*;
 

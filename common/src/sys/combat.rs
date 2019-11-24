@@ -4,7 +4,8 @@ use crate::{
         Ori, Pos, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
-    state::{DeltaTime, Uid},
+    state::DeltaTime,
+    sync::Uid,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;

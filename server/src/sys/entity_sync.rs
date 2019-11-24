@@ -10,7 +10,7 @@ use common::{
     comp::{CharacterState, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
     msg::ServerMsg,
     region::{Event as RegionEvent, RegionMap},
-    state::Uid,
+    sync::Uid,
 };
 use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
@@ -77,8 +77,8 @@ impl<'a> System<'a> for Sys {
         // 2. Iterate through region subscribers (ie clients)
         //     - Collect a list of entity ids for clients who are subscribed to this region (hash calc to check each)
         // 3. Iterate through events from that region
-        //     - For each entity left event, iterate through the client list and check if they are subscribed to the destination (hash calc per subscribed client per entity left event)
-        //     - Do something with entity entered events when sphynx is removed??
+        //     - For each entity entered event, iterate through the client list and check if they are subscribed to the source (hash calc per subscribed client per entity event), if not subscribed to the source send a entity creation message to that client
+        //     - For each entity left event, iterate through the client list and check if they are subscribed to the destination (hash calc per subscribed client per entity event)
         // 4. Iterate through entities in that region
         // 5. Inform clients of the component changes for that entity
         //     - Throttle update rate base on distance to each client

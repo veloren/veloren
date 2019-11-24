@@ -1,6 +1,6 @@
 use super::{ClientState, EcsCompPacket, EcsResPacket};
 use crate::{
-    comp,
+    comp, sync,
     terrain::{Block, TerrainChunk},
     ChatType,
 };
@@ -26,7 +26,7 @@ pub struct ServerInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
-        ecs_state: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
+        ecs_state: sync::StatePackage<EcsCompPacket, EcsResPacket>,
         entity_uid: u64,
         server_info: ServerInfo,
         // world_map: Vec2<usize>, /*, Vec<u32>)*/
@@ -40,9 +40,9 @@ pub enum ServerMsg {
         message: String,
     },
     SetPlayerEntity(u64),
-    EcsSync(sphynx::SyncPackage<EcsCompPacket>),
-    EcsResSync(sphynx::ResSyncPackage<EcsResPacket>),
-    CreateEntity(sphynx::EntityPackage<EcsCompPacket>),
+    EcsSync(sync::SyncPackage<EcsCompPacket>),
+    EcsResSync(sync::ResSyncPackage<EcsResPacket>),
+    CreateEntity(sync::EntityPackage<EcsCompPacket>),
     DeleteEntity(u64),
     EntityPos {
         entity: u64,

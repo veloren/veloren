@@ -4,7 +4,7 @@ use common::{
     comp::{CharacterState, Ori, Player, Pos, Vel},
     msg::ServerMsg,
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
-    state::Uid,
+    sync::Uid,
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
