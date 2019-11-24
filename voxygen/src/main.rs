@@ -102,8 +102,11 @@ fn main() {
         .and_then(|s| log::LevelFilter::from_str(&s).ok())
         .unwrap_or(log::LevelFilter::Warn);
 
-    // TODO: Use another environment variable for this?
-    let file_log_level = log::LevelFilter::Debug;
+    let file_log_level = std::env::var_os("VOXYGEN_FILE_LOG")
+        .and_then(|env| env.to_str().map(|s| s.to_owned()))
+        .and_then(|s| log::LevelFilter::from_str(&s).ok())
+        .unwrap_or(log::LevelFilter::Debug);
+
     logging::init(term_log_level, file_log_level);
 
     // Load the settings
