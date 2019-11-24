@@ -90,6 +90,84 @@ impl FigureMgr {
         )
             .join()
         {
+            // Don't process figures outside the vd
+            let vd_frac = Vec2::from(pos.0 - player_pos)
+                .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                    d.abs() as f32 / sz as f32
+                })
+                .magnitude()
+                / view_distance as f32;
+            // Keep from re-adding/removing entities on the border of the vd
+            if vd_frac > 1.2 {
+                match body {
+                    Body::Humanoid(_) => {
+                        self.character_states.remove(&entity);
+                    }
+                    Body::QuadrupedSmall(_) => {
+                        self.quadruped_small_states.remove(&entity);
+                    }
+                    Body::QuadrupedMedium(_) => {
+                        self.quadruped_medium_states.remove(&entity);
+                    }
+                    Body::BirdMedium(_) => {
+                        self.bird_medium_states.remove(&entity);
+                    }
+                    Body::FishMedium(_) => {
+                        self.fish_medium_states.remove(&entity);
+                    }
+                    Body::Dragon(_) => {
+                        self.dragon_states.remove(&entity);
+                    }
+                    Body::BirdSmall(_) => {
+                        self.bird_small_states.remove(&entity);
+                    }
+                    Body::FishSmall(_) => {
+                        self.fish_small_states.remove(&entity);
+                    }
+                    Body::BipedLarge(_) => {
+                        self.biped_large_states.remove(&entity);
+                    }
+                    Body::Object(_) => {
+                        self.object_states.remove(&entity);
+                    }
+                }
+                continue;
+            } else if vd_frac > 1.0 {
+                match body {
+                    Body::Humanoid(_) => {
+                        self.character_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::QuadrupedSmall(_) => {
+                        self.quadruped_small_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::QuadrupedMedium(_) => {
+                        self.quadruped_medium_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::BirdMedium(_) => {
+                        self.bird_medium_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::FishMedium(_) => {
+                        self.fish_medium_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::Dragon(_) => {
+                        self.dragon_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::BirdSmall(_) => {
+                        self.bird_small_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::FishSmall(_) => {
+                        self.fish_small_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::BipedLarge(_) => {
+                        self.biped_large_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::Object(_) => {
+                        self.object_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                }
+                continue;
+            }
+
             // Don't process figures outside the frustum spectrum
             let frustum = camera.frustum(client);
 
@@ -163,49 +241,7 @@ impl FigureMgr {
                 }
             }
 
-            // Don't process figures outside the vd
-            let vd_frac = Vec2::from(pos.0 - player_pos)
-                .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                    d.abs() as f32 / sz as f32
-                })
-                .magnitude()
-                / view_distance as f32;
-            // Keep from re-adding/removing entities on the border of the vd
-            if vd_frac > 1.2 {
-                match body {
-                    Body::Humanoid(_) => {
-                        self.character_states.remove(&entity);
-                    }
-                    Body::QuadrupedSmall(_) => {
-                        self.quadruped_small_states.remove(&entity);
-                    }
-                    Body::QuadrupedMedium(_) => {
-                        self.quadruped_medium_states.remove(&entity);
-                    }
-                    Body::BirdMedium(_) => {
-                        self.bird_medium_states.remove(&entity);
-                    }
-                    Body::FishMedium(_) => {
-                        self.fish_medium_states.remove(&entity);
-                    }
-                    Body::Dragon(_) => {
-                        self.dragon_states.remove(&entity);
-                    }
-                    Body::BirdSmall(_) => {
-                        self.bird_small_states.remove(&entity);
-                    }
-                    Body::FishSmall(_) => {
-                        self.fish_small_states.remove(&entity);
-                    }
-                    Body::BipedLarge(_) => {
-                        self.biped_large_states.remove(&entity);
-                    }
-                    Body::Object(_) => {
-                        self.object_states.remove(&entity);
-                    }
-                }
-                continue;
-            } else if vd_frac > 1.0 || !in_frustum {
+            if !in_frustum {
                 continue;
             }
 
