@@ -1,9 +1,11 @@
-use crate::comp::{Controller, MountState, Mounting, Ori, Pos, Vel};
+use crate::{
+    comp::{Controller, MountState, Mounting, Ori, Pos, Vel},
+    sync::UidAllocator,
+};
 use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, System, WriteStorage,
 };
-use sphynx::UidAllocator;
 use vek::*;
 
 /// This system is responsible for controlling mounts

@@ -5,10 +5,11 @@ use common::{
         Projectile, Scale, Stats, Sticky,
     },
     msg::{EcsCompPacket, EcsResPacket},
-    sphynx::{
-        self, EntityPackage, ResSyncPackage, StatePackage, SyncPackage, UpdateTracker, WorldSyncExt,
+    state::{Time, TimeOfDay},
+    sync::{
+        CompPacket, EntityPackage, ResSyncPackage, StatePackage, SyncPackage, Uid, UpdateTracker,
+        WorldSyncExt,
     },
-    state::{Time, TimeOfDay, Uid},
 };
 use shred_derive::SystemData;
 use specs::{
@@ -301,7 +302,7 @@ impl<'a> TrackedResources<'a> {
             .with_res(self.time_of_day.deref())
     }
     /// Create state package with resources included
-    pub fn state_package<C: sphynx::CompPacket>(&self) -> StatePackage<C, EcsResPacket> {
+    pub fn state_package<C: CompPacket>(&self) -> StatePackage<C, EcsResPacket> {
         StatePackage::new()
             .with_res(self.time.deref())
             .with_res(self.time_of_day.deref())

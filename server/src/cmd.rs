@@ -10,8 +10,8 @@ use common::{
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     pathfinding::WorldPath,
-    sphynx::WorldSyncExt,
     state::TimeOfDay,
+    sync::WorldSyncExt,
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::RectVolSize,
 };

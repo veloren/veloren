@@ -1,10 +1,8 @@
-// Reexports
-pub use sphynx::Uid;
-
 use crate::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent, SfxEventItem},
     region::RegionMap,
+    sync::WorldSyncExt,
     sys,
     terrain::{Block, TerrainChunk, TerrainGrid},
     vol::WriteVol,
@@ -17,7 +15,6 @@ use specs::{
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
     Component, DispatcherBuilder, Entity as EcsEntity,
 };
-use sphynx::WorldSyncExt;
 use std::{sync::Arc, time::Duration};
 use vek::*;
 
@@ -103,20 +100,6 @@ impl Default for State {
 }
 
 impl State {
-    // Create a new `State` from an ECS state package.
-    /*pub fn from_state_package(
-        state_package: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
-    ) -> Self {
-        Self {
-            ecs: sphynx::World::from_state_package(
-                specs::World::new(),
-                Self::setup_sphynx_world,
-                state_package,
-            ),
-            thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
-        }
-    }*/
-
     /// Creates ecs world and registers all the common components and resources
     // TODO: Split up registering into server and client (e.g. move EventBus<ServerEvent> to the server)
     fn setup_ecs_world() -> specs::World {

@@ -3195,16 +3195,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sphynx"
-version = "0.1.0"
-dependencies = [
- "serde 1.0.102 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.102 (registry+https://github.com/rust-lang/crates.io-index)",
- "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "sum_type 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3598,7 +3588,7 @@ dependencies = [
  "serde_json 1.0.42 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git)",
- "sphynx 0.1.0",
+ "sum_type 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
