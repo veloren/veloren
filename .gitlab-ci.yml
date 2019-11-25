@@ -21,44 +21,6 @@ before_script:
 
 # -- optional build
 
-.optional-debug: &optional-debug
-    stage: optional-builds
-    tags:
-        - veloren-docker
-    except:
-        - schedules
-    when: manual
-
-optional-debug:linux:
-    <<: *optional-debug
-    script:
-        - VELOREN_ASSETS=assets cargo build --verbose
-        - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
-        - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
-        - strip --strip-all veloren-server-cli
-        - strip --strip-all veloren-voxygen
-    artifacts:
-        paths:
-            - veloren-server-cli
-            - veloren-voxygen
-            - assets/
-            - LICENSE
-        expire_in: 1 week
-
-optional-debug:windows:
-    <<: *optional-debug
-    script:
-        - VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu
-        - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
-        - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
-    artifacts:
-        paths:
-            - veloren-server-cli.exe
-            - veloren-voxygen.exe
-            - assets/
-            - LICENSE
-        expire_in: 1 week
-
 .optional-release: &optional-release
     stage: optional-builds
     tags:
