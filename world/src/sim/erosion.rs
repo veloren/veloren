@@ -231,8 +231,8 @@ pub fn get_rivers(
         let indirection_idx = indirection[chunk_idx];
         // Find the lake we are flowing into.
         let lake_idx = if indirection_idx < 0 {
-            /* // If we're a lake bottom, our own indirection is negative.
-            let mut lake = &mut rivers[chunk_idx];
+            // If we're a lake bottom, our own indirection is negative.
+            /* let mut lake = &mut rivers[chunk_idx];
             let neighbor_pass_idx = downhill_idx;
             // Mass flow from this lake is treated as a weighting factor (this is currently
             // considered proportional to drainage, but in the direction of "lake side of pass to
@@ -242,15 +242,17 @@ pub fn get_rivers(
                 neighbor_pass_pos: neighbor_pass_pos
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
             });
-            lake.spline_derivative = Vec2::zero()/*river_spline_derivative*/;
+            lake.spline_derivative = Vec2::zero()/*river_spline_derivative*/; */
             let pass_idx = (-indirection_idx) as usize;
-            let pass_pos = uniform_idx_as_vec2(pass_idx);
-            let lake_direction = neighbor_coef * (neighbor_pass_pos - pass_pos).map(|e| e as f64);
-            // Our side of the pass must have already been traversed (even if our side of the pass
-            // is the lake bottom), so we acquire its computed river_spline_derivative.
+            /* let pass_pos = uniform_idx_as_vec2(pass_idx);
+            let lake_direction = neighbor_coef * (neighbor_pass_pos - pass_pos).map(|e| e as f64); */
             let pass = &rivers[pass_idx];
-            debug_assert!(pass.is_lake());
-            let pass_spline_derivative = pass.spline_derivative.map(|e| e as f64)/*Vec2::zero()*/;
+            /* // Our side of the pass must have already been traversed (even if our side of the pass
+            // is the lake bottom), so we acquire its computed river_spline_derivative.
+            debug_assert!(pass.is_lake()); */
+            // NOTE: Must exist since this lake had a downhill in the first place.
+            let neighbor_pass_idx = downhill[pass_idx] as usize/*downhill_idx*/;
+            /* let pass_spline_derivative = pass.spline_derivative.map(|e| e as f64)/*Vec2::zero()*/;
             // Normally we want to not normalize, but for the lake we don't want to generate a
             // super long edge since it could lead to a lot of oscillation... this is another
             // reason why we shouldn't use the lake bottom.
@@ -261,7 +263,7 @@ pub fn get_rivers(
             let weighted_flow = (lake_direction * 2.0 - pass_spline_derivative)
                 / derivative_divisor
                 * lake_drainage
-                / lake_neighbor_pass_incoming_drainage;
+                / lake_neighbor_pass_incoming_drainage; */
             let mut lake_neighbor_pass = &mut rivers[neighbor_pass_idx];
             // We definitely shouldn't have encountered this yet!
             debug_assert!(lake_neighbor_pass.velocity == Vec3::zero());
@@ -271,7 +273,7 @@ pub fn get_rivers(
             lake_neighbor_pass.river_kind = Some(RiverKind::River {
                 cross_section: Vec2::default(),
             });
-            // We also want to add to the out-flow side of the pass a (flux-weighted)
+            /* // We also want to add to the out-flow side of the pass a (flux-weighted)
             // derivative coming from the lake center.
             //
             // NOTE: Maybe consider utilizing 3D component of spline somehow?  Currently this is
@@ -283,26 +285,26 @@ pub fn get_rivers(
         } else {
             indirection_idx as usize
         };
-        // Add our spline derivative to the downhill river (weighted by the chunk's drainage).
-        //
-        // TODO: consider utilizing height difference component of flux as well; currently we
-        // just discard it in figuring out the spline's slope.
-        let downhill_river = &mut rivers[downhill_idx];
-        let weighted_flow = (neighbor_dim * 2.0 - river_spline_derivative.map(|e| e as f64))
-            / derivative_divisor
-            * chunk_drainage
-            / incoming_drainage;
-        downhill_river.spline_derivative += weighted_flow.map(|e| e as f32);
 
         // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
         // pushed towards the point identified by pass_idx).
-        let pass_idx = if /*downhill[lake_idx] >= 0*/true {
-            // This is a proper lake with a proper pass
-            (-indirection[lake_idx]) as usize
-        } else {
-            // This lake is actually the ocean.
-            lake_idx
-        };
+        let pass_idx = (-indirection[lake_idx]) as usize;
+
+        // Add our spline derivative to the downhill river (weighted by the chunk's drainage).
+        // NOTE: Don't add the spline derivative to the lake side of the pass for our own lake,
+        // because we don't want to preserve weird curvature from before we hit the lake in the
+        // outflowing river (this will not apply to one-chunk lakes, which are their own pass).
+        if pass_idx != downhill_idx {
+            // TODO: consider utilizing height difference component of flux as well; currently we
+            // just discard it in figuring out the spline's slope.
+            let downhill_river = &mut rivers[downhill_idx];
+            let weighted_flow = (neighbor_dim * 2.0 - river_spline_derivative.map(|e| e as f64))
+                / derivative_divisor
+                * chunk_drainage
+                / incoming_drainage;
+            downhill_river.spline_derivative += weighted_flow.map(|e| e as f32);
+        }
+
         let neighbor_pass_idx = downhill[pass_idx/*lake_idx*/];
         // Find our own water height.
         let chunk_water_alt = water_alt[chunk_idx];
@@ -657,6 +659,8 @@ fn erode(
         // 2.444 * 5
     // Stream power erosion constant (sediment), in m^(1-2m) / year (times dt).
     let k_fs = k_fb * /*1.0*//*2.0*/2.0/*4.0*/;
+    // u = k * h_max / 2.244
+    // let uplift_scale = erosion_base as f64 + (k_fb * mmaxh / 2.244 / 5.010e-4 as f64 * mmaxh as f64) * dt;
     let ((dh, indirection, newh, area), mut max_slopes) = rayon::join(
         || {
             let mut dh = downhill(h, |posi| is_ocean(posi));
@@ -912,7 +916,8 @@ fn erode(
                 }
                 h/*b*/[posi] = new_h_i as f32;
                 // Make sure to update the basement as well!
-                b[posi] = old_b_i.min(new_h_i) as f32;
+                // b[posi] = old_b_i.min(new_h_i) as f32;
+                b[posi] = old_b_i.min(old_b_i + (new_h_i - old_h_i)) as f32;
                 sumh += new_h_i;
             }
         }
@@ -1480,7 +1485,8 @@ pub fn do_erosion(
     let height_scale = 1.0; // 1.0 / CONFIG.mountain_scale as f64;
     let mmaxh = CONFIG.mountain_scale as f64 * height_scale;
     let dt = max_uplift as f64 / height_scale /* * CONFIG.mountain_scale as f64*/ / 5.010e-4;
-    let k_fb = (erosion_base as f64 + 2.244 / mmaxh as f64 * /*10.0*//*5.0*//*9.0*//*7.5*//*5.0*//*2.5*//*1.5*/4.0/*1.0*//*3.75*/ * max_uplift as f64) / dt;
+    let k_fb = /*(erosion_base as f64 + 2.244 / mmaxh as f64 * /*10.0*//*5.0*//*9.0*//*7.5*//*5.0*//*2.5*//*1.5*/4.0/*1.0*//*3.75*/ * max_uplift as f64) / dt;*/
+        2.0e-5 * dt;
     let kd_bedrock =
         /*1e-2*//*0.25e-2*/1e-2 * height_scale * height_scale/* / (CONFIG.mountain_scale as f64 * CONFIG.mountain_scale as f64) */
         /* * k_fb / 2e-5 */;
