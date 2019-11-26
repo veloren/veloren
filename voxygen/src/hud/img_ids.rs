@@ -59,7 +59,7 @@ image_ids! {
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
         mmap_frame_closed: "voxygen.element.frames.mmap_closed",
-        indicator_mmap: "voxygen.voxel.figure.accessory.human.earring",
+        indicator_mmap: "voxygen.element.buttons.indicator_mmap",
 
         // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
         window_frame: "voxygen.element.frames.window2",
