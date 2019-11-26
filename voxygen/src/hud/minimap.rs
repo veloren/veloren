@@ -89,17 +89,17 @@ impl<'a> Widget for MiniMap<'a> {
 
         if self.show.mini_map {
             Image::new(self.imgs.mmap_frame)
-                .w_h(100.0 * 2.0, 100.0 * 2.0)
+                .w_h(100.0 * 4.0, 100.0 * 4.0)
                 .top_right_with_margins_on(ui.window, 5.0, 5.0)
                 .set(state.ids.mmap_frame, ui);
 
-            Rectangle::fill_with([92.0 * 2.0, 82.0 * 2.0], color::TRANSPARENT)
-                .mid_top_with_margin_on(state.ids.mmap_frame, 13.0 * 2.0 + 2.0)
+            Rectangle::fill_with([92.0 * 4.0, 82.0 * 4.0], color::TRANSPARENT)
+                .mid_top_with_margin_on(state.ids.mmap_frame, 13.0 * 4.0 + 4.0)
                 .set(state.ids.mmap_frame_bg, ui);
             // Map Image
             Image::new(/*self.world_map*/ self.imgs.map_placeholder)
                 .middle_of(state.ids.mmap_frame_bg)
-                .w_h(92.0 * 2.0, 82.0 * 2.0)
+                .w_h(92.0 * 4.0, 82.0 * 4.0)
                 .parent(state.ids.mmap_frame_bg)
                 .set(state.ids.grid, ui);
             // Coordinates
@@ -112,12 +112,12 @@ impl<'a> Widget for MiniMap<'a> {
                 .map_or(Vec3::zero(), |pos| pos.0);
 
             let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
-            let x = player_pos.x as f64 / worldsize * 92.0 * 2.0;
-            let y = (1.0 - player_pos.y as f64 / worldsize) * 82.0 * 2.0;
+            let x = player_pos.x as f64 / worldsize * 92.0 * 4.0;
+            let y = (/*1.0X-*/player_pos.y as f64 / worldsize) * 82.0 * 4.0;
             // Indicator
             Image::new(self.imgs.indicator_mmap)
-                .bottom_left_with_margins_on(state.ids.grid, y, x - 2.5)
-                .w_h(5.0, 5.0)
+                .bottom_left_with_margins_on(state.ids.grid, y, x - 5.0)
+                .w_h(10.0, 10.0)
                 .floating(true)
                 .parent(ui.window)
                 .set(state.ids.indicator, ui);
@@ -133,7 +133,11 @@ impl<'a> Widget for MiniMap<'a> {
         } else {
             self.imgs.mmap_closed
         })
-        .w_h(100.0 * 0.2, 100.0 * 0.2)
+        .wh(if self.show.mini_map {
+            [100.0 * 0.4; 2]
+        } else {
+            [100.0 * 0.2; 2]
+        })
         .hover_image(if self.show.mini_map {
             self.imgs.mmap_open_hover
         } else {
@@ -207,8 +211,11 @@ impl<'a> Widget for MiniMap<'a> {
         // Title
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(state.ids.mmap_frame, 0.0)
-                .font_size(18)
+                .mid_top_with_margin_on(
+                    state.ids.mmap_frame,
+                    if self.show.mini_map { 6.0 } else { 0.0 },
+                )
+                .font_size(if self.show.mini_map { 30 } else { 18 })
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
