@@ -157,7 +157,7 @@ impl<'a> Widget for Map<'a> {
 
         let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
         let x = player_pos.x as f64 / worldsize * 700.0;
-        let y = (1.0 - player_pos.y as f64 / worldsize) * 700.0;
+        let y = (/*1.0 -*/player_pos.y as f64 / worldsize) * 700.0;
         // Indicator
         Image::new(self.imgs.map_indicator)
             .bottom_left_with_margins_on(state.ids.grid, y, x - (12.0 * 1.4) / 2.0)

@@ -151,7 +151,7 @@
         beard: [None],
         accessory: [
             None,
-            Some(("figure.accessory.elf.warpaint-0", (6, 9, 5))),]
+            Some(("figure.accessory.elf.headband-0", (6, 9, 4))),]
     ),
     (Dwarf, Male): (
         offset: (-6.0, -4.5, -6.0),
@@ -195,7 +195,9 @@
         eyes: ("figure.eyes.dwarf.female-0", (1, 10, 2)),
         hair: [
             Some(("figure.hair.dwarf.female-0", (-9, -9, -7))), 
-            Some(("figure.hair.dwarf.female-1", (-9, -9, -7))),          
+            Some(("figure.hair.dwarf.female-1", (-9, -9, -7))), 
+            Some(("figure.hair.dwarf.female-2", (-9, -9, -7))),
+            Some(("figure.hair.dwarf.female-3", (-9, -9, -7))),         
         ],
         beard: [None],
         accessory: [
