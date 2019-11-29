@@ -562,10 +562,15 @@ impl Client {
                         self.state.ecs_mut().apply_entity_package(entity_package)
                     }
                     ServerMsg::DeleteEntity(entity) => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            if entity != self.entity {
-                                let _ = self.state.ecs_mut().delete_entity(entity);
-                            }
+                        if self
+                            .state
+                            .read_component_cloned::<Uid>(self.entity)
+                            .map(|u| u.into())
+                            != Some(entity)
+                        {
+                            self.state
+                                .ecs_mut()
+                                .delete_entity_and_clear_from_uid_allocator(entity);
                         }
                     }
                     ServerMsg::EntityPos { entity, pos } => {

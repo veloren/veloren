@@ -148,10 +148,10 @@ impl State {
         ecs.register::<comp::Waypoint>();
 
         // Register synced resources used by the ECS.
-        ecs.add_resource(Time(0.0));
         ecs.add_resource(TimeOfDay(0.0));
 
         // Register unsynced resources used by the ECS.
+        ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
         ecs.add_resource(TerrainGrid::new().unwrap());
         ecs.add_resource(BlockChange::default());

@@ -324,7 +324,7 @@ impl WorldSim {
         let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
         let erosion_pow = 2.0;
-        let n_steps = 100;
+        let n_steps = 7;
         let erosion_factor = |x: f64| logistic_cdf(erosion_pow * logit(x));
         let alt = do_erosion(
             0.0,
