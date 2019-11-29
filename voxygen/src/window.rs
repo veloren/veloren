@@ -44,6 +44,7 @@ pub enum GameInput {
     Roll,
     Respawn,
     Interact,
+    ToggleWield,
 }
 
 /// Represents an incoming event from the window.
@@ -221,6 +222,9 @@ impl Window {
         map.entry(settings.controls.interact)
             .or_default()
             .push(GameInput::Interact);
+        map.entry(settings.controls.toggle_wield)
+            .or_default()
+            .push(GameInput::ToggleWield);
 
         let keypress_map = HashMap::new();
 
