@@ -1,5 +1,5 @@
 use super::{
-    sentinel::{ReadTrackers, TrackedComps, TrackedResources},
+    sentinel::{DeletedEntities, ReadTrackers, TrackedComps, TrackedResources},
     SysTimer,
 };
 use crate::{
@@ -38,6 +38,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
+        Write<'a, DeletedEntities>,
         TrackedComps<'a>,
         ReadTrackers<'a>,
         TrackedResources<'a>,
@@ -64,8 +65,9 @@ impl<'a> System<'a> for Sys {
             mut clients,
             mut force_updates,
             mut inventory_updates,
+            mut deleted_entities,
             tracked_comps,
-            read_trackers,
+            trackers,
             tracked_resources,
         ): Self::SystemData,
     ) {
@@ -86,6 +88,8 @@ impl<'a> System<'a> for Sys {
         // Sync physics
         // via iterating through regions
         for (key, region) in region_map.iter() {
+            // Assemble subscriber list for this region by iterating through clients and checking
+            // if they are subscribed to this region
             let mut subscribers = (&mut clients, &entities, &subscriptions, &positions)
                 .join()
                 .filter_map(|(client, entity, subscription, pos)| {
@@ -100,6 +104,10 @@ impl<'a> System<'a> for Sys {
             for event in region.events() {
                 match event {
                     RegionEvent::Entered(id, maybe_key) => {
+                        // Don't process newly created entities here (redundant network messages)
+                        if trackers.uid.inserted().contains(*id) {
+                            continue;
+                        }
                         let entity = entities.entity(*id);
                         if let Some((uid, pos, vel, ori, character_state)) =
                             uids.get(entity).and_then(|uid| {
@@ -156,8 +164,15 @@ impl<'a> System<'a> for Sys {
             }
 
             // Sync tracked components
+            // Get deleted entities in this region from DeletedEntities
             let sync_msg = ServerMsg::EcsSync(
-                read_trackers.create_sync_package(&tracked_comps, region.entities()),
+                trackers.create_sync_package(
+                    &tracked_comps,
+                    region.entities(),
+                    deleted_entities
+                        .take_deleted_in_region(key)
+                        .unwrap_or_else(|| Vec::new()),
+                ),
             );
             for (client, _, _, _) in &mut subscribers {
                 client.notify(sync_msg.clone());
@@ -169,9 +184,9 @@ impl<'a> System<'a> for Sys {
                                 force_update: Option<&ForceUpdate>,
                                 throttle: bool| {
                 for (client, _, client_entity, client_pos) in &mut subscribers {
-                    let update = if client_entity == &entity && force_update.is_none() {
-                        // Don't send client physics update about itself
-                        false
+                    let update = if client_entity == &entity {
+                        // Don't send client physics updates about itself unless force update is set
+                        force_update.is_some()
                     } else if !throttle {
                         // Update rate not thottled by distance
                         true
@@ -279,6 +294,25 @@ impl<'a> System<'a> for Sys {
                             false,
                         );
                     }
+                }
+            }
+        }
+
+        // Handle entity deletion in regions that don't exist in RegionMap (theoretically none)
+        for (region_key, deleted) in deleted_entities.take_remaining_deleted() {
+            for client in
+                (&mut clients, &subscriptions)
+                    .join()
+                    .filter_map(|(client, subscription)| {
+                        if client.is_ingame() && subscription.regions.contains(&region_key) {
+                            Some(client)
+                        } else {
+                            None
+                        }
+                    })
+            {
+                for uid in &deleted {
+                    client.notify(ServerMsg::DeleteEntity(*uid));
                 }
             }
         }

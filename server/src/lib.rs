@@ -19,7 +19,7 @@ use crate::{
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::CHAT_COMMANDS,
-    sys::sentinel::{TrackedComps, TrackedResources},
+    sys::sentinel::{DeletedEntities, TrackedComps, TrackedResources},
 };
 use common::{
     assets, comp,
@@ -32,7 +32,7 @@ use common::{
     terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
-use log::debug;
+use log::{debug, error};
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{
@@ -165,6 +165,8 @@ impl Server {
 
         // Register trackers
         sys::sentinel::register_trackers(&mut state.ecs_mut());
+
+        state.ecs_mut().add_resource(DeletedEntities::default());
 
         let this = Self {
             state,
@@ -309,8 +311,6 @@ impl Server {
 
             let server_settings = &self.server_settings;
 
-            let mut todo_remove = None;
-
             match event {
                 ServerEvent::Explosion { pos, radius } => {
                     const RAYS: usize = 500;
@@ -380,19 +380,20 @@ impl Server {
                 }
 
                 ServerEvent::Destroy { entity, cause } => {
-                    let ecs = state.ecs();
                     // Chat message
-                    if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
+                    if let Some(player) = state.ecs().read_storage::<comp::Player>().get(entity) {
                         let msg = if let comp::HealthSource::Attack { by } = cause {
-                            ecs.entity_from_uid(by.into()).and_then(|attacker| {
-                                ecs.read_storage::<comp::Player>().get(attacker).map(
-                                    |attacker_alias| {
+                            state.ecs().entity_from_uid(by.into()).and_then(|attacker| {
+                                state
+                                    .ecs()
+                                    .read_storage::<comp::Player>()
+                                    .get(attacker)
+                                    .map(|attacker_alias| {
                                         format!(
                                             "{} was killed by {}",
                                             &player.alias, &attacker_alias.alias
                                         )
-                                    },
-                                )
+                                    })
                             })
                         } else {
                             None
@@ -402,28 +403,44 @@ impl Server {
                         state.notify_registered_clients(ServerMsg::kill(msg));
                     }
 
-                    // Give EXP to the killer if entity had stats
-                    let mut stats = ecs.write_storage::<comp::Stats>();
-
-                    if let Some(entity_stats) = stats.get(entity).cloned() {
-                        if let comp::HealthSource::Attack { by } = cause {
-                            ecs.entity_from_uid(by.into()).map(|attacker| {
-                                if let Some(attacker_stats) = stats.get_mut(attacker) {
-                                    // TODO: Discuss whether we should give EXP by Player Killing or not.
-                                    attacker_stats
-                                        .exp
-                                        .change_by((entity_stats.level.level() * 10) as i64);
-                                }
-                            });
+                    {
+                        // Give EXP to the killer if entity had stats
+                        let mut stats = state.ecs().write_storage::<comp::Stats>();
+                        if let Some(entity_stats) = stats.get(entity).cloned() {
+                            if let comp::HealthSource::Attack { by } = cause {
+                                state.ecs().entity_from_uid(by.into()).map(|attacker| {
+                                    if let Some(attacker_stats) = stats.get_mut(attacker) {
+                                        // TODO: Discuss whether we should give EXP by Player Killing or not.
+                                        attacker_stats
+                                            .exp
+                                            .change_by((entity_stats.level.level() * 10) as i64);
+                                    }
+                                });
+                            }
                         }
                     }
 
-                    if let Some(client) = ecs.write_storage::<Client>().get_mut(entity) {
-                        let _ = ecs.write_storage().insert(entity, comp::Vel(Vec3::zero()));
-                        let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
+                    // This sucks
+                    let mut remove = false;
+
+                    if let Some(client) = state.ecs().write_storage::<Client>().get_mut(entity) {
+                        let _ = state
+                            .ecs()
+                            .write_storage()
+                            .insert(entity, comp::Vel(Vec3::zero()));
+                        let _ = state
+                            .ecs()
+                            .write_storage()
+                            .insert(entity, comp::ForceUpdate);
                         client.force_state(ClientState::Dead);
                     } else {
-                        todo_remove = Some(entity.clone());
+                        remove = true;
+                    }
+
+                    if remove {
+                        if let Err(err) = state.delete_entity_recorded(entity) {
+                            error!("Failed to delete destroyed entity: {:?}", err);
+                        }
                     }
                 }
 
@@ -457,7 +474,9 @@ impl Server {
                             };
 
                             if let Some(item_entity) = item_entity {
-                                let _ = state.ecs_mut().delete_entity(item_entity);
+                                if let Err(err) = state.delete_entity_recorded(item_entity) {
+                                    error!("Failed to delete picked up item entity: {:?}", err);
+                                }
                             }
 
                             state.write_component(entity, comp::InventoryUpdate);
@@ -728,7 +747,7 @@ impl Server {
                         main,
                         &server_settings,
                     );
-                    Self::initialize_region_subscription(state, entity);
+                    sys::subscription::initialize_region_subscription(state.ecs(), entity);
                 }
 
                 ServerEvent::CreateNpc {
@@ -746,8 +765,8 @@ impl Server {
                 }
 
                 ServerEvent::ClientDisconnect(entity) => {
-                    if let Err(err) = state.ecs_mut().delete_entity(entity) {
-                        debug!("Failed to delete disconnected client: {:?}", err);
+                    if let Err(err) = state.delete_entity_recorded(entity) {
+                        error!("Failed to delete disconnected client: {:?}", err);
                     }
 
                     frontend_events.push(Event::ClientDisconnected { entity });
@@ -760,11 +779,6 @@ impl Server {
                 ServerEvent::ChatCmd(entity, cmd) => {
                     chat_commands.push((entity, cmd));
                 }
-            }
-
-            // TODO: is this needed?
-            if let Some(entity) = todo_remove {
-                let _ = state.ecs_mut().delete_entity(entity);
             }
         }
 
@@ -825,7 +839,7 @@ impl Server {
         frontend_events.append(&mut self.handle_new_connections()?);
 
         let before_tick_4 = Instant::now();
-        // 4) Tick the client's LocalState.
+        // 4) Tick the server's LocalState.
         self.state.tick(dt, sys::add_server_systems);
 
         let before_handle_events = Instant::now();
@@ -856,7 +870,9 @@ impl Server {
                 .collect::<Vec<_>>()
         };
         for entity in to_delete {
-            let _ = self.state.ecs_mut().delete_entity(entity);
+            if let Err(err) = self.state.delete_entity_recorded(entity) {
+                error!("Failed to delete agent outside the terrain: {:?}", err);
+            }
         }
 
         let before_tick_7 = Instant::now();
@@ -1004,83 +1020,6 @@ impl Server {
         Ok(frontend_events)
     }
 
-    /// Initialize region subscription
-    fn initialize_region_subscription(state: &mut State, entity: specs::Entity) {
-        let mut subscription = None;
-
-        if let (Some(client_pos), Some(client_vd), Some(client)) = (
-            state.ecs().read_storage::<comp::Pos>().get(entity),
-            state
-                .ecs()
-                .read_storage::<comp::Player>()
-                .get(entity)
-                .map(|pl| pl.view_distance)
-                .and_then(|v| v),
-            state.ecs().write_storage::<Client>().get_mut(entity),
-        ) {
-            use common::region::RegionMap;
-
-            let fuzzy_chunk = (Vec2::<f32>::from(client_pos.0))
-                .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
-            let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
-            let regions = common::region::regions_in_vd(
-                client_pos.0,
-                (client_vd as f32 * chunk_size) as f32
-                    + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
-            );
-
-            for (_, region) in state
-                .ecs()
-                .read_resource::<RegionMap>()
-                .iter()
-                .filter(|(key, _)| regions.contains(key))
-            {
-                // Sync physics of all entities in this region
-                for (&uid, &pos, vel, ori, character_state, _) in (
-                    &state.ecs().read_storage::<Uid>(),
-                    &state.ecs().read_storage::<comp::Pos>(), // We assume all these entities have a position
-                    state.ecs().read_storage::<comp::Vel>().maybe(),
-                    state.ecs().read_storage::<comp::Ori>().maybe(),
-                    state.ecs().read_storage::<comp::CharacterState>().maybe(),
-                    region.entities(),
-                )
-                    .join()
-                {
-                    client.notify(ServerMsg::EntityPos {
-                        entity: uid.into(),
-                        pos,
-                    });
-                    if let Some(vel) = vel.copied() {
-                        client.notify(ServerMsg::EntityVel {
-                            entity: uid.into(),
-                            vel,
-                        });
-                    }
-                    if let Some(ori) = ori.copied() {
-                        client.notify(ServerMsg::EntityOri {
-                            entity: uid.into(),
-                            ori,
-                        });
-                    }
-                    if let Some(character_state) = character_state.copied() {
-                        client.notify(ServerMsg::EntityCharacterState {
-                            entity: uid.into(),
-                            character_state,
-                        });
-                    }
-                }
-            }
-
-            subscription = Some(RegionSubscription {
-                fuzzy_chunk,
-                regions,
-            });
-        }
-        if let Some(subscription) = subscription {
-            state.write_component(entity, subscription);
-        }
-    }
-
     pub fn notify_client(&self, entity: EcsEntity, msg: ServerMsg) {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
             client.notify(msg)
@@ -1142,6 +1081,10 @@ trait StateExt {
         stats: comp::Stats,
         body: comp::Body,
     ) -> EcsEntityBuilder;
+    fn delete_entity_recorded(
+        &mut self,
+        entity: EcsEntity,
+    ) -> Result<(), specs::error::WrongGeneration>;
 }
 
 impl StateExt for State {
@@ -1201,5 +1144,29 @@ impl StateExt for State {
         {
             client.notify(msg.clone())
         }
+    }
+
+    fn delete_entity_recorded(
+        &mut self,
+        entity: EcsEntity,
+    ) -> Result<(), specs::error::WrongGeneration> {
+        let (maybe_uid, maybe_pos) = (
+            self.ecs().read_storage::<Uid>().get(entity).copied(),
+            self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
+        );
+        let res = self.ecs_mut().delete_entity(entity);
+        if res.is_ok() {
+            if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
+                let region_key = self
+                    .ecs()
+                    .read_resource::<common::region::RegionMap>()
+                    .find_region(entity, pos.0)
+                    .expect("Failed to find region containing entity during entity deletion");
+                self.ecs()
+                    .write_resource::<DeletedEntities>()
+                    .record_deleted_entity(uid, region_key);
+            }
+        }
+        res
     }
 }

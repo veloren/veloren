@@ -21,6 +21,7 @@ use vek::*;
 use world::util::Sampler;
 
 use lazy_static::lazy_static;
+use log::error;
 use scan_fmt::{scan_fmt, scan_fmt_some};
 
 /// Struct representing a command that a user can run from server chat.
@@ -1118,7 +1119,9 @@ fn handle_remove_lights(
     let size = to_delete.len();
 
     for entity in to_delete {
-        let _ = server.state.ecs_mut().delete_entity(entity);
+        if let Err(err) = server.state.delete_entity_recorded(entity) {
+            error!("Failed to delete light: {:?}", err);
+        }
     }
 
     server.notify_client(

@@ -56,6 +56,10 @@ impl UidAllocator {
             mapping: HashMap::new(),
         }
     }
+    // Useful for when a single entity is deleted because it doesn't reconstruct the entire hashmap
+    pub fn remove_entity(&mut self, id: u64) -> Option<Entity> {
+        self.mapping.remove(&id)
+    }
 }
 
 impl Default for UidAllocator {
@@ -69,14 +73,14 @@ impl MarkerAllocator<Uid> for UidAllocator {
         let id = id.unwrap_or_else(|| {
             let id = self.index;
             self.index += 1;
-            self.mapping.insert(id, entity);
             id
         });
+        self.mapping.insert(id, entity);
         Uid(id)
     }
 
     fn retrieve_entity_internal(&self, id: u64) -> Option<Entity> {
-        self.mapping.get(&id).cloned()
+        self.mapping.get(&id).copied()
     }
 
     fn maintain(&mut self, entities: &EntitiesRes, storage: &ReadStorage<Uid>) {

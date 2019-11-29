@@ -2,6 +2,7 @@ use super::{
     track::{Tracker, UpdateTracker},
     uid::Uid,
 };
+use log::error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use specs::{shred::Resource, Component, Entity, Join, ReadStorage, World};
 use std::{
@@ -24,7 +25,9 @@ pub trait ResPacket: Clone + Debug + Send + 'static {
 
 /// Useful for implementing CompPacket trait
 pub fn handle_insert<C: Component>(comp: C, entity: Entity, world: &World) {
-    let _ = world.write_storage::<C>().insert(entity, comp);
+    if let Err(err) = world.write_storage::<C>().insert(entity, comp) {
+        error!("Error inserting component: {:?}", err);
+    };
 }
 /// Useful for implementing CompPacket trait
 pub fn handle_modify<C: Component>(comp: C, entity: Entity, world: &World) {
@@ -102,6 +105,7 @@ impl<P: CompPacket> SyncPackage<P> {
         uids: &ReadStorage<'a, Uid>,
         uid_tracker: &UpdateTracker<Uid>,
         filter: impl Join + Copy,
+        deleted_entities: Vec<u64>,
     ) -> Self {
         // Add created and deleted entities
         let created_entities = (uids, filter, uid_tracker.inserted())
@@ -110,10 +114,15 @@ impl<P: CompPacket> SyncPackage<P> {
             .collect();
         // TODO: handle modified uid?
         //created_entities.append(&mut (uids, filter, uid_tracker.inserted()).join().map(|(uid, _, _)| uid).collect());
-        let deleted_entities = (uids, filter, uid_tracker.removed())
-            .join()
-            .map(|(uid, _, _)| (*uid).into())
-            .collect();
+        // let deleted_entities = (uids.maybe(), filter, uid_tracker.removed())
+        //    .join()
+        // Why doesn't this panic??
+        //    .map(|(uid, _, _)| Into::<u64>::into(*uid.unwrap()))
+        //    .collect::<Vec<_>>();
+        //let len = deleted_entities.len();
+        //if len > 0 {
+        //    println!("deleted {} in sync message", len);
+        // }
 
         Self {
             comp_updates: Vec::new(),
@@ -124,7 +133,6 @@ impl<P: CompPacket> SyncPackage<P> {
     pub fn with_component<'a, C: Component + Clone + Send + Sync>(
         mut self,
         uids: &ReadStorage<'a, Uid>,
-        uid_tracker: &UpdateTracker<Uid>,
         tracker: &impl Tracker<C, P>,
         storage: &ReadStorage<'a, C>,
         filter: impl Join + Copy,
@@ -136,13 +144,7 @@ impl<P: CompPacket> SyncPackage<P> {
         P::Phantom: TryInto<PhantomData<C>>,
         C::Storage: specs::storage::Tracked,
     {
-        tracker.get_updates_for(
-            uids,
-            storage,
-            // Don't include updates for deleted entities
-            (filter, &!uid_tracker.removed()),
-            &mut self.comp_updates,
-        );
+        tracker.get_updates_for(uids, storage, filter, &mut self.comp_updates);
         self
     }
 }

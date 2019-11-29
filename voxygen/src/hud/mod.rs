@@ -112,6 +112,7 @@ widget_ids! {
         velocity,
         loaded_distance,
         time,
+        entity_count,
 
         // Game Version
         version,
@@ -872,11 +873,19 @@ impl Hud {
             .font_id(self.fonts.cyri)
             .font_size(14)
             .set(self.ids.time, ui_widgets);
+            // Number of entities
+            let entity_count = client.state().ecs().entities().join().count();
+            Text::new(&format!("Entity count: {}", entity_count))
+                .color(TEXT_COLOR)
+                .down_from(self.ids.time, 5.0)
+                .font_id(self.fonts.cyri)
+                .font_size(14)
+                .set(self.ids.entity_count, ui_widgets);
 
             // Help Window
             Text::new("Press 'F1' to show Keybindings")
                 .color(TEXT_COLOR)
-                .down_from(self.ids.time, 5.0)
+                .down_from(self.ids.entity_count, 5.0)
                 .font_id(self.fonts.cyri)
                 .font_size(14)
                 .set(self.ids.help_info, ui_widgets);
