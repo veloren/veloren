@@ -25,9 +25,6 @@ impl sync::ResPacket for EcsResPacket {
 sum_type! {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub enum EcsCompPacket {
-        Pos(comp::Pos),
-        Vel(comp::Vel),
-        Ori(comp::Ori),
         Body(comp::Body),
         Player(comp::Player),
         CanBuild(comp::CanBuild),
@@ -48,9 +45,6 @@ sum_type! {
 sum_type! {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub enum EcsCompPhantom {
-        Pos(PhantomData<comp::Pos>),
-        Vel(PhantomData<comp::Vel>),
-        Ori(PhantomData<comp::Ori>),
         Body(PhantomData<comp::Body>),
         Player(PhantomData<comp::Player>),
         CanBuild(PhantomData<comp::CanBuild>),
@@ -70,9 +64,6 @@ impl sync::CompPacket for EcsCompPacket {
     type Phantom = EcsCompPhantom;
     fn apply_insert(self, entity: specs::Entity, world: &specs::World) {
         match self {
-            EcsCompPacket::Pos(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::Vel(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::Ori(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Body(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Player(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::CanBuild(comp) => sync::handle_insert(comp, entity, world),
@@ -90,9 +81,6 @@ impl sync::CompPacket for EcsCompPacket {
     }
     fn apply_modify(self, entity: specs::Entity, world: &specs::World) {
         match self {
-            EcsCompPacket::Pos(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::Vel(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::Ori(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Body(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Player(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::CanBuild(comp) => sync::handle_modify(comp, entity, world),
@@ -110,9 +98,6 @@ impl sync::CompPacket for EcsCompPacket {
     }
     fn apply_remove(phantom: Self::Phantom, entity: specs::Entity, world: &specs::World) {
         match phantom {
-            EcsCompPhantom::Pos(_) => sync::handle_remove::<comp::Pos>(entity, world),
-            EcsCompPhantom::Vel(_) => sync::handle_remove::<comp::Vel>(entity, world),
-            EcsCompPhantom::Ori(_) => sync::handle_remove::<comp::Ori>(entity, world),
             EcsCompPhantom::Body(_) => sync::handle_remove::<comp::Body>(entity, world),
             EcsCompPhantom::Player(_) => sync::handle_remove::<comp::Player>(entity, world),
             EcsCompPhantom::CanBuild(_) => sync::handle_remove::<comp::CanBuild>(entity, world),

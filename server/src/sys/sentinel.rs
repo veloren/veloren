@@ -5,17 +5,19 @@ use common::{
         Projectile, Scale, Stats, Sticky,
     },
     msg::{EcsCompPacket, EcsResPacket},
-    state::{Time, TimeOfDay},
+    state::TimeOfDay,
     sync::{
         CompPacket, EntityPackage, ResSyncPackage, StatePackage, SyncPackage, Uid, UpdateTracker,
         WorldSyncExt,
     },
 };
+use hashbrown::HashMap;
 use shred_derive::SystemData;
 use specs::{
     Entity as EcsEntity, Join, ReadExpect, ReadStorage, System, World, Write, WriteExpect,
 };
 use std::ops::Deref;
+use vek::*;
 
 /// Always watching
 /// This system will monitor specific components for insertion, removal, and modification
@@ -39,20 +41,20 @@ impl<'a> System<'a> for Sys {
 // Probably more difficult than it needs to be :p
 #[derive(SystemData)]
 pub struct TrackedComps<'a> {
-    uid: ReadStorage<'a, Uid>,
-    body: ReadStorage<'a, Body>,
-    player: ReadStorage<'a, Player>,
-    stats: ReadStorage<'a, Stats>,
-    can_build: ReadStorage<'a, CanBuild>,
-    light_emitter: ReadStorage<'a, LightEmitter>,
-    item: ReadStorage<'a, Item>,
-    scale: ReadStorage<'a, Scale>,
-    mounting: ReadStorage<'a, Mounting>,
-    mount_state: ReadStorage<'a, MountState>,
-    mass: ReadStorage<'a, Mass>,
-    sticky: ReadStorage<'a, Sticky>,
-    gravity: ReadStorage<'a, Gravity>,
-    projectile: ReadStorage<'a, Projectile>,
+    pub uid: ReadStorage<'a, Uid>,
+    pub body: ReadStorage<'a, Body>,
+    pub player: ReadStorage<'a, Player>,
+    pub stats: ReadStorage<'a, Stats>,
+    pub can_build: ReadStorage<'a, CanBuild>,
+    pub light_emitter: ReadStorage<'a, LightEmitter>,
+    pub item: ReadStorage<'a, Item>,
+    pub scale: ReadStorage<'a, Scale>,
+    pub mounting: ReadStorage<'a, Mounting>,
+    pub mount_state: ReadStorage<'a, MountState>,
+    pub mass: ReadStorage<'a, Mass>,
+    pub sticky: ReadStorage<'a, Sticky>,
+    pub gravity: ReadStorage<'a, Gravity>,
+    pub projectile: ReadStorage<'a, Projectile>,
 }
 impl<'a> TrackedComps<'a> {
     pub fn create_entity_package(&self, entity: EcsEntity) -> EntityPackage<EcsCompPacket> {
@@ -121,115 +123,53 @@ impl<'a> TrackedComps<'a> {
 }
 #[derive(SystemData)]
 pub struct ReadTrackers<'a> {
-    uid: ReadExpect<'a, UpdateTracker<Uid>>,
-    body: ReadExpect<'a, UpdateTracker<Body>>,
-    player: ReadExpect<'a, UpdateTracker<Player>>,
-    stats: ReadExpect<'a, UpdateTracker<Stats>>,
-    can_build: ReadExpect<'a, UpdateTracker<CanBuild>>,
-    light_emitter: ReadExpect<'a, UpdateTracker<LightEmitter>>,
-    item: ReadExpect<'a, UpdateTracker<Item>>,
-    scale: ReadExpect<'a, UpdateTracker<Scale>>,
-    mounting: ReadExpect<'a, UpdateTracker<Mounting>>,
-    mount_state: ReadExpect<'a, UpdateTracker<MountState>>,
-    mass: ReadExpect<'a, UpdateTracker<Mass>>,
-    sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
-    gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
-    projectile: ReadExpect<'a, UpdateTracker<Projectile>>,
+    pub uid: ReadExpect<'a, UpdateTracker<Uid>>,
+    pub body: ReadExpect<'a, UpdateTracker<Body>>,
+    pub player: ReadExpect<'a, UpdateTracker<Player>>,
+    pub stats: ReadExpect<'a, UpdateTracker<Stats>>,
+    pub can_build: ReadExpect<'a, UpdateTracker<CanBuild>>,
+    pub light_emitter: ReadExpect<'a, UpdateTracker<LightEmitter>>,
+    pub item: ReadExpect<'a, UpdateTracker<Item>>,
+    pub scale: ReadExpect<'a, UpdateTracker<Scale>>,
+    pub mounting: ReadExpect<'a, UpdateTracker<Mounting>>,
+    pub mount_state: ReadExpect<'a, UpdateTracker<MountState>>,
+    pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
+    pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
+    pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
+    pub projectile: ReadExpect<'a, UpdateTracker<Projectile>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_package(
         &self,
         comps: &TrackedComps,
         filter: impl Join + Copy,
+        deleted_entities: Vec<u64>,
     ) -> SyncPackage<EcsCompPacket> {
-        SyncPackage::new(&comps.uid, &self.uid, filter)
+        SyncPackage::new(&comps.uid, &self.uid, filter, deleted_entities)
+            .with_component(&comps.uid, self.body.deref(), &comps.body, filter)
+            .with_component(&comps.uid, self.player.deref(), &comps.player, filter)
+            .with_component(&comps.uid, self.stats.deref(), &comps.stats, filter)
+            .with_component(&comps.uid, self.can_build.deref(), &comps.can_build, filter)
             .with_component(
                 &comps.uid,
-                &self.uid,
-                self.body.deref(),
-                &comps.body,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
-                self.player.deref(),
-                &comps.player,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
-                self.stats.deref(),
-                &comps.stats,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
-                self.can_build.deref(),
-                &comps.can_build,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
                 self.light_emitter.deref(),
                 &comps.light_emitter,
                 filter,
             )
+            .with_component(&comps.uid, self.item.deref(), &comps.item, filter)
+            .with_component(&comps.uid, self.scale.deref(), &comps.scale, filter)
+            .with_component(&comps.uid, self.mounting.deref(), &comps.mounting, filter)
             .with_component(
                 &comps.uid,
-                &self.uid,
-                self.item.deref(),
-                &comps.item,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
-                self.scale.deref(),
-                &comps.scale,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
-                self.mounting.deref(),
-                &comps.mounting,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
                 self.mount_state.deref(),
                 &comps.mount_state,
                 filter,
             )
+            .with_component(&comps.uid, self.mass.deref(), &comps.mass, filter)
+            .with_component(&comps.uid, self.sticky.deref(), &comps.sticky, filter)
+            .with_component(&comps.uid, self.gravity.deref(), &comps.gravity, filter)
             .with_component(
                 &comps.uid,
-                &self.uid,
-                self.mass.deref(),
-                &comps.mass,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
-                self.sticky.deref(),
-                &comps.sticky,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
-                self.gravity.deref(),
-                &comps.gravity,
-                filter,
-            )
-            .with_component(
-                &comps.uid,
-                &self.uid,
                 self.projectile.deref(),
                 &comps.projectile,
                 filter,
@@ -292,19 +232,46 @@ pub fn register_trackers(world: &mut World) {
 
 #[derive(SystemData)]
 pub struct TrackedResources<'a> {
-    time: ReadExpect<'a, Time>,
     time_of_day: ReadExpect<'a, TimeOfDay>,
 }
 impl<'a> TrackedResources<'a> {
     pub fn create_res_sync_package(&self) -> ResSyncPackage<EcsResPacket> {
-        ResSyncPackage::new()
-            .with_res(self.time.deref())
-            .with_res(self.time_of_day.deref())
+        ResSyncPackage::new().with_res(self.time_of_day.deref())
     }
     /// Create state package with resources included
     pub fn state_package<C: CompPacket>(&self) -> StatePackage<C, EcsResPacket> {
-        StatePackage::new()
-            .with_res(self.time.deref())
-            .with_res(self.time_of_day.deref())
+        StatePackage::new().with_res(self.time_of_day.deref())
+    }
+}
+
+/// Deleted entities grouped by region
+pub struct DeletedEntities {
+    map: HashMap<Vec2<i32>, Vec<u64>>,
+}
+
+impl Default for DeletedEntities {
+    fn default() -> Self {
+        Self {
+            map: HashMap::new(),
+        }
+    }
+}
+
+impl DeletedEntities {
+    pub fn record_deleted_entity(&mut self, uid: Uid, region_key: Vec2<i32>) {
+        self.map
+            .entry(region_key)
+            .or_insert(Vec::new())
+            .push(uid.into());
+    }
+    pub fn take_deleted_in_region(&mut self, key: Vec2<i32>) -> Option<Vec<u64>> {
+        self.map.remove(&key)
+    }
+    pub fn get_deleted_in_region(&mut self, key: Vec2<i32>) -> Option<&Vec<u64>> {
+        self.map.get(&key)
+    }
+    pub fn take_remaining_deleted(&mut self) -> Vec<(Vec2<i32>, Vec<u64>)> {
+        // TODO: don't allocate
+        self.map.drain().collect()
     }
 }
