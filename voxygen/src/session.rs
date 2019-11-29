@@ -54,6 +54,7 @@ impl SessionState {
 impl SessionState {
     /// Tick the session (and the client attached to it).
     fn tick(&mut self, dt: Duration) -> Result<(), Error> {
+        self.inputs.tick(dt);
         for event in self.client.borrow_mut().tick(self.inputs.clone(), dt)? {
             match event {
                 Chat {
@@ -177,12 +178,12 @@ impl PlayState for SessionState {
                                 client.place_block(build_pos, self.selected_block);
                             }
                         } else {
-                            self.inputs.primary = state
+                            self.inputs.primary.set_state(state);
                         }
                     }
 
                     Event::InputUpdate(GameInput::Secondary, state) => {
-                        self.inputs.secondary = false; // To be changed later on
+                        self.inputs.secondary.set_state(false); // To be changed later on
 
                         let mut client = self.client.borrow_mut();
 
@@ -203,7 +204,7 @@ impl PlayState for SessionState {
                             .map(|cs| cs.action.is_wield())
                             .unwrap_or(false)
                         {
-                            self.inputs.secondary = state;
+                            self.inputs.secondary.set_state(state);
                         } else {
                             if let Some(select_pos) = select_pos {
                                 client.collect_block(select_pos);
@@ -226,30 +227,34 @@ impl PlayState for SessionState {
                                 }
                             }
                         } else {
-                            self.inputs.roll = state;
+                            self.inputs.roll.set_state(state);
                         }
                     }
                     Event::InputUpdate(GameInput::Respawn, state) => {
-                        self.inputs.respawn = state;
+                        self.inputs.respawn.set_state(state);
                     }
                     Event::InputUpdate(GameInput::Jump, state) => {
-                        self.inputs.jump = state;
+                        self.inputs.jump.set_state(state);
                     }
                     Event::InputUpdate(GameInput::Sit, state) => {
-                        self.inputs.sit = state;
+                        self.inputs.sit.set_state(state);
                     }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
                     Event::InputUpdate(GameInput::Glide, state) => {
-                        self.inputs.glide = state;
+                        self.inputs.glide.set_state(state);
                     }
-                    Event::InputUpdate(GameInput::Climb, state) => self.inputs.climb = state,
+                    Event::InputUpdate(GameInput::Climb, state) => {
+                        self.inputs.climb.set_state(state)
+                    }
                     Event::InputUpdate(GameInput::ClimbDown, state) => {
-                        self.inputs.climb_down = state
+                        self.inputs.climb_down.set_state(state)
                     }
-                    Event::InputUpdate(GameInput::WallLeap, state) => self.inputs.wall_leap = state,
+                    Event::InputUpdate(GameInput::WallLeap, state) => {
+                        self.inputs.wall_leap.set_state(state)
+                    }
                     Event::InputUpdate(GameInput::Mount, true) => {
                         let mut client = self.client.borrow_mut();
                         if client.is_mounted() {
@@ -314,6 +319,9 @@ impl PlayState for SessionState {
                                 client.pick_up(entity);
                             }
                         }
+                    }
+                    Event::InputUpdate(GameInput::ToggleWield, state) => {
+                        self.inputs.toggle_wield.set_state(state)
                     }
 
                     // Pass all other events to the scene

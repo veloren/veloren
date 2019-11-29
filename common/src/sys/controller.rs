@@ -70,7 +70,7 @@ impl<'a> System<'a> for Sys {
 
             if stats.is_dead {
                 // Respawn
-                if inputs.respawn {
+                if inputs.respawn.is_pressed() {
                     server_emitter.emit(ServerEvent::Respawn(entity));
                 }
                 continue;
@@ -97,19 +97,19 @@ impl<'a> System<'a> for Sys {
 
             // Glide
             // TODO: Check for glide ability/item
-            if inputs.glide
+            if inputs.glide.is_pressed()
                 && !physics.on_ground
                 && (character.action == Idle || character.action.is_wield())
                 && character.movement == Jump
                 && body.is_humanoid()
             {
                 character.movement = Glide;
-            } else if !inputs.glide && character.movement == Glide {
-                character.movement = Jump;
+            } else if !inputs.glide.is_pressed() && character.movement == Glide {
+                // character.movement = Jump;
             }
 
             // Sit
-            if inputs.sit
+            if inputs.sit.is_pressed()
                 && physics.on_ground
                 && character.action == Idle
                 && character.movement != Sit
@@ -123,7 +123,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Wield
-            if inputs.primary
+            if inputs.primary.is_pressed()
                 && character.action == Idle
                 && (character.movement == Stand || character.movement == Run)
             {
@@ -138,7 +138,7 @@ impl<'a> System<'a> for Sys {
                     power,
                     ..
                 }) => {
-                    if inputs.primary
+                    if inputs.primary.is_pressed()
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -177,7 +177,7 @@ impl<'a> System<'a> for Sys {
                     ..
                 }) => {
                     // Melee Attack
-                    if inputs.primary
+                    if inputs.primary.is_pressed()
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -192,7 +192,7 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                     // Magical Bolt
-                    if inputs.secondary
+                    if inputs.secondary.is_pressed()
                         && (
                             character.movement == Stand
                             //|| character.movement == Run
@@ -237,13 +237,13 @@ impl<'a> System<'a> for Sys {
                     kind: item::Tool::Debug(item::Debug::Boost),
                     ..
                 }) => {
-                    if inputs.primary {
+                    if inputs.primary.is_pressed() {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
                             vel: inputs.look_dir * 7.0,
                         });
                     }
-                    if inputs.secondary {
+                    if inputs.secondary.is_pressed() {
                         // Go upward
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
@@ -255,7 +255,7 @@ impl<'a> System<'a> for Sys {
                     kind: item::Tool::Debug(item::Debug::Possess),
                     ..
                 }) => {
-                    if inputs.primary
+                    if inputs.primary.is_pressed()
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -288,14 +288,14 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                     // Block
-                    if inputs.secondary
+                    if inputs.secondary.is_pressed()
                         && (character.movement == Stand || character.movement == Run)
                         && character.action.is_wield()
                     {
                         character.action = Block {
                             time_left: Duration::from_secs(5),
                         };
-                    } else if !inputs.secondary && character.action.is_block() {
+                    } else if !inputs.secondary.is_pressed() && character.action.is_block() {
                         character.action = Wield {
                             time_left: Duration::default(),
                         };
@@ -304,7 +304,7 @@ impl<'a> System<'a> for Sys {
                 // All other tools
                 Some(ItemKind::Tool { .. }) => {
                     // Attack
-                    if inputs.primary
+                    if inputs.primary.is_pressed()
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -320,14 +320,14 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Block
-                    if inputs.secondary
+                    if inputs.secondary.is_pressed()
                         && (character.movement == Stand || character.movement == Run)
                         && character.action.is_wield()
                     {
                         character.action = Block {
                             time_left: Duration::from_secs(5),
                         };
-                    } else if !inputs.secondary && character.action.is_block() {
+                    } else if !inputs.secondary.is_pressed() && character.action.is_block() {
                         character.action = Wield {
                             time_left: Duration::default(),
                         };
@@ -335,7 +335,7 @@ impl<'a> System<'a> for Sys {
                 }
                 None => {
                     // Attack
-                    if inputs.primary
+                    if inputs.primary.is_pressed()
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -351,7 +351,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Roll
-            if inputs.roll
+            if inputs.roll.is_pressed()
                 && (character.action == Idle || character.action.is_wield())
                 && character.movement == Run
                 && physics.on_ground
@@ -362,17 +362,24 @@ impl<'a> System<'a> for Sys {
             }
 
             // Jump
-            if (inputs.jump && physics.on_ground && vel.0.z <= 0.0 && !character.movement.is_roll())
-                || (inputs.jump && character.movement == Swim)
+            if (inputs.jump.is_pressed() && !inputs.jump.is_held_down())
+                && physics.on_ground
+                && vel.0.z <= 0.0
+                && !character.movement.is_roll()
+                || (inputs.jump.is_pressed() && character.movement == Swim)
             {
                 local_emitter.emit(LocalEvent::Jump(entity));
             }
 
             // Wall leap
-            if inputs.wall_leap {
+            if inputs.wall_leap.is_pressed() {
                 if let (Some(_wall_dir), Climb) = (physics.on_wall, character.movement) {
                     //local_emitter.emit(LocalEvent::WallLeap { entity, wall_dir });
                 }
+            }
+
+            if let (true, Wield { .. }) = (inputs.toggle_wield.is_pressed(), character.action) {
+                character.action = Idle;
             }
 
             // Process controller events

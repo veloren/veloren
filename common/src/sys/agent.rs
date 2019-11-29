@@ -67,7 +67,7 @@ impl<'a> System<'a> for Sys {
                             let tgt_pos = tgt_pos.0 + *offset;
 
                             if tgt_pos.z > pos.0.z + 1.0 {
-                                inputs.jump = true;
+                                inputs.jump.set_state(true);
                             }
 
                             // Move towards the target.
@@ -113,19 +113,19 @@ impl<'a> System<'a> for Sys {
                             // Fight (and slowly move closer)
                             inputs.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.01;
-                            inputs.primary = true;
+                            inputs.primary.set_state(true);
                         } else if dist < SIGHT_DIST {
                             inputs.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.96;
 
                             if rand::random::<f32>() < 0.02 {
-                                inputs.roll = true;
+                                inputs.roll.set_state(true);
                             }
 
                             if target_character.movement == Glide && target_pos.0.z > pos.0.z + 5.0
                             {
-                                inputs.glide = true;
-                                inputs.jump = true;
+                                inputs.glide.set_state(true);
+                                inputs.jump.set_state(true);
                             }
                         } else {
                             choose_new = true;

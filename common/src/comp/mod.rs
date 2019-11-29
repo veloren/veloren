@@ -22,7 +22,8 @@ pub use body::{
 };
 pub use character_state::{ActionState, CharacterState, MovementState};
 pub use controller::{
-    ControlEvent, Controller, ControllerInputs, InventoryManip, MountState, Mounting,
+    ControlEvent, Controller, ControllerInputs, Input, InputState, InventoryManip, MountState,
+    Mounting,
 };
 pub use inputs::CanBuild;
 pub use inventory::{item, Inventory, InventoryUpdate, Item, ItemKind};
