@@ -197,12 +197,13 @@ impl<'a> System<'a> for Sys {
 
             // Climb
             if let (true, Some(_wall_dir)) = (
-                (inputs.climb | inputs.climb_down) && vel.0.z <= CLIMB_SPEED,
+                (inputs.climb.is_pressed() | inputs.climb_down.is_pressed())
+                    && vel.0.z <= CLIMB_SPEED,
                 physics.on_wall,
             ) {
-                if inputs.climb_down && !inputs.climb {
+                if inputs.climb_down.is_pressed() && !inputs.climb.is_pressed() {
                     vel.0 -= dt.0 * vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
-                } else if inputs.climb && !inputs.climb_down {
+                } else if inputs.climb.is_pressed() && !inputs.climb_down.is_pressed() {
                     vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
                 } else {
                     vel.0.z = vel.0.z + dt.0 * GRAVITY * 1.5;
