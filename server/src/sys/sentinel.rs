@@ -1,8 +1,8 @@
 use super::SysTimer;
 use common::{
     comp::{
-        Body, CanBuild, Gravity, Item, LightEmitter, Mass, MountState, Mounting, Player,
-        Projectile, Scale, Stats, Sticky,
+        Body, CanBuild, Gravity, Item, LightEmitter, Mass, MountState, Mounting, Player, Scale,
+        Stats, Sticky,
     },
     msg::{EcsCompPacket, EcsResPacket},
     state::TimeOfDay,
@@ -16,7 +16,6 @@ use shred_derive::SystemData;
 use specs::{
     Entity as EcsEntity, Join, ReadExpect, ReadStorage, System, World, Write, WriteExpect,
 };
-use std::ops::Deref;
 use vek::*;
 
 /// Always watching
@@ -54,7 +53,7 @@ pub struct TrackedComps<'a> {
     pub mass: ReadStorage<'a, Mass>,
     pub sticky: ReadStorage<'a, Sticky>,
     pub gravity: ReadStorage<'a, Gravity>,
-    pub projectile: ReadStorage<'a, Projectile>,
+    //pub projectile: ReadStorage<'a, Projectile>,
 }
 impl<'a> TrackedComps<'a> {
     pub fn create_entity_package(&self, entity: EcsEntity) -> EntityPackage<EcsCompPacket> {
@@ -113,10 +112,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .copied()
             .map(|c| packets.push(c.into()));
-        self.projectile
-            .get(entity)
-            .cloned()
-            .map(|c| packets.push(c.into()));
+        //self.projectile
+        //    .get(entity)
+        //    .cloned()
+        //    .map(|c| packets.push(c.into()));
 
         EntityPackage(uid, packets)
     }
@@ -136,7 +135,7 @@ pub struct ReadTrackers<'a> {
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
-    pub projectile: ReadExpect<'a, UpdateTracker<Projectile>>,
+    //pub projectile: ReadExpect<'a, UpdateTracker<Projectile>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_package(
@@ -146,34 +145,29 @@ impl<'a> ReadTrackers<'a> {
         deleted_entities: Vec<u64>,
     ) -> SyncPackage<EcsCompPacket> {
         SyncPackage::new(&comps.uid, &self.uid, filter, deleted_entities)
-            .with_component(&comps.uid, self.body.deref(), &comps.body, filter)
-            .with_component(&comps.uid, self.player.deref(), &comps.player, filter)
-            .with_component(&comps.uid, self.stats.deref(), &comps.stats, filter)
-            .with_component(&comps.uid, self.can_build.deref(), &comps.can_build, filter)
+            .with_component(&comps.uid, &*self.body, &comps.body, filter)
+            .with_component(&comps.uid, &*self.player, &comps.player, filter)
+            .with_component(&comps.uid, &*self.stats, &comps.stats, filter)
+            .with_component(&comps.uid, &*self.can_build, &comps.can_build, filter)
             .with_component(
                 &comps.uid,
-                self.light_emitter.deref(),
+                &*self.light_emitter,
                 &comps.light_emitter,
                 filter,
             )
-            .with_component(&comps.uid, self.item.deref(), &comps.item, filter)
-            .with_component(&comps.uid, self.scale.deref(), &comps.scale, filter)
-            .with_component(&comps.uid, self.mounting.deref(), &comps.mounting, filter)
-            .with_component(
-                &comps.uid,
-                self.mount_state.deref(),
-                &comps.mount_state,
-                filter,
-            )
-            .with_component(&comps.uid, self.mass.deref(), &comps.mass, filter)
-            .with_component(&comps.uid, self.sticky.deref(), &comps.sticky, filter)
-            .with_component(&comps.uid, self.gravity.deref(), &comps.gravity, filter)
-            .with_component(
-                &comps.uid,
-                self.projectile.deref(),
-                &comps.projectile,
-                filter,
-            )
+            .with_component(&comps.uid, &*self.item, &comps.item, filter)
+            .with_component(&comps.uid, &*self.scale, &comps.scale, filter)
+            .with_component(&comps.uid, &*self.mounting, &comps.mounting, filter)
+            .with_component(&comps.uid, &*self.mount_state, &comps.mount_state, filter)
+            .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
+            .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
+            .with_component(&comps.uid, &*self.gravity, &comps.gravity, filter)
+        //.with_component(
+        //    &comps.uid,
+        //    self.projectile.deref(),
+        //    &comps.projectile,
+        //    filter,
+        //)
     }
 }
 
@@ -192,7 +186,7 @@ pub struct WriteTrackers<'a> {
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
-    projectile: WriteExpect<'a, UpdateTracker<Projectile>>,
+    //projectile: WriteExpect<'a, UpdateTracker<Projectile>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -210,7 +204,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.mass.record_changes(&comps.mass);
     trackers.sticky.record_changes(&comps.sticky);
     trackers.gravity.record_changes(&comps.gravity);
-    trackers.projectile.record_changes(&comps.projectile);
+    //trackers.projectile.record_changes(&comps.projectile);
 }
 
 pub fn register_trackers(world: &mut World) {
@@ -227,7 +221,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Mass>();
     world.register_tracker::<Sticky>();
     world.register_tracker::<Gravity>();
-    world.register_tracker::<Projectile>();
+    //world.register_tracker::<Projectile>();
 }
 
 #[derive(SystemData)]
@@ -236,11 +230,11 @@ pub struct TrackedResources<'a> {
 }
 impl<'a> TrackedResources<'a> {
     pub fn create_res_sync_package(&self) -> ResSyncPackage<EcsResPacket> {
-        ResSyncPackage::new().with_res(self.time_of_day.deref())
+        ResSyncPackage::new().with_res(&*self.time_of_day)
     }
     /// Create state package with resources included
     pub fn state_package<C: CompPacket>(&self) -> StatePackage<C, EcsResPacket> {
-        StatePackage::new().with_res(self.time_of_day.deref())
+        StatePackage::new().with_res(&*self.time_of_day)
     }
 }
 

@@ -119,7 +119,6 @@ impl State {
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Gravity>();
-        ecs.register::<comp::Projectile>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -143,9 +142,9 @@ impl State {
         ecs.register::<comp::Agent>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();
-        ecs.register::<comp::Inventory>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
+        ecs.register::<comp::Projectile>();
 
         // Register synced resources used by the ECS.
         ecs.add_resource(TimeOfDay(0.0));
@@ -156,6 +155,7 @@ impl State {
         ecs.add_resource(TerrainGrid::new().unwrap());
         ecs.add_resource(BlockChange::default());
         ecs.add_resource(TerrainChanges::default());
+        // TODO: only register on the server
         ecs.add_resource(EventBus::<ServerEvent>::default());
         ecs.add_resource(EventBus::<LocalEvent>::default());
         ecs.add_resource(EventBus::<SfxEventItem>::default());
