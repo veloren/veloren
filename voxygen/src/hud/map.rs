@@ -7,6 +7,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use specs::WorldExt;
 use vek::*;
 
 widget_ids! {

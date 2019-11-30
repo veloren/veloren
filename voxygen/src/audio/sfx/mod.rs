@@ -9,6 +9,7 @@ use common::{
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use serde::Deserialize;
+use specs::WorldExt;
 use vek::*;
 
 #[derive(Deserialize)]

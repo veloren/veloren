@@ -13,7 +13,8 @@ use common::{
 };
 use log::{debug, error};
 use specs::{
-    Entities, Join, ReadExpect, ReadStorage, System, SystemData, World, Write, WriteStorage,
+    Entities, Join, ReadExpect, ReadStorage, System, SystemData, World, WorldExt, Write,
+    WriteStorage,
 };
 use vek::*;
 
@@ -231,7 +232,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         );
 
         let region_map = world.read_resource::<RegionMap>();
-        let tracked_comps = TrackedComps::fetch(&world.res);
+        let tracked_comps = TrackedComps::fetch(world);
         for key in &regions {
             if let Some(region) = region_map.get(*key) {
                 for (uid, pos, vel, ori, character_state, _, entity) in (

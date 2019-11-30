@@ -8,12 +8,10 @@ edition = "2018"
 common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
 
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "imbris/specs-15"}
 
 log = "0.4.8"
-specs = "0.14.2"
-shred-derive = "0.5.0"
-shred = "0.7.0"
+specs = { version = "0.15.1", features = ["shred-derive"] }
 vek = "0.9.9"
 uvth = "3.1.1"
 lazy_static = "1.4.0"
@@ -29,5 +27,3 @@ prometheus = "0.7"
 prometheus-static-metric = "0.2"
 rouille = "3.0.0"
 portpicker = { git = "https://github.com/wusyong/portpicker-rs", branch = "fix_ipv6" }
-# TODO: remove when upgrading to specs 0.15
-hibitset = "0.5.3"

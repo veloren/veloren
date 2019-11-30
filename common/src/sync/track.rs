@@ -2,7 +2,7 @@ use super::{
     packet::{CompPacket, CompUpdateKind},
     uid::Uid,
 };
-use specs::{BitSet, Component, Entity, Join, ReadStorage, World};
+use specs::{BitSet, Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
     convert::{TryFrom, TryInto},
     marker::PhantomData,

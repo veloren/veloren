@@ -13,7 +13,7 @@ use serde_derive::{Deserialize, Serialize};
 use specs::{
     shred::{Fetch, FetchMut},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
-    Component, DispatcherBuilder, Entity as EcsEntity,
+    Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
 use std::{sync::Arc, time::Duration};
 use vek::*;
@@ -147,19 +147,19 @@ impl State {
         ecs.register::<comp::Projectile>();
 
         // Register synced resources used by the ECS.
-        ecs.add_resource(TimeOfDay(0.0));
+        ecs.insert(TimeOfDay(0.0));
 
         // Register unsynced resources used by the ECS.
-        ecs.add_resource(Time(0.0));
-        ecs.add_resource(DeltaTime(0.0));
-        ecs.add_resource(TerrainGrid::new().unwrap());
-        ecs.add_resource(BlockChange::default());
-        ecs.add_resource(TerrainChanges::default());
+        ecs.insert(Time(0.0));
+        ecs.insert(DeltaTime(0.0));
+        ecs.insert(TerrainGrid::new().unwrap());
+        ecs.insert(BlockChange::default());
+        ecs.insert(TerrainChanges::default());
         // TODO: only register on the server
-        ecs.add_resource(EventBus::<ServerEvent>::default());
-        ecs.add_resource(EventBus::<LocalEvent>::default());
-        ecs.add_resource(EventBus::<SfxEventItem>::default());
-        ecs.add_resource(RegionMap::new());
+        ecs.insert(EventBus::<ServerEvent>::default());
+        ecs.insert(EventBus::<LocalEvent>::default());
+        ecs.insert(EventBus::<SfxEventItem>::default());
+        ecs.insert(RegionMap::new());
 
         ecs
     }
@@ -320,7 +320,7 @@ impl State {
         // TODO: Consider alternative ways to do this
         add_foreign_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel.
-        dispatch_builder.build().dispatch(&self.ecs.res);
+        dispatch_builder.build().dispatch(&self.ecs);
 
         self.ecs.maintain();
 

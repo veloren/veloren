@@ -7,7 +7,7 @@ use conrod_core::{
     widget_ids, /*, Color*/
     Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use specs::Join;
+use specs::{Join, WorldExt};
 
 use client::{self, Client};
 
