@@ -342,13 +342,14 @@ impl<'a> System<'a> for Sys {
         }
 
         // Apply pushback
-        for (pos, scale, mass, vel, _, _, physics) in (
+        for (pos, scale, mass, vel, _, _, _, physics) in (
             &positions,
             scales.maybe(),
             masses.maybe(),
             &mut velocities,
             &bodies,
             !&mountings,
+            !&stickies, // Can't push stickies around
             &mut physics_states,
         )
             .join()
