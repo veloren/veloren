@@ -27,7 +27,7 @@ conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 euc = "0.3.0"
 
 # ECS
-specs = "0.14.2"
+specs = "0.15.1"
 
 # Mathematics
 vek = { version = "0.9.9", features = ["serde"] }

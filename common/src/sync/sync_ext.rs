@@ -10,6 +10,7 @@ use log::error;
 use specs::{
     saveload::{MarkedBuilder, MarkerAllocator},
     world::Builder,
+    WorldExt,
 };
 
 pub trait WorldSyncExt {
@@ -38,7 +39,7 @@ impl WorldSyncExt for specs::World {
         self.register_synced::<Uid>();
 
         // TODO: Consider only having allocator server side for now
-        self.add_resource(UidAllocator::new());
+        self.insert(UidAllocator::new());
     }
     fn register_synced<C: specs::Component + Clone + Send + Sync>(&mut self)
     where
@@ -52,7 +53,7 @@ impl WorldSyncExt for specs::World {
         C::Storage: Default + specs::storage::Tracked,
     {
         let tracker = UpdateTracker::<C>::new(self);
-        self.add_resource(tracker);
+        self.insert(tracker);
     }
 
     fn create_entity_synced(&mut self) -> specs::EntityBuilder {

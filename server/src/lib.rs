@@ -37,6 +37,7 @@ use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{
     join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, SystemData,
+    WorldExt,
 };
 use std::{
     i32,
@@ -87,26 +88,18 @@ impl Server {
     /// Create a new `Server`
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
         let mut state = State::default();
-        state
-            .ecs_mut()
-            .add_resource(EventBus::<ServerEvent>::default());
+        state.ecs_mut().insert(EventBus::<ServerEvent>::default());
         // TODO: anything but this
-        state.ecs_mut().add_resource(AuthProvider::new());
-        state.ecs_mut().add_resource(Tick(0));
-        state.ecs_mut().add_resource(ChunkGenerator::new());
+        state.ecs_mut().insert(AuthProvider::new());
+        state.ecs_mut().insert(Tick(0));
+        state.ecs_mut().insert(ChunkGenerator::new());
         // System timers for performance monitoring
-        state
-            .ecs_mut()
-            .add_resource(sys::EntitySyncTimer::default());
-        state.ecs_mut().add_resource(sys::MessageTimer::default());
-        state.ecs_mut().add_resource(sys::SentinelTimer::default());
-        state
-            .ecs_mut()
-            .add_resource(sys::SubscriptionTimer::default());
-        state
-            .ecs_mut()
-            .add_resource(sys::TerrainSyncTimer::default());
-        state.ecs_mut().add_resource(sys::TerrainTimer::default());
+        state.ecs_mut().insert(sys::EntitySyncTimer::default());
+        state.ecs_mut().insert(sys::MessageTimer::default());
+        state.ecs_mut().insert(sys::SentinelTimer::default());
+        state.ecs_mut().insert(sys::SubscriptionTimer::default());
+        state.ecs_mut().insert(sys::TerrainSyncTimer::default());
+        state.ecs_mut().insert(sys::TerrainTimer::default());
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
@@ -158,7 +151,7 @@ impl Server {
         };
 
         // set the spawn point we calculated above
-        state.ecs_mut().add_resource(SpawnPoint(spawn_point));
+        state.ecs_mut().insert(SpawnPoint(spawn_point));
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
@@ -166,7 +159,7 @@ impl Server {
         // Register trackers
         sys::sentinel::register_trackers(&mut state.ecs_mut());
 
-        state.ecs_mut().add_resource(DeletedEntities::default());
+        state.ecs_mut().insert(DeletedEntities::default());
 
         let this = Self {
             state,
@@ -1000,11 +993,11 @@ impl Server {
                     .get_mut(entity)
                     .unwrap()
                     .notify(ServerMsg::InitialSync {
-                        ecs_state: TrackedResources::fetch(&self.state.ecs().res)
+                        ecs_state: TrackedResources::fetch(&self.state.ecs())
                             .state_package()
                             // Send client their entity
                             .with_entity(
-                                TrackedComps::fetch(&self.state.ecs().res)
+                                TrackedComps::fetch(&self.state.ecs())
                                     .create_entity_package(entity),
                             ),
                         entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
