@@ -49,7 +49,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
-use specs::Join;
+use specs::{Join, WorldExt};
 use std::collections::VecDeque;
 use vek::*;
 

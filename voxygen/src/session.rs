@@ -17,7 +17,7 @@ use common::{
     ChatType,
 };
 use log::error;
-use specs::Join;
+use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 

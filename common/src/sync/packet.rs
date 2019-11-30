@@ -4,7 +4,7 @@ use super::{
 };
 use log::error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use specs::{shred::Resource, Component, Entity, Join, ReadStorage, World};
+use specs::{shred::Resource, Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Debug,

@@ -12,9 +12,9 @@ use common::{
     },
 };
 use hashbrown::HashMap;
-use shred_derive::SystemData;
 use specs::{
-    Entity as EcsEntity, Join, ReadExpect, ReadStorage, System, World, Write, WriteExpect,
+    shred::ResourceId, Entity as EcsEntity, Join, ReadExpect, ReadStorage, System, SystemData,
+    World, Write, WriteExpect,
 };
 use vek::*;
 

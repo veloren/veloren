@@ -16,7 +16,7 @@ use common::{
     vol::RectVolSize,
 };
 use rand::Rng;
-use specs::{Builder, Entity as EcsEntity, Join};
+use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 use world::util::Sampler;
 
