@@ -102,7 +102,7 @@ impl<'a> System<'a> for Sys {
                 .reduce_or()
             {
                 // Update current chunk
-                subscription.fuzzy_chunk = dbg!(Vec2::<f32>::from(pos.0))
+                subscription.fuzzy_chunk = Vec2::<f32>::from(pos.0)
                     .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
                 // Use the largest side length as our chunk size
                 let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
@@ -173,7 +173,6 @@ impl<'a> System<'a> for Sys {
                     // Send client intial info about the entities in this region if it was not
                     // already within the set of subscribed regions
                     if subscription.regions.insert(key.clone()) {
-                        let mut counter = 0;
                         if let Some(region) = region_map.get(key) {
                             for (uid, pos, vel, ori, character_state, _, entity) in (
                                 &uids,
@@ -187,7 +186,6 @@ impl<'a> System<'a> for Sys {
                                 .join()
                                 .filter(|(_, _, _, _, _, _, e)| *e != client_entity)
                             {
-                                counter += 1;
                                 // Send message to create entity and tracked components
                                 client.notify(ServerMsg::CreateEntity(
                                     tracked_comps.create_entity_package(entity),

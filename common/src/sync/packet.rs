@@ -112,17 +112,6 @@ impl<P: CompPacket> SyncPackage<P> {
             .join()
             .map(|(uid, _, _)| (*uid).into())
             .collect();
-        // TODO: handle modified uid?
-        //created_entities.append(&mut (uids, filter, uid_tracker.inserted()).join().map(|(uid, _, _)| uid).collect());
-        // let deleted_entities = (uids.maybe(), filter, uid_tracker.removed())
-        //    .join()
-        // Why doesn't this panic??
-        //    .map(|(uid, _, _)| Into::<u64>::into(*uid.unwrap()))
-        //    .collect::<Vec<_>>();
-        //let len = deleted_entities.len();
-        //if len > 0 {
-        //    println!("deleted {} in sync message", len);
-        // }
 
         Self {
             comp_updates: Vec::new(),
