@@ -21,9 +21,10 @@ const SENTINEL_SYS: &str = "sentinel_sys";
 const SUBSCRIPTION_SYS: &str = "server_subscription_sys";
 const TERRAIN_SYNC_SYS: &str = "server_terrain_sync_sys";
 const TERRAIN_SYS: &str = "server_terrain_sys";
-const MESSAGE_SYS: &str = "server_message_sys";
+//const MESSAGE_SYS: &str = "server_message_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
+    // TODO: makes some of these dependent on systems in common like the phys system
     dispatch_builder.add(sentinel::Sys, SENTINEL_SYS, &[]);
     dispatch_builder.add(subscription::Sys, SUBSCRIPTION_SYS, &[]);
     dispatch_builder.add(
@@ -33,7 +34,6 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     );
     dispatch_builder.add(terrain_sync::Sys, TERRAIN_SYS, &[]);
     dispatch_builder.add(terrain::Sys, TERRAIN_SYNC_SYS, &[TERRAIN_SYS]);
-    dispatch_builder.add(message::Sys, MESSAGE_SYS, &[]);
 }
 
 /// Used to keep track of how much time each system takes

@@ -3062,7 +3062,7 @@ dependencies = [
 [[package]]
 name = "specs-idvs"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/specs-idvs.git?branch=imbris/specs-15#55547cdf1358c667ac8a7d4c79857143bde2843c"
+source = "git+https://gitlab.com/veloren/specs-idvs.git?branch=imbris/specs-15#f049bf725f2a690d01ea8a83da49c7ebf8d8ea2a"
 dependencies = [
  "hibitset 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
