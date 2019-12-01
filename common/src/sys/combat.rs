@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         ActionState::*, CharacterState, Controller, HealthChange, HealthSource, Item, ItemKind,
-        Ori, Pos, Stats,
+        Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -13,7 +13,8 @@ use vek::*;
 
 const BLOCK_EFFICIENCY: f32 = 0.9;
 
-const ATTACK_RANGE: f32 = 4.0;
+const ATTACK_RANGE: f32 = 3.5;
+const ATTACK_ANGLE: f32 = 45.0;
 const BLOCK_ANGLE: f32 = 180.0;
 
 /// This system is responsible for handling accepted inputs like moving or attacking
@@ -27,6 +28,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
+        ReadStorage<'a, Scale>,
         ReadStorage<'a, Controller>,
         WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
@@ -42,6 +44,7 @@ impl<'a> System<'a> for Sys {
             uids,
             positions,
             orientations,
+            scales,
             controllers,
             mut character_states,
             stats,
@@ -51,11 +54,12 @@ impl<'a> System<'a> for Sys {
         let mut _local_emitter = local_bus.emitter();
 
         // Attacks
-        for (entity, uid, pos, ori, _, stat) in (
+        for (entity, uid, pos, ori, scale_maybe, _, stat) in (
             &entities,
             &uids,
             &positions,
             &orientations,
+            scales.maybe(),
             &controllers,
             &stats,
         )
@@ -92,11 +96,12 @@ impl<'a> System<'a> for Sys {
             if deal_damage {
                 if let Some(Attack { .. }) = &character_states.get(entity).map(|c| c.action) {
                     // Go through all other entities
-                    for (b, uid_b, pos_b, ori_b, character_b, stat_b) in (
+                    for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stat_b) in (
                         &entities,
                         &uids,
                         &positions,
                         &orientations,
+                        scales.maybe(),
                         &character_states,
                         &stats,
                     )
@@ -107,12 +112,18 @@ impl<'a> System<'a> for Sys {
                         let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
                         let ori2 = Vec2::from(ori.0);
 
+                        // Scales
+                        let scale = scale_maybe.map_or(1.0, |s| s.0);
+                        let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
+                        // TODO: don't do this here
+                        let rad_b = 0.5 * scale_b;
+
                         // Check if it is a hit
                         if entity != b
                             && !stat_b.is_dead
-                            && pos.0.distance_squared(pos_b.0) < ATTACK_RANGE.powi(2)
-                            // TODO: Use size instead of 1.0
-                            && ori2.angle_between(pos_b2 - pos2) < (2.0 / pos2.distance(pos_b2)).atan()
+                            // Spherical wedge shaped attack field
+                            && pos.0.distance_squared(pos_b.0) < (rad_b + scale * ATTACK_RANGE).powi(2)
+                            && ori2.angle_between(pos_b2 - pos2) < ATTACK_ANGLE.to_radians() / 2.0 + (rad_b / pos2.distance(pos_b2)).atan()
                         {
                             // Weapon gives base damage
                             let mut dmg = if let Some(ItemKind::Tool { power, .. }) =
@@ -125,8 +136,8 @@ impl<'a> System<'a> for Sys {
 
                             // Block
                             if character_b.action.is_block()
-                                && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees()
-                                    < BLOCK_ANGLE / 2.0
+                                && ori_b.0.angle_between(pos.0 - pos_b.0)
+                                    < BLOCK_ANGLE.to_radians() / 2.0
                             {
                                 dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
                             }
