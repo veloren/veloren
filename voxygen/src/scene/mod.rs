@@ -8,6 +8,7 @@ use self::{
     terrain::Terrain,
 };
 use crate::{
+    anim::SkeletonAttr,
     audio::{sfx::SfxMgr, AudioFrontend},
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
@@ -161,6 +162,16 @@ impl Scene {
             .get(client.entity())
             .map_or(false, |cs| cs.movement.is_roll());
 
+        let player_scale = match client
+            .state()
+            .ecs()
+            .read_storage::<comp::Body>()
+            .get(client.entity())
+        {
+            Some(comp::Body::Humanoid(body)) => SkeletonAttr::calculate_scale(body),
+            _ => 1_f32,
+        };
+
         // Alter camera position to match player.
         let tilt = self.camera.get_orientation().y;
         let dist = self.camera.get_distance();
@@ -168,9 +179,9 @@ impl Scene {
         let up = match self.camera.get_mode() {
             CameraMode::FirstPerson => {
                 if player_rolling {
-                    0.75
+                    player_scale * 0.8_f32
                 } else {
-                    1.5
+                    player_scale * 1.6_f32
                 }
             }
             CameraMode::ThirdPerson => 1.2,
