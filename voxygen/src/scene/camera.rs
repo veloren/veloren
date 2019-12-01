@@ -154,6 +154,7 @@ impl Camera {
                 }
                 CameraMode::FirstPerson => {
                     self.set_mode(CameraMode::ThirdPerson);
+                    self.tgt_dist = 1_f32;
                 }
             }
         }

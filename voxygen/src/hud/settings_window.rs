@@ -934,7 +934,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             if let Some(new_val) = ImageSlider::discrete(
                 display_zoom,
                 1,
-                200,
+                800,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
