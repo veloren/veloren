@@ -37,11 +37,6 @@ optional-release:linux:
         - cp target/release/veloren-voxygen $CI_PROJECT_DIR
         - strip --strip-all veloren-server-cli
         - strip --strip-all veloren-voxygen
-        # Compress ogg and WAV
-        - find assets/ -type f -name "*.ogg" | xargs -i@ ffmpeg -i @ -c:a libopus -b:a 32000 -compression_level 0 -application audio @.audiocompress.ogg
-        - find assets/ -type f -name "*.wav" | xargs -i@ ffmpeg -i @ -ab 32000 -vbr on -compression_level 0 -application audio @.audiocompress.wav
-        # Overwrite old files
-        - find assets/ -type f -name "*.audiocompress.*" | xargs -i@ sh -c 'name=@ && mv -f @ ${name%.*.*}'
     artifacts:
         paths:
             - veloren-server-cli
@@ -144,11 +139,6 @@ linux:
         - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
         - strip --strip-all veloren-server-cli
         - strip --strip-all veloren-voxygen
-        # Compress ogg and WAV
-        - find assets/ -type f -name "*.ogg" | xargs -i@ ffmpeg -i @ -c:a libopus -b:a 32000 -compression_level 0 -application audio @.audiocompress.ogg
-        - find assets/ -type f -name "*.wav" | xargs -i@ ffmpeg -i @ -ab 32000 -vbr on -compression_level 0 -application audio @.audiocompress.wav
-        # Overwrite old files
-        - find assets/ -type f -name "*.audiocompress.*" | xargs -i@ sh -c 'name=@ && mv -f @ ${name%.*.*}'
     artifacts:
         paths:
             - veloren-server-cli
@@ -172,11 +162,6 @@ windows:
         - VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-        # Compress ogg and WAV
-        - find assets/ -type f -name "*.ogg" | xargs -i@ ffmpeg -i @ -c:a libopus -b:a 32000 -compression_level 0 -application audio @.audiocompress.ogg
-        - find assets/ -type f -name "*.wav" | xargs -i@ ffmpeg -i @ -ab 32000 -vbr on -compression_level 0 -application audio @.audiocompress.wav
-        # Overwrite old files
-        - find assets/ -type f -name "*.audiocompress.*" | xargs -i@ sh -c 'name=@ && mv -f @ ${name%.*.*}'
     artifacts:
         paths:
             - veloren-server-cli.exe
