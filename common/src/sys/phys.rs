@@ -102,6 +102,7 @@ impl<'a> System<'a> for Sys {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
             // Basic collision with terrain
+            // TODO: rename this, not just the player entity
             let player_rad = 0.3 * scale; // half-width of the player's AABB
             let player_height = 1.5 * scale;
 

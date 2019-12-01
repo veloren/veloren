@@ -173,10 +173,10 @@ impl<'a> System<'a> for Sys {
                 if Vec2::<f32>::from(wall_dir).magnitude_squared() > 0.001 {
                     Vec2::from(wall_dir).normalized()
                 } else {
-                    Vec2::from(vel.0)
+                    Vec2::from(inputs.move_dir)
                 }
             } else {
-                Vec2::from(vel.0)
+                Vec2::from(inputs.move_dir)
             };
 
             if ori_dir.magnitude_squared() > 0.0001
