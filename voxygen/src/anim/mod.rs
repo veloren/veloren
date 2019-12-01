@@ -63,6 +63,26 @@ pub struct SkeletonAttr {
     weapon_y: f32,
 }
 
+impl SkeletonAttr {
+    pub fn calculate_scale(body: &comp::humanoid::Body) -> f32 {
+        use comp::humanoid::{BodyType::*, Race::*};
+        match (body.race, body.body_type) {
+            (Orc, Male) => 0.95,
+            (Orc, Female) => 0.8,
+            (Human, Male) => 0.8,
+            (Human, Female) => 0.75,
+            (Elf, Male) => 0.85,
+            (Elf, Female) => 0.8,
+            (Dwarf, Male) => 0.7,
+            (Dwarf, Female) => 0.65,
+            (Undead, Male) => 0.8,
+            (Undead, Female) => 0.75,
+            (Danari, Male) => 0.58,
+            (Danari, Female) => 0.58,
+        }
+    }
+}
+
 impl Default for SkeletonAttr {
     fn default() -> Self {
         Self {
@@ -81,20 +101,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
     fn from(body: &'a comp::humanoid::Body) -> Self {
         use comp::humanoid::{BodyType::*, Race::*};
         Self {
-            scaler: match (body.race, body.body_type) {
-                (Orc, Male) => 0.95,
-                (Orc, Female) => 0.8,
-                (Human, Male) => 0.8,
-                (Human, Female) => 0.75,
-                (Elf, Male) => 0.85,
-                (Elf, Female) => 0.8,
-                (Dwarf, Male) => 0.7,
-                (Dwarf, Female) => 0.65,
-                (Undead, Male) => 0.8,
-                (Undead, Female) => 0.75,
-                (Danari, Male) => 0.58,
-                (Danari, Female) => 0.58,
-            },
+            scaler: SkeletonAttr::calculate_scale(body),
             head_scale: match (body.race, body.body_type) {
                 (Orc, Male) => 0.9,
                 (Orc, Female) => 1.0,
