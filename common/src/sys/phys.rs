@@ -349,10 +349,13 @@ impl<'a> System<'a> for Sys {
             &mut velocities,
             &bodies,
             !&mountings,
-            !&stickies, // Can't push stickies around
+            stickies.maybe(),
             &mut physics_states,
         )
             .join()
+            .filter(|(_, _, _, _, _, _, sticky, physics)| {
+                sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
+            })
         {
             physics.touch_entity = None;
 

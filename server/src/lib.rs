@@ -36,8 +36,8 @@ use log::{debug, error};
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{
-    join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, SystemData,
-    WorldExt,
+    join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, RunNow,
+    SystemData, WorldExt,
 };
 use std::{
     i32,
@@ -831,7 +831,11 @@ impl Server {
         // 3) Handle inputs from clients
         frontend_events.append(&mut self.handle_new_connections()?);
 
+        // Run message recieving sys before the systems in common for decreased latency (e.g. run before controller system)
+        sys::message::Sys.run_now(&self.state.ecs());
+
         let before_tick_4 = Instant::now();
+
         // 4) Tick the server's LocalState.
         self.state.tick(dt, sys::add_server_systems);
 
@@ -897,11 +901,14 @@ impl Server {
         self.metrics
             .tick_time
             .with_label_values(&["input"])
-            .set((before_tick_4 - before_tick_1).as_nanos() as i64);
+            .set((before_tick_4 - before_tick_1).as_nanos() as i64 - message_nanos);
         self.metrics
             .tick_time
             .with_label_values(&["state tick"])
-            .set((before_handle_events - before_tick_4).as_nanos() as i64 - total_sys_nanos);
+            .set(
+                (before_handle_events - before_tick_4).as_nanos() as i64
+                    - (total_sys_nanos - message_nanos),
+            );
         self.metrics
             .tick_time
             .with_label_values(&["handle server events"])
