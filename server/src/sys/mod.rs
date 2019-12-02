@@ -21,7 +21,6 @@ const SENTINEL_SYS: &str = "sentinel_sys";
 const SUBSCRIPTION_SYS: &str = "server_subscription_sys";
 const TERRAIN_SYNC_SYS: &str = "server_terrain_sync_sys";
 const TERRAIN_SYS: &str = "server_terrain_sys";
-//const MESSAGE_SYS: &str = "server_message_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     // TODO: makes some of these dependent on systems in common like the phys system

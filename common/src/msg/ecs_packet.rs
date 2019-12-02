@@ -12,7 +12,6 @@ pub enum MustHaveMoreThanOneVariant {}
 sum_type! {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub enum EcsResPacket {
-        //Time(state::Time),
         MustHaveMoreThanOneVariant(MustHaveMoreThanOneVariant),
         TimeOfDay(state::TimeOfDay),
     }
@@ -20,7 +19,6 @@ sum_type! {
 impl sync::ResPacket for EcsResPacket {
     fn apply(self, world: &specs::World) {
         match self {
-            //EcsResPacket::Time(time) => sync::handle_res_update(time, world),
             EcsResPacket::MustHaveMoreThanOneVariant(_) => unimplemented!(),
             EcsResPacket::TimeOfDay(time_of_day) => sync::handle_res_update(time_of_day, world),
         }
@@ -41,7 +39,6 @@ sum_type! {
         MountState(comp::MountState),
         Mounting(comp::Mounting),
         Mass(comp::Mass),
-        //Projectile(comp::Projectile),
         Gravity(comp::Gravity),
         Sticky(comp::Sticky),
     }
@@ -61,7 +58,6 @@ sum_type! {
         MountState(PhantomData<comp::MountState>),
         Mounting(PhantomData<comp::Mounting>),
         Mass(PhantomData<comp::Mass>),
-        //Projectile(PhantomData<comp::Projectile>),
         Gravity(PhantomData<comp::Gravity>),
         Sticky(PhantomData<comp::Sticky>),
     }
@@ -80,7 +76,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::MountState(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Mounting(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Mass(comp) => sync::handle_insert(comp, entity, world),
-            //EcsCompPacket::Projectile(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Gravity(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_insert(comp, entity, world),
         }
@@ -97,7 +92,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::MountState(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Mounting(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Mass(comp) => sync::handle_modify(comp, entity, world),
-            //EcsCompPacket::Projectile(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Gravity(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_modify(comp, entity, world),
         }
@@ -116,7 +110,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::MountState(_) => sync::handle_remove::<comp::MountState>(entity, world),
             EcsCompPhantom::Mounting(_) => sync::handle_remove::<comp::Mounting>(entity, world),
             EcsCompPhantom::Mass(_) => sync::handle_remove::<comp::Mass>(entity, world),
-            //EcsCompPhantom::Projectile(_) => sync::handle_remove::<comp::Projectile>(entity, world),
             EcsCompPhantom::Gravity(_) => sync::handle_remove::<comp::Gravity>(entity, world),
             EcsCompPhantom::Sticky(_) => sync::handle_remove::<comp::Sticky>(entity, world),
         }

@@ -8,7 +8,7 @@ edition = "2018"
 common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
 
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "imbris/specs-15"}
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 log = "0.4.8"
 specs = { version = "0.15.1", features = ["shred-derive"] }
