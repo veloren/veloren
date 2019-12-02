@@ -53,7 +53,6 @@ pub struct TrackedComps<'a> {
     pub mass: ReadStorage<'a, Mass>,
     pub sticky: ReadStorage<'a, Sticky>,
     pub gravity: ReadStorage<'a, Gravity>,
-    //pub projectile: ReadStorage<'a, Projectile>,
 }
 impl<'a> TrackedComps<'a> {
     pub fn create_entity_package(&self, entity: EcsEntity) -> EntityPackage<EcsCompPacket> {
@@ -112,10 +111,6 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .copied()
             .map(|c| packets.push(c.into()));
-        //self.projectile
-        //    .get(entity)
-        //    .cloned()
-        //    .map(|c| packets.push(c.into()));
 
         EntityPackage(uid, packets)
     }
@@ -135,7 +130,6 @@ pub struct ReadTrackers<'a> {
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
-    //pub projectile: ReadExpect<'a, UpdateTracker<Projectile>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_package(
@@ -162,12 +156,6 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
             .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
             .with_component(&comps.uid, &*self.gravity, &comps.gravity, filter)
-        //.with_component(
-        //    &comps.uid,
-        //    self.projectile.deref(),
-        //    &comps.projectile,
-        //    filter,
-        //)
     }
 }
 
@@ -186,7 +174,6 @@ pub struct WriteTrackers<'a> {
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
-    //projectile: WriteExpect<'a, UpdateTracker<Projectile>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -204,7 +191,6 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.mass.record_changes(&comps.mass);
     trackers.sticky.record_changes(&comps.sticky);
     trackers.gravity.record_changes(&comps.gravity);
-    //trackers.projectile.record_changes(&comps.projectile);
 }
 
 pub fn register_trackers(world: &mut World) {
@@ -221,7 +207,6 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Mass>();
     world.register_tracker::<Sticky>();
     world.register_tracker::<Gravity>();
-    //world.register_tracker::<Projectile>();
 }
 
 #[derive(SystemData)]

@@ -342,7 +342,7 @@ impl Ui {
                 // moving origin to top-left corner (from middle).
                 let min_x = self.ui.win_w / 2.0 + l;
                 let min_y = self.ui.win_h / 2.0 - b - h;
-                Aabr {
+                let intersection = Aabr {
                     min: Vec2 {
                         x: (min_x * scale_factor) as u16,
                         y: (min_y * scale_factor) as u16,
@@ -352,7 +352,13 @@ impl Ui {
                         y: ((min_y + h) * scale_factor) as u16,
                     },
                 }
-                .intersection(window_scissor)
+                .intersection(window_scissor);
+
+                if intersection.is_valid() {
+                    intersection
+                } else {
+                    Aabr::new_empty(Vec2::zero())
+                }
             };
             if new_scissor != current_scissor {
                 // Finish the current command.
@@ -750,7 +756,10 @@ impl Ui {
 }
 
 fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
-    let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as u16).into_tuple();
+    let (screen_w, screen_h) = renderer
+        .get_resolution()
+        .map(|e| (e as u16).max(1))
+        .into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {
