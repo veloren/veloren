@@ -48,6 +48,7 @@ pub struct ControlSettings {
     pub respawn: KeyMouse,
     pub interact: KeyMouse,
     pub toggle_wield: KeyMouse,
+    pub charge: KeyMouse,
 }
 
 impl Default for ControlSettings {
@@ -87,6 +88,7 @@ impl Default for ControlSettings {
             respawn: KeyMouse::Mouse(MouseButton::Left),
             interact: KeyMouse::Key(VirtualKeyCode::E),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
+            charge: KeyMouse::Key(VirtualKeyCode::V),
         }
     }
 }

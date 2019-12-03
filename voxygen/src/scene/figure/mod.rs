@@ -197,7 +197,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match &character.movement {
-                        Stand => anim::character::StandAnimation::update_skeleton(
+                        Fall | Stand => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
                             state.movement_time,
@@ -212,13 +212,6 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         Jump => anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
-                            (active_tool_kind, time),
-                            state.movement_time,
-                            &mut movement_animation_rate,
-                            skeleton_attr,
-                        ),
-                        Roll { .. } => anim::character::RollAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
                             state.movement_time,
@@ -254,7 +247,6 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                     };
-
                     let target_bones = match (&character.movement, &character.action) {
                         (Stand, Wield { .. }) => anim::character::CidleAnimation::update_skeleton(
                             &target_base,
@@ -286,7 +278,21 @@ impl FigureMgr {
                             &mut action_animation_rate,
                             skeleton_attr,
                         ),
+                        (_, Roll { .. }) => anim::character::RollAnimation::update_skeleton(
+                            &target_base,
+                            (active_tool_kind, time),
+                            state.action_time,
+                            &mut action_animation_rate,
+                            skeleton_attr,
+                        ),
                         (_, Block { .. }) => anim::character::BlockAnimation::update_skeleton(
+                            &target_base,
+                            (active_tool_kind, time),
+                            state.action_time,
+                            &mut action_animation_rate,
+                            skeleton_attr,
+                        ),
+                        (_, Charge { .. }) => anim::character::ChargeAnimation::update_skeleton(
                             &target_base,
                             (active_tool_kind, time),
                             state.action_time,
@@ -295,8 +301,8 @@ impl FigureMgr {
                         ),
                         _ => target_base,
                     };
-                    state.skeleton.interpolate(&target_bones, dt);
 
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,

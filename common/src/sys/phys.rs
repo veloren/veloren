@@ -353,6 +353,8 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            physics.touch_entity = None;
+
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
             let mass = mass.map(|m| m.0).unwrap_or(scale);
 
