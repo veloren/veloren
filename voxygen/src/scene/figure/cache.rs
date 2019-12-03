@@ -132,7 +132,7 @@ impl FigureModelCache {
                                     },
                                     if camera_mode == CameraMode::FirstPerson
                                         && character_state
-                                            .map(|cs| cs.movement.is_roll())
+                                            .map(|cs| cs.action.is_roll())
                                             .unwrap_or_default()
                                     {
                                         None
@@ -140,7 +140,7 @@ impl FigureModelCache {
                                         Some(humanoid_armor_hand_spec.mesh_left_hand(&body))
                                     },
                                     if character_state
-                                        .map(|cs| cs.movement.is_roll())
+                                        .map(|cs| cs.action.is_roll())
                                         .unwrap_or_default()
                                     {
                                         None
@@ -184,8 +184,8 @@ impl FigureModelCache {
                                         ),
                                         CameraMode::FirstPerson => None,
                                     },
-                                    Some(mesh_draw()),
-                                    None,
+                                    Some(mesh_glider()),
+                                    Some(mesh_lantern()),
                                     None,
                                     None,
                                     None,

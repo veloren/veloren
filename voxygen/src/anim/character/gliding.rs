@@ -108,13 +108,13 @@ impl Animation for GlidingAnimation {
         );
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(
+        next.main.offset = Vec3::new(
             -7.0 + skeleton_attr.weapon_x,
             -5.0 + skeleton_attr.weapon_y,
             15.0,
         );
-        next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-        next.weapon.scale = Vec3::one();
+        next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+        next.main.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
@@ -124,10 +124,14 @@ impl Animation for GlidingAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one() * 1.1;
 
-        next.draw.offset = Vec3::new(0.0, -13.0 + wave_very_slow * 0.10, 6.0);
-        next.draw.ori =
+        next.glider.offset = Vec3::new(0.0, -13.0 + wave_very_slow * 0.10, 6.0);
+        next.glider.ori =
             Quaternion::rotation_x(1.0) * Quaternion::rotation_y(wave_very_slow_cos * 0.04);
-        next.draw.scale = Vec3::one();
+        next.glider.scale = Vec3::one();
+
+        next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.lantern.ori = Quaternion::rotation_x(0.0);
+        next.lantern.scale = Vec3::one() * 0.0;
 
         next.torso.offset = Vec3::new(0.0, 6.0, 15.0) / 11.0 * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(-0.05 * speed.max(12.0) + wave_very_slow * 0.10)
