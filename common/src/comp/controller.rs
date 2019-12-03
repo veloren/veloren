@@ -1,12 +1,11 @@
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use sphynx::Uid;
-use std::ops::Add;
 use std::time::Duration;
 use vek::*;
 
-/// Default duration for how long before an input is considered 'held'.
-pub const DEFAULT_HOLD_DURATION: Duration = Duration::from_millis(250);
+/// Default duration before an input is considered 'held'.
+pub const DEFAULT_HOLD_DURATION: Duration = Duration::from_millis(200);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlEvent {
@@ -27,39 +26,62 @@ pub enum InputState {
 /// and how long it has been in that state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Input {
-    // Should not be pub because duration should
-    // always be reset when state is updated
+    /// Should not be pub because duration should
+    /// always be reset when state is updated
     state: InputState,
-    // Should only be updated by npc agents
-    // through appropriate fn
+    /// Should only be updated by npc agents
+    /// through appropriate fn
     duration: Duration,
+    /// Turned off first tick after switching states
+    just_changed: bool,
+    /// Set when `set_state` is called. Needed so
+    /// tick after change doesn't immediately unset `just_changed`
+    dirty: bool,
 }
 
 impl Input {
+    fn tick(&mut self, dt: Duration) {
+        // Increase how long input has been in current state
+        self.duration = self.duration.checked_add(dt).unwrap_or_default();
+        if self.dirty {
+            // Unset dirty first tick after changing into current state
+            self.dirty = false;
+        } else {
+            // Otherwise, just changed is always false
+            self.just_changed = false;
+        }
+    }
+
     /// Whether input is in `InputState::Pressed` state
     pub fn is_pressed(&self) -> bool {
         self.state == InputState::Pressed
     }
+
+    /// Whether it's the first frame this input has been in
+    /// its current state
+    pub fn is_just_pressed(&self) -> bool {
+        (self.just_changed && self.is_pressed())
+    }
+
     /// Whether input has been in current state longer than
     /// `DEFAULT_HOLD_DURATION`
     pub fn is_held_down(&self) -> bool {
         (self.is_pressed() && self.duration >= DEFAULT_HOLD_DURATION)
     }
 
-    /// Sets the `input::state` and resets `input::duration`
-    ///
-    ///
-    /// `new_state` == `true` -> `InputState::Pressed`
-    ///
-    /// `new_state` == `false` -> `InputState::Unpressed`
+    /// Handles logic of updating state of Input
     pub fn set_state(&mut self, new_state: bool) {
         // Only update if state switches
-        match (new_state, self.is_pressed()) {
-            (true, false) => {
+        match (self.is_pressed(), new_state) {
+            (false, true) => {
+                self.just_changed = true;
+                self.dirty = true;
                 self.state = InputState::Pressed;
                 self.duration = Duration::default();
             }
-            (false, true) => {
+            (true, false) => {
+                self.just_changed = true;
+                self.dirty = true;
                 self.state = InputState::Unpressed;
                 self.duration = Duration::default();
             }
@@ -67,9 +89,9 @@ impl Input {
         };
     }
 
-    /// Sets `input::duration`
+    /// Increases `input::duration` by `dur`
     pub fn inc_dur(&mut self, dur: Duration) {
-        self.duration = self.duration + dur;
+        self.duration = self.duration.checked_add(dur).unwrap_or_default();
     }
 
     /// Returns `input::duration`
@@ -83,23 +105,16 @@ impl Default for Input {
         Self {
             state: InputState::Unpressed,
             duration: Duration::default(),
-        }
-    }
-}
-
-impl Add<Duration> for Input {
-    type Output = Self;
-
-    fn add(self, dur: Duration) -> Self {
-        Self {
-            state: self.state,
-            duration: self.duration.checked_add(dur).unwrap_or_default(),
+            just_changed: false,
+            dirty: false,
         }
     }
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ControllerInputs {
+    // When adding new inputs:
+    // 1. Add to tick() update
     pub primary: Input,
     pub secondary: Input,
     pub sit: Input,
@@ -111,6 +126,7 @@ pub struct ControllerInputs {
     pub wall_leap: Input,
     pub respawn: Input,
     pub toggle_wield: Input,
+    pub charge: Input,
     pub move_dir: Vec2<f32>,
     pub look_dir: Vec3<f32>,
 }
@@ -125,17 +141,33 @@ pub struct Controller {
 impl ControllerInputs {
     /// Updates all inputs, accounting for delta time
     pub fn tick(&mut self, dt: Duration) {
-        self.primary = self.primary + dt;
-        self.secondary = self.secondary + dt;
-        self.sit = self.sit + dt;
-        self.jump = self.jump + dt;
-        self.roll = self.roll + dt;
-        self.glide = self.glide + dt;
-        self.climb = self.climb + dt;
-        self.climb_down = self.climb_down + dt;
-        self.wall_leap = self.wall_leap + dt;
-        self.respawn = self.respawn + dt;
-        self.toggle_wield = self.toggle_wield + dt;
+        self.primary.tick(dt);
+        self.secondary.tick(dt);
+        self.sit.tick(dt);
+        self.jump.tick(dt);
+        self.roll.tick(dt);
+        self.glide.tick(dt);
+        self.climb.tick(dt);
+        self.climb_down.tick(dt);
+        self.wall_leap.tick(dt);
+        self.respawn.tick(dt);
+        self.toggle_wield.tick(dt);
+        self.charge.tick(dt);
+    }
+    /// Updates `inputs.move_dir`.
+    pub fn update_move_dir(&mut self) {
+        self.move_dir = if self.move_dir.magnitude_squared() > 1.0 {
+            // Cap move_dir to 1
+            self.move_dir.normalized()
+        } else {
+            self.move_dir
+        };
+    }
+    /// Updates `inputs.look_dir`
+    pub fn update_look_dir(&mut self) {
+        self.look_dir
+            .try_normalized()
+            .unwrap_or(self.move_dir.into());
     }
 }
 

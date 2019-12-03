@@ -111,14 +111,14 @@ impl Animation for SneakAnimation {
         next.r_foot.ori = Quaternion::rotation_x(-0.8 - wavecos * 0.15);
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(
+        next.main.offset = Vec3::new(
             -7.0 + skeleton_attr.weapon_x,
             -5.0 + skeleton_attr.weapon_y,
             15.0,
         );
-        next.weapon.ori =
+        next.main.ori =
             Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + wave_cos * 0.25);
-        next.weapon.scale = Vec3::one();
+        next.main.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(wavecos * 0.05);
@@ -128,9 +128,13 @@ impl Animation for SneakAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(wave * 0.05);
         next.r_shoulder.scale = Vec3::one() * 1.1;
 
-        next.draw.offset = Vec3::new(0.0, 5.0, 0.0);
-        next.draw.ori = Quaternion::rotation_y(0.0);
-        next.draw.scale = Vec3::one() * 0.0;
+        next.glider.offset = Vec3::new(0.0, 5.0, 0.0);
+        next.glider.ori = Quaternion::rotation_y(0.0);
+        next.glider.scale = Vec3::one() * 0.0;
+
+        next.lantern.offset = Vec3::new(0.0, 5.0, 0.0);
+        next.lantern.ori = Quaternion::rotation_y(0.0);
+        next.lantern.scale = Vec3::one() * 0.0;
 
         next.torso.offset = Vec3::new(0.0, 0.3 + wave * -0.08, 0.4) * skeleton_attr.scaler;
         next.torso.ori =
