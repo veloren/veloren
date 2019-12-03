@@ -8,20 +8,10 @@ pub enum MovementState {
     Sit,
     Run,
     Jump,
+    Fall,
     Glide,
-    Roll { time_left: Duration },
     Swim,
     Climb,
-}
-
-impl MovementState {
-    pub fn is_roll(&self) -> bool {
-        if let Self::Roll { .. } = self {
-            true
-        } else {
-            false
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -29,7 +19,9 @@ pub enum ActionState {
     Idle,
     Wield { time_left: Duration },
     Attack { time_left: Duration, applied: bool },
-    Block { time_left: Duration },
+    Block { time_active: Duration },
+    Roll { time_left: Duration },
+    Charge { time_left: Duration },
     //Carry,
 }
 
@@ -39,6 +31,16 @@ impl ActionState {
             true
         } else {
             false
+        }
+    }
+
+    pub fn is_action_finished(&self) -> bool {
+        match self {
+            Self::Wield { time_left }
+            | Self::Attack { time_left, .. }
+            | Self::Roll { time_left }
+            | Self::Charge { time_left } => *time_left == Duration::default(),
+            Self::Idle | Self::Block { .. } => false,
         }
     }
 
@@ -52,6 +54,22 @@ impl ActionState {
 
     pub fn is_block(&self) -> bool {
         if let Self::Block { .. } = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_roll(&self) -> bool {
+        if let Self::Roll { .. } = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_charge(&self) -> bool {
+        if let Self::Charge { .. } = self {
             true
         } else {
             false

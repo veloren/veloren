@@ -1,17 +1,18 @@
 use super::phys::GRAVITY;
 use crate::{
     comp::{
-        ActionState::*, CharacterState, Controller, Mounting, MovementState::*, Ori, PhysicsState,
-        Pos, Stats, Vel,
+        CharacterState, Controller, Mounting, MovementState::*, Ori, PhysicsState, Pos, Stats, Vel,
     },
+    event::{EventBus, ServerEvent},
     state::DeltaTime,
     terrain::TerrainGrid,
 };
 use specs::prelude::*;
+use sphynx::Uid;
 use std::time::Duration;
 use vek::*;
 
-pub const ROLL_DURATION: Duration = Duration::from_millis(600);
+pub const ROLL_DURATION: Duration = Duration::from_millis(250);
 
 const HUMANOID_ACCEL: f32 = 50.0;
 const HUMANOID_SPEED: f32 = 120.0;
@@ -20,7 +21,8 @@ const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_WATER_ACCEL: f32 = 70.0;
 const HUMANOID_WATER_SPEED: f32 = 120.0;
 const HUMANOID_CLIMB_ACCEL: f32 = 5.0;
-const ROLL_SPEED: f32 = 13.0;
+const ROLL_SPEED: f32 = 17.0;
+const CHARGE_SPEED: f32 = 20.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 const BLOCK_ACCEL: f32 = 30.0;
@@ -31,20 +33,31 @@ const CLIMB_SPEED: f32 = 5.0;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
-/// This system applies forces and calculates new positions and velocities.
+/// # Movement System
+/// #### Applies forces, calculates new positions and velocities,7
+/// #### based on Controller(Inputs) and CharacterState.
+/// ----
+///
+/// **Writes:**
+/// Pos, Vel, Ori
+///
+/// **Reads:**
+/// Uid, Stats, Controller, PhysicsState, CharacterState, Mounting
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, TerrainGrid>,
+        Read<'a, EventBus<ServerEvent>>,
         Read<'a, DeltaTime>,
-        ReadStorage<'a, Stats>,
-        ReadStorage<'a, Controller>,
-        ReadStorage<'a, PhysicsState>,
-        WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        ReadStorage<'a, Uid>,
+        ReadStorage<'a, Stats>,
+        ReadStorage<'a, Controller>,
+        ReadStorage<'a, PhysicsState>,
+        ReadStorage<'a, CharacterState>,
         ReadStorage<'a, Mounting>,
     );
 
@@ -53,37 +66,41 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             _terrain,
+            _server_bus,
             dt,
-            stats,
-            controllers,
-            physics_states,
-            mut character_states,
             mut positions,
             mut velocities,
             mut orientations,
+            uids,
+            stats,
+            controllers,
+            physics_states,
+            character_states,
             mountings,
         ): Self::SystemData,
     ) {
         // Apply movement inputs
         for (
             _entity,
-            stats,
-            controller,
-            physics,
-            mut character,
             mut _pos,
             mut vel,
             mut ori,
-            mounting,
+            _uid,
+            stats,
+            controller,
+            physics,
+            character,
+            mount,
         ) in (
             &entities,
-            &stats,
-            &controllers,
-            &physics_states,
-            &mut character_states,
             &mut positions,
             &mut velocities,
             &mut orientations,
+            &uids,
+            &stats,
+            &controllers,
+            &physics_states,
+            &character_states,
             mountings.maybe(),
         )
             .join()
@@ -92,22 +109,27 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
-            if mounting.is_some() {
-                character.movement = Sit;
+            if mount.is_some() {
                 continue;
             }
 
             let inputs = &controller.inputs;
 
-            if character.movement.is_roll() {
+            if character.action.is_roll() {
                 vel.0 = Vec3::new(0.0, 0.0, vel.0.z)
                     + (vel.0 * Vec3::new(1.0, 1.0, 0.0)
                         + 1.5 * inputs.move_dir.try_normalized().unwrap_or_default())
                     .try_normalized()
                     .unwrap_or_default()
                         * ROLL_SPEED;
-            }
-            if character.action.is_block() || character.action.is_attack() {
+            } else if character.action.is_charge() {
+                vel.0 = Vec3::new(0.0, 0.0, vel.0.z)
+                    + (vel.0 * Vec3::new(1.0, 1.0, 0.0)
+                        + 1.5 * inputs.move_dir.try_normalized().unwrap_or_default())
+                    .try_normalized()
+                    .unwrap_or_default()
+                        * CHARGE_SPEED;
+            } else if character.action.is_block() {
                 vel.0 += Vec2::broadcast(dt.0)
                     * inputs.move_dir
                     * match physics.on_ground {
@@ -143,10 +165,9 @@ impl<'a> System<'a> for Sys {
             }
 
             // Set direction based on move direction when on the ground
-            let ori_dir = if character.action.is_wield()
-                || character.action.is_attack()
-                || character.action.is_block()
-            {
+            let ori_dir = if
+            //character.action.is_wield() ||
+            character.action.is_attack() || character.action.is_block() {
                 Vec2::from(inputs.look_dir).normalized()
             } else if let (Climb, Some(wall_dir)) = (character.movement, physics.on_wall) {
                 if Vec2::<f32>::from(wall_dir).magnitude_squared() > 0.001 {
@@ -174,25 +195,12 @@ impl<'a> System<'a> for Sys {
                 && Vec2::<f32>::from(vel.0).magnitude_squared() < GLIDE_SPEED.powf(2.0)
                 && vel.0.z < 0.0
             {
-                character.action = Idle;
                 let lift = GLIDE_ANTIGRAV + vel.0.z.abs().powf(2.0) * 0.15;
                 vel.0.z += dt.0
                     * lift
                     * (Vec2::<f32>::from(vel.0).magnitude() * 0.075)
                         .min(1.0)
                         .max(0.2);
-            }
-
-            // Roll
-            if let Roll { time_left } = &mut character.movement {
-                character.action = Idle;
-                if *time_left == Duration::default() || vel.0.magnitude_squared() < 10.0 {
-                    character.movement = Run;
-                } else {
-                    *time_left = time_left
-                        .checked_sub(Duration::from_secs_f32(dt.0))
-                        .unwrap_or_default();
-                }
             }
 
             // Climb
@@ -213,34 +221,10 @@ impl<'a> System<'a> for Sys {
                         30.0 * dt.0 / (1.0 - vel.0.z.min(0.0) * 5.0),
                     );
                 }
-
-                character.movement = Climb;
-                character.action = Idle;
-            } else if let Climb = character.movement {
-                character.movement = Jump;
             }
 
-            if physics.on_ground
-                && (character.movement == Jump
-                    || character.movement == Climb
-                    || character.movement == Glide
-                    || character.movement == Swim)
-            {
-                character.movement = Stand;
-            }
-
-            if !physics.on_ground
-                && (character.movement == Stand
-                    || character.movement.is_roll()
-                    || character.movement == Run)
-            {
-                character.movement = Jump;
-            }
-
-            if !physics.on_ground && physics.in_fluid {
-                character.movement = Swim;
-            } else if let Swim = character.movement {
-                character.movement = Stand;
+            if character.movement == Swim && inputs.jump.is_pressed() {
+                vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(HUMANOID_WATER_SPEED);
             }
         }
     }
