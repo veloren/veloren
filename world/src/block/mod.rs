@@ -149,6 +149,7 @@ impl<'a> BlockGen<'a> {
         let sample = &z_cache?.sample;
         let &ColumnSample {
             alt,
+            basement,
             chaos,
             water_level,
             warp_factor,
@@ -177,10 +178,10 @@ impl<'a> BlockGen<'a> {
         let wposf = wpos.map(|e| e as f64);
 
         let (block, height) = if !only_structures {
-            let (_definitely_underground, height, on_cliff, water_height) =
+            let (_definitely_underground, height, on_cliff, basement_height, water_height) =
                 if (wposf.z as f32) < alt - 64.0 * chaos {
                     // Shortcut warping
-                    (true, alt, false, water_level)
+                    (true, alt, false, basement, water_level)
                 } else {
                     // Apply warping
                     let warp = world
@@ -223,6 +224,7 @@ impl<'a> BlockGen<'a> {
                         false,
                         height,
                         on_cliff,
+                        basement.min(basement + warp),
                         (if water_level <= alt {
                             water_level + warp
                         } else {
@@ -247,10 +249,11 @@ impl<'a> BlockGen<'a> {
 
             let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-            let grass_depth = 1.5 + 2.0 * chaos;
+            let grass_depth = (1.5 + 2.0 * chaos).min(height - basement_height);
             let block = if (wposf.z as f32) < height - grass_depth {
                 let col = Lerp::lerp(
-                    saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
+                    // saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
+                    sub_surface_color.map(|e| (e * 255.0) as u8),
                     stone_col,
                     (height - grass_depth - wposf.z as f32) * 0.15,
                 );
@@ -272,7 +275,8 @@ impl<'a> BlockGen<'a> {
                 // Surface
                 Some(Block::new(
                     BlockKind::Normal,
-                    saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
+                    // saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
+                    col.map(|e| (e * 255.0) as u8),
                 ))
             } else if (wposf.z as f32) < height + 0.9
                 && temp < CONFIG.desert_temp

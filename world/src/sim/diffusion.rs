@@ -140,10 +140,10 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
     enddo
 */
         for i in 1..nx-1 {
-            factxp = (kdint[aij(i+1, j)] + kdint[aij(i,j)]) / 2.0 * (dt / 2.0) / (dx * dx);
-            factxm = (kdint[aij(i-1, j)] + kdint[aij(i,j)]) / 2.0 * (dt / 2.0) / (dx * dx);
-            factyp = (kdint[aij(i, j+1)] + kdint[aij(i,j)]) / 2.0 * (dt / 2.0) / (dy * dy);
-            factym = (kdint[aij(i, j-1)] + kdint[aij(i,j)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            factxp = (kdint[aij(i+1, j)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factxm = (kdint[aij(i-1, j)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factyp = (kdint[aij(i, j+1)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            factym = (kdint[aij(i, j-1)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dy * dy);
             diag[i] = 1.0 + factxp + factxm;
             sup[i] = -factxp;
             inf[i] = -factxm;
@@ -167,12 +167,21 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
     f(1)=zintp(1,j)+factyp*zintp(1,j+1)-(factyp+factym)*zintp(1,j)+factym*zintp(1,j-1)
     endif
 */
-        if true {
+        if false {
             diag[0] = 1.0;
             sup[0] = 0.0;
             f[0] = zintp[aij(0, j)];
         } else {
-            // FIXME: implement reflective boundary
+            // reflective boundary
+            factxp = (kdint[aij(1, j)] + kdint[aij(0, j)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factyp = (kdint[aij(0, j+1)] + kdint[aij(0, j)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            factym = (kdint[aij(0, j-1)] + kdint[aij(0, j)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            diag[0] = 1.0 + factxp;
+            sup[0] = -factxp;
+            f[0] =
+                zintp[aij(0, j)] + factyp * zintp[aij(0, j+1)] -
+                (factyp + factym) *
+                zintp[aij(0, j)] + factym * zintp[aij(0, j-1)];
         }
 /*
 ! right bc
@@ -189,12 +198,21 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
     f(nx)=zintp(nx,j)+factyp*zintp(nx,j+1)-(factyp+factym)*zintp(nx,j)+factym*zintp(nx,j-1)
     endif
 */
-        if true {
+        if false {
             diag[nx - 1] = 1.0;
             inf[nx - 1] = 0.0;
             f[nx - 1] = zintp[aij(nx - 1, j)];
         } else {
-            // FIXME: implement reflective boundary
+            // reflective boundary
+            factxm = (kdint[aij(nx-2, j)] + kdint[aij(nx-1, j)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factyp = (kdint[aij(nx-1, j+1)] + kdint[aij(nx-1, j)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            factym = (kdint[aij(nx-1, j-1)] + kdint[aij(nx-1, j)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            diag[nx - 1] = 1.0 + factxm;
+            inf[nx - 1] = -factxm;
+            f[nx - 1] =
+                zintp[aij(nx-1, j)] + factyp * zintp[aij(nx-1, j+1)] -
+                (factyp + factym) *
+                zintp[aij(nx-1, j)] + factym * zintp[aij(nx-1, j-1)];
         }
 /*
   call tridag (inf,diag,sup,f,res,nx)
@@ -242,10 +260,10 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
     enddo
 */
         for j in 1..ny-1 {
-            factxp = (kdint[aij(i+1, j)] + kdint[aij(i,j)]) / 2.0 * (dt / 2.0) / (dx * dx);
-            factxm = (kdint[aij(i-1, j)] + kdint[aij(i,j)]) / 2.0 * (dt / 2.0) / (dx * dx);
-            factyp = (kdint[aij(i, j+1)] + kdint[aij(i,j)]) / 2.0 * (dt / 2.0) / (dy * dy);
-            factym = (kdint[aij(i, j-1)] + kdint[aij(i,j)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            factxp = (kdint[aij(i+1, j)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factxm = (kdint[aij(i-1, j)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factyp = (kdint[aij(i, j+1)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            factym = (kdint[aij(i, j-1)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dy * dy);
             diag[j] = 1.0 + factyp + factym;
             sup[j] = -factyp;
             inf[j] = -factym;
@@ -274,7 +292,19 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
             sup[0] = 0.0;
             f[0] = zint[aij(i, 0)];
         } else {
-            // FIXME: implement reflective boundary
+            // reflective boundary
+            // TODO: Check whether this j was actually supposed to be a 0 in the original
+            // (probably).
+            // factxp = (kdint[aij(i+1, 0)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factxp = (kdint[aij(i+1, 0)] + kdint[aij(i, 0)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factxm = (kdint[aij(i-1, 0)] + kdint[aij(i, 0)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factyp = (kdint[aij(i, 1)] + kdint[aij(i, 0)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            diag[0] = 1.0 + factyp;
+            sup[0] = -factyp;
+            f[0] =
+                zint[aij(i, 0)] + factxp * zint[aij(i+1, 0)] -
+                (factxp + factxm) *
+                zint[aij(i, 0)] + factxm * zint[aij(i-1, 0)];
         }
 /*
 ! top bc
@@ -296,7 +326,16 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
             inf[ny - 1] = 0.0;
             f[ny - 1] = zint[aij(i, ny - 1)];
         } else {
-            // FIXME: implement reflective boundary
+            // reflective boundary
+            factxp = (kdint[aij(i+1, ny-1)] + kdint[aij(i, ny-1)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factxm = (kdint[aij(i-1, ny-1)] + kdint[aij(i, ny-1)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            factym = (kdint[aij(i, ny-2)] + kdint[aij(i, ny-1)]) / 2.0 * (dt / 2.0) / (dy * dy);
+            diag[ny - 1] = 1.0 + factym;
+            inf[ny - 1] = -factym;
+            f[ny - 1] =
+                zint[aij(i, ny-1)] + factxp * zint[aij(i+1, ny-1)] -
+                (factxp + factxm) *
+                zint[aij(i, ny-1)] + factxm * zint[aij(i-1, ny-1)];
         }
 /*
   call tridag (inf,diag,sup,f,res,ny)
@@ -331,7 +370,7 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
         for i in 0..nx {
             ij = aij(i, j);
             // FIXME: Track total erosion and erosion rate.
-            h[aij(i, j)] = zintp[aij(i, j)] as f32;
+            h[ij] = zintp[ij] as f32;
         }
     }
 
@@ -399,6 +438,13 @@ do 11 j=2,n
         gam[j] = c[j - 1] / bet;
         bet = b[j] - a[j] * gam[j];
         assert!(bet != 0.0);
+        // Round 0: u[0] = r[0] / b[0]
+        //               = r'[0] / b'[0]
+        // Round j: u[j] = (r[j] - a[j] * u'[j - 1]) / b'[j]
+        //               = (r[j] - a[j] * r'[j - 1] / b'[j - 1]) / b'[j]
+        //               = (r[j] - (a[j] / b'[j - 1]) * r'[j - 1]) / b'[j]
+        //               = (r[j] - w[j] * r'[j - 1]) / b'[j]
+        //               = r'[j] / b'[j]
         u[j] = (r[j] - a[j] * u[j - 1]) / bet;
     }
 /*

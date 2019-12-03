@@ -46,7 +46,7 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{sim::WORLD_SIZE, World};
+use world::{sim::{WORLD_SIZE, WorldOpts}, World};
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
@@ -104,7 +104,10 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
-        let world = World::generate(settings.world_seed);
+        let world = World::generate(settings.world_seed, WorldOpts {
+            seed_elements: true,
+            ..WorldOpts::default()
+        });
 
         let spawn_point = {
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,

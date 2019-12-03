@@ -281,13 +281,19 @@ pub fn get_oceans(oldh: impl Fn(usize) -> f32 + Sync) -> BitBox {
     // the sides are connected to it, and any subsequent ocean tiles must be connected to it.
     let mut is_ocean = bitbox![0; WORLD_SIZE.x * WORLD_SIZE.y];
     let mut stack = Vec::new();
+    let mut do_push = |pos| {
+        let posi = vec2_as_uniform_idx(pos);
+        if oldh(posi) <= 0.0 {
+            stack.push(posi);
+        }
+    };
     for x in 0..WORLD_SIZE.x as i32 {
-        stack.push(vec2_as_uniform_idx(Vec2::new(x, 0)));
-        stack.push(vec2_as_uniform_idx(Vec2::new(x, WORLD_SIZE.y as i32 - 1)));
+        do_push(Vec2::new(x, 0));
+        do_push(Vec2::new(x, WORLD_SIZE.y as i32 - 1));
     }
     for y in 1..WORLD_SIZE.y as i32 - 1 {
-        stack.push(vec2_as_uniform_idx(Vec2::new(0, y)));
-        stack.push(vec2_as_uniform_idx(Vec2::new(WORLD_SIZE.x as i32 - 1, y)));
+        do_push(Vec2::new(0, y));
+        do_push(Vec2::new(WORLD_SIZE.x as i32 - 1, y));
     }
     while let Some(chunk_idx) = stack.pop() {
         // println!("Ocean chunk {:?}: {:?}", uniform_idx_as_vec2(chunk_idx), oldh(chunk_idx));
@@ -532,6 +538,7 @@ impl NoiseFn<Point2<f64>> for HybridMulti {
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
         let bias = 1.0;
         let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
+        let mut exp_scale = 1.0;
         let mut scale = self.persistence;
         let mut weight = result;
 
@@ -547,7 +554,7 @@ impl NoiseFn<Point2<f64>> for HybridMulti {
             let mut signal = (self.sources[x].get(point) + self.offset) * bias;
 
             // Scale the amplitude appropriately for this frequency.
-            let exp_scale = self.persistence.powi(x as i32);
+            exp_scale *= self.persistence;
             signal *= exp_scale;
 
             // Add it in, weighted by previous octave's noise value.
@@ -571,6 +578,7 @@ impl NoiseFn<Point3<f64>> for HybridMulti {
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
         let bias = 1.0;
         let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
+        let mut exp_scale = 1.0;
         let mut scale = self.persistence;
         let mut weight = result;
 
@@ -586,7 +594,7 @@ impl NoiseFn<Point3<f64>> for HybridMulti {
             let mut signal = (self.sources[x].get(point) + self.offset) * bias;
 
             // Scale the amplitude appropriately for this frequency.
-            let exp_scale = self.persistence.powi(x as i32);
+            exp_scale *= self.persistence;
             signal *= exp_scale;
 
             // Add it in, weighted by previous octave's noise value.
@@ -610,7 +618,7 @@ impl NoiseFn<Point4<f64>> for HybridMulti {
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
         let bias = 1.0;
         let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
-        let mut exp_scale = self.persistence;
+        let mut exp_scale = 1.0;
         let mut scale = self.persistence;
         let mut weight = result;
 
