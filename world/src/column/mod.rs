@@ -443,7 +443,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
             // sim.get_interpolated(wpos, |chunk| chunk.alt)?
         };
-        let basement = sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement)?;
+        let basement = alt + sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
         // Find the average distance to each neighboring body of water.
         let mut river_count = 0.0f64;
@@ -755,7 +755,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             lake_dist <= TerrainChunkSize::RECT_SIZE.x as f64 * 0.5;
                                         if gouge_factor == 1.0 {
                                             return Some((
-                                                alt_for_river < lake_water_alt || in_bounds,
+                                                /*alt_for_river < lake_water_alt || in_bounds,*/
+                                                true,
                                                 alt.min(lake_water_alt - 1.0 - river_gouge),
                                                 downhill_water_alt.max(lake_water_alt)
                                                     - river_gouge,
@@ -763,7 +764,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             ));
                                         } else {
                                             return Some((
-                                                alt_for_river < lake_water_alt || in_bounds,
+                                                /*alt_for_river < lake_water_alt || in_bounds,*/
+                                                true,
                                                 alt_for_river,
                                                 if in_bounds_ {
                                                     downhill_water_alt.max(lake_water_alt)
@@ -804,6 +806,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             (false, alt_for_river, downhill_water_alt, 1.0)
         };
+        let warp_factor = 0.0;
 
         let riverless_alt_delta = (sim
             .gen_ctx
@@ -867,6 +870,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // let wet_grass = Rgb::new(0.1, 0.5, 0.5);
         let cold_stone = Rgb::new(0.57, 0.67, 0.8);
         // let cold_stone = Rgb::new(0.5, 0.5, 0.5);
+        let hot_stone = Rgb::new(0.07, 0.07, 0.06);
         let warm_stone = Rgb::new(0.77, 0.77, 0.64);
         // //let warm_stone = Rgb::new(0.6, 0.6, 0.5);
         // let warm_stone = Rgb::new(0.6, 0.5, 0.1);
@@ -890,7 +894,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         );
         let tundra = Lerp::lerp(snow, Rgb::new(0.01, 0.3, 0.0), 0.4 + marble * 0.6);
         let dead_tundra = Lerp::lerp(warm_stone, Rgb::new(0.3, 0.12, 0.2), marble);
-        let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
+        let cliff = Rgb::lerp(cold_stone, /*warm_stone*/hot_stone, marble);
 
         let grass = Rgb::lerp(
             cold_grass,
@@ -918,7 +922,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         // For below desert humidity, we are always sand or rock, depending on altitude and
         // temperature.
-        let ground = Rgb::lerp(
+        /* let ground = Rgb::lerp(
             cliff,
             Rgb::lerp(
                 dead_tundra,
@@ -932,7 +936,39 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             /* alt.sub(CONFIG.sea_level)
                 .sub(CONFIG.mountain_scale * 0.25)
                 .div(CONFIG.mountain_scale * 0.125), */
+        ); */
+        let ground = Lerp::lerp(
+            Lerp::lerp(
+                dead_tundra,
+                sand,
+                temp.sub(CONFIG.snow_temp)
+                    .div(CONFIG.desert_temp.sub(CONFIG.snow_temp))
+                    .mul(/*4.5*/ 0.5),
+            ),
+            dirt,
+            humidity
+                .sub(CONFIG.desert_hum)
+                .div(CONFIG.forest_hum.sub(CONFIG.desert_hum))
+                .mul(1.0),
         );
+
+        let sub_surface_color = Lerp::lerp(
+            cliff,
+            ground,
+            alt.sub(basement).mul(0.25)
+        );
+
+        /*  let ground = Rgb::lerp(
+            dead_tundra,
+            sand,
+            temp.sub(CONFIG.snow_temp)
+                .div(CONFIG.desert_temp.sub(CONFIG.snow_temp))
+                .mul(/*4.5*/ 0.5),
+            /* alt.sub(CONFIG.sea_level)
+                .sub(CONFIG.mountain_scale * 0.25)
+                .div(CONFIG.mountain_scale * 0.125), */
+        ); */
+
         // From desert to forest humidity, we go from tundra to dirt to grass to moss to sand,
         // depending on temperature.
         let ground = Rgb::lerp(
@@ -942,18 +978,20 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     Rgb::lerp(
                         Rgb::lerp(
                             tundra,
-                            // snow_temp to 0
+                            // snow_temp to temperate_temp
                             dirt,
                             temp.sub(CONFIG.snow_temp)
-                                .div(CONFIG.snow_temp.neg())
+                                .div(CONFIG.temperate_temp.sub(CONFIG.snow_temp))
                                 /*.sub((marble - 0.5) * 0.05)
                                 .mul(256.0)*/
                                 .mul(1.0),
                             // .mul(2.0),
                         ),
-                        // 0 to tropical_temp
+                        // temperate_temp to tropical_temp
                         grass,
-                        temp.div(CONFIG.tropical_temp).mul(4.0),
+                        temp.sub(CONFIG.temperate_temp)
+                            .div(CONFIG.tropical_temp.sub(CONFIG.temperate_temp))
+                            .mul(4.0),
                     ),
                     // tropical_temp to desert_temp
                     moss,
@@ -983,9 +1021,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 Rgb::lerp(
                     Rgb::lerp(
                         snow_moss,
-                        // 0 to tropical_temp
+                        // temperate_temp to tropical_temp
                         grass,
-                        temp.div(CONFIG.tropical_temp).mul(4.0),
+                        temp.sub(CONFIG.temperate_temp)
+                            .div(CONFIG.tropical_temp.sub(CONFIG.temperate_temp))
+                            .mul(4.0),
                     ),
                     // tropical_temp to desert_temp
                     tropical,
@@ -1014,9 +1054,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 Rgb::lerp(
                     Rgb::lerp(
                         snow_moss,
-                        // 0 to tropical_temp
+                        // temperate_temp to tropical_temp
                         rainforest,
-                        temp.div(CONFIG.tropical_temp).mul(4.0),
+                        temp.sub(CONFIG.temperate_temp)
+                            .div(CONFIG.tropical_temp.sub(CONFIG.temperate_temp))
+                            .mul(4.0),
                     ),
                     // tropical_temp to desert_temp
                     tropical,
@@ -1035,15 +1077,35 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             humidity.sub(CONFIG.jungle_hum).mul(1.0),
         );
 
-        // Snow covering
+        /* // Bedrock
         let ground = Rgb::lerp(
+            cliff,
+            ground,
+            alt.sub(basement)
+                .mul(0.25)
+        ); */
+
+        // Snow covering
+        let snow_cover =
+            temp.sub(CONFIG.snow_temp)
+                .max(-humidity.sub(CONFIG.desert_hum))
+                .mul(16.0)
+                .add((marble_small - 0.5) * 0.5);
+        let (alt, ground, sub_surface_color) = if snow_cover /*< 0.1*/<= 0.5 && alt > water_level {
+            // Allow snow cover.
+            (alt + 1.0 - snow_cover.max(0.0), Rgb::lerp(snow, ground, snow_cover),
+                Lerp::lerp(sub_surface_color, ground, alt.sub(basement).mul(0.15)))
+        } else {
+            (alt, ground, sub_surface_color)
+        };
+        /* let ground = Rgb::lerp(
             snow,
             ground,
             temp.sub(CONFIG.snow_temp)
                 .max(-humidity.sub(CONFIG.desert_hum))
                 .mul(16.0)
                 .add((marble_small - 0.5) * 0.5),
-        );
+        ); */
 
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
@@ -1091,6 +1153,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         Some(ColumnSample {
             alt,
+            basement,
             chaos,
             water_level,
             warp_factor,
@@ -1101,9 +1164,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 // Beach
                 ((ocean_level - 1.0) / 2.0).max(0.0),
             ),
-            sub_surface_color: /*warm_grass*/Lerp::lerp(cliff, dirt, alt.sub(basement).mul(0.25)),
+            sub_surface_color,// /*warm_grass*/Lerp::lerp(cliff, dirt, alt.sub(basement).mul(0.25)),
             // No growing directly on bedrock.
-            tree_density: if alt - basement < 2.0 { 0.0 } else { tree_density },
+            tree_density: Lerp::lerp(0.0, tree_density, alt.sub(2.0).sub(basement).mul(0.5)),
             forest_kind: sim_chunk.forest_kind,
             close_structures: self.gen_close_structures(wpos),
             cave_xy,
@@ -1139,6 +1202,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 #[derive(Clone)]
 pub struct ColumnSample<'a> {
     pub alt: f32,
+    pub basement: f32,
     pub chaos: f32,
     pub water_level: f32,
     pub warp_factor: f32,
