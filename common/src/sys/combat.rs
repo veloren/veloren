@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        ActionState::*, CharacterState, Controller, HealthChange, HealthSource, ItemKind, Ori, Pos,
-        Stats,
+        ActionState::*, CharacterState, Controller, HealthChange, HealthSource, Item, ItemKind,
+        Ori, Pos, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Uid},
@@ -9,12 +9,6 @@ use crate::{
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 use vek::*;
-
-pub const WIELD_DURATION: Duration = Duration::from_millis(300);
-pub const ATTACK_DURATION: Duration = Duration::from_millis(500);
-
-// Delay before hit
-const PREPARE_DURATION: Duration = Duration::from_millis(100);
 
 const BLOCK_EFFICIENCY: f32 = 0.9;
 
@@ -66,13 +60,23 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            let recover_duration = if let Some(Item {
+                kind: ItemKind::Tool { kind, .. },
+                ..
+            }) = stat.equipment.main
+            {
+                kind.attack_recover_duration()
+            } else {
+                Duration::from_secs(1)
+            };
+
             let (deal_damage, should_end) = if let Some(Attack { time_left, applied }) =
                 &mut character_states.get_mut(entity).map(|c| &mut c.action)
             {
                 *time_left = time_left
                     .checked_sub(Duration::from_secs_f32(dt.0))
                     .unwrap_or_default();
-                if !*applied && ATTACK_DURATION - *time_left > PREPARE_DURATION {
+                if !*applied && recover_duration > *time_left {
                     *applied = true;
                     (true, false)
                 } else if *time_left == Duration::default() {
@@ -107,7 +111,7 @@ impl<'a> System<'a> for Sys {
                             && !stat_b.is_dead
                             && pos.0.distance_squared(pos_b.0) < ATTACK_RANGE.powi(2)
                             // TODO: Use size instead of 1.0
-                            && ori2.angle_between(pos_b2 - pos2) < (1.0 / pos2.distance(pos_b2)).atan()
+                            && ori2.angle_between(pos_b2 - pos2) < (2.0 / pos2.distance(pos_b2)).atan()
                         {
                             // Weapon gives base damage
                             let mut dmg = if let Some(ItemKind::Tool { power, .. }) =

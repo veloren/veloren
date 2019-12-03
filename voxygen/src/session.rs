@@ -201,7 +201,11 @@ impl PlayState for SessionState {
                             .state()
                             .read_storage::<comp::CharacterState>()
                             .get(client.entity())
-                            .map(|cs| cs.action.is_wield())
+                            .map(|cs| {
+                                cs.action.is_wield()
+                                    || cs.action.is_block()
+                                    || cs.action.is_attack()
+                            })
                             .unwrap_or(false)
                         {
                             self.inputs.secondary.set_state(state);
@@ -322,6 +326,9 @@ impl PlayState for SessionState {
                     }
                     Event::InputUpdate(GameInput::ToggleWield, state) => {
                         self.inputs.toggle_wield.set_state(state)
+                    }
+                    Event::InputUpdate(GameInput::Charge, state) => {
+                        self.inputs.charge.set_state(state);
                     }
 
                     // Pass all other events to the scene

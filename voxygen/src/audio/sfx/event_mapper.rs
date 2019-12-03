@@ -126,7 +126,7 @@ impl SfxEventMapper {
         }
     }
 
-    /// Voxygen has an existing list of character states via `MovementState::*` and `ActivityState::*`
+    /// Voxygen has an existing list of character states via `MovementState::*` and `ActionState::*`
     /// however that list does not provide enough resolution to target specific entity events, such
     /// as opening or closing the glider. These methods translate those entity states with some additional
     /// data into more specific `SfxEvent`'s which we attach sounds to
@@ -164,7 +164,7 @@ impl SfxEventMapper {
             vel,
             stats,
         ) {
-            (MovementState::Roll { .. }, ..) => SfxEvent::Roll,
+            (_, ActionState::Roll { .. }, ..) => SfxEvent::Roll,
             (MovementState::Climb, ..) => SfxEvent::Climb,
             (MovementState::Swim, ..) => SfxEvent::Swim,
             (MovementState::Run, ..) => SfxEvent::Run,
@@ -317,10 +317,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Roll {
+                action: ActionState::Roll {
                     time_left: Duration::new(1, 0),
                 },
-                action: ActionState::Idle,
+                movement: MovementState::Run,
             },
             SfxEvent::Run,
             Vec3::zero(),

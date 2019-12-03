@@ -8,17 +8,61 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::fs::File;
 use std::io::BufReader;
+use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Tool {
-    Dagger,
-    Shield,
     Sword,
     Axe,
     Hammer,
     Bow,
+    Dagger,
     Staff,
+    Shield,
     Debug(Debug),
+}
+
+// TODO: Allow override in item ron?
+impl Tool {
+    pub fn wield_duration(&self) -> Duration {
+        match self {
+            Tool::Sword => Duration::from_millis(800),
+            Tool::Axe => Duration::from_millis(1000),
+            Tool::Hammer => Duration::from_millis(1000),
+            Tool::Bow => Duration::from_millis(800),
+            Tool::Dagger => Duration::from_millis(300),
+            Tool::Staff => Duration::from_millis(800),
+            Tool::Shield => Duration::from_millis(1000),
+            Tool::Debug(_) => Duration::from_millis(0),
+        }
+    }
+    pub fn attack_buildup_duration(&self) -> Duration {
+        match self {
+            Tool::Sword => Duration::from_millis(100),
+            Tool::Axe => Duration::from_millis(700),
+            Tool::Hammer => Duration::from_millis(700),
+            Tool::Bow => Duration::from_millis(0),
+            Tool::Dagger => Duration::from_millis(100),
+            Tool::Staff => Duration::from_millis(400),
+            Tool::Shield => Duration::from_millis(100),
+            Tool::Debug(_) => Duration::from_millis(0),
+        }
+    }
+    pub fn attack_recover_duration(&self) -> Duration {
+        match self {
+            Tool::Sword => Duration::from_millis(500),
+            Tool::Axe => Duration::from_millis(100),
+            Tool::Hammer => Duration::from_millis(100),
+            Tool::Bow => Duration::from_millis(800),
+            Tool::Dagger => Duration::from_millis(400),
+            Tool::Staff => Duration::from_millis(300),
+            Tool::Shield => Duration::from_millis(1000),
+            Tool::Debug(_) => Duration::from_millis(0),
+        }
+    }
+    pub fn attack_duration(&self) -> Duration {
+        self.attack_buildup_duration() + self.attack_recover_duration()
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -43,6 +87,7 @@ pub enum Armor {
     Necklace,
 }
 
+//TODO: Do we even need this?
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
     Apple,
