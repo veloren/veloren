@@ -1,4 +1,5 @@
 use rayon::prelude::*;
+use super::Alt;
 
 /// From https://github.com/fastscape-lem/fastscapelib-fortran/blob/master/src/Diffusion.f90
 ///
@@ -36,7 +37,7 @@ use rayon::prelude::*;
   implicit none
 */
 pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
-                 h: &mut [/*f64*/f32], b: &mut [/*f64*/f32],
+                 h: &mut [Alt], b: &mut [Alt],
                  kd: impl Fn(usize) -> f64, kdsed: f64,
                  ) {
     let aij = |i: usize, j: usize| j * nx + i;
@@ -370,7 +371,7 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
         for i in 0..nx {
             ij = aij(i, j);
             // FIXME: Track total erosion and erosion rate.
-            h[ij] = zintp[ij] as f32;
+            h[ij] = zintp[ij] as Alt;
         }
     }
 
