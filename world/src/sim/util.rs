@@ -247,12 +247,13 @@ pub fn uphill<'a>(dh: &'a [isize], posi: usize) -> impl Clone + Iterator<Item = 
 /// Compute the neighbor "most downhill" from all chunks.
 ///
 /// TODO: See if allocating in advance is worthwhile.
-pub fn downhill(h: &[f32], is_ocean: impl Fn(usize) -> bool + Sync) -> Box<[isize]> {
+pub fn downhill<F: Float>(h: impl Fn(usize) -> F + Sync, is_ocean: impl Fn(usize) -> bool + Sync) -> Box<[isize]> {
     // Constructs not only the list of downhill nodes, but also computes an ordering (visiting
     // nodes in order from roots to leaves).
-    h.par_iter()
-        .enumerate()
-        .map(|(posi, &nh)| {
+    (0..WORLD_SIZE.x * WORLD_SIZE.y).into_par_iter()
+        // .enumerate()
+        .map(|(posi/*, &nh*/)| {
+            let nh = h(posi);
             let _pos = uniform_idx_as_vec2(posi);
             if is_ocean(posi) {
                 -2
@@ -260,7 +261,7 @@ pub fn downhill(h: &[f32], is_ocean: impl Fn(usize) -> bool + Sync) -> Box<[isiz
                 let mut best = -1;
                 let mut besth = nh;
                 for nposi in neighbors(posi) {
-                    let nbh = h[nposi];
+                    let nbh = h(nposi);
                     if nbh < besth {
                         besth = nbh;
                         best = nposi as isize;
@@ -285,6 +286,8 @@ pub fn get_oceans(oldh: impl Fn(usize) -> f32 + Sync) -> BitBox {
         let posi = vec2_as_uniform_idx(pos);
         if oldh(posi) <= 0.0 {
             stack.push(posi);
+        } else {
+            panic!("Hopefully no border tiles are above sea level.");
         }
     };
     for x in 0..WORLD_SIZE.x as i32 {
