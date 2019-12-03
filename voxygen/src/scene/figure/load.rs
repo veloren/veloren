@@ -532,7 +532,10 @@ pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
 }
 
 // TODO: Inventory
-pub fn mesh_draw() -> Mesh<FigurePipeline> {
+pub fn mesh_glider() -> Mesh<FigurePipeline> {
+    load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0))
+}
+pub fn mesh_lantern() -> Mesh<FigurePipeline> {
     load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0))
 }
 

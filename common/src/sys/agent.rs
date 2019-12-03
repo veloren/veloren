@@ -1,5 +1,6 @@
 use crate::comp::{
-    Agent, CharacterState, Controller, MountState, MovementState::Glide, Pos, Stats,
+    Agent, CharacterState, Controller, ControllerInputs, MountState, MovementState::Glide, Pos,
+    Stats,
 };
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
@@ -47,7 +48,7 @@ impl<'a> System<'a> for Sys {
 
             controller.reset();
 
-            let mut inputs = &mut controller.inputs;
+            let mut inputs = ControllerInputs::default();
 
             match agent {
                 Agent::Wanderer(bearing) => {
@@ -92,7 +93,7 @@ impl<'a> System<'a> for Sys {
                 }
                 Agent::Enemy { bearing, target } => {
                     const SIGHT_DIST: f32 = 30.0;
-                    const MIN_ATTACK_DIST: f32 = 3.5;
+                    const MIN_ATTACK_DIST: f32 = 3.25;
                     let mut choose_new = false;
 
                     if let Some((Some(target_pos), Some(target_stats), Some(target_character))) =
@@ -109,7 +110,10 @@ impl<'a> System<'a> for Sys {
                         let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
                         if target_stats.is_dead {
                             choose_new = true;
-                        } else if dist < MIN_ATTACK_DIST && dist > 0.001 {
+                        } else if dist < MIN_ATTACK_DIST
+                            && dist > 0.001
+                            && rand::random::<f32>() < 0.3
+                        {
                             // Fight (and slowly move closer)
                             inputs.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.01;
@@ -161,6 +165,8 @@ impl<'a> System<'a> for Sys {
                     }
                 }
             }
+
+            controller.inputs = inputs;
         }
     }
 }

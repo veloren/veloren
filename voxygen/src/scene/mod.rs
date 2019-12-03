@@ -160,7 +160,7 @@ impl Scene {
             .ecs()
             .read_storage::<comp::CharacterState>()
             .get(client.entity())
-            .map_or(false, |cs| cs.movement.is_roll());
+            .map_or(false, |cs| cs.action.is_roll());
 
         let player_scale = match client
             .state()

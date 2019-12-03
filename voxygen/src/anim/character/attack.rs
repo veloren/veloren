@@ -87,15 +87,15 @@ impl Animation for AttackAnimation {
         //next.r_foot.ori = Quaternion::rotation_x(wave_stop_quick * 1.2);
         //next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(
+        next.main.offset = Vec3::new(
             -8.0 + wave_quicken_slow * 10.0 + skeleton_attr.weapon_x,
             8.0 + wave_quicken_double * 3.0,
             0.0,
         );
-        next.weapon.ori = Quaternion::rotation_z(-0.8)
+        next.main.ori = Quaternion::rotation_z(-0.8)
             * Quaternion::rotation_x(0.0 + wave_quicken * -0.8)
             * Quaternion::rotation_y(0.0 + wave_quicken * -0.4);
-        next.weapon.scale = Vec3::one();
+        next.main.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
@@ -105,9 +105,13 @@ impl Animation for AttackAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one() * 1.1;
 
-        next.draw.offset = Vec3::new(0.0, 5.0, 0.0);
-        next.draw.ori = Quaternion::rotation_y(0.0);
-        next.draw.scale = Vec3::one() * 0.0;
+        next.glider.offset = Vec3::new(0.0, 5.0, 0.0);
+        next.glider.ori = Quaternion::rotation_y(0.0);
+        next.glider.scale = Vec3::one() * 0.0;
+
+        next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.lantern.ori = Quaternion::rotation_x(0.0);
+        next.lantern.scale = Vec3::one() * 0.0;
 
         next.torso.offset = Vec3::new(0.0, -0.2, 0.1) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_z(wave_stop_quick * -0.2)
