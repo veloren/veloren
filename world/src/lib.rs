@@ -36,9 +36,9 @@ pub struct World {
 }
 
 impl World {
-    pub fn generate(seed: u32) -> Self {
+    pub fn generate(seed: u32, opts: sim::WorldOpts) -> Self {
         Self {
-            sim: sim::WorldSim::generate(seed),
+            sim: sim::WorldSim::generate(seed, opts),
         }
     }
 
