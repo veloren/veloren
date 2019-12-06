@@ -1,0 +1,52 @@
+(
+    [
+        (
+            specifier: "world.tree.birch.1",
+            center: (12, 9, 10)
+        ),
+        (
+            specifier: "world.tree.birch.2",
+            center: (12, 10, 10)
+        ),
+        (
+            specifier: "world.tree.birch.3",
+            center: (9, 10, 10)
+        ),
+        (
+            specifier: "world.tree.birch.4",
+            center: (9, 10, 10)
+        ),
+        (
+            specifier: "world.tree.birch.5",
+            center: (9, 10, 10)
+        ),
+        (
+            specifier: "world.tree.birch.6",
+            center: (9, 9, 10)
+        ),
+        (
+            specifier: "world.tree.birch.7",
+            center: (10, 10, 10)
+        ),
+        (
+            specifier: "world.tree.birch.8",
+            center: (9, 9, 10)
+        ),
+        (
+            specifier: "world.tree.birch.9",
+            center: (9, 10, 10)
+        ),
+        (
+            specifier: "world.tree.birch.10",
+            center: (9, 10, 10)
+        ),
+        (
+            specifier: "world.tree.birch.11",
+            center: (9, 10, 10)
+        ),
+        (
+            specifier: "world.tree.birch.12",
+            center: (9, 10, 10)
+        ),
+    ]
+)
