@@ -64,6 +64,7 @@ pub fn structure_gen<'a>(
             ForestKind::Savannah => &ACACIAS,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 7 => &OAK_STUMPS,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 8 == 7 => &FRUIT_TREES,
+            ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 14 == 7 => &BIRCHES,
             ForestKind::Oak => &OAKS,
             ForestKind::Pine => &PINES,
             ForestKind::SnowPine => &SNOW_PINES,
@@ -119,6 +120,7 @@ lazy_static! {
     pub static ref SNOW_PINES: Vec<Arc<Structure>> = load_structures("snow_pines");
     pub static ref ACACIAS: Vec<Arc<Structure>> = load_structures("acacias");
     pub static ref FRUIT_TREES: Vec<Arc<Structure>> = load_structures("fruit_trees");
+    pub static ref BIRCHES: Vec<Arc<Structure>> = load_structures("birch");
     pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = load_structures("mangrove_trees");
     pub static ref QUIRKY: Vec<Arc<Structure>> = load_structures("quirky");
     pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = load_structures("quirky_dry");
