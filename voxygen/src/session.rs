@@ -420,6 +420,11 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.zoom_inversion = zoom_inverted;
                         global_state.settings.save_to_file_warn();
                     }
+                    HudEvent::ToggleMouseYInvert(mouse_y_inverted) => {
+                        global_state.window.mouse_y_inversion = mouse_y_inverted;
+                        global_state.settings.gameplay.mouse_y_inversion = mouse_y_inverted;
+                        global_state.settings.save_to_file_warn();
+                    }
                     HudEvent::AdjustViewDistance(view_distance) => {
                         self.client.borrow_mut().set_view_distance(view_distance);
 

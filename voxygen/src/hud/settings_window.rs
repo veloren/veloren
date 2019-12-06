@@ -55,6 +55,8 @@ widget_ids! {
         mouse_zoom_value,
         mouse_zoom_invert_button,
         mouse_zoom_invert_label,
+        mouse_y_invert_button,
+        mouse_y_invert_label,
         ch_title,
         ch_transp_slider,
         ch_transp_label,
@@ -164,6 +166,7 @@ pub enum Event {
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
     ToggleZoomInvert(bool),
+    ToggleMouseYInvert(bool),
     AdjustViewDistance(u32),
     AdjustFOV(u16),
     ChangeAaMode(AaMode),
@@ -980,6 +983,32 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .graphics_for(state.ids.button_help)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_invert_label, ui);
+
+            // Mouse Y Inversion
+            let mouse_y_inverted = ToggleButton::new(
+                self.global_state.settings.gameplay.mouse_y_inversion,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.mouse_zoom_invert_button, 250.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.mouse_y_invert_button, ui);
+
+            if self.global_state.settings.gameplay.mouse_y_inversion != mouse_y_inverted {
+                events.push(Event::ToggleMouseYInvert(
+                    !self.global_state.settings.gameplay.mouse_y_inversion,
+                ));
+            }
+
+            Text::new("Invert Mouse Y Axis")
+                .right_from(state.ids.mouse_y_invert_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .graphics_for(state.ids.button_help)
+                .color(TEXT_COLOR)
+                .set(state.ids.mouse_y_invert_label, ui);
         }
 
         // 3) Controls Tab --------------------------------
