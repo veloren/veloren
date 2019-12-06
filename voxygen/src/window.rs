@@ -94,6 +94,7 @@ pub struct Window {
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
     pub zoom_inversion: bool,
+    pub mouse_y_inversion: bool,
     fullscreen: bool,
     needs_refresh_resize: bool,
     key_map: HashMap<KeyMouse, Vec<GameInput>>,
@@ -246,6 +247,7 @@ impl Window {
             pan_sensitivity: settings.gameplay.pan_sensitivity,
             zoom_sensitivity: settings.gameplay.zoom_sensitivity,
             zoom_inversion: settings.gameplay.zoom_inversion,
+            mouse_y_inversion: settings.gameplay.mouse_y_inversion,
             fullscreen: false,
             needs_refresh_resize: false,
             key_map: map,
@@ -282,6 +284,10 @@ impl Window {
         let pan_sensitivity = self.pan_sensitivity;
         let zoom_sensitivity = self.zoom_sensitivity;
         let zoom_inversion = match self.zoom_inversion {
+            true => -1.0,
+            false => 1.0,
+        };
+        let mouse_y_inversion = match self.mouse_y_inversion {
             true => -1.0,
             false => 1.0,
         };
@@ -374,7 +380,7 @@ impl Window {
                     } if *focused => {
                         let delta = Vec2::new(
                             dx as f32 * (pan_sensitivity as f32 / 100.0),
-                            dy as f32 * (pan_sensitivity as f32 / 100.0),
+                            dy as f32 * (pan_sensitivity as f32 * mouse_y_inversion / 100.0),
                         );
 
                         if cursor_grabbed {
