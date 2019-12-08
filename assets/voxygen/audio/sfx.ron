@@ -3,14 +3,12 @@
         (
             trigger: Run,
             files: [
-                "voxygen.audio.sfx.footsteps.stepdirt_1",
-                "voxygen.audio.sfx.footsteps.stepdirt_2",
-                "voxygen.audio.sfx.footsteps.stepdirt_3",
-                "voxygen.audio.sfx.footsteps.stepdirt_4",
-                "voxygen.audio.sfx.footsteps.stepdirt_5",
-                "voxygen.audio.sfx.footsteps.stepdirt_6",
-                "voxygen.audio.sfx.footsteps.stepdirt_7",
-                "voxygen.audio.sfx.footsteps.stepdirt_8",
+                "voxygen.audio.sfx.footsteps.stepgrass_1",
+                "voxygen.audio.sfx.footsteps.stepgrass_2",
+                "voxygen.audio.sfx.footsteps.stepgrass_3",
+                "voxygen.audio.sfx.footsteps.stepgrass_4",
+                "voxygen.audio.sfx.footsteps.stepgrass_5",
+                "voxygen.audio.sfx.footsteps.stepgrass_6",
             ],
             threshold: 0.25,
         ),
@@ -48,20 +46,6 @@
                 "voxygen.audio.sfx.weapon.bow",
             ],
             threshold: 0.5,
-        ),
-        (
-            trigger: LevelUp,
-            files: [
-                "voxygen.audio.sfx.chat_message_received"
-            ],
-            threshold: 0.2,
-        ),
-        (
-            trigger: InventoryAdd,
-            files: [
-                "voxygen.audio.sfx.inventory_add"
-            ],
-            threshold: 0.2,
         ),
     ],
 )
