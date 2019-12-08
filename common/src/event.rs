@@ -28,7 +28,7 @@ pub enum SfxEvent {
     PlaceBlock,
     RemoveBlock,
     OpenChest,
-    ChatMessageReceived,
+    ChatTellReceived,
     OpenBag,
     LevelUp,
     Roll,
