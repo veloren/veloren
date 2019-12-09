@@ -1,7 +1,6 @@
 use vek::*;
 use veloren_world::{
     sim::{RiverKind, WORLD_SIZE},
-    util::Sampler,
     World, CONFIG,
 };
 
@@ -17,7 +16,7 @@ fn main() {
         minifb::Window::new("World Viewer", W, H, minifb::WindowOptions::default()).unwrap();
 
     let mut focus = Vec2::zero();
-    let mut gain = 1.0;
+    let mut _gain = 1.0;
     let mut scale = (WORLD_SIZE.x / W) as i32;
 
     while win.is_open() {
@@ -70,10 +69,10 @@ fn main() {
             focus.x += spd * scale;
         }
         if win.is_key_down(minifb::Key::Q) {
-            gain += 10.0;
+            _gain += 10.0;
         }
         if win.is_key_down(minifb::Key::E) {
-            gain -= 10.0;
+            _gain -= 10.0;
         }
         if win.is_key_down(minifb::Key::R) {
             scale += 1;
