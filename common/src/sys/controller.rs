@@ -329,20 +329,17 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
+            inputs.update_look_dir();
+            inputs.update_move_dir();
             match (character.action, character.movement) {
                 // Jumping, one frame state that calls jump server event
                 (_, Jump) => {
-                    inputs.update_look_dir();
-                    inputs.update_move_dir();
-                    character.movement = get_state_from_move_dir(&inputs.move_dir);
-
                     character.movement = Fall;
                     local_emitter.emit(LocalEvent::Jump(entity));
                 }
                 // Charging + Any Movement, prioritizes finishing charge
                 // over movement states
                 (Charge { time_left }, _) => {
-                    println!("{:?}", character);
                     inputs.update_move_dir();
                     if time_left == Duration::default() || vel.0.magnitude_squared() < 10.0 {
                         character.action = try_wield(stats);
@@ -367,22 +364,35 @@ impl<'a> System<'a> for Sys {
                 }
                 // Rolling + Any Movement, prioritizes finishing charge
                 // over movement states
-                (Roll { time_left }, _) => {
+                (
+                    Roll {
+                        time_left,
+                        was_wielding,
+                    },
+                    _,
+                ) => {
                     if time_left == Duration::default() {
-                        character.action = try_wield(stats);
+                        if was_wielding {
+                            character.action = try_wield(stats);
+                        } else {
+                            character.action = Idle;
+                        }
                     } else {
                         character.action = Roll {
                             time_left: time_left
                                 .checked_sub(Duration::from_secs_f32(dt.0))
                                 .unwrap_or_default(),
+                            was_wielding,
                         }
                     }
                 }
                 // Any Action + Falling
                 (action_state, Fall) => {
-                    inputs.update_move_dir();
-                    inputs.update_look_dir();
-                    character.movement = get_state_from_move_dir(&inputs.move_dir);
+                    // character.movement = get_state_from_move_dir(&inputs.move_dir);
+                    if inputs.glide.is_pressed() && !inputs.glide.is_held_down() {
+                        character.movement = Glide;
+                        continue;
+                    }
                     // Reset to Falling while not standing on ground,
                     // otherwise keep the state given above
                     if !physics.on_ground {
@@ -391,9 +401,8 @@ impl<'a> System<'a> for Sys {
                         } else {
                             character.movement = Fall;
                         }
-                    }
-                    if inputs.glide.is_pressed() && !inputs.glide.is_held_down() {
-                        character.movement = Glide;
+                    } else {
+                        character.movement = Stand;
                         continue;
                     }
 
@@ -420,8 +429,6 @@ impl<'a> System<'a> for Sys {
                 }
                 // Any Action + Swimming
                 (_action_state, Swim) => {
-                    inputs.update_move_dir();
-                    inputs.update_look_dir();
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
 
                     if !physics.on_ground && physics.in_fluid {
@@ -451,7 +458,6 @@ impl<'a> System<'a> for Sys {
                 }
                 // Blocking, restricted look_dir compared to other states
                 (Block { .. }, Stand) | (Block { .. }, Run) => {
-                    inputs.update_move_dir();
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
 
                     if !inputs.secondary.is_pressed() {
@@ -474,8 +480,6 @@ impl<'a> System<'a> for Sys {
                 }
                 // Standing and Running states, typical states :shrug:
                 (action_state, Run) | (action_state, Stand) => {
-                    inputs.update_move_dir();
-                    inputs.update_look_dir();
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
                     // Try to sit
                     if inputs.sit.is_pressed() && physics.on_ground && body.is_humanoid() {
@@ -522,6 +526,7 @@ impl<'a> System<'a> for Sys {
                         {
                             character.action = Roll {
                                 time_left: ROLL_DURATION,
+                                was_wielding: character.action.is_wield(),
                             };
                             continue;
                         }
@@ -552,6 +557,7 @@ impl<'a> System<'a> for Sys {
                             }
                             Idle => {
                                 character.action = try_wield(stats);
+                                continue;
                             }
                             Charge { .. } | Roll { .. } | Block { .. } => {}
                         }
@@ -579,8 +585,8 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 // Sitting
-                (Idle, Sit) => {
-                    inputs.update_move_dir();
+                (_, Sit) => {
+                    character.action = Idle;
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
 
                     // character.movement will be Stand after updating when
@@ -601,9 +607,6 @@ impl<'a> System<'a> for Sys {
                 (_, Glide) => {
                     character.action = Idle;
 
-                    inputs.update_look_dir();
-                    inputs.update_move_dir();
-
                     if !inputs.glide.is_pressed() {
                         character.movement = Fall;
                     } else if let Some(_wall_dir) = physics.on_wall {
@@ -617,22 +620,23 @@ impl<'a> System<'a> for Sys {
                 // Any Action + Climbing, shouldnt care about action,
                 // because should be Idle
                 (_, Climb) => {
+                    character.action = Idle;
                     if let None = physics.on_wall {
-                        if physics.on_ground {
-                            character.movement = Stand;
-                        } else if inputs.jump.is_pressed() && !inputs.jump.is_held_down() {
+                        if inputs.jump.is_pressed() {
                             character.movement = Jump;
                         } else {
                             character.movement = Fall;
                         }
                     }
-                }
-                // In case of adding new states
-                (_, _) => {
-                    println!("UNKNOWN STATE");
-                    character.action = Idle;
-                    character.movement = Fall;
-                }
+                    if physics.on_ground {
+                        character.movement = Stand;
+                    }
+                } // In case of adding new states
+                  // (_, _) => {
+                  //     println!("UNKNOWN STATE");
+                  //     character.action = Idle;
+                  //     character.movement = Fall;
+                  // }
             };
 
             // Process other controller events

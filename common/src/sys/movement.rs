@@ -12,7 +12,7 @@ use sphynx::Uid;
 use std::time::Duration;
 use vek::*;
 
-pub const ROLL_DURATION: Duration = Duration::from_millis(250);
+pub const ROLL_DURATION: Duration = Duration::from_millis(600);
 
 const HUMANOID_ACCEL: f32 = 50.0;
 const HUMANOID_SPEED: f32 = 120.0;
@@ -150,7 +150,7 @@ impl<'a> System<'a> for Sys {
                         (false, Glide) if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) => {
                             GLIDE_ACCEL
                         }
-                        (false, Jump)
+                        (false, Fall) | (false, Jump)
                             if vel.0.magnitude_squared() < HUMANOID_AIR_SPEED.powf(2.0) =>
                         {
                             HUMANOID_AIR_ACCEL
