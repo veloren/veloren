@@ -4,7 +4,7 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
 use common::{
-    comp::{ActionState, Body, CharacterState, ItemKind, MovementState, Pos, Stats, Vel},
+    comp::{ActionState, Body, CharacterState, ItemKind, MovementState, Pos, Stats},
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
@@ -38,11 +38,10 @@ impl SfxEventMapper {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, body, vel, stats, character) in (
+        for (entity, pos, body, stats, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Body>(),
-            &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Stats>(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
@@ -51,7 +50,7 @@ impl SfxEventMapper {
                 (e_pos.0.distance_squared(player_position)) < SFX_DIST_LIMIT_SQR
             })
         {
-            if let (pos, body, Some(character), stats, vel) = (pos, body, character, stats, vel) {
+            if let (pos, body, Some(character), stats) = (pos, body, character, stats) {
                 let state = self
                     .event_history
                     .entry(entity)
@@ -62,10 +61,10 @@ impl SfxEventMapper {
 
                 let mapped_event = match body {
                     Body::Humanoid(_) => {
-                        Self::map_character_event(character, state.event.clone(), vel.0, stats)
+                        Self::map_character_event(character, state.event.clone(), stats)
                     }
                     Body::QuadrupedMedium(_) => {
-                        Self::map_quadriped_event(character, state.event.clone(), vel.0, stats)
+                        Self::map_quadriped_event(character, state.event.clone(), stats)
                     }
                     _ => SfxEvent::Idle,
                 };
@@ -133,17 +132,15 @@ impl SfxEventMapper {
     fn map_quadriped_event(
         current_event: &CharacterState,
         previous_event: SfxEvent,
-        vel: Vec3<f32>,
         stats: &Stats,
     ) -> SfxEvent {
         match (
             current_event.movement,
             current_event.action,
             previous_event,
-            vel,
             stats,
         ) {
-            (_, ActionState::Attack { .. }, _, _, stats) => match stats.name.as_ref() {
+            (_, ActionState::Attack { .. }, _, stats) => match stats.name.as_ref() {
                 "Wolf" => SfxEvent::AttackWolf,
                 _ => SfxEvent::Idle,
             },
@@ -154,28 +151,21 @@ impl SfxEventMapper {
     fn map_character_event(
         current_event: &CharacterState,
         previous_event: SfxEvent,
-        vel: Vec3<f32>,
         stats: &Stats,
     ) -> SfxEvent {
         match (
             current_event.movement,
             current_event.action,
             previous_event,
-            vel,
             stats,
         ) {
             (_, ActionState::Roll { .. }, ..) => SfxEvent::Roll,
             (MovementState::Climb, ..) => SfxEvent::Climb,
             (MovementState::Swim, ..) => SfxEvent::Swim,
             (MovementState::Run, ..) => SfxEvent::Run,
-            (MovementState::Jump, _, previous_event, vel, _) => {
-                // MovementState::Jump only indicates !on_ground
+            (MovementState::Fall, _, previous_event, _) => {
                 if previous_event != SfxEvent::Glide {
-                    if vel.z > 0.0 {
-                        SfxEvent::Jump
-                    } else {
-                        SfxEvent::Fall
-                    }
+                    SfxEvent::Fall
                 } else {
                     SfxEvent::GliderClose
                 }
@@ -187,7 +177,7 @@ impl SfxEventMapper {
                     SfxEvent::Glide
                 }
             }
-            (_, ActionState::Attack { .. }, _, _, stats) => {
+            (_, ActionState::Attack { .. }, _, stats) => {
                 match &stats.equipment.main.as_ref().map(|i| &i.kind) {
                     Some(ItemKind::Tool { kind, .. }) => SfxEvent::Attack(*kind),
                     _ => SfxEvent::Idle,
@@ -287,7 +277,6 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Idle,
-            Vec3::zero(),
             &stats,
         );
 
@@ -304,7 +293,6 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Idle,
-            Vec3::zero(),
             &stats,
         );
 
@@ -323,7 +311,6 @@ mod tests {
                 movement: MovementState::Run,
             },
             SfxEvent::Run,
-            Vec3::zero(),
             &stats,
         );
 
@@ -331,38 +318,19 @@ mod tests {
     }
 
     #[test]
-    fn maps_jump_or_fall() {
+    fn maps_fall() {
         let stats = Stats::new(String::from("Test"), None);
 
-        // positive z velocity, the character is on the rise (jumping)
-        let vel_jumping = Vec3::new(0.0, 0.0, 1.0);
-
-        let positive_result = SfxEventMapper::map_character_event(
+        let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Jump,
+                movement: MovementState::Fall,
                 action: ActionState::Idle,
             },
             SfxEvent::Idle,
-            vel_jumping,
             &stats,
         );
 
-        assert_eq!(positive_result, SfxEvent::Jump);
-
-        // negative z velocity, the character is on the way down (!jumping)
-        let vel_falling = Vec3::new(0.0, 0.0, -1.0);
-
-        let negative_result = SfxEventMapper::map_character_event(
-            &CharacterState {
-                movement: MovementState::Jump,
-                action: ActionState::Idle,
-            },
-            SfxEvent::Idle,
-            vel_falling,
-            &stats,
-        );
-
-        assert_eq!(negative_result, SfxEvent::Fall);
+        assert_eq!(result, SfxEvent::Fall);
     }
 
     #[test]
@@ -375,7 +343,6 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Jump,
-            Vec3::zero(),
             &stats,
         );
 
@@ -392,7 +359,6 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Glide,
-            Vec3::zero(),
             &stats,
         );
 
@@ -405,11 +371,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Jump,
+                movement: MovementState::Fall,
                 action: ActionState::Idle,
             },
             SfxEvent::Glide,
-            Vec3::zero(),
             &stats,
         );
 
@@ -434,7 +399,6 @@ mod tests {
                 },
             },
             SfxEvent::Idle,
-            Vec3::zero(),
             &stats,
         );
 
