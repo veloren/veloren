@@ -11,7 +11,8 @@ fn main() {
     let _nz_x = SuperSimplex::new().set_seed(0);
     let _nz_y = SuperSimplex::new().set_seed(1);
 
-    let mut time = 0.0f64;
+    let mut _time = 0.0f64;
+
     while win.is_open() {
         let mut buf = vec![0; W * H];
 
@@ -35,6 +36,6 @@ fn main() {
 
         win.update_with_buffer(&buf).unwrap();
 
-        time += 1.0 / 60.0;
+        _time += 1.0 / 60.0;
     }
 }
