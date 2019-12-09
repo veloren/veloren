@@ -307,6 +307,7 @@ mod tests {
             &CharacterState {
                 action: ActionState::Roll {
                     time_left: Duration::new(1, 0),
+                    was_wielding: false,
                 },
                 movement: MovementState::Run,
             },

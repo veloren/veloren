@@ -197,7 +197,7 @@ impl FigureMgr {
                     }
 
                     let target_base = match &character.movement {
-                        Fall | Stand => anim::character::StandAnimation::update_skeleton(
+                        Stand => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
                             state.movement_time,
@@ -211,7 +211,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::character::JumpAnimation::update_skeleton(
+                        Jump | Fall => anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
                             state.movement_time,
