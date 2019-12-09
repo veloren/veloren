@@ -17,11 +17,24 @@ pub enum MovementState {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum ActionState {
     Idle,
-    Wield { time_left: Duration },
-    Attack { time_left: Duration, applied: bool },
-    Block { time_active: Duration },
-    Roll { time_left: Duration },
-    Charge { time_left: Duration },
+    Wield {
+        time_left: Duration,
+    },
+    Attack {
+        time_left: Duration,
+        applied: bool,
+    },
+    Block {
+        time_active: Duration,
+    },
+    Roll {
+        time_left: Duration,
+        // Whether character was wielding before they started roll
+        was_wielding: bool,
+    },
+    Charge {
+        time_left: Duration,
+    },
     //Carry,
 }
 
@@ -38,7 +51,7 @@ impl ActionState {
         match self {
             Self::Wield { time_left }
             | Self::Attack { time_left, .. }
-            | Self::Roll { time_left }
+            | Self::Roll { time_left, .. }
             | Self::Charge { time_left } => *time_left == Duration::default(),
             Self::Idle | Self::Block { .. } => false,
         }
