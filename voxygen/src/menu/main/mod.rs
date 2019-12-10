@@ -42,12 +42,10 @@ impl PlayState for MainMenuState {
         let mut client_init: Option<ClientInit> = None;
 
         // Kick off title music
-        if None == self.title_music_channel {
-            self.title_music_channel = Some(
-                global_state
-                    .audio
-                    .play_music("voxygen.audio.soundtrack.veloren_title_tune-3"),
-            )
+        if self.title_music_channel.is_none() && global_state.settings.audio.audio_on {
+            self.title_music_channel = global_state
+                .audio
+                .play_music("voxygen.audio.soundtrack.veloren_title_tune-3");
         }
 
         // Reset singleplayer server if it was running already

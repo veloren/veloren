@@ -84,21 +84,29 @@ impl AudioFrontend {
         }
     }
 
-    pub fn get_channel(&mut self) -> Option<&mut Channel> {
-        self.channels.iter_mut().find(|c| c.is_done())
+    pub fn get_channel(&mut self, audio_type: AudioType) -> Option<&mut Channel> {
+        if let Some(channel) = self.channels.iter_mut().find(|c| c.is_done()) {
+            let id = self.next_channel_id;
+            self.next_channel_id += 1;
+
+            let volume = match audio_type {
+                AudioType::Music => self.music_volume,
+                _ => self.sfx_volume,
+            };
+
+            channel.set_id(id);
+            channel.set_audio_type(audio_type);
+            channel.set_volume(volume);
+
+            Some(channel)
+        } else {
+            None
+        }
     }
 
     /// Play specfied sound file.
-    ///```ignore
-    ///audio.play_sound("voxygen.audio.sfx.step");
-    ///```
-    pub fn play_sound(&mut self, sound: &str, pos: Vec3<f32>) -> usize {
-        let id = self.next_channel_id;
-        self.next_channel_id += 1;
-
-        let sfx_volume = self.sfx_volume;
-
-        if let Some(_) = &self.audio_device {
+    pub fn play_sound(&mut self, sound: &str, pos: Vec3<f32>) -> Option<usize> {
+        if self.audio_device.is_some() {
             let calc_pos = ((pos - self.listener_pos) * FALLOFF).into_array();
 
             let sound = self.sound_cache.load_sound(sound);
@@ -106,19 +114,32 @@ impl AudioFrontend {
             let left_ear = self.listener_ear_left.into_array();
             let right_ear = self.listener_ear_right.into_array();
 
-            if let Some(channel) = self.get_channel() {
-                channel.set_id(id);
-                channel.set_volume(sfx_volume);
+            if let Some(channel) = self.get_channel(AudioType::Sfx) {
                 channel.set_emitter_position(calc_pos);
                 channel.set_left_ear_position(left_ear);
                 channel.set_right_ear_position(right_ear);
                 channel.play(sound);
-            } else {
-                log::warn!("No available channels!");
+
+                return Some(channel.get_id());
             }
         }
 
-        id
+        None
+    }
+
+    pub fn play_music(&mut self, sound: &str) -> Option<usize> {
+        if self.audio_device.is_some() {
+            if let Some(channel) = self.get_channel(AudioType::Music) {
+                let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
+                let sound = Decoder::new(file).expect("Failed to decode sound");
+
+                channel.play(sound);
+
+                return Some(channel.get_id());
+            }
+        }
+
+        None
     }
 
     pub fn set_listener_pos(&mut self, pos: &Vec3<f32>, ori: &Vec3<f32>) {
@@ -134,36 +155,16 @@ impl AudioFrontend {
         self.listener_ear_right = pos_right;
 
         for channel in self.channels.iter_mut() {
-            if channel.get_audio_type() == AudioType::Sfx {
-                channel.set_emitter_position(
-                    ((channel.pos - self.listener_pos) * FALLOFF).into_array(),
-                );
+            if !channel.is_done() && channel.get_audio_type() == AudioType::Sfx {
+                // TODO: Update this to correctly determine the updated relative position of
+                // the SFX emitter when the player (listener) moves
+                // channel.set_emitter_position(
+                //     ((channel.pos - self.listener_pos) * FALLOFF).into_array(),
+                // );
                 channel.set_left_ear_position(pos_left.into_array());
                 channel.set_right_ear_position(pos_right.into_array());
             }
         }
-    }
-
-    pub fn play_music(&mut self, sound: &str) -> usize {
-        let id = self.next_channel_id;
-        self.next_channel_id += 1;
-
-        let music_volume = self.music_volume;
-
-        if let Some(_) = &self.audio_device {
-            let file = assets::load_file(&sound, &["ogg"]).unwrap();
-            let sound = Decoder::new(file).unwrap();
-
-            if let Some(channel) = self.get_channel() {
-                channel.set_id(id);
-                channel.set_volume(music_volume);
-                channel.play(sound);
-            }
-        } else {
-            log::warn!("No available channels!");
-        }
-
-        id
     }
 
     pub fn stop_channel(&mut self, channel_id: usize, fader: Fader) {
