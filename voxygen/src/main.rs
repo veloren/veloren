@@ -107,11 +107,15 @@ fn main() {
         Some(d) => d.to_string(),
         None => audio::get_default_device(),
     };
-    let audio = if settings.audio.audio_on {
+
+    let mut audio = if settings.audio.audio_on {
         AudioFrontend::new(audio_device, 16)
     } else {
         AudioFrontend::no_audio()
     };
+
+    audio.set_music_volume(settings.audio.music_volume);
+    audio.set_sfx_volume(settings.audio.sfx_volume);
 
     let mut global_state = GlobalState {
         audio,
@@ -119,6 +123,7 @@ fn main() {
         settings,
         info_message: None,
     };
+
     let settings = &global_state.settings;
 
     // Initialize logging.
