@@ -1,8 +1,9 @@
+use crate::pathfinding::WorldPath;
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IDVStorage;
 use vek::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum Agent {
     Wanderer(Vec2<f32>),
     Pet {
@@ -12,6 +13,9 @@ pub enum Agent {
     Enemy {
         bearing: Vec2<f32>,
         target: Option<EcsEntity>,
+    },
+    Traveler {
+        path: WorldPath,
     },
 }
 
