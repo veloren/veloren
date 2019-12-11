@@ -229,7 +229,7 @@ pub fn neighbors(posi: usize) -> impl Clone + Iterator<Item = usize> {
         (0, 1),
         (1, 1),
     ]
-    .into_iter()
+    .iter()
     .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
     .filter(|pos| {
         pos.x >= 0 && pos.y >= 0 && pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32
