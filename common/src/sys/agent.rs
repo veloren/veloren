@@ -2,8 +2,10 @@ use crate::comp::{
     Agent, CharacterState, Controller, ControllerInputs, MountState, MovementState::Glide, Pos,
     Stats,
 };
+use crate::pathfinding::WorldPath;
+use crate::terrain::TerrainGrid;
 use rand::{seq::SliceRandom, thread_rng};
-use specs::{Entities, Join, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
 
 /// This system will allow NPCs to modify their controller
@@ -14,6 +16,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, CharacterState>,
+        ReadExpect<'a, TerrainGrid>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, MountState>,
@@ -21,7 +24,16 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, positions, stats, character_states, mut agents, mut controllers, mount_states): Self::SystemData,
+        (
+            entities,
+            positions,
+            stats,
+            character_states,
+            terrain,
+            mut agents,
+            mut controllers,
+            mount_states,
+        ): Self::SystemData,
     ) {
         for (entity, pos, agent, controller, mount_state) in (
             &entities,
@@ -51,6 +63,31 @@ impl<'a> System<'a> for Sys {
             let mut inputs = ControllerInputs::default();
 
             match agent {
+                Agent::Traveler { path } => {
+                    let mut new_path: Option<WorldPath> = None;
+                    let is_destination = |cur_pos: Vec3<i32>, dest: Vec3<i32>| {
+                        Vec2::<i32>::from(cur_pos) == Vec2::<i32>::from(dest)
+                    };
+
+                    let found_destination = || {
+                        const MAX_TRAVEL_DIST: f32 = 200.0;
+                        let new_dest = Vec3::new(rand::random::<f32>(), rand::random::<f32>(), 0.0)
+                            * MAX_TRAVEL_DIST;
+                        new_path = Some(WorldPath::new(&*terrain, pos.0, pos.0 + new_dest));
+                    };
+
+                    path.move_along_path(
+                        &*terrain,
+                        pos,
+                        &mut inputs,
+                        is_destination,
+                        found_destination,
+                    );
+
+                    if let Some(new_path) = new_path {
+                        *path = new_path;
+                    }
+                }
                 Agent::Wanderer(bearing) => {
                     *bearing += Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
                         * 0.1
