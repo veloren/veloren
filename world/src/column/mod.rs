@@ -110,7 +110,7 @@ impl<'a> ColumnGen<'a> {
             .gen_ctx
             .structure_gen
             .get(wpos)
-            .into_iter()
+            .iter()
             .copied()
             .enumerate()
             .for_each(|(i, (pos, seed))| {
@@ -180,7 +180,7 @@ fn quadratic_nearest_point(
     let roots = roots.as_ref();
 
     let min_root = roots
-        .into_iter()
+        .iter()
         .copied()
         .filter_map(|root| {
             let river_point = spline.x * root * root + spline.y * root + spline.z;
