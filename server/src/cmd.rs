@@ -9,8 +9,9 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
+    pathfinding::WorldPath,
     state::TimeOfDay,
-    terrain::TerrainChunkSize,
+    terrain::{Block, BlockKind, TerrainChunkSize},
     vol::RectVolSize,
 };
 use rand::Rng;
@@ -245,7 +246,13 @@ lazy_static! {
             true,
             handle_debug,
         ),
-
+        ChatCommand::new(
+            "pathfind",
+            "{} {d} {d} {d}",
+            "/pathfind : Send a given entity with ID to the coordinates provided",
+            true,
+            handle_pathfind,
+        ),
     ];
 }
 fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
@@ -461,13 +468,22 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                             );
 
                             let body = kind_to_body(id);
-                            server
+                            let new_entity = server
                                 .state
                                 .create_npc(pos, comp::Stats::new(get_npc_name(id), None), body)
                                 .with(comp::Vel(vel))
                                 .with(comp::MountState::Unmounted)
-                                .with(agent)
+                                .with(agent.clone())
                                 .build();
+
+                            if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
+                                server.notify_client(
+                                    entity,
+                                    ServerMsg::private(
+                                        format!("Spawned entity with ID: {}", uid).to_owned(),
+                                    ),
+                                );
+                            }
                         }
                         server.notify_client(
                             entity,
@@ -483,6 +499,44 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
         }
         _ => {
             server.notify_client(entity, ServerMsg::private(String::from(action.help_string)));
+        }
+    }
+}
+
+fn handle_pathfind(server: &mut Server, player: EcsEntity, args: String, action: &ChatCommand) {
+    if let (Some(id), Some(x), Some(y), Some(z)) =
+        scan_fmt_some!(&args, action.arg_fmt, u64, f32, f32, f32)
+    {
+        let entity = server.state.ecs().entity_from_uid(id);
+
+        if let Some(target_entity) = entity {
+            if let Some(start_pos) = server
+                .state
+                .read_component_cloned::<comp::Pos>(target_entity)
+            {
+                let target = start_pos.0 + Vec3::new(x, y, z);
+                let new_path = WorldPath::new(&*server.state.terrain(), start_pos.0, target);
+
+                server.state.write_component(
+                    target_entity,
+                    comp::Agent::Traveler {
+                        path: new_path.clone(),
+                    },
+                );
+
+                if let Some(path_positions) = &new_path.path {
+                    for pos in path_positions {
+                        server
+                            .state
+                            .set_block(*pos, Block::new(BlockKind::Normal, Rgb::new(255, 255, 0)));
+                    }
+                }
+            }
+        } else {
+            server.notify_client(
+                player,
+                ServerMsg::private(format!("Unable to find entity with ID: {:?}", id)),
+            );
         }
     }
 }
@@ -554,6 +608,9 @@ fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent>
         "friendly" => Some(comp::Agent::Pet {
             target,
             offset: Vec2::zero(),
+        }),
+        "traveler" => Some(comp::Agent::Traveler {
+            path: WorldPath::default(),
         }),
         // passive?
         _ => None,
