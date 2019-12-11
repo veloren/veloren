@@ -8,6 +8,7 @@ extern crate serde_derive;
 extern crate log;
 
 pub mod assets;
+pub mod astar;
 pub mod clock;
 pub mod comp;
 pub mod effect;
@@ -15,6 +16,7 @@ pub mod event;
 pub mod figure;
 pub mod msg;
 pub mod npc;
+pub mod pathfinding;
 pub mod ray;
 pub mod region;
 pub mod state;
