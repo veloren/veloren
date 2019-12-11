@@ -690,28 +690,35 @@ fn erode(
     //    and α is a parameter (units of 1 / length).
     //
     // Note that normal depth at i, for us, will be interpreted as the soil depth vector,
-    //   sed_i = (0, h_i - b_i),
-    // projected onto the bedrock slope vector,
-    //   bedrock_surface_i = (||p_i - p_j||, b_i - b_j),
+    //   sed_i = ((0, 0), h_i - b_i),
+    // projected onto the ground surface slope vector,
+    //   ground_surface_i = ((p_i - p_j), h_i - h_j),
     // yielding the soil depth vector
-    //   H_i = sed_i - sed_i ⋅ bedrock_surface_i / (bedrock_surface_i ⋅ bedrock_surface_i) * bedrock_surface_i
+    //   H_i = sed_i - sed_i ⋅ ground_surface_i / (ground_surface_i ⋅ ground_surface_i) * ground_surface_i
     //
-    //       = (0, h_i - b_i) -
-    //         (0 * ||p_i - p_j|| + (h_i - b_i) * (b_i - b_j)) / (||p_i - p_j||^2 + (b_i - b_j)^2)
-    //         * (||p_i - p_j||, b_i - b_j)
-    //       = (0, h_i - b_i) -
-    //         ((h_i - b_i) * (b_i - b_j)) / (||p_i - p_j||^2 + (b_i - b_j)^2)
-    //         * (||p_i - p_j||, b_i - b_j)
+    //       = ((0, 0), h_i - b_i) -
+    //         (0 * ||p_i - p_j|| + (h_i - b_i) * (h_i - h_j)) / (||p_i - p_j||^2 + (h_i - h_j)^2)
+    //         * (p_i - p_j, h_i - h_j)
+    //       = ((0, 0), h_i - b_i) -
+    //         ((h_i - b_i) * (h_i - h_j)) / (||p_i - p_j||^2 + (h_i - h_j)^2)
+    //         * (p_i - p_j, h_i - h_j)
     //       = (h_i - b_i) *
-    //         ((0, 1) - (b_i - b_j) / (||p_i - p_j||^2 + (b_i - b_j)^2) * (||p_i - p_j||, b_i - b_j))
-    //   H_i_fact = (b_i - b_j) / (||p_i - p_j||^2 + (b_i - b_j)^2)
-    //   H_i = (h_i - b_i) * (((0, 1) - H_i_fact * (||p_i - p_j||, b_i - b_j)))
-    //       = (h_i - b_i) * (-H_i_fact * ||p_i - p_j||, 1 - H_i_fact * (b_i - b_j))
-    //   ||H_i|| = (h_i - b_i) * √((H_i_fact^2 * ||p_i - p_j||^2 + (1 - H_i_fact * (b_i - b_j))^2))
+    //         (((0, 0), 1) - (h_i - h_j) / (||p_i - p_j||^2 + (h_i - h_j)^2) * (p_i - p_j, h_i - h_j))
+    //   H_i_fact = (h_i - h_j) / (||p_i - p_j||^2 + (h_i - h_j)^2)
+    //   H_i = (h_i - b_i) * ((((0, 0), 1) - H_i_fact * (p_i - p_j, h_i - h_j)))
+    //       = (h_i - b_i) * (-H_i_fact * (p_i - p_j), 1 - H_i_fact * (h_i - h_j))
+    //   ||H_i|| = (h_i - b_i) * √(H_i_fact^2 * ||p_i - p_j||^2 + (1 - H_i_fact * (h_i - h_j))^2)
+    //           = (h_i - b_i) * √(H_i_fact^2 * ||p_i - p_j||^2 + 1 - 2 * H_i_fact * (h_i - h_j) +
+    //                             H_i_fact^2 * (h_i - h_j)^2)
+    //           = (h_i - b_i) * √(H_i_fact^2 * (||p_i - p_j||^2 + (h_i - h_j)^2) +
+    //                             1 - 2 * H_i_fact * (h_i - h_j))
+    //           = (h_i - b_i) * √((h_i - h_j)^2 / (||p_i - p_j||^2 + (h_i - h_j)^2) * (||p_i - p_j||^2 + (h_i - h_j)^2) +
+    //                             1i - 2 * (h_i - h_j)^2 / (||p_i - p_j||^2 + (h_i - h_j)^2))
+    //           = (h_i - b_i) * √((h_i - h_j)^2 - 2(h_i - h_j) / (||p_i - p_j||^2 + (h_i - h_j)^2) + 1)
     //
     // where j is i's receiver and ||p_i - p_j|| is the horizontal displacement between them.  The
     // idea here is that we first compute the hypotenuse between the horizontal and vertical
-    // displacement of bedrock (getting the horizontal component of the triangle), and then this is
+    // displacement of ground (getting the horizontal component of the triangle), and then this is
     // taken as one of the non-hypotenuse sides of the triangle whose other non-hypotenuse side is
     // the normal height H_i, while their square adds up to the vertical displacement (h_i - b_i).
     // If h and b have different slopes, this may not work completely correctly, but this is
@@ -1169,7 +1176,7 @@ fn erode(
     // NOTE: Despite this not quite applying since basement order and height order differ, we once
     // again borrow the implicit FastScape stack order.  If this becomes a problem we can easily
     // compute a separate stack order just for basement.
-    for &posi in &*newh {
+    /* for &posi in &*newh {
         let posi = posi as usize;
         let old_b_i = b[posi];
         let h_i = h[posi];
@@ -1208,15 +1215,49 @@ fn erode(
         new_b_i -= p_i as Alt;
 
         b[posi] = new_b_i;
-    }
-    log::info!("Done updating basement and applying soil production...");
-
-    /* b.par_iter_mut().zip(h.par_iter()).enumerate().for_each(|(posi, (mut b, h))| {
+    } */
+    b.par_iter_mut().zip(h.par_iter()).enumerate().for_each(|(posi, (mut b, &h_i))| {
         let old_b_i = *b;
         let uplift_i = uplift(posi) as Alt;
 
-        *b = (old_b_i + uplift_i).min(*h);
-    }); */
+        // First, add uplift...
+        /* let mut new_b_i = (old_b_i + uplift_i).min(h_i); */
+        let mut new_b_i = old_b_i + uplift_i;
+
+        let posj = dh[posi];
+        // Sediment height normal to bedrock.  NOTE: Currently we can actually have sedment and
+        // bedrock slope at different heights, meaning there's no uniform slope.  There are
+        // probably more correct ways to account for this, such as averaging, integrating, or doing
+        // things by mass / volume instead of height, but for now we use the time-honored
+        // technique of ignoring the problem.
+        let vertical_sed = (h_i - new_b_i).max(0.0) as f64;
+        let h_normal = if posj < 0 {
+            // Egress with no outgoing flows; for now, we assume this means normal and vertical
+            // coincide.
+            vertical_sed
+        } else {
+            let posj = posj as usize;
+            let h_j = h[posj];
+            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
+            let neighbor_distance_squared = (neighbor_coef * dxy).magnitude_squared();
+            let dh = (h_i - h_j) as f64;
+            // H_i_fact = (h_i - h_j) / (||p_i - p_j||^2 + (h_i - h_j)^2)
+            let h_i_fact = dh / (neighbor_distance_squared + dh * dh);
+            let h_i_vertical = 1.0 - h_i_fact * dh;
+            // ||H_i|| = (h_i - b_i) * √((H_i_fact^2 * ||p_i - p_j||^2 + (1 - H_i_fact * (h_i - h_j))^2))
+            vertical_sed * (h_i_fact * h_i_fact * neighbor_distance_squared + h_i_vertical * h_i_vertical).sqrt()
+        };
+        // Rate of sediment production: -∂z_b / ∂t = ε₀ * e^(-αH)
+        let p_i = epsilon_0_tot * f64::exp(-alpha * h_normal);
+        // println!("h_normal = {:?}, p_i = {:?}", h_normal, p_i);
+
+        new_b_i -= p_i as Alt;
+
+        // Clamp basement so it doesn't exceed height.
+        new_b_i = new_b_i.min(h_i);
+        *b = new_b_i;
+    });
+    log::info!("Done updating basement and applying soil production...");
 
     // update the height to reflect sediment flux.
     h.par_iter_mut().enumerate().for_each(|(posi, mut h)| {
