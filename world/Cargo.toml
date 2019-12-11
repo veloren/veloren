@@ -5,6 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
 bitvec = "0.15.2"
 vek = "0.9.9"
@@ -20,6 +21,7 @@ arr_macro = "0.1.2"
 rayon = "1.2.0"
 roots = "0.0.5"
 serde = "1.0.102"
+serde_derive = "1.0.102"
 ron = "0.5.1"
 pretty_env_logger = "0.3.0"
 

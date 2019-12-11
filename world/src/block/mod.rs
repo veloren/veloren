@@ -61,9 +61,17 @@ impl<'a> BlockGen<'a> {
                 {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
+                    // Conservative range of height: [15.70, 49.33]
                     let height = (RandomField::new(seed + 1).get(cliff_pos3d) % 64) as f32
+                        // [0, 63] / (1 + 3 * [0.12, 1.32]) + 3 =
+                        // [0, 63] / (1 + [0.36, 3.96]) + 3 =
+                        // [0, 63] / [1.36, 4.96] + 3 =
+                        // [0, 63] / [1.36, 4.96] + 3 =
+                        // (height min) [0, 0] + 3 = [3, 3]
+                        // (height max) [12.70, 46.33] + 3 = [15.70, 49.33]
                         / (1.0 + 3.0 * cliff_sample.chaos)
                         + 3.0;
+                    // COnservative range of radius: [8, 47]
                     let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
                     max_height.max(
@@ -203,6 +211,7 @@ impl<'a> BlockGen<'a> {
                             world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
                             world.sim().gen_ctx.fast_turb_y_nz.get(wposf.div(25.0)) as f32,
                         ) * 8.0;
+                        // let turb = Lerp::lerp(0.0, turb, warp_factor);
 
                         let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
                         let cliff_height = Self::get_cliff_height(

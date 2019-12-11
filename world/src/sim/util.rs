@@ -287,7 +287,7 @@ pub fn get_oceans(oldh: impl Fn(usize) -> f32 + Sync) -> BitBox {
         if oldh(posi) <= 0.0 {
             stack.push(posi);
         } else {
-            panic!("Hopefully no border tiles are above sea level.");
+            // panic!("Hopefully no border tiles are above sea level.");
         }
     };
     for x in 0..WORLD_SIZE.x as i32 {
