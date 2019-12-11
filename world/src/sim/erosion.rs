@@ -1004,7 +1004,7 @@ pub fn get_lakes(h: &[f32], downhill: &mut [isize]) -> (usize, Box<[i32]>, Box<[
     // longer negates its maximum number of passes, but the lake side of the chosen pass.  As such,
     // we should make sure not to rely on using it this way afterwards.
     // provides information about the number of candidate passes in a lake.
-    'outer_final_pass: while let Some(Reverse((_, (chunk_idx, neighbor_idx)))) = candidates.pop() {
+    while let Some(Reverse((_, (chunk_idx, neighbor_idx)))) = candidates.pop() {
         // We have the smallest candidate.
         let lake_idx = indirection_[chunk_idx as usize] as usize;
         let indirection_idx = indirection[chunk_idx as usize];
