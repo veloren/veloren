@@ -9,7 +9,9 @@ use rayon::prelude::*;
 use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
-    f32, f64, mem, u32,
+    f32, f64, mem,
+    path::PathBuf,
+    u32,
 };
 use vek::*;
 
@@ -495,9 +497,9 @@ pub fn get_rivers(
 ///
 /// TODO: See if allocating in advance is worthwhile.
 fn get_max_slope(h: &[/*f32*/Alt], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync)) -> Box<[f64]> {
-    const MIN_MAX_ANGLE: f64 = 15.0/*6.0*//*30.0*//*6.0*//*15.0*/ / 360.0 * 2.0 * f64::consts::PI;
-    const MAX_MAX_ANGLE: f64 = 60.0/*54.0*//*50.0*//*54.0*//*45.0*/ / 360.0 * 2.0 * f64::consts::PI;
-    const MAX_ANGLE_RANGE: f64 = MAX_MAX_ANGLE - MIN_MAX_ANGLE;
+    let min_max_angle = (15.0/*6.0*//*30.0*//*6.0*//*15.0*/ / 360.0 * 2.0 * f64::consts::PI).tan();
+    let max_max_angle = (45.0/*54.0*//*50.0*//*54.0*//*45.0*/ / 360.0 * 2.0 * f64::consts::PI).tan();
+    let max_angle_range = max_max_angle - min_max_angle;
     let height_scale = 1.0; // 1.0 / CONFIG.mountain_scale as f64;
     h.par_iter()
         .enumerate()
@@ -505,7 +507,7 @@ fn get_max_slope(h: &[/*f32*/Alt], rock_strength_nz: &(impl NoiseFn<Point3<f64>>
             let wposf = uniform_idx_as_vec2(posi).map(|e| e as f64) * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
             let wposz = z as f64 / height_scale;// * CONFIG.mountain_scale as f64;
             // Normalized to be between 6 and and 54 degrees.
-            let div_factor = /*32.0*//*16.0*//*64.0*//*256.0*/8.0/*8.0*//*1.0*//*4.0*/ * /*1.0*/16.0/* TerrainChunkSize::RECT_SIZE.x as f64 / 8.0 */;
+            let div_factor = /*32.0*//*16.0*//*64.0*//*256.0*/8.0/*8.0*//*1.0*//*4.0*//* * /*1.0*/16.0/* TerrainChunkSize::RECT_SIZE.x as f64 / 8.0 */*/;
             let rock_strength = rock_strength_nz
                 .get([
                     wposf.x, /* / div_factor*/
@@ -548,7 +550,7 @@ fn get_max_slope(h: &[/*f32*/Alt], rock_strength_nz: &(impl NoiseFn<Point3<f64>>
                     + 1.0 * log_odds((wposz / CONFIG.mountain_scale as f64).abs().min(dmax).max(dmin)),
             );
             // let rock_strength = 0.5;
-            let max_slope = (rock_strength * MAX_ANGLE_RANGE + MIN_MAX_ANGLE).tan();
+            let max_slope = rock_strength * max_angle_range + min_max_angle;
             // let max_slope = /*30.0.to_radians().tan();*/3.0.sqrt() / 3.0;
             max_slope
         })
@@ -607,12 +609,22 @@ fn get_max_slope(h: &[/*f32*/Alt], rock_strength_nz: &(impl NoiseFn<Point3<f64>>
 ///
 /// https://github.com/fastscape-lem/fastscapelib-fortran/blob/master/src/StreamPowerLaw.f90
 ///
+/// The  approximate equation for soil production function (predictng the rate at which bedrock
+/// turns into soil, increasing the distance between the basement and altitude) is taken from
+/// equation (11) from [2].  This (among numerous other sources) also includes at least one
+/// prediction that hillslope diffusion should be nonlinear, which we sort of attempt to
+/// approximate.
+///
 /// [1] Guillaume Cordonnier, Jean Braun, Marie-Paule Cani, Bedrich Benes, Eric Galin, et al..
 ///     Large Scale Terrain Generation from Tectonic Uplift and Fluvial Erosion.
 ///     Computer Graphics Forum, Wiley, 2016, Proc. EUROGRAPHICS 2016, 35 (2), pp.165-175.
 ///     ⟨10.1111/cgf.12820⟩. ⟨hal-01262376⟩
 ///
-///
+/// [2] William E. Dietrich, Dino G. Bellugi, Leonard S. Sklar, Jonathan D. Stock
+///     Geomorphic Transport Laws for Predicting Landscape Form and Dynamics.
+///     Prediction in Geomorphology, Geophysical Monograph 135.
+///     Copyright 2003 by the American Geophysical Union
+///     10.1029/135GM09
 fn erode(
     h: &mut [Alt],
     b: &mut [Alt],
@@ -626,14 +638,17 @@ fn erode(
     _seed: &RandomField,
     rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
     uplift: impl Fn(usize) -> f32 + Sync,
-    kf: impl Fn(usize) -> f32,
-    kd: impl Fn(usize) -> f32,
+    n_f: impl Fn(usize) -> f32 + Sync,
+    m_f: impl Fn(usize) -> f32 + Sync,
+    kf: impl Fn(usize) -> f64 + Sync,
+    kd: impl Fn(usize) -> f64,
     g: impl Fn(usize) -> f32 + Sync,
     is_ocean: impl Fn(usize) -> bool + Sync,
 ) {
     let compute_stats = true;
     log::debug!("Done draining...");
     let height_scale = 1.0; // 1.0 / CONFIG.mountain_scale as f64;
+    let min_erosion_height = 0.0;//-f64::INFINITY as Alt;
     let mmaxh = CONFIG.mountain_scale as f64 * height_scale;
     // Minimum sediment thickness before we treat erosion as sediment based.
     let sediment_thickness = 1.0;
@@ -656,11 +671,58 @@ fn erode(
     // 5e-7
     let dt = max_uplift as f64 / height_scale /* * CONFIG.mountain_scale as f64*/ / /*5.010e-4*/1e-3;
     println!("dt={:?}", dt);
+    let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+    let chunk_area = neighbor_coef.x * neighbor_coef.y;
+    let min_length = neighbor_coef.reduce_partial_min();
+    let max_stable = /*max_slope * */min_length * min_length / (dt/* / 2.0*/);//1.0/* + /*max_uplift as f64 / dt*/sed / dt*/;
     // Landslide constant: ideally scaled to 10e-2 m / y^-1
-    let l = /*200.0 * max_uplift as f64;*/1.0e-2 /*/ CONFIG.mountain_scale as f64*/ * height_scale * dt;
+    let l = /*200.0 * max_uplift as f64;*/(1.0e-2 /*/ CONFIG.mountain_scale as f64*/ * height_scale);
+    let l_tot = l * dt;
+    // ε₀ = 0.000268 m/y, α = 0.03 (1/m).  This is part of the soil production approximate
+    // equation:
+    //
+    // -∂z_b / ∂t = ε₀ * e^(-αH)
+    //
+    // where
+    //    z_b is the elevation of the soil-bedrock interface (i.e. the basement),
+    //    ε₀ is the production rate of exposed bedrock (H = 0),
+    //    H is the soil thickness normal to the ground surface,
+    //    and α is a parameter (units of 1 / length).
+    //
+    // Note that normal depth at i, for us, will be interpreted as the soil depth vector,
+    //   sed_i = (0, h_i - b_i),
+    // projected onto the bedrock slope vector,
+    //   bedrock_surface_i = (||p_i - p_j||, b_i - b_j),
+    // yielding the soil depth vector
+    //   H_i = sed_i - sed_i ⋅ bedrock_surface_i / (bedrock_surface_i ⋅ bedrock_surface_i) * bedrock_surface_i
+    //
+    //       = (0, h_i - b_i) -
+    //         (0 * ||p_i - p_j|| + (h_i - b_i) * (b_i - b_j)) / (||p_i - p_j||^2 + (b_i - b_j)^2)
+    //         * (||p_i - p_j||, b_i - b_j)
+    //       = (0, h_i - b_i) -
+    //         ((h_i - b_i) * (b_i - b_j)) / (||p_i - p_j||^2 + (b_i - b_j)^2)
+    //         * (||p_i - p_j||, b_i - b_j)
+    //       = (h_i - b_i) *
+    //         ((0, 1) - (b_i - b_j) / (||p_i - p_j||^2 + (b_i - b_j)^2) * (||p_i - p_j||, b_i - b_j))
+    //   H_i_fact = (b_i - b_j) / (||p_i - p_j||^2 + (b_i - b_j)^2)
+    //   H_i = (h_i - b_i) * (((0, 1) - H_i_fact * (||p_i - p_j||, b_i - b_j)))
+    //       = (h_i - b_i) * (-H_i_fact * ||p_i - p_j||, 1 - H_i_fact * (b_i - b_j))
+    //   ||H_i|| = (h_i - b_i) * √((H_i_fact^2 * ||p_i - p_j||^2 + (1 - H_i_fact * (b_i - b_j))^2))
+    //
+    // where j is i's receiver and ||p_i - p_j|| is the horizontal displacement between them.  The
+    // idea here is that we first compute the hypotenuse between the horizontal and vertical
+    // displacement of bedrock (getting the horizontal component of the triangle), and then this is
+    // taken as one of the non-hypotenuse sides of the triangle whose other non-hypotenuse side is
+    // the normal height H_i, while their square adds up to the vertical displacement (h_i - b_i).
+    // If h and b have different slopes, this may not work completely correctly, but this is
+    // probably fine as an approximation.
+    let epsilon_0 = 2.68e-4;
+    let alpha = 3e-2;
+    let epsilon_0_tot = epsilon_0 * dt;
     // Net precipitation rate (m / year)
     let p = 1.0 * height_scale;
-    let m = 0.4;
+    /* let n = 2.4;// 1.0;//1.5;//2.4;//1.0;
+    let m = n * 0.5;// n * 0.4;// 0.96;// 0.4;//0.6;//0.96;//0.4; */
     // Stream power erosion constant (bedrock), in m^(1-2m) / year  (times dt).
     let k_fb = // erosion_base as f64 + 2.244 / mmaxh as f64 * max_uplift as f64;
         // 2.244*(5.010e-4)/512*5- (1.097e-5)
@@ -711,9 +773,38 @@ fn erode(
     );
 
     assert!(h.len() == dh.len() && dh.len() == area.len());
+
+    // Precompute factors for Stream Power Law.
+    let k_fact = dh.par_iter().enumerate()
+        .map(|(posi, &posj)| {
+            if posj < 0 {
+                // Egress with no outgoing flows, no stream power.
+                0.0
+            } else {
+                let posj = posj as usize;
+                let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
+                let neighbor_distance = (neighbor_coef * dxy).magnitude();
+                let old_b_i = b[posi];
+                let sed = (ht[posi] - old_b_i) as f64;
+                let k = if sed > sediment_thickness {
+                    // Sediment
+                    // k_fs
+                    k_fs_mult * kf(posi)
+                } else {
+                    // Bedrock
+                    // k_fb
+                    kf(posi)
+                } * dt;
+                let n = n_f(posi) as f64;
+                let m = m_f(posi) as f64;
+
+                k * (p * chunk_area * area[posi] as f64).powf(m) / neighbor_distance.powf(n)
+            }
+        })
+        .collect::<Vec<f64>>();
+    log::info!("Computed stream power factors...");
+
     // max angle of slope depends on rock strength, which is computed from noise function.
-    let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
-    let chunk_area = neighbor_coef.x * neighbor_coef.y;
     // TODO: Make more principled.
     let mid_slope = (30.0 / 360.0 * 2.0 * f64::consts::PI).tan();//1.0;
 
@@ -727,6 +818,7 @@ fn erode(
     let mut err = 2.0 * tol;
 
     // Some variables for tracking statistics, currently only for debugging purposes.
+    let mut minh = f64::INFINITY as Alt;
     let mut maxh = 0.0;
     let mut nland = 0usize;
     let mut sums = 0.0;
@@ -747,6 +839,7 @@ fn erode(
 
         // Reset statistics in each loop.
         maxh = 0.0;
+        minh = f64::INFINITY as Alt;
         nland = 0usize;
         sums = 0.0;
         sumh = 0.0;
@@ -774,6 +867,9 @@ fn erode(
         );
 
         // sum the erosion in stack order
+        //
+        // After:
+        // deltah_i = Σ{j ∈ {i} ∪ upstream_i(t)}(h_j(t, FINAL) + U_j * Δt - h_j(t + Δt, k))
         for &posi in newh.iter().rev() {
             let posi = posi as usize;
             let posj = dh[posi];
@@ -820,12 +916,19 @@ fn erode(
             } else {
                 let uplift_i = uplift(posi) as Alt;
                 assert!(uplift_i.is_normal() && uplift_i > 0.0 || uplift_i == 0.0);
+                // One side of nonlinear equation (23):
+                //
+                // h_i(t) + U_i * Δt + G / (p̃ * Ã_i) * Σ{j ∈ upstream_i(t)}(h_j(t, FINAL) + U_j * Δt - h_j(t + Δt, k))
+                //
+                // where
+                //
+                // Ã_i = A_i / (∆x∆y) = N_i, number of cells upstream of cell i.
                 *elev = (ht[posi] + uplift_i) as Compute + (deltah[posi] - ((ht[posi] + uplift_i) as Compute - hp[posi])) * g(posi) as Compute / area[posi] as Compute;
             }
         });
 
         // Iterate in ascending height order.
-        let mut sum_err = 0.0f64;
+        let mut sum_err = 0.0 as Compute;
         for &posi in &*newh {
             let posi = posi as usize;
             let old_h_i = /*h*/elev[posi] as f64;
@@ -837,8 +940,11 @@ fn erode(
                 if posj == -1 {
                     panic!("Disconnected lake!");
                 }
-                // wh for oceans is always 0.
-                wh[posi] = 0.0;
+                if ht[posi] > 0.0 {
+                    log::warn!("Ocean above zero?");
+                }
+                // wh for oceans is always at least min_erosion_height.
+                wh[posi] = min_erosion_height.max(ht[posi]);
                 lake_sill[posi] = posi as isize;
                 lake_water_volume[posi] = 0.0;
                 // max_slopes[posi] = kd(posi);
@@ -846,11 +952,11 @@ fn erode(
             } else {
                 // *is_done.at(posi) = done_val;
                 let posj = posj as usize;
-                let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
+                // let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
 
                 // Has an outgoing flow edge (posi, posj).
                 // flux(i) = k * A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1
-                let neighbor_distance = (neighbor_coef * dxy).magnitude();
+                // let neighbor_distance = (neighbor_coef * dxy).magnitude();
                 // Since the area is in meters^(2m) and neighbor_distance is in m, so long as m = 0.5,
                 // we have meters^(1) / meters^(1), so they should cancel out.  Otherwise, we would
                 // want to multiply neighbor_distance by height_scale and area[posi] by
@@ -863,34 +969,82 @@ fn erode(
                 // Therefore, we can rely on wh being set to the water height for that node.
                 let h_j = h[posj] as f64;
                 let wh_j = wh[posj] as f64;
-                let mut new_h_i = old_h_i/* + uplift_i*/;
+                let mut new_h_i = /*old_h_i*/h[posi] as f64/* + uplift_i*/;
                 // Only perform erosion if we are above the water level of the previous node.
-                if new_h_i > wh_j {
+                if old_h_i > wh_j {
                     // hi(t + ∂t) = (hi(t) + ∂t(ui + kp^mAi^m(hj(t + ∂t)/||pi - pj||))) / (1 + ∂t * kp^mAi^m / ||pi - pj||)
-                    let k = if sed > sediment_thickness {
+                    /* let k = if sed > sediment_thickness {
                         // Sediment
                         // k_fs
-                        k_fs_mult * kf(posi) as f64
+                        k_fs_mult * kf(posi)
                     } else {
                         // Bedrock
                         // k_fb
-                        kf(posi) as f64
+                        kf(posi)
                     } * dt;
                     // let k = k * uplift_i / max_uplift as f64;
-                    let flux = k * (p * chunk_area * area[posi] as f64).powf(m) / neighbor_distance;
-                    assert!(flux.is_normal() && flux.is_positive());
-                    new_h_i = (new_h_i + flux * h_j) / (1.0 + flux);
+                    let n = n_f(posi) as f64;
+                    let m = m_f(posi) as f64; */
+                    let n = n_f(posi) as f64;
+
+                    if /*n == 1.0*/(n - 1.0).abs() <= 1.0e-3/*f64::EPSILON*/ {
+                        let flux = /*k * (p * chunk_area * area[posi] as f64).powf(m) / neighbor_distance;*/k_fact[posi];
+                        assert!(flux.is_normal() && flux.is_positive() || flux == 0.0);
+                        new_h_i = (/*new_h_i*/old_h_i + flux * h_j) / (1.0 + flux);
+                    } else {
+                        // Local Newton-Raphson
+                        let omega = 0.875f64 / n;
+                        let tolp = 1.0e-3;
+                        let mut errp = 2.0 * tolp;
+                        let h0 = old_h_i;
+                        let fact = k_fact[posi];// k * (p * chunk_area * area[posi] as f64).powf(m) / neighbor_distance.powf(n);
+                        while errp > tolp {
+                            let mut f = new_h_i - h0;
+                            let mut df = 1.0;
+                            // Want: h_i(t+Δt) = h0 - fact * (h_i(t+Δt) - h_j(t+Δt))^n
+                            // Goal: h_i(t+Δt) - h0 + fact * (h_i(t+Δt) - h_j(t+Δt))^n = 0
+                            f += fact * 0.0.max(new_h_i - h_j).powf(n);
+                            // ∂h_i(t+Δt)/∂n = 1 + fact * n * (h_i(t+Δt) - h_j(t+Δt))^(n - 1)
+                            df += fact * n * 0.0.max(new_h_i - h_j).powf(n - 1.0);
+                            // hn = h_i(t+Δt, k) - (h_i(t+Δt, k) - (h0 - fact * (h_i(t+Δt, k) - h_j(t+Δt))^n)) / ∂h_i/∂n(t+Δt, k)
+                            let hn = new_h_i - f / df;
+                            // errp = |(h_i(t+Δt, k) - (h0 - fact * (h_i(t+Δt, k) - h_j(t+Δt))^n)) / ∂h_i/∂n(t+Δt, k)|
+                            errp = (hn - new_h_i).abs();
+                            // h_i(t+∆t, k+1) = ...
+                            new_h_i = new_h_i * (1.0 - omega) + hn * omega;
+                        }
+                        /* omega=0.875d0/n
+                        tolp=1.d-3
+                        errp=2.d0*tolp
+                        h0=elev(ijk)
+                        do while (errp.gt.tolp)
+                          f=h(ijk)-h0
+                          df=1.d0
+                          if (ht(ijk).gt.ht(ijr)) then
+                            fact = kfint(ijk)*dt*a(ijk)**m/length(ijk)**n
+                            f=f+fact*max(0.d0,h(ijk)-h(ijr))**n
+                            df=df+fact*n*max(0.d0,h(ijk)-h(ijr))**(n-1.d0)
+                          endif
+                          hn=h(ijk)-f/df
+                          errp=abs(hn-h(ijk))
+                          h(ijk)=h(ijk)*(1.d0-omega)+hn*omega
+                        enddo */
+                    }
                     lake_sill[posi] = posi as isize;
                     lake_water_volume[posi] = 0.0;
 
                     /* // Thermal erosion (landslide)
-                    let dz = (new_h_i - /*h_j*//*h_k*/wh_j).max(0.0) / height_scale/* * CONFIG.mountain_scale as f64*/;
+                    let dz = (new_h_i - /*h_j*//*h_k*//*wh_j*/h_j).max(0.0) / height_scale/* * CONFIG.mountain_scale as f64*/;
                     let mag_slope = dz/*.abs()*/ / neighbor_distance;
                     let max_slope = max_slopes[posi] as f64;
                     if mag_slope > max_slope {
                         let dh = max_slope * neighbor_distance * height_scale/* / CONFIG.mountain_scale as f64*/;
-                        new_h_i = (ht[posi] as f64 + l * (mag_slope - max_slope));
-                        if compute_stats && new_h_i > wh_j {
+                        // new_h_i = (ht[posi] as f64 + l_tot * (mag_slope - max_slope));
+                        // new_h_i = new_h_i - l_tot * (mag_slope - max_slope);
+                        // new_h_i = new_h_i - l_tot * (mag_slope - max_slope);
+                        // new_h_i = hp[posj] + dh;
+                        new_h_i = /*old_h_i.max*/(/*wh_j*//*ht[posi] as Compute*//*h_j*/hp[posj]/*ht[posj] as Compute*/ + dh).max(new_h_i - l_tot * (mag_slope - max_slope));
+                        if compute_stats/* && new_h_i > wh_j*/ {
                             ntherm += 1;
                         }
                     } */
@@ -900,7 +1054,9 @@ fn erode(
                     if new_h_i <= wh_j {
                         new_h_i = wh_j;
                     } else {
-                        if compute_stats {
+                        if compute_stats && new_h_i > 0.0 {
+                            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
+                            let neighbor_distance = (neighbor_coef * dxy).magnitude();
                             let dz = (new_h_i - /*h_j*//*h_k*/wh_j).max(0.0) / height_scale/* * CONFIG.mountain_scale as f64*/;
                             let mag_slope = dz/*.abs()*/ / neighbor_distance;
 
@@ -911,6 +1067,7 @@ fn erode(
                         }
                     }
                 } else {
+                    new_h_i = old_h_i;
                     let lposj = lake_sill[posj];
                     lake_sill[posi] = lposj;
                     if lposj >= 0 {
@@ -963,7 +1120,7 @@ fn erode(
                         // max_slope = (old_h_i + dh - h_j) / height_scale/* * CONFIG.mountain_scale */ / NEIGHBOR_DISTANCE
                         // dh = max_slope * NEIGHBOR_DISTANCE * height_scale/* / CONFIG.mountain_scale */ + h_j - old_h_i.
                         let dh = max_slope * neighbor_distance * height_scale/* / CONFIG.mountain_scale as f64*/;
-                        new_h_i = /*h_j.max*/(h_k + dh).max(new_h_i - l * (mag_slope - max_slope));
+                        new_h_i = /*h_j.max*/(h_k + dh).max(new_h_i - l_tot * (mag_slope - max_slope));
                         let dz = (new_h_i - /*h_j*/h_k).max(0.0) / height_scale/* * CONFIG.mountain_scale as f64*/;
                         let slope = dz/*.abs()*/ / neighbor_distance;
                         sums += slope;
@@ -984,8 +1141,12 @@ fn erode(
             }
             // *is_done.at(posi) = done_val;
             if compute_stats {
-                maxh = h[posi].max(maxh);
                 sumsed += sed;
+                let h_i = h[posi];
+                if h_i > 0.0 {
+                    minh = h_i.min(minh);
+                }
+                maxh = h_i.max(maxh);
             }
 
             // Add sum of squares of errors.
@@ -1004,12 +1165,58 @@ fn erode(
     //b=min(h,b)
 
     // update the basement
-    b.par_iter_mut().zip(h.par_iter()).enumerate().for_each(|(posi, (mut b, h))| {
+    //
+    // NOTE: Despite this not quite applying since basement order and height order differ, we once
+    // again borrow the implicit FastScape stack order.  If this becomes a problem we can easily
+    // compute a separate stack order just for basement.
+    for &posi in &*newh {
+        let posi = posi as usize;
+        let old_b_i = b[posi];
+        let h_i = h[posi];
+        let uplift_i = uplift(posi) as Alt;
+
+        // First, add uplift...
+        let mut new_b_i = (old_b_i + uplift_i).min(h_i);
+
+        let posj = dh[posi];
+        // Sediment height normal to bedrock.  NOTE: Currently we can actually have sedment and
+        // bedrock slope at different heights, meaning there's no uniform slope.  There are
+        // probably more correct ways to account for this, such as averaging, integrating, or doing
+        // things by mass / volume instead of height, but for now we use the time-honored
+        // technique of ignoring the problem.
+        let h_normal = if posj < 0 {
+            // Egress with no outgoing flows; for now, we assume this means normal and vertical
+            // coincide.
+            (h_i - new_b_i) as f64
+        } else {
+            let posj = posj as usize;
+            let b_j = b[posj];
+            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
+            let neighbor_distance_squared = (neighbor_coef * dxy).magnitude_squared();
+            let vertical_sed = (h_i - new_b_i) as f64;
+            let db = (new_b_i - b_j) as f64;
+            // H_i_fact = (b_i - b_j) / (||p_i - p_j||^2 + (b_i - b_j)^2)
+            let h_i_fact = db / (neighbor_distance_squared + db * db);
+            let h_i_vertical = 1.0 - h_i_fact * db;
+            // ||H_i|| = (h_i - b_i) * √((H_i_fact^2 * ||p_i - p_j||^2 + (1 - H_i_fact * (b_i - b_j))^2))
+            vertical_sed * (h_i_fact * h_i_fact * neighbor_distance_squared + h_i_vertical * h_i_vertical).sqrt()
+        };
+        // Rate of sediment production: -∂z_b / ∂t = ε₀ * e^(-αH)
+        let p_i = epsilon_0_tot * f64::exp(-alpha * h_normal);
+        // println!("h_normal = {:?}, p_i = {:?}", h_normal, p_i);
+
+        new_b_i -= p_i as Alt;
+
+        b[posi] = new_b_i;
+    }
+    log::info!("Done updating basement and applying soil production...");
+
+    /* b.par_iter_mut().zip(h.par_iter()).enumerate().for_each(|(posi, (mut b, h))| {
         let old_b_i = *b;
         let uplift_i = uplift(posi) as Alt;
 
         *b = (old_b_i + uplift_i).min(*h);
-    });
+    }); */
 
     // update the height to reflect sediment flux.
     h.par_iter_mut().enumerate().for_each(|(posi, mut h)| {
@@ -1035,11 +1242,12 @@ fn erode(
     // enddo
 
     log::info!(
-        "Done applying stream power (max height: {:?}) (avg height: {:?}) (avg slope: {:?})\n        \
+        "Done applying stream power (max height: {:?}) (avg height: {:?}) ((min height: {:?}) avg slope: {:?})\n        \
         (old avg sediment thickness [all/land]: {:?} / {:?})\n        \
         (num land: {:?}) (num thermal: {:?})",
         maxh,
         avgz(sumh, nland),
+        minh,
         avgz(sums, nland),
         avgz(sumsed, newh.len()),
         avgz(sumsed_land, nland),
@@ -1049,6 +1257,7 @@ fn erode(
 
     // Apply thermal erosion.
     maxh = 0.0;
+    minh = f64::INFINITY as Alt;
     sumh = 0.0;
     sums = 0.0;
     sumsed = 0.0;
@@ -1063,6 +1272,7 @@ fn erode(
 
         let max_slope = max_slopes[posi];
         // Remember k_d for this chunk in max_slopes.
+        // higher max_slope => much lower kd_factor.
         let kd_factor =
             // 1.0;
             (1.0 / (max_slope / mid_slope/*.sqrt()*//*.powf(0.03125)*/).powf(/*2.0*/2.0))/*.min(kdsed)*/;
@@ -1071,7 +1281,7 @@ fn erode(
             kdsed/* * kd_factor*/
         } else {
             // Bedrock
-            kd(posi) as f64 / kd_factor
+            kd(posi) / kd_factor
         };
 
         let posj = dh[posi];
@@ -1079,13 +1289,14 @@ fn erode(
             if posj == -1 {
                 panic!("Disconnected lake!");
             }
-            wh[posi] = 0.0;
+            // wh for oceans is always at least min_erosion_height.
+            wh[posi] = min_erosion_height.max(ht[posi]);
             // Egress with no outgoing flows.
         } else {
             let posj = posj as usize;
             // Find the water height for this chunk's receiver; we only apply thermal erosion
             // for chunks above water.
-            let wh_j = wh[posj] as f64;
+            let mut wh_j = wh[posj] as f64;
             // If you're on the lake bottom and not right next to your neighbor, don't compute a
             // slope.
             let mut new_h_i = old_h_i;/*old_b_i;*/
@@ -1096,7 +1307,8 @@ fn erode(
                 // totally submerged in water, and that talus angle if part of the substance is
                 // in water is 0 (or the same as the dry part, if this is set to wh_j), but
                 // actually that's probably not true.
-                let h_j = /*h[posj] as f64*/wh_j;
+                let old_h_j = h[posj] as f64;
+                let h_j = /*h[posj] as f64*//*wh_j*/old_h_j;
                 // let h_j = b[posj] as f64;
                 /* let indirection_idx = indirection[posi];
                 let is_lake_bottom = indirection_idx < 0;
@@ -1131,12 +1343,22 @@ fn erode(
                     // max_slope = (old_h_i + dh - h_j) / height_scale/* * CONFIG.mountain_scale */ / NEIGHBOR_DISTANCE
                     // dh = max_slope * NEIGHBOR_DISTANCE * height_scale/* / CONFIG.mountain_scale */ + h_j - old_h_i.
                     let dh = max_slope * neighbor_distance * height_scale/* / CONFIG.mountain_scale as f64*/;
-                    new_h_i = /*h_j.max*//*(h_k + dh).max*/(/*new_h_i*/h_k + dh + l * (mag_slope - max_slope));
-                    // new_h_i = /*h_j.max*/(h_k + dh).max(new_h_i - l * (mag_slope - max_slope));
+                    // new_h_i = /*h_j.max*//*(h_k + dh).max*/(/*new_h_i*/ht[posi] as f64 + l_tot * (mag_slope - max_slope));
+                    // new_h_i = /*h_j.max*//*(h_k + dh).max*/(/*new_h_i*/h_k + dh + l_tot * (mag_slope - max_slope));
+                    // new_h_i = /*h_j.max*//*(h_k + dh).max*/(new_h_i - l_tot * (mag_slope - max_slope));
+                    let dtherm = (l_tot * (mag_slope - max_slope)).min((dz - dh)/* / 2.0*/);
+                    new_h_i = /*h_j.max*//*(h_k + dh).max*/(/*new_h_i*//*h_k + dh*/new_h_i - dtherm);
+                    /* let new_h_j = (old_h_j + dtherm).min(old_h_j.max(new_h_i));
+                    h[posj] = new_h_j as Alt;
+                    wh_j = wh_j.max(new_h_j);
+                    wh[posj] = wh_j as Alt; */
+                    // No more hillslope processes on newly exposed bedrock.
+                    max_slopes[posi] = 0.0;
+                    // max_slopes[posi] = l;
                     if new_h_i <= wh_j {
                         new_h_i = wh_j;
                     } else {
-                        if compute_stats {
+                        if compute_stats && new_h_i > 0.0 {
                             let dz = (new_h_i - /*h_j*//*h_k*/wh_j).max(0.0) / height_scale/* * CONFIG.mountain_scale as f64*/;
                             let slope = dz/*.abs()*/ / neighbor_distance;
                             sums += slope;
@@ -1161,6 +1383,10 @@ fn erode(
                         ntherm += 1;
                     }
                 } else {
+                    // Poorly emulating nonlinear hillslope transport as described by
+                    // http://eps.berkeley.edu/~bill/papers/112.pdf.
+                    // sqrt(3)/3*32*32/(128000/2)
+                    max_slopes[posi] = (max_slopes[posi] * 1.0 / (1.0 - (mag_slope / max_slope).powi(2)));
                     /*if kd_factor < 1.0 {
                         max_slopes[posi] *= kd_factor;
                     }*/
@@ -1168,7 +1394,7 @@ fn erode(
                         max_slopes[posi] *= kd_factor;
                     } */
                     // max_slopes[posi] *= kd_factor;
-                    if compute_stats {
+                    if compute_stats && new_h_i > 0.0 {
                         sums += mag_slope;
                         // Just use the computed rate.
                         nland += 1;
@@ -1176,28 +1402,35 @@ fn erode(
                         sumsed_land += sed;
                     }
                 }
-                h/*b*/[posi] = old_h_i.min(new_h_i) as Alt;
+                h/*b*/[posi] = /*old_h_i.min(new_h_i)*/new_h_i as Alt;
                 // Make sure to update the basement as well!
                 // b[posi] = old_b_i.min(new_h_i) as f32;
-                b[posi] = old_b_i.min(old_b_i + (new_h_i - old_h_i)) as Alt;
+                b[posi] = old_b_i.min(old_b_i + (/*old_h_i.min(*/new_h_i/*)*/ - old_h_i)) as Alt;
                 // sumh += new_h_i;
             }
             // Set wh to this node's water height (max of receiver's water height and
             // this node's height).
             wh[posi] = wh_j.max(new_h_i) as Alt;
         }
+        max_slopes[posi] = max_slopes[posi].min(max_stable);
+
         // *is_done.at(posi) = done_val;
         if compute_stats {
             sumsed += sed;
-            maxh = h[posi].max(maxh);
+            let h_i = h[posi];
+            if h_i > 0.0 {
+                minh = h_i.min(minh);
+            }
+            maxh = h_i.max(maxh);
         }
     }
     log::debug!(
-        "Done applying thermal erosion (max height: {:?}) (avg height: {:?}) (avg slope: {:?})\n        \
+        "Done applying thermal erosion (max height: {:?}) (avg height: {:?}) (min height: {:?}) (avg slope: {:?})\n        \
         (avg sediment thickness [all/land]: {:?} / {:?})\n        \
         (num land: {:?}) (num thermal: {:?})",
         maxh,
         avgz(sumh, nland),
+        minh,
         avgz(sums, nland),
         avgz(sumsed, newh.len()),
         avgz(sumsed_land, nland),
@@ -1694,17 +1927,20 @@ pub fn get_lakes<F: Float>(h: impl Fn(usize) -> F, downhill: &mut [isize]) -> (u
 pub fn do_erosion(
     erosion_base: f32,
     _max_uplift: f32,
-    n: usize,
+    n_steps: usize,
     seed: &RandomField,
     rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
     oldh: impl Fn(usize) -> f32 + Sync,
     oldb: impl Fn(usize) -> f32 + Sync,
     is_ocean: impl Fn(usize) -> bool + Sync,
     uplift: impl Fn(usize) -> f32 + Sync,
-    kf: impl Fn(usize) -> f32 + Sync,
-    kd: impl Fn(usize) -> f32 + Sync,
+    n: impl Fn(usize) -> f32 + Sync,
+    theta: impl Fn(usize) -> f32 + Sync,
+    kf: impl Fn(usize) -> f64 + Sync,
+    kd: impl Fn(usize) -> f64 + Sync,
     g: impl Fn(usize) -> f32 + Sync,
 ) -> (Box<[Alt]>, Box<[Alt]>) {
+    log::info!("Initializing erosion arrays...");
     let oldh_ = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
         .map(|posi| oldh(posi) as Alt)
@@ -1714,6 +1950,19 @@ pub fn do_erosion(
     let mut b = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
         .map(|posi| oldb(posi) as Alt)
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
+    // Stream power law slope exponent--link between channel slope and erosion rate.
+    let n = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        .into_par_iter()
+        .map(|posi| n(posi))
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
+    // Stream power law concavity index (θ = m/n), turned into an exponent on drainage
+    // (which is a proxy for discharge according to Hack's Law).
+    let m = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        .into_par_iter()
+        .map(|posi| theta(posi) * n[posi])
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Stream power law erodability constant for fluvial erosion (bedrock)
@@ -1760,6 +2009,7 @@ pub fn do_erosion(
         .max_by(|a, b| a.partial_cmp(&b).unwrap())
         .unwrap();
     log::debug!("Max uplift: {:?}", max_uplift);
+    log::debug!("Max g: {:?}", max_g);
     // Height of terrain, including sediment.
     let mut h = oldh_;
     // 0.01 / 2e-5 = 500
@@ -1778,12 +2028,14 @@ pub fn do_erosion(
         /*1.5e-2*//*1e-4*//*1.25e-2*/1.5e-2 / 1.0 * height_scale * height_scale/* / (CONFIG.mountain_scale as f64 * CONFIG.mountain_scale as f64) */
         /* * k_fb / 2e-5 */;
     // let kd = |posi: usize| kd_bedrock; // if is_ocean(posi) { /*0.0*/kd_bedrock } else { kd_bedrock };
+    let n = |posi: usize| n[posi];
+    let m = |posi: usize| m[posi];
     let kd = |posi: usize| kd[posi]; // if is_ocean(posi) { /*0.0*/kd_bedrock } else { kd_bedrock };
     let kf = |posi: usize| kf[posi];
     let g = |posi: usize| g[posi];
     // Hillslope diffusion coefficient for sediment.
     let mut is_done = bitbox![0; WORLD_SIZE.x * WORLD_SIZE.y];
-    for i in 0..n {
+    for i in 0..n_steps {
         log::debug!("Erosion iteration #{:?}", i);
         erode(
             &mut h,
@@ -1802,6 +2054,8 @@ pub fn do_erosion(
             seed,
             rock_strength_nz,
             |posi| uplift[posi],
+            n,
+            m,
             kf,
             kd,
             g,

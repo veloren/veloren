@@ -583,7 +583,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .gen_ctx
             .small_nz
             .get((wposf_turb.div(128.0)).into_array()) as f32)
-            .mul(24.0);
+            .mul(4.0);
 
         let alt_for_river = alt
             + if overlap_count == 0.0 {
@@ -806,7 +806,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             (false, alt_for_river, downhill_water_alt, 1.0)
         };
-        let warp_factor = 0.0;
+        // let warp_factor = 0.0;
 
         let riverless_alt_delta = (sim
             .gen_ctx
@@ -1117,7 +1117,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .powf(2.0)
                 .neg()
                 .add(1.0)
-                .mul((1.15 - chaos).min(1.0))
+                .mul((1.32 - chaos).min(1.0))
         };
         let cave_xy = cave_at(wposf);
         let cave_alt = alt - 24.0

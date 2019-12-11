@@ -1,9 +1,9 @@
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 // use self::Mode::*;
-use std::{f32, f64};
+use std::{f32, f64, path::PathBuf};
 use vek::*;
 use veloren_world::{
-    sim::{RiverKind, WorldOpts, WORLD_SIZE},
+    sim::{self, RiverKind, WorldOpts, WORLD_SIZE},
     util::Sampler,
     World, CONFIG,
 };
@@ -29,8 +29,17 @@ const H: usize = 1024;
 fn main() {
     pretty_env_logger::init();
 
+    let map_file =
+        // "map_1575990726223.bin";
+        // "map_1575987666972.bin";
+        "map_1576046079066.bin";
+    let mut _map_file = PathBuf::from("./maps");
+    _map_file.push(map_file);
+
     let world = World::generate(1337, WorldOpts {
         seed_elements: false,
+        // world_file: sim::FileOpts::Load(_map_file),
+        world_file: sim::FileOpts::Save,
         ..WorldOpts::default()
     });
 
@@ -102,7 +111,7 @@ fn main() {
                 let pos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
                 let downhill_pos = (downhill
                     .map(|downhill_pos| downhill_pos/*.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32)*/)
-                    .unwrap_or(pos)
+                    .unwrap_or(pos + Vec2::new(1, 0))
                     - pos)/* * scale*/
                     + pos;
                 let downhill_alt = sampler

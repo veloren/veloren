@@ -15,6 +15,7 @@ pub struct ServerSettings {
     //pub login_server: whatever
     pub start_time: f64,
     pub admins: Vec<String>,
+    pub map_file: Option<PathBuf>,
 }
 
 impl Default for ServerSettings {
@@ -27,6 +28,7 @@ impl Default for ServerSettings {
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
+            map_file: None,
             admins: [
                 "Pfau",
                 "zesterer",
@@ -97,12 +99,13 @@ impl ServerSettings {
                 [127, 0, 0, 1],
                 pick_unused_port().expect("Failed to find unused port!"),
             )),
-            world_seed: 1337,
             server_name: "Singleplayer".to_owned(),
             server_description: "Who needs friends anyway?".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
             admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
+            ..
+            Self::load() // Fill in remaining fields from settings.ron.
         }
     }
 

@@ -46,7 +46,7 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{sim::{WORLD_SIZE, WorldOpts}, World};
+use world::{sim::{FileOpts, WORLD_SIZE, WorldOpts}, World};
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
@@ -106,6 +106,11 @@ impl Server {
 
         let world = World::generate(settings.world_seed, WorldOpts {
             seed_elements: true,
+            world_file: if let Some(ref file) = settings.map_file {
+                FileOpts::Load(file.clone())
+            } else {
+                FileOpts::Generate
+            },
             ..WorldOpts::default()
         });
 
