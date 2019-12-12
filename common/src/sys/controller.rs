@@ -79,10 +79,14 @@ impl Sys {
                                     }),
                                     projectile::Effect::Vanish,
                                 ],
-                                time_left: Duration::from_secs(30),
+                                time_left: Duration::from_secs(15),
                             },
                         });
-                        character.action
+                        Attack {
+                            time_left: attack_duration,
+                            applied: false, // We don't want to do a melee attack
+                        }
+                        //character.action
                     }
                     item::Tool::Debug(item::Debug::Boost) => {
                         local_emitter.emit(LocalEvent::Boost {
