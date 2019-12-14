@@ -30,10 +30,8 @@ Currently the communication of contributors happens mainly on our [official Disc
 
 ## Get Veloren
 
-Currently we provide 64-bit builds for Linux and Windows:
-
-**Windows**: https://www.airshipper.songtronix.com/latest/windows  
-**Linux**: https://www.airshipper.songtronix.com/latest/linux
+Currently we provide 64-bit builds for Linux and Windows which can be downloaded on the official website: 
+[https://www.veloren.net](https://veloren.net/welcome)
 
 *Note: Mac and 32-bit systems are supported but you need to [compile the game for them yourself](https://book.veloren.net/compile/index.html).*
 
