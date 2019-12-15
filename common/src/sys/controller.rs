@@ -335,6 +335,7 @@ impl<'a> System<'a> for Sys {
 
             inputs.update_look_dir();
             inputs.update_move_dir();
+
             match (character.action, character.movement) {
                 // Jumping, one frame state that calls jump server event
                 (_, Jump) => {
@@ -392,9 +393,18 @@ impl<'a> System<'a> for Sys {
                 }
                 // Any Action + Falling
                 (action_state, Fall) => {
-                    // character.movement = get_state_from_move_dir(&inputs.move_dir);
-                    if inputs.glide.is_pressed() && !inputs.glide.is_held_down() {
+                    character.movement = get_state_from_move_dir(&inputs.move_dir);
+                    if inputs.glide.is_pressed() {
                         character.movement = Glide;
+                        continue;
+                    }
+                    // Try to climb
+                    if let (true, Some(_wall_dir)) = (
+                        inputs.climb.is_pressed() | inputs.climb_down.is_pressed()
+                            && body.is_humanoid(),
+                        physics.on_wall,
+                    ) {
+                        character.movement = Climb;
                         continue;
                     }
                     // Reset to Falling while not standing on ground,
@@ -421,14 +431,37 @@ impl<'a> System<'a> for Sys {
                         Idle => {
                             if inputs.primary.is_pressed() || inputs.secondary.is_pressed() {
                                 character.action = try_wield(stats);
+                                continue;
                             }
                         }
                         // Cancel blocks
                         Block { .. } => {
                             character.action = try_wield(stats);
+                            continue;
                         }
                         // Don't change action
                         Charge { .. } | Roll { .. } => {}
+                    }
+                    if inputs.primary.is_pressed() {
+                        character.action = Self::handle_primary(
+                            inputs,
+                            character,
+                            stats,
+                            entity,
+                            uid,
+                            &mut server_emitter,
+                            &mut local_emitter,
+                        );
+                    } else if inputs.secondary.is_pressed() {
+                        character.action = Self::handle_secondary(
+                            inputs,
+                            character,
+                            stats,
+                            entity,
+                            uid,
+                            &mut server_emitter,
+                            &mut local_emitter,
+                        );
                     }
                 }
                 // Any Action + Swimming
@@ -478,8 +511,12 @@ impl<'a> System<'a> for Sys {
                         );
                     }
 
-                    if !physics.on_ground && physics.in_fluid {
-                        character.movement = Swim;
+                    if !physics.on_ground {
+                        if physics.in_fluid {
+                            character.movement = Swim;
+                        } else {
+                            character.movement = Fall;
+                        }
                     }
                 }
                 // Standing and Running states, typical states :shrug:
@@ -502,15 +539,18 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Try to swim
-                    if !physics.on_ground && physics.in_fluid {
-                        character.movement = Swim;
-                        continue;
+                    if !physics.on_ground {
+                        if physics.in_fluid {
+                            character.movement = Swim;
+                        } else {
+                            character.movement = Fall;
+                        }
                     }
 
                     // While on ground ...
                     if physics.on_ground {
                         // Try to jump
-                        if inputs.jump.is_pressed() && !inputs.jump.is_held_down() {
+                        if inputs.jump.is_pressed() {
                             character.movement = Jump;
                             continue;
                         }
@@ -540,7 +580,6 @@ impl<'a> System<'a> for Sys {
                         // Try to glide
                         if physics.on_wall == None
                             && inputs.glide.is_pressed()
-                            && !inputs.glide.is_held_down()
                             && body.is_humanoid()
                         {
                             character.movement = Glide;
@@ -598,7 +637,7 @@ impl<'a> System<'a> for Sys {
                     if character.movement == Stand {
                         character.movement = Sit;
                     }
-                    if inputs.jump.is_pressed() && !inputs.jump.is_held_down() {
+                    if inputs.jump.is_pressed() {
                         character.movement = Jump;
                         continue;
                     }
@@ -614,7 +653,7 @@ impl<'a> System<'a> for Sys {
                     if !inputs.glide.is_pressed() {
                         character.movement = Fall;
                     } else if let Some(_wall_dir) = physics.on_wall {
-                        character.movement = Fall;
+                        character.movement = Climb;
                     }
 
                     if physics.on_ground {
