@@ -4,11 +4,13 @@ use crate::{
     ui::{
         self,
         fonts::ConrodVoxygenFonts,
+        ice::IcedUi,
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
-        Graphic, ImageFrame, Tooltip, Ui,
+        Graphic, Ui,
     },
     GlobalState,
 };
+//ImageFrame, Tooltip,
 use common::assets::Asset;
 use conrod_core::{
     color,
@@ -17,6 +19,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use iced::Column;
 use image::DynamicImage;
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::Duration;
@@ -122,6 +125,32 @@ image_ids! {
     }
 }
 
+image_ids_ice! {
+    struct IcedImgs {
+        <VoxelGraphic>
+        v_logo: "voxygen.element.v_logo",
+
+        info_frame: "voxygen.element.frames.info_frame_2",
+        banner: "voxygen.element.frames.banner",
+
+        banner_bottom: "voxygen.element.frames.banner_bottom",
+
+        <ImageGraphic>
+        bg: "voxygen.background.bg_main",
+        banner_top: "voxygen.element.frames.banner_top",
+        button: "voxygen.element.buttons.button",
+        button_hover: "voxygen.element.buttons.button_hover",
+        button_press: "voxygen.element.buttons.button_press",
+        input_bg_top: "voxygen.element.misc_bg.textbox_top",
+        input_bg_mid: "voxygen.element.misc_bg.textbox_mid",
+        input_bg_bot: "voxygen.element.misc_bg.textbox_bot",
+        disclaimer: "voxygen.element.frames.disclaimer",
+
+        <BlankGraphic>
+        nothing: (),
+    }
+}
+
 rotation_image_ids! {
     pub struct ImgsRot {
         <ImageGraphic>
@@ -158,8 +187,31 @@ pub struct PopupData {
     popup_type: PopupType,
 }
 
+// No state currently
+struct IcedState {
+    imgs: IcedImgs,
+}
+pub type Message = Event;
+impl IcedState {
+    pub fn view(&mut self) -> iced::Column<Message, ui::ice::IcedRenderer> {
+        Column::new().push(ui::ice::Image::new(
+            (self.imgs.bg, ui::Rotation::None),
+            500.0,
+            500.0,
+        ))
+    }
+
+    pub fn update(message: Message) {
+        match message {
+            _ => unimplemented!(),
+        }
+    }
+}
+
 pub struct MainMenuUi {
     ui: Ui,
+    ice_ui: IcedUi,
+    ice_state: IcedState,
     ids: Ids,
     imgs: Imgs,
     rot_imgs: ImgsRot,
@@ -225,8 +277,15 @@ impl<'a> MainMenuUi {
         let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
 
+        let mut ice_ui = IcedUi::new(window).unwrap();
+        let ice_state = IcedState {
+            imgs: IcedImgs::load(&mut ice_ui).expect("Failed to load images"),
+        };
+
         Self {
             ui,
+            ice_ui,
+            ice_state,
             ids,
             imgs,
             rot_imgs,
@@ -276,7 +335,7 @@ impl<'a> MainMenuUi {
         let intro_text = &self.voxygen_i18n.get("main.login_process");
 
         // Tooltip
-        let _tooltip = Tooltip::new({
+        /*let _tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
             // Corner images [tr, tl, br, bl]
             let edge = &self.rot_imgs.tt_side;
@@ -291,7 +350,7 @@ impl<'a> MainMenuUi {
         .title_font_size(self.fonts.cyri.scale(15))
         .desc_font_size(self.fonts.cyri.scale(10))
         .font_id(self.fonts.cyri.conrod_id)
-        .desc_text_color(TEXT_COLOR_2);
+        .desc_text_color(TEXT_COLOR_2);*/
 
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(if self.connect {
@@ -897,11 +956,18 @@ impl<'a> MainMenuUi {
 
     pub fn handle_event(&mut self, event: ui::Event) { self.ui.handle_event(event); }
 
+    pub fn handle_iced_event(&mut self, event: ui::ice::Event) { self.ice_ui.handle_event(event); }
+
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let events = self.update_layout(global_state, dt);
         self.ui.maintain(global_state.window.renderer_mut(), None);
+        self.ice_ui
+            .maintain(self.ice_state.view(), global_state.window.renderer_mut());
         events
     }
 
-    pub fn render(&self, renderer: &mut Renderer) { self.ui.render(renderer, None); }
+    pub fn render(&self, renderer: &mut Renderer) {
+        self.ui.render(renderer, None);
+        self.ice_ui.render(renderer);
+    }
 }

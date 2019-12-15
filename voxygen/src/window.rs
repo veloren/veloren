@@ -282,6 +282,8 @@ pub enum Event {
     InputUpdate(GameInput, bool),
     /// Event that the ui uses.
     Ui(ui::Event),
+    /// Event that the iced ui uses.
+    IcedUi(ui::ice::Event),
     /// The view distance has changed.
     ViewDistanceChanged(u32),
     /// Game settings have changed.
@@ -620,12 +622,6 @@ impl Window {
         this.set_fullscreen_mode(settings.graphics.fullscreen);
 
         Ok((this, event_loop))
-    }
-
-    pub fn window(
-        &self,
-    ) -> &glutin::ContextWrapper<glutin::PossiblyCurrent, winit::window::Window> {
-        &self.window
     }
 
     pub fn renderer(&self) -> &Renderer { &self.renderer }
@@ -1377,6 +1373,8 @@ impl Window {
     pub fn set_keybinding_mode(&mut self, game_input: GameInput) {
         self.remapping_keybindings = Some(game_input);
     }
+
+    pub fn window(&self) -> &winit::Window { self.window.window() }
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]

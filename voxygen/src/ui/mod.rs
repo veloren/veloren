@@ -7,9 +7,10 @@ mod widgets;
 pub mod img_ids;
 #[macro_use]
 pub mod fonts;
+pub mod ice;
 
 pub use event::Event;
-pub use graphic::{Graphic, SampleStrat, Transform};
+pub use graphic::{Graphic, Id as GraphicId, Rotation, SampleStrat, Transform};
 pub use scale::{Scale, ScaleMode};
 pub use widgets::{
     image_frame::ImageFrame,
@@ -36,7 +37,7 @@ use common::{assets, span, util::srgba_to_linear};
 use conrod_core::{
     event::Input,
     graph::{self, Graph},
-    image::{self, Map},
+    image::{Id as ImageId, Map},
     input::{touch::Touch, Motion, Widget},
     render::{Primitive, PrimitiveKind},
     text::{self, font},
@@ -187,7 +188,7 @@ impl Ui {
     // Get a copy of Scale
     pub fn scale(&self) -> Scale { self.scale }
 
-    pub fn add_graphic(&mut self, graphic: Graphic) -> image::Id {
+    pub fn add_graphic(&mut self, graphic: Graphic) -> ImageId {
         self.image_map
             .insert((self.cache.add_graphic(graphic), Rotation::None))
     }
@@ -212,7 +213,7 @@ impl Ui {
         }
     }
 
-    pub fn replace_graphic(&mut self, id: image::Id, graphic: Graphic) {
+    pub fn replace_graphic(&mut self, id: ImageId, graphic: Graphic) {
         let graphic_id = if let Some((graphic_id, _)) = self.image_map.get(&id) {
             *graphic_id
         } else {

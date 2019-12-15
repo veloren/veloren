@@ -34,6 +34,13 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
         if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
             global_state.window.send_event(Event::Ui(event));
         }
+        // iced ui events
+        // TODO: no clone
+        if let winit::Event::WindowEvent { event, .. } = event.clone() {
+            if let Some(event) = ui::ice::window_event(event) {
+                global_state.window.send_event(Event::IcedUi(event));
+            }
+        }
 
         match event {
             winit::event::Event::NewEvents(_) => {

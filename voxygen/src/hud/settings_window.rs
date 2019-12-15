@@ -2317,7 +2317,6 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .global_state
                 .window
                 .window()
-                .window()
                 .current_monitor()
                 .unwrap()
                 .video_modes()
