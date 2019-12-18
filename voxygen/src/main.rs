@@ -34,7 +34,7 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
-use log::{self, debug, error};
+use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
 /// A type used to store state that is shared between all play states.
@@ -107,10 +107,13 @@ fn main() {
         .and_then(|s| log::LevelFilter::from_str(&s).ok())
         .unwrap_or(log::LevelFilter::Debug);
 
-    logging::init(term_log_level, file_log_level);
-
     // Load the settings
+    // Note: This won't log anything due to it being called before ``logging::init``.
+    //       The issue is we need to read a setting to decide whether we create a log file or not.
     let settings = Settings::load();
+
+    logging::init(&settings, term_log_level, file_log_level);
+
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
@@ -136,10 +139,7 @@ fn main() {
         info_message: None,
     };
 
-    let settings = &global_state.settings;
-
     // Set up panic handler to relay swish panic messages to the user
-    let settings_clone = settings.clone();
     let default_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         let panic_info_payload = panic_info.payload();
@@ -186,7 +186,12 @@ fn main() {
             \n\
             Panic Payload: {:?}\n\
             PanicInfo: {}",
-            settings_clone.log.file, reason, panic_info,
+            // TODO: Verify that this works
+            Settings::get_settings_path()
+                .join("voxygen-<date>.log")
+                .display(),
+            reason,
+            panic_info,
         );
 
         error!(
