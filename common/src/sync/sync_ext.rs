@@ -1,8 +1,5 @@
 use super::{
-    packet::{
-        CompPacket, CompUpdateKind, EntityPackage, ResPacket, ResSyncPackage, StatePackage,
-        SyncPackage,
-    },
+    packet::{CompPacket, CompUpdateKind, EntityPackage, StatePackage, SyncPackage},
     track::UpdateTracker,
     uid::{Uid, UidAllocator},
 };
@@ -25,13 +22,12 @@ pub trait WorldSyncExt {
     fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64);
     fn uid_from_entity(&self, entity: specs::Entity) -> Option<Uid>;
     fn entity_from_uid(&self, uid: u64) -> Option<specs::Entity>;
-    fn apply_entity_package<P: CompPacket>(&mut self, entity_package: EntityPackage<P>);
-    fn apply_state_package<P: CompPacket, R: ResPacket>(
+    fn apply_entity_package<P: CompPacket>(
         &mut self,
-        state_package: StatePackage<P, R>,
-    );
+        entity_package: EntityPackage<P>,
+    ) -> specs::Entity;
+    fn apply_state_package<P: CompPacket>(&mut self, state_package: StatePackage<P>);
     fn apply_sync_package<P: CompPacket>(&mut self, package: SyncPackage<P>);
-    fn apply_res_sync_package<R: ResPacket>(&mut self, package: ResSyncPackage<R>);
 }
 
 impl WorldSyncExt for specs::World {
@@ -71,13 +67,18 @@ impl WorldSyncExt for specs::World {
             .retrieve_entity_internal(uid)
     }
 
-    fn apply_entity_package<P: CompPacket>(&mut self, entity_package: EntityPackage<P>) {
-        let EntityPackage(entity_uid, packets) = entity_package;
+    fn apply_entity_package<P: CompPacket>(
+        &mut self,
+        entity_package: EntityPackage<P>,
+    ) -> specs::Entity {
+        let EntityPackage { uid, comps } = entity_package;
 
-        let entity = create_entity_with_uid(self, entity_uid);
-        for packet in packets {
+        let entity = create_entity_with_uid(self, uid);
+        for packet in comps {
             packet.apply_insert(entity, self)
         }
+
+        entity
     }
 
     fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64) {
@@ -90,25 +91,15 @@ impl WorldSyncExt for specs::World {
         }
     }
 
-    fn apply_state_package<P: CompPacket, R: ResPacket>(
-        &mut self,
-        state_package: StatePackage<P, R>,
-    ) {
-        let StatePackage {
-            entities,
-            resources,
-        } = state_package;
-
-        // Apply state package resources
-        for res_packet in resources {
-            res_packet.apply(self);
-        }
+    fn apply_state_package<P: CompPacket>(&mut self, state_package: StatePackage<P>) {
+        let StatePackage { entities } = state_package;
 
         // Apply state package entities
         for entity_package in entities {
             self.apply_entity_package(entity_package);
         }
 
+        // TODO: determine if this is needed
         // Initialize entities
         //self.maintain();
     }
@@ -149,12 +140,6 @@ impl WorldSyncExt for specs::World {
         // Attempt to delete entities that were marked for deletion
         for entity_uid in deleted_entities {
             self.delete_entity_and_clear_from_uid_allocator(entity_uid);
-        }
-    }
-    fn apply_res_sync_package<R: ResPacket>(&mut self, package: ResSyncPackage<R>) {
-        // Update resources
-        for res_packet in package.resources {
-            res_packet.apply(self);
         }
     }
 }

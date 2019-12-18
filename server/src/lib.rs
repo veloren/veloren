@@ -19,7 +19,7 @@ use crate::{
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::CHAT_COMMANDS,
-    sys::sentinel::{DeletedEntities, TrackedComps, TrackedResources},
+    sys::sentinel::{DeletedEntities, TrackedComps},
 };
 use common::{
     assets, comp,
@@ -992,7 +992,8 @@ impl Server {
                     .create_entity_synced()
                     .with(client)
                     .build();
-                // Return the state of the current world (all of the components that Sphynx tracks).
+                // Send client all the tracked components currently attached to its entity as well
+                // as synced resources (currently only `TimeOfDay`)
                 log::debug!("Starting initial sync with client.");
                 self.state
                     .ecs()
@@ -1000,15 +1001,11 @@ impl Server {
                     .get_mut(entity)
                     .unwrap()
                     .notify(ServerMsg::InitialSync {
-                        ecs_state: TrackedResources::fetch(&self.state.ecs())
-                            .state_package()
-                            // Send client their entity
-                            .with_entity(
-                                TrackedComps::fetch(&self.state.ecs())
-                                    .create_entity_package(entity),
-                            ),
-                        entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
+                        // Send client their entity
+                        entity_package: TrackedComps::fetch(&self.state.ecs())
+                            .create_entity_package(entity),
                         server_info: self.server_info.clone(),
+                        time_of_day: *self.state.ecs().read_resource(),
                         // world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
                     });
                 log::debug!("Done initial sync with client.");
