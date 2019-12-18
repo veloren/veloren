@@ -79,9 +79,9 @@ impl Client {
         // Wait for initial sync
         let (state, entity, server_info, world_map) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
-                ecs_state,
-                entity_uid,
+                entity_package,
                 server_info,
+                time_of_day,
                 // world_map: /*(map_size, world_map)*/map_size,
             }) => {
                 // TODO: Voxygen should display this.
@@ -95,12 +95,10 @@ impl Client {
                     );
                 }
 
+                // Initialize `State`
                 let mut state = State::default();
-                state.ecs_mut().apply_state_package(ecs_state);
-                let entity = state
-                    .ecs()
-                    .entity_from_uid(entity_uid)
-                    .ok_or(Error::ServerWentMad)?;
+                let entity = state.ecs_mut().apply_entity_package(entity_package);
+                *state.ecs_mut().write_resource() = time_of_day;
 
                 // assert_eq!(world_map.len(), map_size.x * map_size.y);
                 let map_size = Vec2::new(1024, 1024);
@@ -539,7 +537,7 @@ impl Client {
 
                         self.last_ping_delta = Instant::now()
                             .duration_since(self.last_server_ping)
-                            .as_secs_f64()
+                            .as_secs_f64();
                     }
                     ServerMsg::ChatMsg { chat_type, message } => {
                         frontend_events.push(Event::Chat { chat_type, message })
@@ -551,15 +549,14 @@ impl Client {
                             return Err(Error::Other("Failed to find entity from uid.".to_owned()));
                         }
                     }
-                    ServerMsg::EcsSync(sync_package) => {
-                        self.state.ecs_mut().apply_sync_package(sync_package)
+                    ServerMsg::TimeOfDay(time_of_day) => {
+                        *self.state.ecs_mut().write_resource() = time_of_day;
                     }
-                    ServerMsg::EcsResSync(res_sync_package) => self
-                        .state
-                        .ecs_mut()
-                        .apply_res_sync_package(res_sync_package),
+                    ServerMsg::EcsSync(sync_package) => {
+                        self.state.ecs_mut().apply_sync_package(sync_package);
+                    }
                     ServerMsg::CreateEntity(entity_package) => {
-                        self.state.ecs_mut().apply_entity_package(entity_package)
+                        self.state.ecs_mut().apply_entity_package(entity_package);
                     }
                     ServerMsg::DeleteEntity(entity) => {
                         if self

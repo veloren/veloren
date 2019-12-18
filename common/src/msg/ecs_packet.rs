@@ -1,29 +1,8 @@
-use crate::{comp, state, sync};
+use crate::{comp, sync};
 use serde_derive::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use sum_type::sum_type;
 
-// TODO: remove me
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum MustHaveMoreThanOneVariant {}
-
-// Automatically derive From<T> for EcsResPacket
-// for each variant EcsResPacket::T(T).
-sum_type! {
-    #[derive(Clone, Debug, Serialize, Deserialize)]
-    pub enum EcsResPacket {
-        MustHaveMoreThanOneVariant(MustHaveMoreThanOneVariant),
-        TimeOfDay(state::TimeOfDay),
-    }
-}
-impl sync::ResPacket for EcsResPacket {
-    fn apply(self, world: &specs::World) {
-        match self {
-            EcsResPacket::MustHaveMoreThanOneVariant(_) => unimplemented!(),
-            EcsResPacket::TimeOfDay(time_of_day) => sync::handle_res_update(time_of_day, world),
-        }
-    }
-}
 // Automatically derive From<T> for EcsCompPacket
 // for each variant EcsCompPacket::T(T.)
 sum_type! {
