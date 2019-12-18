@@ -23,7 +23,7 @@ use vek::*;
 const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
 
 /// A resource that stores the time of day.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct TimeOfDay(pub f64);
 
 /// A resource that stores the tick (i.e: physics) time.

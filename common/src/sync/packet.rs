@@ -1,10 +1,7 @@
-use super::{
-    track::{Tracker, UpdateTracker},
-    uid::Uid,
-};
+use super::{track::UpdateTracker, uid::Uid};
 use log::error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use specs::{shred::Resource, Component, Entity, Join, ReadStorage, World, WorldExt};
+use specs::{Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Debug,
@@ -17,10 +14,6 @@ pub trait CompPacket: Clone + Debug + Send + 'static {
     fn apply_insert(self, entity: Entity, world: &World);
     fn apply_modify(self, entity: Entity, world: &World);
     fn apply_remove(phantom: Self::Phantom, entity: Entity, world: &World);
-}
-
-pub trait ResPacket: Clone + Debug + Send + 'static {
-    fn apply(self, world: &World);
 }
 
 /// Useful for implementing CompPacket trait
@@ -40,10 +33,6 @@ pub fn handle_modify<C: Component>(comp: C, entity: Entity, world: &World) {
 pub fn handle_remove<C: Component>(entity: Entity, world: &World) {
     let _ = world.write_storage::<C>().remove(entity);
 }
-/// Useful for implementing ResPacket trait
-pub fn handle_res_update<R: Resource>(res: R, world: &World) {
-    *world.write_resource::<R>() = res;
-}
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum CompUpdateKind<P: CompPacket> {
@@ -53,24 +42,25 @@ pub enum CompUpdateKind<P: CompPacket> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct EntityPackage<P: CompPacket>(pub u64, pub Vec<P>);
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct StatePackage<P: CompPacket, R: ResPacket> {
-    pub entities: Vec<EntityPackage<P>>,
-    pub resources: Vec<R>,
+pub struct EntityPackage<P: CompPacket> {
+    pub uid: u64,
+    pub comps: Vec<P>,
 }
 
-impl<P: CompPacket, R: ResPacket> Default for StatePackage<P, R> {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct StatePackage<P: CompPacket> {
+    pub entities: Vec<EntityPackage<P>>,
+}
+
+impl<P: CompPacket> Default for StatePackage<P> {
     fn default() -> Self {
         Self {
             entities: Vec::new(),
-            resources: Vec::new(),
         }
     }
 }
 
-impl<P: CompPacket, R: ResPacket> StatePackage<P, R> {
+impl<P: CompPacket> StatePackage<P> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -83,13 +73,6 @@ impl<P: CompPacket, R: ResPacket> StatePackage<P, R> {
     }
     pub fn with_entity(mut self, entry: EntityPackage<P>) -> Self {
         self.entities.push(entry);
-        self
-    }
-    pub fn with_res<C: Resource + Clone + Send + Sync>(mut self, res: &C) -> Self
-    where
-        R: From<C>,
-    {
-        self.resources.push(R::from(res.clone()));
         self
     }
 }
@@ -122,7 +105,7 @@ impl<P: CompPacket> SyncPackage<P> {
     pub fn with_component<'a, C: Component + Clone + Send + Sync>(
         mut self,
         uids: &ReadStorage<'a, Uid>,
-        tracker: &impl Tracker<C, P>,
+        tracker: &UpdateTracker<C>,
         storage: &ReadStorage<'a, C>,
         filter: impl Join + Copy,
     ) -> Self
@@ -134,25 +117,6 @@ impl<P: CompPacket> SyncPackage<P> {
         C::Storage: specs::storage::Tracked,
     {
         tracker.get_updates_for(uids, storage, filter, &mut self.comp_updates);
-        self
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ResSyncPackage<R: ResPacket> {
-    pub resources: Vec<R>,
-}
-impl<R: ResPacket> ResSyncPackage<R> {
-    pub fn new() -> Self {
-        Self {
-            resources: Vec::new(),
-        }
-    }
-    pub fn with_res<C: Resource + Clone + Send + Sync>(mut self, res: &C) -> Self
-    where
-        R: From<C>,
-    {
-        self.resources.push(R::from(res.clone()));
         self
     }
 }

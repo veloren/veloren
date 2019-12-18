@@ -8,29 +8,6 @@ use std::{
     marker::PhantomData,
 };
 
-pub trait Tracker<C: Component + Clone + Send + Sync, P: CompPacket>: Send + 'static
-where
-    P: From<C>,
-    C: TryFrom<P>,
-    P::Phantom: From<PhantomData<C>>,
-    P::Phantom: TryInto<PhantomData<C>>,
-    C::Storage: specs::storage::Tracked,
-{
-    fn add_packet_for<'a>(
-        &self,
-        storage: &specs::ReadStorage<'a, C>,
-        entity: specs::Entity,
-        packets: &mut Vec<P>,
-    );
-    fn get_updates_for<'a>(
-        &self,
-        uids: &specs::ReadStorage<'a, Uid>,
-        storage: &specs::ReadStorage<'a, C>,
-        filter: impl Join + Copy,
-        buf: &mut Vec<(u64, CompUpdateKind<P>)>,
-    );
-}
-
 pub struct UpdateTracker<C: Component> {
     reader_id: specs::ReaderId<specs::storage::ComponentEvent>,
     inserted: BitSet,
@@ -92,32 +69,39 @@ where
     }
 }
 
-impl<C: Component + Clone + Send + Sync, P: CompPacket> Tracker<C, P> for UpdateTracker<C>
-where
-    P: From<C>,
-    C: TryFrom<P>,
-    P::Phantom: From<PhantomData<C>>,
-    P::Phantom: TryInto<PhantomData<C>>,
-    C::Storage: specs::storage::Tracked,
-{
-    fn add_packet_for<'a>(
+impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
+    pub fn add_packet_for<'a, P>(
         &self,
         storage: &ReadStorage<'a, C>,
         entity: Entity,
         packets: &mut Vec<P>,
-    ) {
+    ) where
+        P: CompPacket,
+        P: From<C>,
+        C: TryFrom<P>,
+        P::Phantom: From<PhantomData<C>>,
+        P::Phantom: TryInto<PhantomData<C>>,
+        C::Storage: specs::storage::Tracked,
+    {
         if let Some(comp) = storage.get(entity) {
             packets.push(P::from(comp.clone()));
         }
     }
 
-    fn get_updates_for<'a>(
+    pub fn get_updates_for<'a, P>(
         &self,
         uids: &specs::ReadStorage<'a, Uid>,
         storage: &specs::ReadStorage<'a, C>,
         entity_filter: impl Join + Copy,
         buf: &mut Vec<(u64, CompUpdateKind<P>)>,
-    ) {
+    ) where
+        P: CompPacket,
+        P: From<C>,
+        C: TryFrom<P>,
+        P::Phantom: From<PhantomData<C>>,
+        P::Phantom: TryInto<PhantomData<C>>,
+        C::Storage: specs::storage::Tracked,
+    {
         // Generate inserted updates
         for (uid, comp, _, _) in (uids, storage, &self.inserted, entity_filter).join() {
             buf.push((

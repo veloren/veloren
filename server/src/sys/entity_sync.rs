@@ -1,5 +1,5 @@
 use super::{
-    sentinel::{DeletedEntities, ReadTrackers, TrackedComps, TrackedResources},
+    sentinel::{DeletedEntities, ReadTrackers, TrackedComps},
     SysTimer,
 };
 use crate::{
@@ -10,6 +10,7 @@ use common::{
     comp::{CharacterState, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
     msg::ServerMsg,
     region::{Event as RegionEvent, RegionMap},
+    state::TimeOfDay,
     sync::Uid,
 };
 use specs::{
@@ -22,6 +23,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, Tick>,
+        ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, RegionMap>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
@@ -41,7 +43,6 @@ impl<'a> System<'a> for Sys {
         Write<'a, DeletedEntities>,
         TrackedComps<'a>,
         ReadTrackers<'a>,
-        TrackedResources<'a>,
     );
 
     fn run(
@@ -49,6 +50,7 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             tick,
+            time_of_day,
             region_map,
             mut timer,
             uids,
@@ -68,7 +70,6 @@ impl<'a> System<'a> for Sys {
             mut deleted_entities,
             tracked_comps,
             trackers,
-            tracked_resources,
         ): Self::SystemData,
     ) {
         timer.start();
@@ -329,10 +330,10 @@ impl<'a> System<'a> for Sys {
         inventory_updates.clear();
 
         // Sync resources
-        // TODO: doesn't really belong in this system
-        let res_msg = ServerMsg::EcsResSync(tracked_resources.create_res_sync_package());
+        // TODO: doesn't really belong in this system (rename system or create another system?)
+        let tof_msg = ServerMsg::TimeOfDay(*time_of_day);
         for client in (&mut clients).join() {
-            client.notify(res_msg.clone());
+            client.notify(tof_msg.clone());
         }
 
         timer.end();

@@ -4,12 +4,8 @@ use common::{
         Body, CanBuild, Gravity, Item, LightEmitter, Mass, MountState, Mounting, Player, Scale,
         Stats, Sticky,
     },
-    msg::{EcsCompPacket, EcsResPacket},
-    state::TimeOfDay,
-    sync::{
-        CompPacket, EntityPackage, ResSyncPackage, StatePackage, SyncPackage, Uid, UpdateTracker,
-        WorldSyncExt,
-    },
+    msg::EcsCompPacket,
+    sync::{EntityPackage, SyncPackage, Uid, UpdateTracker, WorldSyncExt},
 };
 use hashbrown::HashMap;
 use specs::{
@@ -62,57 +58,48 @@ impl<'a> TrackedComps<'a> {
             .copied()
             .expect("No uid to create an entity package")
             .0;
-        let mut packets = Vec::new();
-        self.body
-            .get(entity)
-            .copied()
-            .map(|c| packets.push(c.into()));
+        let mut comps = Vec::new();
+        self.body.get(entity).copied().map(|c| comps.push(c.into()));
         self.player
             .get(entity)
             .cloned()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
         self.stats
             .get(entity)
             .cloned()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
         self.can_build
             .get(entity)
             .cloned()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
         self.light_emitter
             .get(entity)
             .copied()
-            .map(|c| packets.push(c.into()));
-        self.item
-            .get(entity)
-            .cloned()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
+        self.item.get(entity).cloned().map(|c| comps.push(c.into()));
         self.scale
             .get(entity)
             .copied()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
         self.mounting
             .get(entity)
             .cloned()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
         self.mount_state
             .get(entity)
             .cloned()
-            .map(|c| packets.push(c.into()));
-        self.mass
-            .get(entity)
-            .copied()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
+        self.mass.get(entity).copied().map(|c| comps.push(c.into()));
         self.sticky
             .get(entity)
             .copied()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
         self.gravity
             .get(entity)
             .copied()
-            .map(|c| packets.push(c.into()));
+            .map(|c| comps.push(c.into()));
 
-        EntityPackage(uid, packets)
+        EntityPackage { uid, comps }
     }
 }
 #[derive(SystemData)]
@@ -207,20 +194,6 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Mass>();
     world.register_tracker::<Sticky>();
     world.register_tracker::<Gravity>();
-}
-
-#[derive(SystemData)]
-pub struct TrackedResources<'a> {
-    time_of_day: ReadExpect<'a, TimeOfDay>,
-}
-impl<'a> TrackedResources<'a> {
-    pub fn create_res_sync_package(&self) -> ResSyncPackage<EcsResPacket> {
-        ResSyncPackage::new().with_res(&*self.time_of_day)
-    }
-    /// Create state package with resources included
-    pub fn state_package<C: CompPacket>(&self) -> StatePackage<C, EcsResPacket> {
-        StatePackage::new().with_res(&*self.time_of_day)
-    }
 }
 
 /// Deleted entities grouped by region
