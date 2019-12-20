@@ -1241,6 +1241,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "enumset"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57b811aef4ff1cc938f13bbec348f0ecbfc2bb565b7ab90161c9f0b2805edc8a"
+dependencies = [
+ "enumset_derive",
+ "num-traits 0.2.11",
+]
+
+[[package]]
+name = "enumset_derive"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b184c2d0714bbeeb6440481a19c78530aa210654d99529f13d2f860a1b447598"
+dependencies = [
+ "darling",
+ "proc-macro2 1.0.9",
+ "quote 1.0.3",
+ "syn 1.0.16",
+]
+
+[[package]]
 name = "env_logger"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5014,6 +5036,18 @@ dependencies = [
  "specs-idvs",
  "sum_type",
  "vek 0.10.0",
+]
+
+[[package]]
+name = "veloren-network"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "enumset",
+ "mio",
+ "serde",
+ "serde_derive",
+ "uvth",
 ]
 
 [[package]]
