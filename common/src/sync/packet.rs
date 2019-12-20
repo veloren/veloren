@@ -8,6 +8,9 @@ use std::{
     marker::PhantomData,
 };
 
+/// Implemented by type that carries component data for insertion and modification
+/// The assocatied `Phantom` type only carries information about which component type is of
+/// interest and is used to transmit deletion events
 pub trait CompPacket: Clone + Debug + Send + 'static {
     type Phantom: Clone + Debug + Serialize + DeserializeOwned;
 
