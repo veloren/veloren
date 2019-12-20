@@ -105,6 +105,10 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            if character.movement == Run || character.movement == Stand {
+                continue;
+            }
+
             if stats.is_dead {
                 continue;
             }
