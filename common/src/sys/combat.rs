@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        ActionState::*, CharacterState, Controller, HealthChange, HealthSource, Item, ItemKind,
-        Ori, Pos, Scale, Stats,
+        ActionState::*, Body, CharacterState, Controller, HealthChange, HealthSource, Item,
+        ItemKind, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -30,8 +30,9 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Controller>,
+        ReadStorage<'a, Body>,
+        ReadStorage<'a, Stats>,
         WriteStorage<'a, CharacterState>,
-        WriteStorage<'a, Stats>,
     );
 
     fn run(
@@ -46,15 +47,16 @@ impl<'a> System<'a> for Sys {
             orientations,
             scales,
             controllers,
-            mut character_states,
+            bodies,
             stats,
+            mut character_states,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
         let mut _local_emitter = local_bus.emitter();
 
         // Attacks
-        for (entity, uid, pos, ori, scale_maybe, _, stat) in (
+        for (entity, uid, pos, ori, scale_maybe, _, attacker_stats) in (
             &entities,
             &uids,
             &positions,
@@ -68,7 +70,7 @@ impl<'a> System<'a> for Sys {
             let recover_duration = if let Some(Item {
                 kind: ItemKind::Tool { kind, .. },
                 ..
-            }) = stat.equipment.main
+            }) = attacker_stats.equipment.main
             {
                 kind.attack_recover_duration()
             } else {
@@ -96,7 +98,7 @@ impl<'a> System<'a> for Sys {
             if deal_damage {
                 if let Some(Attack { .. }) = &character_states.get(entity).map(|c| c.action) {
                     // Go through all other entities
-                    for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stat_b) in (
+                    for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stats_b, body_b) in (
                         &entities,
                         &uids,
                         &positions,
@@ -104,6 +106,7 @@ impl<'a> System<'a> for Sys {
                         scales.maybe(),
                         &character_states,
                         &stats,
+                        &bodies,
                     )
                         .join()
                     {
@@ -115,19 +118,18 @@ impl<'a> System<'a> for Sys {
                         // Scales
                         let scale = scale_maybe.map_or(1.0, |s| s.0);
                         let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
-                        // TODO: don't do this here
-                        let rad_b = 0.5 * scale_b;
+                        let rad_b = body_b.radius() * scale_b;
 
                         // Check if it is a hit
                         if entity != b
-                            && !stat_b.is_dead
+                            && !stats_b.is_dead
                             // Spherical wedge shaped attack field
                             && pos.0.distance_squared(pos_b.0) < (rad_b + scale * ATTACK_RANGE).powi(2)
                             && ori2.angle_between(pos_b2 - pos2) < ATTACK_ANGLE.to_radians() / 2.0 + (rad_b / pos2.distance(pos_b2)).atan()
                         {
                             // Weapon gives base damage
                             let mut dmg = if let Some(ItemKind::Tool { power, .. }) =
-                                stat.equipment.main.as_ref().map(|i| &i.kind)
+                                attacker_stats.equipment.main.as_ref().map(|i| &i.kind)
                             {
                                 *power as i32
                             } else {

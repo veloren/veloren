@@ -413,21 +413,25 @@ impl Server {
                         }
                     }
 
-                    // This sucks
-                    let mut remove = false;
+                    let mut remove = true;
 
                     if let Some(client) = state.ecs().write_storage::<Client>().get_mut(entity) {
-                        let _ = state
+                        remove = false;
+                        state
                             .ecs()
                             .write_storage()
-                            .insert(entity, comp::Vel(Vec3::zero()));
-                        let _ = state
+                            .insert(entity, comp::Vel(Vec3::zero()))
+                            .err()
+                            .map(|err| error!("Failed to set zero vel on dead client: {:?}", err));
+                        state
                             .ecs()
                             .write_storage()
-                            .insert(entity, comp::ForceUpdate);
+                            .insert(entity, comp::ForceUpdate)
+                            .err()
+                            .map(|err| {
+                                error!("Failed to insert ForceUpdate on dead client: {:?}", err)
+                            });
                         client.force_state(ClientState::Dead);
-                    } else {
-                        remove = true;
                     }
 
                     if remove {
