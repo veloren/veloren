@@ -1,4 +1,6 @@
-use crate::comp::{Body, CharacterState, Controller, ControllerInputs, PhysicsState};
+use crate::comp::{
+    Body, CharacterState, Controller, ControllerInputs, ItemKind, PhysicsState, Stats,
+};
 use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System};
 use sphynx::{Uid, UidAllocator};
@@ -10,6 +12,7 @@ pub trait State {
         &self,
         character: &CharacterState,
         inputs: &ControllerInputs,
+        stats: &Stats,
         body: &Body,
         physics: &PhysicsState,
     ) -> CharacterState;
@@ -25,6 +28,7 @@ impl State for StandData {
         &self,
         character: &CharacterState,
         inputs: &ControllerInputs,
+        stats: &Stats,
         body: &Body,
         physics: &PhysicsState,
     ) -> CharacterState {
@@ -100,26 +104,45 @@ impl State for StandData {
                 && !inputs.glide.is_held_down()
                 && body.is_humanoid()
             {
-                character.movement = Glide;
-                continue;
+                return CharacterState {
+                    action: Idle,
+                    movement: Glide,
+                };
             }
-            character.movement = Fall;
+            return CharacterState {
+                action: character.action,
+                movement: Fall,
+            };
         }
 
         // Tool Actions
         if inputs.toggle_wield.is_just_pressed() {
-            match action_state {
+            match character.action {
                 Wield { .. } | Attack { .. } => {
                     // Prevent instantaneous reequipping by checking
                     // for done wielding
                     if character.action.is_action_finished() {
-                        character.action = Idle;
+                        return CharacterState {
+                            action: Idle,
+                            movement: character.movement,
+                        };
                     }
-                    continue;
                 }
                 Idle => {
-                    character.action = try_wield(stats);
-                    continue;
+                    return CharacterState {
+                        // Try to wield if an item is equipped in main hand
+                        action: if let Some(ItemKind::Tool { kind, .. }) =
+                            stats.equipment.main.as_ref().map(|i| &i.kind)
+                        {
+                            let wield_duration = kind.wield_duration();
+                            Wield {
+                                time_left: wield_duration,
+                            }
+                        } else {
+                            Idle
+                        },
+                        movement: character.movement,
+                    };
                 }
                 Charge { .. } | Roll { .. } | Block { .. } => {}
             }
@@ -129,14 +152,27 @@ impl State for StandData {
         } else if inputs.secondary.is_pressed() {
             // TODO: SecondaryStart
         }
+
+        if inputs.move_dir.magnitude_squared() > 0.0 {
+            return CharacterState {
+                action: character.action,
+                movement: Run(RunData),
+            };
+        } else {
+            return CharacterState {
+                action: character.action,
+                movement: Stand(StandData),
+            };
+        }
+        return character;
     }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum MovementState {
-    Stand(Stand),
+    Stand(StandData),
     Sit,
-    Run(Run),
+    Run(RunData),
     Jump,
     Fall,
     Glide,

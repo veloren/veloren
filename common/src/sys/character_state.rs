@@ -1,9 +1,14 @@
 use super::movement::ROLL_DURATION;
 use crate::{
     comp::{
-        self, item, projectile, ActionState, ActionState::*, Body, CharacterState, ControlEvent,
-        Controller, ControllerInputs, HealthChange, HealthSource, ItemKind, Mounting,
-        MovementState, MovementState::*, PhysicsState, Projectile, Stats, Vel,
+        self, item, projectile, ActionState,
+        ActionState::*,
+        Body, CharacterState,
+        CharacterState::{RunData, StandData},
+        ControlEvent, Controller, ControllerInputs, HealthChange, HealthSource, ItemKind, Mounting,
+        MovementState,
+        MovementState::*,
+        PhysicsState, Projectile, Stats, Vel,
     },
     event::{Emitter, EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -88,9 +93,9 @@ impl<'a> System<'a> for Sys {
 
             let get_state_from_move_dir = |move_dir: &Vec2<f32>| -> MovementState {
                 if move_dir.magnitude_squared() > 0.0 {
-                    Run(_)
+                    Run(RunData)
                 } else {
-                    Stand(_)
+                    Stand(StandData)
                 }
             };
 
@@ -204,7 +209,7 @@ impl<'a> System<'a> for Sys {
                             character.movement = Fall;
                         }
                     } else {
-                        character.movement = Stand(comp::character_state::Stand);
+                        character.movement = Stand(StandData);
                         continue;
                     }
 
@@ -354,7 +359,7 @@ impl<'a> System<'a> for Sys {
 
                     // character.movement will be Stand after updating when
                     // no movement has occurred
-                    if character.movement == Stand(_) {
+                    if character.movement == Stand(StandData) {
                         character.movement = Sit;
                     }
                     if inputs.jump.is_pressed() && !inputs.jump.is_held_down() {
