@@ -158,17 +158,11 @@ pub struct Log {
     // Whether to create a log file or not.
     // Default is to create one.
     pub log_to_file: bool,
-    // Should we ignore errors if we are unable to create the log file
-    // Default is to panic if log file can't be created.
-    pub ignore_errors: bool,
 }
 
 impl Default for Log {
     fn default() -> Self {
-        Self {
-            log_to_file: true,
-            ignore_errors: false,
-        }
+        Self { log_to_file: true }
     }
 }
 

@@ -40,17 +40,12 @@ pub fn init(
                 ))
             });
 
-    // Based on settings ignore errors incase log file can't be created
-    if !settings.log.ignore_errors {
-        file_cfg = file_cfg.chain(
-            fern::log_file(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H")))
-                .expect("Failed to create log file!"),
-        );
-    } else {
-        if let Ok(log_file) = fern::log_file(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H")))
-        {
-            file_cfg = file_cfg.chain(log_file);
-        }
+    // Try to create the log file.
+    // Incase of it failing we simply print it out to the console.
+    let mut log_file_created = Ok(());
+    match fern::log_file(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H"))) {
+        Ok(log_file) => file_cfg = file_cfg.chain(log_file),
+        Err(e) => log_file_created = Err(e),
     }
 
     let stdout_cfg = fern::Dispatch::new()
@@ -70,4 +65,8 @@ pub fn init(
     base.chain(stdout_cfg)
         .apply()
         .expect("Failed to setup logging!");
+
+    if let Err(e) = log_file_created {
+        log::error!("Failed to create log file! {}", e);
+    }
 }
