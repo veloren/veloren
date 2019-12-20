@@ -4,7 +4,7 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
 use common::{
-    comp::{ActionState, Body, CharacterState, ItemKind, MovementState, Pos, Stats},
+    comp::{ActionState, Body, CharacterState, MovementState, Pos},
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
@@ -38,11 +38,10 @@ impl SfxEventMapper {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, body, stats, character) in (
+        for (entity, pos, body, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Body>(),
-            &ecs.read_storage::<Stats>(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
@@ -50,7 +49,7 @@ impl SfxEventMapper {
                 (e_pos.0.distance_squared(player_position)) < SFX_DIST_LIMIT_SQR
             })
         {
-            if let (pos, body, Some(character), stats) = (pos, body, character, stats) {
+            if let Some(character) = character {
                 let state = self
                     .event_history
                     .entry(entity)
@@ -60,11 +59,10 @@ impl SfxEventMapper {
                     });
 
                 let mapped_event = match body {
-                    Body::Humanoid(_) => {
-                        Self::map_character_event(character, state.event.clone(), stats)
-                    }
+                    Body::Humanoid(_) => Self::map_movement_event(character, state.event.clone()),
                     Body::QuadrupedMedium(_) => {
-                        Self::map_quadriped_event(character, state.event.clone(), stats)
+                        // TODO: Quadriped running sfx
+                        SfxEvent::Idle
                     }
                     _ => SfxEvent::Idle,
                 };
@@ -129,58 +127,24 @@ impl SfxEventMapper {
     /// however that list does not provide enough resolution to target specific entity events, such
     /// as opening or closing the glider. These methods translate those entity states with some additional
     /// data into more specific `SfxEvent`'s which we attach sounds to
-    fn map_quadriped_event(
-        current_event: &CharacterState,
-        previous_event: SfxEvent,
-        stats: &Stats,
-    ) -> SfxEvent {
-        match (
-            current_event.movement,
-            current_event.action,
-            previous_event,
-            stats,
-        ) {
-            (_, ActionState::Attack { .. }, _, stats) => match stats.name.as_ref() {
-                "Wolf" => SfxEvent::AttackWolf,
-                _ => SfxEvent::Idle,
-            },
-            _ => SfxEvent::Idle,
-        }
-    }
-
-    fn map_character_event(
-        current_event: &CharacterState,
-        previous_event: SfxEvent,
-        stats: &Stats,
-    ) -> SfxEvent {
-        match (
-            current_event.movement,
-            current_event.action,
-            previous_event,
-            stats,
-        ) {
-            (_, ActionState::Roll { .. }, ..) => SfxEvent::Roll,
+    fn map_movement_event(current_event: &CharacterState, previous_event: SfxEvent) -> SfxEvent {
+        match (current_event.movement, current_event.action, previous_event) {
+            (_, ActionState::Roll { .. }, _) => SfxEvent::Roll,
             (MovementState::Climb, ..) => SfxEvent::Climb,
             (MovementState::Swim, ..) => SfxEvent::Swim,
             (MovementState::Run, ..) => SfxEvent::Run,
-            (MovementState::Fall, _, previous_event, _) => {
+            (MovementState::Fall, _, previous_event) => {
                 if previous_event != SfxEvent::Glide {
                     SfxEvent::Fall
                 } else {
                     SfxEvent::GliderClose
                 }
             }
-            (MovementState::Glide, _, previous_event, ..) => {
+            (MovementState::Glide, _, previous_event) => {
                 if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
                     SfxEvent::GliderOpen
                 } else {
                     SfxEvent::Glide
-                }
-            }
-            (_, ActionState::Attack { .. }, _, stats) => {
-                match &stats.equipment.main.as_ref().map(|i| &i.kind) {
-                    Some(ItemKind::Tool { kind, .. }) => SfxEvent::Attack(*kind),
-                    _ => SfxEvent::Idle,
                 }
             }
             _ => SfxEvent::Idle,
@@ -192,8 +156,7 @@ impl SfxEventMapper {
 mod tests {
     use super::*;
     use common::{
-        assets,
-        comp::{item::Tool, ActionState, MovementState, Stats},
+        comp::{ActionState, MovementState},
         event::SfxEvent,
     };
     use std::time::{Duration, Instant};
@@ -269,15 +232,12 @@ mod tests {
 
     #[test]
     fn maps_idle() {
-        let stats = Stats::new(String::from("Test"), None);
-
-        let result = SfxEventMapper::map_character_event(
+        let result = SfxEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Stand,
                 action: ActionState::Idle,
             },
             SfxEvent::Idle,
-            &stats,
         );
 
         assert_eq!(result, SfxEvent::Idle);
@@ -285,15 +245,12 @@ mod tests {
 
     #[test]
     fn maps_run() {
-        let stats = Stats::new(String::from("Test"), None);
-
-        let result = SfxEventMapper::map_character_event(
+        let result = SfxEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Run,
                 action: ActionState::Idle,
             },
             SfxEvent::Idle,
-            &stats,
         );
 
         assert_eq!(result, SfxEvent::Run);
@@ -301,9 +258,7 @@ mod tests {
 
     #[test]
     fn maps_roll() {
-        let stats = Stats::new(String::from("Test"), None);
-
-        let result = SfxEventMapper::map_character_event(
+        let result = SfxEventMapper::map_movement_event(
             &CharacterState {
                 action: ActionState::Roll {
                     time_left: Duration::new(1, 0),
@@ -312,7 +267,6 @@ mod tests {
                 movement: MovementState::Run,
             },
             SfxEvent::Run,
-            &stats,
         );
 
         assert_eq!(result, SfxEvent::Roll);
@@ -320,15 +274,12 @@ mod tests {
 
     #[test]
     fn maps_fall() {
-        let stats = Stats::new(String::from("Test"), None);
-
-        let result = SfxEventMapper::map_character_event(
+        let result = SfxEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Fall,
                 action: ActionState::Idle,
             },
             SfxEvent::Idle,
-            &stats,
         );
 
         assert_eq!(result, SfxEvent::Fall);
@@ -336,15 +287,12 @@ mod tests {
 
     #[test]
     fn maps_glider_open() {
-        let stats = Stats::new(String::from("Test"), None);
-
-        let result = SfxEventMapper::map_character_event(
+        let result = SfxEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Glide,
                 action: ActionState::Idle,
             },
             SfxEvent::Jump,
-            &stats,
         );
 
         assert_eq!(result, SfxEvent::GliderOpen);
@@ -352,15 +300,12 @@ mod tests {
 
     #[test]
     fn maps_glide() {
-        let stats = Stats::new(String::from("Test"), None);
-
-        let result = SfxEventMapper::map_character_event(
+        let result = SfxEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Glide,
                 action: ActionState::Idle,
             },
             SfxEvent::Glide,
-            &stats,
         );
 
         assert_eq!(result, SfxEvent::Glide);
@@ -368,41 +313,14 @@ mod tests {
 
     #[test]
     fn maps_glider_close() {
-        let stats = Stats::new(String::from("Test"), None);
-
-        let result = SfxEventMapper::map_character_event(
+        let result = SfxEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Fall,
                 action: ActionState::Idle,
             },
             SfxEvent::Glide,
-            &stats,
         );
 
         assert_eq!(result, SfxEvent::GliderClose);
-    }
-
-    #[test]
-    fn maps_attack() {
-        let stats = Stats::new(
-            String::from("Test"),
-            Some(assets::load_expect_cloned(
-                "common.items.weapons.starter_sword",
-            )),
-        );
-
-        let result = SfxEventMapper::map_character_event(
-            &CharacterState {
-                movement: MovementState::Stand,
-                action: ActionState::Attack {
-                    time_left: Duration::new(1, 0),
-                    applied: true,
-                },
-            },
-            SfxEvent::Idle,
-            &stats,
-        );
-
-        assert_eq!(result, SfxEvent::Attack(Tool::Sword));
     }
 }
