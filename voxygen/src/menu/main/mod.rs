@@ -45,7 +45,7 @@ impl PlayState for MainMenuState {
         if self.title_music_channel.is_none() && global_state.settings.audio.audio_on {
             self.title_music_channel = global_state
                 .audio
-                .play_music("voxygen.audio.soundtrack.veloren_title_tune-3");
+                .play_music("voxygen.audio.soundtrack.veloren_title_tune");
         }
 
         // Reset singleplayer server if it was running already
