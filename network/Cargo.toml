@@ -1,0 +1,16 @@
+[package]
+name = "veloren-network"
+version = "0.1.0"
+authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+uvth = "3.1"
+enumset = "0.4"
+bincode = "1.2"
+serde = "1.0"
+serde_derive = "1.0"
+mio = "0.6"
