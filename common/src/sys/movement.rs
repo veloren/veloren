@@ -175,6 +175,10 @@ impl<'a> System<'a> for Sys {
                 } else {
                     Vec2::from(inputs.move_dir)
                 }
+            } else if let Glide = character.movement {
+                // Note: non-gliding forces will also affect velocity and thus orientation
+                // producing potentially unexpected changes in direction
+                Vec2::from(vel.0)
             } else {
                 Vec2::from(inputs.move_dir)
             };
