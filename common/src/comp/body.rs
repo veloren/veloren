@@ -33,6 +33,23 @@ impl Body {
             _ => false,
         }
     }
+    // Note: this might need to be refined to something more complex for realistic
+    // behavior with less cylindrical bodies (e.g. wolfs)
+    pub fn radius(&self) -> f32 {
+        // TODO: Improve these values (some might be reliant on more info in inner type)
+        match self {
+            Body::Humanoid(_) => 0.5,
+            Body::QuadrupedSmall(_) => 0.6,
+            Body::QuadrupedMedium(_) => 0.9,
+            Body::BirdMedium(_) => 0.5,
+            Body::FishMedium(_) => 0.5,
+            Body::Dragon(_) => 2.5,
+            Body::BirdSmall(_) => 0.2,
+            Body::FishSmall(_) => 0.2,
+            Body::BipedLarge(_) => 1.0,
+            Body::Object(_) => 0.3,
+        }
+    }
 }
 
 impl Component for Body {

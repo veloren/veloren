@@ -51,10 +51,9 @@ where
                     self.inserted.add(*id);
                 }
                 specs::storage::ComponentEvent::Modified(id) => {
-                    // We don't care about modification if the component was just added or was
-                    // removed
-                    // Could potentially remove since this should theoretically never occur...
-                    if !self.removed.contains(*id) && !self.inserted.contains(*id) {
+                    // We don't care about modification if the component was just added
+                    if !self.inserted.contains(*id) {
+                        debug_assert!(!self.removed.contains(*id)); // Theoretically impossible
                         self.modified.add(*id);
                     }
                 }

@@ -147,8 +147,11 @@ impl<'a> System<'a> for Sys {
                         if target_stats.is_dead {
                             choose_new = true;
                         } else if dist < 0.001 {
-                            // TODO: move back? (probably can only happen when entities are at a
-                            // different z-level due to repulsion)
+                            // Probably can only happen when entities are at a different z-level
+                            // since at the same level repulsion would keep them apart.
+                            // Distinct from the first if block since we may want to change the
+                            // behavior for this case.
+                            choose_new = true;
                         } else if dist < MIN_ATTACK_DIST {
                             // Fight (and slowly move closer)
                             inputs.move_dir =

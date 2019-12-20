@@ -756,10 +756,7 @@ impl Ui {
 }
 
 fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
-    let (screen_w, screen_h) = renderer
-        .get_resolution()
-        .map(|e| (e as u16).max(1))
-        .into_tuple();
+    let (screen_w, screen_h) = renderer.get_resolution().into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {
