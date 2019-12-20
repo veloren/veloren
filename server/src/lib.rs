@@ -30,7 +30,7 @@ use common::{
     terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
-use log::{debug, trace};
+use log::debug;
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
@@ -178,8 +178,7 @@ impl Server {
                 .expect("Failed to initialize server metrics submodule."),
             server_settings: settings.clone(),
         };
-        debug!("created veloren server");
-        trace!("server configuration: {:?}", &settings);
+        debug!("created veloren server with: {:?}", &settings);
 
         Ok(this)
     }
@@ -973,7 +972,7 @@ impl Server {
                     .with(client)
                     .build();
                 // Return the state of the current world (all of the components that Sphynx tracks).
-                log::info!("Starting initial sync with client.");
+                log::debug!("Starting initial sync with client.");
                 self.state
                     .ecs()
                     .write_storage::<Client>()
@@ -985,7 +984,7 @@ impl Server {
                         server_info: self.server_info.clone(),
                         // world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
                     });
-                log::info!("Done initial sync with client.");
+                log::debug!("Done initial sync with client.");
 
                 frontend_events.push(Event::ClientConnected { entity });
             }
