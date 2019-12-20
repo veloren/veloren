@@ -151,18 +151,18 @@ impl Default for NetworkingSettings {
     }
 }
 
-/// `Log` stores the name to the log file.
+/// `Log` stores whether we should create a log file
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Log {
-    pub file: PathBuf,
+    // Whether to create a log file or not.
+    // Default is to create one.
+    pub log_to_file: bool,
 }
 
 impl Default for Log {
     fn default() -> Self {
-        Self {
-            file: "voxygen.log".into(),
-        }
+        Self { log_to_file: true }
     }
 }
 
@@ -290,7 +290,7 @@ impl Settings {
         Ok(())
     }
 
-    fn get_settings_path() -> PathBuf {
+    pub fn get_settings_path() -> PathBuf {
         if let Some(val) = std::env::var_os("VOXYGEN_CONFIG") {
             let settings = PathBuf::from(val).join("settings.ron");
             if settings.exists() || settings.parent().map(|x| x.exists()).unwrap_or(false) {
