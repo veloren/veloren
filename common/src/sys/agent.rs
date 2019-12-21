@@ -1,6 +1,5 @@
 use crate::comp::{
-    Agent, CharacterState, Controller, ControllerInputs, MountState, MovementState::Glide, Pos,
-    Stats,
+    Agent, CharacterState, Controller, MountState, MovementState::Glide, Pos, Stats,
 };
 use crate::pathfinding::WorldPath;
 use crate::terrain::TerrainGrid;
@@ -60,7 +59,7 @@ impl<'a> System<'a> for Sys {
 
             controller.reset();
 
-            let mut inputs = ControllerInputs::default();
+            let mut inputs = &mut controller.inputs;
 
             match agent {
                 Agent::Traveler { path } => {
@@ -147,10 +146,13 @@ impl<'a> System<'a> for Sys {
                         let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
                         if target_stats.is_dead {
                             choose_new = true;
-                        } else if dist < MIN_ATTACK_DIST
-                            && dist > 0.001
-                            && rand::random::<f32>() < 0.3
-                        {
+                        } else if dist < 0.001 {
+                            // Probably can only happen when entities are at a different z-level
+                            // since at the same level repulsion would keep them apart.
+                            // Distinct from the first if block since we may want to change the
+                            // behavior for this case.
+                            choose_new = true;
+                        } else if dist < MIN_ATTACK_DIST {
                             // Fight (and slowly move closer)
                             inputs.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.01;
@@ -203,7 +205,8 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            controller.inputs = inputs;
+            debug_assert!(inputs.move_dir.map(|e| !e.is_nan()).reduce_and());
+            debug_assert!(inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
         }
     }
 }

@@ -1,6 +1,6 @@
+use crate::sync::Uid;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
-use sphynx::Uid;
 use std::time::Duration;
 use vek::*;
 

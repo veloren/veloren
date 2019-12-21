@@ -7,6 +7,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use specs::WorldExt;
 use std::time::{Duration, Instant};
 use vek::*;
 

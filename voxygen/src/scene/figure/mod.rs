@@ -26,7 +26,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use log::trace;
-use specs::{Entity as EcsEntity, Join};
+use specs::{Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;

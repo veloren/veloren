@@ -21,6 +21,7 @@ use common::{
     terrain::BlockKind,
 };
 use log::error;
+use specs::WorldExt;
 use vek::*;
 
 struct Skybox {

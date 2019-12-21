@@ -22,7 +22,7 @@ use common::{
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
-use specs::Join;
+use specs::{Join, WorldExt};
 use vek::*;
 
 // TODO: Don't hard-code this.
