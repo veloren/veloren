@@ -8,7 +8,6 @@ use crate::{
     window::Event,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
-use argon2::{self, Config};
 use client_init::{ClientInit, Error as InitError};
 use common::{assets::load_expect, clock::Clock, comp};
 use log::warn;
@@ -202,9 +201,10 @@ fn attempt_login(
                 (server_address, server_port, false),
                 player,
                 {
-                    let salt = b"staticsalt_zTuGkGvybZIjZbNUDtw15";
+                    password
+                    /*let salt = b"staticsalt_zTuGkGvybZIjZbNUDtw15";
                     let config = Config::default();
-                    argon2::hash_encoded(password.as_bytes(), salt, &config).unwrap()
+                    argon2::hash_encoded(password.as_bytes(), salt, &config).unwrap()*/
                 },
             ));
         }

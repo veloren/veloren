@@ -68,13 +68,40 @@ impl ClientInit {
                         {
                             match Client::new(socket_addr, player.view_distance) {
                                 Ok(mut client) => {
+                                    // Authentication
+                                    let username_or_token = match &client.server_info.auth_provider
+                                    {
+                                        Some(addr) => {
+                                            let auth_client = authc::AuthClient::new(addr);
+                                            // TODO: PROMPT USER INCASE OF THE AUTH SERVER BEING
+                                            // UNKNOWN!
+                                            log::error!(
+                                                "Logging in with '{}', '{}'.",
+                                                &player.alias,
+                                                &password
+                                            );
+                                            match auth_client.sign_in(
+                                                &player.alias,
+                                                &password,
+                                                socket_addr.ip(),
+                                            ) {
+                                                Ok(token) => token.serialize(),
+                                                // TODO: Properly deal with it
+                                                Err(e) => panic!(
+                                                    "Failed to sign in to auth server '{}'! {}",
+                                                    addr, e
+                                                ),
+                                            }
+                                        },
+                                        None => player.alias.clone(),
+                                    };
+
                                     if let Err(ClientError::InvalidAuth) =
-                                        client.register(player.clone(), password.clone())
+                                        client.register(player.clone(), username_or_token.clone())
                                     {
                                         last_err = Some(Error::InvalidAuth);
                                         break;
                                     }
-                                    //client.register(player, password);
                                     let _ = tx.send(Ok(client));
                                     return;
                                 },

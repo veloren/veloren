@@ -64,6 +64,7 @@ rust-argon2 = "0.5"
 bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
+authc = { git = "https://gitlab.com/veloren/auth.git" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
