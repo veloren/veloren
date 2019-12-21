@@ -1,14 +1,21 @@
-use super::SysTimer;
+use super::{
+    sentinel::{DeletedEntities, TrackedComps},
+    SysTimer,
+};
 use crate::client::{self, Client, RegionSubscription};
 use common::{
     comp::{CharacterState, Ori, Player, Pos, Vel},
     msg::ServerMsg,
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
-    state::Uid,
+    sync::Uid,
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
-use specs::{Entities, Join, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use log::{debug, error};
+use specs::{
+    Entities, Join, ReadExpect, ReadStorage, System, SystemData, World, WorldExt, Write,
+    WriteStorage,
+};
 use vek::*;
 
 /// This system will update region subscriptions based on client positions
@@ -26,6 +33,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, RegionSubscription>,
+        Write<'a, DeletedEntities>,
+        TrackedComps<'a>,
     );
 
     fn run(
@@ -42,6 +51,8 @@ impl<'a> System<'a> for Sys {
             players,
             mut clients,
             mut subscriptions,
+            mut deleted_entities,
+            tracked_comps,
         ): Self::SystemData,
     ) {
         timer.start();
@@ -66,8 +77,15 @@ impl<'a> System<'a> for Sys {
             &entities,
         )
             .join()
-            .filter_map(|(c, s, pos, player, e)| player.view_distance.map(|v| (c, s, pos, v, e)))
+            .filter_map(|(client, s, pos, player, e)| {
+                if client.is_ingame() {
+                    player.view_distance.map(|v| (client, s, pos, v, e))
+                } else {
+                    None
+                }
+            })
         {
+            // Calculate current chunk
             let chunk = (Vec2::<f32>::from(pos.0))
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
             // Only update regions when moving to a new chunk
@@ -85,7 +103,7 @@ impl<'a> System<'a> for Sys {
                 .reduce_or()
             {
                 // Update current chunk
-                subscription.fuzzy_chunk = (Vec2::<f32>::from(pos.0))
+                subscription.fuzzy_chunk = Vec2::<f32>::from(pos.0)
                     .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
                 // Use the largest side length as our chunk size
                 let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
@@ -106,19 +124,24 @@ impl<'a> System<'a> for Sys {
 
                 // Iterate through regions to remove
                 for key in regions_to_remove.drain(..) {
-                    // Remove region from this clients set of subscribed regions
+                    // Remove region from this client's set of subscribed regions
                     subscription.regions.remove(&key);
                     // Tell the client to delete the entities in that region if it exists in the RegionMap
                     if let Some(region) = region_map.get(key) {
-                        // Process entity left events since they won't be processed during phsyics sync because this region is no longer subscribed to
+                        // Process entity left events since they won't be processed during entity sync because this region is no longer subscribed to
+                        // TODO: consider changing system ordering??
                         for event in region.events() {
                             match event {
                                 RegionEvent::Entered(_, _) => {} // These don't need to be processed because this region is being thrown out anyway
                                 RegionEvent::Left(id, maybe_key) => {
                                     // Lookup UID for entity
+                                    // Doesn't overlap with entity deletion in sync packages
+                                    // because the uid would not be available if the entity was
+                                    // deleted
                                     if let Some(&uid) = uids.get(entities.entity(*id)) {
                                         if !maybe_key
                                             .as_ref()
+                                            // Don't need to check that this isn't also in the regions to remove since the entity will be removed when we get to that one
                                             .map(|key| subscription.regions.contains(key))
                                             .unwrap_or(false)
                                         {
@@ -128,9 +151,18 @@ impl<'a> System<'a> for Sys {
                                 }
                             }
                         }
+                        // Tell client to delete entities in the region
                         for (&uid, _) in (&uids, region.entities()).join() {
-                            client.notify(ServerMsg::DeleteEntity(uid.into()))
+                            client.notify(ServerMsg::DeleteEntity(uid.into()));
                         }
+                    }
+                    // Send deleted entities since they won't be processed for this client in entity sync
+                    for uid in deleted_entities
+                        .get_deleted_in_region(key)
+                        .iter()
+                        .flat_map(|v| v.iter())
+                    {
+                        client.notify(ServerMsg::DeleteEntity(*uid));
                     }
                 }
 
@@ -139,10 +171,11 @@ impl<'a> System<'a> for Sys {
                     (vd as f32 * chunk_size)
                         + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
                 ) {
-                    // Send client intial info about the entities in this region
-                    if subscription.regions.insert(key) {
+                    // Send client intial info about the entities in this region if it was not
+                    // already within the set of subscribed regions
+                    if subscription.regions.insert(key.clone()) {
                         if let Some(region) = region_map.get(key) {
-                            for (uid, pos, vel, ori, character_state, _, _) in (
+                            for (uid, pos, vel, ori, character_state, _, entity) in (
                                 &uids,
                                 &positions,
                                 velocities.maybe(),
@@ -154,6 +187,11 @@ impl<'a> System<'a> for Sys {
                                 .join()
                                 .filter(|(_, _, _, _, _, _, e)| *e != client_entity)
                             {
+                                // Send message to create entity and tracked components
+                                client.notify(ServerMsg::CreateEntity(
+                                    tracked_comps.create_entity_package(entity),
+                                ));
+                                // Send message to create physics components
                                 super::entity_sync::send_initial_unsynced_components(
                                     client,
                                     uid,
@@ -170,5 +208,71 @@ impl<'a> System<'a> for Sys {
         }
 
         timer.end();
+    }
+}
+
+/// Initialize region subscription
+pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
+    if let (Some(client_pos), Some(client_vd), Some(client)) = (
+        world.read_storage::<Pos>().get(entity),
+        world
+            .read_storage::<Player>()
+            .get(entity)
+            .map(|pl| pl.view_distance)
+            .and_then(|v| v),
+        world.write_storage::<Client>().get_mut(entity),
+    ) {
+        let fuzzy_chunk = (Vec2::<f32>::from(client_pos.0))
+            .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+        let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as f32;
+        let regions = common::region::regions_in_vd(
+            client_pos.0,
+            (client_vd as f32 * chunk_size) as f32
+                + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
+        );
+
+        let region_map = world.read_resource::<RegionMap>();
+        let tracked_comps = TrackedComps::fetch(world);
+        for key in &regions {
+            if let Some(region) = region_map.get(*key) {
+                for (uid, pos, vel, ori, character_state, _, entity) in (
+                    &tracked_comps.uid,
+                    &world.read_storage::<Pos>(), // We assume all these entities have a position
+                    world.read_storage::<Vel>().maybe(),
+                    world.read_storage::<Ori>().maybe(),
+                    world.read_storage::<CharacterState>().maybe(),
+                    region.entities(),
+                    &world.entities(),
+                )
+                    .join()
+                {
+                    // Send message to create entity and tracked components
+                    client.notify(ServerMsg::CreateEntity(
+                        tracked_comps.create_entity_package(entity),
+                    ));
+                    // Send message to create physics components
+                    super::entity_sync::send_initial_unsynced_components(
+                        client,
+                        uid,
+                        pos,
+                        vel,
+                        ori,
+                        character_state,
+                    );
+                }
+            }
+        }
+
+        if let Err(err) = world.write_storage().insert(
+            entity,
+            RegionSubscription {
+                fuzzy_chunk,
+                regions,
+            },
+        ) {
+            error!("Failed to insert region subscription component: {:?}", err);
+        }
+    } else {
+        debug!("Failed to initialize region subcription. Couldn't retrieve all the neccesary components on the provided entity");
     }
 }

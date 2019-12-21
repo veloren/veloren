@@ -1,9 +1,8 @@
-use crate::comp;
+use crate::{comp, sync::Uid};
 use comp::item::Tool;
 use parking_lot::Mutex;
 use serde::Deserialize;
 use specs::Entity as EcsEntity;
-use sphynx::Uid;
 use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
 

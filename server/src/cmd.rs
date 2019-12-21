@@ -11,15 +11,17 @@ use common::{
     npc::{get_npc_name, NpcKind},
     pathfinding::WorldPath,
     state::TimeOfDay,
+    sync::WorldSyncExt,
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::RectVolSize,
 };
 use rand::Rng;
-use specs::{Builder, Entity as EcsEntity, Join};
+use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 use world::util::Sampler;
 
 use lazy_static::lazy_static;
+use log::error;
 use scan_fmt::{scan_fmt, scan_fmt_some};
 
 /// Struct representing a command that a user can run from server chat.
@@ -1117,7 +1119,9 @@ fn handle_remove_lights(
     let size = to_delete.len();
 
     for entity in to_delete {
-        let _ = server.state.ecs_mut().delete_entity_synced(entity);
+        if let Err(err) = server.state.delete_entity_recorded(entity) {
+            error!("Failed to delete light: {:?}", err);
+        }
     }
 
     server.notify_client(

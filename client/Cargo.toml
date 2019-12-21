@@ -12,6 +12,6 @@ uvth = "3.1.1"
 image = "0.22.3"
 num_cpus = "1.10.1"
 log = "0.4.8"
-specs = "0.14.2"
+specs = "0.15.1"
 vek = { version = "0.9.9", features = ["serde"] }
 hashbrown = { version = "0.6.2", features = ["serde", "nightly"] }
