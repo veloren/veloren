@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
-    comp::{Admin, Body, CanBuild, Controller, Ori, Player, Pos, Vel},
+    comp::{Admin, Body, CanBuild, Controller, ForceUpdate, Ori, Player, Pos, Vel},
     event::{EventBus, ServerEvent},
     msg::{validate_chat_msg, ChatMsgValidationError, MAX_BYTES_CHAT_MSG},
     msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
@@ -25,6 +25,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Body>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, Admin>,
+        ReadStorage<'a, ForceUpdate>,
         WriteExpect<'a, AuthProvider>,
         Write<'a, BlockChange>,
         WriteStorage<'a, Pos>,
@@ -46,6 +47,7 @@ impl<'a> System<'a> for Sys {
             bodies,
             can_build,
             admins,
+            force_updates,
             mut accounts,
             mut block_changes,
             mut positions,
@@ -218,9 +220,11 @@ impl<'a> System<'a> for Sys {
                     },
                     ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
                         ClientState::Character => {
-                            let _ = positions.insert(entity, pos);
-                            let _ = velocities.insert(entity, vel);
-                            let _ = orientations.insert(entity, ori);
+                            if force_updates.get(entity).is_none() {
+                                let _ = positions.insert(entity, pos);
+                                let _ = velocities.insert(entity, vel);
+                                let _ = orientations.insert(entity, ori);
+                            }
                         }
                         // Only characters can send positions.
                         _ => client.error_state(RequestStateError::Impossible),

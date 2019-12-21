@@ -8,7 +8,7 @@ use common::{
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
-use specs::{Entity as EcsEntity, Join};
+use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::time::{Duration, Instant};
 use vek::*;
 

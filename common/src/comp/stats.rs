@@ -1,4 +1,4 @@
-use crate::{comp, state::Uid};
+use crate::{comp, sync::Uid};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 

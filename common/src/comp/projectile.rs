@@ -1,5 +1,4 @@
-use crate::comp;
-use crate::state::Uid;
+use crate::{comp, sync::Uid};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
@@ -15,6 +14,7 @@ pub enum Effect {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Projectile {
     pub owner: Uid,
+    // TODO: use SmallVec for these effects
     pub hit_ground: Vec<Effect>,
     pub hit_wall: Vec<Effect>,
     pub hit_entity: Vec<Effect>,
