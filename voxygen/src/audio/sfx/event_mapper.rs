@@ -162,7 +162,7 @@ impl SfxEventMapper {
             (_, ActionState::Roll { .. }, ..) => SfxEvent::Roll,
             (MovementState::Climb, ..) => SfxEvent::Climb,
             (MovementState::Swim, ..) => SfxEvent::Swim,
-            (MovementState::Run, ..) => SfxEvent::Run,
+            (MovementState::Run(_), ..) => SfxEvent::Run,
             (MovementState::Fall, _, previous_event, _) => {
                 if previous_event != SfxEvent::Glide {
                     SfxEvent::Fall
