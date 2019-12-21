@@ -105,6 +105,8 @@ impl Client {
                     );
                 }
 
+                log::error!("Auth Server: {:?}", server_info.auth_provider);
+
                 // Initialize `State`
                 let mut state = State::default();
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
@@ -549,6 +551,7 @@ impl Client {
                     ServerMsg::Error(e) => match e {
                         ServerError::TooManyPlayers => return Err(Error::ServerWentMad),
                         ServerError::InvalidAuth => return Err(Error::InvalidAuth),
+                        ServerError::AlreadyLoggedIn => return Err(Error::AlreadyLoggedIn),
                         //TODO: ServerError::InvalidAlias => return Err(Error::InvalidAlias),
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),

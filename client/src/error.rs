@@ -8,6 +8,7 @@ pub enum Error {
     ServerShutdown,
     TooManyPlayers,
     InvalidAuth,
+    AlreadyLoggedIn,
     //TODO: InvalidAlias,
     Other(String),
 }

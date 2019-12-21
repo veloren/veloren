@@ -124,7 +124,12 @@ impl<'a> System<'a> for Sys {
                     },
                     // Valid player
                     ClientMsg::Register { player, password } if player.is_valid() => {
-                        if !accounts.query(player.alias.clone(), password) {
+                        if !accounts
+                            .query(password.clone())
+                            .expect("Handle this error!")
+                        {
+                            // TODO: Graceful error handling!
+                            // TODO: Graceful error handling! (e.g. AlreadyLoggedIn)
                             client.error_state(RequestStateError::Denied);
                             break;
                         }

@@ -21,6 +21,7 @@ pub struct ServerInfo {
     pub description: String,
     pub git_hash: String,
     pub git_date: String,
+    pub auth_provider: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -86,6 +87,7 @@ pub enum ServerMsg {
 pub enum ServerError {
     TooManyPlayers,
     InvalidAuth,
+    AlreadyLoggedIn,
     //TODO: InvalidAlias,
 }
 
