@@ -86,7 +86,9 @@ impl Server {
         let mut state = State::default();
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
         // TODO: anything but this
-        state.ecs_mut().insert(AuthProvider::new());
+        state
+            .ecs_mut()
+            .insert(AuthProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
         // System timers for performance monitoring
@@ -196,6 +198,7 @@ impl Server {
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
                 git_date: common::util::GIT_DATE.to_string(),
+                auth_provider: settings.auth_server_address.clone(),
             },
             metrics: ServerMetrics::new(settings.metrics_address)
                 .expect("Failed to initialize server metrics submodule."),

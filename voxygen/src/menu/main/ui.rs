@@ -90,7 +90,7 @@ image_ids! {
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
         input_bg_top: "voxygen.element.misc_bg.textbox_top",
-        //input_bg_mid: "voxygen.element.misc_bg.textbox_mid", <-- For password input
+        input_bg_mid: "voxygen.element.misc_bg.textbox_mid",
         input_bg_bot: "voxygen.element.misc_bg.textbox_bot",
 
 
@@ -461,14 +461,14 @@ impl MainMenuUi {
                     }
                 }
                 // Password
-                // TODO: REACTIVATE THIS WHEN A PROPER ACCOUNT SYSTEM IS IN PLACE
-                /*Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
+                // TODO: Why isn't it showing up?
+                // Password
+                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .down_from(self.ids.usrnm_bg, 30.0)
                     .set(self.ids.passwd_bg, ui_widgets);
                 Image::new(self.imgs.input_bg_mid)
                     .w_h(337.0, 67.0)
                     .middle_of(self.ids.passwd_bg)
-                    .color(Some(INACTIVE))
                     .set(self.ids.password_bg, ui_widgets);
                 for event in TextBox::new(&self.password)
                     .w_h(290.0, 30.0)
@@ -485,12 +485,13 @@ impl MainMenuUi {
                         TextBoxEvent::Update(password) => {
                             // Note: TextBox limits the input string length to what fits in it
                             self.password = password;
-                        }
+                        },
                         TextBoxEvent::Enter => {
                             login!();
-                        }
+                        },
                     }
-                }*/
+                }
+
                 if self.show_servers {
                     Image::new(self.imgs.info_frame)
                         .mid_top_with_margin_on(self.ids.username_bg, -320.0)
@@ -556,7 +557,7 @@ impl MainMenuUi {
                 }
                 // Server address
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-                    .down_from(self.ids.usrnm_bg, 30.0)
+                    .down_from(self.ids.passwd_bg, 30.0)
                     .set(self.ids.srvr_bg, ui_widgets);
                 Image::new(self.imgs.input_bg_bot)
                     .w_h(337.0, 67.0)
@@ -582,6 +583,7 @@ impl MainMenuUi {
                         },
                     }
                 }
+
                 // Login button
                 if Button::image(self.imgs.button)
                     .hover_image(self.imgs.button_hover)
