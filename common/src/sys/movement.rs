@@ -1,7 +1,8 @@
 use super::phys::GRAVITY;
 use crate::{
     comp::{
-        CharacterState, Controller, Mounting, MovementState::*, Ori, PhysicsState, Pos, Stats, Vel,
+        CharacterState, Controller, Mounting, MovementState::*, Ori, PhysicsState, Pos, RunData,
+        StandData, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
@@ -105,7 +106,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            if character.movement == Run || character.movement == Stand {
+            if character.movement == Run(RunData) || character.movement == Stand(StandData) {
                 continue;
             }
 
@@ -145,7 +146,7 @@ impl<'a> System<'a> for Sys {
                 vel.0 += Vec2::broadcast(dt.0)
                     * inputs.move_dir
                     * match (physics.on_ground, &character.movement) {
-                        (true, Run) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {
+                        (true, Run(_)) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {
                             HUMANOID_ACCEL
                         }
                         (false, Climb) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {

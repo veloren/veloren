@@ -197,14 +197,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match &character.movement {
-                        Stand => anim::character::StandAnimation::update_skeleton(
+                        Stand(_) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::character::RunAnimation::update_skeleton(
+                        Run(_) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, vel.0, ori.0, state.last_ori, time),
                             state.movement_time,
@@ -248,14 +248,16 @@ impl FigureMgr {
                         ),
                     };
                     let target_bones = match (&character.movement, &character.action) {
-                        (Stand, Wield { .. }) => anim::character::CidleAnimation::update_skeleton(
-                            &target_base,
-                            (active_tool_kind, time),
-                            state.action_time,
-                            &mut action_animation_rate,
-                            skeleton_attr,
-                        ),
-                        (Stand, Block { .. }) => {
+                        (Stand(_), Wield { .. }) => {
+                            anim::character::CidleAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, time),
+                                state.action_time,
+                                &mut action_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        (Stand(_), Block { .. }) => {
                             anim::character::BlockIdleAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
@@ -333,14 +335,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::quadruped_small::IdleAnimation::update_skeleton(
+                        Stand(_) => anim::quadruped_small::IdleAnimation::update_skeleton(
                             &QuadrupedSmallSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::quadruped_small::RunAnimation::update_skeleton(
+                        Run(_) => anim::quadruped_small::RunAnimation::update_skeleton(
                             &QuadrupedSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -390,14 +392,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::quadruped_medium::IdleAnimation::update_skeleton(
+                        Stand(_) => anim::quadruped_medium::IdleAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::quadruped_medium::RunAnimation::update_skeleton(
+                        Run(_) => anim::quadruped_medium::RunAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -445,14 +447,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::bird_medium::IdleAnimation::update_skeleton(
+                        Stand(_) => anim::bird_medium::IdleAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::bird_medium::RunAnimation::update_skeleton(
+                        Run(_) => anim::bird_medium::RunAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -500,14 +502,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::fish_medium::IdleAnimation::update_skeleton(
+                        Stand(_) => anim::fish_medium::IdleAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::fish_medium::RunAnimation::update_skeleton(
+                        Run(_) => anim::fish_medium::RunAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -555,14 +557,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::dragon::IdleAnimation::update_skeleton(
+                        Stand(_) => anim::dragon::IdleAnimation::update_skeleton(
                             &DragonSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::dragon::RunAnimation::update_skeleton(
+                        Run(_) => anim::dragon::RunAnimation::update_skeleton(
                             &DragonSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -610,14 +612,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::bird_small::IdleAnimation::update_skeleton(
+                        Stand(_) => anim::bird_small::IdleAnimation::update_skeleton(
                             &BirdSmallSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::bird_small::RunAnimation::update_skeleton(
+                        Run(_) => anim::bird_small::RunAnimation::update_skeleton(
                             &BirdSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -665,14 +667,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::fish_small::IdleAnimation::update_skeleton(
+                        Stand(_) => anim::fish_small::IdleAnimation::update_skeleton(
                             &FishSmallSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::fish_small::RunAnimation::update_skeleton(
+                        Run(_) => anim::fish_small::RunAnimation::update_skeleton(
                             &FishSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -720,14 +722,14 @@ impl FigureMgr {
                     }
 
                     let target_base = match character.movement {
-                        Stand => anim::biped_large::IdleAnimation::update_skeleton(
+                        Stand(_) => anim::biped_large::IdleAnimation::update_skeleton(
                             &BipedLargeSkeleton::new(),
                             time,
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Run => anim::biped_large::RunAnimation::update_skeleton(
+                        Run(_) => anim::biped_large::RunAnimation::update_skeleton(
                             &BipedLargeSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
