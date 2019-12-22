@@ -10,17 +10,29 @@ use std::time::Duration;
 pub struct RunData;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct StandData;
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct SitData;
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct JumpData;
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct FallData;
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct GlideData;
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct SwimData;
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct ClimbData;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum MovementState {
     Stand(StandData),
-    Sit,
     Run(RunData),
-    Jump,
-    Fall,
-    Glide,
-    Swim,
-    Climb,
+    Sit(SitData),
+    Jump(JumpData),
+    Fall(FallData),
+    Glide(GlideData),
+    Swim(SwimData),
+    Climb(ClimbData),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -122,7 +134,7 @@ impl CharacterState {
 impl Default for CharacterState {
     fn default() -> Self {
         Self {
-            movement: MovementState::Jump,
+            movement: MovementState::Fall(FallData),
             action: ActionState::Idle,
         }
     }

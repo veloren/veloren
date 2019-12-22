@@ -1,6 +1,6 @@
 use crate::comp::{
-    Agent, CharacterState, Controller, ControllerInputs, MountState, MovementState::Glide, Pos,
-    Stats,
+    Agent, CharacterState, Controller, ControllerInputs, GlideData, MountState,
+    MovementState::Glide, Pos, Stats,
 };
 use crate::pathfinding::WorldPath;
 use crate::terrain::TerrainGrid;
@@ -163,7 +163,8 @@ impl<'a> System<'a> for Sys {
                                 inputs.roll.set_state(true);
                             }
 
-                            if target_character.movement == Glide && target_pos.0.z > pos.0.z + 5.0
+                            if target_character.movement == Glide(GlideData)
+                                && target_pos.0.z > pos.0.z + 5.0
                             {
                                 inputs.glide.set_state(true);
                                 inputs.jump.set_state(true);
