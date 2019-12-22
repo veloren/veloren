@@ -160,17 +160,17 @@ impl SfxEventMapper {
             stats,
         ) {
             (_, ActionState::Roll { .. }, ..) => SfxEvent::Roll,
-            (MovementState::Climb, ..) => SfxEvent::Climb,
-            (MovementState::Swim, ..) => SfxEvent::Swim,
+            (MovementState::Climb(_), ..) => SfxEvent::Climb,
+            (MovementState::Swim(_), ..) => SfxEvent::Swim,
             (MovementState::Run(_), ..) => SfxEvent::Run,
-            (MovementState::Fall, _, previous_event, _) => {
+            (MovementState::Fall(_), _, previous_event, _) => {
                 if previous_event != SfxEvent::Glide {
                     SfxEvent::Fall
                 } else {
                     SfxEvent::GliderClose
                 }
             }
-            (MovementState::Glide, _, previous_event, ..) => {
+            (MovementState::Glide(_), _, previous_event, ..) => {
                 if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
                     SfxEvent::GliderOpen
                 } else {

@@ -20,7 +20,10 @@ pub use body::{
     biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small, humanoid, object,
     quadruped_medium, quadruped_small, Body,
 };
-pub use character_state::{ActionState, CharacterState, MovementState, RunData, StandData};
+pub use character_state::{
+    ActionState, CharacterState, ClimbData, FallData, GlideData, JumpData, MovementState, RunData,
+    SitData, StandData, SwimData,
+};
 pub use controller::{
     ControlEvent, Controller, ControllerInputs, Input, InputState, InventoryManip, MountState,
     Mounting,

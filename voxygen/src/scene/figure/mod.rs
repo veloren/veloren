@@ -211,35 +211,35 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump | Fall => anim::character::JumpAnimation::update_skeleton(
+                        Jump(_) | Fall(_) => anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Glide => anim::character::GlidingAnimation::update_skeleton(
+                        Glide(_) => anim::character::GlidingAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, vel.0, ori.0, state.last_ori, time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Swim => anim::character::SwimAnimation::update_skeleton(
+                        Swim(_) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, vel.0.magnitude(), ori.0.magnitude(), time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Climb => anim::character::ClimbAnimation::update_skeleton(
+                        Climb(_) => anim::character::ClimbAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, vel.0, ori.0, time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Sit => anim::character::SitAnimation::update_skeleton(
+                        Sit(_) => anim::character::SitAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
                             state.movement_time,
@@ -349,7 +349,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::quadruped_small::JumpAnimation::update_skeleton(
+                        Jump(_) => anim::quadruped_small::JumpAnimation::update_skeleton(
                             &QuadrupedSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -406,7 +406,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::quadruped_medium::JumpAnimation::update_skeleton(
+                        Jump(_) => anim::quadruped_medium::JumpAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -461,7 +461,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::bird_medium::JumpAnimation::update_skeleton(
+                        Jump(_) => anim::bird_medium::JumpAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -516,7 +516,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::fish_medium::JumpAnimation::update_skeleton(
+                        Jump(_) => anim::fish_medium::JumpAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -571,7 +571,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::dragon::JumpAnimation::update_skeleton(
+                        Jump(_) => anim::dragon::JumpAnimation::update_skeleton(
                             &DragonSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -626,7 +626,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::bird_small::JumpAnimation::update_skeleton(
+                        Jump(_) => anim::bird_small::JumpAnimation::update_skeleton(
                             &BirdSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -681,7 +681,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::fish_small::JumpAnimation::update_skeleton(
+                        Jump(_) => anim::fish_small::JumpAnimation::update_skeleton(
                             &FishSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
@@ -736,7 +736,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump => anim::biped_large::JumpAnimation::update_skeleton(
+                        Jump(_) => anim::biped_large::JumpAnimation::update_skeleton(
                             &BipedLargeSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.movement_time,
