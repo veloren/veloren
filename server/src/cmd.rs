@@ -8,11 +8,11 @@ use common::{
     assets, comp,
     event::{EventBus, ServerEvent},
     hierarchical::ChunkPath,
-    msg::ServerMsg,
+    msg::{PlayerListUpdate, ServerMsg},
     npc::{get_npc_name, NpcKind},
     pathfinding::WorldPath,
     state::TimeOfDay,
-    sync::WorldSyncExt,
+    sync::{Uid, WorldSyncExt},
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::RectVolSize,
 };
@@ -407,6 +407,19 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
             .write_storage::<comp::Player>()
             .get_mut(entity)
             .map(|player| player.alias = alias);
+
+        // Update name on client player lists
+        let ecs = server.state.ecs();
+        if let (Some(uid), Some(player)) = (
+            ecs.read_storage::<Uid>().get(entity),
+            ecs.read_storage::<comp::Player>().get(entity),
+        ) {
+            let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(
+                (*uid).into(),
+                player.alias.clone(),
+            ));
+            server.state.notify_registered_clients(msg);
+        }
     } else {
         server.notify_client(entity, ServerMsg::private(String::from(action.help_string)));
     }
