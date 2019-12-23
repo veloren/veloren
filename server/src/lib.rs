@@ -25,7 +25,7 @@ use common::{
     assets, comp,
     effect::Effect,
     event::{EventBus, ServerEvent},
-    msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, PlayerListUpdate, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay},
     sync::{Uid, WorldSyncExt},
@@ -762,6 +762,17 @@ impl Server {
                 }
 
                 ServerEvent::ClientDisconnect(entity) => {
+                    // Tell other clients to remove from player list
+                    if let (Some(uid), Some(_)) = (
+                        state.read_storage::<Uid>().get(entity),
+                        state.read_storage::<comp::Player>().get(entity),
+                    ) {
+                        state.notify_registered_clients(ServerMsg::PlayerListUpdate(
+                            PlayerListUpdate::Remove((*uid).into()),
+                        ))
+                    }
+
+                    // Delete client entity
                     if let Err(err) = state.delete_entity_recorded(entity) {
                         error!("Failed to delete disconnected client: {:?}", err);
                     }

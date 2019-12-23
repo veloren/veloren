@@ -326,17 +326,14 @@ impl State {
 
         // Apply terrain changes
         let mut terrain = self.ecs.write_resource::<TerrainGrid>();
-        self.ecs
-            .read_resource::<BlockChange>()
-            .blocks
-            .iter()
-            .for_each(|(pos, block)| {
-                let _ = terrain.set(*pos, *block);
-            });
-        self.ecs.write_resource::<TerrainChanges>().modified_blocks = std::mem::replace(
+        let mut modified_blocks = std::mem::replace(
             &mut self.ecs.write_resource::<BlockChange>().blocks,
             Default::default(),
         );
+        // Apply block modifications
+        // Only include in `TerrainChanges` if successful
+        modified_blocks.retain(|pos, block| terrain.set(*pos, *block).is_ok());
+        self.ecs.write_resource::<TerrainChanges>().modified_blocks = modified_blocks;
 
         // Process local events
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
