@@ -3,12 +3,16 @@ use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
     comp::{Admin, Body, CanBuild, Controller, ForceUpdate, Ori, Player, Pos, Vel},
     event::{EventBus, ServerEvent},
-    msg::{validate_chat_msg, ChatMsgValidationError, MAX_BYTES_CHAT_MSG},
-    msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
+    msg::{
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
+        RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
+    },
     state::{BlockChange, Time},
+    sync::Uid,
     terrain::{Block, TerrainGrid},
     vol::Vox,
 };
+use hashbrown::HashMap;
 use specs::{
     Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
 };
@@ -22,6 +26,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Time>,
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
+        ReadStorage<'a, Uid>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, Admin>,
@@ -44,6 +49,7 @@ impl<'a> System<'a> for Sys {
             time,
             terrain,
             mut timer,
+            uids,
             bodies,
             can_build,
             admins,
@@ -63,6 +69,14 @@ impl<'a> System<'a> for Sys {
         let time = time.0;
 
         let mut new_chat_msgs = Vec::new();
+
+        // Player list to send new players.
+        let player_list = (&uids, &players)
+            .join()
+            .map(|(uid, player)| ((*uid).into(), player.alias.clone()))
+            .collect::<HashMap<_, _>>();
+        // List of new players to update player lists of all clients.
+        let mut new_players = Vec::new();
 
         for (entity, client) in (&entities, &mut clients).join() {
             let mut disconnect = false;
@@ -127,10 +141,18 @@ impl<'a> System<'a> for Sys {
                         }
                         match client.client_state {
                             ClientState::Connected => {
+                                // Add Player component to this client
                                 let _ = players.insert(entity, player);
 
                                 // Tell the client its request was successful.
                                 client.allow_state(ClientState::Registered);
+
+                                // Send initial player list
+                                client.notify(ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(
+                                    player_list.clone(),
+                                )));
+                                // Add to list to notify all clients of the new player
+                                new_players.push(entity);
                             }
                             // Use RequestState instead (No need to send `player` again).
                             _ => client.error_state(RequestStateError::Impossible),
@@ -278,6 +300,20 @@ impl<'a> System<'a> for Sys {
                 }
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                 client.postbox.send_message(ServerMsg::Disconnect);
+            }
+        }
+
+        // Handle new players.
+        // Tell all clients to add them to the player list.
+        for entity in new_players {
+            if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
+                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(
+                    (*uid).into(),
+                    player.alias.clone(),
+                ));
+                for client in (&mut clients).join().filter(|c| c.is_registered()) {
+                    client.notify(msg.clone())
+                }
             }
         }
 

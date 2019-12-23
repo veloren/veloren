@@ -23,7 +23,7 @@ pub enum ClientMsg {
     Ping,
     Pong,
     ChatMsg {
-        chat_type: ChatType,
+        chat_type: ChatType, // This is unused afaik, TODO: remove
         message: String,
     },
     PlayerPhysics {
