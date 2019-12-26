@@ -10,7 +10,7 @@ use specs::{Component, Entity, FlaggedStorage, HashMapStorage, NullStorage};
 use sphynx::Uid;
 use std::time::Duration;
 
-pub struct ECSStateData<'a> {
+pub struct EcsCharacterState<'a> {
     pub entity: &'a Entity,
     pub uid: &'a Uid,
     pub character: &'a CharacterState,
@@ -27,7 +27,7 @@ pub struct ECSStateData<'a> {
     pub local_bus: &'a EventBus<LocalEvent>,
 }
 
-pub struct ECSStateUpdate {
+pub struct EcsStateUpdate {
     pub character: CharacterState,
     pub pos: Pos,
     pub vel: Vel,
@@ -127,6 +127,8 @@ impl ActionState {
 pub struct CharacterState {
     pub move_state: MoveState,
     pub action_state: ActionState,
+    pub action_disabled: bool,
+    pub move_disabled: bool,
 }
 
 impl CharacterState {
@@ -134,6 +136,7 @@ impl CharacterState {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(&self.move_state) == std::mem::discriminant(&other.move_state)
     }
+
     pub fn is_same_action_state(&self, other: &Self) -> bool {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(&self.action_state) == std::mem::discriminant(&other.action_state)
@@ -148,6 +151,8 @@ impl Default for CharacterState {
         Self {
             move_state: MoveState::Fall(FallHandler),
             action_state: ActionState::Idle,
+            action_disabled: false,
+            move_disabled: false,
         }
     }
 }

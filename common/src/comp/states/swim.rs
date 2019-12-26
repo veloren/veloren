@@ -1,6 +1,5 @@
 use super::{
-    CharacterState, ECSStateData, ECSStateUpdate, MoveState::*, RunHandler, StandHandler,
-    StateHandle,
+    EcsCharacterState, EcsStateUpdate, MoveState::*, RunHandler, StandHandler, StateHandle,
 };
 use super::{HUMANOID_WATER_ACCEL, HUMANOID_WATER_SPEED};
 use crate::sys::phys::GRAVITY;
@@ -10,8 +9,8 @@ use vek::{Vec2, Vec3};
 pub struct SwimHandler;
 
 impl StateHandle for SwimHandler {
-    fn handle(&self, ecs_data: &ECSStateData) -> ECSStateUpdate {
-        let mut update = ECSStateUpdate {
+    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
+        let mut update = EcsStateUpdate {
             character: *ecs_data.character,
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
@@ -52,31 +51,19 @@ impl StateHandle for SwimHandler {
                 (update.vel.0.z + ecs_data.dt.0 * GRAVITY * 1.25).min(HUMANOID_WATER_SPEED);
         }
 
-        if ecs_data.inputs.primary.is_pressed() {
-            // TODO: PrimaryStart
-        } else if ecs_data.inputs.secondary.is_pressed() {
-            // TODO: SecondaryStart
-        }
-
         // Not on ground
         if !ecs_data.physics.on_ground {
-            update.character = CharacterState {
-                action_state: ecs_data.character.action_state,
-                move_state: Swim(SwimHandler),
-            };
+            update.character.move_state = Swim(SwimHandler);
 
             return update;
         }
         // On ground
         else {
             // Return to running or standing based on move inputs
-            update.character = CharacterState {
-                action_state: ecs_data.character.action_state,
-                move_state: if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-                    Run(RunHandler)
-                } else {
-                    Stand(StandHandler)
-                },
+            update.character.move_state = if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
+                Run(RunHandler)
+            } else {
+                Stand(StandHandler)
             };
 
             return update;

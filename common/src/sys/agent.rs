@@ -1,6 +1,6 @@
 use crate::comp::{
     Agent, CharacterState, Controller, ControllerInputs, GlideHandler, MountState,
-    MoveState::Glide, Pos, SitHandler, Stats,
+    MoveState::Glide, Pos, Stats,
 };
 use crate::pathfinding::WorldPath;
 use crate::terrain::TerrainGrid;
