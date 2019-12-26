@@ -1,6 +1,6 @@
 use super::{
-    ActionState::*, CharacterState, ECSStateData, ECSStateUpdate, GlideHandler, MoveState::*,
-    RunHandler, StandHandler, StateHandle, SwimHandler,
+    EcsCharacterState, EcsStateUpdate, GlideHandler, MoveState::*, RunHandler, StandHandler,
+    StateHandle, SwimHandler,
 };
 use super::{HUMANOID_AIR_ACCEL, HUMANOID_AIR_SPEED};
 use vek::{Vec2, Vec3};
@@ -9,8 +9,8 @@ use vek::{Vec2, Vec3};
 pub struct FallHandler;
 
 impl StateHandle for FallHandler {
-    fn handle(&self, ecs_data: &ECSStateData) -> ECSStateUpdate {
-        let mut update = ECSStateUpdate {
+    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
+        let mut update = EcsStateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
@@ -34,6 +34,7 @@ impl StateHandle for FallHandler {
         } else {
             Vec2::from(update.vel.0)
         };
+
         if ori_dir.magnitude_squared() > 0.0001
             && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
                 > 0.001
@@ -43,11 +44,8 @@ impl StateHandle for FallHandler {
         }
 
         // Check gliding
-        if ecs_data.inputs.glide.is_pressed() && !ecs_data.inputs.glide.is_held_down() {
-            update.character = CharacterState {
-                action_state: Idle,
-                move_state: Glide(GlideHandler),
-            };
+        if ecs_data.inputs.glide.is_pressed() {
+            update.character.move_state = Glide(GlideHandler);
 
             return update;
         }
@@ -56,17 +54,11 @@ impl StateHandle for FallHandler {
         if !ecs_data.physics.on_ground {
             // Check if in fluid to go to swimming or back to falling
             if ecs_data.physics.in_fluid {
-                update.character = CharacterState {
-                    action_state: update.character.action_state,
-                    move_state: Swim(SwimHandler),
-                };
+                update.character.move_state = Swim(SwimHandler);
 
                 return update;
             } else {
-                update.character = CharacterState {
-                    action_state: update.character.action_state,
-                    move_state: Fall(FallHandler),
-                };
+                update.character.move_state = Fall(FallHandler);
 
                 return update;
             }
@@ -74,13 +66,10 @@ impl StateHandle for FallHandler {
         // On ground
         else {
             // Return to running or standing based on move inputs
-            update.character = CharacterState {
-                action_state: update.character.action_state,
-                move_state: if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-                    Run(RunHandler)
-                } else {
-                    Stand(StandHandler)
-                },
+            update.character.move_state = if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
+                Run(RunHandler)
+            } else {
+                Stand(StandHandler)
             };
 
             return update;

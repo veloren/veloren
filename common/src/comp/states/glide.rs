@@ -1,6 +1,6 @@
 use super::{
-    ActionState::*, CharacterState, ClimbHandler, ECSStateData, ECSStateUpdate, FallHandler,
-    MoveState::*, StandHandler, StateHandle,
+    ActionState::*, ClimbHandler, EcsCharacterState, EcsStateUpdate, FallHandler, MoveState::*,
+    StandHandler, StateHandle,
 };
 use super::{GLIDE_ACCEL, GLIDE_ANTIGRAV, GLIDE_SPEED};
 use vek::{Vec2, Vec3};
@@ -9,13 +9,19 @@ use vek::{Vec2, Vec3};
 pub struct GlideHandler;
 
 impl StateHandle for GlideHandler {
-    fn handle(&self, ecs_data: &ECSStateData) -> ECSStateUpdate {
-        let mut update = ECSStateUpdate {
+    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
+        let mut update = EcsStateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
             character: *ecs_data.character,
         };
+
+        // Prevent action in this state, set here
+        update.character.action_disabled = true;
+
+        update.character.action_state = Idle;
+        update.character.move_state = Glide(GlideHandler);
 
         // Move player according to movement direction vector
         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
@@ -36,7 +42,7 @@ impl StateHandle for GlideHandler {
                 vek::ops::Slerp::slerp(update.ori.0, ori_dir.into(), 2.0 * ecs_data.dt.0);
         }
 
-        // Apply Glide lift
+        // Apply Glide antigrav lift
         if Vec2::<f32>::from(update.vel.0).magnitude_squared() < GLIDE_SPEED.powf(2.0)
             && update.vel.0.z < 0.0
         {
@@ -50,38 +56,24 @@ impl StateHandle for GlideHandler {
 
         // If glide button isn't held
         if !ecs_data.inputs.glide.is_pressed() {
-            update.character = CharacterState {
-                action_state: Idle,
-                move_state: Fall(FallHandler),
-            };
+            update.character.move_state = Fall(FallHandler);
 
             return update;
         }
         // If there is a wall in front of character go to climb
         else if let Some(_wall_dir) = ecs_data.physics.on_wall {
-            update.character = CharacterState {
-                action_state: Idle,
-                move_state: Climb(ClimbHandler),
-            };
+            update.character.move_state = Climb(ClimbHandler);
 
             return update;
         }
         // If on ground go to stand
         if ecs_data.physics.on_ground {
-            update.character = CharacterState {
-                action_state: Idle,
-                move_state: Stand(StandHandler),
-            };
+            update.character.move_state = Stand(StandHandler);
 
             return update;
         }
 
         // Otherwise keep gliding
-        update.character = CharacterState {
-            action_state: Idle,
-            move_state: Glide(GlideHandler),
-        };
-
         return update;
     }
 }
