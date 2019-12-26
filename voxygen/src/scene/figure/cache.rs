@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{ActionState, Body, CharacterState, Equipment, MovementState},
+    comp::{ActionState, Body, CharacterState, Equipment, MoveState},
 };
 use hashbrown::HashMap;
 use std::mem::{discriminant, Discriminant};
@@ -24,15 +24,15 @@ enum FigureKey {
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 struct CharacterStateCacheKey {
-    movement: Discriminant<MovementState>,
+    move_state: Discriminant<MoveState>,
     action: Discriminant<ActionState>,
 }
 
 impl From<&CharacterState> for CharacterStateCacheKey {
     fn from(cs: &CharacterState) -> Self {
         Self {
-            movement: discriminant(&cs.movement),
-            action: discriminant(&cs.action),
+            move_state: discriminant(&cs.move_state),
+            action: discriminant(&cs.action_state),
         }
     }
 }
@@ -132,7 +132,7 @@ impl FigureModelCache {
                                     },
                                     if camera_mode == CameraMode::FirstPerson
                                         && character_state
-                                            .map(|cs| cs.action.is_roll())
+                                            .map(|cs| cs.action_state.is_dodging())
                                             .unwrap_or_default()
                                     {
                                         None
@@ -140,7 +140,7 @@ impl FigureModelCache {
                                         Some(humanoid_armor_hand_spec.mesh_left_hand(&body))
                                     },
                                     if character_state
-                                        .map(|cs| cs.action.is_roll())
+                                        .map(|cs| cs.action_state.is_dodging())
                                         .unwrap_or_default()
                                     {
                                         None
@@ -162,9 +162,9 @@ impl FigureModelCache {
                                     if camera_mode != CameraMode::FirstPerson
                                         || character_state
                                             .map(|cs| {
-                                                cs.action.is_attack()
-                                                    || cs.action.is_block()
-                                                    || cs.action.is_wield()
+                                                cs.action_state.is_attacking()
+                                                    || cs.action_state.is_blocking()
+                                                    || cs.action_state.is_wielding()
                                             })
                                             .unwrap_or_default()
                                     {

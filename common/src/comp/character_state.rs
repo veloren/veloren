@@ -1,109 +1,121 @@
-use crate::comp::{Body, Controller, ControllerInputs, ItemKind, PhysicsState, Stats};
-use specs::{Component, FlaggedStorage, HashMapStorage};
-use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System};
-use sphynx::{Uid, UidAllocator};
-//use specs_idvs::IDVStorage;
-use self::{ActionState::*, MovementState::*};
+use self::ActionState::*;
+use super::states::*;
+use crate::{
+    comp::{Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, Vel},
+    event::{EventBus, LocalEvent, ServerEvent},
+    state::DeltaTime,
+};
+use specs::LazyUpdate;
+use specs::{Component, Entity, FlaggedStorage, HashMapStorage, NullStorage};
+use sphynx::Uid;
 use std::time::Duration;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct RunData;
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct StandData;
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct SitData;
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct JumpData;
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct FallData;
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct GlideData;
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct SwimData;
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct ClimbData;
+pub struct ECSStateData<'a> {
+    pub entity: &'a Entity,
+    pub uid: &'a Uid,
+    pub character: &'a CharacterState,
+    pub pos: &'a Pos,
+    pub vel: &'a Vel,
+    pub ori: &'a Ori,
+    pub dt: &'a DeltaTime,
+    pub inputs: &'a ControllerInputs,
+    pub stats: &'a Stats,
+    pub body: &'a Body,
+    pub physics: &'a PhysicsState,
+    pub updater: &'a LazyUpdate,
+    pub server_bus: &'a EventBus<ServerEvent>,
+    pub local_bus: &'a EventBus<LocalEvent>,
+}
+
+pub struct ECSStateUpdate {
+    pub character: CharacterState,
+    pub pos: Pos,
+    pub vel: Vel,
+    pub ori: Ori,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub enum MovementState {
-    Stand(StandData),
-    Run(RunData),
-    Sit(SitData),
-    Jump(JumpData),
-    Fall(FallData),
-    Glide(GlideData),
-    Swim(SwimData),
-    Climb(ClimbData),
+pub enum MoveState {
+    Stand(StandHandler),
+    Run(RunHandler),
+    Sit(SitHandler),
+    Jump(JumpHandler),
+    Fall(FallHandler),
+    Glide(GlideHandler),
+    Swim(SwimHandler),
+    Climb(ClimbHandler),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum ActionState {
     Idle,
-    Wield {
-        time_left: Duration,
-    },
-    Attack {
-        time_left: Duration,
-        applied: bool,
-    },
-    Block {
-        time_active: Duration,
-    },
-    Roll {
-        time_left: Duration,
-        // Whether character was wielding before they started roll
-        was_wielding: bool,
-    },
-    Charge {
-        time_left: Duration,
-    },
-    // Handle(CharacterAction),
+    Wield(WieldHandler),
+    Attack(AttackKind),
+    Block(BlockKind),
+    Dodge(DodgeKind),
+    // Interact,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub enum AttackKind {
+    BasicAttack(BasicAttackHandler),
+    Charge(ChargeAttackHandler),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub enum BlockKind {
+    BasicBlock(BasicBlockHandler),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub enum DodgeKind {
+    Roll(RollHandler),
 }
 
 impl ActionState {
-    pub fn is_wield(&self) -> bool {
-        if let Self::Wield { .. } = self {
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn is_action_finished(&self) -> bool {
+    pub fn is_equip_finished(&self) -> bool {
         match self {
-            Self::Wield { time_left }
-            | Self::Attack { time_left, .. }
-            | Self::Roll { time_left, .. }
-            | Self::Charge { time_left } => *time_left == Duration::default(),
-            Self::Idle | Self::Block { .. } => false,
+            Wield(WieldHandler { equip_delay }) => *equip_delay == Duration::default(),
+            _ => true,
+        }
+    }
+    pub fn get_delay(&self) -> Duration {
+        match self {
+            Wield(WieldHandler { equip_delay }) => *equip_delay,
+            _ => Duration::default(),
         }
     }
 
-    pub fn is_attack(&self) -> bool {
-        if let Self::Attack { .. } = self {
+    pub fn is_attacking(&self) -> bool {
+        match self {
+            Block(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_blocking(&self) -> bool {
+        match self {
+            Attack(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_dodging(&self) -> bool {
+        match self {
+            Dodge(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_wielding(&self) -> bool {
+        if let Wield(_) = self {
             true
         } else {
             false
         }
     }
-
-    pub fn is_block(&self) -> bool {
-        if let Self::Block { .. } = self {
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn is_roll(&self) -> bool {
-        if let Self::Roll { .. } = self {
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn is_charge(&self) -> bool {
-        if let Self::Charge { .. } = self {
+    pub fn is_idling(&self) -> bool {
+        if let Idle = self {
             true
         } else {
             false
@@ -113,33 +125,51 @@ impl ActionState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct CharacterState {
-    pub movement: MovementState,
-    pub action: ActionState,
+    pub move_state: MoveState,
+    pub action_state: ActionState,
 }
 
 impl CharacterState {
-    pub fn is_same_movement(&self, other: &Self) -> bool {
-        // Check if enum item is the same without looking at the inner data
-        std::mem::discriminant(&self.movement) == std::mem::discriminant(&other.movement)
+    pub fn is_same_move_state(&self, other: &Self) -> bool {
+        // Check if state is the same without looking at the inner data
+        std::mem::discriminant(&self.move_state) == std::mem::discriminant(&other.move_state)
     }
-    pub fn is_same_action(&self, other: &Self) -> bool {
-        // Check if enum item is the same without looking at the inner data
-        std::mem::discriminant(&self.action) == std::mem::discriminant(&other.action)
+    pub fn is_same_action_state(&self, other: &Self) -> bool {
+        // Check if state is the same without looking at the inner data
+        std::mem::discriminant(&self.action_state) == std::mem::discriminant(&other.action_state)
     }
     pub fn is_same_state(&self, other: &Self) -> bool {
-        self.is_same_movement(other) && self.is_same_action(other)
+        self.is_same_move_state(other) && self.is_same_action_state(other)
     }
 }
 
 impl Default for CharacterState {
     fn default() -> Self {
         Self {
-            movement: MovementState::Fall(FallData),
-            action: ActionState::Idle,
+            move_state: MoveState::Fall(FallHandler),
+            action_state: ActionState::Idle,
         }
     }
 }
 
 impl Component for CharacterState {
     type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct OverrideState;
+impl Component for OverrideState {
+    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct OverrideAction;
+impl Component for OverrideAction {
+    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct OverrideMove;
+impl Component for OverrideMove {
+    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
 }
