@@ -136,6 +136,9 @@ impl State {
         ecs.register_synced::<comp::Sticky>();
         ecs.register_synced::<comp::Gravity>();
         ecs.register_synced::<comp::Projectile>();
+        ecs.register_synced::<comp::OverrideAction>();
+        ecs.register_synced::<comp::OverrideMove>();
+        ecs.register_synced::<comp::OverrideState>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

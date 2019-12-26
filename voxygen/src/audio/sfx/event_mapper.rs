@@ -4,7 +4,11 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
 use common::{
-    comp::{ActionState, Body, CharacterState, ItemKind, MovementState, Pos, Stats},
+    comp::{
+        ActionState, AttackKind::*, BasicAttackHandler, Body, CharacterState, DodgeKind::*,
+        FallHandler, GlideHandler, ItemKind, MoveState, Pos, RollHandler, RunHandler, StandHandler,
+        Stats,
+    },
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
@@ -125,7 +129,7 @@ impl SfxEventMapper {
         }
     }
 
-    /// Voxygen has an existing list of character states via `MovementState::*` and `ActionState::*`
+    /// Voxygen has an existing list of character states via `MoveState::*` and `ActionState::*`
     /// however that list does not provide enough resolution to target specific entity events, such
     /// as opening or closing the glider. These methods translate those entity states with some additional
     /// data into more specific `SfxEvent`'s which we attach sounds to
@@ -135,8 +139,8 @@ impl SfxEventMapper {
         stats: &Stats,
     ) -> SfxEvent {
         match (
-            current_event.movement,
-            current_event.action,
+            current_event.move_state,
+            current_event.action_state,
             previous_event,
             stats,
         ) {
@@ -154,23 +158,23 @@ impl SfxEventMapper {
         stats: &Stats,
     ) -> SfxEvent {
         match (
-            current_event.movement,
-            current_event.action,
+            current_event.move_state,
+            current_event.action_state,
             previous_event,
             stats,
         ) {
-            (_, ActionState::Roll { .. }, ..) => SfxEvent::Roll,
-            (MovementState::Climb(_), ..) => SfxEvent::Climb,
-            (MovementState::Swim(_), ..) => SfxEvent::Swim,
-            (MovementState::Run(_), ..) => SfxEvent::Run,
-            (MovementState::Fall(_), _, previous_event, _) => {
+            (_, ActionState::Dodge(_), ..) => SfxEvent::Roll,
+            (MoveState::Climb(_), ..) => SfxEvent::Climb,
+            (MoveState::Swim(_), ..) => SfxEvent::Swim,
+            (MoveState::Run(_), ..) => SfxEvent::Run,
+            (MoveState::Fall(_), _, previous_event, _) => {
                 if previous_event != SfxEvent::Glide {
                     SfxEvent::Fall
                 } else {
                     SfxEvent::GliderClose
                 }
             }
-            (MovementState::Glide(_), _, previous_event, ..) => {
+            (MoveState::Glide(_), _, previous_event, ..) => {
                 if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
                     SfxEvent::GliderOpen
                 } else {
@@ -193,7 +197,7 @@ mod tests {
     use super::*;
     use common::{
         assets,
-        comp::{item::Tool, ActionState, MovementState, Stats},
+        comp::{item::Tool, ActionState, MoveState, Stats},
         event::SfxEvent,
     };
     use std::time::{Duration, Instant};
@@ -273,8 +277,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Stand,
-                action: ActionState::Idle,
+                move_state: MoveState::Stand(StandHandler),
+                action_state: ActionState::Idle,
             },
             SfxEvent::Idle,
             &stats,
@@ -289,8 +293,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Run,
-                action: ActionState::Idle,
+                move_state: MoveState::Run(RunHandler),
+                action_state: ActionState::Idle,
             },
             SfxEvent::Idle,
             &stats,
@@ -305,11 +309,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                action: ActionState::Roll {
-                    time_left: Duration::new(1, 0),
-                    was_wielding: false,
-                },
-                movement: MovementState::Run,
+                action_state: ActionState::Dodge(Roll(RollHandler::default())),
+                move_state: MoveState::Run(RunHandler),
             },
             SfxEvent::Run,
             &stats,
@@ -324,8 +325,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Fall,
-                action: ActionState::Idle,
+                move_state: MoveState::Fall(FallHandler),
+                action_state: ActionState::Idle,
             },
             SfxEvent::Idle,
             &stats,
@@ -340,8 +341,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Glide,
-                action: ActionState::Idle,
+                move_state: MoveState::Glide(GlideHandler),
+                action_state: ActionState::Idle,
             },
             SfxEvent::Jump,
             &stats,
@@ -356,8 +357,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Glide,
-                action: ActionState::Idle,
+                move_state: MoveState::Glide(GlideHandler),
+                action_state: ActionState::Idle,
             },
             SfxEvent::Glide,
             &stats,
@@ -372,8 +373,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Fall,
-                action: ActionState::Idle,
+                move_state: MoveState::Fall(FallHandler),
+                action_state: ActionState::Idle,
             },
             SfxEvent::Glide,
             &stats,
@@ -393,11 +394,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                movement: MovementState::Stand,
-                action: ActionState::Attack {
-                    time_left: Duration::new(1, 0),
-                    applied: true,
-                },
+                move_state: MoveState::Stand(StandHandler),
+                action_state: ActionState::Attack(BasicAttack(BasicAttackHandler::default())),
             },
             SfxEvent::Idle,
             &stats,

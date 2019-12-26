@@ -33,6 +33,9 @@ sphynx::sum_type! {
         Projectile(comp::Projectile),
         Gravity(comp::Gravity),
         Sticky(comp::Sticky),
+        OverrideAction(comp::OverrideAction),
+        OverrideMove(comp::OverrideMove),
+        OverrideState(comp::OverrideState),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -56,6 +59,9 @@ sphynx::sum_type! {
         Projectile(PhantomData<comp::Projectile>),
         Gravity(PhantomData<comp::Gravity>),
         Sticky(PhantomData<comp::Sticky>),
+        OverrideAction(PhantomData<comp::OverrideAction>),
+        OverrideMove(PhantomData<comp::OverrideMove>),
+        OverrideState(PhantomData<comp::OverrideState>),
     }
 }
 impl sphynx::CompPacket for EcsCompPacket {
