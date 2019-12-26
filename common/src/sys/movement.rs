@@ -1,8 +1,8 @@
 use super::phys::GRAVITY;
 use crate::{
     comp::{
-        CharacterState, Controller, Mounting, MovementState::*, Ori, PhysicsState, Pos, RunData,
-        StandData, Stats, Vel,
+        CharacterState, Controller, Mounting, MoveState::*, Ori, PhysicsState, Pos, RunHandler,
+        StandHandler, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
@@ -106,7 +106,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            // if character.movement == Run(RunData) || character.movement == Stand(StandData) {
+            // if character.movement == Run(RunHandler) || character.movement == Stand(StandHandler) {
             //     continue;
             // }
 

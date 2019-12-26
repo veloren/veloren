@@ -1,20 +1,13 @@
-use super::movement::ROLL_DURATION;
 use crate::{
-    comp::{
-        self, item, projectile, ActionState, ActionState::*, Body, CharacterState, ControlEvent,
-        Controller, ControllerInputs, HealthChange, HealthSource, ItemKind, Mounting,
-        MovementState, MovementState::*, PhysicsState, Projectile, Stats, Vel,
-    },
-    event::{Emitter, EventBus, LocalEvent, ServerEvent},
+    comp::{ControlEvent, Controller},
+    event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Entity, Join, Read, ReadStorage, System, WriteStorage,
+    Entities, Join, Read, ReadStorage, System, WriteStorage,
 };
 use sphynx::{Uid, UidAllocator};
-use std::time::Duration;
-use vek::*;
 
 /// # Controller System
 /// #### Responsible for validating and updating controller inputs

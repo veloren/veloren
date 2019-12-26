@@ -202,9 +202,9 @@ impl PlayState for SessionState {
                             .read_storage::<comp::CharacterState>()
                             .get(client.entity())
                             .map(|cs| {
-                                cs.action.is_wield()
-                                    || cs.action.is_block()
-                                    || cs.action.is_attack()
+                                cs.action_state.is_wielding()
+                                    || cs.action_state.is_blocking()
+                                    || cs.action_state.is_attacking()
                             })
                             .unwrap_or(false)
                         {

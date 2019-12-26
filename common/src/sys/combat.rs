@@ -46,119 +46,119 @@ impl<'a> System<'a> for Sys {
             stats,
         ): Self::SystemData,
     ) {
-        let mut server_emitter = server_bus.emitter();
-        let mut _local_emitter = local_bus.emitter();
+        // let mut server_emitter = server_bus.emitter();
+        // let mut _local_emitter = local_bus.emitter();
 
-        // Attacks
-        for (entity, uid, pos, ori, _, stat) in (
-            &entities,
-            &uids,
-            &positions,
-            &orientations,
-            &controllers,
-            &stats,
-        )
-            .join()
-        {
-            let recover_duration = if let Some(Item {
-                kind: ItemKind::Tool { kind, .. },
-                ..
-            }) = stat.equipment.main
-            {
-                kind.attack_recover_duration()
-            } else {
-                Duration::from_secs(1)
-            };
+        // // Attacks
+        // for (entity, uid, pos, ori, _, stat) in (
+        //     &entities,
+        //     &uids,
+        //     &positions,
+        //     &orientations,
+        //     &controllers,
+        //     &stats,
+        // )
+        //     .join()
+        // {
+        //     let recover_duration = if let Some(Item {
+        //         kind: ItemKind::Tool { kind, .. },
+        //         ..
+        //     }) = stat.equipment.main
+        //     {
+        //         kind.attack_recover_duration()
+        //     } else {
+        //         Duration::from_secs(1)
+        //     };
 
-            let (deal_damage, should_end) = if let Some(Attack { time_left, applied }) =
-                &mut character_states.get_mut(entity).map(|c| &mut c.action)
-            {
-                *time_left = time_left
-                    .checked_sub(Duration::from_secs_f32(dt.0))
-                    .unwrap_or_default();
-                if !*applied && recover_duration > *time_left {
-                    *applied = true;
-                    (true, false)
-                } else if *time_left == Duration::default() {
-                    (false, true)
-                } else {
-                    (false, false)
-                }
-            } else {
-                (false, false)
-            };
+        //     let (deal_damage, should_end) = if let Some(Attack { time_left, applied }) =
+        //         &mut character_states.get_mut(entity).map(|c| &mut c.action)
+        //     {
+        //         *time_left = time_left
+        //             .checked_sub(Duration::from_secs_f32(dt.0))
+        //             .unwrap_or_default();
+        //         if !*applied && recover_duration > *time_left {
+        //             *applied = true;
+        //             (true, false)
+        //         } else if *time_left == Duration::default() {
+        //             (false, true)
+        //         } else {
+        //             (false, false)
+        //         }
+        //     } else {
+        //         (false, false)
+        //     };
 
-            if deal_damage {
-                if let Some(Attack { .. }) = &character_states.get(entity).map(|c| c.action) {
-                    // Go through all other entities
-                    for (b, uid_b, pos_b, ori_b, character_b, stat_b) in (
-                        &entities,
-                        &uids,
-                        &positions,
-                        &orientations,
-                        &character_states,
-                        &stats,
-                    )
-                        .join()
-                    {
-                        // 2D versions
-                        let pos2 = Vec2::from(pos.0);
-                        let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
-                        let ori2 = Vec2::from(ori.0);
+        //     if deal_damage {
+        //         if let Some(Attack { .. }) = &character_states.get(entity).map(|c| c.action) {
+        //             // Go through all other entities
+        //             for (b, uid_b, pos_b, ori_b, character_b, stat_b) in (
+        //                 &entities,
+        //                 &uids,
+        //                 &positions,
+        //                 &orientations,
+        //                 &character_states,
+        //                 &stats,
+        //             )
+        //                 .join()
+        //             {
+        //                 // 2D versions
+        //                 let pos2 = Vec2::from(pos.0);
+        //                 let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
+        //                 let ori2 = Vec2::from(ori.0);
 
-                        // Check if it is a hit
-                        if entity != b
-                            && !stat_b.is_dead
-                            && pos.0.distance_squared(pos_b.0) < ATTACK_RANGE.powi(2)
-                            // TODO: Use size instead of 1.0
-                            && ori2.angle_between(pos_b2 - pos2) < (2.0 / pos2.distance(pos_b2)).atan()
-                        {
-                            // Weapon gives base damage
-                            let mut dmg = if let Some(ItemKind::Tool { power, .. }) =
-                                stat.equipment.main.as_ref().map(|i| &i.kind)
-                            {
-                                *power as i32
-                            } else {
-                                1
-                            };
+        //                 // Check if it is a hit
+        //                 if entity != b
+        //                     && !stat_b.is_dead
+        //                     && pos.0.distance_squared(pos_b.0) < ATTACK_RANGE.powi(2)
+        //                     // TODO: Use size instead of 1.0
+        //                     && ori2.angle_between(pos_b2 - pos2) < (2.0 / pos2.distance(pos_b2)).atan()
+        //                 {
+        //                     // Weapon gives base damage
+        //                     let mut dmg = if let Some(ItemKind::Tool { power, .. }) =
+        //                         stat.equipment.main.as_ref().map(|i| &i.kind)
+        //                     {
+        //                         *power as i32
+        //                     } else {
+        //                         1
+        //                     };
 
-                            // Block
-                            if character_b.action.is_block()
-                                && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees()
-                                    < BLOCK_ANGLE / 2.0
-                            {
-                                dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
-                            }
+        //                     // Block
+        //                     if character_b.action.is_block()
+        //                         && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees()
+        //                             < BLOCK_ANGLE / 2.0
+        //                     {
+        //                         dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
+        //                     }
 
-                            server_emitter.emit(ServerEvent::Damage {
-                                uid: *uid_b,
-                                change: HealthChange {
-                                    amount: -dmg,
-                                    cause: HealthSource::Attack { by: *uid },
-                                },
-                            });
-                        }
-                    }
-                }
-            }
+        //                     server_emitter.emit(ServerEvent::Damage {
+        //                         uid: *uid_b,
+        //                         change: HealthChange {
+        //                             amount: -dmg,
+        //                             cause: HealthSource::Attack { by: *uid },
+        //                         },
+        //                     });
+        //                 }
+        //             }
+        //         }
+        //     }
 
-            if should_end {
-                if let Some(character) = &mut character_states.get_mut(entity) {
-                    character.action = Wield {
-                        time_left: Duration::default(),
-                    };
-                }
-            }
+        //     if should_end {
+        //         if let Some(character) = &mut character_states.get_mut(entity) {
+        //             character.action = Wield {
+        //                 time_left: Duration::default(),
+        //             };
+        //         }
+        //     }
 
-            if let Some(Wield { time_left }) =
-                &mut character_states.get_mut(entity).map(|c| &mut c.action)
-            {
-                if *time_left != Duration::default() {
-                    *time_left = time_left
-                        .checked_sub(Duration::from_secs_f32(dt.0))
-                        .unwrap_or_default();
-                }
-            }
-        }
+        //     if let Some(Wield { time_left }) =
+        //         &mut character_states.get_mut(entity).map(|c| &mut c.action)
+        //     {
+        //         if *time_left != Duration::default() {
+        //             *time_left = time_left
+        //                 .checked_sub(Duration::from_secs_f32(dt.0))
+        //                 .unwrap_or_default();
+        //         }
+        //     }
+        // }
     }
 }
