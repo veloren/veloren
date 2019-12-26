@@ -1,12 +1,12 @@
-use super::{CharacterState, ECSStateData, ECSStateUpdate, FallHandler, MoveState::*, StateHandle};
+use super::{EcsCharacterState, EcsStateUpdate, FallHandler, MoveState::*, StateHandle};
 use crate::event::LocalEvent;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct JumpHandler;
 
 impl StateHandle for JumpHandler {
-    fn handle(&self, ecs_data: &ECSStateData) -> ECSStateUpdate {
-        let mut update = ECSStateUpdate {
+    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
+        let mut update = EcsStateUpdate {
             character: *ecs_data.character,
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
@@ -18,10 +18,7 @@ impl StateHandle for JumpHandler {
             .emitter()
             .emit(LocalEvent::Jump(*ecs_data.entity));
 
-        update.character = CharacterState {
-            action_state: ecs_data.character.action_state,
-            move_state: Fall(FallHandler),
-        };
+        update.character.move_state = Fall(FallHandler);
 
         return update;
     }

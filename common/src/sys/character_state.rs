@@ -1,8 +1,8 @@
 use crate::{
     comp::{
-        Body, CharacterState, Controller, ControllerInputs, ECSStateData, Mounting, MoveState::*,
-        Ori, OverrideAction, OverrideMove, OverrideState, PhysicsState, Pos, SitHandler,
-        StateHandle, Stats, Vel,
+        Body, CharacterState, Controller, EcsCharacterState, Mounting, MoveState::*, Ori,
+        OverrideAction, OverrideMove, OverrideState, PhysicsState, Pos, SitHandler, StateHandle,
+        Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -41,7 +41,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            uid_allocator,
+            _uid_allocator,
             server_bus,
             local_bus,
             dt,
@@ -65,9 +65,9 @@ impl<'a> System<'a> for Sys {
             entity,
             uid,
             mut character,
-            mut pos,
-            mut vel,
-            mut ori,
+            pos,
+            vel,
+            ori,
             controller,
             stats,
             body,
@@ -108,15 +108,15 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
             // If mounted, character state is controlled by mount
-            // TODO: Make mounting a stater
+            // TODO: Make mounting a state
             if maybe_mount.is_some() {
                 character.move_state = Sit(SitHandler);
                 continue;
             }
 
             // Determine new move state if can move
-            if !maybe_move_override.is_some() {
-                let state_update = character.move_state.handle(&ECSStateData {
+            if !maybe_move_override.is_some() && !character.move_disabled {
+                let state_update = character.move_state.handle(&EcsCharacterState {
                     entity: &entity,
                     uid,
                     character,
@@ -140,8 +140,8 @@ impl<'a> System<'a> for Sys {
             }
 
             // Determine new action if can_act
-            if !maybe_action_override.is_some() {
-                let state_update = character.action_state.handle(&ECSStateData {
+            if !maybe_action_override.is_some() && !character.action_disabled {
+                let state_update = character.action_state.handle(&EcsCharacterState {
                     entity: &entity,
                     uid,
                     character,
@@ -163,24 +163,6 @@ impl<'a> System<'a> for Sys {
                 *vel = state_update.vel;
                 *ori = state_update.ori;
             }
-
-            // Rolling + Any Movement, prioritizes finishing charge
-            // over move_state states
-            // (
-            //     Roll {
-            //         time_left,
-            //         was_wielding,
-            //     },
-            //     _,
-            // ) => {
-            //     if time_left == Duration::default() {
-            //         if was_wielding {
-            //             character.action = try_wield(stats);
-            //         } else {
-            //             character.action = Idle;
-            //         }
-            //     }
-            // }
         }
     }
 }

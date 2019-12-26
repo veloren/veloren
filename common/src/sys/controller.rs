@@ -25,11 +25,10 @@ impl<'a> System<'a> for Sys {
     );
     fn run(
         &mut self,
-        (entities, uid_allocator, server_bus, local_bus, dt, mut controllers, uids): Self::SystemData,
+        (entities, uid_allocator, server_bus, _local_bus, _dt, mut controllers, uids): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
-        let mut local_emitter = local_bus.emitter();
-        for (entity, uid, controller) in (&entities, &uids, &mut controllers).join() {
+        for (entity, _uid, controller) in (&entities, &uids, &mut controllers).join() {
             let inputs = &mut controller.inputs;
 
             // Update `inputs.move_dir`.

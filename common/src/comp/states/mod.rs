@@ -50,17 +50,17 @@ pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
 // Public interface, wires character states to their handlers.
 use super::{
-    ActionState, ActionState::*, AttackKind::*, BlockKind::*, CharacterState, DodgeKind::*,
-    ECSStateData, ECSStateUpdate, MoveState, MoveState::*,
+    ActionState, ActionState::*, AttackKind::*, BlockKind::*, DodgeKind::*, EcsCharacterState,
+    EcsStateUpdate, MoveState, MoveState::*,
 };
 
 pub trait StateHandle {
-    fn handle(&self, ecs_data: &ECSStateData) -> ECSStateUpdate;
+    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate;
 }
 
 impl StateHandle for ActionState {
     /// Passes handle to variant or subvariant handlers
-    fn handle(&self, ecs_data: &ECSStateData) -> ECSStateUpdate {
+    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
         match self {
             Attack(kind) => match kind {
                 BasicAttack(handler) => handler.handle(ecs_data),
@@ -73,7 +73,7 @@ impl StateHandle for ActionState {
                 Roll(handler) => handler.handle(ecs_data),
             },
             Wield(handler) => handler.handle(ecs_data),
-            Idle => ECSStateUpdate {
+            Idle => EcsStateUpdate {
                 character: *ecs_data.character,
                 pos: *ecs_data.pos,
                 vel: *ecs_data.vel,
@@ -87,7 +87,7 @@ impl StateHandle for ActionState {
 
 impl StateHandle for MoveState {
     /// Passes handle to variant handlers
-    fn handle(&self, ecs_data: &ECSStateData) -> ECSStateUpdate {
+    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
         match self {
             Stand(handler) => handler.handle(&ecs_data),
             Run(handler) => handler.handle(&ecs_data),

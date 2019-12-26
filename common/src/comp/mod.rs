@@ -22,8 +22,8 @@ pub use body::{
     quadruped_medium, quadruped_small, Body,
 };
 pub use character_state::{
-    ActionState, AttackKind, BlockKind, CharacterState, DodgeKind, ECSStateData, ECSStateUpdate,
-    MoveState, OverrideAction, OverrideMove, OverrideState,
+    ActionState, AttackKind, BlockKind, CharacterState, DodgeKind, EcsCharacterState,
+    EcsStateUpdate, MoveState, OverrideAction, OverrideMove, OverrideState,
 };
 pub use controller::{
     ControlEvent, Controller, ControllerInputs, Input, InputState, InventoryManip, MountState,
