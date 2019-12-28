@@ -1,16 +1,16 @@
-use super::{
-    ActionState::*, ClimbHandler, EcsCharacterState, EcsStateUpdate, FallHandler, MoveState::*,
-    StandHandler, StateHandle,
-};
 use super::{GLIDE_ACCEL, GLIDE_ANTIGRAV, GLIDE_SPEED};
+use crate::comp::{
+    ActionState::*, ClimbState, EcsStateData, FallState, IdleState, MoveState::*, StandState,
+    StateHandle, StateUpdate,
+};
 use vek::{Vec2, Vec3};
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct GlideHandler;
+pub struct GlideState;
 
-impl StateHandle for GlideHandler {
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
-        let mut update = EcsStateUpdate {
+impl StateHandle for GlideState {
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
+        let mut update = StateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
@@ -20,8 +20,9 @@ impl StateHandle for GlideHandler {
         // Prevent action in this state, set here
         update.character.action_disabled = true;
 
-        update.character.action_state = Idle;
-        update.character.move_state = Glide(GlideHandler);
+        // Defaults for this state
+        update.character.action_state = Idle(IdleState);
+        update.character.move_state = Glide(GlideState);
 
         // Move player according to movement direction vector
         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
@@ -54,22 +55,21 @@ impl StateHandle for GlideHandler {
                     .max(0.2);
         }
 
-        // If glide button isn't held
+        // If glide button isn't held, start falling
         if !ecs_data.inputs.glide.is_pressed() {
-            update.character.move_state = Fall(FallHandler);
-
+            update.character.move_state = Fall(FallState);
             return update;
         }
+
         // If there is a wall in front of character go to climb
-        else if let Some(_wall_dir) = ecs_data.physics.on_wall {
-            update.character.move_state = Climb(ClimbHandler);
-
+        if let Some(_wall_dir) = ecs_data.physics.on_wall {
+            update.character.move_state = Climb(ClimbState);
             return update;
         }
+
         // If on ground go to stand
         if ecs_data.physics.on_ground {
-            update.character.move_state = Stand(StandHandler);
-
+            update.character.move_state = Stand(StandState);
             return update;
         }
 

@@ -1,13 +1,15 @@
 use crate::comp::{
-    ActionState::*, EcsCharacterState, EcsStateUpdate, FallHandler, JumpHandler, MoveState::*,
-    RunHandler, StandHandler, StateHandle, SwimHandler,
+    ActionState::*, EcsStateData, IdleState, JumpState, MoveState::*, RunState, StandState,
+    StateHandle, StateUpdate,
 };
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct SitHandler;
+use crate::util::movement_utils::*;
 
-impl StateHandle for SitHandler {
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
-        let mut update = EcsStateUpdate {
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct SitState;
+
+impl StateHandle for SitState {
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
+        let mut update = StateUpdate {
             character: *ecs_data.character,
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
@@ -16,46 +18,35 @@ impl StateHandle for SitHandler {
 
         // Prevent action state handling
         update.character.action_disabled = true;
-        update.character.action_state = Idle;
-        update.character.move_state = Sit(SitHandler);
+        update.character.action_state = Idle(IdleState);
+        update.character.move_state = Sit(SitState);
 
-        // Falling
-        // Idk, maybe the ground disappears,
+        // Try to Fall
+        // ... maybe the ground disappears,
         // suddenly maybe a water spell appears.
         // Can't hurt to be safe :shrug:
         if !ecs_data.physics.on_ground {
-            if ecs_data.physics.in_fluid {
-                update.character.move_state = Swim(SwimHandler);
-
-                update.character.action_disabled = false;
-                return update;
-            } else {
-                update.character.move_state = Fall(FallHandler);
-
-                update.character.action_disabled = false;
-                return update;
-            }
+            update.character.move_state = determine_fall_or_swim(ecs_data.physics);
+            update.character.move_disabled = false;
+            return update;
         }
-        // Jumping
+        // Try to jump
         if ecs_data.inputs.jump.is_pressed() {
-            update.character.move_state = Jump(JumpHandler);
-
+            update.character.move_state = Jump(JumpState);
             update.character.action_disabled = false;
             return update;
         }
 
-        // Moving
+        // Try to Run
         if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-            update.character.move_state = Run(RunHandler);
-
+            update.character.move_state = Run(RunState);
             update.character.action_disabled = false;
             return update;
         }
 
-        // Standing back up (unsitting)
+        // Try to Stand
         if ecs_data.inputs.sit.is_just_pressed() {
-            update.character.move_state = Stand(StandHandler);
-
+            update.character.move_state = Stand(StandState);
             update.character.action_disabled = false;
             return update;
         }

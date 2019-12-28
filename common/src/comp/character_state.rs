@@ -10,7 +10,7 @@ use specs::{Component, Entity, FlaggedStorage, HashMapStorage, NullStorage};
 use sphynx::Uid;
 use std::time::Duration;
 
-pub struct EcsCharacterState<'a> {
+pub struct EcsStateData<'a> {
     pub entity: &'a Entity,
     pub uid: &'a Uid,
     pub character: &'a CharacterState,
@@ -27,7 +27,7 @@ pub struct EcsCharacterState<'a> {
     pub local_bus: &'a EventBus<LocalEvent>,
 }
 
-pub struct EcsStateUpdate {
+pub struct StateUpdate {
     pub character: CharacterState,
     pub pos: Pos,
     pub vel: Vel,
@@ -36,52 +36,52 @@ pub struct EcsStateUpdate {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum MoveState {
-    Stand(StandHandler),
-    Run(RunHandler),
-    Sit(SitHandler),
-    Jump(JumpHandler),
-    Fall(FallHandler),
-    Glide(GlideHandler),
-    Swim(SwimHandler),
-    Climb(ClimbHandler),
+    Stand(StandState),
+    Run(RunState),
+    Sit(SitState),
+    Jump(JumpState),
+    Fall(FallState),
+    Glide(GlideState),
+    Swim(SwimState),
+    Climb(ClimbState),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum ActionState {
-    Idle,
-    Wield(WieldHandler),
+    Idle(IdleState),
+    Wield(WieldState),
     Attack(AttackKind),
     Block(BlockKind),
     Dodge(DodgeKind),
-    // Interact,
+    // Interact?,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum AttackKind {
-    BasicAttack(BasicAttackHandler),
-    Charge(ChargeAttackHandler),
+    BasicAttack(BasicAttackState),
+    Charge(ChargeAttackState),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum BlockKind {
-    BasicBlock(BasicBlockHandler),
+    BasicBlock(BasicBlockState),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum DodgeKind {
-    Roll(RollHandler),
+    Roll(RollState),
 }
 
 impl ActionState {
     pub fn is_equip_finished(&self) -> bool {
         match self {
-            Wield(WieldHandler { equip_delay }) => *equip_delay == Duration::default(),
+            Wield(WieldState { equip_delay }) => *equip_delay == Duration::default(),
             _ => true,
         }
     }
     pub fn get_delay(&self) -> Duration {
         match self {
-            Wield(WieldHandler { equip_delay }) => *equip_delay,
+            Wield(WieldState { equip_delay }) => *equip_delay,
             _ => Duration::default(),
         }
     }
@@ -115,7 +115,7 @@ impl ActionState {
         }
     }
     pub fn is_idling(&self) -> bool {
-        if let Idle = self {
+        if let Idle(_) = self {
             true
         } else {
             false
@@ -125,22 +125,40 @@ impl ActionState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct CharacterState {
+    /// __How the character is currently moving, e.g. Running, Standing, Falling.__
+    ///
+    /// _Primarily `handle()`s updating `Pos`, `Vel`, `Ori`, and lower body animations.
+    /// Can be overidden by `ActionState`s using `move_disabled` flag. Example: `ChargeAttackState`_
     pub move_state: MoveState,
+
+    /// __How the character is currently acting, e.g. Wielding, Attacking, Dodging.__
+    ///
+    /// _Primarily `handle()`s how character interacts with world, and upper body animations.
+    /// Can be overidden by `MoveState`s using `action_disabled` flag. Example: `GlideState`_
     pub action_state: ActionState,
+
+    /// Used by `move_state` to disable `action_state` `handle()` calls.
     pub action_disabled: bool,
+
+    /// Used by `action_state` to disable `move_state` `handle()` calls.
     pub move_disabled: bool,
 }
 
 impl CharacterState {
+    /// __Compares `move_state`s for shallow equality (does not check internal struct equality)__
     pub fn is_same_move_state(&self, other: &Self) -> bool {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(&self.move_state) == std::mem::discriminant(&other.move_state)
     }
 
+    /// __Compares `action_state`s for shallow equality (does not check internal struct equality)__
     pub fn is_same_action_state(&self, other: &Self) -> bool {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(&self.action_state) == std::mem::discriminant(&other.action_state)
     }
+
+    /// __Compares both `move_state`s and `action_state`a for shallow equality
+    /// (does not check internal struct equality)__
     pub fn is_same_state(&self, other: &Self) -> bool {
         self.is_same_move_state(other) && self.is_same_action_state(other)
     }
@@ -149,8 +167,8 @@ impl CharacterState {
 impl Default for CharacterState {
     fn default() -> Self {
         Self {
-            move_state: MoveState::Fall(FallHandler),
-            action_state: ActionState::Idle,
+            move_state: MoveState::Fall(FallState),
+            action_state: ActionState::Idle(IdleState),
             action_disabled: false,
             move_disabled: false,
         }
@@ -176,5 +194,23 @@ impl Component for OverrideAction {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct OverrideMove;
 impl Component for OverrideMove {
+    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub enum StartAction {
+    Primary,
+    Secondary,
+    Tertiary,
+    Four,
+    Five,
+}
+impl Default for StartAction {
+    fn default() -> Self {
+        Self::Primary
+    }
+}
+
+impl Component for StartAction {
     type Storage = FlaggedStorage<Self, NullStorage<Self>>;
 }

@@ -5,6 +5,7 @@ mod charge_attack;
 mod climb;
 mod fall;
 mod glide;
+mod idle;
 mod jump;
 mod roll;
 mod run;
@@ -20,6 +21,7 @@ pub use charge_attack::*;
 pub use climb::*;
 pub use fall::*;
 pub use glide::*;
+pub use idle::*;
 pub use jump::*;
 pub use roll::*;
 pub use run::*;
@@ -50,35 +52,30 @@ pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
 // Public interface, wires character states to their handlers.
 use super::{
-    ActionState, ActionState::*, AttackKind::*, BlockKind::*, DodgeKind::*, EcsCharacterState,
-    EcsStateUpdate, MoveState, MoveState::*,
+    ActionState, ActionState::*, AttackKind::*, BlockKind::*, DodgeKind::*, EcsStateData,
+    MoveState, MoveState::*, StateUpdate,
 };
 
 pub trait StateHandle {
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate;
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate;
 }
 
 impl StateHandle for ActionState {
     /// Passes handle to variant or subvariant handlers
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         match self {
             Attack(kind) => match kind {
-                BasicAttack(handler) => handler.handle(ecs_data),
-                Charge(handler) => handler.handle(ecs_data),
+                BasicAttack(state) => state.handle(ecs_data),
+                Charge(state) => state.handle(ecs_data),
             },
             Block(kind) => match kind {
-                BasicBlock(handler) => handler.handle(ecs_data),
+                BasicBlock(state) => state.handle(ecs_data),
             },
             Dodge(kind) => match kind {
-                Roll(handler) => handler.handle(ecs_data),
+                Roll(state) => state.handle(ecs_data),
             },
-            Wield(handler) => handler.handle(ecs_data),
-            Idle => EcsStateUpdate {
-                character: *ecs_data.character,
-                pos: *ecs_data.pos,
-                vel: *ecs_data.vel,
-                ori: *ecs_data.ori,
-            },
+            Wield(state) => state.handle(ecs_data),
+            Idle(state) => state.handle(ecs_data),
             // All states should be explicitly handled
             // Do not use default match: _ => {},
         }
@@ -87,16 +84,16 @@ impl StateHandle for ActionState {
 
 impl StateHandle for MoveState {
     /// Passes handle to variant handlers
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         match self {
-            Stand(handler) => handler.handle(&ecs_data),
-            Run(handler) => handler.handle(&ecs_data),
-            Jump(handler) => handler.handle(&ecs_data),
-            Climb(handler) => handler.handle(&ecs_data),
-            Glide(handler) => handler.handle(&ecs_data),
-            Swim(handler) => handler.handle(&ecs_data),
-            Fall(handler) => handler.handle(&ecs_data),
-            Sit(handler) => handler.handle(&ecs_data),
+            Stand(state) => state.handle(&ecs_data),
+            Run(state) => state.handle(&ecs_data),
+            Jump(state) => state.handle(&ecs_data),
+            Climb(state) => state.handle(&ecs_data),
+            Glide(state) => state.handle(&ecs_data),
+            Swim(state) => state.handle(&ecs_data),
+            Fall(state) => state.handle(&ecs_data),
+            Sit(state) => state.handle(&ecs_data),
             // All states should be explicitly handled
             // Do not use default match: _ => {},
         }
