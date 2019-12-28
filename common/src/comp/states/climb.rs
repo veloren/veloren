@@ -1,6 +1,6 @@
 use super::{
-    ActionState::*, EcsCharacterState, EcsStateUpdate, FallHandler, JumpHandler, MoveState::*,
-    StandHandler, StateHandle,
+    ActionState::*, EcsStateData, FallState, IdleState, JumpState, MoveState::*, StandState,
+    StateHandle, StateUpdate,
 };
 use super::{CLIMB_SPEED, HUMANOID_CLIMB_ACCEL, HUMANOID_SPEED};
 use crate::sys::phys::GRAVITY;
@@ -8,11 +8,11 @@ use vek::vec::{Vec2, Vec3};
 use vek::Lerp;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct ClimbHandler;
+pub struct ClimbState;
 
-impl StateHandle for ClimbHandler {
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
-        let mut update = EcsStateUpdate {
+impl StateHandle for ClimbState {
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
+        let mut update = StateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
@@ -20,7 +20,7 @@ impl StateHandle for ClimbHandler {
         };
 
         // Disable actions in this state
-        update.character.action_state = Idle;
+        update.character.action_state = Idle(IdleState);
         update.character.action_disabled = true;
 
         // Move player
@@ -80,13 +80,13 @@ impl StateHandle for ClimbHandler {
         if let None = ecs_data.physics.on_wall {
             if ecs_data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
-                update.character.move_state = Jump(JumpHandler);
+                update.character.move_state = Jump(JumpState);
                 update.character.action_disabled = false;
 
                 return update;
             } else {
                 // Just fall off
-                update.character.move_state = Fall(FallHandler);
+                update.character.move_state = Fall(FallState);
                 update.character.action_disabled = false;
 
                 return update;
@@ -95,7 +95,7 @@ impl StateHandle for ClimbHandler {
 
         // Remove climb state on ground, otherwise character will get stuck
         if ecs_data.physics.on_ground {
-            update.character.move_state = Stand(StandHandler);
+            update.character.move_state = Stand(StandState);
             update.character.action_disabled = false;
             return update;
         }

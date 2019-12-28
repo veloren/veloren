@@ -1,13 +1,15 @@
-use super::{
-    ClimbHandler, EcsCharacterState, EcsStateUpdate, FallHandler, GlideHandler, JumpHandler,
-    MoveState::*, RunHandler, SitHandler, StateHandle, SwimHandler,
+use crate::comp::{
+    ClimbState, EcsStateData, GlideState, JumpState, MoveState::*, SitState, StateHandle,
+    StateUpdate,
 };
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct StandHandler;
+use crate::util::movement_utils::*;
 
-impl StateHandle for StandHandler {
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
-        let mut update = EcsStateUpdate {
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct StandState;
+
+impl StateHandle for StandState {
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
+        let mut update = StateUpdate {
             character: *ecs_data.character,
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
@@ -15,66 +17,33 @@ impl StateHandle for StandHandler {
         };
 
         // Try to sit
-        if ecs_data.inputs.sit.is_pressed()
-            && ecs_data.physics.on_ground
-            && ecs_data.body.is_humanoid()
-        {
-            update.character.move_state = Sit(SitHandler);
-
+        if can_sit(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
+            update.character.move_state = Sit(SitState);
             return update;
         }
 
         // Try to climb
-        if let (true, Some(_wall_dir)) = (
-            ecs_data.inputs.climb.is_pressed() | ecs_data.inputs.climb_down.is_pressed()
-                && ecs_data.body.is_humanoid(),
-            ecs_data.physics.on_wall,
-        ) {
-            update.character.move_state = Climb(ClimbHandler);
-
+        if can_climb(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
+            update.character.move_state = Climb(ClimbState);
             return update;
         }
 
-        // Try to swim
-        if !ecs_data.physics.on_ground && ecs_data.physics.in_fluid {
-            update.character.move_state = Swim(SwimHandler);
-
+        // Try to jump
+        if can_jump(ecs_data.physics, ecs_data.inputs) {
+            update.character.move_state = Jump(JumpState);
             return update;
         }
 
-        // While on ground ...
-        if ecs_data.physics.on_ground {
-            // Try to jump
-            if ecs_data.inputs.jump.is_pressed() {
-                update.character.move_state = Jump(JumpHandler);
-
-                return update;
-            }
-        }
-        // While not on ground ...
-        else {
-            // Try to glide
-            if ecs_data.physics.on_wall == None
-                && ecs_data.inputs.glide.is_pressed()
-                && ecs_data.body.is_humanoid()
-            {
-                update.character.move_state = Glide(GlideHandler);
-
-                return update;
-            }
-            update.character.move_state = Fall(FallHandler);
-
+        // Check gliding
+        if can_glide(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
+            update.character.move_state = Glide(GlideState);
             return update;
         }
 
-        if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-            update.character.move_state = Run(RunHandler);
+        // Else update based on groundedness
+        update.character.move_state =
+            determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);
 
-            return update;
-        } else {
-            update.character.move_state = Stand(StandHandler);
-
-            return update;
-        }
+        return update;
     }
 }

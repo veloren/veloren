@@ -1,16 +1,14 @@
-use super::{
-    EcsCharacterState, EcsStateUpdate, MoveState::*, RunHandler, StandHandler, StateHandle,
-};
 use super::{HUMANOID_WATER_ACCEL, HUMANOID_WATER_SPEED};
+use crate::comp::{EcsStateData, MoveState::*, RunState, StandState, StateHandle, StateUpdate};
 use crate::sys::phys::GRAVITY;
 use vek::{Vec2, Vec3};
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct SwimHandler;
+pub struct SwimState;
 
-impl StateHandle for SwimHandler {
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
-        let mut update = EcsStateUpdate {
+impl StateHandle for SwimState {
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
+        let mut update = StateUpdate {
             character: *ecs_data.character,
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
@@ -46,24 +44,23 @@ impl StateHandle for SwimHandler {
             );
         }
 
-        if ecs_data.inputs.jump.is_pressed() {
+        if ecs_data.inputs.jump.is_pressed() && !ecs_data.inputs.jump.is_held_down() {
             update.vel.0.z =
                 (update.vel.0.z + ecs_data.dt.0 * GRAVITY * 1.25).min(HUMANOID_WATER_SPEED);
         }
 
         // Not on ground
         if !ecs_data.physics.on_ground {
-            update.character.move_state = Swim(SwimHandler);
-
+            update.character.move_state = Swim(SwimState);
             return update;
         }
         // On ground
         else {
             // Return to running or standing based on move inputs
             update.character.move_state = if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-                Run(RunHandler)
+                Run(RunState)
             } else {
-                Stand(StandHandler)
+                Stand(StandState)
             };
 
             return update;

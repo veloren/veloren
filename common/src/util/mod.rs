@@ -7,6 +7,9 @@ lazy_static::lazy_static! {
 
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
+pub mod movement_utils;
+
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 /// This is a fast approximation of powf. This should only be used when minor accuracy loss is acceptable.
 #[inline(always)]
 #[allow(unsafe_code)]
@@ -40,6 +43,7 @@ mod approx_powf_tests {
     }
 }
 
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 #[inline(always)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
     #[inline(always)]
@@ -52,6 +56,8 @@ pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
     }
     col.map(to_linear)
 }
+
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 #[inline(always)]
 pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
     #[inline(always)]
@@ -64,15 +70,20 @@ pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
     }
     col.map(to_srgb)
 }
+
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 #[inline(always)]
 pub fn srgba_to_linear(col: Rgba<f32>) -> Rgba<f32> {
     Rgba::from_translucent(srgb_to_linear(Rgb::from(col)), col.a)
 }
+
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 #[inline(always)]
 pub fn linear_to_srgba(col: Rgba<f32>) -> Rgba<f32> {
     Rgba::from_translucent(linear_to_srgb(Rgb::from(col)), col.a)
 }
 
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 /// Convert rgb to hsv. Expects rgb to be [0, 1].
 #[inline(always)]
 pub fn rgb_to_hsv(rgb: Rgb<f32>) -> Vec3<f32> {
@@ -104,6 +115,8 @@ pub fn rgb_to_hsv(rgb: Rgb<f32>) -> Vec3<f32> {
 
     Vec3::new(h, s, v)
 }
+
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 /// Convert hsv to rgb. Expects h [0, 360], s [0, 1], v [0, 1]
 #[inline(always)]
 pub fn hsv_to_rgb(hsv: Vec3<f32>) -> Rgb<f32> {
@@ -129,6 +142,8 @@ pub fn hsv_to_rgb(hsv: Vec3<f32>) -> Rgb<f32> {
 
     Rgb::new(r + m, g + m, b + m)
 }
+
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 /// Convert linear rgb to CIExyY
 #[inline(always)]
 pub fn rgb_to_xyy(rgb: Rgb<f32>) -> Vec3<f32> {
@@ -140,6 +155,8 @@ pub fn rgb_to_xyy(rgb: Rgb<f32>) -> Vec3<f32> {
     let sum = xyz.sum();
     Vec3::new(xyz.x / sum, xyz.y / sum, xyz.y)
 }
+
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 /// Convert to CIExyY to linear rgb
 #[inline(always)]
 pub fn xyy_to_rgb(xyy: Vec3<f32>) -> Rgb<f32> {
@@ -156,6 +173,7 @@ pub fn xyy_to_rgb(xyy: Vec3<f32>) -> Rgb<f32> {
     )
 }
 
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 // TO-DO: speed this up
 #[inline(always)]
 pub fn saturate_srgb(col: Rgb<f32>, value: f32) -> Rgb<f32> {
@@ -164,6 +182,7 @@ pub fn saturate_srgb(col: Rgb<f32>, value: f32) -> Rgb<f32> {
     linear_to_srgb(hsv_to_rgb(hsv).map(|e| e.min(1.0).max(0.0)))
 }
 
+/// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 /// Preserves the luma of one color while changing its chromaticty to match the other
 #[inline(always)]
 pub fn chromify_srgb(luma: Rgb<f32>, chroma: Rgb<f32>) -> Rgb<f32> {
