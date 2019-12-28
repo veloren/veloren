@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Body, CharacterState, Controller, EcsCharacterState, Mounting, MoveState::*, Ori,
-        OverrideAction, OverrideMove, OverrideState, PhysicsState, Pos, SitHandler, StateHandle,
+        Body, CharacterState, Controller, EcsStateData, Mounting, MoveState::*, Ori,
+        OverrideAction, OverrideMove, OverrideState, PhysicsState, Pos, SitState, StateHandle,
         Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -110,13 +110,13 @@ impl<'a> System<'a> for Sys {
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
             if maybe_mount.is_some() {
-                character.move_state = Sit(SitHandler);
+                character.move_state = Sit(SitState);
                 continue;
             }
 
             // Determine new move state if can move
             if !maybe_move_override.is_some() && !character.move_disabled {
-                let state_update = character.move_state.handle(&EcsCharacterState {
+                let state_update = character.move_state.handle(&EcsStateData {
                     entity: &entity,
                     uid,
                     character,
@@ -141,7 +141,7 @@ impl<'a> System<'a> for Sys {
 
             // Determine new action if can_act
             if !maybe_action_override.is_some() && !character.action_disabled {
-                let state_update = character.action_state.handle(&EcsCharacterState {
+                let state_update = character.action_state.handle(&EcsStateData {
                     entity: &entity,
                     uid,
                     character,

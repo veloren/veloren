@@ -1,16 +1,15 @@
-use super::{
-    EcsCharacterState, EcsStateUpdate, GlideHandler, MoveState::*, RunHandler, StandHandler,
-    StateHandle, SwimHandler,
-};
 use super::{HUMANOID_AIR_ACCEL, HUMANOID_AIR_SPEED};
+use crate::comp::{ClimbState, EcsStateData, GlideState, MoveState::*, StateHandle, StateUpdate};
+
+use crate::util::movement_utils::*;
 use vek::{Vec2, Vec3};
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct FallHandler;
+pub struct FallState;
 
-impl StateHandle for FallHandler {
-    fn handle(&self, ecs_data: &EcsCharacterState) -> EcsStateUpdate {
-        let mut update = EcsStateUpdate {
+impl StateHandle for FallState {
+    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
+        let mut update = StateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
@@ -43,36 +42,22 @@ impl StateHandle for FallHandler {
                 vek::ops::Slerp::slerp(update.ori.0, ori_dir.into(), 2.0 * ecs_data.dt.0);
         }
 
+        // Check to start climbing
+        if can_climb(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
+            update.character.move_state = Climb(ClimbState);
+            return update;
+        }
+
         // Check gliding
         if ecs_data.inputs.glide.is_pressed() {
-            update.character.move_state = Glide(GlideHandler);
-
+            update.character.move_state = Glide(GlideState);
             return update;
         }
 
-        // Not on ground, go to swim or fall
-        if !ecs_data.physics.on_ground {
-            // Check if in fluid to go to swimming or back to falling
-            if ecs_data.physics.in_fluid {
-                update.character.move_state = Swim(SwimHandler);
+        // Else update based on groundedness
+        update.character.move_state =
+            determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);
 
-                return update;
-            } else {
-                update.character.move_state = Fall(FallHandler);
-
-                return update;
-            }
-        }
-        // On ground
-        else {
-            // Return to running or standing based on move inputs
-            update.character.move_state = if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-                Run(RunHandler)
-            } else {
-                Stand(StandHandler)
-            };
-
-            return update;
-        }
+        return update;
     }
 }

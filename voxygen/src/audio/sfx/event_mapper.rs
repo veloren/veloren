@@ -5,9 +5,9 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 use client::Client;
 use common::{
     comp::{
-        ActionState, AttackKind::*, BasicAttackHandler, Body, CharacterState, DodgeKind::*,
-        FallHandler, GlideHandler, ItemKind, MoveState, Pos, RollHandler, RunHandler, StandHandler,
-        Stats,
+        ActionState, AttackKind::*, BasicAttackState, Body, CharacterState, DodgeKind::*,
+        FallState, GlideState, IdleState, ItemKind, MoveState, Pos, RollState, RunState,
+        StandState, Stats,
     },
     event::{EventBus, SfxEvent, SfxEventItem},
 };
@@ -277,8 +277,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Stand(StandHandler),
-                action_state: ActionState::Idle,
+                move_state: MoveState::Stand(StandState),
+                action_state: ActionState::Idle(IdleState),
+                action_disabled: false,
+                move_disabled: false,
             },
             SfxEvent::Idle,
             &stats,
@@ -293,8 +295,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Run(RunHandler),
-                action_state: ActionState::Idle,
+                move_state: MoveState::Run(RunState),
+                action_state: ActionState::Idle(IdleState),
+                action_disabled: false,
+                move_disabled: false,
             },
             SfxEvent::Idle,
             &stats,
@@ -309,8 +313,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                action_state: ActionState::Dodge(Roll(RollHandler::default())),
-                move_state: MoveState::Run(RunHandler),
+                action_state: ActionState::Dodge(Roll(RollState::default())),
+                move_state: MoveState::Run(RunState),
+                action_disabled: false,
+                move_disabled: true,
             },
             SfxEvent::Run,
             &stats,
@@ -325,8 +331,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Fall(FallHandler),
-                action_state: ActionState::Idle,
+                move_state: MoveState::Fall(FallState),
+                action_state: ActionState::Idle(IdleState),
+                action_disabled: false,
+                move_disabled: false,
             },
             SfxEvent::Idle,
             &stats,
@@ -341,8 +349,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Glide(GlideHandler),
-                action_state: ActionState::Idle,
+                move_state: MoveState::Glide(GlideState),
+                action_state: ActionState::Idle(IdleState),
+                action_disabled: true,
+                move_disabled: false,
             },
             SfxEvent::Jump,
             &stats,
@@ -357,8 +367,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Glide(GlideHandler),
-                action_state: ActionState::Idle,
+                move_state: MoveState::Glide(GlideState),
+                action_state: ActionState::Idle(IdleState),
+                action_disabled: true,
+                move_disabled: false,
             },
             SfxEvent::Glide,
             &stats,
@@ -373,8 +385,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Fall(FallHandler),
-                action_state: ActionState::Idle,
+                move_state: MoveState::Fall(FallState),
+                action_state: ActionState::Idle(IdleState),
+                move_disabled: false,
+                action_disabled: false,
             },
             SfxEvent::Glide,
             &stats,
@@ -394,8 +408,10 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Stand(StandHandler),
-                action_state: ActionState::Attack(BasicAttack(BasicAttackHandler::default())),
+                move_state: MoveState::Stand(StandState),
+                action_state: ActionState::Attack(BasicAttack(BasicAttackState::default())),
+                move_disabled: false,
+                action_disabled: false,
             },
             SfxEvent::Idle,
             &stats,
