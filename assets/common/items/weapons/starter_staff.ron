@@ -2,7 +2,11 @@ Item(
     name: "Gnarled Rod",
     description: "Smells like resin and magic.",
     kind: Tool(
-        kind: Staff,
-        power: 10,
+        ToolData (
+            kind: Staff,    
+            equip_time_millis: 800,
+            attack_buildup_millis: 400,
+            attack_recover_millis: 300,
+        )
     ),
 )

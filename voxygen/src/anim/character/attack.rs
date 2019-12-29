@@ -2,7 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
-use common::comp::item::Tool;
+use common::comp::item::ToolKind;
 use std::f32::consts::PI;
 use vek::*;
 
@@ -13,7 +13,7 @@ pub struct AttackAnimation;
 
 impl Animation for AttackAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (Option<Tool>, f64);
+    type Dependency = (Option<ToolKind>, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

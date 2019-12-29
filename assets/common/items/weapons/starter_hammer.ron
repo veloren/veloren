@@ -2,7 +2,11 @@ Item(
     name: "Sturdy Old Hammer",
     description: "'Property of...' The rest is missing. ",
     kind: Tool(
-        kind: Hammer,
-        power: 10,
+        ToolData (
+            kind: Hammer,    
+            equip_time_millis: 1000,
+            attack_buildup_millis: 700,
+            attack_recover_millis: 100,
+        )
     ),
 )

@@ -27,7 +27,7 @@
             threshold: 0.5,
         ),
         (
-            trigger: Attack(Sword),
+            trigger: Attack(Sword(Rapier)),
             files: [
                 "voxygen.audio.sfx.weapon.sword",
             ],

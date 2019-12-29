@@ -11,7 +11,7 @@
         "voxel.weapon.dagger.dagger_rusty",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
-    Tool(Sword): VoxTrans(
+    Tool(Sword(Rapier)): VoxTrans(
         "voxel.weapon.sword.rusty_2h",
         (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
