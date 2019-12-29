@@ -7,6 +7,7 @@ use chrono::{NaiveTime, Timelike};
 use common::{
     assets, comp,
     event::{EventBus, ServerEvent},
+    hierarchical::ChunkPath,
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     pathfinding::WorldPath,
@@ -517,7 +518,8 @@ fn handle_pathfind(server: &mut Server, player: EcsEntity, args: String, action:
                 .read_component_cloned::<comp::Pos>(target_entity)
             {
                 let target = start_pos.0 + Vec3::new(x, y, z);
-                let new_path = WorldPath::new(&*server.state.terrain(), start_pos.0, target);
+                let new_path = ChunkPath::new(&*server.state.terrain(), start_pos.0, target)
+                    .get_worldpath(&*server.state.terrain());
 
                 server.state.write_component(
                     target_entity,

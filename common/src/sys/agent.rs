@@ -1,6 +1,7 @@
 use crate::comp::{
     Agent, CharacterState, Controller, MountState, MovementState::Glide, Pos, Stats,
 };
+use crate::hierarchical::ChunkPath;
 use crate::pathfinding::WorldPath;
 use crate::terrain::TerrainGrid;
 use rand::{seq::SliceRandom, thread_rng};
@@ -72,7 +73,10 @@ impl<'a> System<'a> for Sys {
                         const MAX_TRAVEL_DIST: f32 = 200.0;
                         let new_dest = Vec3::new(rand::random::<f32>(), rand::random::<f32>(), 0.0)
                             * MAX_TRAVEL_DIST;
-                        new_path = Some(WorldPath::new(&*terrain, pos.0, pos.0 + new_dest));
+                        new_path = Some(
+                            ChunkPath::new(&*terrain, pos.0, pos.0 + new_dest)
+                                .get_worldpath(&*terrain),
+                        );
                     };
 
                     path.move_along_path(
