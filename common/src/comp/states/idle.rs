@@ -17,9 +17,10 @@ impl StateHandle for IdleState {
         };
 
         // Try to wield
-        if ecs_data.inputs.toggle_wield.is_pressed()
-            || ecs_data.inputs.primary.is_pressed()
+        if ecs_data.inputs.primary.is_pressed()
             || ecs_data.inputs.secondary.is_pressed()
+            || (ecs_data.inputs.toggle_wield.is_just_pressed()
+                && update.character.action_state.is_equip_finished())
         {
             if let Some(Tool { .. }) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
                 update.character.action_state = Wield(WieldState {
