@@ -79,6 +79,8 @@ impl ActionState {
             _ => true,
         }
     }
+
+    /// Returns the current `equip_delay` if in `WieldState`, otherwise `Duration::default()`
     pub fn get_delay(&self) -> Duration {
         match self {
             Wield(WieldState { equip_delay }) => *equip_delay,
@@ -123,6 +125,9 @@ impl ActionState {
     }
 }
 
+/// __A concurrent state machine that allows for spearate `ActionState`s and `MoveState`s.__
+///
+/// _Each state can optionally override the other through `*_disabled` flag_
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct CharacterState {
     /// __How the character is currently moving, e.g. Running, Standing, Falling.__
@@ -194,23 +199,5 @@ impl Component for OverrideAction {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct OverrideMove;
 impl Component for OverrideMove {
-    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub enum StartAction {
-    Primary,
-    Secondary,
-    Tertiary,
-    Four,
-    Five,
-}
-impl Default for StartAction {
-    fn default() -> Self {
-        Self::Primary
-    }
-}
-
-impl Component for StartAction {
     type Storage = FlaggedStorage<Self, NullStorage<Self>>;
 }

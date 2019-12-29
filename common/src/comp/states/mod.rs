@@ -50,16 +50,31 @@ pub const GLIDE_ANTIGRAV: f32 = crate::sys::phys::GRAVITY * 0.96;
 pub const CLIMB_SPEED: f32 = 5.0;
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
-// Public interface, wires character states to their handlers.
 use super::{
     ActionState, ActionState::*, AttackKind::*, BlockKind::*, DodgeKind::*, EcsStateData,
     MoveState, MoveState::*, StateUpdate,
 };
 
+/// #### A trait for implementing state `handle()`ing logic.
+///  _Mimics the typical OOP style state machine pattern, but remains performant and consistent
+///  with ECS data-behavior-separation constraint since trait fn's are syntactic sugar for
+///  static fn's that accept their implementor's object type as its first parameter. This allows
+///  for several benefits over implementing each state's behavior within the `CharacterState` update `System`
+///  itself:_
+///  
+///  1. Less cognitive overhead: State's handling logic is next to the its data, and component (inside the state's .rs file).
+///  2. Separation of concerns (between states): all logic within a state's `handle()` is relevant only to that state.
+///     States can be added/editted without concerns of affecting other state's logic.
+///  3. Clearly defined API and pattern: All states accept the same `EcsStateData` struct, which can be added to as necessary,
+///     without the need for updating every state's implementation. All states return the same `StateUpdate` component.
+///     `CharacterState` update `System` passes `EcsStateData` to `ActionState`/`MoveState` `handle()` which matches the character's
+///     current state to its `handle()` fn, hiding the implementation details, since the System is only concerned with
+///     how the update flow occurs and is in charge of updating the ECS components.
 pub trait StateHandle {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate;
 }
 
+// Public interface that passes EcsStateData to `StateHandle`s `handle()` fn
 impl StateHandle for ActionState {
     /// Passes handle to variant or subvariant handlers
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
@@ -82,6 +97,7 @@ impl StateHandle for ActionState {
     }
 }
 
+/// Public interface that passes EcsStateData to `StateHandle`s `handle()` fn
 impl StateHandle for MoveState {
     /// Passes handle to variant handlers
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {

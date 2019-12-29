@@ -20,7 +20,7 @@ impl StateHandle for WieldState {
         // Only act once equip_delay has expired
         if self.equip_delay == Duration::default() {
             // Toggle Weapons
-            if ecs_data.inputs.toggle_wield.is_pressed()
+            if ecs_data.inputs.toggle_wield.is_just_pressed()
                 && ecs_data.character.action_state.is_equip_finished()
             {
                 update.character.action_state = Idle(IdleState);
