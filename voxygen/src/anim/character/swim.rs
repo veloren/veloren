@@ -2,7 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
-use common::comp::item::Tool;
+use common::comp::item::ToolKind;
 use std::f32::consts::PI;
 use std::ops::Mul;
 use vek::*;
@@ -11,7 +11,7 @@ pub struct SwimAnimation;
 
 impl Animation for SwimAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (Option<Tool>, f32, f32, f64);
+    type Dependency = (Option<ToolKind>, f32, f32, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

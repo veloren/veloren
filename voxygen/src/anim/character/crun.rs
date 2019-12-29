@@ -2,7 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
-use common::comp::item::Tool;
+use common::comp::item::ToolKind;
 use std::f32::consts::PI;
 use std::ops::Mul;
 use vek::*;
@@ -43,7 +43,7 @@ impl Animation for WieldAnimation {
 
         match Tool::Bow {
             //TODO: Inventory
-            Tool::Sword => {
+            Tool::Sword(_) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.75, 0.25);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;

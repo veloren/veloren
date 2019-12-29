@@ -2,7 +2,11 @@ Item(
     name: "Sharp Kitchen Knife",
     description: "Great for cutting meat.",
     kind: Tool(
-        kind: Dagger,
-        power: 10,
+        ToolData (
+            kind: Dagger,    
+            equip_time_millis: 300,
+            attack_buildup_millis: 100,
+            attack_recover_millis: 400,
+        )
     ),
 )
