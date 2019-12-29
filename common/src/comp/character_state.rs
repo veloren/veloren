@@ -125,7 +125,7 @@ impl ActionState {
     }
 }
 
-/// __A concurrent state machine that allows for spearate `ActionState`s and `MoveState`s.__
+/// __A concurrent state machine that allows for separate `ActionState`s and `MoveState`s.__
 ///
 /// _Each state can optionally override the other through `*_disabled` flag_
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]

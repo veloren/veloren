@@ -1,9 +1,36 @@
 use crate::comp::TEMP_EQUIP_DELAY;
 use crate::comp::{
-    ActionState, ActionState::*, Body, ControllerInputs, FallState, IdleState, ItemKind::Tool,
-    MoveState, MoveState::*, PhysicsState, RunState, StandState, Stats, SwimState, WieldState,
+    ActionState, ActionState::*, AttackKind::*, BasicAttackState, BasicBlockState, BlockKind::*,
+    Body, ControllerInputs, FallState, IdleState, ItemKind::Tool, MoveState, MoveState::*,
+    PhysicsState, RunState, StandState, Stats, SwimState, ToolData, WieldState,
 };
 use std::time::Duration;
+
+/// _Determines what ability a player has selected for their primary ability,
+/// and returns the corresponding `ActionState`
+/// ... or Idle if nothing it possible?_
+pub fn determine_primary_ability(stats: &Stats) -> ActionState {
+    if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
+        Attack(BasicAttack(BasicAttackState {
+            remaining_duration: data.attack_duration(),
+        }))
+    } else {
+        Idle(IdleState)
+    }
+}
+
+/// _Determines what ability a player has selected for their primary ability,
+/// and returns the corresponding `ActionState`
+/// ... or Idle if nothing it possible?_
+pub fn determine_secondary_ability(stats: &Stats) -> ActionState {
+    if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
+        Block(BasicBlock(BasicBlockState {
+            active_duration:: Duration::default(),
+        }))
+    } else {
+        Idle(IdleState)
+    }
+}
 
 /// __Returns a `MoveState` based on `in_fluid` condition__
 pub fn determine_fall_or_swim(physics: &PhysicsState) -> MoveState {

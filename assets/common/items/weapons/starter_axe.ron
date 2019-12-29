@@ -2,7 +2,11 @@ Item(
     name: "Notched Axe",
     description: "Every dent tells the story of a chopped tree.",
     kind: Tool(
-        kind: Axe,
-        power: 10,
+        ToolData (
+            kind: Axe,    
+            equip_time_millis: 1000,
+            attack_buildup_millis: 700,
+            attack_recover_millis: 100,
+        )
     ),
 )

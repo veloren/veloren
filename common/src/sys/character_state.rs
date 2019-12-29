@@ -8,8 +8,7 @@ use crate::{
     state::DeltaTime,
 };
 
-use rayon::prelude::*;
-use specs::{Entities, LazyUpdate, ParJoin, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
 use sphynx::{Uid, UidAllocator};
 
 /// # Character State System
@@ -72,11 +71,7 @@ impl<'a> System<'a> for Sys {
             action_overrides,
         ): Self::SystemData,
     ) {
-        // Parallel joining behaves similarly to normal `join()`ing
-        // with the difference that iteration can potentially be
-        // executed in parallel by a thread pool.
-        // https://specs.amethyst.rs/docs/tutorials/09_parallel_join.html
-        (
+        for (entity, uid, mut character, pos, vel, ori, controller, stats, body, physics, ()) in (
             &entities,
             &uids,
             &mut character_states,
@@ -87,99 +82,79 @@ impl<'a> System<'a> for Sys {
             &stats,
             &bodies,
             &physics_states,
-            mountings.maybe(),
-            move_overrides.maybe(),
-            action_overrides.maybe(),
             !&state_overrides,
         )
-            .par_join()
-            .for_each(
-                |(
-                    entity,
+            .join()
+        {
+            let inputs = &controller.inputs;
+
+            // Being dead overrides all other states
+            if stats.is_dead {
+                // Only options: click respawn
+                // prevent instant-respawns (i.e. player was holding attack)
+                // by disallowing while input is held down
+                if inputs.respawn.is_pressed() && !inputs.respawn.is_held_down() {
+                    server_bus.emitter().emit(ServerEvent::Respawn(entity));
+                }
+                // Or do nothing
+                return;
+            }
+            // If mounted, character state is controlled by mount
+            // TODO: Make mounting a state
+            if let Some(Mounting(_)) = mountings.get(entity) {
+                character.move_state = Sit(SitState);
+                return;
+            }
+
+            // Determine new move state if character can move
+            if let (None, false) = (move_overrides.get(entity), character.move_disabled) {
+                let state_update = character.move_state.handle(&EcsStateData {
+                    entity: &entity,
                     uid,
-                    mut character,
+                    character,
                     pos,
                     vel,
                     ori,
-                    controller,
+                    dt: &dt,
+                    inputs,
                     stats,
                     body,
                     physics,
-                    maybe_mount,
-                    maybe_move_override,
-                    maybe_action_override,
-                    (),
-                )| {
-                    let inputs = &controller.inputs;
+                    updater: &updater,
+                    server_bus: &server_bus,
+                    local_bus: &local_bus,
+                });
 
-                    // Being dead overrides all other states
-                    if stats.is_dead {
-                        // Only options: click respawn
-                        // prevent instant-respawns (i.e. player was holding attack)
-                        // by disallowing while input is held down
-                        if inputs.respawn.is_pressed() && !inputs.respawn.is_held_down() {
-                            server_bus.emitter().emit(ServerEvent::Respawn(entity));
-                        }
-                        // Or do nothing
-                        continue;
-                    }
-                    // If mounted, character state is controlled by mount
-                    // TODO: Make mounting a state
-                    if maybe_mount.is_some() {
-                        character.move_state = Sit(SitState);
-                        continue;
-                    }
+                *character = state_update.character;
+                *pos = state_update.pos;
+                *vel = state_update.vel;
+                *ori = state_update.ori;
+            }
 
-                    // Determine new move state if character can move
-                    if !maybe_move_override.is_some() && !character.move_disabled {
-                        let state_update = character.move_state.handle(&EcsStateData {
-                            entity: &entity,
-                            uid,
-                            character,
-                            pos,
-                            vel,
-                            ori,
-                            dt: &dt,
-                            inputs,
-                            stats,
-                            body,
-                            physics,
-                            updater: &updater,
-                            server_bus: &server_bus,
-                            local_bus: &local_bus,
-                        });
+            // Determine new action if character can act
+            if let (None, false) = (action_overrides.get(entity), character.action_disabled) {
+                let state_update = character.action_state.handle(&EcsStateData {
+                    entity: &entity,
+                    uid,
+                    character,
+                    pos,
+                    vel,
+                    ori,
+                    dt: &dt,
+                    inputs,
+                    stats,
+                    body,
+                    physics,
+                    updater: &updater,
+                    server_bus: &server_bus,
+                    local_bus: &local_bus,
+                });
 
-                        *character = state_update.character;
-                        *pos = state_update.pos;
-                        *vel = state_update.vel;
-                        *ori = state_update.ori;
-                    }
-
-                    // Determine new action if character can act
-                    if !maybe_action_override.is_some() && !character.action_disabled {
-                        let state_update = character.action_state.handle(&EcsStateData {
-                            entity: &entity,
-                            uid,
-                            character,
-                            pos,
-                            vel,
-                            ori,
-                            dt: &dt,
-                            inputs,
-                            stats,
-                            body,
-                            physics,
-                            updater: &updater,
-                            server_bus: &server_bus,
-                            local_bus: &local_bus,
-                        });
-
-                        *character = state_update.character;
-                        *pos = state_update.pos;
-                        *vel = state_update.vel;
-                        *ori = state_update.ori;
-                    }
-                },
-            );
+                *character = state_update.character;
+                *pos = state_update.pos;
+                *vel = state_update.vel;
+                *ori = state_update.ori;
+            }
+        }
     }
 }

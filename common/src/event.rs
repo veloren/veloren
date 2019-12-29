@@ -1,5 +1,5 @@
 use crate::comp;
-use comp::item::Tool;
+use comp::item::ToolKind;
 use parking_lot::Mutex;
 use serde::Deserialize;
 use specs::Entity as EcsEntity;
@@ -44,7 +44,7 @@ pub enum SfxEvent {
     InventoryDrop,
     LightLantern,
     ExtinguishLantern,
-    Attack(Tool),
+    Attack(ToolKind),
     AttackWolf,
 }
 
