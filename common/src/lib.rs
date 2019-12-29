@@ -14,6 +14,7 @@ pub mod comp;
 pub mod effect;
 pub mod event;
 pub mod figure;
+pub mod hierarchical;
 pub mod msg;
 pub mod npc;
 pub mod pathfinding;
