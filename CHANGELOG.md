@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ability to jump while underwater
 - Added proper SFX system
 - Added changelog
+- Added animated Map and Minimap position indicator
+- Added visuals to indicate strength compared to the player
 
 ### Changed
 
@@ -44,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed cloud performance
 - Fixed region display name
 - Fixed the bow fire rate
+- Healthbars now flash on critical health
 
 ### Removed
 

@@ -14,7 +14,9 @@ mod social;
 mod spell;
 
 use crate::hud::img_ids::ImgsRot;
+//use rand::Rng;
 pub use settings_window::ScaleChange;
+use std::time::Duration;
 
 use bag::Bag;
 use buttons::Buttons;
@@ -64,7 +66,7 @@ const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
 //const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
-const CRITICAL_HP_COLOR: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
+const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.47, 0.55, 1.0, 0.9);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
@@ -86,8 +88,12 @@ widget_ids! {
 
         // Character Names
         name_tags[],
+        levels[],
+        levels_skull[],
         // Health Bars
         health_bars[],
+        mana_bars[],
+        health_bar_fronts[],
         health_bar_backs[],
 
         // Intro Text
@@ -410,6 +416,8 @@ pub struct Hud {
     force_ungrab: bool,
     force_chat_input: Option<String>,
     force_chat_cursor: Option<Index>,
+    pulse: f32,
+    zoom: f32,
 }
 
 impl Hud {
@@ -469,6 +477,8 @@ impl Hud {
             force_ungrab: false,
             force_chat_input: None,
             force_chat_cursor: None,
+            pulse: 0.0,
+            zoom: 1.0,
         }
     }
 
@@ -477,9 +487,12 @@ impl Hud {
         client: &Client,
         global_state: &GlobalState,
         debug_info: DebugInfo,
+        dt: Duration,
     ) -> Vec<Event> {
         let mut events = Vec::new();
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
+        // pulse time for pulsating elements
+        self.pulse = self.pulse + dt.as_secs_f32();
 
         let version = format!(
             "{}-{}",
@@ -522,6 +535,10 @@ impl Hud {
             let entities = ecs.entities();
             let me = client.entity();
             let view_distance = client.view_distance().unwrap_or(1);
+            let own_level = stats
+                .get(client.entity())
+                .map_or(0, |stats| stats.level.level());
+
             // Get player position.
             let player_pos = client
                 .state()
@@ -530,8 +547,95 @@ impl Hud {
                 .get(client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
             let mut name_id_walker = self.ids.name_tags.walk();
+            let mut level_id_walker = self.ids.levels.walk();
+            let mut level_skull_id_walker = self.ids.levels_skull.walk();
             let mut health_id_walker = self.ids.health_bars.walk();
+            let mut mana_id_walker = self.ids.mana_bars.walk();
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
+            let mut health_front_id_walker = self.ids.health_bar_fronts.walk();
+            // Render Health Bars
+            for (_entity, pos, stats, scale) in (&entities, &pos, &stats, scales.maybe())
+                .join()
+                .filter(|(entity, _, stats, _)| {
+                    *entity != me && !stats.is_dead
+                    //&& stats.health.current() != stats.health.maximum()
+                })
+                // Don't process health bars outside the vd (visibility further limited by ui backend)
+                .filter(|(_, pos, _, _)| {
+                    Vec2::from(pos.0 - player_pos)
+                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                            d.abs() as f32 / sz as f32
+                        })
+                        .magnitude()
+                        < view_distance as f32
+                })
+            {
+                let scale = scale.map(|s| s.0).unwrap_or(1.0);
+
+                let back_id = health_back_id_walker.next(
+                    &mut self.ids.health_bar_backs,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                let health_bar_id = health_id_walker.next(
+                    &mut self.ids.health_bars,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                let mana_bar_id = mana_id_walker.next(
+                    &mut self.ids.mana_bars,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                let front_id = health_front_id_walker.next(
+                    &mut self.ids.health_bar_fronts,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                let hp_percentage =
+                    stats.health.current() as f64 / stats.health.maximum() as f64 * 100.0;
+                let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 1.0; //Animation timer
+                let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
+
+                // Background
+                Rectangle::fill_with([82.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
+                    .x_y(0.0, -25.0)
+                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .resolution(100.0)
+                    .set(back_id, ui_widgets);
+
+                // % HP Filling
+                Image::new(self.imgs.bar_content)
+                    .w_h(72.9 * (hp_percentage / 100.0), 5.9)
+                    .x_y(4.5, -24.0)
+                    .color(Some(if hp_percentage <= 25.0 {
+                        crit_hp_color
+                    } else if hp_percentage <= 50.0 {
+                        LOW_HP_COLOR
+                    } else {
+                        HP_COLOR
+                    }))
+                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .resolution(100.0)
+                    .set(health_bar_id, ui_widgets);
+                // % Mana Filling
+                Rectangle::fill_with(
+                    [
+                        73.0 * (stats.energy.current() as f64 / stats.energy.maximum() as f64),
+                        1.5,
+                    ],
+                    MANA_COLOR,
+                )
+                .x_y(4.5, -28.0)
+                .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                .resolution(100.0)
+                .set(mana_bar_id, ui_widgets);
+
+                // Foreground
+                Image::new(self.imgs.enemy_health)
+                    .w_h(84.0, 10.0)
+                    .x_y(0.0, -25.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
+                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .resolution(100.0)
+                    .set(front_id, ui_widgets);
+            }
 
             // Render Name Tags
             for (pos, name, level, scale) in
@@ -558,69 +662,71 @@ impl Hud {
                         (pos.0, name, stats.level, scale)
                     })
             {
-                let info = format!("{} Level {}", name, level.level());
+                let name = format!("{}", name);
                 let scale = scale.map(|s| s.0).unwrap_or(1.0);
-
-                let id = name_id_walker.next(
+                let name_id = name_id_walker.next(
                     &mut self.ids.name_tags,
                     &mut ui_widgets.widget_id_generator(),
                 );
-                Text::new(&info)
+                let level_id = level_id_walker
+                    .next(&mut self.ids.levels, &mut ui_widgets.widget_id_generator());
+                let level_skull_id = level_skull_id_walker.next(
+                    &mut self.ids.levels_skull,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+
+                // Name
+                Text::new(&name)
                     .font_size(20)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
                     .x_y(0.0, 0.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .resolution(100.0)
-                    .set(id, ui_widgets);
-            }
+                    .set(name_id, ui_widgets);
 
-            // Render Health Bars
-            for (_entity, pos, stats, scale) in (&entities, &pos, &stats, scales.maybe())
-                .join()
-                .filter(|(entity, _, stats, _)| {
-                    *entity != me
-                        && !stats.is_dead
-                        && stats.health.current() != stats.health.maximum()
-                })
-                // Don't process health bars outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _)| {
-                    Vec2::from(pos.0 - player_pos)
-                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                            d.abs() as f32 / sz as f32
-                        })
-                        .magnitude()
-                        < view_distance as f32
-                })
-            {
-                let scale = scale.map(|s| s.0).unwrap_or(1.0);
-
-                let back_id = health_back_id_walker.next(
-                    &mut self.ids.health_bar_backs,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-                let bar_id = health_id_walker.next(
-                    &mut self.ids.health_bars,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-                // Background
-                Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
-                    .x_y(0.0, -25.0)
-                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                // Level
+                const LOW: Color = Color::Rgba(0.54, 0.81, 0.94, 0.4);
+                const HIGH: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
+                const EQUAL: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+                let op_level = level.level();
+                let level_str = format!("{}", op_level);
+                // Change visuals of the level display depending on the player level/opponent level
+                let level_comp = op_level as i64 - own_level as i64;
+                // + 10 level above player -> skull
+                // + 5-10 levels above player -> high
+                // -5 - +5 levels around player level -> equal
+                // - 5 levels below player -> low
+                Text::new(if level_comp < 10 { &level_str } else { "?" })
+                    .font_size(if op_level > 9 && level_comp < 10 {
+                        7
+                    } else {
+                        8
+                    })
+                    .color(if level_comp > 4 {
+                        HIGH
+                    } else if level_comp < -5 {
+                        LOW
+                    } else {
+                        EQUAL
+                    })
+                    .x_y(-37.0, -24.0)
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .resolution(100.0)
-                    .set(back_id, ui_widgets);
-
-                // % HP Filling
-                Rectangle::fill_with(
-                    [
-                        120.0 * (stats.health.current() as f64 / stats.health.maximum() as f64),
-                        8.0,
-                    ],
-                    HP_COLOR,
-                )
-                .x_y(0.0, -25.0)
-                .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                .resolution(100.0)
-                .set(bar_id, ui_widgets);
+                    .set(level_id, ui_widgets);
+                if level_comp > 9 {
+                    let skull_ani = ((self.pulse * 0.7/*speed factor*/).cos() * 0.5 + 0.5) * 10.0; //Animation timer
+                    Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
+                        self.imgs.skull_2
+                    } else {
+                        self.imgs.skull
+                    })
+                    .w_h(30.0, 30.0)
+                    .x_y(0.0, 24.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .resolution(100.0)
+                    .set(level_skull_id, ui_widgets);
+                }
             }
         }
         // Introduction Text
@@ -915,7 +1021,7 @@ impl Hud {
         if self.show.help && !self.show.map && !self.show.esc_menu {
             Image::new(self.imgs.help)
                 .middle_of(ui_widgets.window)
-                .w_h(1260.0, 519.0)
+                .w_h(1260.0 * 1.2, 519.0 * 1.2)
                 .set(self.ids.help, ui_widgets);
             // Show tips
             if Button::image(self.imgs.button)
@@ -969,8 +1075,16 @@ impl Hud {
         }
 
         // MiniMap
-        match MiniMap::new(&self.show, client, &self.imgs, self.world_map, &self.fonts)
-            .set(self.ids.minimap, ui_widgets)
+        match MiniMap::new(
+            &self.show,
+            client,
+            &self.imgs,
+            self.world_map,
+            &self.fonts,
+            self.pulse,
+            self.zoom,
+        )
+        .set(self.ids.minimap, ui_widgets)
         {
             Some(minimap::Event::Toggle) => self.show.toggle_mini_map(),
             None => {}
@@ -1005,7 +1119,7 @@ impl Hud {
             .read_storage::<comp::Stats>()
             .get(client.entity())
         {
-            Skillbar::new(global_state, &self.imgs, &self.fonts, stats)
+            Skillbar::new(global_state, &self.imgs, &self.fonts, &stats, self.pulse)
                 .set(self.ids.skillbar, ui_widgets);
         }
 
@@ -1169,8 +1283,15 @@ impl Hud {
         }
         // Map
         if self.show.map {
-            match Map::new(&self.show, client, &self.imgs, self.world_map, &self.fonts)
-                .set(self.ids.map, ui_widgets)
+            match Map::new(
+                &self.show,
+                client,
+                &self.imgs,
+                self.world_map,
+                &self.fonts,
+                self.pulse,
+            )
+            .set(self.ids.map, ui_widgets)
             {
                 Some(map::Event::Close) => {
                     self.show.map(false);
@@ -1354,11 +1475,12 @@ impl Hud {
         global_state: &mut GlobalState,
         debug_info: DebugInfo,
         camera: &Camera,
+        dt: Duration,
     ) -> Vec<Event> {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(client, global_state, debug_info);
+        let events = self.update_layout(client, global_state, debug_info, dt);
         let (view_mat, _, _) = camera.compute_dependents(client);
         let fov = camera.get_fov();
         self.ui.maintain(

@@ -118,10 +118,14 @@ image_ids! {
         grass: "voxygen.element.icons.item_grass",
         apple: "voxygen.element.icons.item_apple",
         mushroom: "voxygen.element.icons.item_mushroom",
+        skull: "voxygen.element.icons.skull",
+        skull_2: "voxygen.element.icons.skull_2",
 
         // Map
         map_indicator: "voxygen.element.buttons.map_indicator",
         indicator_mmap: "voxygen.element.buttons.indicator_mmap",
+        indicator_mmap_2: "voxygen.element.buttons.indicator_mmap_2",
+        indicator_mmap_3: "voxygen.element.buttons.indicator_mmap_3",
 
         // Crosshair
 
@@ -154,6 +158,12 @@ image_ids! {
         mmap_open: "voxygen.element.buttons.button_mmap_open",
         mmap_open_hover: "voxygen.element.buttons.button_mmap_open_hover",
         mmap_open_press: "voxygen.element.buttons.button_mmap_open_press",
+        mmap_plus: "voxygen.element.buttons.min_plus.mmap_button-plus",
+        mmap_plus_hover: "voxygen.element.buttons.min_plus.mmap_button-plus_hover",
+        mmap_plus_press: "voxygen.element.buttons.min_plus.mmap_button-plus_hover",
+        mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
+        mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
+        mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
 
         // Grid
         grid: "voxygen.element.buttons.grid",
@@ -220,6 +230,10 @@ image_ids! {
         potion_blue: "voxygen.voxel.object.potion_blue",
         key: "voxygen.voxel.object.key",
         key_gold: "voxygen.voxel.object.key_gold",
+
+        // Enemy Healthbar
+        enemy_health: "voxygen.element.frames.enemybar",
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
