@@ -389,6 +389,7 @@ impl PlayState for SessionState {
                         .cloned(),
                 },
                 &self.scene.camera(),
+                clock.get_last_delta(),
             );
 
             // Maintain the UI.

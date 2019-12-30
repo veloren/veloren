@@ -3,6 +3,6 @@ Item(
     description: "'Property of...' The rest is missing. ",
     kind: Tool(
         kind: Hammer,
-        power: 10,
+        power: 15,
     ),
 )

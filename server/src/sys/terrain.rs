@@ -98,10 +98,8 @@ impl<'a> System<'a> for Sys {
             for npc in supplement.npcs {
                 let (mut stats, mut body) = if rand::random() {
                     let stats = comp::Stats::new(
-                        "Humanoid".to_string(),
-                        Some(assets::load_expect_cloned(
-                            "common.items.weapons.starter_sword",
-                        )),
+                        "Traveler".to_string(),
+                        Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
                     );
                     let body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     (stats, body)
@@ -113,20 +111,18 @@ impl<'a> System<'a> for Sys {
                 let mut scale = 1.0;
 
                 // TODO: Remove this and implement scaling or level depending on stuff like species instead
-                stats.level.set_level(rand::thread_rng().gen_range(1, 3));
+                stats.level.set_level(rand::thread_rng().gen_range(1, 10));
 
                 if npc.boss {
                     if rand::random::<f32>() < 0.8 {
                         stats = comp::Stats::new(
-                            "Humanoid".to_string(),
-                            Some(assets::load_expect_cloned(
-                                "common.items.weapons.starter_sword",
-                            )),
+                            "Fearless Wanderer".to_string(),
+                            Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
                         );
                         body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     }
-                    stats.level.set_level(rand::thread_rng().gen_range(10, 50));
-                    scale = 2.5 + rand::random::<f32>();
+                    stats.level.set_level(rand::thread_rng().gen_range(20, 50));
+                    scale = 2.0 + rand::random::<f32>();
                 }
 
                 stats.update_max_hp();

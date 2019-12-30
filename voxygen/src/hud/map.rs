@@ -5,7 +5,7 @@ use conrod_core::{
     color,
     image::Id,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::WorldExt;
 use vek::*;
@@ -31,12 +31,12 @@ widget_ids! {
 pub struct Map<'a> {
     _show: &'a Show,
     client: &'a Client,
-
     _world_map: Id,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    pulse: f32,
 }
 impl<'a> Map<'a> {
     pub fn new(
@@ -45,6 +45,7 @@ impl<'a> Map<'a> {
         imgs: &'a Imgs,
         world_map: Id,
         fonts: &'a Fonts,
+        pulse: f32,
     ) -> Self {
         Self {
             _show: show,
@@ -53,6 +54,7 @@ impl<'a> Map<'a> {
             client,
             fonts: fonts,
             common: widget::CommonBuilder::default(),
+            pulse,
         }
     }
 }
@@ -129,9 +131,10 @@ impl<'a> Widget for Map<'a> {
         // Location Name
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(state.ids.map_bg, 70.0)
-                .font_size(20)
+                .mid_top_with_margin_on(state.ids.map_bg, 55.0)
+                .font_size(60)
                 .color(TEXT_COLOR)
+                .font_id(self.fonts.alkhemi)
                 .parent(state.ids.map_frame_r)
                 .set(state.ids.location_name, ui),
             None => Text::new(" ")
@@ -157,15 +160,33 @@ impl<'a> Widget for Map<'a> {
             .map_or(Vec3::zero(), |pos| pos.0);
 
         let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
-        let x = player_pos.x as f64 / worldsize * 700.0;
+        let x = player_pos.x as f64 / worldsize * 700.0/*= x-Size of the map image*/;
         let y = (/*1.0 -*/player_pos.y as f64 / worldsize) * 700.0;
+        let indic_ani = (self.pulse * 6.0/*animation speed*/).cos()/*starts at 1.0*/ * 0.5 + 0.50; // changes the animation frame
+        let indic_scale = 1.2;
         // Indicator
-        Image::new(self.imgs.map_indicator)
-            .bottom_left_with_margins_on(state.ids.grid, y, x - (12.0 * 1.4) / 2.0)
-            .w_h(12.0 * 1.4, 21.0 * 1.4)
-            .floating(true)
-            .parent(ui.window)
-            .set(state.ids.indicator, ui);
+        Image::new(if indic_ani <= 0.3 {
+            self.imgs.indicator_mmap
+        } else if indic_ani <= 0.6 {
+            self.imgs.indicator_mmap_2
+        } else {
+            self.imgs.indicator_mmap_3
+        })
+        .bottom_left_with_margins_on(state.ids.grid, y, x - (20.0 * 1.2) / 2.0)
+        .w_h(
+            22.0 * 1.2,
+            if indic_ani <= 0.3 {
+                16.0 * indic_scale
+            } else if indic_ani <= 0.6 {
+                23.0 * indic_scale
+            } else {
+                34.0 * indic_scale
+            },
+        )
+        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+        .floating(true)
+        .parent(ui.window)
+        .set(state.ids.indicator, ui);
 
         None
     }

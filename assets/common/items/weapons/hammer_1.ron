@@ -1,0 +1,8 @@
+Item(
+    name: "Crude Mallet",
+    description: "Breaks bones like sticks and stones.",
+    kind: Tool(
+        kind: Hammer,
+        power: 20,
+    ),
+)
