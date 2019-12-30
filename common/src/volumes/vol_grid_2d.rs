@@ -167,6 +167,8 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 
 pub struct CachedVolGrid2d<'a, V: RectRasterableVol> {
     vol_grid_2d: &'a VolGrid2d<V>,
+    // This can't be invalidated by mutations of the chunks hashmap since we hold an immutable
+    // reference to the `VolGrid2d`
     cache: Option<(Vec2<i32>, Arc<V>)>,
 }
 impl<'a, V: RectRasterableVol> CachedVolGrid2d<'a, V> {
@@ -178,9 +180,9 @@ impl<'a, V: RectRasterableVol> CachedVolGrid2d<'a, V> {
     }
 }
 impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
-    // Note: this may be invalidated by mutations of the chunks hashmap
     #[inline(always)]
     pub fn get(&mut self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid2dError<V>> {
+        // Calculate chunk key from block pos
         let ck = VolGrid2d::<V>::chunk_key(pos);
         let chunk = if self
             .cache
@@ -188,13 +190,16 @@ impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
             .map(|(key, _)| *key == ck)
             .unwrap_or(false)
         {
+            // If the chunk with that key is in the cache use that
             &self.cache.as_ref().unwrap().1
         } else {
+            // Otherwise retrieve from the hashmap
             let chunk = self
                 .vol_grid_2d
                 .chunks
                 .get(&ck)
                 .ok_or(VolGrid2dError::NoSuchChunk)?;
+            // Store most recently looked up chunk in the cache
             self.cache = Some((ck, chunk.clone()));
             chunk
         };
