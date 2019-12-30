@@ -10,8 +10,8 @@ pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage, 
 use common::{
     comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, RequestStateError,
-        ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
+        RequestStateError, ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     net::PostBox,
     state::State,
@@ -52,6 +52,7 @@ pub struct Client {
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
     pub world_map: Arc<DynamicImage>,
+    pub player_list: HashMap<u64, String>,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
 
@@ -71,7 +72,6 @@ pub struct Client {
 
 impl Client {
     /// Create a new `Client`.
-    #[allow(dead_code)]
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
         let client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
@@ -137,6 +137,7 @@ impl Client {
             thread_pool,
             server_info,
             world_map,
+            player_list: HashMap::new(),
 
             postbox,
 
@@ -154,7 +155,6 @@ impl Client {
         })
     }
 
-    #[allow(dead_code)]
     pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
         self.thread_pool = thread_pool;
         self
@@ -282,7 +282,6 @@ impl Client {
     }
 
     /// Send a chat message to the server.
-    #[allow(dead_code)]
     pub fn send_chat(&mut self, msg: String) {
         match validate_chat_msg(&msg) {
             Ok(()) => self.postbox.send_message(ClientMsg::chat(msg)),
@@ -294,7 +293,6 @@ impl Client {
     }
 
     /// Remove all cached terrain
-    #[allow(dead_code)]
     pub fn clear_terrain(&mut self) {
         self.state.clear_terrain();
         self.pending_chunks.clear();
@@ -316,7 +314,6 @@ impl Client {
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
-    #[allow(dead_code)]
     pub fn tick(&mut self, inputs: ControllerInputs, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
@@ -389,6 +386,10 @@ impl Client {
             // Remove chunks that are too far from the player.
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
+                // Subtract 2 from the offset before computing squared magnitude
+                // 1 for the chunks needed bordering other chunks for meshing
+                // 1 as a buffer so that if the player moves back in that direction the chunks
+                //   don't need to be reloaded
                 if (chunk_pos - key)
                     .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
                     .magnitude_squared()
@@ -492,7 +493,6 @@ impl Client {
     }
 
     /// Clean up the client after a tick.
-    #[allow(dead_code)]
     pub fn cleanup(&mut self) {
         // Cleanup the local state
         self.state.cleanup();
@@ -531,6 +531,27 @@ impl Client {
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
+                        self.player_list = list
+                    }
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, name)) => {
+                        if let Some(old_name) = self.player_list.insert(uid, name.clone()) {
+                            warn!("Received msg to insert {} with uid {} into the player list but there was already an entry for {} with the same uid that was overwritten!", name, uid, old_name);
+                        }
+                    }
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+                        if self.player_list.remove(&uid).is_none() {
+                            warn!("Received msg to remove uid {} from the player list by they weren't in the list!", uid);
+                        }
+                    }
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
+                        if let Some(name) = self.player_list.get_mut(&uid) {
+                            *name = new_name;
+                        } else {
+                            warn!("Received msg to alias player with uid {} to {} but this uid is not in the player list", uid, new_name);
+                        }
+                    }
+
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {
                         self.last_server_pong = Instant::now();
@@ -602,9 +623,11 @@ impl Client {
                         }
                         self.pending_chunks.remove(&key);
                     }
-                    ServerMsg::TerrainBlockUpdates(mut blocks) => blocks
-                        .drain()
-                        .for_each(|(pos, block)| self.state.set_block(pos, block)),
+                    ServerMsg::TerrainBlockUpdates(mut blocks) => {
+                        blocks.drain().for_each(|(pos, block)| {
+                            self.state.set_block(pos, block);
+                        });
+                    }
                     ServerMsg::StateAnswer(Ok(state)) => {
                         self.client_state = state;
                     }
@@ -636,24 +659,20 @@ impl Client {
     }
 
     /// Get the player's entity.
-    #[allow(dead_code)]
     pub fn entity(&self) -> EcsEntity {
         self.entity
     }
 
     /// Get the client state
-    #[allow(dead_code)]
     pub fn get_client_state(&self) -> ClientState {
         self.client_state
     }
 
     /// Get the current tick number.
-    #[allow(dead_code)]
     pub fn get_tick(&self) -> u64 {
         self.tick
     }
 
-    #[allow(dead_code)]
     pub fn get_ping_ms(&self) -> f64 {
         self.last_ping_delta * 1000.0
     }
@@ -661,19 +680,16 @@ impl Client {
     /// Get a reference to the client's worker thread pool. This pool should be used for any
     /// computationally expensive operations that run outside of the main thread (i.e., threads that
     /// block on I/O operations are exempt).
-    #[allow(dead_code)]
     pub fn thread_pool(&self) -> &ThreadPool {
         &self.thread_pool
     }
 
     /// Get a reference to the client's game state.
-    #[allow(dead_code)]
     pub fn state(&self) -> &State {
         &self.state
     }
 
     /// Get a mutable reference to the client's game state.
-    #[allow(dead_code)]
     pub fn state_mut(&mut self) -> &mut State {
         &mut self.state
     }

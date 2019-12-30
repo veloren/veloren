@@ -24,6 +24,14 @@ pub struct ServerInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PlayerListUpdate {
+    Init(HashMap<u64, String>),
+    Add(u64, String),
+    Remove(u64),
+    Alias(u64, String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,
@@ -31,6 +39,7 @@ pub enum ServerMsg {
         time_of_day: state::TimeOfDay,
         // world_map: Vec2<usize>, /*, Vec<u32>)*/
     },
+    PlayerListUpdate(PlayerListUpdate),
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
     ForceState(ClientState),
     Ping,

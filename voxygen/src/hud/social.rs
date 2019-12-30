@@ -1,13 +1,11 @@
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR, TEXT_COLOR_3};
 
-use common::comp;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, /*, Color*/
     Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use specs::{Join, WorldExt};
 
 use client::{self, Client};
 
@@ -178,25 +176,12 @@ impl<'a> Widget for Social<'a> {
 
             // Players list
             // TODO: this list changes infrequently enough that it should not have to be recreated every frame
-            let ecs = self.client.state().ecs();
-            let players = ecs.read_storage::<comp::Player>();
-            let mut count = 0;
-            for player in players.join() {
-                if ids.player_names.len() <= count {
-                    ids.update(|ids| {
-                        ids.player_names
-                            .resize(count + 1, &mut ui.widget_id_generator())
-                    })
-                }
-
-                Text::new(&player.alias)
-                    .down_from(ids.online_title, count as f64 * (15.0 + 3.0))
-                    .font_size(15)
-                    .font_id(self.fonts.cyri)
-                    .color(TEXT_COLOR)
-                    .set(ids.player_names[count], ui);
-
-                count += 1;
+            let count = self.client.player_list.len();
+            if ids.player_names.len() < count {
+                ids.update(|ids| {
+                    ids.player_names
+                        .resize(count, &mut ui.widget_id_generator())
+                })
             }
             Text::new(&format!("{} player(s) online\n", count))
                 .top_left_with_margins_on(ids.content_align, -2.0, 7.0)
@@ -204,6 +189,14 @@ impl<'a> Widget for Social<'a> {
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(ids.online_title, ui);
+            for (i, (_, player_alias)) in self.client.player_list.iter().enumerate() {
+                Text::new(player_alias)
+                    .down(3.0)
+                    .font_size(15)
+                    .font_id(self.fonts.cyri)
+                    .color(TEXT_COLOR)
+                    .set(ids.player_names[i], ui);
+            }
         }
 
         // Friends Tab
