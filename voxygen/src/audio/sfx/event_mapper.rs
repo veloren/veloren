@@ -7,7 +7,7 @@ use common::{
     comp::{
         ActionState, AttackKind::*, BasicAttackState, Body, CharacterState, DodgeKind::*,
         FallState, GlideState, IdleState, ItemKind, MoveState, Pos, RollState, RunState,
-        StandState, Stats,
+        StandState, Stats, ToolData,
     },
     event::{EventBus, SfxEvent, SfxEventItem},
 };
@@ -183,7 +183,7 @@ impl SfxEventMapper {
             }
             (_, ActionState::Attack { .. }, _, stats) => {
                 match &stats.equipment.main.as_ref().map(|i| &i.kind) {
-                    Some(ItemKind::Tool { kind, .. }) => SfxEvent::Attack(*kind),
+                    Some(ItemKind::Tool(ToolData { kind, .. })) => SfxEvent::Attack(*kind),
                     _ => SfxEvent::Idle,
                 }
             }
@@ -197,7 +197,7 @@ mod tests {
     use super::*;
     use common::{
         assets,
-        comp::{item::Tool, ActionState, MoveState, Stats},
+        comp::{ActionState, MoveState, Stats},
         event::SfxEvent,
     };
     use std::time::{Duration, Instant};

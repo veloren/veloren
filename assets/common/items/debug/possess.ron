@@ -3,7 +3,9 @@ Item(
     description: "It's fixed on my branch.",
     kind: Tool(
         kind: Debug(Possess),
-        power: 0,
+        equip_time_millis: 0,
+        attack_buildup_millis: 0,
+        attack_recover_millis: 0,
     ),
 )
 // ... as zesterer always uses to tell us.

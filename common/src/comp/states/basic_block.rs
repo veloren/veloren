@@ -7,7 +7,7 @@ use vek::Vec2;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct BasicBlockState {
     /// How long the blocking state has been active
-    active_duration: Duration,
+    pub active_duration: Duration,
 }
 
 impl StateHandle for BasicBlockState {
