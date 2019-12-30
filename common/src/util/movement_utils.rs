@@ -25,7 +25,7 @@ pub fn determine_primary_ability(stats: &Stats) -> ActionState {
 pub fn determine_secondary_ability(stats: &Stats) -> ActionState {
     if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
         Block(BasicBlock(BasicBlockState {
-            active_duration:: Duration::default(),
+            active_duration: Duration::default(),
         }))
     } else {
         Idle(IdleState)

@@ -10,7 +10,7 @@ use common::{
         humanoid::{
             Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder, Skin,
         },
-        item::Tool,
+        item::{ToolData, ToolKind},
         object, quadruped_medium, quadruped_small, Item, ItemKind,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
@@ -513,15 +513,15 @@ impl HumArmorFootSpec {
 pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
     if let Some(item) = item {
         let (name, offset) = match item.kind {
-            ItemKind::Tool { kind, .. } => match kind {
-                Tool::Sword => ("weapon.sword.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
-                Tool::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -5.0, -4.0)),
-                Tool::Hammer => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-                Tool::Dagger => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-                Tool::Shield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
-                Tool::Bow => ("weapon.bow.simple-bow", Vec3::new(-1.0, -6.0, -2.0)),
-                Tool::Staff => ("weapon.staff.wood-fire", Vec3::new(-1.0, -6.0, -3.0)),
-                Tool::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
+            ItemKind::Tool(ToolData { kind, .. }) => match kind {
+                ToolKind::Sword(_) => ("weapon.sword.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
+                ToolKind::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -5.0, -4.0)),
+                ToolKind::Hammer => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
+                ToolKind::Dagger => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
+                ToolKind::Shield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
+                ToolKind::Bow => ("weapon.bow.simple-bow", Vec3::new(-1.0, -6.0, -2.0)),
+                ToolKind::Staff => ("weapon.staff.wood-fire", Vec3::new(-1.0, -6.0, -3.0)),
+                ToolKind::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
             },
             _ => return Mesh::new(),
         };

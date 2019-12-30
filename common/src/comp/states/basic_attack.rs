@@ -7,7 +7,7 @@ use std::time::Duration;
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct BasicAttackState {
     /// How long the state has until exitting
-    remaining_duration: Duration,
+    pub remaining_duration: Duration,
 }
 
 impl StateHandle for BasicAttackState {
