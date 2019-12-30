@@ -92,6 +92,7 @@ pub struct Skillbar<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     stats: &'a Stats,
+    pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     current_resource: ResourceType,
@@ -103,6 +104,7 @@ impl<'a> Skillbar<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         stats: &'a Stats,
+        pulse: f32,
     ) -> Self {
         Self {
             imgs,
@@ -111,6 +113,7 @@ impl<'a> Skillbar<'a> {
             global_state,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
+            pulse,
         }
     }
 }
@@ -164,6 +167,8 @@ impl<'a> Widget for Skillbar<'a> {
 
         const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
         const BG_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 0.99);
+        let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.8; //Animation timer
+        let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
         // Stamina Wheel
         /*
@@ -300,7 +305,6 @@ impl<'a> Widget for Skillbar<'a> {
                     .top_left_with_margins_on(state.ids.xp_bar_left, 2.0 * scale, 10.0 * scale)
                     .set(state.ids.xp_bar_filling, ui);
                 // Level Display
-
                 if self.stats.level.level() < 10 {
                     Text::new(&level)
                         .bottom_left_with_margins_on(
@@ -777,7 +781,7 @@ impl<'a> Widget for Skillbar<'a> {
         Image::new(self.imgs.bar_content)
             .w_h(97.0 * scale * hp_percentage / 100.0, 16.0 * scale)
             .color(Some(if hp_percentage <= 20.0 {
-                CRITICAL_HP_COLOR
+                crit_hp_color
             } else if hp_percentage <= 40.0 {
                 LOW_HP_COLOR
             } else {
