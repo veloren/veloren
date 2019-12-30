@@ -109,6 +109,7 @@ impl<'a> System<'a> for Sys {
                                 client.error_state(RequestStateError::Already)
                             }
                             ClientState::Spectator | ClientState::Character | ClientState::Dead => {
+                                // TODO: remove position etc here
                                 client.allow_state(ClientState::Registered)
                             }
                             ClientState::Pending => {}
