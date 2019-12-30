@@ -1,7 +1,8 @@
 use super::phys::GRAVITY;
 use crate::{
     comp::{
-        CharacterState, Controller, Mounting, MovementState::*, Ori, PhysicsState, Pos, Stats, Vel,
+        ActionState, CharacterState, Controller, Mounting, MovementState::*, Ori, PhysicsState,
+        Pos, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
@@ -180,7 +181,12 @@ impl<'a> System<'a> for Sys {
                 // producing potentially unexpected changes in direction
                 Vec2::from(vel.0)
             } else {
-                Vec2::from(inputs.move_dir)
+                if let ActionState::Roll { .. } = character.action {
+                    // So can can't spin/slip around while rolling
+                    Vec2::from(vel.0)
+                } else {
+                    Vec2::from(inputs.move_dir)
+                }
             };
 
             if ori_dir.magnitude_squared() > 0.0001
