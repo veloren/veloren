@@ -1,4 +1,5 @@
 use crate::comp::{ActionState::*, EcsStateData, IdleState, StateHandle, StateUpdate};
+use crate::util::movement_utils::*;
 use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -29,7 +30,7 @@ impl StateHandle for WieldState {
 
             // Try weapon actions
             if ecs_data.inputs.primary.is_pressed() {
-                // TODO: PrimaryStart
+                update.character.action_state = determine_primary_ability(ecs_data.stats);
             } else if ecs_data.inputs.secondary.is_pressed() {
                 // TODO: SecondaryStart
             }

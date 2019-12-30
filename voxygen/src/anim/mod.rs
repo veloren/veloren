@@ -11,7 +11,7 @@ pub mod quadruped_medium;
 pub mod quadruped_small;
 
 use crate::render::FigureBoneData;
-use common::comp::{self, item::Tool};
+use common::comp::{self, ToolKind};
 use vek::*;
 
 #[derive(Copy, Clone)]
@@ -158,27 +158,27 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Male) => 0.0,
                 (Danari, Female) => 0.0,
             },
-            weapon_x: match Tool::Hammer {
+            weapon_x: match ToolKind::Hammer {
                 // TODO: Inventory
-                Tool::Sword => 0.0,
-                Tool::Axe => 3.0,
-                Tool::Hammer => 0.0,
-                Tool::Shield => 3.0,
-                Tool::Staff => 3.0,
-                Tool::Bow => 0.0,
-                Tool::Dagger => 0.0,
-                Tool::Debug(_) => 0.0,
+                ToolKind::Sword(_) => 0.0,
+                ToolKind::Axe => 3.0,
+                ToolKind::Hammer => 0.0,
+                ToolKind::Shield => 3.0,
+                ToolKind::Staff => 3.0,
+                ToolKind::Bow => 0.0,
+                ToolKind::Dagger => 0.0,
+                ToolKind::Debug(_) => 0.0,
             },
-            weapon_y: match Tool::Hammer {
+            weapon_y: match ToolKind::Hammer {
                 // TODO: Inventory
-                Tool::Sword => -1.25,
-                Tool::Axe => 0.0,
-                Tool::Hammer => -2.0,
-                Tool::Shield => 0.0,
-                Tool::Staff => 0.0,
-                Tool::Bow => -2.0,
-                Tool::Dagger => -2.0,
-                Tool::Debug(_) => 0.0,
+                ToolKind::Sword(_) => -1.25,
+                ToolKind::Axe => 0.0,
+                ToolKind::Hammer => -2.0,
+                ToolKind::Shield => 0.0,
+                ToolKind::Staff => 0.0,
+                ToolKind::Bow => -2.0,
+                ToolKind::Dagger => -2.0,
+                ToolKind::Debug(_) => 0.0,
             },
         }
     }

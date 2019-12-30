@@ -3,7 +3,9 @@ Item(
     description: "The sky is the limit.",
     kind: Tool(
         kind: Debug(Boost),
-        power: 0,
+        equip_time_millis: 0,
+        attack_buildup_millis: 0,
+        attack_recover_millis: 0,
     ),
 )
 // And the ground is pretty hard at maximum velocity...

@@ -19,7 +19,7 @@ use client::Client;
 use common::{
     comp::{
         ActionState::*, AttackKind::*, Body, CharacterState, ItemKind, Last, MoveState::*, Ori,
-        Pos, Scale, Stats, Vel,
+        Pos, Scale, Stats, ToolData, Vel,
     },
     terrain::TerrainChunk,
     vol::RectRasterableVol,
@@ -169,7 +169,7 @@ impl FigureMgr {
                 .cloned()
                 .unwrap_or_default();
 
-            let active_tool_kind = if let Some(ItemKind::Tool { kind, .. }) = stats
+            let active_tool_kind = if let Some(ItemKind::Tool(ToolData { kind, .. })) = stats
                 .and_then(|s| s.equipment.main.as_ref())
                 .map(|i| &i.kind)
             {

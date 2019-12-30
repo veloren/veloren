@@ -1,7 +1,7 @@
 use crate::ui::{Graphic, Transform, Ui};
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
-    comp::item::{Armor, Consumable, Ingredient, Item, ItemKind, Tool},
+    comp::item::{Armor, Consumable, Ingredient, Item, ItemKind, ToolData, ToolKind},
 };
 use conrod_core::image::Id;
 use dot_vox::DotVoxData;
@@ -14,7 +14,7 @@ use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKey {
-    Tool(Tool),
+    Tool(ToolKind),
     Armor(Armor),
     Consumable(Consumable),
     Ingredient(Ingredient),
@@ -22,7 +22,7 @@ pub enum ItemKey {
 impl From<&Item> for ItemKey {
     fn from(item: &Item) -> Self {
         match &item.kind {
-            ItemKind::Tool { kind, .. } => ItemKey::Tool(kind.clone()),
+            ItemKind::Tool(ToolData { kind, .. }) => ItemKey::Tool(kind.clone()),
             ItemKind::Armor { kind, .. } => ItemKey::Armor(kind.clone()),
             ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
             ItemKind::Ingredient(kind) => ItemKey::Ingredient(kind.clone()),
