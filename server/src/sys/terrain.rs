@@ -71,6 +71,9 @@ impl<'a> System<'a> for Sys {
                 })
             {
                 let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
+                // Subtract 2 from the offset before computing squared magnitude
+                // 1 since chunks need neighbors to be meshed
+                // 1 to act as a buffer if the player moves in that direction
                 let adjusted_dist_sqr = (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
                     .magnitude_squared();

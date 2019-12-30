@@ -17,7 +17,7 @@ use common::{
 use crossbeam::channel;
 use dot_vox::DotVoxData;
 use frustum_query::frustum::Frustum;
-use hashbrown::HashMap;
+use hashbrown::{hash_map::Entry, HashMap};
 use std::{f32, fmt::Debug, i32, marker::PhantomData, ops::Mul, time::Duration};
 use vek::*;
 
@@ -836,31 +836,48 @@ impl<V: RectRasterableVol> Terrain<V> {
             .map(|(p, _)| *p)
         {
             let chunk_pos = client.state().terrain().pos_key(pos);
+            let new_mesh_state = ChunkMeshState {
+                pos: chunk_pos,
+                started_tick: current_tick,
+                active_worker: None,
+            };
+            // Only mesh if this chunk has all its neighbors
+            // If it does have all its neighbors either it should have already been meshed or is in
+            // mesh_todo
+            match self.mesh_todo.entry(chunk_pos) {
+                Entry::Occupied(mut entry) => {
+                    entry.insert(new_mesh_state);
+                }
+                Entry::Vacant(entry) => {
+                    if self.chunks.contains_key(&chunk_pos) {
+                        entry.insert(new_mesh_state);
+                    }
+                }
+            }
 
-            self.mesh_todo.insert(
-                chunk_pos,
-                ChunkMeshState {
-                    pos: chunk_pos,
-                    started_tick: current_tick,
-                    active_worker: None,
-                },
-            );
-
-            // Handle chunks on chunk borders
+            // Handle block changes on chunk borders
             for x in -1..2 {
                 for y in -1..2 {
                     let neighbour_pos = pos + Vec3::new(x, y, 0);
                     let neighbour_chunk_pos = client.state().terrain().pos_key(neighbour_pos);
 
                     if neighbour_chunk_pos != chunk_pos {
-                        self.mesh_todo.insert(
-                            neighbour_chunk_pos,
-                            ChunkMeshState {
-                                pos: neighbour_chunk_pos,
-                                started_tick: current_tick,
-                                active_worker: None,
-                            },
-                        );
+                        let new_mesh_state = ChunkMeshState {
+                            pos: neighbour_chunk_pos,
+                            started_tick: current_tick,
+                            active_worker: None,
+                        };
+                        // Only mesh if this chunk has all its neighbors
+                        match self.mesh_todo.entry(neighbour_chunk_pos) {
+                            Entry::Occupied(mut entry) => {
+                                entry.insert(new_mesh_state);
+                            }
+                            Entry::Vacant(entry) => {
+                                if self.chunks.contains_key(&neighbour_chunk_pos) {
+                                    entry.insert(new_mesh_state);
+                                }
+                            }
+                        }
                     }
 
                     // TODO: Remesh all neighbours because we have complex lighting now
