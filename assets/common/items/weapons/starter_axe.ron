@@ -3,6 +3,6 @@ Item(
     description: "Every dent tells the story of a chopped tree.",
     kind: Tool(
         kind: Axe,
-        power: 10,
+        power: 15,
     ),
 )

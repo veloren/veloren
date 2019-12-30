@@ -451,7 +451,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 if let Some(new_val) = ImageSlider::continuous(
                     scale.log(2.0),
                     0.5f64.log(2.0),
-                    1.2f64.log(2.0),
+                    1.0f64.log(2.0),
                     self.imgs.slider_indicator,
                     self.imgs.slider,
                 )
@@ -857,7 +857,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ChatTransp(new_val));
             }
-            Rectangle::fill_with([40.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
+            Rectangle::fill_with([60.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
                 .down_from(state.ids.chat_transp_title, 30.0)
                 .set(state.ids.placeholder, ui);
         }

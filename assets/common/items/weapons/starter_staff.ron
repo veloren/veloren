@@ -3,6 +3,6 @@ Item(
     description: "Smells like resin and magic.",
     kind: Tool(
         kind: Staff,
-        power: 10,
+        power: 20,
     ),
 )

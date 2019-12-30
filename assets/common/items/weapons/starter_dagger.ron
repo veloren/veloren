@@ -3,6 +3,6 @@ Item(
     description: "Great for cutting meat.",
     kind: Tool(
         kind: Dagger,
-        power: 10,
+        power: 15,
     ),
 )

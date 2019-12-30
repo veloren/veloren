@@ -3,6 +3,6 @@ Item(
     description: "Someone carved his initials into it...",
     kind: Tool(
         kind: Bow,
-        power: 10,
+        power: 15,
     ),
 )
