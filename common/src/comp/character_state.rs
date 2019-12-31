@@ -143,27 +143,29 @@ pub struct CharacterState {
     pub action_state: ActionState,
 
     /// Used by `move_state` to disable `action_state` `handle()` calls.
-    pub action_disabled: bool,
+    /// Resets after every tick. States that use it should set it every tick.
+    pub action_disabled_this_tick: bool,
 
     /// Used by `action_state` to disable `move_state` `handle()` calls.
-    pub move_disabled: bool,
+    /// Resets after every tick. States that use it should set it every tick.
+    pub move_disabled_this_tick: bool,
 }
 
 impl CharacterState {
-    /// __Compares `move_state`s for shallow equality (does not check internal struct equality)__
+    /// Compares `move_state`s for shallow equality (does not check internal struct equality)
     pub fn is_same_move_state(&self, other: &Self) -> bool {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(&self.move_state) == std::mem::discriminant(&other.move_state)
     }
 
-    /// __Compares `action_state`s for shallow equality (does not check internal struct equality)__
+    /// Compares `action_state`s for shallow equality (does not check internal struct equality)
     pub fn is_same_action_state(&self, other: &Self) -> bool {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(&self.action_state) == std::mem::discriminant(&other.action_state)
     }
 
-    /// __Compares both `move_state`s and `action_state`a for shallow equality
-    /// (does not check internal struct equality)__
+    /// Compares both `move_state`s and `action_state`a for shallow equality
+    /// (does not check internal struct equality)
     pub fn is_same_state(&self, other: &Self) -> bool {
         self.is_same_move_state(other) && self.is_same_action_state(other)
     }
@@ -174,8 +176,8 @@ impl Default for CharacterState {
         Self {
             move_state: MoveState::Fall(FallState),
             action_state: ActionState::Idle(IdleState),
-            action_disabled: false,
-            move_disabled: false,
+            action_disabled_this_tick: false,
+            move_disabled_this_tick: false,
         }
     }
 }
