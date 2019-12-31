@@ -89,11 +89,14 @@ pub enum ServerEvent {
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
-    CreatePlayer {
+    CreateCharacter {
         entity: EcsEntity,
         name: String,
         body: comp::Body,
         main: Option<String>,
+    },
+    ExitIngame {
+        entity: EcsEntity,
     },
     CreateNpc {
         pos: comp::Pos,

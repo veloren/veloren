@@ -1,6 +1,4 @@
-use super::ClientState;
-use crate::terrain::block::Block;
-use crate::{comp, ChatType};
+use crate::{comp, terrain::block::Block};
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -14,16 +12,18 @@ pub enum ClientMsg {
         body: comp::Body,
         main: Option<String>, // Specifier for the weapon
     },
+    /// Request `ClientState::Registered` from an ingame state
+    ExitIngame,
+    /// Request `ClientState::Specator` from a registered or ingame state
+    Spectate,
     ControllerInputs(comp::ControllerInputs),
     ControlEvent(comp::ControlEvent),
-    RequestState(ClientState),
     SetViewDistance(u32),
     BreakBlock(Vec3<i32>),
     PlaceBlock(Vec3<i32>, Block),
     Ping,
     Pong,
     ChatMsg {
-        chat_type: ChatType, // This is unused afaik, TODO: remove
         message: String,
     },
     PlayerPhysics {
@@ -35,43 +35,4 @@ pub enum ClientMsg {
         key: Vec2<i32>,
     },
     Disconnect,
-}
-
-impl ClientMsg {
-    pub fn chat(message: String) -> ClientMsg {
-        ClientMsg::ChatMsg {
-            chat_type: ChatType::Chat,
-            message,
-        }
-    }
-    pub fn tell(message: String) -> ClientMsg {
-        ClientMsg::ChatMsg {
-            chat_type: ChatType::Tell,
-            message,
-        }
-    }
-    pub fn game(message: String) -> ClientMsg {
-        ClientMsg::ChatMsg {
-            chat_type: ChatType::GameUpdate,
-            message,
-        }
-    }
-    pub fn broadcast(message: String) -> ClientMsg {
-        ClientMsg::ChatMsg {
-            chat_type: ChatType::Broadcast,
-            message,
-        }
-    }
-    pub fn private(message: String) -> ClientMsg {
-        ClientMsg::ChatMsg {
-            chat_type: ChatType::Private,
-            message,
-        }
-    }
-    pub fn kill(message: String) -> ClientMsg {
-        ClientMsg::ChatMsg {
-            chat_type: ChatType::Private,
-            message,
-        }
-    }
 }
