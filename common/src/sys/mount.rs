@@ -40,9 +40,15 @@ impl<'a> System<'a> for Sys {
             match mount_states.get_unchecked() {
                 MountState::Unmounted => {}
                 MountState::MountedBy(mounter_uid) => {
-                    if let Some((controller, mounter)) = uid_allocator
+                    // Note: currently controller events are not passed through since none of them
+                    // are currently relevant to controlling the mounted entity
+                    if let Some((inputs, mounter)) = uid_allocator
                         .retrieve_entity_internal(mounter_uid.id())
-                        .and_then(|mounter| controllers.get(mounter).cloned().map(|x| (x, mounter)))
+                        .and_then(|mounter| {
+                            controllers
+                                .get(mounter)
+                                .map(|c| (c.inputs.clone(), mounter))
+                        })
                     {
                         // TODO: consider joining on these? (remember we can use .maybe())
                         let pos = positions.get(entity).copied();
@@ -53,7 +59,13 @@ impl<'a> System<'a> for Sys {
                             let _ = orientations.insert(mounter, ori);
                             let _ = velocities.insert(mounter, vel);
                         }
-                        let _ = controllers.insert(entity, controller);
+                        let _ = controllers.insert(
+                            entity,
+                            Controller {
+                                inputs,
+                                ..Default::default()
+                            },
+                        );
                     } else {
                         *(mount_states.get_mut_unchecked()) = MountState::Unmounted;
                     }
