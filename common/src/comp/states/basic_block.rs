@@ -20,7 +20,7 @@ impl StateHandle for BasicBlockState {
         };
 
         // TODO: Apply simple move speed debuff instead
-        update.character.move_disabled = true;
+        update.character.move_disabled_this_tick = true;
 
         // Update movement
         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
@@ -32,7 +32,7 @@ impl StateHandle for BasicBlockState {
 
         if !ecs_data.inputs.secondary.is_pressed() {
             update.character.action_state = attempt_wield(ecs_data.stats);
-            update.character.move_disabled = false;
+            update.character.move_disabled_this_tick = false;
             return update;
         }
 

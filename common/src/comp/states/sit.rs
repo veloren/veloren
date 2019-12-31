@@ -17,7 +17,7 @@ impl StateHandle for SitState {
         };
 
         // Prevent action state handling
-        update.character.action_disabled = true;
+        update.character.action_disabled_this_tick = true;
         update.character.action_state = Idle(IdleState);
         update.character.move_state = Sit(SitState);
 
@@ -27,27 +27,27 @@ impl StateHandle for SitState {
         // Can't hurt to be safe :shrug:
         if !ecs_data.physics.on_ground {
             update.character.move_state = determine_fall_or_swim(ecs_data.physics);
-            update.character.move_disabled = false;
+            update.character.move_disabled_this_tick = false;
             return update;
         }
         // Try to jump
         if ecs_data.inputs.jump.is_pressed() {
             update.character.move_state = Jump(JumpState);
-            update.character.action_disabled = false;
+            update.character.action_disabled_this_tick = false;
             return update;
         }
 
         // Try to Run
         if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
             update.character.move_state = Run(RunState);
-            update.character.action_disabled = false;
+            update.character.action_disabled_this_tick = false;
             return update;
         }
 
         // Try to Stand
         if ecs_data.inputs.sit.is_just_pressed() {
             update.character.move_state = Stand(StandState);
-            update.character.action_disabled = false;
+            update.character.action_disabled_this_tick = false;
             return update;
         }
 
