@@ -41,7 +41,9 @@ pub enum ServerMsg {
     },
     PlayerListUpdate(PlayerListUpdate),
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
-    ForceState(ClientState),
+    /// Trigger cleanup for when the client goes back to the `Registered` state from an ingame
+    /// state
+    ExitIngameCleanup,
     Ping,
     Pong,
     ChatMsg {
