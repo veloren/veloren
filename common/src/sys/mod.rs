@@ -24,8 +24,8 @@ const CLEANUP_SYS: &str = "cleanup_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
-    dispatch_builder.add(controller::Sys, CONTROLLER_SYS, &[AGENT_SYS]);
-    dispatch_builder.add(mount::Sys, MOUNT_SYS, &[CONTROLLER_SYS]);
+    dispatch_builder.add(mount::Sys, MOUNT_SYS, &[AGENT_SYS]);
+    dispatch_builder.add(controller::Sys, CONTROLLER_SYS, &[AGENT_SYS, MOUNT_SYS]);
     dispatch_builder.add(movement::Sys, MOVEMENT_SYS, &[]);
     dispatch_builder.add(combat::Sys, COMBAT_SYS, &[CONTROLLER_SYS]);
     dispatch_builder.add(stats::Sys, STATS_SYS, &[COMBAT_SYS]);

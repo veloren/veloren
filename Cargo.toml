@@ -44,7 +44,7 @@ opt-level = 2
 inherits= 'dev'
 debug = true
 
-# this profil is used for veloren releases, compile time doesn't matter
+# this profile is used for veloren releases, compile time doesn't matter
 # we need stacktraces, light debug information, as much checks as possible
 # I would like to put it in a seperate `official_release` target, but that doesnt share caches with `cargo test` and `cargo bench`
 [profile.release]
