@@ -13,7 +13,6 @@ pub enum ClientState {
     Connected,
     Registered,
     Spectator,
-    Dead,
     Character,
 }
 
