@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed region display name
 - Fixed the bow fire rate
 - Healthbars now flash on critical health
+- Fixed ghosts when going back to character screen
 
 ### Removed
 
