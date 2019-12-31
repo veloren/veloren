@@ -28,7 +28,7 @@ use common::{
     msg::{ClientMsg, ClientState, PlayerListUpdate, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay},
-    sync::{Uid,UidAllocator, WorldSyncExt},
+    sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
@@ -36,8 +36,8 @@ use log::{debug, error};
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{
-    join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, RunNow,
-    SystemData, WorldExt, saveload::MarkerAllocator,
+    join::Join, saveload::MarkerAllocator, world::EntityBuilder as EcsEntityBuilder, Builder,
+    Entity as EcsEntity, RunNow, SystemData, WorldExt,
 };
 use std::{
     i32,
@@ -413,8 +413,12 @@ impl Server {
                         }
                     }
 
-
-                    if state.ecs().write_storage::<Client>().get_mut(entity).is_some() {
+                    if state
+                        .ecs()
+                        .write_storage::<Client>()
+                        .get_mut(entity)
+                        .is_some()
+                    {
                         state
                             .ecs()
                             .write_storage()
@@ -576,7 +580,12 @@ impl Server {
 
                 ServerEvent::Respawn(entity) => {
                     // Only clients can respawn
-                    if state.ecs().write_storage::<Client>().get_mut(entity).is_some() {
+                    if state
+                        .ecs()
+                        .write_storage::<Client>()
+                        .get_mut(entity)
+                        .is_some()
+                    {
                         let respawn_point = state
                             .read_component_cloned::<comp::Waypoint>(entity)
                             .map(|wp| wp.get_pos())
@@ -596,7 +605,7 @@ impl Server {
                             .ecs()
                             .write_storage()
                             .insert(entity, comp::ForceUpdate)
-                            .err().map(|err| 
+                            .err().map(|err|
                             error!("Error inserting ForceUpdate component when respawning client: {:?}", err)
                             );
                     }
@@ -750,19 +759,16 @@ impl Server {
                     // Easier than checking and removing all other known components
                     // Note: If other `ServerEvent`s are referring to this entity they will be
                     // disrupted
-                    let maybe_client =
-                        state.ecs().write_storage::<Client>().remove(entity);
-                    let maybe_uid = 
-                        state.read_component_cloned::<Uid>(entity);
-                    let maybe_player = 
-                        state.ecs().write_storage::<comp::Player>().remove(entity);
-                    if let (Some(mut client), Some(uid), Some(player)) = (
-                        maybe_client, maybe_uid, maybe_player,
-                    ) {
-                        // Tell client its request was successful 
-                        client.allow_state(ClientState::Registered); 
+                    let maybe_client = state.ecs().write_storage::<Client>().remove(entity);
+                    let maybe_uid = state.read_component_cloned::<Uid>(entity);
+                    let maybe_player = state.ecs().write_storage::<comp::Player>().remove(entity);
+                    if let (Some(mut client), Some(uid), Some(player)) =
+                        (maybe_client, maybe_uid, maybe_player)
+                    {
+                        // Tell client its request was successful
+                        client.allow_state(ClientState::Registered);
                         // Tell client to clear out other entities and its own components
-                        client.notify(ServerMsg::ExitIngameCleanup); 
+                        client.notify(ServerMsg::ExitIngameCleanup);
 
                         let entity_builder =
                             state.ecs_mut().create_entity().with(client).with(player);
