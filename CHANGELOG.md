@@ -48,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the bow fire rate
 - Healthbars now flash on critical health
 - Fixed ghosts when going back to character screen
+- Fixed not being able to unmount
+- Fixed non-humanoids being able to climb and glide
 
 ### Removed
 
