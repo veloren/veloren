@@ -21,7 +21,7 @@ impl StateHandle for ClimbState {
 
         // Disable actions in this state
         update.character.action_state = Idle(IdleState);
-        update.character.action_disabled = true;
+        update.character.action_disabled_this_tick = true;
 
         // Move player
         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
@@ -81,13 +81,13 @@ impl StateHandle for ClimbState {
             if ecs_data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
                 update.character.move_state = Jump(JumpState);
-                update.character.action_disabled = false;
+                update.character.action_disabled_this_tick = false;
 
                 return update;
             } else {
                 // Just fall off
                 update.character.move_state = Fall(FallState);
-                update.character.action_disabled = false;
+                update.character.action_disabled_this_tick = false;
 
                 return update;
             }
@@ -96,7 +96,7 @@ impl StateHandle for ClimbState {
         // Remove climb state on ground, otherwise character will get stuck
         if ecs_data.physics.on_ground {
             update.character.move_state = Stand(StandState);
-            update.character.action_disabled = false;
+            update.character.action_disabled_this_tick = false;
             return update;
         }
 

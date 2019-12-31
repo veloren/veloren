@@ -56,11 +56,12 @@ use super::{
 };
 
 /// #### A trait for implementing state `handle()`ing logic.
-///  _Mimics the typical OOP style state machine pattern, but remains performant and consistent
-///  with ECS data-behavior-separation constraint since trait fn's are syntactic sugar for
-///  static fn's that accept their implementor's object type as its first parameter. This allows
-///  for several benefits over implementing each state's behavior within the `CharacterState` update `System`
-///  itself:_
+///  _Mimics the typical OOP style state machine pattern where states implement their own behavior,
+///  exit conditions, and return new states to the state machine upon exit.
+///  This is still performant and consistent with ECS data-behavior-separation constraint
+///  since trait fn's are syntactic sugar for static fn's that accept their implementor's
+///  object type as its first parameter. This allows for several benefits over implementing
+///  each state's behavior within the `CharacterState` update `System` itself:_
 ///  
 ///  1. Less cognitive overhead: State's handling logic is next to the its data, and component (inside the state's .rs file).
 ///  2. Separation of concerns (between states): all logic within a state's `handle()` is relevant only to that state.
