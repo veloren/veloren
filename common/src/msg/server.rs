@@ -4,6 +4,7 @@ use crate::{
     terrain::{Block, TerrainChunk},
     ChatType,
 };
+use authc::AuthClientError;
 use hashbrown::HashMap;
 use vek::*;
 
@@ -88,7 +89,12 @@ pub enum ServerError {
     TooManyPlayers,
     InvalidAuth,
     AlreadyLoggedIn,
+    AuthError(String),
     //TODO: InvalidAlias,
+}
+
+impl From<AuthClientError> for ServerError {
+    fn from(err: AuthClientError) -> Self { Self::AuthError(err.to_string()) }
 }
 
 impl ServerMsg {

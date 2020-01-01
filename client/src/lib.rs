@@ -552,6 +552,7 @@ impl Client {
                         ServerError::TooManyPlayers => return Err(Error::ServerWentMad),
                         ServerError::InvalidAuth => return Err(Error::InvalidAuth),
                         ServerError::AlreadyLoggedIn => return Err(Error::AlreadyLoggedIn),
+                        ServerError::AuthError(_) => unreachable!(),
                         //TODO: ServerError::InvalidAlias => return Err(Error::InvalidAlias),
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
