@@ -1,3 +1,4 @@
+mod ability;
 pub mod agent;
 pub mod character_state;
 mod cleanup;
@@ -11,6 +12,7 @@ mod stats;
 use specs::DispatcherBuilder;
 
 // System names
+const ABILITY_SYS: &str = "ability_sys";
 const AGENT_SYS: &str = "agent_sys";
 const CHARACTER_STATE_SYS: &str = "character_state_sys";
 const CONTROLLER_SYS: &str = "controller_sys";
@@ -24,6 +26,7 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
     dispatch_builder.add(controller::Sys, CONTROLLER_SYS, &[AGENT_SYS]);
     dispatch_builder.add(character_state::Sys, CHARACTER_STATE_SYS, &[CONTROLLER_SYS]);
+    dispatch_builder.add(ability::Sys, ABILITY_SYS, &[CHARACTER_STATE_SYS]);
     dispatch_builder.add(combat::Sys, COMBAT_SYS, &[CONTROLLER_SYS]);
     dispatch_builder.add(stats::Sys, STATS_SYS, &[COMBAT_SYS]);
     dispatch_builder.add(

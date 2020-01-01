@@ -25,8 +25,6 @@ impl StateHandle for ChargeAttackState {
         };
 
         // Prevent move state handling, handled here
-        // ecs_data.updater.insert(*ecs_data.entity, OverrideMove);
-        update.character.action_disabled_this_tick = true;
         update.character.move_state = Run(RunState);
 
         // Move player
@@ -55,7 +53,6 @@ impl StateHandle for ChargeAttackState {
 
             // Go back to wielding or idling
             update.character.action_state = attempt_wield(ecs_data.stats);
-            update.character.move_disabled_this_tick= false;
             return update;
         }
 
@@ -63,7 +60,6 @@ impl StateHandle for ChargeAttackState {
         if self.remaining_duration == Duration::default() || update.vel.0.magnitude_squared() < 10.0
         {
             update.character.action_state = attempt_wield(ecs_data.stats);
-            update.character.move_disabled_this_tick= false;
             return update;
         }
 
