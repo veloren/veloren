@@ -54,7 +54,6 @@ use super::{
     ActionState, ActionState::*, AttackKind::*, BlockKind::*, DodgeKind::*, EcsStateData,
     MoveState, MoveState::*, StateUpdate,
 };
-
 /// #### A trait for implementing state `handle()`ing logic.
 ///  _Mimics the typical OOP style state machine pattern where states implement their own behavior,
 ///  exit conditions, and return new states to the state machine upon exit.
@@ -92,6 +91,48 @@ impl StateHandle for ActionState {
             },
             Wield(state) => state.handle(ecs_data),
             Idle(state) => state.handle(ecs_data),
+            // All states should be explicitly handled
+            // Do not use default match: _ => {},
+        }
+    }
+}
+
+// Other fn's that relate to individual `ActionState`s
+impl ActionState {
+    /// Returns whether a given `ActionState` overrides `MoveState` `handle()`ing
+    pub fn overrides_move_state(&self) -> bool {
+        match self {
+            Attack(kind) => match kind {
+                BasicAttack(state) => false,
+                Charge(state) => true,
+            },
+            Block(kind) => match kind {
+                BasicBlock(state) => true,
+            },
+            Dodge(kind) => match kind {
+                Roll(state) => true,
+            },
+            Wield(state) => false,
+            Idle(state) => false,
+            // All states should be explicitly handled
+            // Do not use default match: _ => {},
+        }
+    }
+}
+
+// Other fn's that relate to individual `MoveState`s
+impl MoveState {
+    /// Returns whether a given `ActionState` overrides `MoveState` `handle()`ing
+    pub fn overrides_action_state(&self) -> bool {
+        match self {
+            Stand(state) => false,
+            Run(state) => false,
+            Jump(state) => false,
+            Climb(state) => true,
+            Glide(state) => true,
+            Swim(state) => false,
+            Fall(state) => false,
+            Sit(state) => true,
             // All states should be explicitly handled
             // Do not use default match: _ => {},
         }

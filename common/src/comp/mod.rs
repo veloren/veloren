@@ -1,3 +1,4 @@
+mod ability;
 mod admin;
 mod agent;
 mod body;
@@ -15,6 +16,7 @@ mod stats;
 mod visual;
 
 // Reexports
+pub use ability::{AbilityAction, AbilityActionKind, AbilityPool};
 pub use admin::Admin;
 pub use agent::Agent;
 pub use body::{
