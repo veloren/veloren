@@ -1,5 +1,5 @@
-/// sfx::event_mapper watches the local entities and determines which sfx to emit,
-/// and the position at which the sound should be emitted from
+/// event_mapper::movement watches all local entities movements and determines which
+/// sfx to emit, and the position at which the sound should be emitted from
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
@@ -18,11 +18,11 @@ struct LastSfxEvent {
     time: Instant,
 }
 
-pub struct SfxEventMapper {
+pub struct MovementEventMapper {
     event_history: HashMap<EcsEntity, LastSfxEvent>,
 }
 
-impl SfxEventMapper {
+impl MovementEventMapper {
     pub fn new() -> Self {
         Self {
             event_history: HashMap::new(),
@@ -68,12 +68,7 @@ impl SfxEventMapper {
                 };
 
                 // Check for SFX config entry for this movement
-                let sfx_trigger_item: Option<&SfxTriggerItem> = triggers
-                    .items
-                    .iter()
-                    .find(|item| item.trigger == mapped_event);
-
-                if Self::should_emit(state, sfx_trigger_item) {
+                if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
                     ecs.read_resource::<EventBus<SfxEventItem>>()
                         .emitter()
                         .emit(SfxEventItem::new(mapped_event, Some(pos.0)));
@@ -110,10 +105,10 @@ impl SfxEventMapper {
     /// 2. The sfx has not been played since it's timeout threshold has elapsed, which prevents firing every tick
     fn should_emit(
         last_play_entry: &LastSfxEvent,
-        sfx_trigger_item: Option<&SfxTriggerItem>,
+        sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
     ) -> bool {
-        if let Some(item) = sfx_trigger_item {
-            if last_play_entry.event == item.trigger {
+        if let Some((event, item)) = sfx_trigger_item {
+            if &last_play_entry.event == event {
                 last_play_entry.time.elapsed().as_secs_f64() >= item.threshold
             } else {
                 true
@@ -147,6 +142,13 @@ impl SfxEventMapper {
                     SfxEvent::Glide
                 }
             }
+            (MovementState::Stand, _, previous_event) => {
+                if previous_event == SfxEvent::Glide {
+                    SfxEvent::GliderClose
+                } else {
+                    SfxEvent::Idle
+                }
+            }
             _ => SfxEvent::Idle,
         }
     }
@@ -168,15 +170,16 @@ mod tests {
             time: Instant::now(),
         };
 
-        let result = SfxEventMapper::should_emit(&last_sfx_event, None);
+        let result = MovementEventMapper::should_emit(&last_sfx_event, None);
 
         assert_eq!(result, false);
     }
 
     #[test]
     fn config_but_played_since_threshold_no_emit() {
+        let event = SfxEvent::Run;
+
         let trigger_item = SfxTriggerItem {
-            trigger: SfxEvent::Run,
             files: vec![String::from("some.path.to.sfx.file")],
             threshold: 1.0,
         };
@@ -187,15 +190,17 @@ mod tests {
             time: Instant::now(),
         };
 
-        let result = SfxEventMapper::should_emit(&last_sfx_event, Some(&trigger_item));
+        let result =
+            MovementEventMapper::should_emit(&last_sfx_event, Some((&event, &trigger_item)));
 
         assert_eq!(result, false);
     }
 
     #[test]
     fn config_and_not_played_since_threshold_emits() {
+        let event = SfxEvent::Run;
+
         let trigger_item = SfxTriggerItem {
-            trigger: SfxEvent::Run,
             files: vec![String::from("some.path.to.sfx.file")],
             threshold: 0.5,
         };
@@ -205,15 +210,17 @@ mod tests {
             time: Instant::now().checked_add(Duration::from_secs(1)).unwrap(),
         };
 
-        let result = SfxEventMapper::should_emit(&last_sfx_event, Some(&trigger_item));
+        let result =
+            MovementEventMapper::should_emit(&last_sfx_event, Some((&event, &trigger_item)));
 
         assert_eq!(result, true);
     }
 
     #[test]
     fn same_previous_event_elapsed_emits() {
+        let event = SfxEvent::Run;
+
         let trigger_item = SfxTriggerItem {
-            trigger: SfxEvent::Run,
             files: vec![String::from("some.path.to.sfx.file")],
             threshold: 0.5,
         };
@@ -225,14 +232,15 @@ mod tests {
                 .unwrap(),
         };
 
-        let result = SfxEventMapper::should_emit(&last_sfx_event, Some(&trigger_item));
+        let result =
+            MovementEventMapper::should_emit(&last_sfx_event, Some((&event, &trigger_item)));
 
         assert_eq!(result, true);
     }
 
     #[test]
     fn maps_idle() {
-        let result = SfxEventMapper::map_movement_event(
+        let result = MovementEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Stand,
                 action: ActionState::Idle,
@@ -245,7 +253,7 @@ mod tests {
 
     #[test]
     fn maps_run() {
-        let result = SfxEventMapper::map_movement_event(
+        let result = MovementEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Run,
                 action: ActionState::Idle,
@@ -258,7 +266,7 @@ mod tests {
 
     #[test]
     fn maps_roll() {
-        let result = SfxEventMapper::map_movement_event(
+        let result = MovementEventMapper::map_movement_event(
             &CharacterState {
                 action: ActionState::Roll {
                     time_left: Duration::new(1, 0),
@@ -274,7 +282,7 @@ mod tests {
 
     #[test]
     fn maps_fall() {
-        let result = SfxEventMapper::map_movement_event(
+        let result = MovementEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Fall,
                 action: ActionState::Idle,
@@ -287,7 +295,7 @@ mod tests {
 
     #[test]
     fn maps_glider_open() {
-        let result = SfxEventMapper::map_movement_event(
+        let result = MovementEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Glide,
                 action: ActionState::Idle,
@@ -300,7 +308,7 @@ mod tests {
 
     #[test]
     fn maps_glide() {
-        let result = SfxEventMapper::map_movement_event(
+        let result = MovementEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Glide,
                 action: ActionState::Idle,
@@ -312,10 +320,23 @@ mod tests {
     }
 
     #[test]
-    fn maps_glider_close() {
-        let result = SfxEventMapper::map_movement_event(
+    fn maps_glider_close_when_closing_mid_flight() {
+        let result = MovementEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Fall,
+                action: ActionState::Idle,
+            },
+            SfxEvent::Glide,
+        );
+
+        assert_eq!(result, SfxEvent::GliderClose);
+    }
+
+    #[test]
+    fn maps_glider_close_when_landing() {
+        let result = MovementEventMapper::map_movement_event(
+            &CharacterState {
+                movement: MovementState::Stand,
                 action: ActionState::Idle,
             },
             SfxEvent::Glide,
