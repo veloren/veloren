@@ -80,11 +80,7 @@ impl ClientInit {
                                                 &player.alias,
                                                 &password
                                             );
-                                            match auth_client.sign_in(
-                                                &player.alias,
-                                                &password,
-                                                socket_addr.ip(),
-                                            ) {
+                                            match auth_client.sign_in(&player.alias, &password) {
                                                 Ok(token) => token.serialize(),
                                                 // TODO: Properly deal with it
                                                 Err(e) => panic!(
