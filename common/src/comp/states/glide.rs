@@ -17,9 +17,6 @@ impl StateHandle for GlideState {
             character: *ecs_data.character,
         };
 
-        // Prevent action in this state, set here
-        update.character.action_disabled_this_tick = true;
-
         // Defaults for this state
         update.character.action_state = Idle(IdleState);
         update.character.move_state = Glide(GlideState);

@@ -19,9 +19,6 @@ impl StateHandle for RollState {
             ori: *ecs_data.ori,
         };
 
-        // Prevent move state handling, handled here
-        update.character.move_disabled_this_tick= true;
-
         // Update velocity
         update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)
             + (update.vel.0 * Vec3::new(1.0, 1.0, 0.0)
@@ -39,7 +36,6 @@ impl StateHandle for RollState {
         if self.remaining_duration == Duration::default() {
             // If so, go back to wielding or idling
             update.character.action_state = attempt_wield(ecs_data.stats);
-            update.character.move_disabled_this_tick= false;
             return update;
         }
 

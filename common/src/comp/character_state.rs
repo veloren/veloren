@@ -141,14 +141,6 @@ pub struct CharacterState {
     /// _Primarily `handle()`s how character interacts with world, and upper body animations.
     /// Can be overidden by `MoveState`s using `action_disabled` flag. Example: `GlideState`_
     pub action_state: ActionState,
-
-    /// Used by `move_state` to disable `action_state` `handle()` calls.
-    /// Resets after every tick. States that use it should set it every tick.
-    pub action_disabled_this_tick: bool,
-
-    /// Used by `action_state` to disable `move_state` `handle()` calls.
-    /// Resets after every tick. States that use it should set it every tick.
-    pub move_disabled_this_tick: bool,
 }
 
 impl CharacterState {
@@ -176,8 +168,6 @@ impl Default for CharacterState {
         Self {
             move_state: MoveState::Fall(FallState),
             action_state: ActionState::Idle(IdleState),
-            action_disabled_this_tick: false,
-            move_disabled_this_tick: false,
         }
     }
 }

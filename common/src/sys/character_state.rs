@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Body, CharacterState, Controller, EcsStateData, Mounting, MoveState::*, Ori,
+        states::*, Body, CharacterState, Controller, EcsStateData, Mounting, MoveState::*, Ori,
         OverrideAction, OverrideMove, OverrideState, PhysicsState, Pos, SitState, StateHandle,
         Stats, Vel,
     },
@@ -106,42 +106,10 @@ impl<'a> System<'a> for Sys {
                 return;
             }
 
-            // Determine new move state if character can move
-            if let (None, false) = (
-                move_overrides.get(entity),
-                character.move_disabled_this_tick,
-            ) {
-                let state_update = character.move_state.handle(&EcsStateData {
-                    entity: &entity,
-                    uid,
-                    character,
-                    pos,
-                    vel,
-                    ori,
-                    dt: &dt,
-                    inputs,
-                    stats,
-                    body,
-                    physics,
-                    updater: &updater,
-                    server_bus: &server_bus,
-                    local_bus: &local_bus,
-                });
-
-                *character = state_update.character;
-                *pos = state_update.pos;
-                *vel = state_update.vel;
-                *ori = state_update.ori;
-            }
-
-            // Reset disabled every tick. Should be
-            // set every tick by states that use it.
-            character.move_disabled_this_tick = false;
-
             // Determine new action if character can act
             if let (None, false) = (
                 action_overrides.get(entity),
-                character.action_disabled_this_tick,
+                character.action_state.overrides_move_state(),
             ) {
                 let state_update = character.action_state.handle(&EcsStateData {
                     entity: &entity,
@@ -166,9 +134,33 @@ impl<'a> System<'a> for Sys {
                 *ori = state_update.ori;
             }
 
-            // Reset disabled every tick. Should
-            // be set every tick by states that use it.
-            character.action_disabled_this_tick = false;
+            // Determine new move state if character can move
+            if let (None, false) = (
+                move_overrides.get(entity),
+                character.move_state.overrides_action_state(),
+            ) {
+                let state_update = character.move_state.handle(&EcsStateData {
+                    entity: &entity,
+                    uid,
+                    character,
+                    pos,
+                    vel,
+                    ori,
+                    dt: &dt,
+                    inputs,
+                    stats,
+                    body,
+                    physics,
+                    updater: &updater,
+                    server_bus: &server_bus,
+                    local_bus: &local_bus,
+                });
+
+                *character = state_update.character;
+                *pos = state_update.pos;
+                *vel = state_update.vel;
+                *ori = state_update.ori;
+            }
         }
     }
 }
