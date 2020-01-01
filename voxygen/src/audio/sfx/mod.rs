@@ -1,4 +1,5 @@
-/// The SfxManager listens for SFX events and plays the sound at the provided position
+/// The Sfx Manager manages individual sfx event system, listens for
+/// SFX events and plays the sound at the requested position, or the current player position
 mod event_mapper;
 
 use crate::audio::AudioFrontend;
@@ -8,37 +9,53 @@ use common::{
     comp::{Ori, Pos},
     event::{EventBus, SfxEvent, SfxEventItem},
 };
+use event_mapper::SfxEventMapper;
+use hashbrown::HashMap;
 use serde::Deserialize;
 use specs::WorldExt;
 use vek::*;
 
 #[derive(Deserialize)]
 pub struct SfxTriggerItem {
-    pub trigger: SfxEvent,
     pub files: Vec<String>,
     pub threshold: f64,
 }
 
 #[derive(Deserialize)]
-pub struct SfxTriggers {
-    pub items: Vec<SfxTriggerItem>,
+pub struct SfxTriggers(HashMap<SfxEvent, SfxTriggerItem>);
+
+impl Default for SfxTriggers {
+    fn default() -> Self {
+        Self(HashMap::new())
+    }
+}
+
+impl SfxTriggers {
+    pub fn get_trigger(&self, trigger: &SfxEvent) -> Option<&SfxTriggerItem> {
+        self.0.get(trigger)
+    }
+
+    pub fn get_key_value(&self, trigger: &SfxEvent) -> Option<(&SfxEvent, &SfxTriggerItem)> {
+        self.0.get_key_value(trigger)
+    }
 }
 
 pub struct SfxMgr {
     triggers: SfxTriggers,
-    event_mapper: event_mapper::SfxEventMapper,
+    event_mapper: SfxEventMapper,
 }
 
 impl SfxMgr {
     pub fn new() -> Self {
         Self {
             triggers: Self::load_sfx_items(),
-            event_mapper: event_mapper::SfxEventMapper::new(),
+            event_mapper: SfxEventMapper::new(),
         }
     }
 
     pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
         self.event_mapper.maintain(client, &self.triggers);
+
         let ecs = client.state().ecs();
 
         let player_position = ecs
@@ -61,16 +78,7 @@ impl SfxMgr {
                 _ => player_position,
             };
 
-            // Get the SFX config entry for this movement
-            let sfx_trigger_item: Option<&SfxTriggerItem> = self
-                .triggers
-                .items
-                .iter()
-                .find(|item| item.trigger == event.sfx);
-
-            if sfx_trigger_item.is_some() {
-                let item = sfx_trigger_item.expect("Invalid sfx item");
-
+            if let Some(item) = self.triggers.get_trigger(&event.sfx) {
                 let sfx_file = match item.files.len() {
                     1 => item
                         .files
@@ -91,6 +99,16 @@ impl SfxMgr {
         let file = assets::load_file("voxygen.audio.sfx", &["ron"])
             .expect("Failed to load the sfx config file");
 
-        ron::de::from_reader(file).expect("Error parsing sfx manifest")
+        match ron::de::from_reader(file) {
+            Ok(config) => config,
+            Err(e) => {
+                log::warn!(
+                    "Error parsing sfx config file, sfx will not be available: {}",
+                    format!("{:#?}", e)
+                );
+
+                SfxTriggers::default()
+            }
+        }
     }
 }
