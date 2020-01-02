@@ -38,7 +38,7 @@ impl PlayState for CharSelectionState {
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Registered = current_client_state {
             // Handle window events
-            for event in global_state.window.fetch_events() {
+            for event in global_state.window.fetch_events(&mut global_state.settings) {
                 if self.char_selection_ui.handle_event(event.clone()) {
                     continue;
                 }

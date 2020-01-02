@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a default map, which is used to speed up starting single player.
 - Added a 3D renderered map, which is also used by the server to send the map
   to the client.
+- Added fullscreen and window size to settings so that they can be persisted
+- Added coverage based scaling for pixel art
 
 ### Changed
 
