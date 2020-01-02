@@ -180,8 +180,7 @@ impl PlayState for MainMenuState {
             ));
 
             if let Some(info) = global_state.info_message.take() {
-                self.main_menu_ui
-                    .show_info(info, localized_strings.get("common.okay").to_owned());
+                self.main_menu_ui.show_info(info);
             }
 
             // Draw the UI to the screen.
