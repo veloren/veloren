@@ -1,5 +1,5 @@
 use client::{error::Error as ClientError, Client};
-use common::comp;
+use common::{comp, net::PostError};
 use crossbeam::channel::{unbounded, Receiver, TryRecvError};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -87,6 +87,10 @@ impl ClientInit {
                                 }
                                 Err(err) => {
                                     match err {
+                                        ClientError::Network(PostError::Bincode(_)) => {
+                                            last_err = Some(Error::ConnectionFailed(err));
+                                            break 'tries;
+                                        }
                                         // Assume the connection failed and try again soon
                                         ClientError::Network(_) => {}
                                         ClientError::TooManyPlayers => {
