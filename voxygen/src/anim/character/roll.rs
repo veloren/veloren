@@ -10,11 +10,11 @@ pub struct RollAnimation;
 
 impl Animation for RollAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (Option<Tool>, f64);
+    type Dependency = (Option<Tool>, Vec3<f32>, Vec3<f32>, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _global_time): Self::Dependency,
+        (_active_tool_kind, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -26,6 +26,20 @@ impl Animation for RollAnimation {
         let wave_quick_cos = (anim_time as f32 * 9.5).cos();
         let wave_slow = (anim_time as f32 * 2.8 + PI).sin();
         let wave_dub = (anim_time as f32 * 5.5).sin();
+
+        let ori = Vec2::from(orientation);
+        let last_ori = Vec2::from(last_ori);
+        let tilt = if Vec2::new(ori, last_ori)
+            .map(|o| Vec2::<f32>::from(o).magnitude_squared())
+            .map(|m| m > 0.001 && m.is_finite())
+            .reduce_and()
+            && ori.angle_between(last_ori).is_finite()
+        {
+            ori.angle_between(last_ori).min(0.5)
+                * last_ori.determine_side(Vec2::zero(), ori).signum()
+        } else {
+            0.0
+        } * 1.3;
 
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
@@ -102,7 +116,7 @@ impl Animation for RollAnimation {
 
         next.torso.offset =
             Vec3::new(0.0, 11.0, 0.1 + wave_dub * 16.0) / 11.0 * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(wave_slow * 6.5);
+        next.torso.ori = Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(tilt);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         next
     }

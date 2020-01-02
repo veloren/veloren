@@ -280,7 +280,7 @@ impl FigureMgr {
                         ),
                         (_, Roll { .. }) => anim::character::RollAnimation::update_skeleton(
                             &target_base,
-                            (active_tool_kind, time),
+                            (active_tool_kind, ori.0, state.last_ori, time),
                             state.action_time,
                             &mut action_animation_rate,
                             skeleton_attr,
