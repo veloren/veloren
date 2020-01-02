@@ -123,9 +123,12 @@ impl<'a> System<'a> for Sys {
                         ClientState::Pending => {},
                     },
                     // Valid player
-                    ClientMsg::Register { player, password } if player.is_valid() => {
+                    ClientMsg::Register {
+                        player,
+                        token_or_username,
+                    } if player.is_valid() => {
                         if !accounts
-                            .query(password.clone())
+                            .query(token_or_username.clone())
                             .expect("Handle this error!")
                         {
                             // TODO: Graceful error handling!

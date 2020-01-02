@@ -3,16 +3,6 @@ use common::msg::ServerError;
 use hashbrown::HashMap;
 use std::str::FromStr;
 
-fn contains_value(map: &HashMap<String, String>, value: &str) -> bool {
-    let mut contains = false;
-    for ev in map.values() {
-        if value == ev {
-            contains = true;
-        }
-    }
-    contains
-}
-
 fn derive_uuid(username: &str) -> Uuid {
     let mut state: [u8; 16] = [
         52, 17, 19, 239, 52, 17, 19, 239, 52, 17, 19, 239, 52, 17, 19, 239,
@@ -35,7 +25,7 @@ fn derive_uuid(username: &str) -> Uuid {
 }
 
 pub struct AuthProvider {
-    accounts: HashMap<String, String>,
+    accounts: HashMap<Uuid, String>,
     auth_server: Option<AuthClient>,
 }
 
@@ -61,12 +51,12 @@ impl AuthProvider {
                 log::info!("Validating '{}' token.", &username_or_token);
                 if let Ok(token) = AuthToken::from_str(&username_or_token) {
                     match srv.validate(token) {
-                        Ok(id) => {
-                            if contains_value(&self.accounts, &id.to_string()) {
+                        Ok(uuid) => {
+                            if self.accounts.contains_key(&uuid) {
                                 return Err(ServerError::AlreadyLoggedIn);
                             }
-                            let username = srv.uuid_to_username(id.clone())?;
-                            self.accounts.insert(username, id.to_string());
+                            let username = srv.uuid_to_username(uuid.clone())?;
+                            self.accounts.insert(uuid, username);
                             Ok(true)
                         },
                         Err(e) => Err(ServerError::from(e)),
@@ -77,10 +67,12 @@ impl AuthProvider {
             },
             // Username is expected
             None => {
-                if !self.accounts.contains_key(&username_or_token) {
-                    log::info!("New User '{}'", username_or_token);
-                    let uuid = derive_uuid(&username_or_token);
-                    self.accounts.insert(username_or_token, uuid.to_string());
+                // Assume username was provided
+                let username = username_or_token;
+                let uuid = derive_uuid(&username);
+                if !self.accounts.contains_key(&uuid) {
+                    log::info!("New User '{}'", username);
+                    self.accounts.insert(uuid, username);
                     Ok(true)
                 } else {
                     Err(ServerError::AlreadyLoggedIn)
