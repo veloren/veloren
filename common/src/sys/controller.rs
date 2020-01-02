@@ -327,6 +327,28 @@ impl<'a> System<'a> for Sys {
                 // Or do nothing
                 continue;
             }
+
+            // Process controller events
+            for event in controller.events.drain(..) {
+                match event {
+                    ControlEvent::Mount(mountee_uid) => {
+                        if let Some(mountee_entity) =
+                            uid_allocator.retrieve_entity_internal(mountee_uid.id())
+                        {
+                            server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
+                        }
+                    }
+                    ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
+                    ControlEvent::InventoryManip(manip) => {
+                        server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
+                    } /*ControlEvent::Respawn => {
+                       if state.is_dead {
+                         server_emitter.emit(ServerEvent::Respawn(entity)),
+                       }
+                      }*/
+                }
+            }
+
             // If mounted, character state is controlled by mount
             if mount.is_some() {
                 character.movement = Sit;
@@ -394,14 +416,14 @@ impl<'a> System<'a> for Sys {
                 // Any Action + Falling
                 (action_state, Fall) => {
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
-                    if inputs.glide.is_pressed() {
+                    if inputs.glide.is_pressed() && can_glide(body) {
                         character.movement = Glide;
                         continue;
                     }
                     // Try to climb
                     if let (true, Some(_wall_dir)) = (
-                        inputs.climb.is_pressed() | inputs.climb_down.is_pressed()
-                            && body.is_humanoid(),
+                        (inputs.climb.is_pressed() | inputs.climb_down.is_pressed())
+                            && can_climb(body),
                         physics.on_wall,
                     ) {
                         character.movement = Climb;
@@ -530,8 +552,8 @@ impl<'a> System<'a> for Sys {
 
                     // Try to climb
                     if let (true, Some(_wall_dir)) = (
-                        inputs.climb.is_pressed() | inputs.climb_down.is_pressed()
-                            && body.is_humanoid(),
+                        (inputs.climb.is_pressed() | inputs.climb_down.is_pressed())
+                            && can_climb(body),
                         physics.on_wall,
                     ) {
                         character.movement = Climb;
@@ -578,9 +600,7 @@ impl<'a> System<'a> for Sys {
                     // While not on ground ...
                     else {
                         // Try to glide
-                        if physics.on_wall == None
-                            && inputs.glide.is_pressed()
-                            && body.is_humanoid()
+                        if physics.on_wall == None && inputs.glide.is_pressed() && can_glide(&body)
                         {
                             character.movement = Glide;
                             continue;
@@ -652,7 +672,7 @@ impl<'a> System<'a> for Sys {
 
                     if !inputs.glide.is_pressed() {
                         character.movement = Fall;
-                    } else if let Some(_wall_dir) = physics.on_wall {
+                    } else if let (Some(_wall_dir), true) = (physics.on_wall, can_climb(body)) {
                         character.movement = Climb;
                     }
 
@@ -681,23 +701,14 @@ impl<'a> System<'a> for Sys {
                   //     character.movement = Fall;
                   // }
             };
-
-            // Process other controller events
-            for event in controller.events.drain(..) {
-                match event {
-                    ControlEvent::Mount(mountee_uid) => {
-                        if let Some(mountee_entity) =
-                            uid_allocator.retrieve_entity_internal(mountee_uid.id())
-                        {
-                            server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
-                        }
-                    }
-                    ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
-                    ControlEvent::InventoryManip(manip) => {
-                        server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
-                    } //ControlEvent::Respawn => server_emitter.emit(ServerEvent::Unmount(entity)),
-                }
-            }
         }
     }
+}
+
+fn can_glide(body: &Body) -> bool {
+    body.is_humanoid()
+}
+
+fn can_climb(body: &Body) -> bool {
+    body.is_humanoid()
 }

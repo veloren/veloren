@@ -121,9 +121,7 @@ impl PlayState for SessionState {
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
-        while let ClientState::Pending | ClientState::Character | ClientState::Dead =
-            current_client_state
-        {
+        while let ClientState::Pending | ClientState::Character = current_client_state {
             // Compute camera data
             let (view_mat, _, cam_pos) = self
                 .scene
