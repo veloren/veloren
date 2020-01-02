@@ -68,7 +68,9 @@ widget_ids! {
         // Info Window
         info_frame,
         info_text,
-        info_bottom
+        info_bottom,
+        // Auth Trust Prompt
+        button_add_auth_trust,
     }
 }
 
@@ -122,16 +124,17 @@ pub enum Event {
     Quit,
     Settings,
     DisclaimerClosed,
+    AuthServerTrust(String, bool),
 }
 
 pub enum PopupType {
     Error,
     ConnectionInfo,
+    AuthTrustPrompt(String),
 }
 
 pub struct PopupData {
     msg: String,
-    button_text: String,
     popup_type: PopupType,
 }
 
@@ -261,27 +264,51 @@ impl MainMenuUi {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.version, ui_widgets);
-        // Popup (Error/Info)
-        if let Some(popup_data) = &self.popup {
-            let text = Text::new(&popup_data.msg)
-                .rgba(1.0, 1.0, 1.0, if self.connect { fade_msg } else { 1.0 })
+
+        // Popup (Error/Info/AuthTrustPrompt)
+        let mut change_popup = None;
+        if let Some(PopupData { msg, popup_type }) = &self.popup {
+            let text = Text::new(msg)
+                .rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    if let PopupType::ConnectionInfo = popup_type {
+                        fade_msg
+                    } else {
+                        1.0
+                    },
+                )
                 .font_id(self.fonts.cyri.conrod_id);
-            Rectangle::fill_with([65.0 * 6.0, 140.0], color::TRANSPARENT)
+            let (frame_w, frame_h) = if let PopupType::AuthTrustPrompt(_) = popup_type {
+                (65.0 * 8.0, 300.0)
+            } else {
+                (65.0 * 6.0, 140.0)
+            };
+            let error_bg = Rectangle::fill_with([frame_w, frame_h], color::TRANSPARENT)
                 .rgba(0.1, 0.1, 0.1, if self.connect { 0.0 } else { 1.0 })
-                .parent(ui_widgets.window)
-                .up_from(self.ids.banner_top, 15.0)
-                .set(self.ids.login_error_bg, ui_widgets);
+                .parent(ui_widgets.window);
+            if let PopupType::AuthTrustPrompt(_) = popup_type {
+                error_bg.middle_of(ui_widgets.window)
+            } else {
+                error_bg.up_from(self.ids.banner_top, 15.0)
+            }
+            .set(self.ids.login_error_bg, ui_widgets);
             Image::new(self.imgs.info_frame)
-                .w_h(65.0 * 6.0, 140.0)
+                .w_h(frame_w, frame_h)
                 .color(Some(Color::Rgba(
                     1.0,
                     1.0,
                     1.0,
-                    if self.connect { 0.0 } else { 1.0 },
+                    if let PopupType::ConnectionInfo = popup_type {
+                        0.0
+                    } else {
+                        1.0
+                    },
                 )))
                 .middle_of(self.ids.login_error_bg)
                 .set(self.ids.error_frame, ui_widgets);
-            if self.connect {
+            if let PopupType::ConnectionInfo = popup_type {
                 text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
                     .font_id(self.fonts.alkhemi.conrod_id)
                     .bottom_left_with_margins_on(ui_widgets.window, 60.0, 60.0)
@@ -289,6 +316,7 @@ impl MainMenuUi {
                     .set(self.ids.login_error, ui_widgets);
             } else {
                 text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
+                    .w(frame_w - 10.0 * 2.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(25))
                     .set(self.ids.login_error, ui_widgets);
@@ -296,7 +324,7 @@ impl MainMenuUi {
             if Button::image(self.imgs.button)
                 .w_h(100.0, 30.0)
                 .mid_bottom_with_margin_on(
-                    if self.connect {
+                    if let PopupType::ConnectionInfo = popup_type {
                         ui_widgets.window
                     } else {
                         self.ids.login_error_bg
@@ -306,22 +334,55 @@ impl MainMenuUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label_y(Relative::Scalar(2.0))
-                .label(&popup_data.button_text)
+                .label(match popup_type {
+                    PopupType::Error => "Okay",
+                    PopupType::ConnectionInfo => "Cancel",
+                    PopupType::AuthTrustPrompt(_) => "Cancel",
+                })
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_font_size(self.fonts.cyri.scale(15))
                 .label_color(TEXT_COLOR)
                 .set(self.ids.button_ok, ui_widgets)
                 .was_clicked()
             {
-                match popup_data.popup_type {
+                match &popup_type {
+                    PopupType::Error => (),
                     PopupType::ConnectionInfo => {
                         events.push(Event::CancelLoginAttempt);
                     },
-                    _ => (),
+                    PopupType::AuthTrustPrompt(auth_server) => {
+                        events.push(Event::AuthServerTrust(auth_server.clone(), false));
+                    },
                 };
-                self.popup = None;
-            };
+                change_popup = Some(None);
+            }
+
+            if let PopupType::AuthTrustPrompt(auth_server) = popup_type {
+                if Button::image(self.imgs.button)
+                    .w_h(100.0, 30.0)
+                    .right_from(self.ids.button_ok, 10.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label_y(Relative::Scalar(2.0))
+                    .label("Add")
+                    .label_font_id(self.fonts.cyri)
+                    .label_font_size(15)
+                    .label_color(TEXT_COLOR)
+                    .set(self.ids.button_add_auth_trust, ui_widgets)
+                    .was_clicked()
+                {
+                    events.push(Event::AuthServerTrust(auth_server.clone(), true));
+                    change_popup = Some(Some(PopupData {
+                        msg: "Connecting...".to_string(),
+                        popup_type: PopupType::ConnectionInfo,
+                    }));
+                }
+            }
         }
+        if let Some(p) = change_popup {
+            self.popup = p;
+        }
+
         if !self.connect {
             Image::new(self.imgs.banner)
                 .w_h(65.0 * 6.0, 100.0 * 6.0)
@@ -460,8 +521,6 @@ impl MainMenuUi {
                         },
                     }
                 }
-                // Password
-                // TODO: Why isn't it showing up?
                 // Password
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .down_from(self.ids.usrnm_bg, 30.0)
@@ -684,6 +743,18 @@ impl MainMenuUi {
         }
 
         events
+    }
+
+    pub fn auth_trust_prompt(&mut self, auth_server: String) {
+        self.popup = Some(PopupData {
+            msg: format!(
+                "Warning: The server you are trying to connect to has provided this \
+                 authentication server addresss:\n\n{}\n\nbut it is not in your list of trusted \
+                 authentication servers.",
+                &auth_server
+            ),
+            popup_type: PopupType::AuthTrustPrompt(auth_server),
+        })
     }
 
     pub fn show_info(&mut self, msg: String, button_text: String) {

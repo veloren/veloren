@@ -7,6 +7,7 @@ use crate::{
 };
 use directories::{ProjectDirs, UserDirs};
 use glutin::{MouseButton, VirtualKeyCode};
+use hashbrown::HashSet;
 use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
@@ -157,6 +158,7 @@ pub struct NetworkingSettings {
     pub password: String,
     pub servers: Vec<String>,
     pub default_server: usize,
+    pub trusted_auth_servers: HashSet<String>,
 }
 
 impl Default for NetworkingSettings {
@@ -166,6 +168,10 @@ impl Default for NetworkingSettings {
             password: String::default(),
             servers: vec!["server.veloren.net".to_string()],
             default_server: 0,
+            trusted_auth_servers: ["https://auth.veloren.net"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
         }
     }
 }

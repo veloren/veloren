@@ -60,7 +60,6 @@ cpal = "0.10"
 crossbeam = "=0.7.2"
 hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
 chrono = "0.4.9"
-rust-argon2 = "0.5"
 bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"

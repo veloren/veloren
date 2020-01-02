@@ -8,9 +8,9 @@ use crate::{
     window::Event,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
-use client_init::{ClientInit, Error as InitError};
+use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::load_expect, clock::Clock, comp};
-use log::warn;
+use log::{error, warn};
 #[cfg(feature = "singleplayer")]
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
@@ -73,18 +73,38 @@ impl PlayState for MainMenuState {
                         std::rc::Rc::new(std::cell::RefCell::new(client)),
                     )));
                 },
-                Some(Err(err)) => {
+                Some(InitMsg::Done(Err(err))) => {
                     client_init = None;
                     global_state.info_message = Some(
                         match err {
                             InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
-                            InitError::InvalidAuth => "Invalid credentials",
-                            InitError::ServerIsFull => "Server is full",
-                            InitError::ConnectionFailed(_) => "Connection failed",
+                            InitError::ClientError(err) => match err {
+                                client::Error::InvalidAuth => "Invalid credentials",
+                                client::Error::TooManyPlayers => "Server is full",
+                                client::Error::AuthServerNotTrusted => "Auth server not trusted",
+                                _ => {
+                                    error!("Error when trying to connect: {:?}", err);
+                                    "Connection Failed"
+                                },
+                            },
                             InitError::ClientCrashed => "Client crashed",
                         }
                         .to_string(),
                     );
+                },
+                Some(InitMsg::IsAuthTrusted(auth_server)) => {
+                    if global_state
+                        .settings
+                        .networking
+                        .trusted_auth_servers
+                        .contains(&auth_server)
+                    {
+                        // Can't fail since we just polled it, it must be Some
+                        client_init.as_ref().unwrap().auth_trust(auth_server, true);
+                    } else {
+                        // Show warning that auth server is not trusted and prompt for approval
+                        self.main_menu_ui.auth_trust_prompt(auth_server);
+                    }
                 },
                 None => {},
             }
@@ -139,6 +159,19 @@ impl PlayState for MainMenuState {
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                     MainMenuEvent::DisclaimerClosed => {
                         global_state.settings.show_disclaimer = false
+                    },
+                    MainMenuEvent::AuthServerTrust(auth_server, trust) => {
+                        if trust {
+                            global_state
+                                .settings
+                                .networking
+                                .trusted_auth_servers
+                                .insert(auth_server.clone());
+                            global_state.settings.save_to_file_warn();
+                        }
+                        client_init
+                            .as_ref()
+                            .map(|init| init.auth_trust(auth_server, trust));
                     },
                 }
             }
@@ -200,12 +233,7 @@ fn attempt_login(
             *client_init = Some(ClientInit::new(
                 (server_address, server_port, false),
                 player,
-                {
-                    password
-                    /*let salt = b"staticsalt_zTuGkGvybZIjZbNUDtw15";
-                    let config = Config::default();
-                    argon2::hash_encoded(password.as_bytes(), salt, &config).unwrap()*/
-                },
+                { password },
             ));
         }
     } else {
