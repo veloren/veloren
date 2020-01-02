@@ -28,7 +28,7 @@ use common::{
     msg::{ClientMsg, ClientState, PlayerListUpdate, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay},
-    sync::{Uid, WorldSyncExt},
+    sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
@@ -36,8 +36,8 @@ use log::{debug, error};
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{
-    join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, RunNow,
-    SystemData, WorldExt,
+    join::Join, saveload::MarkerAllocator, world::EntityBuilder as EcsEntityBuilder, Builder,
+    Entity as EcsEntity, RunNow, SystemData, WorldExt,
 };
 use std::{
     i32,
@@ -413,10 +413,12 @@ impl Server {
                         }
                     }
 
-                    let mut remove = true;
-
-                    if let Some(client) = state.ecs().write_storage::<Client>().get_mut(entity) {
-                        remove = false;
+                    if state
+                        .ecs()
+                        .write_storage::<Client>()
+                        .get_mut(entity)
+                        .is_some()
+                    {
                         state
                             .ecs()
                             .write_storage()
@@ -431,10 +433,8 @@ impl Server {
                             .map(|err| {
                                 error!("Failed to insert ForceUpdate on dead client: {:?}", err)
                             });
-                        client.force_state(ClientState::Dead);
-                    }
-
-                    if remove {
+                    } else {
+                        // If not a player delete the entity
                         if let Err(err) = state.delete_entity_recorded(entity) {
                             error!("Failed to delete destroyed entity: {:?}", err);
                         }
@@ -580,13 +580,17 @@ impl Server {
 
                 ServerEvent::Respawn(entity) => {
                     // Only clients can respawn
-                    if let Some(client) = state.ecs().write_storage::<Client>().get_mut(entity) {
+                    if state
+                        .ecs()
+                        .write_storage::<Client>()
+                        .get_mut(entity)
+                        .is_some()
+                    {
                         let respawn_point = state
                             .read_component_cloned::<comp::Waypoint>(entity)
                             .map(|wp| wp.get_pos())
                             .unwrap_or(state.ecs().read_resource::<SpawnPoint>().0);
 
-                        client.allow_state(ClientState::Character);
                         state
                             .ecs()
                             .write_storage::<comp::Stats>()
@@ -597,10 +601,13 @@ impl Server {
                             .write_storage::<comp::Pos>()
                             .get_mut(entity)
                             .map(|pos| pos.0 = respawn_point);
-                        let _ = state
+                        state
                             .ecs()
                             .write_storage()
-                            .insert(entity, comp::ForceUpdate);
+                            .insert(entity, comp::ForceUpdate)
+                            .err().map(|err|
+                            error!("Error inserting ForceUpdate component when respawning client: {:?}", err)
+                            );
                     }
                 }
 
@@ -730,7 +737,7 @@ impl Server {
                     }
                 }
 
-                ServerEvent::CreatePlayer {
+                ServerEvent::CreateCharacter {
                     entity,
                     name,
                     body,
@@ -745,6 +752,37 @@ impl Server {
                         &server_settings,
                     );
                     sys::subscription::initialize_region_subscription(state.ecs(), entity);
+                }
+
+                ServerEvent::ExitIngame { entity } => {
+                    // Create new entity with just `Client`, `Uid`, and `Player` components
+                    // Easier than checking and removing all other known components
+                    // Note: If other `ServerEvent`s are referring to this entity they will be
+                    // disrupted
+                    let maybe_client = state.ecs().write_storage::<Client>().remove(entity);
+                    let maybe_uid = state.read_component_cloned::<Uid>(entity);
+                    let maybe_player = state.ecs().write_storage::<comp::Player>().remove(entity);
+                    if let (Some(mut client), Some(uid), Some(player)) =
+                        (maybe_client, maybe_uid, maybe_player)
+                    {
+                        // Tell client its request was successful
+                        client.allow_state(ClientState::Registered);
+                        // Tell client to clear out other entities and its own components
+                        client.notify(ServerMsg::ExitIngameCleanup);
+
+                        let entity_builder =
+                            state.ecs_mut().create_entity().with(client).with(player);
+                        // Ensure UidAllocator maps this uid to the new entity
+                        let uid = entity_builder
+                            .world
+                            .write_resource::<UidAllocator>()
+                            .allocate(entity_builder.entity, Some(uid.into()));
+                        entity_builder.with(uid).build();
+                    }
+                    // Delete old entity
+                    if let Err(err) = state.delete_entity_recorded(entity) {
+                        error!("Failed to delete entity when removing character: {:?}", err);
+                    }
                 }
 
                 ServerEvent::CreateNpc {
@@ -993,6 +1031,7 @@ impl Server {
                 client_state: ClientState::Connected,
                 postbox,
                 last_ping: self.state.get_time(),
+                login_msg_sent: false,
             };
 
             if self.server_settings.max_players

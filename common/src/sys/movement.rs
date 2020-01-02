@@ -215,8 +215,7 @@ impl<'a> System<'a> for Sys {
 
             // Climb
             if let (true, Some(_wall_dir)) = (
-                (inputs.climb.is_pressed() | inputs.climb_down.is_pressed())
-                    && vel.0.z <= CLIMB_SPEED,
+                character.movement == Climb && vel.0.z <= CLIMB_SPEED,
                 physics.on_wall,
             ) {
                 if inputs.climb_down.is_pressed() && !inputs.climb.is_pressed() {

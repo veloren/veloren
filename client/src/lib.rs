@@ -5,7 +5,11 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
-pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage, WorldExt};
+pub use specs::{
+    join::Join,
+    saveload::{Marker, MarkerAllocator},
+    Builder, Entity as EcsEntity, ReadStorage, WorldExt,
+};
 
 use common::{
     comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
@@ -15,7 +19,7 @@ use common::{
     },
     net::PostBox,
     state::State,
-    sync::{Uid, WorldSyncExt},
+    sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
     ChatType,
@@ -84,7 +88,7 @@ impl Client {
                 time_of_day,
                 // world_map: /*(map_size, world_map)*/map_size,
             }) => {
-                // TODO: Voxygen should display this.
+                // TODO: Display that versions don't match in Voxygen
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
                     log::warn!(
                         "Server is running {}[{}], you are running {}[{}], versions might be incompatible!",
@@ -183,17 +187,15 @@ impl Client {
         self.client_state = ClientState::Pending;
     }
 
-    /// Request a state transition to `ClientState::Character`.
+    /// Send disconnect message to the server
     pub fn request_logout(&mut self) {
-        self.postbox
-            .send_message(ClientMsg::RequestState(ClientState::Connected));
+        self.postbox.send_message(ClientMsg::Disconnect);
         self.client_state = ClientState::Pending;
     }
 
-    /// Request a state transition to `ClientState::Character`.
+    /// Request a state transition to `ClientState::Registered` from an ingame state.
     pub fn request_remove_character(&mut self) {
-        self.postbox
-            .send_message(ClientMsg::RequestState(ClientState::Registered));
+        self.postbox.send_message(ClientMsg::ExitIngame);
         self.client_state = ClientState::Pending;
     }
 
@@ -282,9 +284,9 @@ impl Client {
     }
 
     /// Send a chat message to the server.
-    pub fn send_chat(&mut self, msg: String) {
-        match validate_chat_msg(&msg) {
-            Ok(()) => self.postbox.send_message(ClientMsg::chat(msg)),
+    pub fn send_chat(&mut self, message: String) {
+        match validate_chat_msg(&message) {
+            Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg { message }),
             Err(ChatMsgValidationError::TooLong) => log::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
@@ -331,7 +333,7 @@ impl Client {
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
-        if let ClientState::Character | ClientState::Dead = self.client_state {
+        if let ClientState::Character = self.client_state {
             self.state.write_component(
                 self.entity,
                 Controller {
@@ -560,8 +562,8 @@ impl Client {
                             .duration_since(self.last_server_ping)
                             .as_secs_f64();
                     }
-                    ServerMsg::ChatMsg { chat_type, message } => {
-                        frontend_events.push(Event::Chat { chat_type, message })
+                    ServerMsg::ChatMsg { message, chat_type } => {
+                        frontend_events.push(Event::Chat { message, chat_type })
                     }
                     ServerMsg::SetPlayerEntity(uid) => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
@@ -590,6 +592,26 @@ impl Client {
                                 .ecs_mut()
                                 .delete_entity_and_clear_from_uid_allocator(entity);
                         }
+                    }
+                    // Cleanup for when the client goes back to the `Registered` state
+                    ServerMsg::ExitIngameCleanup => {
+                        // Get client entity Uid
+                        let client_uid = self
+                            .state
+                            .read_component_cloned::<Uid>(self.entity)
+                            .map(|u| u.into())
+                            .expect("Client doesn't have a Uid!!!");
+                        // Clear ecs of all entities
+                        self.state.ecs_mut().delete_all();
+                        self.state.ecs_mut().maintain();
+                        self.state.ecs_mut().insert(UidAllocator::default());
+                        // Recreate client entity with Uid
+                        let entity_builder = self.state.ecs_mut().create_entity();
+                        let uid = entity_builder
+                            .world
+                            .write_resource::<UidAllocator>()
+                            .allocate(entity_builder.entity, Some(client_uid));
+                        self.entity = entity_builder.with(uid).build();
                     }
                     ServerMsg::EntityPos { entity, pos } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
@@ -640,9 +662,6 @@ impl Client {
                             "StateAnswer: {:?}. Server thinks client is in state {:?}.",
                             error, state
                         );
-                    }
-                    ServerMsg::ForceState(state) => {
-                        self.client_state = state;
                     }
                     ServerMsg::Disconnect => {
                         frontend_events.push(Event::Disconnect);

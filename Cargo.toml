@@ -14,10 +14,10 @@ members = [
 # default profile for devs, fast to compile, okay enough to run, no debug information
 [profile.dev]
 opt-level = 2
-overflow-checks = false
+overflow-checks = true 
 debug-assertions = true
 panic = "abort"
-debug = false
+debug = false 
 codegen-units = 8
 lto = false
 incremental = true
@@ -44,7 +44,7 @@ opt-level = 2
 inherits= 'dev'
 debug = true
 
-# this profil is used for veloren releases, compile time doesn't matter
+# this profile is used for veloren releases, compile time doesn't matter
 # we need stacktraces, light debug information, as much checks as possible
 # I would like to put it in a seperate `official_release` target, but that doesnt share caches with `cargo test` and `cargo bench`
 [profile.release]
