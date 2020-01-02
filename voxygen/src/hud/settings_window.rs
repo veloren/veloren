@@ -95,6 +95,9 @@ widget_ids! {
         cloud_mode_list,
         fluid_mode_text,
         fluid_mode_list,
+        fullscreen_button,
+        fullscreen_label,
+        save_window_size_button,
         audio_volume_slider,
         audio_volume_text,
         sfx_volume_slider,
@@ -196,6 +199,8 @@ pub enum Event {
     ToggleMouseYInvert(bool),
     AdjustViewDistance(u32),
     AdjustFOV(u16),
+    AdjustWindowSize([u16; 2]),
+    ToggleFullscreen,
     ChangeAaMode(AaMode),
     ChangeCloudMode(CloudMode),
     ChangeFluidMode(FluidMode),
@@ -1211,7 +1216,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .right_from(state.ids.mouse_zoom_invert_button, 10.0)
             .font_size(14)
             .font_id(self.fonts.cyri)
-            .graphics_for(state.ids.button_help)
+            .graphics_for(state.ids.mouse_zoom_invert_button)
             .color(TEXT_COLOR)
             .set(state.ids.mouse_zoom_invert_label, ui);
 
@@ -1241,7 +1246,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .right_from(state.ids.mouse_y_invert_button, 10.0)
             .font_size(14)
             .font_id(self.fonts.cyri)
-            .graphics_for(state.ids.button_help)
+            .graphics_for(state.ids.mouse_y_invert_button)
             .color(TEXT_COLOR)
             .set(state.ids.mouse_y_invert_label, ui);
         }
@@ -1657,6 +1662,51 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.fluid_mode_list, ui)
             {
                 events.push(Event::ChangeFluidMode(mode_list[clicked]));
+            }
+
+            // Fullscreen
+            Text::new("Fullscreen")
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .down_from(state.ids.fluid_mode_list, 125.0)
+                .color(TEXT_COLOR)
+                .set(state.ids.fullscreen_label, ui);
+
+            let fullscreen = ToggleButton::new(
+                self.global_state.settings.graphics.fullscreen,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.fullscreen_label, 10.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.fullscreen_button, ui);
+
+            if self.global_state.settings.graphics.fullscreen != fullscreen {
+                events.push(Event::ToggleFullscreen);
+            }
+
+            // Save current screen size
+            if Button::image(self.imgs.settings_button)
+                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .hover_image(self.imgs.settings_button_hover)
+                .press_image(self.imgs.settings_button_press)
+                .down_from(state.ids.fullscreen_label, 12.0)
+                .label("Save window size")
+                .label_font_size(14)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri)
+                .set(state.ids.save_window_size_button, ui)
+                .was_clicked()
+            {
+                events.push(Event::AdjustWindowSize(
+                    self.global_state
+                        .window
+                        .logical_size()
+                        .map(|e| e as u16)
+                        .into_array(),
+                ));
             }
         }
 

@@ -1,3 +1,4 @@
+mod pixel_art;
 mod renderer;
 
 use crate::render::{Renderer, Texture};
@@ -6,6 +7,7 @@ use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::HashMap;
 use image::{DynamicImage, RgbaImage};
 use log::warn;
+use pixel_art::resize_pixel_art;
 use std::sync::Arc;
 use vek::*;
 
@@ -280,15 +282,11 @@ fn draw_graphic(graphic_map: &GraphicMap, graphic_id: Id, dims: Vec2<u16>) -> Op
         Some(Graphic::Blank) => None,
         // Render image at requested resolution
         // TODO: Use source aabr.
-        Some(Graphic::Image(ref image)) => Some(
-            image
-                .resize_exact(
-                    u32::from(dims.x),
-                    u32::from(dims.y),
-                    image::FilterType::Nearest,
-                )
-                .to_rgba(),
-        ),
+        Some(Graphic::Image(ref image)) => Some(resize_pixel_art(
+            &image.to_rgba(),
+            u32::from(dims.x),
+            u32::from(dims.y),
+        )),
         Some(Graphic::Voxel(ref vox, trans, min_samples)) => Some(renderer::draw_vox(
             &vox.as_ref().into(),
             dims,
