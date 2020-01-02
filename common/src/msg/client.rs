@@ -14,7 +14,7 @@ pub enum ClientMsg {
     },
     /// Request `ClientState::Registered` from an ingame state
     ExitIngame,
-    /// Request `ClientState::Specator` from a registered or ingame state
+    /// Request `ClientState::Spectator` from a registered or ingame state
     Spectate,
     ControllerInputs(comp::ControllerInputs),
     ControlEvent(comp::ControlEvent),

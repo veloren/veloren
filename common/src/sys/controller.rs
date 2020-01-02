@@ -341,7 +341,11 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
                     ControlEvent::InventoryManip(manip) => {
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
-                    } //ControlEvent::Respawn => server_emitter.emit(ServerEvent::Unmount(entity)),
+                    } /*ControlEvent::Respawn => {
+                       if state.is_dead {
+                         server_emitter.emit(ServerEvent::Respawn(entity)),
+                       }
+                      }*/
                 }
             }
 
@@ -422,7 +426,6 @@ impl<'a> System<'a> for Sys {
                             && can_climb(body),
                         physics.on_wall,
                     ) {
-                        println!("here 1");
                         character.movement = Climb;
                         continue;
                     }
@@ -553,7 +556,6 @@ impl<'a> System<'a> for Sys {
                             && can_climb(body),
                         physics.on_wall,
                     ) {
-                        println!("here 2");
                         character.movement = Climb;
                         continue;
                     }
@@ -671,7 +673,6 @@ impl<'a> System<'a> for Sys {
                     if !inputs.glide.is_pressed() {
                         character.movement = Fall;
                     } else if let (Some(_wall_dir), true) = (physics.on_wall, can_climb(body)) {
-                        println!("here 3");
                         character.movement = Climb;
                     }
 

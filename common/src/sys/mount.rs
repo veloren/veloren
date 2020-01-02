@@ -59,13 +59,12 @@ impl<'a> System<'a> for Sys {
                             let _ = orientations.insert(mounter, ori);
                             let _ = velocities.insert(mounter, vel);
                         }
-                        let _ = controllers.insert(
-                            entity,
-                            Controller {
+                        controllers.get_mut(entity).map(|controller| {
+                            *controller = Controller {
                                 inputs,
                                 ..Default::default()
-                            },
-                        );
+                            }
+                        });
                     } else {
                         *(mount_states.get_mut_unchecked()) = MountState::Unmounted;
                     }
