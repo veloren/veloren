@@ -56,7 +56,6 @@ impl Animation for RunAnimation {
 
         let ori = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
-
         let tilt = if Vec2::new(ori, last_ori)
             .map(|o| Vec2::<f32>::from(o).magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
