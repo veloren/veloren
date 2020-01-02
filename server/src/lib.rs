@@ -755,7 +755,7 @@ impl Server {
                 }
 
                 ServerEvent::ExitIngame { entity } => {
-                    // Create new entity with just `Clienti`, `Uid`, and `Player` components
+                    // Create new entity with just `Client`, `Uid`, and `Player` components
                     // Easier than checking and removing all other known components
                     // Note: If other `ServerEvent`s are referring to this entity they will be
                     // disrupted
