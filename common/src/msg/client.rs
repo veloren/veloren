@@ -5,7 +5,7 @@ use vek::*;
 pub enum ClientMsg {
     Register {
         player: comp::Player,
-        password: String,
+        token_or_username: String,
     },
     Character {
         name: String,

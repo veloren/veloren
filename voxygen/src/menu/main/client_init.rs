@@ -1,6 +1,6 @@
 use client::{error::Error as ClientError, Client};
 use common::{comp, net::PostError};
-use crossbeam::channel::{unbounded, Receiver, TryRecvError};
+use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
     net::ToSocketAddrs,
     sync::{
@@ -15,21 +15,26 @@ use std::{
 pub enum Error {
     // Error parsing input string or error resolving host name.
     BadAddress(std::io::Error),
-    // Parsing/host name resolution successful but could not connect.
-    #[allow(dead_code)]
-    ConnectionFailed(ClientError),
+    // Parsing/host name resolution successful but there was an error within the client.
+    ClientError(ClientError),
     // Parsing yielded an empty iterator (specifically to_socket_addrs()).
     NoAddress,
-    InvalidAuth,
     ClientCrashed,
-    ServerIsFull,
 }
+
+pub enum Msg {
+    IsAuthTrusted(String),
+    Done(Result<Client, Error>),
+}
+
+pub struct AuthTrust(String, bool);
 
 // Used to asynchronously parse the server address, resolve host names,
 // and create the client (which involves establishing a connection to the
 // server).
 pub struct ClientInit {
-    rx: Receiver<Result<Client, Error>>,
+    rx: Receiver<Msg>,
+    trust_tx: Sender<AuthTrust>,
     cancel: Arc<AtomicBool>,
 }
 impl ClientInit {
@@ -41,6 +46,7 @@ impl ClientInit {
         let (server_address, default_port, prefer_ipv6) = connection_args;
 
         let (tx, rx) = unbounded();
+        let (trust_tx, trust_rx) = unbounded();
         let cancel = Arc::new(AtomicBool::new(false));
         let cancel2 = Arc::clone(&cancel);
 
@@ -68,35 +74,20 @@ impl ClientInit {
                         {
                             match Client::new(socket_addr, player.view_distance) {
                                 Ok(mut client) => {
-                                    // Authentication
-                                    let username_or_token = match &client.server_info.auth_provider
+                                    if let Err(err) =
+                                        client.register(player.clone(), password, |auth_server| {
+                                            let _ = tx
+                                                .send(Msg::IsAuthTrusted(auth_server.to_string()));
+                                            trust_rx
+                                                .recv()
+                                                .map(|AuthTrust(server, trust)| {
+                                                    trust && &server == auth_server
+                                                })
+                                                .unwrap_or(false)
+                                        })
                                     {
-                                        Some(addr) => {
-                                            let auth_client = authc::AuthClient::new(addr);
-                                            // TODO: PROMPT USER INCASE OF THE AUTH SERVER BEING
-                                            // UNKNOWN!
-                                            log::error!(
-                                                "Logging in with '{}', '{}'.",
-                                                &player.alias,
-                                                &password
-                                            );
-                                            match auth_client.sign_in(&player.alias, &password) {
-                                                Ok(token) => token.serialize(),
-                                                // TODO: Properly deal with it
-                                                Err(e) => panic!(
-                                                    "Failed to sign in to auth server '{}'! {}",
-                                                    addr, e
-                                                ),
-                                            }
-                                        },
-                                        None => player.alias.clone(),
-                                    };
-
-                                    if let Err(ClientError::InvalidAuth) =
-                                        client.register(player.clone(), username_or_token.clone())
-                                    {
-                                        last_err = Some(Error::InvalidAuth);
-                                        break;
+                                        last_err = Some(Error::ClientError(err));
+                                        break 'tries;
                                     }
                                     let _ = tx.send(Ok(client));
                                     return;
@@ -109,20 +100,11 @@ impl ClientInit {
                                         },
                                         // Assume the connection failed and try again soon
                                         ClientError::Network(_) => {},
-                                        ClientError::TooManyPlayers => {
-                                            last_err = Some(Error::ServerIsFull);
+                                        // Non-connection error, stop attempts
+                                        err => {
+                                            last_err = Some(Error::ClientError(err));
                                             break 'tries;
                                         },
-                                        ClientError::InvalidAuth => {
-                                            last_err = Some(Error::InvalidAuth);
-                                            break 'tries;
-                                        },
-                                        // TODO: Handle errors?
-                                        _ => panic!(
-                                            "Unexpected non-network error when creating client: \
-                                             {:?}",
-                                            err
-                                        ),
                                     }
                                 },
                             }
@@ -130,27 +112,36 @@ impl ClientInit {
                         thread::sleep(Duration::from_secs(5));
                     }
                     // Parsing/host name resolution successful but no connection succeeded.
-                    let _ = tx.send(Err(last_err.unwrap_or(Error::NoAddress)));
+                    let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::NoAddress))));
                 },
                 Err(err) => {
                     // Error parsing input string or error resolving host name.
-                    let _ = tx.send(Err(Error::BadAddress(err)));
+                    let _ = tx.send(Msg::Done(Err(Error::BadAddress(err))));
                 },
             }
         });
 
-        ClientInit { rx, cancel }
+        ClientInit {
+            rx,
+            trust_tx,
+            cancel,
+        }
     }
 
     /// Poll if the thread is complete.
     /// Returns None if the thread is still running, otherwise returns the
     /// Result of client creation.
-    pub fn poll(&self) -> Option<Result<Client, Error>> {
+    pub fn poll(&self) -> Option<Msg> {
         match self.rx.try_recv() {
-            Ok(result) => Some(result),
+            Ok(msg) => Some(msg),
             Err(TryRecvError::Empty) => None,
-            Err(TryRecvError::Disconnected) => Some(Err(Error::ClientCrashed)),
+            Err(TryRecvError::Disconnected) => Some(Msg::Done(Err(Error::ClientCrashed))),
         }
+    }
+
+    /// Report trust status of auth server
+    pub fn auth_trust(&self, auth_server: String, trusted: bool) {
+        let _ = self.trust_tx.send(AuthTrust(auth_server, trusted));
     }
 
     pub fn cancel(&mut self) { self.cancel.store(true, Ordering::Relaxed); }
