@@ -56,7 +56,7 @@ impl PlayState for MainMenuState {
 
         loop {
             // Handle window events.
-            for event in global_state.window.fetch_events() {
+            for event in global_state.window.fetch_events(&mut global_state.settings) {
                 match event {
                     Event::Close => return PlayStateResult::Shutdown,
                     // Pass events to ui.

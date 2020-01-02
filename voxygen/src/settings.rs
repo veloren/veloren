@@ -195,6 +195,8 @@ pub struct GraphicsSettings {
     pub aa_mode: AaMode,
     pub cloud_mode: CloudMode,
     pub fluid_mode: FluidMode,
+    pub window_size: [u16; 2],
+    pub fullscreen: bool,
 }
 
 impl Default for GraphicsSettings {
@@ -206,6 +208,8 @@ impl Default for GraphicsSettings {
             aa_mode: AaMode::Fxaa,
             cloud_mode: CloudMode::Regular,
             fluid_mode: FluidMode::Shiny,
+            window_size: [1920, 1080],
+            fullscreen: false,
         }
     }
 }

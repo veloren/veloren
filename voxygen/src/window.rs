@@ -287,9 +287,14 @@ impl Window {
     pub fn new(settings: &Settings) -> Result<Window, Error> {
         let events_loop = glutin::EventsLoop::new();
 
+        let size = settings.graphics.window_size;
+
         let win_builder = glutin::WindowBuilder::new()
             .with_title("Veloren")
-            .with_dimensions(glutin::dpi::LogicalSize::new(1920.0, 1080.0))
+            .with_dimensions(glutin::dpi::LogicalSize::new(
+                size[0] as f64,
+                size[1] as f64,
+            ))
             .with_maximized(true);
 
         let ctx_builder = glutin::ContextBuilder::new()
@@ -413,7 +418,7 @@ impl Window {
 
         let keypress_map = HashMap::new();
 
-        Ok(Self {
+        let mut this = Self {
             events_loop,
             renderer: Renderer::new(
                 device,
@@ -436,7 +441,11 @@ impl Window {
             keypress_map,
             supplement_events: vec![],
             focused: true,
-        })
+        };
+
+        this.fullscreen(settings.graphics.fullscreen);
+
+        Ok(this)
     }
 
     pub fn renderer(&self) -> &Renderer {
@@ -446,7 +455,7 @@ impl Window {
         &mut self.renderer
     }
 
-    pub fn fetch_events(&mut self) -> Vec<Event> {
+    pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         let mut events = vec![];
         events.append(&mut self.supplement_events);
         // Refresh ui size (used when changing playstates)
@@ -596,7 +605,7 @@ impl Window {
         }
 
         if toggle_fullscreen {
-            self.fullscreen(!self.is_fullscreen());
+            self.toggle_fullscreen(settings);
         }
 
         events
@@ -616,6 +625,12 @@ impl Window {
         self.cursor_grabbed = grab;
         self.window.window().hide_cursor(grab);
         let _ = self.window.window().grab_cursor(grab);
+    }
+
+    pub fn toggle_fullscreen(&mut self, settings: &mut Settings) {
+        self.fullscreen(!self.is_fullscreen());
+        settings.graphics.fullscreen = self.is_fullscreen();
+        settings.save_to_file_warn();
     }
 
     pub fn is_fullscreen(&self) -> bool {
@@ -644,6 +659,15 @@ impl Window {
             .unwrap_or(glutin::dpi::LogicalSize::new(0.0, 0.0))
             .into();
         Vec2::new(w, h)
+    }
+
+    pub fn set_size(&mut self, new_size: Vec2<u16>) {
+        self.window
+            .window()
+            .set_inner_size(glutin::dpi::LogicalSize::new(
+                new_size.x as f64,
+                new_size.y as f64,
+            ));
     }
 
     pub fn send_supplement_event(&mut self, event: Event) {

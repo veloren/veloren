@@ -175,7 +175,7 @@ impl PlayState for SessionState {
             self.scene.set_select_pos(select_pos);
 
             // Handle window events.
-            for event in global_state.window.fetch_events() {
+            for event in global_state.window.fetch_events(&mut global_state.settings) {
                 // Pass all events to the ui first.
                 if self.hud.handle_event(event.clone(), global_state) {
                     continue;
@@ -582,6 +582,16 @@ impl PlayState for SessionState {
                         )
                         .unwrap();
                         localized_strings.log_missing_entries();
+                    }
+                    HudEvent::ToggleFullscreen => {
+                        global_state
+                            .window
+                            .toggle_fullscreen(&mut global_state.settings);
+                    }
+                    HudEvent::AdjustWindowSize(new_size) => {
+                        global_state.window.set_size(new_size.into());
+                        global_state.settings.graphics.window_size = new_size;
+                        global_state.settings.save_to_file_warn();
                     }
                 }
             }
