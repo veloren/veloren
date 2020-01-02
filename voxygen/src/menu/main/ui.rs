@@ -335,9 +335,9 @@ impl MainMenuUi {
                 .press_image(self.imgs.button_press)
                 .label_y(Relative::Scalar(2.0))
                 .label(match popup_type {
-                    PopupType::Error => "Okay",
-                    PopupType::ConnectionInfo => "Cancel",
-                    PopupType::AuthTrustPrompt(_) => "Cancel",
+                    PopupType::Error => self.voxygen_i18n.get("common.okay"),
+                    PopupType::ConnectionInfo => self.voxygen_i18n.get("common.cancel"),
+                    PopupType::AuthTrustPrompt(_) => self.voxygen_i18n.get("common.cancel"),
                 })
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_font_size(self.fonts.cyri.scale(15))
@@ -365,8 +365,8 @@ impl MainMenuUi {
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
                     .label("Add")
-                    .label_font_id(self.fonts.cyri)
-                    .label_font_size(15)
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .label_font_size(self.fonts.cyri.scale(15))
                     .label_color(TEXT_COLOR)
                     .set(self.ids.button_add_auth_trust, ui_widgets)
                     .was_clicked()
@@ -448,7 +448,6 @@ impl MainMenuUi {
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
                             msg: [self.voxygen_i18n.get("main.connecting"), "..."].concat(),
-                            button_text: self.voxygen_i18n.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
 
@@ -486,7 +485,6 @@ impl MainMenuUi {
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
                             msg: [self.voxygen_i18n.get("main.creating_world"), "..."].concat(),
-                            button_text: self.voxygen_i18n.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
                     };
@@ -757,10 +755,9 @@ impl MainMenuUi {
         })
     }
 
-    pub fn show_info(&mut self, msg: String, button_text: String) {
+    pub fn show_info(&mut self, msg: String) {
         self.popup = Some(PopupData {
             msg,
-            button_text,
             popup_type: PopupType::Error,
         });
         self.connecting = None;

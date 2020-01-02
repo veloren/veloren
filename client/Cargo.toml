@@ -15,4 +15,4 @@ log = "0.4.8"
 specs = "0.15.1"
 vek = { version = "0.9.9", features = ["serde"] }
 hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "f3445fc1dca55f09205bdbe8ad038db60fea442b" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "68504561dd868bc2065e9300a27616f3560f7033" }
