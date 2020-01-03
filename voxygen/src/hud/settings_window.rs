@@ -1668,7 +1668,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new("Fullscreen")
                 .font_size(14)
                 .font_id(self.fonts.cyri)
-                .down_from(state.ids.fluid_mode_list, 125.0)
+                .down_from(state.ids.fluid_mode_list, 8.0)
                 .color(TEXT_COLOR)
                 .set(state.ids.fullscreen_label, ui);
 
