@@ -2,6 +2,7 @@ use common::util::{linear_to_srgba, srgba_to_linear};
 /// Pixel art scaling
 /// Note: The current ui is locked to the pixel grid with little animation, if we want smoothly
 /// moving pixel art this should be done in the shaders
+/// useful links: https://gitlab.com/veloren/veloren/issues/257
 use image::RgbaImage;
 use vek::*;
 
@@ -17,16 +18,16 @@ const EPSILON: f32 = 0.0001;
 // where o1 and o2 are the opaque colors of the two areas
 // now say the areas are actually translucent and these opaque colors are derived by blending with a
 // common backgound color b
-//     E2: o1 = c1 * a1 + g * (1 - a1)
-//     E3: o2 = c2 * a2 + g * (1 - a2)
+//     E2: o1 = c1 * a1 + b * (1 - a1)
+//     E3: o2 = c2 * a2 + b * (1 - a2)
 // we want to find the combined color (c3) and combined alpha (a3) such that
-//     E4: o3 = c3 * a3 + g * (1 - a3)
+//     E4: o3 = c3 * a3 + b * (1 - a3)
 // substitution of E2 and E3 into E1 gives
-//     E5: o3 = A1 * (c1 * a1 + g * (1 - a1)) + A2 * (c2 * a2 + g * (1 - a2))
+//     E5: o3 = A1 * (c1 * a1 + b * (1 - a1)) + A2 * (c2 * a2 + b * (1 - a2))
 // combining E4 and E5 then separting like terms into separte equations gives
 //     E6: c3 * a3 = A1 * c1 * a1 + A2 * c2 * a2
-//     E7: g * (1 - a3) = A1 * g * (1 - a1) + A2 * g * (1 - a2)
-// dropping g from E7 and solving for a3
+//     E7: b * (1 - a3) = A1 * b * (1 - a1) + A2 * b * (1 - a2)
+// dropping b from E7 and solving for a3
 //     E8: a3 = 1 - A1 * (1 - a1) + A2 * (1 - a2)
 // we can now calculate the combined alpha value
 // and E6 can then be solved for c3
