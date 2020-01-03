@@ -32,7 +32,7 @@ use common::{
     terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
-use log::{debug, error};
+use log::{debug, error, warn};
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{
@@ -1221,14 +1221,20 @@ impl StateExt for State {
         let res = self.ecs_mut().delete_entity(entity);
         if res.is_ok() {
             if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
-                let region_key = self
+                if let Some(region_key) = self
                     .ecs()
                     .read_resource::<common::region::RegionMap>()
                     .find_region(entity, pos.0)
-                    .expect("Failed to find region containing entity during entity deletion");
-                self.ecs()
-                    .write_resource::<DeletedEntities>()
-                    .record_deleted_entity(uid, region_key);
+                {
+                    self.ecs()
+                        .write_resource::<DeletedEntities>()
+                        .record_deleted_entity(uid, region_key);
+                } else {
+                    // Don't panic if the entity wasn't found in a region maybe it was just created
+                    // and then deleted before the region manager had a chance to assign it a
+                    // region
+                    warn!("Failed to find region containing entity during entity deletion, assuming it wasn't sent to any clients and so deletion doesn't need to be recorded for sync purposes");
+                }
             }
         }
         res
