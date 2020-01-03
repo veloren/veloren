@@ -4,7 +4,7 @@ use crate::{
     meta::CharacterData,
     render::{Consts, Globals, Renderer},
     ui::{
-        img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graphic},
+        img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelSs9Graphic},
         ImageFrame, ImageSlider, Tooltip, Tooltipable, Ui,
     },
     GlobalState,
@@ -176,7 +176,7 @@ image_ids! {
         // Info Window
         info_frame: "voxygen.element.frames.info_frame",
 
-        <VoxelMs9Graphic>
+        <VoxelSs9Graphic>
         delete_button: "voxygen.element.buttons.x_red",
         delete_button_hover: "voxygen.element.buttons.x_red_hover",
         delete_button_press: "voxygen.element.buttons.x_red_press",

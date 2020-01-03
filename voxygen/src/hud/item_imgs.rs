@@ -1,4 +1,4 @@
-use crate::ui::{Graphic, Transform, Ui};
+use crate::ui::{Graphic, SampleStrat, Transform, Ui};
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
     comp::item::{Armor, Consumable, Ingredient, Item, ItemKind, Tool},
@@ -47,7 +47,7 @@ impl ImageSpec {
                     stretch: false,
                     ..Default::default()
                 },
-                None,
+                SampleStrat::None,
             ),
             ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom) => Graphic::Voxel(
                 graceful_load_vox(&specifier),
@@ -60,7 +60,7 @@ impl ImageSpec {
                     orth: true, // TODO: Is this what we want here? @Pfau
                     stretch: false,
                 },
-                None,
+                SampleStrat::None,
             ),
         }
     }

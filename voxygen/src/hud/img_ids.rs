@@ -1,4 +1,4 @@
-use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graphic};
+use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelPixArtGraphic};
 
 // TODO: Combine with image_ids, see macro definition
 rotation_image_ids! {
@@ -104,7 +104,7 @@ image_ids! {
 
 
 ////////////////////////////////////////////////////////////////////////
-        <VoxelMs9Graphic>
+        <VoxelPixArtGraphic>
 
         // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",
@@ -119,7 +119,6 @@ image_ids! {
         staff_m2: "voxygen.element.icons.staff_m2",
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
-
         charge: "voxygen.element.icons.skill_charge_3",
 
 
