@@ -126,20 +126,16 @@ impl ActionState {
 }
 
 /// __A concurrent state machine that allows for separate `ActionState`s and `MoveState`s.__
-///
-/// _Each state can optionally override the other through `*_disabled` flag_
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct CharacterState {
     /// __How the character is currently moving, e.g. Running, Standing, Falling.__
     ///
     /// _Primarily `handle()`s updating `Pos`, `Vel`, `Ori`, and lower body animations.
-    /// Can be overidden by `ActionState`s using `move_disabled` flag. Example: `ChargeAttackState`_
     pub move_state: MoveState,
 
     /// __How the character is currently acting, e.g. Wielding, Attacking, Dodging.__
     ///
     /// _Primarily `handle()`s how character interacts with world, and upper body animations.
-    /// Can be overidden by `MoveState`s using `action_disabled` flag. Example: `GlideState`_
     pub action_state: ActionState,
 }
 
