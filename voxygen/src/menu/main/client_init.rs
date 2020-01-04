@@ -95,7 +95,7 @@ impl ClientInit {
                                 Err(err) => {
                                     match err {
                                         ClientError::Network(PostError::Bincode(_)) => {
-                                            last_err = Some(Error::ConnectionFailed(err));
+                                            last_err = Some(Error::ClientError(err));
                                             break 'tries;
                                         },
                                         // Assume the connection failed and try again soon

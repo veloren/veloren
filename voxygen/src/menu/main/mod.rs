@@ -75,22 +75,48 @@ impl PlayState for MainMenuState {
                 },
                 Some(InitMsg::Done(Err(err))) => {
                     client_init = None;
-                    global_state.info_message = Some(
-                        match err {
-                            InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
+                    global_state.info_message = Some({
+                        let err = match err {
+                            InitError::BadAddress(_) | InitError::NoAddress => {
+                                "Server not found".into()
+                            },
                             InitError::ClientError(err) => match err {
-                                client::Error::InvalidAuth => "Invalid credentials",
-                                client::Error::TooManyPlayers => "Server is full",
-                                client::Error::AuthServerNotTrusted => "Auth server not trusted",
-                                _ => {
-                                    error!("Error when trying to connect: {:?}", err);
-                                    "Connection Failed"
+                                client::Error::InvalidAuth => "Invalid credentials".into(),
+                                client::Error::TooManyPlayers => "Server is full".into(),
+                                client::Error::AuthServerNotTrusted => {
+                                    "Auth server not trusted".into()
+                                },
+                                client::Error::ServerWentMad => "ServerWentMad: Probably versions \
+                                                                 are incompatible, check for \
+                                                                 updates."
+                                    .into(),
+                                client::Error::ServerTimeout => "Timeout: Server did not respond \
+                                                                 in time. (Overloaded or network \
+                                                                 issues)."
+                                    .into(),
+                                client::Error::ServerShutdown => "Server shut down".into(),
+                                client::Error::AlreadyLoggedIn => {
+                                    "You are already logged into the server.".into()
+                                },
+                                client::Error::Network(e) => format!("Network error: {:?}", e),
+                                client::Error::Other(e) => format!("Error: {}", e),
+                                client::Error::AuthClientError(e) => match e {
+                                    client::AuthClientError::JsonError(e) => {
+                                        format!("Fatal error: {}", e)
+                                    },
+                                    client::AuthClientError::RequestError(e) => {
+                                        format!("Failed to send request to Auth server: {}", e)
+                                    },
+                                    client::AuthClientError::ServerError(_, e) => format!("{}", e),
                                 },
                             },
-                            InitError::ClientCrashed => "Client crashed",
-                        }
-                        .to_string(),
-                    );
+                            InitError::ClientCrashed => "Client crashed".into(),
+                        };
+                        // Log error for possible additional use later or incase that the error
+                        // displayed is cut of.
+                        error!("{}", err);
+                        err
+                    });
                 },
                 Some(InitMsg::IsAuthTrusted(auth_server)) => {
                     if global_state
