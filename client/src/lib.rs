@@ -5,6 +5,7 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
+pub use authc::AuthClientError;
 pub use specs::{
     join::Join,
     saveload::{Marker, MarkerAllocator},
@@ -105,7 +106,7 @@ impl Client {
                     );
                 }
 
-                log::info!("Auth Server: {:?}", server_info.auth_provider);
+                log::debug!("Auth Server: {:?}", server_info.auth_provider);
 
                 // Initialize `State`
                 let mut state = State::default();

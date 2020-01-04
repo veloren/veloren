@@ -281,7 +281,7 @@ impl MainMenuUi {
                 )
                 .font_id(self.fonts.cyri.conrod_id);
             let (frame_w, frame_h) = if let PopupType::AuthTrustPrompt(_) = popup_type {
-                (65.0 * 8.0, 300.0)
+                (65.0 * 8.0, 370.0)
             } else {
                 (65.0 * 6.0, 140.0)
             };
@@ -747,8 +747,9 @@ impl MainMenuUi {
         self.popup = Some(PopupData {
             msg: format!(
                 "Warning: The server you are trying to connect to has provided this \
-                 authentication server addresss:\n\n{}\n\nbut it is not in your list of trusted \
-                 authentication servers.",
+                 authentication server address:\n\n{}\n\nbut it is not in your list of trusted \
+                 authentication servers.\n\nMake sure that you trust this site and owner to not \
+                 try and bruteforce your password!",
                 &auth_server
             ),
             popup_type: PopupType::AuthTrustPrompt(auth_server),
