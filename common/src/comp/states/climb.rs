@@ -1,16 +1,16 @@
 use super::{
     ActionState::*, EcsStateData, FallState, IdleState, JumpState, MoveState::*, StandState,
-    StateHandle, StateUpdate,
+    StateHandler, StateUpdate,
 };
 use super::{CLIMB_SPEED, HUMANOID_CLIMB_ACCEL, HUMANOID_SPEED};
 use crate::sys::phys::GRAVITY;
 use vek::vec::{Vec2, Vec3};
 use vek::Lerp;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct ClimbState;
 
-impl StateHandle for ClimbState {
+impl StateHandler for ClimbState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
@@ -19,7 +19,7 @@ impl StateHandle for ClimbState {
             character: *ecs_data.character,
         };
 
-        update.character.action_state = Idle(IdleState);
+        update.character.action_state = Idle(Some(IdleState));
 
         // Move player
         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
@@ -78,12 +78,12 @@ impl StateHandle for ClimbState {
         if let None = ecs_data.physics.on_wall {
             if ecs_data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
-                update.character.move_state = Jump(JumpState);
+                update.character.move_state = Jump(Some(JumpState));
 
                 return update;
             } else {
                 // Just fall off
-                update.character.move_state = Fall(FallState);
+                update.character.move_state = Fall(Some(FallState));
 
                 return update;
             }
@@ -91,7 +91,7 @@ impl StateHandle for ClimbState {
 
         // Remove climb state on ground, otherwise character will get stuck
         if ecs_data.physics.on_ground {
-            update.character.move_state = Stand(StandState);
+            update.character.move_state = Stand(Some(StandState));
             return update;
         }
 

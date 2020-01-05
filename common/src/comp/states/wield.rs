@@ -1,18 +1,18 @@
 use crate::comp::{
-    AbilityAction, AbilityActionKind::*, ActionState::*, EcsStateData, IdleState, StateHandle,
+    AbilityAction, AbilityActionKind::*, ActionState::*, EcsStateData, IdleState, StateHandler,
     StateUpdate,
 };
-use crate::util::movement_utils::*;
+use crate::util::state_utils::*;
 use std::time::Duration;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct WieldState {
     /// How long before a new action can be performed
     /// after equipping
     pub equip_delay: Duration,
 }
 
-impl StateHandle for WieldState {
+impl StateHandler for WieldState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,
@@ -27,29 +27,29 @@ impl StateHandle for WieldState {
             if ecs_data.inputs.toggle_wield.is_just_pressed()
                 && ecs_data.character.action_state.is_equip_finished()
             {
-                update.character.action_state = Idle(IdleState);
+                update.character.action_state = Idle(Some(IdleState));
                 return update;
             }
 
             // Try weapon actions
             if ecs_data.inputs.primary.is_pressed() {
-                ecs_data
-                    .updater
-                    .insert(*ecs_data.entity, AbilityAction(Primary));
+                // ecs_data
+                //     .updater
+                //     .insert(*ecs_data.entity, AbilityAction(Primary));
             } else if ecs_data.inputs.secondary.is_pressed() {
-                ecs_data
-                    .updater
-                    .insert(*ecs_data.entity, AbilityAction(Secondary));
+                // ecs_data
+                //     .updater
+                //     .insert(*ecs_data.entity, AbilityAction(Secondary));
             }
         } else {
             // Equip delay hasn't expired yet
             // Update wield delay
-            update.character.action_state = Wield(WieldState {
+            update.character.action_state = Wield(Some(WieldState {
                 equip_delay: self
                     .equip_delay
                     .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
                     .unwrap_or_default(),
-            });
+            }));
         }
 
         return update;

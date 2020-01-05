@@ -7,7 +7,7 @@ lazy_static::lazy_static! {
 
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
-pub mod movement_utils;
+pub mod state_utils;
 
 /// TODO: Move these to a named utils folder. Are they even being used? I couldnt find references.
 /// This is a fast approximation of powf. This should only be used when minor accuracy loss is acceptable.

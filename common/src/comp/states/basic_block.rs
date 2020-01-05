@@ -1,16 +1,16 @@
 use super::{BLOCK_ACCEL, BLOCK_SPEED};
-use crate::comp::{EcsStateData, StateHandle, StateUpdate};
-use crate::util::movement_utils::*;
+use crate::comp::{EcsStateData, StateHandler, StateUpdate};
+use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec2;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct BasicBlockState {
     /// How long the blocking state has been active
     pub active_duration: Duration,
 }
 
-impl StateHandle for BasicBlockState {
+impl StateHandler for BasicBlockState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,

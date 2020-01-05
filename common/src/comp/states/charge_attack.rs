@@ -1,21 +1,21 @@
 use crate::comp::{
     ActionState::Attack, AttackKind::Charge, EcsStateData, HealthChange, HealthSource,
-    MoveState::Run, RunState, StateHandle, StateUpdate,
+    MoveState::Run, RunState, StateHandler, StateUpdate,
 };
 use crate::event::ServerEvent;
-use crate::util::movement_utils::*;
+use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec3;
 
 use super::CHARGE_SPEED;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct ChargeAttackState {
     /// How long the state has until exitting
     pub remaining_duration: Duration,
 }
 
-impl StateHandle for ChargeAttackState {
+impl StateHandler for ChargeAttackState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
@@ -25,7 +25,7 @@ impl StateHandle for ChargeAttackState {
         };
 
         // Prevent move state handling, handled here
-        update.character.move_state = Run(RunState);
+        update.character.move_state = Run(Some(RunState));
 
         // Move player
         update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)
@@ -64,12 +64,12 @@ impl StateHandle for ChargeAttackState {
         }
 
         // Tick remaining-duration and keep charging
-        update.character.action_state = Attack(Charge(ChargeAttackState {
+        update.character.action_state = Attack(Charge(Some(ChargeAttackState {
             remaining_duration: self
                 .remaining_duration
                 .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
                 .unwrap_or_default(),
-        }));
+        })));
 
         return update;
     }
