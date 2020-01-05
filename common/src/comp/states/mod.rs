@@ -151,6 +151,7 @@ impl MoveState {
             Swim(Some(state)) => state.handle(&ecs_data),
             Fall(Some(state)) => state.handle(&ecs_data),
             Sit(Some(state)) => state.handle(&ecs_data),
+            //
             // All states should be explicitly handled
             // Do not use default match: _ => {},
         }
