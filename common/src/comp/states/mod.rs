@@ -92,34 +92,24 @@ impl ActionState {
                     // Call handler
                     .handle(ecs_data),
                 Charge(opt_state) => opt_state
-                    // If data hasn't been initialized, initialize a new one
                     .unwrap_or_else(|| ChargeAttackState::new(ecs_data))
-                    // Call handler
                     .handle(ecs_data),
             },
             Block(kind) => match kind {
                 BasicBlock(opt_state) => opt_state
-                    // If data hasn't been initialized, initialize a new one
                     .unwrap_or_else(|| BasicBlockState::new(ecs_data))
-                    // Call handler
                     .handle(ecs_data),
             },
             Dodge(kind) => match kind {
                 Roll(opt_state) => opt_state
-                    // If data hasn't been initialized, initialize a new one
                     .unwrap_or_else(|| RollState::new(ecs_data))
-                    // Call handler
                     .handle(ecs_data),
             },
             Wield(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| WieldState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             Idle(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| IdleState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             //
             // All states should be explicitly handled
@@ -181,39 +171,25 @@ impl MoveState {
                 // Call handler
                 .handle(ecs_data),
             Run(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| RunState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             Jump(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| JumpState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             Climb(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| ClimbState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             Glide(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| GlideState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             Swim(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| SwimState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             Fall(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| FallState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             Sit(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| SitState::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
             //
             // All states should be explicitly handled
