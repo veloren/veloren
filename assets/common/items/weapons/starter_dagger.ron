@@ -7,6 +7,8 @@ Item(
             equip_time_millis: 300,
             attack_buildup_millis: 100,
             attack_recover_millis: 400,
+            range: 3,
+            base_damage: 10, 
         )
     ),
 )
