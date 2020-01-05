@@ -111,7 +111,6 @@ impl ActionState {
             Idle(opt_state) => opt_state
                 .unwrap_or_else(|| IdleState::new(ecs_data))
                 .handle(ecs_data),
-            //
             // All states should be explicitly handled
             // Do not use default match: _ => {},
         }
@@ -132,7 +131,6 @@ impl ActionState {
             },
             Wield(_) => false,
             Idle(_) => false,
-            //
             // All states should be explicitly handled
             // Do not use default match: _ => {},
         }
@@ -156,7 +154,6 @@ impl MoveState {
             Swim(_) => false,
             Fall(_) => false,
             Sit(_) => true,
-            //
             // All states should be explicitly handled
             // Do not use default match: _ => {},
         }
@@ -191,7 +188,6 @@ impl MoveState {
             Sit(opt_state) => opt_state
                 .unwrap_or_else(|| SitState::new(ecs_data))
                 .handle(ecs_data),
-            //
             // All states should be explicitly handled
             // Do not use default match: _ => {},
         }
