@@ -1,14 +1,14 @@
 use super::{GLIDE_ACCEL, GLIDE_ANTIGRAV, GLIDE_SPEED};
 use crate::comp::{
     ActionState::*, ClimbState, EcsStateData, FallState, IdleState, MoveState::*, StandState,
-    StateHandle, StateUpdate,
+    StateHandler, StateUpdate,
 };
 use vek::{Vec2, Vec3};
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct GlideState;
 
-impl StateHandle for GlideState {
+impl StateHandler for GlideState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
@@ -18,8 +18,8 @@ impl StateHandle for GlideState {
         };
 
         // Defaults for this state
-        update.character.action_state = Idle(IdleState);
-        update.character.move_state = Glide(GlideState);
+        update.character.action_state = Idle(Some(IdleState));
+        update.character.move_state = Glide(Some(GlideState));
 
         // Move player according to movement direction vector
         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
@@ -54,19 +54,19 @@ impl StateHandle for GlideState {
 
         // If glide button isn't held, start falling
         if !ecs_data.inputs.glide.is_pressed() {
-            update.character.move_state = Fall(FallState);
+            update.character.move_state = Fall(Some(FallState));
             return update;
         }
 
         // If there is a wall in front of character go to climb
         if let Some(_wall_dir) = ecs_data.physics.on_wall {
-            update.character.move_state = Climb(ClimbState);
+            update.character.move_state = Climb(Some(ClimbState));
             return update;
         }
 
         // If on ground go to stand
         if ecs_data.physics.on_ground {
-            update.character.move_state = Stand(StandState);
+            update.character.move_state = Stand(Some(StandState));
             return update;
         }
 

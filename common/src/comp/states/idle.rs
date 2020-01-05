@@ -1,13 +1,13 @@
 use super::TEMP_EQUIP_DELAY;
 use crate::comp::{
-    ActionState::Wield, EcsStateData, ItemKind::Tool, StateHandle, StateUpdate, WieldState,
+    ActionState::Wield, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate, WieldState,
 };
 use std::time::Duration;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct IdleState;
 
-impl StateHandle for IdleState {
+impl StateHandler for IdleState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,
@@ -23,9 +23,9 @@ impl StateHandle for IdleState {
                 && update.character.action_state.is_equip_finished())
         {
             if let Some(Tool { .. }) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
-                update.character.action_state = Wield(WieldState {
+                update.character.action_state = Wield(Some(WieldState {
                     equip_delay: Duration::from_millis(TEMP_EQUIP_DELAY),
-                })
+                }))
             }
 
             // else unarmed stuff?

@@ -1,5 +1,8 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
 use crate::comp::{
     AbilityAction, AbilityActionKind, AbilityPool, ActionState::*, AttackKind, CharacterState,
+    StateHandler,
 };
 
 use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
@@ -37,27 +40,27 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             match ability_action.0 {
-                AbilityActionKind::Primary => {
-                    if let Some(attack_kind) = ability_pool.primary {
-                        character.action_state = Attack(attack_kind);
-                    }
-                }
-                AbilityActionKind::Secondary => {
-                    if let Some(attack_kind) = ability_pool.secondary {
-                        character.action_state = Attack(attack_kind);
-                    }
-                }
-                AbilityActionKind::Block => {
-                    if let Some(block_kind) = ability_pool.block {
-                        character.action_state = Block(block_kind);
-                    }
-                }
-                AbilityActionKind::Dodge => {
-                    if let Some(dodge_kind) = ability_pool.dodge {
-                        character.action_state = Dodge(dodge_kind);
-                    }
-                }
-                _ => {}
+            //     AbilityActionKind::Primary => {
+            //         if let Some(AttackKind(Some(attack_kind))) = ability_pool.primary {
+            //             character.action_state = Attack(attack_kind::default());
+            //         }
+            //     }
+            //     AbilityActionKind::Secondary => {
+            //         if let Some(attack_kind) = ability_pool.secondary {
+            //             character.action_state = Attack(attack_kind::default());
+            //         }
+            //     }
+            //     AbilityActionKind::Block => {
+            //         if let Some(block_kind) = ability_pool.block {
+            //             character.action_state = Block(block_kind::default());
+            //         }
+            //     }
+            //     AbilityActionKind::Dodge => {
+            //         if let Some(dodge_kind) = ability_pool.dodge {
+            //             character.action_state = Dodge(dodge_kind::default());
+            //         }
+            //     }
+            //     _ => {}
             }
         }
     }

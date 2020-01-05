@@ -1,6 +1,6 @@
 use super::ROLL_SPEED;
-use crate::comp::{ActionState::*, DodgeKind::*, EcsStateData, StateHandle, StateUpdate};
-use crate::util::movement_utils::*;
+use crate::comp::{ActionState::*, DodgeKind::*, EcsStateData, StateHandler, StateUpdate};
+use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec3;
 
@@ -10,7 +10,7 @@ pub struct RollState {
     remaining_duration: Duration,
 }
 
-impl StateHandle for RollState {
+impl StateHandler for RollState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,
@@ -40,12 +40,12 @@ impl StateHandle for RollState {
         }
 
         // Otherwise, tick down remaining_duration
-        update.character.action_state = Dodge(Roll(RollState {
+        update.character.action_state = Dodge(Roll(Some(RollState {
             remaining_duration: self
                 .remaining_duration
                 .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
                 .unwrap_or_default(),
-        }));
+        })));
 
         // Keep rolling
         return update;

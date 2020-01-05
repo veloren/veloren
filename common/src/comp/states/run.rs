@@ -1,15 +1,15 @@
 use super::{HUMANOID_ACCEL, HUMANOID_SPEED};
 use crate::comp::{
-    ClimbState, EcsStateData, GlideState, JumpState, MoveState::*, SitState, StateHandle,
+    ClimbState, EcsStateData, GlideState, JumpState, MoveState::*, SitState, StateHandler,
     StateUpdate,
 };
-use crate::util::movement_utils::*;
+use crate::util::state_utils::*;
 use vek::vec::{Vec2, Vec3};
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct RunState;
 
-impl StateHandle for RunState {
+impl StateHandler for RunState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,
@@ -46,25 +46,25 @@ impl StateHandle for RunState {
 
         // Try to sit
         if can_sit(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Sit(SitState);
+            update.character.move_state = Sit(Some(SitState));
             return update;
         }
 
         // Try to climb
         if can_climb(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Climb(ClimbState);
+            update.character.move_state = Climb(Some(ClimbState));
             return update;
         }
 
         // Try to jump
         if can_jump(ecs_data.physics, ecs_data.inputs) {
-            update.character.move_state = Jump(JumpState);
+            update.character.move_state = Jump(Some(JumpState));
             return update;
         }
 
         // Try to glide
         if can_glide(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Glide(GlideState);
+            update.character.move_state = Glide(Some(GlideState));
             return update;
         }
 

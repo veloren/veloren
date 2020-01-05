@@ -11,11 +11,11 @@ use std::time::Duration;
 /// ... or Idle if nothing it possible?_
 pub fn determine_primary_ability(stats: &Stats) -> ActionState {
     if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
-        Attack(BasicAttack(BasicAttackState {
+        Attack(BasicAttack(Some(BasicAttackState {
             remaining_duration: data.attack_duration(),
-        }))
+        })))
     } else {
-        Idle(IdleState)
+        Idle(Some(IdleState))
     }
 }
 
@@ -24,11 +24,11 @@ pub fn determine_primary_ability(stats: &Stats) -> ActionState {
 /// ... or Idle if nothing it possible?_
 pub fn determine_secondary_ability(stats: &Stats) -> ActionState {
     if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
-        Block(BasicBlock(BasicBlockState {
+        Block(BasicBlock(Some(BasicBlockState {
             active_duration: Duration::default(),
-        }))
+        })))
     } else {
-        Idle(IdleState)
+        Idle(Some(IdleState))
     }
 }
 
@@ -36,18 +36,18 @@ pub fn determine_secondary_ability(stats: &Stats) -> ActionState {
 pub fn determine_fall_or_swim(physics: &PhysicsState) -> MoveState {
     // Check if in fluid to go to swimming or back to falling
     if physics.in_fluid {
-        Swim(SwimState)
+        Swim(Some(SwimState))
     } else {
-        Fall(FallState)
+        Fall(Some(FallState))
     }
 }
 /// __Returns a `MoveState` based on `move_dir` magnitude__
 pub fn determine_stand_or_run(inputs: &ControllerInputs) -> MoveState {
     // Return to running or standing based on move inputs
     if inputs.move_dir.magnitude_squared() > 0.0 {
-        Run(RunState)
+        Run(Some(RunState))
     } else {
-        Stand(StandState)
+        Stand(Some(StandState))
     }
 }
 
@@ -72,11 +72,11 @@ pub fn determine_move_from_grounded_state(
 /// __Returns an ActionState based on whether character has a weapon equipped.__
 pub fn attempt_wield(stats: &Stats) -> ActionState {
     if let Some(Tool { .. }) = stats.equipment.main.as_ref().map(|i| &i.kind) {
-        Wield(WieldState {
+        Wield(Some(WieldState {
             equip_delay: Duration::from_millis(TEMP_EQUIP_DELAY),
-        })
+        }))
     } else {
-        Idle(IdleState)
+        Idle(Some(IdleState))
     }
 }
 
