@@ -55,7 +55,7 @@ pub enum Debug {
     Possess,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
     // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also a creepy thing to do.
     Helmet,
@@ -72,7 +72,7 @@ pub enum Armor {
 }
 
 //TODO: Do we even need this?
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
     Apple,
     Cheese,
@@ -83,13 +83,13 @@ pub enum Consumable {
     PotionMinor,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Ingredient {
     Flower,
     Grass,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ToolData {
     pub kind: ToolKind,
     equip_time_millis: u64,
@@ -99,7 +99,7 @@ pub struct ToolData {
     base_damage: u64,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKind {
     Tool(ToolData),
     Armor { kind: Armor, power: u32 },

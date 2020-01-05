@@ -14,10 +14,10 @@ pub struct BasicAttackState {
 impl StateHandler for BasicAttackState {
     fn new(ecs_data: &EcsStateData) -> Self {
         let tool_data =
-            if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
+            if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| i.kind) {
                 data
             } else {
-                &ToolData::default()
+                ToolData::default()
             };
         Self {
             remaining_duration: tool_data.attack_duration(),
