@@ -39,7 +39,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            match ability_action.0 {
+            // match ability_action.0 {
             //     AbilityActionKind::Primary => {
             //         if let Some(AttackKind(Some(attack_kind))) = ability_pool.primary {
             //             character.action_state = Attack(attack_kind::default());
@@ -61,7 +61,7 @@ impl<'a> System<'a> for Sys {
             //         }
             //     }
             //     _ => {}
-            }
+            // }
         }
     }
 }
