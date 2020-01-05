@@ -8,6 +8,10 @@ use vek::{Vec2, Vec3};
 pub struct FallState;
 
 impl StateHandler for FallState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        Self {}
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,

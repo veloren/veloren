@@ -8,6 +8,10 @@ use crate::util::state_utils::*;
 pub struct StandState;
 
 impl StateHandler for StandState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        Self {}
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,

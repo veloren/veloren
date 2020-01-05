@@ -7,6 +7,10 @@ use vek::{Vec2, Vec3};
 pub struct SwimState;
 
 impl StateHandler for SwimState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        Self {}
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,
