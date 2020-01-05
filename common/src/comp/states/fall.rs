@@ -1,13 +1,13 @@
 use super::{HUMANOID_AIR_ACCEL, HUMANOID_AIR_SPEED};
-use crate::comp::{ClimbState, EcsStateData, GlideState, MoveState::*, StateHandle, StateUpdate};
+use crate::comp::{ClimbState, EcsStateData, GlideState, MoveState::*, StateHandler, StateUpdate};
 
-use crate::util::movement_utils::*;
+use crate::util::state_utils::*;
 use vek::{Vec2, Vec3};
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct FallState;
 
-impl StateHandle for FallState {
+impl StateHandler for FallState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
@@ -44,13 +44,13 @@ impl StateHandle for FallState {
 
         // Check to start climbing
         if can_climb(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Climb(ClimbState);
+            update.character.move_state = Climb(Some(ClimbState));
             return update;
         }
 
         // Check gliding
         if ecs_data.inputs.glide.is_pressed() {
-            update.character.move_state = Glide(GlideState);
+            update.character.move_state = Glide(Some(GlideState));
             return update;
         }
 

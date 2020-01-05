@@ -163,7 +163,7 @@ impl<'a> System<'a> for Sys {
                                 inputs.roll.set_state(true);
                             }
 
-                            if target_character.move_state == Glide(GlideState)
+                            if target_character.move_state == Glide(Some(GlideState))
                                 && target_pos.0.z > pos.0.z + 5.0
                             {
                                 inputs.glide.set_state(true);

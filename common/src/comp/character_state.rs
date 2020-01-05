@@ -5,6 +5,8 @@ use crate::{
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
 };
+use serde::Deserialize;
+use serde::Serialize;
 use specs::LazyUpdate;
 use specs::{Component, Entity, FlaggedStorage, HashMapStorage, NullStorage};
 use sphynx::Uid;
@@ -36,20 +38,20 @@ pub struct StateUpdate {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum MoveState {
-    Stand(StandState),
-    Run(RunState),
-    Sit(SitState),
-    Jump(JumpState),
-    Fall(FallState),
-    Glide(GlideState),
-    Swim(SwimState),
-    Climb(ClimbState),
+    Stand(Option<StandState>),
+    Run(Option<RunState>),
+    Sit(Option<SitState>),
+    Jump(Option<JumpState>),
+    Fall(Option<FallState>),
+    Glide(Option<GlideState>),
+    Swim(Option<SwimState>),
+    Climb(Option<ClimbState>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum ActionState {
-    Idle(IdleState),
-    Wield(WieldState),
+    Idle(Option<IdleState>),
+    Wield(Option<WieldState>),
     Attack(AttackKind),
     Block(BlockKind),
     Dodge(DodgeKind),
@@ -58,24 +60,24 @@ pub enum ActionState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum AttackKind {
-    BasicAttack(BasicAttackState),
-    Charge(ChargeAttackState),
+    BasicAttack(Option<BasicAttackState>),
+    Charge(Option<ChargeAttackState>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum BlockKind {
-    BasicBlock(BasicBlockState),
+    BasicBlock(Option<BasicBlockState>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum DodgeKind {
-    Roll(RollState),
+    Roll(Option<RollState>),
 }
 
 impl ActionState {
     pub fn is_equip_finished(&self) -> bool {
         match self {
-            Wield(WieldState { equip_delay }) => *equip_delay == Duration::default(),
+            Wield(Some(WieldState { equip_delay })) => *equip_delay == Duration::default(),
             _ => true,
         }
     }
@@ -83,21 +85,21 @@ impl ActionState {
     /// Returns the current `equip_delay` if in `WieldState`, otherwise `Duration::default()`
     pub fn get_delay(&self) -> Duration {
         match self {
-            Wield(WieldState { equip_delay }) => *equip_delay,
+            Wield(Some(WieldState { equip_delay })) => *equip_delay,
             _ => Duration::default(),
         }
     }
 
     pub fn is_attacking(&self) -> bool {
         match self {
-            Block(_) => true,
+            Attack(_) => true,
             _ => false,
         }
     }
 
     pub fn is_blocking(&self) -> bool {
         match self {
-            Attack(_) => true,
+            Block(_) => true,
             _ => false,
         }
     }
@@ -126,7 +128,7 @@ impl ActionState {
 }
 
 /// __A concurrent state machine that allows for separate `ActionState`s and `MoveState`s.__
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct CharacterState {
     /// __How the character is currently moving, e.g. Running, Standing, Falling.__
     ///
@@ -162,8 +164,8 @@ impl CharacterState {
 impl Default for CharacterState {
     fn default() -> Self {
         Self {
-            move_state: MoveState::Fall(FallState),
-            action_state: ActionState::Idle(IdleState),
+            move_state: MoveState::Fall(Some(FallState)),
+            action_state: ActionState::Idle(Some(IdleState)),
         }
     }
 }

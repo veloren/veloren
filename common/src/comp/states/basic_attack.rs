@@ -1,7 +1,8 @@
 use crate::comp::{
-    ActionState::Attack, AttackKind::BasicAttack, EcsStateData, StateHandle, StateUpdate,
+    ActionState::Attack, AttackKind::BasicAttack, EcsStateData, MoveState, StateHandler,
+    StateUpdate, ToolData,
 };
-use crate::util::movement_utils::*;
+use crate::util::state_utils::*;
 use std::time::Duration;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -10,7 +11,7 @@ pub struct BasicAttackState {
     pub remaining_duration: Duration,
 }
 
-impl StateHandle for BasicAttackState {
+impl StateHandler for BasicAttackState {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
@@ -27,12 +28,12 @@ impl StateHandle for BasicAttackState {
         }
 
         // Otherwise, tick down remaining_duration, and keep rolling
-        update.character.action_state = Attack(BasicAttack(BasicAttackState {
+        update.character.action_state = Attack(BasicAttack(Some(BasicAttackState {
             remaining_duration: self
                 .remaining_duration
                 .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
                 .unwrap_or_default(),
-        }));
+        })));
 
         return update;
     }
