@@ -1,6 +1,6 @@
 use crate::comp::{
-    AbilityAction, AbilityActionKind::*, ActionState::*, EcsStateData, IdleState, StateHandler,
-    StateUpdate,
+    AbilityAction, AbilityActionKind::*, ActionState::*, EcsStateData, IdleState, ItemKind::Tool,
+    StateHandler, StateUpdate, ToolData,
 };
 use crate::util::state_utils::*;
 use std::time::Duration;
@@ -13,6 +13,18 @@ pub struct WieldState {
 }
 
 impl StateHandler for WieldState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        let tool_data =
+            if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
+                data
+            } else {
+                &ToolData::default()
+            };
+        Self {
+            equip_delay: tool_data.equip_time(),
+        }
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,

@@ -1,5 +1,7 @@
 use super::ROLL_SPEED;
-use crate::comp::{ActionState::*, DodgeKind::*, EcsStateData, StateHandler, StateUpdate};
+use crate::comp::{
+    ActionState::*, DodgeKind::*, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate, ToolData,
+};
 use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec3;
@@ -11,6 +13,18 @@ pub struct RollState {
 }
 
 impl StateHandler for RollState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        let tool_data =
+            if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
+                data
+            } else {
+                &ToolData::default()
+            };
+        Self {
+            remaining_duration: tool_data.attack_duration(),
+        }
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,

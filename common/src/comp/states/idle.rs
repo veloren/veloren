@@ -8,6 +8,10 @@ use std::time::Duration;
 pub struct IdleState;
 
 impl StateHandler for IdleState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        Self {}
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,
@@ -22,10 +26,10 @@ impl StateHandler for IdleState {
             || (ecs_data.inputs.toggle_wield.is_just_pressed()
                 && update.character.action_state.is_equip_finished())
         {
-            if let Some(Tool { .. }) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
+            if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
                 update.character.action_state = Wield(Some(WieldState {
-                    equip_delay: Duration::from_millis(TEMP_EQUIP_DELAY),
-                }))
+                    equip_delay: data.equip_time(),
+                }));
             }
 
             // else unarmed stuff?

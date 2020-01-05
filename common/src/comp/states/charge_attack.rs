@@ -1,6 +1,6 @@
 use crate::comp::{
     ActionState::Attack, AttackKind::Charge, EcsStateData, HealthChange, HealthSource,
-    MoveState::Run, RunState, StateHandler, StateUpdate,
+    ItemKind::Tool, MoveState::Run, RunState, StateHandler, StateUpdate, ToolData,
 };
 use crate::event::ServerEvent;
 use crate::util::state_utils::*;
@@ -16,6 +16,18 @@ pub struct ChargeAttackState {
 }
 
 impl StateHandler for ChargeAttackState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        let tool_data =
+            if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
+                data
+            } else {
+                &ToolData::default()
+            };
+        Self {
+            remaining_duration: tool_data.attack_duration(),
+        }
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,

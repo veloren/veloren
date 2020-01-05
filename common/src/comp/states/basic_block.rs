@@ -11,6 +11,12 @@ pub struct BasicBlockState {
 }
 
 impl StateHandler for BasicBlockState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        Self {
+            active_duration: Duration::default(),
+        }
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
