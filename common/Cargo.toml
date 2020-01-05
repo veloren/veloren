@@ -33,7 +33,7 @@ crossbeam = "=0.7.2"
 notify = "5.0.0-pre.1"
 indexmap = "1.3.0"
 sum_type = "0.2.0"
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "68504561dd868bc2065e9300a27616f3560f7033" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "0f7efccdcce2089a6997653d36178705ade5749e" }
 
 [dev-dependencies]
 criterion = "0.3"
