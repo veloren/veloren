@@ -9,6 +9,10 @@ use vek::{Vec2, Vec3};
 pub struct GlideState;
 
 impl StateHandler for GlideState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        Self {}
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,

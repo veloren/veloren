@@ -5,6 +5,10 @@ use crate::event::LocalEvent;
 pub struct JumpState;
 
 impl StateHandler for JumpState {
+    fn new(ecs_data: &EcsStateData) -> Self {
+        Self {}
+    }
+
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             character: *ecs_data.character,

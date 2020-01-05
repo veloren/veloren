@@ -54,7 +54,6 @@ use super::{
     ActionState, ActionState::*, AttackKind::*, BlockKind::*, DodgeKind::*, EcsStateData,
     MoveState, MoveState::*, StateUpdate,
 };
-use std::time::Duration;
 
 /// #### A trait for implementing state `handle()`ing logic.
 ///  _Mimics the typical OOP style state machine pattern where states implement their own behavior,
@@ -74,25 +73,54 @@ use std::time::Duration;
 ///     how the update flow occurs and is in charge of updating the ECS components.
 pub trait StateHandler: Default {
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate;
+    fn new(ecs_data: &EcsStateData) -> Self;
 }
 
-// Public interface that passes EcsStateData to `StateHandle`s `handle()` fn
+// fn's relating to individual `ActionState`s
+// or passing data from system to handlers
 impl ActionState {
-    /// Passes handle to variant or subvariant handlers
+    /// Passes data to variant or subvariant handlers
+    /// States contain `Option<StateHandler Implementor>`s, and will be
+    /// `None` if state data has not been initialized. So we have to
+    /// check and intialize new state data if so.
     pub fn update(&self, ecs_data: &EcsStateData) -> StateUpdate {
         match self {
             Attack(kind) => match kind {
-                BasicAttack(Some(state)) => state.handle(&ecs_data),
-                Charge(Some(state)) => state.handle(&ecs_data),
+                BasicAttack(opt_state) => opt_state
+                    // If data hasn't been initialized, initialize a new one
+                    .unwrap_or_else(|| BasicAttackState::new(ecs_data))
+                    // Call handler
+                    .handle(ecs_data),
+                Charge(opt_state) => opt_state
+                    // If data hasn't been initialized, initialize a new one
+                    .unwrap_or_else(|| ChargeAttackState::new(ecs_data))
+                    // Call handler
+                    .handle(ecs_data),
             },
             Block(kind) => match kind {
-                BasicBlock(Some(state)) => state.handle(&ecs_data),
+                BasicBlock(opt_state) => opt_state
+                    // If data hasn't been initialized, initialize a new one
+                    .unwrap_or_else(|| BasicBlockState::new(ecs_data))
+                    // Call handler
+                    .handle(ecs_data),
             },
             Dodge(kind) => match kind {
-                Roll(Some(state)) => state.handle(&ecs_data),
+                Roll(opt_state) => opt_state
+                    // If data hasn't been initialized, initialize a new one
+                    .unwrap_or_else(|| RollState::new(ecs_data))
+                    // Call handler
+                    .handle(ecs_data),
             },
-            Wield(Some(state)) => state.handle(&ecs_data),
-            Idle(Some(state)) => state.handle(&ecs_data),
+            Wield(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| WieldState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
+            Idle(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| IdleState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
             //
             // All states should be explicitly handled
             // Do not use default match: _ => {},
@@ -121,9 +149,13 @@ impl ActionState {
     }
 }
 
-// Other fn's that relate to individual `MoveState`s
+// fn's that relate to individual `MoveState`s
+// or passing data from system to handlers
 impl MoveState {
-    /// Returns whether a given `ActionState` overrides `MoveState` `handle()`ing
+    /// Passes data to variant or subvariant handlers
+    /// States contain `Option<StateHandler Implementor>`s, and will be
+    /// `None` if state data has not been initialized. So we have to
+    /// check and intialize new state data if so.
     pub fn overrides_action_state(&self) -> bool {
         match self {
             Stand(_) => false,
@@ -143,14 +175,46 @@ impl MoveState {
     /// Passes handle to variant handlers
     pub fn update(&self, ecs_data: &EcsStateData) -> StateUpdate {
         match self {
-            Stand(Some(state)) => state.handle(&ecs_data),
-            Run(Some(state)) => state.handle(&ecs_data),
-            Jump(Some(state)) => state.handle(&ecs_data),
-            Climb(Some(state)) => state.handle(&ecs_data),
-            Glide(Some(state)) => state.handle(&ecs_data),
-            Swim(Some(state)) => state.handle(&ecs_data),
-            Fall(Some(state)) => state.handle(&ecs_data),
-            Sit(Some(state)) => state.handle(&ecs_data),
+            Stand(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| StandState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
+            Run(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| RunState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
+            Jump(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| JumpState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
+            Climb(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| ClimbState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
+            Glide(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| GlideState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
+            Swim(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| SwimState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
+            Fall(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| FallState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
+            Sit(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
+                .unwrap_or_else(|| SitState::new(ecs_data))
+                // Call handler
+                .handle(ecs_data),
             //
             // All states should be explicitly handled
             // Do not use default match: _ => {},

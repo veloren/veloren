@@ -28,6 +28,12 @@ pub enum ToolKind {
     Debug(Debug),
 }
 
+impl Default for ToolKind {
+    fn default() -> Self {
+        Self::Axe
+    }
+}
+
 impl ToolData {
     pub fn equip_time(&self) -> Duration {
         Duration::from_millis(self.equip_time_millis)
@@ -83,7 +89,7 @@ pub enum Ingredient {
     Grass,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ToolData {
     pub kind: ToolKind,
     equip_time_millis: u64,
