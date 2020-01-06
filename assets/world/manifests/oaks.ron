@@ -2,19 +2,19 @@
     [
         (
             specifier: "world.tree.oak_green.1",
-            center: (15, 18, 14)
+            center: (15, 17, 14)
         ),
         (
             specifier: "world.tree.oak_green.2",
-            center: (15, 18, 14)
+            center: (18, 17, 14)
         ),
         (
             specifier: "world.tree.oak_green.3",
-            center: (16, 20, 14)
+            center: (19, 20, 14)
         ),
         (
             specifier: "world.tree.oak_green.4",
-            center: (18, 21, 14)
+            center: (19, 20, 14)
         ),
         (
             specifier: "world.tree.oak_green.5",
@@ -22,19 +22,19 @@
         ),
         (
             specifier: "world.tree.oak_green.6",
-            center: (16, 21, 14)
+            center: (18, 21, 14)
         ),
         (
             specifier: "world.tree.oak_green.7",
-            center: (20, 19, 14)
+            center: (20, 21, 14)
         ),
         (
             specifier: "world.tree.oak_green.8",
-            center: (22, 20, 14)
+            center: (22, 21, 14)
         ),
         (
             specifier: "world.tree.oak_green.9",
-            center:(26, 26, 14)
+            center:(21, 21, 14)
         ),
     ]
 )
