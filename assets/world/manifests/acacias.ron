@@ -2,23 +2,23 @@
     [
         (
             specifier: "world.tree.acacia.1",
-            center: (16, 17, 1)
+            center: (17, 18, 4)
         ),
         (
             specifier: "world.tree.acacia.2",
-            center: (5, 6, 1)
+            center: (5, 5, 4)
         ),
         (
             specifier: "world.tree.acacia.3",
-            center: (5, 6, 1)
+            center: (6, 6, 3)
         ),
         (
             specifier: "world.tree.acacia.4",
-            center: (15, 16, 1)
+            center: (12, 14, 4)
         ),
         (
             specifier: "world.tree.acacia.5",
-            center: (19, 18, 1)
+            center: (19, 19, 4)
         ),
     ]
 )
