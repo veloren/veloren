@@ -2,7 +2,7 @@
     [
         (
             specifier: "world.tree.mangroves.1",
-            center: (18, 18, 8)
+            center: (19, 18, 8)
         ),
         (
             specifier: "world.tree.mangroves.2",
@@ -10,11 +10,11 @@
         ),
         (
             specifier: "world.tree.mangroves.3",
-            center: (18, 18, 8)
+            center: (18, 19, 8)
         ),
         (
             specifier: "world.tree.mangroves.4",
-            center: (18, 16, 8)
+            center: (19, 18, 8)
         ),
         (
             specifier: "world.tree.mangroves.5",
@@ -22,15 +22,15 @@
         ),
         (
             specifier: "world.tree.mangroves.6",
-            center: (18, 18, 9)
+            center: (18, 21, 9)
         ),
         (
             specifier: "world.tree.mangroves.7",
-            center: (18, 17, 9)
+            center: (20, 17, 9)
         ),
         (
             specifier: "world.tree.mangroves.8",
-            center: (18, 18, 9)
+            center: (18, 19, 9)
         ),
     ]
 )
