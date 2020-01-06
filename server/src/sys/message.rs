@@ -127,12 +127,8 @@ impl<'a> System<'a> for Sys {
                         player,
                         token_or_username,
                     } if player.is_valid() => {
-                        if !accounts
-                            .query(token_or_username.clone())
-                            .expect("Handle this error!")
-                        {
-                            // TODO: Graceful error handling!
-                            // TODO: Graceful error handling! (e.g. AlreadyLoggedIn)
+                        if !accounts.query(token_or_username.clone()).unwrap_or(false) {
+                            // TO-DO: Set a less generic error here.
                             client.error_state(RequestStateError::Denied);
                             break;
                         }
