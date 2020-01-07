@@ -1,14 +1,11 @@
-use crate::comp::{
-    ActionState::*, EcsStateData, IdleState, JumpState, MoveState::*, RunState, StandState,
-    StateHandler, StateUpdate,
-};
+use crate::comp::{ActionState::*, EcsStateData, MoveState::*, StateHandler, StateUpdate};
 use crate::util::state_utils::*;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct SitState;
 
 impl StateHandler for SitState {
-    fn new(ecs_data: &EcsStateData) -> Self {
+    fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }
 
@@ -21,8 +18,8 @@ impl StateHandler for SitState {
         };
 
         // Prevent action state handling
-        update.character.action_state = Idle(Some(IdleState));
-        update.character.move_state = Sit(Some(SitState));
+        update.character.action_state = Idle(None);
+        update.character.move_state = Sit(None);
 
         // Try to Fall
         // ... maybe the ground disappears,
@@ -34,19 +31,19 @@ impl StateHandler for SitState {
         }
         // Try to jump
         if ecs_data.inputs.jump.is_pressed() {
-            update.character.move_state = Jump(Some(JumpState));
+            update.character.move_state = Jump(None);
             return update;
         }
 
         // Try to Run
         if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-            update.character.move_state = Run(Some(RunState));
+            update.character.move_state = Run(None);
             return update;
         }
 
         // Try to Stand
         if ecs_data.inputs.sit.is_just_pressed() {
-            update.character.move_state = Stand(Some(StandState));
+            update.character.move_state = Stand(None);
             return update;
         }
 

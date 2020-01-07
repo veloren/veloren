@@ -1,8 +1,7 @@
 use crate::{
     comp::{
-        states::*, Body, CharacterState, Controller, EcsStateData, Mounting, MoveState::*, Ori,
-        OverrideAction, OverrideMove, OverrideState, PhysicsState, Pos, SitState, StateHandler,
-        Stats, Vel,
+        Body, CharacterState, Controller, EcsStateData, Mounting, MoveState::*, Ori,
+        OverrideAction, OverrideMove, OverrideState, PhysicsState, Pos, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -11,18 +10,11 @@ use crate::{
 use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
 use sphynx::{Uid, UidAllocator};
 
-/// # Character State System
-/// #### Updates tuples of ( `CharacterState`, `Pos`, `Vel`, and `Ori` ) in parallel.
-/// _Each update for a single character involves first passing an `EcsStateData` struct of ECS components
-///  to the character's `MoveState`, then the character's `ActionState`. State update logic is
-///  is encapsulated in state's `handle()` fn, impl'd by the `StateHandle` trait. `handle()` fn's
-///  return a `StateUpdate` tuple containing new ( `CharacterState`, `Pos`, `Vel`, and `Ori` ) components.
-///  Since `handle()` accepts readonly components, component updates are contained within this system and ECS
-///  behavior constraints are satisfied._
+/// ## Character State System
+/// #### Calls updates to `CharacterState`s. Acts on tuples of ( `CharacterState`, `Pos`, `Vel`, and `Ori` ).
 ///
-///  _This mimics the typical OOP style state machine pattern, but remains performant
-///  under ECS since trait fn's are syntactic sugar for static fn's that accept their implementor's
-///  object type as its first parameter. See `StateHandle` for more information._
+/// _System forms `EcsStateData` tuples and passes those to `ActionState` `update()` fn,
+/// then does the same for `MoveState` `update`_
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
@@ -102,14 +94,14 @@ impl<'a> System<'a> for Sys {
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
             if let Some(Mounting(_)) = mountings.get(entity) {
-                character.move_state = Sit(Some(SitState));
+                character.move_state = Sit(None);
                 return;
             }
 
             // Determine new action if character can act
             if let (None, false) = (
                 action_overrides.get(entity),
-                character.action_state.overrides_move_state(),
+                character.move_state.overrides_action_state(),
             ) {
                 let state_update = character.action_state.update(&EcsStateData {
                     entity: &entity,
@@ -137,7 +129,7 @@ impl<'a> System<'a> for Sys {
             // Determine new move state if character can move
             if let (None, false) = (
                 move_overrides.get(entity),
-                character.move_state.overrides_action_state(),
+                character.action_state.overrides_move_state(),
             ) {
                 let state_update = character.move_state.update(&EcsStateData {
                     entity: &entity,

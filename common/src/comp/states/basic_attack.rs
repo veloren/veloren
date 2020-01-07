@@ -1,6 +1,6 @@
 use crate::comp::{
-    ActionState::Attack, AttackKind::BasicAttack, EcsStateData, ItemKind::Tool, MoveState,
-    StateHandler, StateUpdate, ToolData,
+    ActionState::Attack, AttackKind::BasicAttack, EcsStateData, ItemKind::Tool, StateHandler,
+    StateUpdate, ToolData,
 };
 use crate::util::state_utils::*;
 use std::time::Duration;

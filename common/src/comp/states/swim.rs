@@ -1,13 +1,15 @@
-use super::{HUMANOID_WATER_ACCEL, HUMANOID_WATER_SPEED};
-use crate::comp::{EcsStateData, MoveState::*, RunState, StandState, StateHandler, StateUpdate};
+use crate::comp::{EcsStateData, MoveState::*, StateHandler, StateUpdate};
 use crate::sys::phys::GRAVITY;
 use vek::{Vec2, Vec3};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct SwimState;
 
+const HUMANOID_WATER_ACCEL: f32 = 70.0;
+const HUMANOID_WATER_SPEED: f32 = 120.0;
+
 impl StateHandler for SwimState {
-    fn new(ecs_data: &EcsStateData) -> Self {
+    fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }
 
@@ -55,16 +57,16 @@ impl StateHandler for SwimState {
 
         // Not on ground
         if !ecs_data.physics.on_ground {
-            update.character.move_state = Swim(Some(SwimState));
+            update.character.move_state = Swim(None);
             return update;
         }
         // On ground
         else {
             // Return to running or standing based on move inputs
             update.character.move_state = if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-                Run(Some(RunState))
+                Run(None)
             } else {
-                Stand(Some(StandState))
+                Stand(None)
             };
 
             return update;

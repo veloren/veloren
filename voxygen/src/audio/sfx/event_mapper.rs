@@ -277,10 +277,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Stand(StandState),
-                action_state: ActionState::Idle(IdleState),
-                action_disabled_this_tick: false,
-                move_disabled_this_tick: false,
+                move_state: MoveState::Stand(None),
+                action_state: ActionState::Idle(None),
             },
             SfxEvent::Idle,
             &stats,
@@ -295,10 +293,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Run(RunState),
-                action_state: ActionState::Idle(IdleState),
-                action_disabled_this_tick: false,
-                move_disabled_this_tick: false,
+                move_state: MoveState::Run(None),
+                action_state: ActionState::Idle(None),
             },
             SfxEvent::Idle,
             &stats,
@@ -313,10 +309,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                action_state: ActionState::Dodge(Roll(RollState::default())),
-                move_state: MoveState::Run(RunState),
-                action_disabled_this_tick: false,
-                move_disabled_this_tick: true,
+                action_state: ActionState::Dodge(Roll(None)),
+                move_state: MoveState::Run(None),
             },
             SfxEvent::Run,
             &stats,
@@ -331,10 +325,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Fall(FallState),
-                action_state: ActionState::Idle(IdleState),
-                action_disabled_this_tick: false,
-                move_disabled_this_tick: false,
+                move_state: MoveState::Fall((None)),
+                action_state: ActionState::Idle((None)),
             },
             SfxEvent::Idle,
             &stats,
@@ -349,10 +341,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Glide(GlideState),
-                action_state: ActionState::Idle(IdleState),
-                action_disabled_this_tick: true,
-                move_disabled_this_tick: false,
+                move_state: MoveState::Glide(None),
+                action_state: ActionState::Idle(None),
             },
             SfxEvent::Jump,
             &stats,
@@ -367,10 +357,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Glide(GlideState),
-                action_state: ActionState::Idle(IdleState),
-                action_disabled_this_tick: true,
-                move_disabled_this_tick: false,
+                move_state: MoveState::Glide(None),
+                action_state: ActionState::Idle(None),
             },
             SfxEvent::Glide,
             &stats,
@@ -385,10 +373,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Fall(FallState),
-                action_state: ActionState::Idle(IdleState),
-                move_disabled_this_tick: false,
-                action_disabled_this_tick: false,
+                move_state: MoveState::Fall(None),
+                action_state: ActionState::Idle(None),
             },
             SfxEvent::Glide,
             &stats,
@@ -408,10 +394,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Stand(StandState),
-                action_state: ActionState::Attack(BasicAttack(BasicAttackState::default())),
-                move_disabled_this_tick: false,
-                action_disabled_this_tick: false,
+                move_state: MoveState::Stand(None),
+                action_state: ActionState::Attack(BasicAttack(None)),
             },
             SfxEvent::Idle,
             &stats,

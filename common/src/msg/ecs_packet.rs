@@ -36,6 +36,8 @@ sphynx::sum_type! {
         OverrideAction(comp::OverrideAction),
         OverrideMove(comp::OverrideMove),
         OverrideState(comp::OverrideState),
+        AbilityAction(comp::AbilityAction),
+        AbilityPool(comp::AbilityPool),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -62,6 +64,8 @@ sphynx::sum_type! {
         OverrideAction(PhantomData<comp::OverrideAction>),
         OverrideMove(PhantomData<comp::OverrideMove>),
         OverrideState(PhantomData<comp::OverrideState>),
+        AbilityAction(PhantomData<comp::AbilityAction>),
+        AbilityPool(PhantomData<comp::AbilityPool>),
     }
 }
 impl sphynx::CompPacket for EcsCompPacket {

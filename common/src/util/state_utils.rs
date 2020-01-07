@@ -1,8 +1,7 @@
-use crate::comp::TEMP_EQUIP_DELAY;
 use crate::comp::{
     ActionState, ActionState::*, AttackKind::*, BasicAttackState, BasicBlockState, BlockKind::*,
     Body, ControllerInputs, FallState, IdleState, ItemKind::Tool, MoveState, MoveState::*,
-    PhysicsState, RunState, StandState, Stats, SwimState, ToolData, WieldState,
+    PhysicsState, RunState, StandState, Stats, SwimState, WieldState,
 };
 use std::time::Duration;
 
@@ -23,7 +22,7 @@ pub fn determine_primary_ability(stats: &Stats) -> ActionState {
 /// and returns the corresponding `ActionState`
 /// ... or Idle if nothing it possible?_
 pub fn determine_secondary_ability(stats: &Stats) -> ActionState {
-    if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
+    if let Some(Tool(_data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
         Block(BasicBlock(Some(BasicBlockState {
             active_duration: Duration::default(),
         })))
@@ -32,7 +31,7 @@ pub fn determine_secondary_ability(stats: &Stats) -> ActionState {
     }
 }
 
-/// __Returns a `MoveState` based on `in_fluid` condition__
+/// _Returns a `MoveState` based on `in_fluid` condition_
 pub fn determine_fall_or_swim(physics: &PhysicsState) -> MoveState {
     // Check if in fluid to go to swimming or back to falling
     if physics.in_fluid {
@@ -41,7 +40,7 @@ pub fn determine_fall_or_swim(physics: &PhysicsState) -> MoveState {
         Fall(Some(FallState))
     }
 }
-/// __Returns a `MoveState` based on `move_dir` magnitude__
+/// _Returns a `MoveState` based on `move_dir` magnitude_
 pub fn determine_stand_or_run(inputs: &ControllerInputs) -> MoveState {
     // Return to running or standing based on move inputs
     if inputs.move_dir.magnitude_squared() > 0.0 {
@@ -51,7 +50,7 @@ pub fn determine_stand_or_run(inputs: &ControllerInputs) -> MoveState {
     }
 }
 
-/// __Returns a `MoveState` based on `on_ground` state.__
+/// _Returns a `MoveState` based on `on_ground` state._
 ///
 /// _`FallState`, or `SwimState` if not `on_ground`,
 /// `StandState` or `RunState` if is `on_ground`_
@@ -69,11 +68,11 @@ pub fn determine_move_from_grounded_state(
     }
 }
 
-/// __Returns an ActionState based on whether character has a weapon equipped.__
+/// _Returns an ActionState based on whether character has a weapon equipped._
 pub fn attempt_wield(stats: &Stats) -> ActionState {
-    if let Some(Tool { .. }) = stats.equipment.main.as_ref().map(|i| &i.kind) {
+    if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
         Wield(Some(WieldState {
-            equip_delay: Duration::from_millis(TEMP_EQUIP_DELAY),
+            equip_delay: data.equip_time(),
         }))
     } else {
         Idle(Some(IdleState))
@@ -82,7 +81,7 @@ pub fn attempt_wield(stats: &Stats) -> ActionState {
 
 pub fn can_climb(physics: &PhysicsState, inputs: &ControllerInputs, body: &Body) -> bool {
     if let (true, Some(_wall_dir)) = (
-        inputs.climb.is_pressed() | inputs.climb_down.is_pressed() && body.is_humanoid(),
+        (inputs.climb.is_pressed() | inputs.climb_down.is_pressed()) && body.is_humanoid(),
         physics.on_wall,
     ) {
         true
