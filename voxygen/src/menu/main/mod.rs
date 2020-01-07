@@ -81,7 +81,7 @@ impl PlayState for MainMenuState {
                                 "Server not found".into()
                             },
                             InitError::ClientError(err) => match err {
-                                client::Error::InvalidAuth => "Invalid credentials".into(),
+                                client::Error::AuthErr(e) => format!("Auth error on server: {}", e),
                                 client::Error::TooManyPlayers => "Server is full".into(),
                                 client::Error::AuthServerNotTrusted => {
                                     "Auth server not trusted".into()

@@ -1,5 +1,5 @@
 use authc::{AuthClient, AuthToken, Uuid};
-use common::msg::ServerError;
+use common::msg::RegisterError;
 use hashbrown::HashMap;
 use std::str::FromStr;
 
@@ -42,28 +42,26 @@ impl AuthProvider {
         }
     }
 
-    pub fn query(&mut self, username_or_token: String) -> Result<bool, ServerError> {
+    pub fn query(&mut self, username_or_token: String) -> Result<(), RegisterError> {
         // Based on whether auth server is provided or not we expect an username or
         // token
         match &self.auth_server {
             // Token from auth server expected
             Some(srv) => {
                 log::info!("Validating '{}' token.", &username_or_token);
-                if let Ok(token) = AuthToken::from_str(&username_or_token) {
-                    match srv.validate(token) {
-                        Ok(uuid) => {
-                            if self.accounts.contains_key(&uuid) {
-                                return Err(ServerError::AlreadyLoggedIn);
-                            }
-                            let username = srv.uuid_to_username(uuid.clone())?;
-                            self.accounts.insert(uuid, username);
-                            Ok(true)
-                        },
-                        Err(e) => Err(ServerError::from(e)),
-                    }
-                } else {
-                    Ok(false)
+                // Parse token
+                let token = AuthToken::from_str(&username_or_token)
+                    .map_err(|e| RegisterError::AuthError(e.to_string()))?;
+                // Validate token
+                let uuid = srv.validate(token)?;
+                // Check if already logged in
+                if self.accounts.contains_key(&uuid) {
+                    return Err(RegisterError::AlreadyLoggedIn);
                 }
+                // Log in
+                let username = srv.uuid_to_username(uuid.clone())?;
+                self.accounts.insert(uuid, username);
+                Ok(())
             },
             // Username is expected
             None => {
@@ -73,9 +71,9 @@ impl AuthProvider {
                 if !self.accounts.contains_key(&uuid) {
                     log::info!("New User '{}'", username);
                     self.accounts.insert(uuid, username);
-                    Ok(true)
+                    Ok(())
                 } else {
-                    Err(ServerError::AlreadyLoggedIn)
+                    Err(RegisterError::AlreadyLoggedIn)
                 }
             },
         }
