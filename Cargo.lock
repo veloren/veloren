@@ -894,6 +894,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "dispatch"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "dlib"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3512,6 +3517,7 @@ dependencies = [
  "crossbeam 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "directories 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "discord-rpc-sdk 0.1.1 (git+https://github.com/Songtronix/rust-discord-rpc.git)",
+ "dispatch 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "dot_vox 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "euc 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3926,6 +3932,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum dirs-sys 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "afa0b23de8fd801745c471deffa6e12d248f962c9fd4b4c33787b055599bde7b"
 "checksum discord-rpc-sdk 0.1.1 (git+https://github.com/Songtronix/rust-discord-rpc.git)" = "<none>"
 "checksum discord-rpc-sys 0.1.0 (git+https://github.com/Songtronix/rust-discord-rpc.git)" = "<none>"
+"checksum dispatch 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "04e93ca78226c51902d7aa8c12c988338aadd9e85ed9c6be8aaac39192ff3605"
 "checksum dlib 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "77e51249a9d823a4cb79e3eca6dcd756153e8ed0157b6c04775d04bf1b13b76a"
 "checksum dot_vox 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "11afd3251e588f2770226659b2a1d55ec2f8aaf2ca42bdcdbd01ff53b4a81e70"
 "checksum downcast-rs 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "52ba6eb47c2131e784a38b726eb54c1e1484904f013e576a25354d0124161af6"
