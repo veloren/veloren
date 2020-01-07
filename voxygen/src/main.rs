@@ -201,7 +201,13 @@ fn main() {
         );
 
         #[cfg(feature = "msgbox")]
-        msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error);
+        {
+            #[cfg(target_os = "macos")]
+            dispatch::Queue::main()
+                .sync(|| msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error));
+            #[cfg(not(target_os = "macos"))]
+            msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error);
+        }
 
         default_hook(panic_info);
     }));
