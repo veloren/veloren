@@ -27,6 +27,7 @@ use common::{
 use hashbrown::HashMap;
 use log::trace;
 use specs::{Entity as EcsEntity, Join, WorldExt};
+use treeculler::{BoundingSphere, BVol};
 use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
@@ -171,9 +172,8 @@ impl FigureMgr {
             // Don't process figures outside the frustum spectrum
             let frustum = camera.frustum(client);
 
-            let (in_frustum, lpindex) = frustum.test_sphere_coherence(
-                pos.0.into_array(),
-                scale.unwrap_or(&Scale(1.0)).0 * 2.0,
+            let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), scale.unwrap_or(&Scale(1.0)).0 * 2.0).coherent_test_against_frustum(
+                &frustum,
                 match body {
                     Body::Humanoid(_) => {
                         self.character_states.get(&entity).map(|state| state.lpindex)
@@ -208,40 +208,39 @@ impl FigureMgr {
                 }.unwrap_or(0),
             );
 
-            match body {
-                Body::Humanoid(_) => {
-                    self.character_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::QuadrupedSmall(_) => {
-                    self.quadruped_small_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::QuadrupedMedium(_) => {
-                    self.quadruped_medium_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::BirdMedium(_) => {
-                    self.bird_medium_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::FishMedium(_) => {
-                    self.fish_medium_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::Dragon(_) => {
-                    self.dragon_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::BirdSmall(_) => {
-                    self.bird_small_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::FishSmall(_) => {
-                    self.fish_small_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::BipedLarge(_) => {
-                    self.biped_large_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-                Body::Object(_) => {
-                    self.object_states.get_mut(&entity).map(|state| state.visible = in_frustum);
-                }
-            }
-
             if !in_frustum {
+                match body {
+                    Body::Humanoid(_) => {
+                        self.character_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::QuadrupedSmall(_) => {
+                        self.quadruped_small_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::QuadrupedMedium(_) => {
+                        self.quadruped_medium_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::BirdMedium(_) => {
+                        self.bird_medium_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::FishMedium(_) => {
+                        self.fish_medium_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::Dragon(_) => {
+                        self.dragon_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::BirdSmall(_) => {
+                        self.bird_small_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::FishSmall(_) => {
+                        self.fish_small_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::BipedLarge(_) => {
+                        self.biped_large_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                    Body::Object(_) => {
+                        self.object_states.get_mut(&entity).map(|state| state.visible = false);
+                    }
+                }
                 continue;
             }
 
