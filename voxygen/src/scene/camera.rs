@@ -1,6 +1,6 @@
 use client::Client;
 use common::vol::{ReadVol, Vox};
-use frustum_culling::Frustum;
+use treeculler::Frustum;
 use std::f32::consts::PI;
 use vek::*;
 
@@ -100,7 +100,7 @@ impl Camera {
         (view_mat, proj_mat, cam_pos)
     }
 
-    pub fn frustum(&self, client: &Client) -> Frustum {
+    pub fn frustum(&self, client: &Client) -> Frustum<f32> {
         let (view_mat, proj_mat, _) = self.compute_dependents(client);
 
         Frustum::from_modelview_projection((proj_mat * view_mat).into_col_arrays())
