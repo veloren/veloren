@@ -1,17 +1,16 @@
-use super::{
-    ActionState::*, EcsStateData, FallState, IdleState, JumpState, MoveState::*, StandState,
-    StateHandler, StateUpdate,
-};
-use super::{CLIMB_SPEED, HUMANOID_CLIMB_ACCEL, HUMANOID_SPEED};
+use super::{ActionState::*, EcsStateData, MoveState::*, StateHandler, StateUpdate};
 use crate::sys::phys::GRAVITY;
 use vek::vec::{Vec2, Vec3};
 use vek::Lerp;
+
+const HUMANOID_CLIMB_ACCEL: f32 = 5.0;
+const CLIMB_SPEED: f32 = 5.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct ClimbState;
 
 impl StateHandler for ClimbState {
-    fn new(ecs_data: &EcsStateData) -> Self {
+    fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }
 
@@ -23,12 +22,33 @@ impl StateHandler for ClimbState {
             character: *ecs_data.character,
         };
 
-        update.character.action_state = Idle(Some(IdleState));
+        update.character.action_state = Idle(None);
+
+        // If no wall is in front of character ...
+        if let None = ecs_data.physics.on_wall {
+            if ecs_data.inputs.jump.is_pressed() {
+                // They've climbed atop something, give them a boost
+                update.character.move_state = Jump(None);
+
+                return update;
+            } else {
+                // Just fall off
+                update.character.move_state = Fall(None);
+
+                return update;
+            }
+        }
+
+        // Remove climb state on ground, otherwise character will get stuck
+        if ecs_data.physics.on_ground {
+            update.character.move_state = Stand(None);
+            return update;
+        }
 
         // Move player
         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
             * ecs_data.inputs.move_dir
-            * if update.vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) {
+            * if update.vel.0.magnitude_squared() < CLIMB_SPEED.powf(2.0) {
                 HUMANOID_CLIMB_ACCEL
             } else {
                 0.0
@@ -76,27 +96,6 @@ impl StateHandler for ClimbState {
                     30.0 * ecs_data.dt.0 / (1.0 - update.vel.0.z.min(0.0) * 5.0),
                 );
             }
-        }
-
-        // If no wall is infront of character ...
-        if let None = ecs_data.physics.on_wall {
-            if ecs_data.inputs.jump.is_pressed() {
-                // They've climbed atop something, give them a boost
-                update.character.move_state = Jump(Some(JumpState));
-
-                return update;
-            } else {
-                // Just fall off
-                update.character.move_state = Fall(Some(FallState));
-
-                return update;
-            }
-        }
-
-        // Remove climb state on ground, otherwise character will get stuck
-        if ecs_data.physics.on_ground {
-            update.character.move_state = Stand(Some(StandState));
-            return update;
         }
 
         return update;

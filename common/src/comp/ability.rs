@@ -30,5 +30,5 @@ pub struct AbilityPool {
 }
 
 impl Component for AbilityPool {
-    type Storage = HashMapStorage<Self>;
+    type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
 }

@@ -1,8 +1,10 @@
-use super::{BLOCK_ACCEL, BLOCK_SPEED};
 use crate::comp::{EcsStateData, StateHandler, StateUpdate};
 use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec2;
+
+const BLOCK_ACCEL: f32 = 30.0;
+const BLOCK_SPEED: f32 = 75.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct BasicBlockState {
@@ -11,7 +13,7 @@ pub struct BasicBlockState {
 }
 
 impl StateHandler for BasicBlockState {
-    fn new(ecs_data: &EcsStateData) -> Self {
+    fn new(_ecs_data: &EcsStateData) -> Self {
         Self {
             active_duration: Duration::default(),
         }

@@ -1,8 +1,6 @@
 use crate::comp::{
-    AbilityAction, AbilityActionKind::*, ActionState::*, EcsStateData, IdleState, ItemKind::Tool,
-    StateHandler, StateUpdate, ToolData,
+    ActionState::*, EcsStateData, IdleState, ItemKind::Tool, StateHandler, StateUpdate, ToolData,
 };
-use crate::util::state_utils::*;
 use std::time::Duration;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]

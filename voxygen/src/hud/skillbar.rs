@@ -1,9 +1,9 @@
 use super::{
-    img_ids::Imgs, BarNumbers, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR,
-    /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
+    img_ids::Imgs, BarNumbers, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR, HP_COLOR,
+    LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::{item::Debug, item::ToolData, item::ToolKind, Equipment, ItemKind, Stats};
+use common::comp::{item::Debug, item::ToolData, item::ToolKind, ItemKind, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
