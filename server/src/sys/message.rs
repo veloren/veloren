@@ -127,10 +127,12 @@ impl<'a> System<'a> for Sys {
                         player,
                         token_or_username,
                     } if player.is_valid() => {
-                        if !accounts.query(token_or_username.clone()).unwrap_or(false) {
-                            // TO-DO: Set a less generic error here.
-                            client.error_state(RequestStateError::Denied);
-                            break;
+                        match accounts.query(token_or_username.clone()) {
+                            Err(err) => {
+                                client.error_state(RequestStateError::RegisterDenied(err));
+                                break;
+                            },
+                            Ok(()) => {},
                         }
                         match client.client_state {
                             ClientState::Connected => {
