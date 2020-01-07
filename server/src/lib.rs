@@ -27,7 +27,7 @@ use common::{
     assets, comp,
     effect::Effect,
     event::{EventBus, ServerEvent},
-    msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{State, TimeOfDay},
     sync::{Uid, WorldSyncExt},
@@ -505,7 +505,7 @@ impl Server {
                 <= self.state.ecs().read_storage::<Client>().join().count()
             {
                 // Note: in this case the client is dropped
-                client.notify(ServerMsg::Error(ServerError::TooManyPlayers));
+                client.notify(ServerMsg::TooManyPlayers);
             } else {
                 let entity = self
                     .state
