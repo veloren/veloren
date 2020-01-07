@@ -123,6 +123,8 @@ impl State {
     // TODO: Split up registering into server and client (e.g. move EventBus<ServerEvent> to the server)
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
         // Register server -> all clients synced components.
+        ecs.register_synced::<comp::AbilityPool>();
+        ecs.register_synced::<comp::AbilityAction>();
         ecs.register_synced::<comp::Body>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();

@@ -1,13 +1,13 @@
 use crate::comp::{
     ActionState::Attack, AttackKind::Charge, EcsStateData, HealthChange, HealthSource,
-    ItemKind::Tool, MoveState::Run, RunState, StateHandler, StateUpdate, ToolData,
+    ItemKind::Tool, MoveState::Run, StateHandler, StateUpdate, ToolData,
 };
 use crate::event::ServerEvent;
 use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec3;
 
-use super::CHARGE_SPEED;
+const CHARGE_SPEED: f32 = 20.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct ChargeAttackState {
@@ -37,7 +37,7 @@ impl StateHandler for ChargeAttackState {
         };
 
         // Prevent move state handling, handled here
-        update.character.move_state = Run(Some(RunState));
+        update.character.move_state = Run(None);
 
         // Move player
         update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)

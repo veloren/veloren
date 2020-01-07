@@ -1,10 +1,11 @@
-use super::ROLL_SPEED;
 use crate::comp::{
     ActionState::*, DodgeKind::*, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate, ToolData,
 };
 use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec3;
+
+const ROLL_SPEED: f32 = 17.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct RollState {

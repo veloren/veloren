@@ -1,14 +1,11 @@
-use crate::comp::{
-    ClimbState, EcsStateData, GlideState, JumpState, MoveState::*, SitState, StateHandler,
-    StateUpdate,
-};
+use crate::comp::{EcsStateData, MoveState::*, StateHandler, StateUpdate};
 use crate::util::state_utils::*;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct StandState;
 
 impl StateHandler for StandState {
-    fn new(ecs_data: &EcsStateData) -> Self {
+    fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }
 
@@ -22,25 +19,25 @@ impl StateHandler for StandState {
 
         // Try to sit
         if can_sit(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Sit(Some(SitState));
+            update.character.move_state = Sit(None);
             return update;
         }
 
         // Try to climb
         if can_climb(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Climb(Some(ClimbState));
+            update.character.move_state = Climb(None);
             return update;
         }
 
         // Try to jump
         if can_jump(ecs_data.physics, ecs_data.inputs) {
-            update.character.move_state = Jump(Some(JumpState));
+            update.character.move_state = Jump(None);
             return update;
         }
 
         // Check gliding
         if can_glide(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Glide(Some(GlideState));
+            update.character.move_state = Glide(None);
             return update;
         }
 
