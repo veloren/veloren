@@ -7,7 +7,6 @@ use common::{
     vol::{ReadVol, RectRasterableVol, Vox},
     volumes::vol_grid_2d::VolGrid2d,
 };
-use hashbrown::{HashMap, HashSet};
 use std::fmt::Debug;
 use vek::*;
 
@@ -34,17 +33,29 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
 ) -> impl Fn(Vec3<i32>) -> f32 {
-    let sunlight = 24;
+    const NOT_VOID: u8 = 255;
+    const SUNLIGHT: u8 = 24;
 
     let outer = Aabb {
-        min: bounds.min - sunlight,
-        max: bounds.max + sunlight,
+        min: bounds.min - SUNLIGHT as i32,
+        max: bounds.max + SUNLIGHT as i32,
     };
 
     let mut vol_cached = vol.cached();
 
-    let mut voids = HashMap::new();
-    let mut rays = vec![(outer.size().d, 0); outer.size().product() as usize];
+    // Voids are voxels that that contain air or liquid that are protected from direct rays by blocks
+    // above them
+    //
+    let mut voids = vec![NOT_VOID; outer.size().product() as usize];
+    let void_idx = {
+        let (_, h, d) = outer.clone().size().into_tuple();
+        move |x, y, z| (x * h * d + y * d + z) as usize
+    };
+    // List of voids for efficient iteration
+    let mut voids_list = vec![];
+    // Rays are cast down
+    // Vec<(highest non air block, lowest non air block)>
+    let mut rays = vec![(outer.size().d, 0); (outer.size().w * outer.size().h) as usize];
     for x in 0..outer.size().w {
         for y in 0..outer.size().h {
             let mut outside = true;
@@ -64,51 +75,54 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 }
 
                 if (block.is_air() || block.is_fluid()) && !outside {
-                    voids.insert(Vec3::new(x, y, z), None);
+                    voids_list.push(Vec3::new(x, y, z));
+                    voids[void_idx(x, y, z)] = 0;
                 }
             }
         }
     }
 
-    let mut opens = HashSet::new();
-    'voids: for (pos, l) in &mut voids {
+    // Propagate light into voids adjacent to rays
+    let mut opens = Vec::new();
+    'voids: for pos in &mut voids_list {
+        let void_idx = void_idx(pos.x, pos.y, pos.z);
         for dir in &DIRS {
             let col = Vec2::<i32>::from(*pos) + dir;
+            // If above highest non air block (ray passes by)
             if pos.z
                 > *rays
                     .get(((outer.size().w * col.y) + col.x) as usize)
                     .map(|(ray, _)| ray)
                     .unwrap_or(&0)
             {
-                *l = Some(sunlight - 1);
-                opens.insert(*pos);
+                voids[void_idx] = SUNLIGHT - 1;
+                opens.push(*pos);
                 continue 'voids;
             }
         }
 
+        // Ray hits directly (occurs for liquids)
         if pos.z
             >= *rays
                 .get(((outer.size().w * pos.y) + pos.x) as usize)
                 .map(|(ray, _)| ray)
                 .unwrap_or(&0)
         {
-            *l = Some(sunlight - 1);
-            opens.insert(*pos);
+            voids[void_idx] = SUNLIGHT - 1;
+            opens.push(*pos);
         }
     }
 
     while opens.len() > 0 {
-        let mut new_opens = HashSet::new();
+        let mut new_opens = Vec::new();
         for open in &opens {
-            let parent_l = voids[open].unwrap_or(0);
+            let parent_l = voids[void_idx(open.x, open.y, open.z)];
             for dir in &DIRS_3D {
                 let other = *open + *dir;
-                if !opens.contains(&other) {
-                    if let Some(l) = voids.get_mut(&other) {
-                        if l.unwrap_or(0) < parent_l - 1 {
-                            new_opens.insert(other);
-                        }
-                        *l = Some(parent_l - 1);
+                if let Some(l) = voids.get_mut(void_idx(other.x, other.y, other.z)) {
+                    if *l < parent_l - 1 {
+                        new_opens.push(other);
+                        *l = parent_l - 1;
                     }
                 }
             }
@@ -129,11 +143,10 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 }
             })
             .or_else(|| {
-                if let Some(Some(l)) = voids.get(&pos) {
-                    Some(*l as f32 / sunlight as f32)
-                } else {
-                    None
-                }
+                voids
+                    .get(void_idx(pos.x, pos.y, pos.z))
+                    .filter(|l| **l != NOT_VOID)
+                    .map(|l| *l as f32 / SUNLIGHT as f32)
             })
             .unwrap_or(0.0)
     }
