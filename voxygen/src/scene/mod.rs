@@ -94,7 +94,7 @@ impl Scene {
         }
     }
 
-    /// Get a reference to the scene's globals
+    /// Get a reference to the scene's globals.
     pub fn globals(&self) -> &Consts<Globals> {
         &self.globals
     }
@@ -102,6 +102,16 @@ impl Scene {
     /// Get a reference to the scene's camera.
     pub fn camera(&self) -> &Camera {
         &self.camera
+    }
+
+    /// Get a reference to the scene's terrain.
+    pub fn terrain(&self) -> &Terrain<TerrainChunk> {
+        &self.terrain
+    }
+
+    /// Get a reference to the scene's figure manager.
+    pub fn figure_mgr(&self) -> &FigureMgr {
+        &self.figure_mgr
     }
 
     /// Get a mutable reference to the scene's camera.
@@ -291,7 +301,7 @@ impl Scene {
         );
 
         // Maintain the figures.
-        self.figure_mgr.maintain(renderer, client);
+        self.figure_mgr.maintain(renderer, client, &self.camera);
 
         // Remove unused figures.
         self.figure_mgr.clean(client.get_tick());
