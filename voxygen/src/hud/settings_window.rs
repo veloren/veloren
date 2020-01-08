@@ -1351,7 +1351,9 @@ impl<'a> Widget for SettingsWindow<'a> {
             ];
 
             // Get which AA mode is currently active
-            let selected = mode_list.iter().position(|x| *x == self.global_state.settings.graphics.aa_mode);
+            let selected = mode_list
+                .iter()
+                .position(|x| *x == self.global_state.settings.graphics.aa_mode);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)

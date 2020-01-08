@@ -1,7 +1,7 @@
 use client::Client;
 use common::vol::{ReadVol, Vox};
-use treeculler::Frustum;
 use std::f32::consts::PI;
+use treeculler::Frustum;
 use vek::*;
 
 const NEAR_PLANE: f32 = 0.5;
