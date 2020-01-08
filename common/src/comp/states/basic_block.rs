@@ -7,12 +7,12 @@ const BLOCK_ACCEL: f32 = 30.0;
 const BLOCK_SPEED: f32 = 75.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct BasicBlockState {
+pub struct State {
     /// How long the blocking state has been active
     pub active_duration: Duration,
 }
 
-impl StateHandler for BasicBlockState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {
             active_duration: Duration::default(),

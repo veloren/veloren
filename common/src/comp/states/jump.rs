@@ -2,9 +2,9 @@ use super::{EcsStateData, MoveState::*, StateHandler, StateUpdate};
 use crate::event::LocalEvent;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct JumpState;
+pub struct State;
 
-impl StateHandler for JumpState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }

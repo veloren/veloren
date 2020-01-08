@@ -7,9 +7,9 @@ const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct FallState;
+pub struct State;
 
-impl StateHandler for FallState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }

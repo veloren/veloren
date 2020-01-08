@@ -2,9 +2,9 @@ use crate::comp::{ActionState::*, EcsStateData, MoveState::*, StateHandler, Stat
 use crate::util::state_utils::*;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct SitState;
+pub struct State;
 
-impl StateHandler for SitState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }

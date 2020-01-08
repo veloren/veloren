@@ -8,12 +8,12 @@ use vek::Vec3;
 const ROLL_SPEED: f32 = 17.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct RollState {
+pub struct State {
     /// How long the state has until exitting
     remaining_duration: Duration,
 }
 
-impl StateHandler for RollState {
+impl StateHandler for State {
     fn new(ecs_data: &EcsStateData) -> Self {
         let tool_data =
             if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| i.kind) {
@@ -55,7 +55,7 @@ impl StateHandler for RollState {
         }
 
         // Otherwise, tick down remaining_duration
-        update.character.action_state = Dodge(Roll(Some(RollState {
+        update.character.action_state = Dodge(Roll(Some(State {
             remaining_duration: self
                 .remaining_duration
                 .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
