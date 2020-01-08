@@ -16,9 +16,9 @@ use common::{
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
-use treeculler::{Frustum, AABB, BVol};
 use hashbrown::{hash_map::Entry, HashMap};
 use std::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
+use treeculler::{BVol, Frustum, AABB};
 use vek::*;
 
 struct TerrainChunkData {
@@ -1062,7 +1062,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                 chunk.z_bounds.1,
             ];
 
-            let (in_frustum, last_plane_index) = AABB::new(chunk_min, chunk_max).coherent_test_against_frustum(&frustum, chunk.frustum_last_plane_index);
+            let (in_frustum, last_plane_index) = AABB::new(chunk_min, chunk_max)
+                .coherent_test_against_frustum(&frustum, chunk.frustum_last_plane_index);
 
             chunk.frustum_last_plane_index = last_plane_index;
             chunk.visible = in_frustum;
@@ -1071,8 +1072,8 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     pub fn chunk_count(&self) -> usize {
         self.chunks.len()
-    }    
-    
+    }
+
     pub fn visible_chunk_count(&self) -> usize {
         self.chunks.iter().filter(|(_, c)| c.visible).count()
     }
