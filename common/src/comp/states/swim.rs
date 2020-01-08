@@ -1,5 +1,6 @@
 use crate::comp::{EcsStateData, MoveState::*, StateHandler, StateUpdate};
 use crate::sys::phys::GRAVITY;
+use std::time::Duration;
 use vek::{Vec2, Vec3};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -50,7 +51,13 @@ impl StateHandler for SwimState {
             );
         }
 
-        if ecs_data.inputs.jump.is_pressed() && !ecs_data.inputs.jump.is_held_down() {
+        // Force players to press jump in a slow rhythmic fashion to swim up
+        if ecs_data.inputs.jump.is_pressed()
+            && !ecs_data
+                .inputs
+                .jump
+                .is_long_press(Duration::from_millis(600))
+        {
             update.vel.0.z =
                 (update.vel.0.z + ecs_data.dt.0 * GRAVITY * 1.25).min(HUMANOID_WATER_SPEED);
         }

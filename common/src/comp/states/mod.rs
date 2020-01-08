@@ -47,11 +47,8 @@ use super::{
 ///
 /// ## Example Implementation:
 /// ```
-/// use crate::comp::{
-///    ClimbState, EcsStateData, GlideState, JumpState, MoveState::*, SitState, StateHandler,
-///    StateUpdate,
-/// };
-/// use crate::util::state_utils::*
+/// use crate::util::state_utils::*;
+///
 /// #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 /// pub struct RunState {
 ///     active_duration: Duration,
@@ -72,7 +69,7 @@ use super::{
 ///             ori: *ecs_data.ori,
 ///         };
 ///
-///         // Move player according to move_dir
+///         // Update player's Vel
 ///         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
 ///             * ecs_data.inputs.move_dir
 ///             * if update.vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) {
@@ -81,50 +78,18 @@ use super::{
 ///                 0.0
 ///             };
 ///
-///         // Set direction based on move direction when on the ground
-///         let ori_dir = if update.character.action_state.is_attacking()
-///             || update.character.action_state.is_blocking()
-///         {
-///             Vec2::from(ecs_data.inputs.look_dir).normalized()
-///         } else {
-///             Vec2::from(update.vel.0)
-///         };
-///
-///         if ori_dir.magnitude_squared() > 0.0001
-///             && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
-///                 > 0.001
-///         {
-///             update.ori.0 =
-///                 vek::ops::Slerp::slerp(update.ori.0, ori_dir.into(), 9.0 * ecs_data.dt.0);
-///         }
-///
-///         // Try to sit
-///         if can_sit(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-///             update.character.move_state = Sit(Some(SitState));
-///             return update;
-///         }
-///
-///         // Try to climb
-///         if can_climb(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-///             update.character.move_state = Climb(Some(ClimbState));
-///             return update;
-///         }
+///         // -- snip --
+///         // Other updates; checks for gliding, climbing, etc.
 ///
 ///         // Try to jump
-///         if can_jump(ecs_data.physics, ecs_data.inputs) {
-///             update.character.move_state = Jump(Some(JumpState));
-///             return update;
-///         }
-///
-///         // Try to glide
-///         if can_glide(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-///             update.character.move_state = Glide(Some(GlideState));
+///         if state_utils::can_jump(ecs_data.physics, ecs_data.inputs) {
+///             update.character.move_state = Jump(None);
 ///             return update;
 ///         }
 ///
 ///         // Update based on groundedness
 ///         update.character.move_state =
-///             determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);
+///             state_utils::determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);
 ///
 ///         return update;
 ///     }
