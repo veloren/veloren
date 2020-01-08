@@ -10,12 +10,12 @@ use vek::Vec3;
 const CHARGE_SPEED: f32 = 20.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct ChargeAttackState {
+pub struct State {
     /// How long the state has until exitting
     pub remaining_duration: Duration,
 }
 
-impl StateHandler for ChargeAttackState {
+impl StateHandler for State {
     fn new(ecs_data: &EcsStateData) -> Self {
         let tool_data =
             if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| i.kind) {
@@ -76,7 +76,7 @@ impl StateHandler for ChargeAttackState {
         }
 
         // Tick remaining-duration and keep charging
-        update.character.action_state = Attack(Charge(Some(ChargeAttackState {
+        update.character.action_state = Attack(Charge(Some(State {
             remaining_duration: self
                 .remaining_duration
                 .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))

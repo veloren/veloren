@@ -38,20 +38,20 @@ pub struct StateUpdate {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum MoveState {
-    Stand(Option<StandState>),
-    Run(Option<RunState>),
-    Sit(Option<SitState>),
-    Jump(Option<JumpState>),
-    Fall(Option<FallState>),
-    Glide(Option<GlideState>),
-    Swim(Option<SwimState>),
-    Climb(Option<ClimbState>),
+    Stand(Option<stand::State>),
+    Run(Option<run::State>),
+    Sit(Option<sit::State>),
+    Jump(Option<jump::State>),
+    Fall(Option<fall::State>),
+    Glide(Option<glide::State>),
+    Swim(Option<swim::State>),
+    Climb(Option<climb::State>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum ActionState {
-    Idle(Option<IdleState>),
-    Wield(Option<WieldState>),
+    Idle(Option<idle::State>),
+    Wield(Option<wield::State>),
     Attack(AttackKind),
     Block(BlockKind),
     Dodge(DodgeKind),
@@ -60,24 +60,24 @@ pub enum ActionState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum AttackKind {
-    BasicAttack(Option<BasicAttackState>),
-    Charge(Option<ChargeAttackState>),
+    BasicAttack(Option<basic_attack::State>),
+    Charge(Option<charge_attack::State>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum BlockKind {
-    BasicBlock(Option<BasicBlockState>),
+    BasicBlock(Option<basic_block::State>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum DodgeKind {
-    Roll(Option<RollState>),
+    Roll(Option<roll::State>),
 }
 
 impl ActionState {
     pub fn is_equip_finished(&self) -> bool {
         match self {
-            Wield(Some(WieldState { equip_delay })) => *equip_delay == Duration::default(),
+            Wield(Some(wield::State { equip_delay })) => *equip_delay == Duration::default(),
             _ => true,
         }
     }
@@ -85,7 +85,7 @@ impl ActionState {
     /// Returns the current `equip_delay` if in `WieldState`, otherwise `Duration::default()`
     pub fn get_delay(&self) -> Duration {
         match self {
-            Wield(Some(WieldState { equip_delay })) => *equip_delay,
+            Wield(Some(wield::State { equip_delay })) => *equip_delay,
             _ => Duration::default(),
         }
     }
@@ -164,8 +164,8 @@ impl CharacterState {
 impl Default for CharacterState {
     fn default() -> Self {
         Self {
-            move_state: MoveState::Fall(Some(FallState)),
-            action_state: ActionState::Idle(Some(IdleState)),
+            move_state: MoveState::Fall(None),
+            action_state: ActionState::Idle(None),
         }
     }
 }
