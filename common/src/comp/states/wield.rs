@@ -1,16 +1,16 @@
 use crate::comp::{
-    ActionState::*, EcsStateData, IdleState, ItemKind::Tool, StateHandler, StateUpdate, ToolData,
+    ActionState::*, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate, ToolData,
 };
 use std::time::Duration;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct WieldState {
+pub struct State {
     /// How long before a new action can be performed
     /// after equipping
     pub equip_delay: Duration,
 }
 
-impl StateHandler for WieldState {
+impl StateHandler for State {
     fn new(ecs_data: &EcsStateData) -> Self {
         let tool_data =
             if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| i.kind) {
@@ -37,7 +37,7 @@ impl StateHandler for WieldState {
             if ecs_data.inputs.toggle_wield.is_just_pressed()
                 && ecs_data.character.action_state.is_equip_finished()
             {
-                update.character.action_state = Idle(Some(IdleState));
+                update.character.action_state = Idle(None);
                 return update;
             }
 
@@ -54,7 +54,7 @@ impl StateHandler for WieldState {
         } else {
             // Equip delay hasn't expired yet
             // Update wield delay
-            update.character.action_state = Wield(Some(WieldState {
+            update.character.action_state = Wield(Some(State {
                 equip_delay: self
                     .equip_delay
                     .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))

@@ -7,9 +7,9 @@ const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct GlideState;
+pub struct State;
 
-impl StateHandler for GlideState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }

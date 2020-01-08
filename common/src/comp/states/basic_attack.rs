@@ -6,12 +6,12 @@ use crate::util::state_utils::*;
 use std::time::Duration;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct BasicAttackState {
+pub struct State {
     /// How long the state has until exitting
     pub remaining_duration: Duration,
 }
 
-impl StateHandler for BasicAttackState {
+impl StateHandler for State {
     fn new(ecs_data: &EcsStateData) -> Self {
         let tool_data =
             if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| i.kind) {
@@ -40,7 +40,7 @@ impl StateHandler for BasicAttackState {
         }
 
         // Otherwise, tick down remaining_duration, and keep rolling
-        update.character.action_state = Attack(BasicAttack(Some(BasicAttackState {
+        update.character.action_state = Attack(BasicAttack(Some(State {
             remaining_duration: self
                 .remaining_duration
                 .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))

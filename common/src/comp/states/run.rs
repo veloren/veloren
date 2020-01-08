@@ -6,9 +6,9 @@ const HUMANOID_ACCEL: f32 = 50.0;
 const HUMANOID_SPEED: f32 = 120.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct RunState;
+pub struct State;
 
-impl StateHandler for RunState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }

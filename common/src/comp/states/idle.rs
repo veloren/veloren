@@ -1,9 +1,9 @@
 use crate::comp::{ActionState::Wield, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct IdleState;
+pub struct State;
 
-impl StateHandler for IdleState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }

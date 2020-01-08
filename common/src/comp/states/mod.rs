@@ -1,34 +1,18 @@
 // Module declarations
-mod basic_attack;
-mod basic_block;
-mod charge_attack;
-mod climb;
-mod fall;
-mod glide;
-mod idle;
-mod jump;
-mod roll;
-mod run;
-mod sit;
-mod stand;
-mod swim;
-mod wield;
-
-// Reexports
-pub use basic_attack::*;
-pub use basic_block::*;
-pub use charge_attack::*;
-pub use climb::*;
-pub use fall::*;
-pub use glide::*;
-pub use idle::*;
-pub use jump::*;
-pub use roll::*;
-pub use run::*;
-pub use sit::*;
-pub use stand::*;
-pub use swim::*;
-pub use wield::*;
+pub mod basic_attack;
+pub mod basic_block;
+pub mod charge_attack;
+pub mod climb;
+pub mod fall;
+pub mod glide;
+pub mod idle;
+pub mod jump;
+pub mod roll;
+pub mod run;
+pub mod sit;
+pub mod stand;
+pub mod swim;
+pub mod wield;
 
 use super::{
     ActionState, ActionState::*, AttackKind::*, BlockKind::*, DodgeKind::*, EcsStateData,
@@ -112,28 +96,28 @@ impl ActionState {
             Attack(kind) => match kind {
                 BasicAttack(opt_state) => opt_state
                     // If data hasn't been initialized, initialize a new one
-                    .unwrap_or_else(|| BasicAttackState::new(ecs_data))
+                    .unwrap_or_else(|| basic_attack::State::new(ecs_data))
                     // Call handler
                     .handle(ecs_data),
                 Charge(opt_state) => opt_state
-                    .unwrap_or_else(|| ChargeAttackState::new(ecs_data))
+                    .unwrap_or_else(|| charge_attack::State::new(ecs_data))
                     .handle(ecs_data),
             },
             Block(kind) => match kind {
                 BasicBlock(opt_state) => opt_state
-                    .unwrap_or_else(|| BasicBlockState::new(ecs_data))
+                    .unwrap_or_else(|| basic_block::State::new(ecs_data))
                     .handle(ecs_data),
             },
             Dodge(kind) => match kind {
                 Roll(opt_state) => opt_state
-                    .unwrap_or_else(|| RollState::new(ecs_data))
+                    .unwrap_or_else(|| roll::State::new(ecs_data))
                     .handle(ecs_data),
             },
             Wield(opt_state) => opt_state
-                .unwrap_or_else(|| WieldState::new(ecs_data))
+                .unwrap_or_else(|| wield::State::new(ecs_data))
                 .handle(ecs_data),
             Idle(opt_state) => opt_state
-                .unwrap_or_else(|| IdleState::new(ecs_data))
+                .unwrap_or_else(|| idle::State::new(ecs_data))
                 .handle(ecs_data),
             // All states should be explicitly handled
             // Do not use default match: _ => {},
@@ -188,29 +172,29 @@ impl MoveState {
         match self {
             Stand(opt_state) => opt_state
                 // If data hasn't been initialized, initialize a new one
-                .unwrap_or_else(|| StandState::new(ecs_data))
+                .unwrap_or_else(|| stand::State::new(ecs_data))
                 // Call handler
                 .handle(ecs_data),
             Run(opt_state) => opt_state
-                .unwrap_or_else(|| RunState::new(ecs_data))
+                .unwrap_or_else(|| run::State::new(ecs_data))
                 .handle(ecs_data),
             Jump(opt_state) => opt_state
-                .unwrap_or_else(|| JumpState::new(ecs_data))
+                .unwrap_or_else(|| jump::State::new(ecs_data))
                 .handle(ecs_data),
             Climb(opt_state) => opt_state
-                .unwrap_or_else(|| ClimbState::new(ecs_data))
+                .unwrap_or_else(|| climb::State::new(ecs_data))
                 .handle(ecs_data),
             Glide(opt_state) => opt_state
-                .unwrap_or_else(|| GlideState::new(ecs_data))
+                .unwrap_or_else(|| glide::State::new(ecs_data))
                 .handle(ecs_data),
             Swim(opt_state) => opt_state
-                .unwrap_or_else(|| SwimState::new(ecs_data))
+                .unwrap_or_else(|| swim::State::new(ecs_data))
                 .handle(ecs_data),
             Fall(opt_state) => opt_state
-                .unwrap_or_else(|| FallState::new(ecs_data))
+                .unwrap_or_else(|| fall::State::new(ecs_data))
                 .handle(ecs_data),
             Sit(opt_state) => opt_state
-                .unwrap_or_else(|| SitState::new(ecs_data))
+                .unwrap_or_else(|| sit::State::new(ecs_data))
                 .handle(ecs_data),
             // All states should be explicitly handled
             // Do not use default match: _ => {},

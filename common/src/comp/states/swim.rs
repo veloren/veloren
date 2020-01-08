@@ -4,12 +4,12 @@ use std::time::Duration;
 use vek::{Vec2, Vec3};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct SwimState;
+pub struct State;
 
 const HUMANOID_WATER_ACCEL: f32 = 70.0;
 const HUMANOID_WATER_SPEED: f32 = 120.0;
 
-impl StateHandler for SwimState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }

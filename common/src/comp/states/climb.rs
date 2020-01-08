@@ -7,9 +7,9 @@ const HUMANOID_CLIMB_ACCEL: f32 = 5.0;
 const CLIMB_SPEED: f32 = 5.0;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct ClimbState;
+pub struct State;
 
-impl StateHandler for ClimbState {
+impl StateHandler for State {
     fn new(_ecs_data: &EcsStateData) -> Self {
         Self {}
     }
