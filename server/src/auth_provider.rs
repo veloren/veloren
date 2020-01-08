@@ -12,7 +12,7 @@ fn derive_uuid(username: &str) -> Uuid {
             let mix_byte_step: u8 = mix_byte_1
                 .wrapping_pow(239)
                 .wrapping_mul((i as u8).wrapping_pow(43));
-            let mix_byte_2 = state[i + mix_byte_step as usize % 16];
+            let mix_byte_2 = state[(i + mix_byte_step as usize) % 16];
             let rot_step: u8 = mix_byte_1
                 .wrapping_pow(29)
                 .wrapping_mul((i as u8).wrapping_pow(163));
