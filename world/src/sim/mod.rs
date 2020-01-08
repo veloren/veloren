@@ -970,6 +970,7 @@ pub struct SimChunk {
     pub spawn_rate: f32,
     pub location: Option<LocationInfo>,
     pub river: RiverData,
+    pub is_underwater: bool,
 
     pub structures: Structures,
 }
@@ -1146,6 +1147,7 @@ impl SimChunk {
             } else {
                 0.0
             },
+            is_underwater,
             is_cliffs: cliff > 0.5 && !is_underwater,
             near_cliffs: cliff > 0.2,
             tree_density,
