@@ -994,7 +994,7 @@ impl Hud {
                 .font_id(self.fonts.cyri)
                 .font_size(14)
                 .set(self.ids.entity_count, ui_widgets);
-            
+
             // Number of chunks
             Text::new(&format!(
                 "Chunks: {} ({} visible)",
