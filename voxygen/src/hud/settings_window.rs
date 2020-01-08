@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     render::AaMode,
-    ui::{ImageSlider, RadioList, ScaleMode, ToggleButton},
+    ui::{ImageSlider, ScaleMode, ToggleButton},
     GlobalState,
 };
 use conrod_core::{
@@ -84,8 +84,8 @@ widget_ids! {
         fov_slider,
         fov_text,
         fov_value,
-        aa_radio_buttons,
         aa_mode_text,
+        aa_mode_list,
         audio_volume_slider,
         audio_volume_text,
         sfx_volume_slider,
@@ -1332,30 +1332,38 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.aa_mode_text, ui);
-            let mode_label_list = [
-                (&AaMode::None, "No AA"),
-                (&AaMode::Fxaa, "FXAA"),
-                (&AaMode::MsaaX4, "MSAA x4"),
-                (&AaMode::MsaaX8, "MSAA x8"),
-                (&AaMode::MsaaX16, "MSAA x16 (experimental)"),
-                (&AaMode::SsaaX4, "SSAA x4"),
+
+            let mode_list = [
+                AaMode::None,
+                AaMode::Fxaa,
+                AaMode::MsaaX4,
+                AaMode::MsaaX8,
+                AaMode::MsaaX16,
+                AaMode::SsaaX4,
             ];
-            if let Some((_, mode)) = RadioList::new(
-                (0..mode_label_list.len())
-                    .find(|i| *mode_label_list[*i].0 == self.global_state.settings.graphics.aa_mode)
-                    .unwrap_or(0),
-                self.imgs.check,
-                self.imgs.check_checked,
-                &mode_label_list,
-            )
-            .hover_images(self.imgs.check_mo, self.imgs.check_checked_mo)
-            .press_images(self.imgs.check_press, self.imgs.check_press)
-            .down_from(state.ids.aa_mode_text, 8.0)
-            .text_color(TEXT_COLOR)
-            .font_size(12)
-            .set(state.ids.aa_radio_buttons, ui)
+            let mode_label_list = [
+                "No AA",
+                "FXAA",
+                "MSAA x4",
+                "MSAA x8",
+                "MSAA x16 (experimental)",
+                "SSAA x4",
+            ];
+
+            // Get which AA mode is currently active
+            let selected = mode_list
+                .iter()
+                .position(|x| *x == self.global_state.settings.graphics.aa_mode);
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri)
+                .down_from(state.ids.aa_mode_text, 8.0)
+                .set(state.ids.aa_mode_list, ui)
             {
-                events.push(Event::ChangeAaMode(*mode))
+                events.push(Event::ChangeAaMode(mode_list[clicked]));
             }
         }
 
