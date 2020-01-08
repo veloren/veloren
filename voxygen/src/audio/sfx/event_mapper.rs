@@ -5,9 +5,8 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 use client::Client;
 use common::{
     comp::{
-        ActionState, AttackKind::*, BasicAttackState, Body, CharacterState, DodgeKind::*,
-        FallState, GlideState, IdleState, ItemKind, MoveState, Pos, RollState, RunState,
-        StandState, Stats, SwordKind::*, ToolData, ToolKind::*,
+        ActionState, AttackKind::*, Body, CharacterState, DodgeKind::*, ItemKind, MoveState, Pos,
+        Stats, SwordKind::*, ToolData, ToolKind::*,
     },
     event::{EventBus, SfxEvent, SfxEventItem},
 };
@@ -325,8 +324,8 @@ mod tests {
 
         let result = SfxEventMapper::map_character_event(
             &CharacterState {
-                move_state: MoveState::Fall((None)),
-                action_state: ActionState::Idle((None)),
+                move_state: MoveState::Fall(None),
+                action_state: ActionState::Idle(None),
             },
             SfxEvent::Idle,
             &stats,

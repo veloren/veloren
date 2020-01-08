@@ -1,4 +1,4 @@
-use crate::comp::{ActionState::*, EcsStateData, MoveState::*, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
 use vek::{Vec2, Vec3};
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
@@ -23,24 +23,24 @@ impl StateHandler for State {
         };
 
         // Defaults for this state
-        update.character.action_state = Idle(None);
-        update.character.move_state = Glide(None);
+        update.character.action_state = ActionState::Idle(None);
+        update.character.move_state = MoveState::Glide(None);
 
         // If glide button isn't held, start falling
         if !ecs_data.inputs.glide.is_pressed() {
-            update.character.move_state = Fall(None);
+            update.character.move_state = MoveState::Fall(None);
             return update;
         }
 
         // If there is a wall in front of character go to climb
         if let Some(_wall_dir) = ecs_data.physics.on_wall {
-            update.character.move_state = Climb(None);
+            update.character.move_state = MoveState::Climb(None);
             return update;
         }
 
         // If on ground go to stand
         if ecs_data.physics.on_ground {
-            update.character.move_state = Stand(None);
+            update.character.move_state = MoveState::Stand(None);
             return update;
         }
 

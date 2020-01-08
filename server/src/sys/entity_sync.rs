@@ -238,7 +238,7 @@ impl<'a> System<'a> for Sys {
                 if let Some(&character_state) = character_state {
                     if last_character_state
                         .get(entity)
-                        .map(|&l| !character_state.is_same_state(&l.0))
+                        .map(|&l| !character_state.equals(&l.0))
                         .unwrap_or(true)
                     {
                         let _ = last_character_state.insert(entity, Last(character_state));

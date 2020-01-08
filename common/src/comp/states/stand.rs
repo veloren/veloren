@@ -1,4 +1,4 @@
-use crate::comp::{EcsStateData, MoveState::*, StateHandler, StateUpdate};
+use crate::comp::{EcsStateData, MoveState, StateHandler, StateUpdate};
 use crate::util::state_utils::*;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -19,25 +19,25 @@ impl StateHandler for State {
 
         // Try to sit
         if can_sit(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Sit(None);
+            update.character.move_state = MoveState::Sit(None);
             return update;
         }
 
         // Try to climb
         if can_climb(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Climb(None);
+            update.character.move_state = MoveState::Climb(None);
             return update;
         }
 
         // Try to jump
         if can_jump(ecs_data.physics, ecs_data.inputs) {
-            update.character.move_state = Jump(None);
+            update.character.move_state = MoveState::Jump(None);
             return update;
         }
 
         // Check gliding
         if can_glide(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Glide(None);
+            update.character.move_state = MoveState::Glide(None);
             return update;
         }
 
