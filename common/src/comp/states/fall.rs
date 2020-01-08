@@ -1,4 +1,4 @@
-use crate::comp::{EcsStateData, MoveState::*, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
 
 use crate::util::state_utils::*;
 use vek::{Vec2, Vec3};
@@ -32,13 +32,12 @@ impl StateHandler for State {
             };
 
         // Set orientation vector based on direction of movement when on the ground
-        let ori_dir = if update.character.action_state.is_attacking()
-            || update.character.action_state.is_blocking()
-        {
-            Vec2::from(ecs_data.inputs.look_dir).normalized()
-        } else {
-            Vec2::from(update.vel.0)
-        };
+        let ori_dir =
+            if let ActionState::Attack(_) | ActionState::Block(_) = update.character.action_state {
+                Vec2::from(ecs_data.inputs.look_dir).normalized()
+            } else {
+                Vec2::from(update.vel.0)
+            };
 
         if ori_dir.magnitude_squared() > 0.0001
             && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
@@ -50,13 +49,13 @@ impl StateHandler for State {
 
         // Check to start climbing
         if can_climb(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = Climb(None);
+            update.character.move_state = MoveState::Climb(None);
             return update;
         }
 
         // Check gliding
         if ecs_data.inputs.glide.is_pressed() {
-            update.character.move_state = Glide(None);
+            update.character.move_state = MoveState::Glide(None);
             return update;
         }
 

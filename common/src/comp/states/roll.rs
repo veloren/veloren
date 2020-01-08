@@ -1,5 +1,6 @@
 use crate::comp::{
-    ActionState::*, DodgeKind::*, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate, ToolData,
+    ActionState::Dodge, DodgeKind::Roll, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate,
+    ToolData,
 };
 use crate::util::state_utils::*;
 use std::time::Duration;

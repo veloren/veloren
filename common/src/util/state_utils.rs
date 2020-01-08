@@ -1,33 +1,25 @@
 use crate::comp::{
-    ActionState, ActionState::*, AttackKind::*, BasicAttackState, BasicBlockState, BlockKind::*,
-    Body, ControllerInputs, FallState, IdleState, ItemKind::Tool, MoveState, MoveState::*,
-    PhysicsState, RunState, StandState, Stats, SwimState, WieldState,
+    ActionState, ActionState::*, AttackKind::*, BlockKind::*, Body, ControllerInputs,
+    ItemKind::Tool, MoveState, MoveState::*, PhysicsState, Stats,
 };
-use std::time::Duration;
 
 /// _Determines what ability a player has selected for their primary ability,
-/// and returns the corresponding `ActionState`
-/// ... or Idle if nothing it possible?_
+/// and returns the corresponding `ActionState` or Idle if nothing_
 pub fn determine_primary_ability(stats: &Stats) -> ActionState {
-    if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
-        Attack(BasicAttack(Some(BasicAttackState {
-            remaining_duration: data.attack_duration(),
-        })))
+    if let Some(Tool(_)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
+        Attack(BasicAttack(None))
     } else {
-        Idle(Some(IdleState))
+        Idle(None)
     }
 }
 
 /// _Determines what ability a player has selected for their primary ability,
-/// and returns the corresponding `ActionState`
-/// ... or Idle if nothing it possible?_
+/// and returns the corresponding `ActionState` or Idle if nothing_
 pub fn determine_secondary_ability(stats: &Stats) -> ActionState {
-    if let Some(Tool(_data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
-        Block(BasicBlock(Some(BasicBlockState {
-            active_duration: Duration::default(),
-        })))
+    if let Some(Tool(_)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
+        Block(BasicBlock(None))
     } else {
-        Idle(Some(IdleState))
+        Idle(None)
     }
 }
 
@@ -35,18 +27,18 @@ pub fn determine_secondary_ability(stats: &Stats) -> ActionState {
 pub fn determine_fall_or_swim(physics: &PhysicsState) -> MoveState {
     // Check if in fluid to go to swimming or back to falling
     if physics.in_fluid {
-        Swim(Some(SwimState))
+        Swim(None)
     } else {
-        Fall(Some(FallState))
+        Fall(None)
     }
 }
 /// _Returns a `MoveState` based on `move_dir` magnitude_
 pub fn determine_stand_or_run(inputs: &ControllerInputs) -> MoveState {
     // Return to running or standing based on move inputs
     if inputs.move_dir.magnitude_squared() > 0.0 {
-        Run(Some(RunState))
+        Run(None)
     } else {
-        Stand(Some(StandState))
+        Stand(None)
     }
 }
 
@@ -71,11 +63,9 @@ pub fn determine_move_from_grounded_state(
 /// _Returns an ActionState based on whether character has a weapon equipped._
 pub fn attempt_wield(stats: &Stats) -> ActionState {
     if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
-        Wield(Some(WieldState {
-            equip_delay: data.equip_time(),
-        }))
+        Wield(None)
     } else {
-        Idle(Some(IdleState))
+        Idle(None)
     }
 }
 

@@ -1,6 +1,4 @@
-use crate::comp::{
-    ActionState::*, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate, ToolData,
-};
+use crate::comp::{ActionState, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate, ToolData};
 use std::time::Duration;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -37,7 +35,7 @@ impl StateHandler for State {
             if ecs_data.inputs.toggle_wield.is_just_pressed()
                 && ecs_data.character.action_state.is_equip_finished()
             {
-                update.character.action_state = Idle(None);
+                update.character.action_state = ActionState::Idle(None);
                 return update;
             }
 
@@ -54,7 +52,7 @@ impl StateHandler for State {
         } else {
             // Equip delay hasn't expired yet
             // Update wield delay
-            update.character.action_state = Wield(Some(State {
+            update.character.action_state = ActionState::Wield(Some(State {
                 equip_delay: self
                     .equip_delay
                     .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))

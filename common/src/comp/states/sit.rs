@@ -1,4 +1,4 @@
-use crate::comp::{ActionState::*, EcsStateData, MoveState::*, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
 use crate::util::state_utils::*;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -18,8 +18,8 @@ impl StateHandler for State {
         };
 
         // Prevent action state handling
-        update.character.action_state = Idle(None);
-        update.character.move_state = Sit(None);
+        update.character.action_state = ActionState::Idle(None);
+        update.character.move_state = MoveState::Sit(None);
 
         // Try to Fall
         // ... maybe the ground disappears,
@@ -31,19 +31,19 @@ impl StateHandler for State {
         }
         // Try to jump
         if ecs_data.inputs.jump.is_pressed() {
-            update.character.move_state = Jump(None);
+            update.character.move_state = MoveState::Jump(None);
             return update;
         }
 
         // Try to Run
         if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-            update.character.move_state = Run(None);
+            update.character.move_state = MoveState::Run(None);
             return update;
         }
 
         // Try to Stand
         if ecs_data.inputs.sit.is_just_pressed() {
-            update.character.move_state = Stand(None);
+            update.character.move_state = MoveState::Stand(None);
             return update;
         }
 

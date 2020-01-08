@@ -189,10 +189,13 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
-                    if !character.is_same_action_state(&last_character.0) {
+                    if !character
+                        .action_state
+                        .equals(&last_character.0.action_state)
+                    {
                         state.action_time = 0.0;
                     }
 
@@ -332,7 +335,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
 
@@ -389,7 +392,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
 
@@ -444,7 +447,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
 
@@ -499,7 +502,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
 
@@ -554,7 +557,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
 
@@ -609,7 +612,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
 
@@ -664,7 +667,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
 
@@ -719,7 +722,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.is_same_move_state(&last_character.0) {
+                    if !character.move_state.equals(&last_character.0.move_state) {
                         state.move_state_time = 0.0;
                     }
 

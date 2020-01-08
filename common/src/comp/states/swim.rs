@@ -1,4 +1,4 @@
-use crate::comp::{EcsStateData, MoveState::*, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
 use crate::sys::phys::GRAVITY;
 use std::time::Duration;
 use vek::{Vec2, Vec3};
@@ -32,13 +32,12 @@ impl StateHandler for State {
             };
 
         // Set direction based on move direction when on the ground
-        let ori_dir = if update.character.action_state.is_attacking()
-            || update.character.action_state.is_blocking()
-        {
-            Vec2::from(ecs_data.inputs.look_dir).normalized()
-        } else {
-            Vec2::from(update.vel.0)
-        };
+        let ori_dir =
+            if let ActionState::Attack(_) | ActionState::Block(_) = update.character.action_state {
+                Vec2::from(ecs_data.inputs.look_dir).normalized()
+            } else {
+                Vec2::from(update.vel.0)
+            };
 
         if ori_dir.magnitude_squared() > 0.0001
             && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
@@ -64,16 +63,16 @@ impl StateHandler for State {
 
         // Not on ground
         if !ecs_data.physics.on_ground {
-            update.character.move_state = Swim(None);
+            update.character.move_state = MoveState::Swim(None);
             return update;
         }
         // On ground
         else {
             // Return to running or standing based on move inputs
             update.character.move_state = if ecs_data.inputs.move_dir.magnitude_squared() > 0.0 {
-                Run(None)
+                MoveState::Run(None)
             } else {
-                Stand(None)
+                MoveState::Stand(None)
             };
 
             return update;

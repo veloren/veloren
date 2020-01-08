@@ -10,7 +10,7 @@ use client::{self, Client, Event::Chat};
 use common::{
     clock::Clock,
     comp,
-    comp::{Pos, Vel},
+    comp::{ActionState, Pos, Vel},
     msg::ClientState,
     terrain::{Block, BlockKind},
     vol::ReadVol,
@@ -201,10 +201,11 @@ impl PlayState for SessionState {
                             .state()
                             .read_storage::<comp::CharacterState>()
                             .get(client.entity())
-                            .map(|cs| {
-                                cs.action_state.is_wielding()
-                                    || cs.action_state.is_blocking()
-                                    || cs.action_state.is_attacking()
+                            .map(|cs| match cs.action_state {
+                                ActionState::Attack(_)
+                                | ActionState::Block(_)
+                                | ActionState::Wield(_) => true,
+                                _ => false,
                             })
                             .unwrap_or(false)
                         {

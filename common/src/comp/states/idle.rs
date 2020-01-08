@@ -1,4 +1,4 @@
-use crate::comp::{ActionState::Wield, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct State;
@@ -23,7 +23,7 @@ impl StateHandler for State {
                 && update.character.action_state.is_equip_finished())
         {
             if let Some(Tool(_)) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
-                update.character.action_state = Wield(None);
+                update.character.action_state = ActionState::Wield(None);
             }
 
             // else unarmed stuff?
