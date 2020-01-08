@@ -1,4 +1,4 @@
-use super::{EcsStateData, MoveState::*, StateHandler, StateUpdate};
+use super::{EcsStateData, MoveState, StateHandler, StateUpdate};
 use crate::event::LocalEvent;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -23,7 +23,7 @@ impl StateHandler for State {
             .emit(LocalEvent::Jump(*ecs_data.entity));
 
         // Immediately go to falling state after jump impulse
-        update.character.move_state = Fall(None);
+        update.character.move_state = MoveState::Fall(None);
         return update;
     }
 }

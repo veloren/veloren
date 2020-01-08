@@ -1,4 +1,4 @@
-use super::{ActionState::*, EcsStateData, MoveState::*, StateHandler, StateUpdate};
+use super::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
 use crate::sys::phys::GRAVITY;
 use vek::vec::{Vec2, Vec3};
 use vek::Lerp;
@@ -22,18 +22,18 @@ impl StateHandler for State {
             character: *ecs_data.character,
         };
 
-        update.character.action_state = Idle(None);
+        update.character.action_state = ActionState::Idle(None);
 
         // If no wall is in front of character ...
         if let None = ecs_data.physics.on_wall {
             if ecs_data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
-                update.character.move_state = Jump(None);
+                update.character.move_state = MoveState::Jump(None);
 
                 return update;
             } else {
                 // Just fall off
-                update.character.move_state = Fall(None);
+                update.character.move_state = MoveState::Fall(None);
 
                 return update;
             }
@@ -41,7 +41,7 @@ impl StateHandler for State {
 
         // Remove climb state on ground, otherwise character will get stuck
         if ecs_data.physics.on_ground {
-            update.character.move_state = Stand(None);
+            update.character.move_state = MoveState::Stand(None);
             return update;
         }
 

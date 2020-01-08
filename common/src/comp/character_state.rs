@@ -110,20 +110,18 @@ impl ActionState {
             _ => false,
         }
     }
-
-    pub fn is_wielding(&self) -> bool {
-        if let Wield(_) = self {
-            true
-        } else {
-            false
-        }
+    /// Compares `action_state`s for shallow equality (does not check internal struct equality)
+    pub fn equals(&self, other: &Self) -> bool {
+        // Check if state is the same without looking at the inner data
+        std::mem::discriminant(&self) == std::mem::discriminant(&other)
     }
-    pub fn is_idling(&self) -> bool {
-        if let Idle(_) = self {
-            true
-        } else {
-            false
-        }
+}
+
+impl MoveState {
+    /// Compares `move_state`s for shallow equality (does not check internal struct equality)
+    pub fn equals(&self, other: &Self) -> bool {
+        // Check if state is the same without looking at the inner data
+        std::mem::discriminant(&self) == std::mem::discriminant(&other)
     }
 }
 
@@ -142,22 +140,10 @@ pub struct CharacterState {
 }
 
 impl CharacterState {
-    /// Compares `move_state`s for shallow equality (does not check internal struct equality)
-    pub fn is_same_move_state(&self, other: &Self) -> bool {
-        // Check if state is the same without looking at the inner data
-        std::mem::discriminant(&self.move_state) == std::mem::discriminant(&other.move_state)
-    }
-
-    /// Compares `action_state`s for shallow equality (does not check internal struct equality)
-    pub fn is_same_action_state(&self, other: &Self) -> bool {
-        // Check if state is the same without looking at the inner data
-        std::mem::discriminant(&self.action_state) == std::mem::discriminant(&other.action_state)
-    }
-
     /// Compares both `move_state`s and `action_state`a for shallow equality
     /// (does not check internal struct equality)
-    pub fn is_same_state(&self, other: &Self) -> bool {
-        self.is_same_move_state(other) && self.is_same_action_state(other)
+    pub fn equals(&self, other: &Self) -> bool {
+        self.move_state.equals(&other.move_state) && self.action_state.equals(&other.action_state)
     }
 }
 
