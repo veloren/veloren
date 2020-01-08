@@ -69,6 +69,11 @@ impl Input {
         (self.is_pressed() && self.duration >= DEFAULT_HOLD_DURATION)
     }
 
+    // Whether input has been pressed for longer than `threshold`
+    pub fn is_long_press(&self, threshold: Duration) -> bool {
+        (self.is_pressed() && self.duration >= threshold)
+    }
+
     /// Handles logic of updating state of Input
     pub fn set_state(&mut self, new_state: bool) {
         // Only update if state switches
