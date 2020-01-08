@@ -27,7 +27,7 @@ void main() {
 	// Increase array access by 3 to access positive values
 	uint norm_dir = ((f_pos_norm >> 29) & 0x1u) * 3u;
 	// Use an array to avoid conditional branching
-	vec3 f_norm = normals[norm_axis + norm_dir];
+	vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
 
 	vec3 light, diffuse_light, ambient_light;
 	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);

@@ -236,7 +236,27 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             offs,
                             &colors, //&[[[colors[1][1][1]; 3]; 3]; 3],
                             |pos, norm, col, ao, light| {
-                                TerrainVertex::new(pos, norm, col, light.min(ao))
+                                let light = (light.min(ao) * 255.0) as u32;
+                                let norm = if norm.x != 0.0 {
+                                    if norm.x < 0.0 {
+                                        0
+                                    } else {
+                                        1
+                                    }
+                                } else if norm.y != 0.0 {
+                                    if norm.y < 0.0 {
+                                        2
+                                    } else {
+                                        3
+                                    }
+                                } else {
+                                    if norm.z < 0.0 {
+                                        4
+                                    } else {
+                                        5
+                                    }
+                                };
+                                TerrainVertex::new(norm, light, pos, col)
                             },
                             &lights,
                         );

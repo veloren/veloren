@@ -385,6 +385,10 @@ impl PlayState for SessionState {
                         .read_storage::<Vel>()
                         .get(self.client.borrow().entity())
                         .cloned(),
+                    num_chunks: self.scene.terrain().chunk_count() as u32,
+                    num_visible_chunks: self.scene.terrain().visible_chunk_count() as u32,
+                    num_figures: self.scene.figure_mgr().figure_count() as u32,
+                    num_figures_visible: self.scene.figure_mgr().figure_count_visible() as u32,
                 },
                 &self.scene.camera(),
                 clock.get_last_delta(),
