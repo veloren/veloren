@@ -30,6 +30,8 @@ impl MainMenuState {
 
 const DEFAULT_PORT: u16 = 14004;
 
+static LOGIN_FAILED_MSG: &str = "If you are having issues signing in. Please note that you now need an account to play on auth-enabled servers.\nYou can create an account over at https://account.veloren.net.";
+
 impl PlayState for MainMenuState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock.
@@ -104,8 +106,8 @@ impl PlayState for MainMenuState {
                                     client::AuthClientError::JsonError(e) => {
                                         format!("Fatal error: {}", e)
                                     },
-                                    client::AuthClientError::RequestError(e) => {
-                                        format!("Failed to send request to Auth server: {}", e)
+                                    client::AuthClientError::RequestError(_) => {
+                                        LOGIN_FAILED_MSG.into()
                                     },
                                     client::AuthClientError::ServerError(_, e) => format!("{}", e),
                                 },
