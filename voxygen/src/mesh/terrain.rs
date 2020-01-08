@@ -37,8 +37,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     const SUNLIGHT: u8 = 24;
 
     let outer = Aabb {
-        min: bounds.min - SUNLIGHT as i32,
-        max: bounds.max + SUNLIGHT as i32,
+        min: bounds.min - Vec3::new(SUNLIGHT as i32, SUNLIGHT as i32, 1),
+        max: bounds.max + Vec3::new(SUNLIGHT as i32, SUNLIGHT as i32, 1),
     };
 
     let mut vol_cached = vol.cached();
