@@ -113,11 +113,14 @@ Thanks for taking the time to read this notice, we hope you enjoy the game!
         // Login process description
         "main.login_process": r#"Information on the Login Process:
 
-Put in any username. No Account needed yet.
-                                        
-Character names and appearances will be saved locally.
+If you are having issues signing in:
 
-Levels/Items are not saved yet."#,
+Please note that you now need an account
+to play on auth-enabled servers.
+
+You can create an account over at
+
+https://account.veloren.net."#,
 
 
         /// End Main screen section
