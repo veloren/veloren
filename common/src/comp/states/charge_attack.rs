@@ -1,9 +1,9 @@
+use super::utils::*;
 use crate::comp::{
     ActionState::Attack, AttackKind::Charge, EcsStateData, HealthChange, HealthSource,
     ItemKind::Tool, MoveState::Run, StateHandler, StateUpdate, ToolData,
 };
 use crate::event::ServerEvent;
-use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec3;
 

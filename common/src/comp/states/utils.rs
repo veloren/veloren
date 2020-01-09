@@ -62,7 +62,7 @@ pub fn determine_move_from_grounded_state(
 
 /// _Returns an ActionState based on whether character has a weapon equipped._
 pub fn attempt_wield(stats: &Stats) -> ActionState {
-    if let Some(Tool(data)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
+    if let Some(Tool(_)) = stats.equipment.main.as_ref().map(|i| &i.kind) {
         Wield(None)
     } else {
         Idle(None)

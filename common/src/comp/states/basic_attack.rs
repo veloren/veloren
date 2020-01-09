@@ -1,8 +1,8 @@
+use super::utils::*;
 use crate::comp::{
     ActionState::Attack, AttackKind::BasicAttack, EcsStateData, ItemKind::Tool, StateHandler,
     StateUpdate, ToolData,
 };
-use crate::util::state_utils::*;
 use std::time::Duration;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
