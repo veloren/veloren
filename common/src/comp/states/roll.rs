@@ -1,8 +1,8 @@
+use super::utils::*;
 use crate::comp::{
     ActionState::Dodge, DodgeKind::Roll, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate,
     ToolData,
 };
-use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec3;
 

@@ -1,5 +1,5 @@
+use super::utils::*;
 use crate::comp::{EcsStateData, StateHandler, StateUpdate};
-use crate::util::state_utils::*;
 use std::time::Duration;
 use vek::Vec2;
 

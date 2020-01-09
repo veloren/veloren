@@ -1,5 +1,5 @@
+use super::utils::*;
 use crate::comp::{EcsStateData, MoveState, StateHandler, StateUpdate};
-use crate::util::state_utils::*;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct State;

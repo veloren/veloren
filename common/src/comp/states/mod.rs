@@ -12,6 +12,7 @@ pub mod run;
 pub mod sit;
 pub mod stand;
 pub mod swim;
+pub mod utils;
 pub mod wield;
 
 use super::{
@@ -31,7 +32,7 @@ use super::{
 ///
 /// ## Example Implementation:
 /// ```
-/// use crate::util::state_utils::*;
+/// use super::utils::*;
 ///
 /// #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 /// pub struct RunState {
