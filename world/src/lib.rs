@@ -63,6 +63,7 @@ impl World {
     pub fn generate_chunk(
         &self,
         chunk_pos: Vec2<i32>,
+        // TODO: misleading name
         mut should_continue: impl FnMut() -> bool,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let air = Block::empty();
