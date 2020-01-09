@@ -73,6 +73,7 @@ impl FigureMgr {
         let ecs = client.state().ecs();
         let view_distance = client.view_distance().unwrap_or(1);
         let dt = client.state().get_delta_time();
+        let frustum = camera.frustum(client);
         // Get player position.
         let player_pos = ecs
             .read_storage::<Pos>()
@@ -190,8 +191,6 @@ impl FigureMgr {
             }
 
             // Don't process figures outside the frustum spectrum
-            let frustum = camera.frustum(client);
-
             let (in_frustum, lpindex) =
                 BoundingSphere::new(pos.0.into_array(), scale.unwrap_or(&Scale(1.0)).0 * 2.0)
                     .coherent_test_against_frustum(
@@ -242,54 +241,64 @@ impl FigureMgr {
             if !in_frustum {
                 match body {
                     Body::Humanoid(_) => {
-                        self.character_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.character_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::QuadrupedSmall(_) => {
-                        self.quadruped_small_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.quadruped_small_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::QuadrupedMedium(_) => {
-                        self.quadruped_medium_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.quadruped_medium_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::BirdMedium(_) => {
-                        self.bird_medium_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.bird_medium_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::FishMedium(_) => {
-                        self.fish_medium_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.fish_medium_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::Dragon(_) => {
-                        self.dragon_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.dragon_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::BirdSmall(_) => {
-                        self.bird_small_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.bird_small_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::FishSmall(_) => {
-                        self.fish_small_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.fish_small_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::BipedLarge(_) => {
-                        self.biped_large_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.biped_large_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                     Body::Object(_) => {
-                        self.object_states
-                            .get_mut(&entity)
-                            .map(|state| state.visible = false);
+                        self.object_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
                     }
                 }
                 continue;
