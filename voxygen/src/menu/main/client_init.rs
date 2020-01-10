@@ -5,9 +5,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{net::ToSocketAddrs, thread, time::Duration};
 
-#[cfg(feature = "discord")]
-use crate::{discord, discord::DiscordUpdate};
-
 #[derive(Debug)]
 pub enum Error {
     // Error parsing input string or error resolving host name.
@@ -72,17 +69,6 @@ impl ClientInit {
                                     }
                                     //client.register(player, password);
                                     let _ = tx.send(Ok(client));
-
-                                    #[cfg(feature = "discord")]
-                                    {
-                                        if !server_address.eq("127.0.0.1") {
-                                            discord::send_all(vec![
-                                                DiscordUpdate::Details(server_address),
-                                                DiscordUpdate::State("Playing...".into()),
-                                            ]);
-                                        }
-                                    }
-
                                     return;
                                 }
                                 Err(err) => {

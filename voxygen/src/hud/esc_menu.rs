@@ -5,9 +5,6 @@ use conrod_core::{
 
 use super::{img_ids::Imgs, settings_window::SettingsTab, Fonts, TEXT_COLOR};
 
-#[cfg(feature = "discord")]
-use crate::{discord, discord::DiscordUpdate};
-
 widget_ids! {
     struct Ids {
         esc_bg,
@@ -153,15 +150,6 @@ impl<'a> Widget for EscMenu<'a> {
             .set(state.ids.menu_button_5, ui)
             .was_clicked()
         {
-            #[cfg(feature = "discord")]
-            {
-                discord::send_all(vec![
-                    DiscordUpdate::Details("Menu".into()),
-                    DiscordUpdate::State("Idling".into()),
-                    DiscordUpdate::LargeImg("bg_main".into()),
-                ]);
-            }
-
             return Some(Event::Logout);
         };
         // Quit

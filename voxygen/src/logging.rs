@@ -17,7 +17,6 @@ pub fn init(
     let mut base = fern::Dispatch::new()
         .level_for("dot_vox::parser", log::LevelFilter::Warn)
         .level_for("gfx_device_gl::factory", log::LevelFilter::Warn)
-        .level_for("veloren_voxygen::discord", log::LevelFilter::Warn)
         .level_for("uvth", log::LevelFilter::Warn)
         .level_for("tiny_http", log::LevelFilter::Warn);
 
