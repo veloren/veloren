@@ -2,16 +2,6 @@
 #![feature(drain_filter)]
 #![recursion_limit = "2048"]
 
-#[cfg(feature = "discord")]
-#[macro_use]
-extern crate lazy_static;
-
-#[cfg(feature = "discord")]
-pub mod discord;
-
-#[cfg(feature = "discord")]
-use std::sync::Mutex;
-
 #[macro_use]
 pub mod ui;
 pub mod anim;
@@ -86,14 +76,6 @@ pub trait PlayState {
 
     /// Get a descriptive name for this state type.
     fn name(&self) -> &'static str;
-}
-
-#[cfg(feature = "discord")]
-lazy_static! {
-    //Set up discord rich presence
-    static ref DISCORD_INSTANCE: Mutex<discord::DiscordState> = {
-        discord::run()
-    };
 }
 
 fn main() {
@@ -213,17 +195,6 @@ fn main() {
         default_hook(panic_info);
     }));
 
-    // Initialise Discord
-    #[cfg(feature = "discord")]
-    {
-        use discord::DiscordUpdate;
-        discord::send_all(vec![
-            DiscordUpdate::Details("Menu".into()),
-            DiscordUpdate::State("Idling".into()),
-            DiscordUpdate::LargeImg("bg_main".into()),
-        ]);
-    }
-
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states
@@ -279,25 +250,6 @@ fn main() {
                     global_state.on_play_state_changed();
                 });
             }
-        }
-    }
-
-    //Properly shutdown discord thread
-    #[cfg(feature = "discord")]
-    {
-        match DISCORD_INSTANCE.lock() {
-            Ok(mut disc) => {
-                let _ = disc.tx.send(discord::DiscordUpdate::Shutdown);
-                match disc.thread.take() {
-                    Some(th) => {
-                        let _ = th.join();
-                    }
-                    None => {
-                        error!("couldn't gracefully shutdown discord thread");
-                    }
-                }
-            }
-            Err(e) => error!("couldn't gracefully shutdown discord thread: {}", e),
         }
     }
 
