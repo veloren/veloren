@@ -12,15 +12,15 @@ mod stats;
 use specs::DispatcherBuilder;
 
 // System names
-const AGENT_SYS: &str = "agent_sys";
-const CONTROLLER_SYS: &str = "controller_sys";
-const MOUNT_SYS: &str = "mount_sys";
-const PHYS_SYS: &str = "phys_sys";
-const MOVEMENT_SYS: &str = "movement_sys";
-const PROJECTILE_SYS: &str = "projectile_sys";
-const COMBAT_SYS: &str = "combat_sys";
-const STATS_SYS: &str = "stats_sys";
-const CLEANUP_SYS: &str = "cleanup_sys";
+pub const AGENT_SYS: &str = "agent_sys";
+pub const CONTROLLER_SYS: &str = "controller_sys";
+pub const MOUNT_SYS: &str = "mount_sys";
+pub const PHYS_SYS: &str = "phys_sys";
+pub const MOVEMENT_SYS: &str = "movement_sys";
+pub const PROJECTILE_SYS: &str = "projectile_sys";
+pub const COMBAT_SYS: &str = "combat_sys";
+pub const STATS_SYS: &str = "stats_sys";
+pub const CLEANUP_SYS: &str = "cleanup_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
