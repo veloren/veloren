@@ -16,6 +16,7 @@ use std::sync::Mutex;
 pub mod ui;
 pub mod anim;
 pub mod audio;
+mod ecs;
 pub mod error;
 pub mod hud;
 pub mod key_state;

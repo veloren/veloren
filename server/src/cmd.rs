@@ -87,9 +87,9 @@ lazy_static! {
     /// Static list of chat commands available to the server.
     pub static ref CHAT_COMMANDS: Vec<ChatCommand> = vec![
         ChatCommand::new(
-            "giveitem",
+            "give_item",
             "{d}",
-            "/giveitem <path to item>\n\
+            "/give_item <path to item>\n\
             Example: common/items/debug/boost",
             true,
             handle_give,),

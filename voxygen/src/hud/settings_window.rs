@@ -18,6 +18,7 @@ const FPS_CHOICES: [u32; 11] = [15, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500]
 widget_ids! {
     struct Ids {
         settings_content,
+        settings_content_r,
         settings_icon,
         settings_button_mo,
         settings_close,
@@ -109,7 +110,24 @@ widget_ids! {
         placeholder,
         chat_transp_title,
         chat_transp_text,
-        chat_transp_slider
+        chat_transp_slider,
+        sct_title,
+        sct_show_text,
+        sct_show_radio,
+        sct_single_dmg_text,
+        sct_single_dmg_radio,
+        sct_show_batch_text,
+        sct_show_batch_radio,
+        sct_batched_dmg_text,
+        sct_batched_dmg_radio,
+        sct_inc_dmg_text,
+        sct_inc_dmg_radio,
+        sct_batch_inc_text,
+        sct_batch_inc_radio,
+        sct_num_dur_text,
+        sct_num_dur_slider,
+        sct_num_dur_value,
+
     }
 }
 
@@ -178,6 +196,9 @@ pub enum Event {
     CrosshairType(CrosshairType),
     UiScale(ScaleChange),
     ChatTransp(f32),
+    Sct(bool),
+    SctPlayerBatch(bool),
+    SctDamageBatch(bool),
 }
 
 pub enum ScaleChange {
@@ -229,6 +250,10 @@ impl<'a> Widget for SettingsWindow<'a> {
             .scroll_kids()
             .scroll_kids_vertically()
             .set(state.ids.settings_content, ui);
+        Rectangle::fill_with([198.0 * 4.0 * 0.5, 97.0 * 4.0], color::TRANSPARENT)
+            .top_right_with_margins_on(state.ids.settings_content, 0.0, 0.0)
+            .parent(state.ids.settings_content)
+            .set(state.ids.settings_content_r, ui);
         Scrollbar::y_axis(state.ids.settings_content)
             .thickness(5.0)
             .rgba(0.33, 0.33, 0.33, 1.0)
@@ -279,7 +304,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             events.push(Event::ChangeTab(SettingsTab::Interface));
         }
 
-        // Contents
+        // Contents Left Side
         if let SettingsTab::Interface = self.show.settings_tab {
             let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
             let crosshair_type = self.global_state.settings.gameplay.crosshair_type;
@@ -309,7 +334,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ToggleHelp);
             }
 
-            Text::new("Show Help Window")
+            Text::new("Help Window")
                 .right_from(state.ids.button_help, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -333,7 +358,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ToggleDebug);
             }
 
-            Text::new("Show Debug Info")
+            Text::new("Debug Info")
                 .right_from(state.ids.debug_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -360,7 +385,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     Intro::Never => events.push(Event::Intro(Intro::Show)),
                 }
             };
-            Text::new("Show Tips on Startup")
+            Text::new("Tips on Startup")
                 .right_from(state.ids.tips_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -683,7 +708,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     XpBar::OnGain => events.push(Event::ToggleXpBar(XpBar::Always)),
                 }
             }
-            Text::new("Always show Experience Bar")
+            Text::new("Toggle Experience Bar")
                 .right_from(state.ids.show_xpbar_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -717,7 +742,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     }
                 }
             }
-            Text::new("Always show Shortcuts")
+            Text::new("Toggle Shortcuts")
                 .right_from(state.ids.show_shortcuts_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -725,10 +750,151 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.show_shortcuts_text, ui);
 
+            Rectangle::fill_with([60.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
+                .down_from(state.ids.show_shortcuts_text, 30.0)
+                .set(state.ids.placeholder, ui);
+
+            // Content Right Side
+
+            /*Scrolling Combat text
+
+            O Show Damage Numbers
+                O Show single Damage Numbers
+                O Show batched dealt Damage
+                O Show incoming Damage
+                    O Batch incoming Numbers
+
+            Number Display Duration: 1s ----I----5s
+             */
+            // SCT/ Scrolling Combat Text
+            Text::new("Scrolling Combat Text")
+                .top_left_with_margins_on(state.ids.settings_content_r, 5.0, 5.0)
+                .font_size(18)
+                .font_id(self.fonts.cyri)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_title, ui);
+            // Generally toggle the SCT
+            let show_sct = ToggleButton::new(
+                self.global_state.settings.gameplay.sct,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.sct_title, 20.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.sct_show_radio, ui);
+
+            if self.global_state.settings.gameplay.sct != show_sct {
+                events.push(Event::Sct(!self.global_state.settings.gameplay.sct))
+            }
+            Text::new("Scrolling Combat Text")
+                .right_from(state.ids.sct_show_radio, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .graphics_for(state.ids.sct_show_radio)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_show_text, ui);
+            if self.global_state.settings.gameplay.sct {
+                // Toggle single damage numbers
+                let show_sct_damage_batch = !ToggleButton::new(
+                    !self.global_state.settings.gameplay.sct_damage_batch,
+                    self.imgs.checkbox,
+                    self.imgs.checkbox_checked,
+                )
+                .w_h(18.0, 18.0)
+                .down_from(state.ids.sct_show_text, 8.0)
+                .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+                .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+                .set(state.ids.sct_single_dmg_radio, ui);
+
+                Text::new("Single Damage Numbers")
+                    .right_from(state.ids.sct_single_dmg_radio, 10.0)
+                    .font_size(14)
+                    .font_id(self.fonts.cyri)
+                    .graphics_for(state.ids.sct_single_dmg_radio)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.sct_single_dmg_text, ui);
+                // Toggle Batched Damage
+                let show_sct_damage_batch = ToggleButton::new(
+                    show_sct_damage_batch,
+                    self.imgs.checkbox,
+                    self.imgs.checkbox_checked,
+                )
+                .w_h(18.0, 18.0)
+                .down_from(state.ids.sct_single_dmg_radio, 8.0)
+                .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+                .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+                .set(state.ids.sct_show_batch_radio, ui);
+
+                if self.global_state.settings.gameplay.sct_damage_batch != show_sct_damage_batch {
+                    events.push(Event::SctDamageBatch(
+                        !self.global_state.settings.gameplay.sct_damage_batch,
+                    ))
+                }
+                Text::new("Cumulated Damage")
+                    .right_from(state.ids.sct_show_batch_radio, 10.0)
+                    .font_size(14)
+                    .font_id(self.fonts.cyri)
+                    .graphics_for(state.ids.sct_batched_dmg_radio)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.sct_show_batch_text, ui);
+                // Toggle Incoming Damage
+                let show_sct_player_batch = !ToggleButton::new(
+                    !self.global_state.settings.gameplay.sct_player_batch,
+                    self.imgs.checkbox,
+                    self.imgs.checkbox_checked,
+                )
+                .w_h(18.0, 18.0)
+                .down_from(state.ids.sct_show_batch_radio, 8.0)
+                .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+                .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+                .set(state.ids.sct_inc_dmg_radio, ui);
+
+                Text::new("Incoming Damage")
+                    .right_from(state.ids.sct_inc_dmg_radio, 10.0)
+                    .font_size(14)
+                    .font_id(self.fonts.cyri)
+                    .graphics_for(state.ids.sct_inc_dmg_radio)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.sct_inc_dmg_text, ui);
+                // Toggle Batched Incoming Damage
+                let show_sct_player_batch = ToggleButton::new(
+                    show_sct_player_batch,
+                    self.imgs.checkbox,
+                    self.imgs.checkbox_checked,
+                )
+                .w_h(18.0, 18.0)
+                .down_from(state.ids.sct_inc_dmg_radio, 8.0)
+                .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+                .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+                .set(state.ids.sct_batch_inc_radio, ui);
+
+                if self.global_state.settings.gameplay.sct_player_batch != show_sct_player_batch {
+                    events.push(Event::SctPlayerBatch(
+                        !self.global_state.settings.gameplay.sct_player_batch,
+                    ))
+                }
+                Text::new("Cumulated Incoming Damage")
+                    .right_from(state.ids.sct_batch_inc_radio, 10.0)
+                    .font_size(14)
+                    .font_id(self.fonts.cyri)
+                    .graphics_for(state.ids.sct_batch_inc_radio)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.sct_batch_inc_text, ui);
+            }
+
             // Energybars Numbers
             // Hotbar text
             Text::new("Energybar Numbers")
-                .down_from(state.ids.show_shortcuts_button, 20.0)
+                .down_from(
+                    if self.global_state.settings.gameplay.sct {
+                        state.ids.sct_batch_inc_radio
+                    } else {
+                        state.ids.sct_show_radio
+                    },
+                    20.0,
+                )
                 .font_size(18)
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
@@ -857,9 +1023,6 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ChatTransp(new_val));
             }
-            Rectangle::fill_with([60.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
-                .down_from(state.ids.chat_transp_title, 30.0)
-                .set(state.ids.placeholder, ui);
         }
 
         // 2) Gameplay Tab --------------------------------

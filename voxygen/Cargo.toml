@@ -28,6 +28,7 @@ euc = "0.3.0"
 
 # ECS
 specs = "0.15.1"
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 # Mathematics
 vek = { version = "0.9.9", features = ["serde"] }
