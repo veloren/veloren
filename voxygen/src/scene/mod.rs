@@ -215,23 +215,31 @@ impl Scene {
         let mut lights = (
             &client.state().ecs().read_storage::<comp::Pos>(),
             client.state().ecs().read_storage::<comp::Ori>().maybe(),
+            client
+                .state()
+                .ecs()
+                .read_storage::<crate::ecs::comp::Interpolated>()
+                .maybe(),
             &client.state().ecs().read_storage::<comp::LightEmitter>(),
         )
             .join()
-            .filter(|(pos, _, _)| {
+            .filter(|(pos, _, _, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
                     < self.loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
             })
-            .map(|(pos, ori, light_emitter)| {
+            .map(|(pos, ori, interpolated, light_emitter)| {
+                // Use interpolated values if they are available
+                let (pos, ori) =
+                    interpolated.map_or((pos.0, ori.map(|o| o.0)), |i| (i.pos, Some(i.ori)));
                 let rot = {
                     if let Some(o) = ori {
-                        Mat3::rotation_z(-o.0.x.atan2(o.0.y))
+                        Mat3::rotation_z(-o.x.atan2(o.y))
                     } else {
                         Mat3::identity()
                     }
                 };
                 Light::new(
-                    pos.0 + (rot * light_emitter.offset),
+                    pos + (rot * light_emitter.offset),
                     light_emitter.col,
                     light_emitter.strength,
                 )
@@ -246,17 +254,28 @@ impl Scene {
         // Update shadow constants
         let mut shadows = (
             &client.state().ecs().read_storage::<comp::Pos>(),
+            client
+                .state()
+                .ecs()
+                .read_storage::<crate::ecs::comp::Interpolated>()
+                .maybe(),
             client.state().ecs().read_storage::<comp::Scale>().maybe(),
             &client.state().ecs().read_storage::<comp::Body>(),
             &client.state().ecs().read_storage::<comp::Stats>(),
         )
             .join()
-            .filter(|(_, _, _, stats)| !stats.is_dead)
-            .filter(|(pos, _, _, _)| {
+            .filter(|(_, _, _, _, stats)| !stats.is_dead)
+            .filter(|(pos, _, _, _, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
                     < (self.loaded_distance.min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS).powf(2.0)
             })
-            .map(|(pos, scale, _, _)| Shadow::new(pos.0, scale.map(|s| s.0).unwrap_or(1.0)))
+            .map(|(pos, interpolated, scale, _, _)| {
+                Shadow::new(
+                    // Use interpolated values pos if it is available
+                    interpolated.map_or(pos.0, |i| i.pos),
+                    scale.map_or(1.0, |s| s.0),
+                )
+            })
             .collect::<Vec<_>>();
         shadows.sort_by_key(|shadow| shadow.get_pos().distance_squared(player_pos) as i32);
         shadows.truncate(MAX_SHADOW_COUNT);

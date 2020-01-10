@@ -108,11 +108,11 @@ impl PlayState for CharSelectionState {
                 .render(global_state.window.renderer_mut(), self.scene.globals());
 
             // Tick the client (currently only to keep the connection alive).
-            if let Err(err) = self
-                .client
-                .borrow_mut()
-                .tick(comp::ControllerInputs::default(), clock.get_last_delta())
-            {
+            if let Err(err) = self.client.borrow_mut().tick(
+                comp::ControllerInputs::default(),
+                clock.get_last_delta(),
+                |_| {},
+            ) {
                 global_state.info_message = Some(
                     "Connection lost!\nDid the server restart?\nIs the client up to date?"
                         .to_owned(),

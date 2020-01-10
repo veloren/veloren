@@ -24,8 +24,12 @@ const TERRAIN_SYS: &str = "server_terrain_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     // TODO: makes some of these dependent on systems in common like the phys system
-    dispatch_builder.add(sentinel::Sys, SENTINEL_SYS, &[]);
-    dispatch_builder.add(subscription::Sys, SUBSCRIPTION_SYS, &[]);
+    dispatch_builder.add(sentinel::Sys, SENTINEL_SYS, &[common::sys::PHYS_SYS]);
+    dispatch_builder.add(
+        subscription::Sys,
+        SUBSCRIPTION_SYS,
+        &[common::sys::PHYS_SYS],
+    );
     dispatch_builder.add(
         entity_sync::Sys,
         ENTITY_SYNC_SYS,
