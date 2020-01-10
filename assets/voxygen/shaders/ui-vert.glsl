@@ -25,6 +25,10 @@ void main() {
     if (w_pos.w == 1.0) {
         // In-game element
         gl_Position = proj_mat * (view_mat * w_pos + vec4(v_pos, 0.0, 0.0));
+    } else if (w_pos.w == -1.0 ) {
+        // Fixed scale In-game element      
+        vec4 projected_pos = proj_mat * view_mat * vec4(w_pos.xyz, 1.0); 
+        gl_Position = vec4(projected_pos.xy / projected_pos.w + v_pos, 0.0, 1.0); 
     } else {
         // Interface element
         gl_Position = vec4(v_pos, 0.0, 1.0);

@@ -231,8 +231,7 @@ image_ids! {
         key: "voxygen.voxel.object.key",
         key_gold: "voxygen.voxel.object.key_gold",
 
-        // Enemy Healthbar
-        enemy_health: "voxygen.element.frames.enemybar",
+
 
 
 
@@ -247,6 +246,13 @@ image_ids! {
         charwindow_gradient:"voxygen.element.misc_bg.charwindow",
         map_placeholder: "voxygen.background.map",
 
+        death_bg: "voxygen.background.death",
+        hurt_bg: "voxygen.background.hurt",
+
+        // Enemy Healthbar
+        enemy_health: "voxygen.element.frames.enemybar",
+        // Enemy Bar Content:
+        enemy_bar: "voxygen.element.skillbar.enemy_bar_content",
         // Spell Book Window
         spellbook_icon: "voxygen.element.icons.spellbook",
         // Bag

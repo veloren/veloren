@@ -22,7 +22,7 @@ impl Default for ServerSettings {
         Self {
             gameserver_address: SocketAddr::from(([0; 4], 14004)),
             metrics_address: SocketAddr::from(([0; 4], 14005)),
-            world_seed: 1337,
+            world_seed: 5284,
             server_name: "Veloren Alpha".to_owned(),
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,

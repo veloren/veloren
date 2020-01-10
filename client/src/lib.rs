@@ -8,7 +8,7 @@ pub use crate::error::Error;
 pub use specs::{
     join::Join,
     saveload::{Marker, MarkerAllocator},
-    Builder, Entity as EcsEntity, ReadStorage, WorldExt,
+    Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, WorldExt,
 };
 
 use common::{
@@ -316,7 +316,12 @@ impl Client {
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
-    pub fn tick(&mut self, inputs: ControllerInputs, dt: Duration) -> Result<Vec<Event>, Error> {
+    pub fn tick(
+        &mut self,
+        inputs: ControllerInputs,
+        dt: Duration,
+        add_foreign_systems: impl Fn(&mut DispatcherBuilder),
+    ) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -374,7 +379,7 @@ impl Client {
         // 3) Update client local data
 
         // 4) Tick the client's LocalState
-        self.state.tick(dt, |_| {});
+        self.state.tick(dt, add_foreign_systems);
 
         // 5) Terrain
         let pos = self

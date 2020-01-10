@@ -1194,6 +1194,7 @@ impl<S: Skeleton> FigureState<S> {
         self.last_ori = Lerp::lerp(self.last_ori, ori, 15.0 * dt);
 
         // Update interpolation values
+        // TODO: use values from Interpolated component instead of recalculating
         if self.pos.distance_squared(pos) < 64.0 * 64.0 {
             self.pos = Lerp::lerp(self.pos, pos + vel * 0.03, 10.0 * dt);
             self.ori = Slerp::slerp(self.ori, ori, 5.0 * dt);
@@ -1205,6 +1206,7 @@ impl<S: Skeleton> FigureState<S> {
         self.movement_time += (dt * movement_rate) as f64;
         self.action_time += (dt * action_rate) as f64;
 
+        // TODO: what are the interpolated ori values used for if not here???
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(self.pos)
             * Mat4::rotation_z(-ori.x.atan2(ori.y))
