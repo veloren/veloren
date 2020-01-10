@@ -305,7 +305,7 @@ impl Ui {
         enum Placement {
             Interface,
             // Number of primitives left to render ingame and relative scaling/resolution
-            InWorld(usize, Option<f32>),
+            InWorld(usize, Option<(f64, f64)>),
         };
 
         let mut placement = Placement::Interface;
@@ -399,7 +399,7 @@ impl Ui {
 
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
             let (ui_win_w, ui_win_h) = match placement {
-                Placement::InWorld(_, Some(res)) => (res as f64, res as f64),
+                Placement::InWorld(_, Some(res)) => res,
                 // Behind the camera or far away
                 Placement::InWorld(_, None) => continue,
                 Placement::Interface => (self.ui.win_w, self.ui.win_h),
@@ -624,10 +624,12 @@ impl Ui {
                                 .parameters;
 
                             let pos_in_view = view_mat * Vec4::from_point(parameters.pos);
+
                             let scale_factor = self.ui.win_w as f64
                                 / (-2.0
                                     * pos_in_view.z as f64
                                     * (0.5 * fov as f64).tan()
+                                    // TODO: make this have no effect for fixed scale
                                     * parameters.res as f64);
                             // Don't process ingame elements behind the camera or very far away
                             placement = if scale_factor > 0.2 {
@@ -642,32 +644,43 @@ impl Ui {
                                 });
                                 start = mesh.vertices().len();
                                 // Push new position command
+                                let mut world_pos = Vec4::from_point(parameters.pos);
+                                if parameters.fixed_scale {
+                                    world_pos.w = -1.0
+                                };
+
                                 if self.ingame_locals.len() > ingame_local_index {
                                     renderer
                                         .update_consts(
                                             &mut self.ingame_locals[ingame_local_index],
-                                            &[parameters.pos.into()],
+                                            &[world_pos.into()],
                                         )
                                         .unwrap();
                                 } else {
-                                    self.ingame_locals.push(
-                                        renderer.create_consts(&[parameters.pos.into()]).unwrap(),
-                                    );
+                                    self.ingame_locals
+                                        .push(renderer.create_consts(&[world_pos.into()]).unwrap());
                                 }
                                 self.draw_commands
                                     .push(DrawCommand::WorldPos(Some(ingame_local_index)));
                                 ingame_local_index += 1;
 
-                                p_scale_factor = ((scale_factor * 10.0).log2().round().powi(2)
-                                    / 10.0)
-                                    .min(1.6)
-                                    .max(0.2);
+                                p_scale_factor = if parameters.fixed_scale {
+                                    self.scale.scale_factor_physical()
+                                } else {
+                                    ((scale_factor * 10.0).log2().round().powi(2) / 10.0)
+                                        .min(1.6)
+                                        .max(0.2)
+                                };
 
                                 // Scale down ingame elements that are close to the camera
-                                let res = if scale_factor > 3.2 {
-                                    parameters.res * scale_factor as f32 / 3.2
+                                let res = if parameters.fixed_scale {
+                                    (self.ui.win_w, self.ui.win_h)
+                                } else if scale_factor > 3.2 {
+                                    let res = parameters.res * scale_factor as f32 / 3.2;
+                                    (res as f64, res as f64)
                                 } else {
-                                    parameters.res
+                                    let res = parameters.res;
+                                    (res as f64, res as f64)
                                 };
 
                                 Placement::InWorld(parameters.num, Some(res))

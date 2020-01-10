@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added changelog
 - Added animated Map and Minimap position indicator
 - Added visuals to indicate strength compared to the player
+- Added Scrolling Combat Text (SCT) & Settings for it
+- Added a Death Screen and Hurt Screen
+- Added randomly selected Loading Screen background images
+
 
 ### Changed
 
@@ -50,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed ghosts when going back to character screen
 - Fixed not being able to unmount
 - Fixed non-humanoids being able to climb and glide
+- Made shadows and lights use interpolated positions
 
 ### Removed
 
