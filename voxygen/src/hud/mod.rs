@@ -13,8 +13,7 @@ mod skillbar;
 mod social;
 mod spell;
 
-use crate::hud::img_ids::ImgsRot;
-//use rand::Rng;
+use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot};
 pub use settings_window::ScaleChange;
 use std::time::Duration;
 
@@ -36,6 +35,7 @@ use social::{Social, SocialTab};
 use spell::Spell;
 
 use crate::{
+    ecs::comp as vcomp,
     render::{AaMode, Consts, Globals, Renderer},
     scene::camera::Camera,
     //settings::ControlSettings,
@@ -60,6 +60,7 @@ use crate::{discord, discord::DiscordUpdate};
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+//const TEXT_COLOR_GREY: Color = Color::Rgba(1.0, 1.0, 1.0, 0.5);
 const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
@@ -88,6 +89,7 @@ widget_ids! {
 
         // Character Names
         name_tags[],
+        name_tags_bgs[],
         levels[],
         levels_skull[],
         // Health Bars
@@ -95,6 +97,18 @@ widget_ids! {
         mana_bars[],
         health_bar_fronts[],
         health_bar_backs[],
+
+        // SCT
+        player_scts[],
+        player_sct_bgs[],
+        sct_exp_bgs[],
+        sct_exps[],
+        sct_lvl_bg,
+        sct_lvl,
+        hurt_bg,
+        death_bg,
+        sct_bgs[],
+        scts[],
 
         // Intro Text
         intro_bg,
@@ -128,6 +142,7 @@ widget_ids! {
         // Help
         help,
         help_info,
+        debug_info,
 
         // Window Frames
         window_frame_0,
@@ -200,6 +215,10 @@ pub enum Event {
     Intro(Intro),
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
+    Sct(bool),
+    SctPlayerBatch(bool),
+    SctDamageBatch(bool),
+    ToggleDebug(bool),
     UiScale(ScaleChange),
     CharacterSelection,
     UseInventorySlot(usize),
@@ -265,7 +284,6 @@ pub struct Show {
     ingame: bool,
     settings_tab: SettingsTab,
     social_tab: SocialTab,
-
     want_grab: bool,
 }
 impl Show {
@@ -424,6 +442,7 @@ pub struct Hud {
     force_chat_cursor: Option<Index>,
     pulse: f32,
     zoom: f32,
+    velocity: f32,
 }
 
 impl Hud {
@@ -461,7 +480,7 @@ impl Hud {
             show: Show {
                 help: false,
                 intro: true,
-                debug: true,
+                debug: false,
                 bag: false,
                 esc_menu: false,
                 open_windows: Windows::None,
@@ -485,6 +504,7 @@ impl Hud {
             force_chat_cursor: None,
             pulse: 0.0,
             zoom: 1.0,
+            velocity: 0.0,
         }
     }
 
@@ -499,43 +519,23 @@ impl Hud {
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
+        self.velocity = match debug_info.velocity {
+            Some(velocity) => velocity.0.magnitude(),
+            None => 0.0,
+        };
 
         let version = format!(
             "{}-{}",
             env!("CARGO_PKG_VERSION"),
             common::util::GIT_VERSION.to_string()
         );
-        if self.show.ingame {
-            // Crosshair
-            if !self.show.help {
-                Image::new(
-                    // TODO: Do we want to match on this every frame?
-                    match global_state.settings.gameplay.crosshair_type {
-                        CrosshairType::Round => self.imgs.crosshair_outer_round,
-                        CrosshairType::RoundEdges => self.imgs.crosshair_outer_round_edges,
-                        CrosshairType::Edges => self.imgs.crosshair_outer_edges,
-                    },
-                )
-                .w_h(21.0 * 1.5, 21.0 * 1.5)
-                .middle_of(ui_widgets.window)
-                .color(Some(Color::Rgba(
-                    1.0,
-                    1.0,
-                    1.0,
-                    global_state.settings.gameplay.crosshair_transp,
-                )))
-                .set(self.ids.crosshair_outer, ui_widgets);
-                Image::new(self.imgs.crosshair_inner)
-                    .w_h(21.0 * 2.0, 21.0 * 2.0)
-                    .middle_of(self.ids.crosshair_outer)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
-                    .set(self.ids.crosshair_inner, ui_widgets);
-            }
 
-            // Nametags and healthbars
+        if self.show.ingame {
             let ecs = client.state().ecs();
             let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
+            let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
             let entities = ecs.entities();
@@ -545,6 +545,62 @@ impl Hud {
                 .get(client.entity())
                 .map_or(0, |stats| stats.level.level());
 
+            if let Some(stats) = stats.get(me) {
+                // Hurt Frame
+                let hp_percentage =
+                    stats.health.current() as f32 / stats.health.maximum() as f32 * 100.0;
+                if hp_percentage < 10.0 && !stats.is_dead {
+                    let hurt_fade =
+                        (self.pulse * (10.0 - hp_percentage as f32) * 0.1/*speed factor*/).sin()
+                            * 0.5
+                            + 0.6; //Animation timer
+                    Image::new(self.imgs.hurt_bg)
+                        .wh_of(ui_widgets.window)
+                        .middle_of(ui_widgets.window)
+                        .graphics_for(ui_widgets.window)
+                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, hurt_fade)))
+                        .set(self.ids.hurt_bg, ui_widgets);
+                }
+                // Death Frame
+                if stats.is_dead {
+                    Image::new(self.imgs.death_bg)
+                        .wh_of(ui_widgets.window)
+                        .middle_of(ui_widgets.window)
+                        .graphics_for(ui_widgets.window)
+                        .color(Some(Color::Rgba(0.0, 0.0, 0.0, 1.0)))
+                        .set(self.ids.death_bg, ui_widgets);
+                }
+                // Crosshair
+                if !self.show.help && !stats.is_dead {
+                    Image::new(
+                        // TODO: Do we want to match on this every frame?
+                        match global_state.settings.gameplay.crosshair_type {
+                            CrosshairType::Round => self.imgs.crosshair_outer_round,
+                            CrosshairType::RoundEdges => self.imgs.crosshair_outer_round_edges,
+                            CrosshairType::Edges => self.imgs.crosshair_outer_edges,
+                        },
+                    )
+                    .w_h(21.0 * 1.5, 21.0 * 1.5)
+                    .middle_of(ui_widgets.window)
+                    .color(Some(Color::Rgba(
+                        1.0,
+                        1.0,
+                        1.0,
+                        global_state.settings.gameplay.crosshair_transp,
+                    )))
+                    .set(self.ids.crosshair_outer, ui_widgets);
+                    Image::new(self.imgs.crosshair_inner)
+                        .w_h(21.0 * 2.0, 21.0 * 2.0)
+                        .middle_of(self.ids.crosshair_outer)
+                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
+                        .set(self.ids.crosshair_inner, ui_widgets);
+                }
+            }
+
+            // Nametags and healthbars
+
+            // Max amount the sct font size increases when "flashing"
+            const FLASH_MAX: f32 = 25.0;
             // Get player position.
             let player_pos = client
                 .state()
@@ -553,21 +609,31 @@ impl Hud {
                 .get(client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
             let mut name_id_walker = self.ids.name_tags.walk();
+            let mut name_id_bg_walker = self.ids.name_tags_bgs.walk();
             let mut level_id_walker = self.ids.levels.walk();
             let mut level_skull_id_walker = self.ids.levels_skull.walk();
             let mut health_id_walker = self.ids.health_bars.walk();
             let mut mana_id_walker = self.ids.mana_bars.walk();
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
             let mut health_front_id_walker = self.ids.health_bar_fronts.walk();
+            let mut sct_bg_id_walker = self.ids.sct_bgs.walk();
+            let mut sct_id_walker = self.ids.scts.walk();
             // Render Health Bars
-            for (_entity, pos, stats, scale) in (&entities, &pos, &stats, scales.maybe())
+            for (pos, stats, scale, hp_floater_list) in (
+                &entities,
+                &pos,
+                interpolated.maybe(),
+                &stats,
+                scales.maybe(),
+                hp_floater_lists.maybe(), // Potentially move this to its own loop
+            )
                 .join()
-                .filter(|(entity, _, stats, _)| {
+                .filter(|(entity, _, _, stats, _, _)| {
                     *entity != me && !stats.is_dead
                     //&& stats.health.current() != stats.health.maximum()
                 })
                 // Don't process health bars outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _)| {
+                .filter(|(_, pos, _, _, _, _)| {
                     Vec2::from(pos.0 - player_pos)
                         .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
                             d.abs() as f32 / sz as f32
@@ -575,9 +641,15 @@ impl Hud {
                         .magnitude()
                         < view_distance as f32
                 })
+                .map(|(_, pos, interpolated, stats, scale, f)| {
+                    (
+                        interpolated.map_or(pos.0, |i| i.pos),
+                        stats,
+                        scale.map_or(1.0, |s| s.0),
+                        f,
+                    )
+                })
             {
-                let scale = scale.map(|s| s.0).unwrap_or(1.0);
-
                 let back_id = health_back_id_walker.next(
                     &mut self.ids.health_bar_backs,
                     &mut ui_widgets.widget_id_generator(),
@@ -596,20 +668,22 @@ impl Hud {
                 );
                 let hp_percentage =
                     stats.health.current() as f64 / stats.health.maximum() as f64 * 100.0;
+                let energy_percentage =
+                    stats.energy.current() as f64 / stats.energy.maximum() as f64 * 100.0;
                 let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 1.0; //Animation timer
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
                 // Background
                 Rectangle::fill_with([82.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
                     .x_y(0.0, -25.0)
-                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .resolution(100.0)
                     .set(back_id, ui_widgets);
 
                 // % HP Filling
-                Image::new(self.imgs.bar_content)
+                Image::new(self.imgs.enemy_bar)
                     .w_h(72.9 * (hp_percentage / 100.0), 5.9)
-                    .x_y(4.5, -24.0)
+                    .x_y(4.5 + (hp_percentage / 100.0 * 36.45) - 36.45, -24.0)
                     .color(Some(if hp_percentage <= 25.0 {
                         crit_hp_color
                     } else if hp_percentage <= 50.0 {
@@ -617,7 +691,7 @@ impl Hud {
                     } else {
                         HP_COLOR
                     }))
-                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .resolution(100.0)
                     .set(health_bar_id, ui_widgets);
                 // % Mana Filling
@@ -628,8 +702,8 @@ impl Hud {
                     ],
                     MANA_COLOR,
                 )
-                .x_y(4.5, -28.0)
-                .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                .x_y(4.5 + (energy_percentage / 100.0 * 36.5) - 36.45, -28.0)
+                .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                 .resolution(100.0)
                 .set(mana_bar_id, ui_widgets);
 
@@ -638,40 +712,424 @@ impl Hud {
                     .w_h(84.0, 10.0)
                     .x_y(0.0, -25.0)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
-                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .resolution(100.0)
                     .set(front_id, ui_widgets);
+
+                // Enemy SCT
+                if let Some(HpFloaterList { floaters, .. }) = hp_floater_list
+                    .filter(|fl| !fl.floaters.is_empty() && global_state.settings.gameplay.sct)
+                {
+                    // Colors
+                    const WHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.8);
+                    const LIGHT_OR: Rgb<f32> = Rgb::new(1.0, 0.925, 0.749);
+                    const LIGHT_MED_OR: Rgb<f32> = Rgb::new(1.0, 0.85, 0.498);
+                    const MED_OR: Rgb<f32> = Rgb::new(1.0, 0.776, 0.247);
+                    const DARK_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.7, 0.0);
+                    const RED_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.349, 0.0);
+                    const DAMAGE_COLORS: [Rgb<f32>; 6] = [
+                        WHITE,
+                        LIGHT_OR,
+                        LIGHT_MED_OR,
+                        MED_OR,
+                        DARK_ORANGE,
+                        RED_ORANGE,
+                    ];
+                    // Largest value that select the first color is 40, then it shifts colors
+                    // every 5
+                    let font_col = |font_size: u32| {
+                        DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
+                    };
+
+                    if global_state.settings.gameplay.sct_damage_batch {
+                        let number_speed = 50.0; // Damage number speed
+                        let sct_bg_id = sct_bg_id_walker
+                            .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
+                        let sct_id = sct_id_walker
+                            .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
+                        // Calculate total change
+                        // Ignores healing
+                        let hp_damage = floaters.iter().fold(0, |acc, f| {
+                            if f.hp_change < 0 {
+                                acc + f.hp_change
+                            } else {
+                                acc
+                            }
+                        });
+                        let max_hp_frac = hp_damage.abs() as f32 / stats.health.maximum() as f32;
+                        let timer = floaters
+                            .last()
+                            .expect("There must be at least one floater")
+                            .timer;
+                        // Increase font size based on fraction of maximum health
+                        // "flashes" by having a larger size in the first 100ms
+                        let font_size = 30
+                            + (max_hp_frac * 30.0) as u32
+                            + if timer < 0.1 {
+                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                            } else {
+                                0
+                            };
+                        let font_col = font_col(font_size);
+                        // Timer sets the widget offset
+                        let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
+                            * number_speed)
+                            + 30.0;
+                        // Timer sets text transparency
+                        let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
+
+                        Text::new(&format!("{}", (hp_damage).abs()))
+                            .font_size(font_size)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .x_y(0.0, y - 3.0)
+                            .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
+                            .fixed_scale()
+                            .resolution(100.0)
+                            .set(sct_bg_id, ui_widgets);
+                        Text::new(&format!("{}", hp_damage.abs()))
+                            .font_size(font_size)
+                            .x_y(0.0, y)
+                            .color(if hp_damage < 0 {
+                                Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                            } else {
+                                Color::Rgba(0.1, 1.0, 0.1, fade)
+                            })
+                            .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
+                            .fixed_scale()
+                            .resolution(100.0)
+                            .set(sct_id, ui_widgets);
+                    } else {
+                        for floater in floaters {
+                            let number_speed = 250.0; // Single Numbers Speed
+                            let sct_bg_id = sct_bg_id_walker
+                                .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
+                            let sct_id = sct_id_walker
+                                .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
+                            // Calculate total change
+                            let max_hp_frac =
+                                floater.hp_change.abs() as f32 / stats.health.maximum() as f32;
+                            // Increase font size based on fraction of maximum health
+                            // "flashes" by having a larger size in the first 100ms
+                            let font_size = 30
+                                + (max_hp_frac * 30.0) as u32
+                                + if floater.timer < 0.1 {
+                                    (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                } else {
+                                    0
+                                };
+                            let font_col = font_col(font_size);
+                            // Timer sets the widget offset
+                            let y = (floater.timer as f64
+                                / crate::ecs::sys::floater::HP_SHOWTIME as f64
+                                * number_speed)
+                                + 30.0;
+                            // Timer sets text transparency
+                            let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer)
+                                * 0.25)
+                                + 0.2;
+
+                            Text::new(&format!("{}", (floater.hp_change).abs()))
+                                .font_size(font_size)
+                                .color(if floater.hp_change < 0 {
+                                    Color::Rgba(0.0, 0.0, 0.0, fade)
+                                } else {
+                                    Color::Rgba(0.1, 1.0, 0.1, 0.0)
+                                })
+                                .x_y(0.0, y - 3.0)
+                                .position_ingame(
+                                    pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
+                                )
+                                .fixed_scale()
+                                .resolution(100.0)
+                                .set(sct_bg_id, ui_widgets);
+                            Text::new(&format!("{}", (floater.hp_change).abs()))
+                                .font_size(font_size)
+                                .x_y(0.0, y)
+                                .color(if floater.hp_change < 0 {
+                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                } else {
+                                    Color::Rgba(0.1, 1.0, 0.1, 0.0)
+                                })
+                                .position_ingame(
+                                    pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
+                                )
+                                .fixed_scale()
+                                .resolution(100.0)
+                                .set(sct_id, ui_widgets);
+                        }
+                    }
+                }
+            }
+
+            if global_state.settings.gameplay.sct {
+                // Render Player SCT numbers
+                let mut player_sct_bg_id_walker = self.ids.player_sct_bgs.walk();
+                let mut player_sct_id_walker = self.ids.player_scts.walk();
+                if let (Some(HpFloaterList { floaters, .. }), Some(stats)) = (
+                    hp_floater_lists
+                        .get(me)
+                        .filter(|fl| !fl.floaters.is_empty()),
+                    stats.get(me),
+                ) {
+                    if global_state.settings.gameplay.sct_player_batch {
+                        let number_speed = 100.0; // Player Batched Numbers Speed
+                        let player_sct_bg_id = player_sct_bg_id_walker.next(
+                            &mut self.ids.player_sct_bgs,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        let player_sct_id = player_sct_id_walker.next(
+                            &mut self.ids.player_scts,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        // Calculate total change
+                        // Ignores healing
+                        let hp_damage = floaters.iter().fold(0, |acc, f| f.hp_change.min(0) + acc);
+                        let max_hp_frac = hp_damage.abs() as f32 / stats.health.maximum() as f32;
+                        let timer = floaters
+                            .last()
+                            .expect("There must be at least one floater")
+                            .timer;
+                        // Increase font size based on fraction of maximum health
+                        // "flashes" by having a larger size in the first 100ms
+                        let font_size = 30
+                            + (max_hp_frac * 30.0) as u32
+                            + if timer < 0.1 {
+                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                            } else {
+                                0
+                            };
+                        // Timer sets the widget offset
+                        let y = timer as f64 * number_speed * -1.0;
+                        // Timer sets text transparency
+                        let hp_fade =
+                            ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
+                        Text::new(&format!("{}", (hp_damage).abs()))
+                            .font_size(font_size)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
+                            .mid_bottom_with_margin_on(ui_widgets.window, 297.0 + y)
+                            .set(player_sct_bg_id, ui_widgets);
+                        Text::new(&format!("{}", (hp_damage).abs()))
+                            .font_size(font_size)
+                            .color(if hp_damage < 0 {
+                                Color::Rgba(1.0, 0.1, 0.0, hp_fade)
+                            } else {
+                                Color::Rgba(0.1, 1.0, 0.1, 0.0)
+                            })
+                            .mid_bottom_with_margin_on(ui_widgets.window, 300.0 + y)
+                            .set(player_sct_id, ui_widgets);
+                    };
+                    for floater in floaters {
+                        // Healing always single numbers so just skip damage when in batch mode
+
+                        if global_state.settings.gameplay.sct_player_batch && floater.hp_change < 0
+                        {
+                            continue;
+                        }
+                        let number_speed = 50.0; // Player Heal Speed
+                        let player_sct_bg_id = player_sct_bg_id_walker.next(
+                            &mut self.ids.player_sct_bgs,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        let player_sct_id = player_sct_id_walker.next(
+                            &mut self.ids.player_scts,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        let max_hp_frac =
+                            floater.hp_change.abs() as f32 / stats.health.maximum() as f32;
+                        // Increase font size based on fraction of maximum health
+                        // "flashes" by having a larger size in the first 100ms
+                        let font_size = 30
+                            + (max_hp_frac * 30.0) as u32
+                            + if floater.timer < 0.1 {
+                                (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                            } else {
+                                0
+                            };
+                        // Timer sets the widget offset
+                        let y = if floater.hp_change < 0 {
+                            floater.timer as f64
+                            * number_speed
+                            * floater.hp_change.signum() as f64
+                            //* -1.0
+                            + 300.0
+                                - ui_widgets.win_h * 0.5
+                        } else {
+                            floater.timer as f64
+                                * number_speed
+                                * floater.hp_change.signum() as f64
+                                * -1.0
+                                + 300.0
+                                - ui_widgets.win_h * 0.5
+                        };
+                        // Healing is offset randomly
+                        let x = if floater.hp_change < 0 {
+                            0.0
+                        } else {
+                            (floater.rand as f64 - 0.5) * 0.2 * ui_widgets.win_w
+                        };
+                        // Timer sets text transparency
+                        let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
+                            * 0.25)
+                            + 0.2;
+                        Text::new(&format!("{}", (floater.hp_change).abs()))
+                            .font_size(font_size)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
+                            .x_y(x, y - 3.0)
+                            .set(player_sct_bg_id, ui_widgets);
+                        Text::new(&format!("{}", (floater.hp_change).abs()))
+                            .font_size(font_size)
+                            .color(if floater.hp_change < 0 {
+                                Color::Rgba(1.0, 0.1, 0.0, hp_fade)
+                            } else {
+                                Color::Rgba(0.1, 1.0, 0.1, hp_fade)
+                            })
+                            .x_y(x, y)
+                            .set(player_sct_id, ui_widgets);
+                    }
+                }
+                // EXP Numbers
+                if let (Some(floaters), Some(stats)) = (
+                    Some(&*ecs.read_resource::<crate::ecs::MyExpFloaterList>())
+                        .map(|l| &l.floaters)
+                        .filter(|f| !f.is_empty()),
+                    stats.get(me),
+                ) {
+                    // TODO replace with setting
+                    let batched_sct = false;
+                    if batched_sct {
+                        let number_speed = 50.0; // Number Speed for Cumulated EXP
+                        let player_sct_bg_id = player_sct_bg_id_walker.next(
+                            &mut self.ids.player_sct_bgs,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        let player_sct_id = player_sct_id_walker.next(
+                            &mut self.ids.player_scts,
+                            &mut ui_widgets.widget_id_generator(),
+                        );
+                        // Sum xp change
+                        let exp_change = floaters.iter().fold(0, |acc, f| f.exp_change + acc);
+                        // Can't fail since we filtered out empty lists above
+                        let (timer, rand) = floaters
+                            .last()
+                            .map(|f| (f.timer, f.rand))
+                            .expect("Impossible");
+                        // Increase font size based on fraction of maximum health
+                        // "flashes" by having a larger size in the first 100ms
+                        let font_size_xp = 30
+                            + (exp_change.abs() as f32 / stats.exp.maximum() as f32 * 50.0) as u32
+                            + if timer < 0.1 {
+                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                            } else {
+                                0
+                            };
+
+                        let y = timer as f64 * number_speed; // Timer sets the widget offset
+                        let fade = ((4.0 - timer as f32) * 0.25) + 0.2; // Timer sets text transparency
+
+                        Text::new(&format!("{} Exp", exp_change))
+                            .font_size(font_size_xp)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .x_y(
+                                ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * rand.1 as f64) + y - 3.0,
+                            )
+                            .set(player_sct_bg_id, ui_widgets);
+                        Text::new(&format!("{} Exp", exp_change))
+                            .font_size(font_size_xp)
+                            .color(Color::Rgba(0.59, 0.41, 0.67, fade))
+                            .x_y(
+                                ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
+                                ui_widgets.win_h * (0.15 * rand.1 as f64) + y,
+                            )
+                            .set(player_sct_id, ui_widgets);
+                    } else {
+                        for floater in floaters {
+                            let number_speed = 50.0; // Number Speed for Single EXP
+                            let player_sct_bg_id = player_sct_bg_id_walker.next(
+                                &mut self.ids.player_sct_bgs,
+                                &mut ui_widgets.widget_id_generator(),
+                            );
+                            let player_sct_id = player_sct_id_walker.next(
+                                &mut self.ids.player_scts,
+                                &mut ui_widgets.widget_id_generator(),
+                            );
+                            // Increase font size based on fraction of maximum health
+                            // "flashes" by having a larger size in the first 100ms
+                            let font_size_xp = 30
+                                + (floater.exp_change.abs() as f32 / stats.exp.maximum() as f32
+                                    * 50.0) as u32
+                                + if floater.timer < 0.1 {
+                                    (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                } else {
+                                    0
+                                };
+
+                            let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                            let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets text transparency
+
+                            Text::new(&format!("{} Exp", floater.exp_change))
+                                .font_size(font_size_xp)
+                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                                .x_y(
+                                    ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
+                                    ui_widgets.win_h * (0.15 * floater.rand.1 as f64) + y - 3.0,
+                                )
+                                .set(player_sct_bg_id, ui_widgets);
+                            Text::new(&format!("{} Exp", floater.exp_change))
+                                .font_size(font_size_xp)
+                                .color(Color::Rgba(0.59, 0.41, 0.67, fade))
+                                .x_y(
+                                    ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
+                                    ui_widgets.win_h * (0.15 * floater.rand.1 as f64) + y,
+                                )
+                                .set(player_sct_id, ui_widgets);
+                        }
+                    }
+                }
             }
 
             // Render Name Tags
-            for (pos, name, level, scale) in
-                (&entities, &pos, &stats, players.maybe(), scales.maybe())
-                    .join()
-                    .filter(|(entity, _, stats, _, _)| *entity != me && !stats.is_dead)
-                    // Don't process nametags outside the vd (visibility further limited by ui backend)
-                    .filter(|(_, pos, _, _, _)| {
-                        Vec2::from(pos.0 - player_pos)
-                            .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                                d.abs() as f32 / sz as f32
-                            })
-                            .magnitude()
-                            < view_distance as f32
-                    })
-                    .map(|(_, pos, stats, player, scale)| {
-                        // TODO: This is temporary
-                        // If the player used the default character name display their name instead
-                        let name = if stats.name == "Character Name" {
-                            player.map_or(&stats.name, |p| &p.alias)
-                        } else {
-                            &stats.name
-                        };
-                        (pos.0, name, stats.level, scale)
-                    })
+            for (pos, name, level, scale) in (
+                &entities,
+                &pos,
+                interpolated.maybe(),
+                &stats,
+                players.maybe(),
+                scales.maybe(),
+            )
+                .join()
+                .filter(|(entity, _, _, stats, _, _)| *entity != me && !stats.is_dead)
+                // Don't process nametags outside the vd (visibility further limited by ui backend)
+                .filter(|(_, pos, _, _, _, _)| {
+                    Vec2::from(pos.0 - player_pos)
+                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                            d.abs() as f32 / sz as f32
+                        })
+                        .magnitude()
+                        < view_distance as f32
+                })
+                .map(|(_, pos, interpolated, stats, player, scale)| {
+                    // TODO: This is temporary
+                    // If the player used the default character name display their name instead
+                    let name = if stats.name == "Character Name" {
+                        player.map_or(&stats.name, |p| &p.alias)
+                    } else {
+                        &stats.name
+                    };
+                    (
+                        interpolated.map_or(pos.0, |i| i.pos),
+                        format!("{}", name),
+                        stats.level,
+                        scale.map_or(1.0, |s| s.0),
+                    )
+                })
             {
-                let name = format!("{}", name);
-                let scale = scale.map(|s| s.0).unwrap_or(1.0);
                 let name_id = name_id_walker.next(
                     &mut self.ids.name_tags,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                let name_bg_id = name_id_bg_walker.next(
+                    &mut self.ids.name_tags_bgs,
                     &mut ui_widgets.widget_id_generator(),
                 );
                 let level_id = level_id_walker
@@ -682,6 +1140,13 @@ impl Hud {
                 );
 
                 // Name
+                Text::new(&name)
+                    .font_size(20)
+                    .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                    .x_y(-1.0, -1.0)
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .resolution(100.0)
+                    .set(name_bg_id, ui_widgets);
                 Text::new(&name)
                     .font_size(20)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
@@ -726,15 +1191,16 @@ impl Hud {
                     } else {
                         self.imgs.skull
                     })
-                    .w_h(30.0, 30.0)
-                    .x_y(0.0, 24.0)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
+                    .w_h(18.0, 18.0)
+                    .x_y(-39.0, -25.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .resolution(100.0)
                     .set(level_skull_id, ui_widgets);
                 }
             }
         }
+
         // Introduction Text
         let intro_text: &'static str =
             "Welcome to the Veloren Alpha!\n\
@@ -906,7 +1372,7 @@ impl Hud {
         }
 
         // Display debug window.
-        if self.show.debug {
+        if global_state.settings.gameplay.toggle_debug {
             // Alpha Version
             Text::new(&version)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
@@ -1018,12 +1484,46 @@ impl Hud {
             .set(self.ids.num_figures, ui_widgets);
 
             // Help Window
-            Text::new("Press 'F1' to show Keybindings")
-                .color(TEXT_COLOR)
-                .down_from(self.ids.num_figures, 5.0)
-                .font_id(self.fonts.cyri)
-                .font_size(14)
-                .set(self.ids.help_info, ui_widgets);
+            Text::new(&format!(
+                "Press {:?} to show keybindings",
+                global_state.settings.controls.help
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.num_figures, 5.0)
+            .font_id(self.fonts.cyri)
+            .font_size(14)
+            .set(self.ids.help_info, ui_widgets);
+            // Info about Debug Shortcut
+            Text::new(&format!(
+                "Press {:?} to toggle debug info",
+                global_state.settings.controls.toggle_debug
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.help_info, 5.0)
+            .font_id(self.fonts.cyri)
+            .font_size(14)
+            .set(self.ids.debug_info, ui_widgets);
+        } else {
+            // Help Window
+            Text::new(&format!(
+                "Press {:?} to show keybindings",
+                global_state.settings.controls.help
+            ))
+            .color(TEXT_COLOR)
+            .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+            .font_id(self.fonts.cyri)
+            .font_size(16)
+            .set(self.ids.help_info, ui_widgets);
+            // Info about Debug Shortcut
+            Text::new(&format!(
+                "Press {:?} to toggle debug info",
+                global_state.settings.controls.toggle_debug
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.help_info, 5.0)
+            .font_id(self.fonts.cyri)
+            .font_size(12)
+            .set(self.ids.debug_info, ui_widgets);
         }
 
         // Add Bag-Space Button.
@@ -1185,6 +1685,15 @@ impl Hud {
                 .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
+                    settings_window::Event::Sct(sct) => {
+                        events.push(Event::Sct(sct));
+                    }
+                    settings_window::Event::SctPlayerBatch(sct_player_batch) => {
+                        events.push(Event::SctPlayerBatch(sct_player_batch));
+                    }
+                    settings_window::Event::SctDamageBatch(sct_damage_batch) => {
+                        events.push(Event::SctDamageBatch(sct_damage_batch));
+                    }
                     settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
@@ -1319,6 +1828,7 @@ impl Hud {
                 self.world_map,
                 &self.fonts,
                 self.pulse,
+                self.velocity,
             )
             .set(self.ids.map, ui_widgets)
             {
@@ -1471,7 +1981,8 @@ impl Hud {
                     true
                 }
                 GameInput::ToggleDebug => {
-                    self.show.debug = !self.show.debug;
+                    global_state.settings.gameplay.toggle_debug =
+                        !global_state.settings.gameplay.toggle_debug;
                     true
                 }
                 GameInput::ToggleIngameUi => {

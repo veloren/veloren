@@ -1,4 +1,5 @@
 use crate::{
+    ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud},
     key_state::KeyState,
     render::Renderer,
@@ -40,6 +41,14 @@ impl SessionState {
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
         let hud = Hud::new(global_state, &client.borrow());
+        {
+            let my_entity = client.borrow().entity();
+            client
+                .borrow_mut()
+                .state_mut()
+                .ecs_mut()
+                .insert(MyEntity(my_entity));
+        }
         Self {
             scene,
             client,
@@ -55,7 +64,11 @@ impl SessionState {
     /// Tick the session (and the client attached to it).
     fn tick(&mut self, dt: Duration) -> Result<(), Error> {
         self.inputs.tick(dt);
-        for event in self.client.borrow_mut().tick(self.inputs.clone(), dt)? {
+        for event in self.client.borrow_mut().tick(
+            self.inputs.clone(),
+            dt,
+            crate::ecs::sys::add_local_systems,
+        )? {
             match event {
                 Chat {
                     chat_type: _,
@@ -421,6 +434,22 @@ impl PlayState for SessionState {
                     HudEvent::ToggleZoomInvert(zoom_inverted) => {
                         global_state.window.zoom_inversion = zoom_inverted;
                         global_state.settings.gameplay.zoom_inversion = zoom_inverted;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::Sct(sct) => {
+                        global_state.settings.gameplay.sct = sct;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::SctPlayerBatch(sct_player_batch) => {
+                        global_state.settings.gameplay.sct_player_batch = sct_player_batch;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::SctDamageBatch(sct_damage_batch) => {
+                        global_state.settings.gameplay.sct_damage_batch = sct_damage_batch;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::ToggleDebug(toggle_debug) => {
+                        global_state.settings.gameplay.toggle_debug = toggle_debug;
                         global_state.settings.save_to_file_warn();
                     }
                     HudEvent::ToggleMouseYInvert(mouse_y_inverted) => {

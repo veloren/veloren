@@ -1,3 +1,4 @@
+use crate::ui::Graphic;
 use crate::{
     render::Renderer,
     ui::{
@@ -7,6 +8,7 @@ use crate::{
     },
     GlobalState,
 };
+use common::assets::load_expect;
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -14,6 +16,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use rand::{seq::SliceRandom, thread_rng};
 use std::time::Duration;
 
 widget_ids! {
@@ -84,7 +87,6 @@ image_ids! {
 
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
-        load: "voxygen.background.bg_load",
 
         <BlankGraphic>
         nothing: (),
@@ -129,6 +131,7 @@ pub enum PopupType {
     Error,
     ConnectionInfo,
 }
+
 pub struct PopupData {
     msg: String,
     button_text: String,
@@ -150,6 +153,7 @@ pub struct MainMenuUi {
     show_servers: bool,
     show_disclaimer: bool,
     time: f32,
+    bg_img_id: conrod_core::image::Id,
 }
 
 impl MainMenuUi {
@@ -157,6 +161,18 @@ impl MainMenuUi {
         let window = &mut global_state.window;
         let networking = &global_state.settings.networking;
         let gameplay = &global_state.settings.gameplay;
+        // Randomly loaded background images
+        let bg_imgs = [
+            "voxygen.background.bg_1",
+            "voxygen.background.bg_2",
+            "voxygen.background.bg_3",
+            "voxygen.background.bg_4",
+            "voxygen.background.bg_5",
+            "voxygen.background.bg_6",
+            "voxygen.background.bg_7",
+            "voxygen.background.bg_8",
+        ];
+        let mut rng = thread_rng();
 
         let mut ui = Ui::new(window).unwrap();
         ui.set_scaling_mode(gameplay.ui_scale);
@@ -165,6 +181,9 @@ impl MainMenuUi {
         // Load images
         let imgs = Imgs::load(&mut ui).expect("Failed to load images");
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
+        let bg_img_id = ui.add_graphic(Graphic::Image(load_expect(
+            bg_imgs.choose(&mut rng).unwrap(),
+        )));
         // Load fonts
         let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
 
@@ -183,6 +202,7 @@ impl MainMenuUi {
             connect: false,
             time: 0.0,
             show_disclaimer: global_state.settings.show_disclaimer,
+            bg_img_id,
         }
     }
 
@@ -225,14 +245,14 @@ impl MainMenuUi {
         .desc_text_color(TEXT_COLOR_2);
 
         // Background image, Veloren logo, Alpha-Version Label
-
         Image::new(if self.connect {
-            self.imgs.load
+            self.bg_img_id
         } else {
             self.imgs.bg
         })
         .middle_of(ui_widgets.window)
         .set(self.ids.bg, ui_widgets);
+
         // Version displayed top right corner
         Text::new(&version)
             .color(TEXT_COLOR)

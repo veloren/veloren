@@ -57,6 +57,9 @@ pub struct IngameParameters {
     // Used for widgets that are rasterized before being sent to the gpu (text & images)
     // Potentially make this automatic based on distance to camera?
     pub res: f32,
+    // Whether the widgets should be scaled based on distance to the camera or if they should be a
+    // fixed size (res is ignored in that case)
+    pub fixed_scale: bool,
 }
 
 pub struct State {
@@ -74,9 +77,14 @@ impl<W: Ingameable> Ingame<W> {
                 num: widget.prim_count(),
                 pos,
                 res: 1.0,
+                fixed_scale: false,
             },
             widget,
         }
+    }
+    pub fn fixed_scale(mut self) -> Self {
+        self.parameters.fixed_scale = true;
+        self
     }
     builder_methods! {
         pub resolution { parameters.res = f32 }
@@ -147,6 +155,7 @@ impl IngameAnchor {
                 num: 0,
                 pos,
                 res: 1.0,
+                fixed_scale: false,
             },
         }
     }

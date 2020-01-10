@@ -43,10 +43,10 @@ impl Pipeline for UiPipeline {
     type Vertex = Vertex;
 }
 
-impl From<Vec3<f32>> for Locals {
-    fn from(pos: Vec3<f32>) -> Self {
+impl From<Vec4<f32>> for Locals {
+    fn from(pos: Vec4<f32>) -> Self {
         Self {
-            pos: [pos.x, pos.y, pos.z, 1.0],
+            pos: pos.into_array(),
         }
     }
 }
