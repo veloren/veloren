@@ -51,7 +51,7 @@ fn main() {
     println!("Players online: {:?}", client.get_players());
 
     client
-        .register(comp::Player::new(username, None), password, |provider| {
+        .register(username, password, |provider| {
             provider == "https://auth.veloren.net"
         })
         .unwrap();
