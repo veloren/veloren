@@ -902,7 +902,11 @@ impl Hud {
                             ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
                         Text::new(&format!("{}", (hp_damage).abs()))
                             .font_size(font_size)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
+                            .color(if hp_damage < 0 {
+                                Color::Rgba(0.0, 0.0, 0.0, hp_fade)
+                            } else {
+                                Color::Rgba(0.0, 0.0, 0.0, 0.0)
+                            })
                             .mid_bottom_with_margin_on(ui_widgets.window, 297.0 + y)
                             .set(player_sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", (hp_damage).abs()))
@@ -910,7 +914,7 @@ impl Hud {
                             .color(if hp_damage < 0 {
                                 Color::Rgba(1.0, 0.1, 0.0, hp_fade)
                             } else {
-                                Color::Rgba(0.1, 1.0, 0.1, 0.0)
+                                Color::Rgba(0.0, 0.0, 0.0, 0.0)
                             })
                             .mid_bottom_with_margin_on(ui_widgets.window, 300.0 + y)
                             .set(player_sct_id, ui_widgets);
