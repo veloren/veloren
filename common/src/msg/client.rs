@@ -4,7 +4,7 @@ use vek::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientMsg {
     Register {
-        player: comp::Player,
+        view_distance: Option<u32>,
         token_or_username: String,
     },
     Character {

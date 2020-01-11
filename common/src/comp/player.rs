@@ -1,3 +1,4 @@
+use authc::Uuid;
 use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IDVStorage;
 
@@ -7,20 +8,26 @@ const MAX_ALIAS_LEN: usize = 32;
 pub struct Player {
     pub alias: String,
     pub view_distance: Option<u32>,
+    uuid: Uuid,
 }
 
 impl Player {
-    pub fn new(alias: String, view_distance: Option<u32>) -> Self {
+    pub fn new(alias: String, view_distance: Option<u32>, uuid: Uuid) -> Self {
         Self {
             alias,
             view_distance,
+            uuid,
         }
     }
 
-    pub fn is_valid(&self) -> bool {
-        self.alias.chars().all(|c| c.is_alphanumeric() || c == '_')
-            && self.alias.len() <= MAX_ALIAS_LEN
+    pub fn is_valid(&self) -> bool { Self::alias_is_valid(&self.alias) }
+
+    pub fn alias_is_valid(alias: &str) -> bool {
+        alias.chars().all(|c| c.is_alphanumeric() || c == '_') && alias.len() <= MAX_ALIAS_LEN
     }
+
+    /// Not to be confused with uid
+    pub fn uuid(&self) -> Uuid { self.uuid }
 }
 
 impl Component for Player {

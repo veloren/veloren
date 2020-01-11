@@ -1,6 +1,7 @@
 use authc::{AuthClient, AuthToken, Uuid};
 use common::msg::RegisterError;
 use hashbrown::HashMap;
+use log::error;
 use std::str::FromStr;
 
 fn derive_uuid(username: &str) -> Uuid {
@@ -42,9 +43,13 @@ impl AuthProvider {
         }
     }
 
-    pub fn logout(&mut self, username: &str) { self.accounts.retain(|_, v| v != username); }
+    pub fn logout(&mut self, uuid: Uuid) {
+        if self.accounts.remove(&uuid).is_none() {
+            error!("Attempted to logout user that is not logged in.");
+        };
+    }
 
-    pub fn query(&mut self, username_or_token: String) -> Result<(), RegisterError> {
+    pub fn query(&mut self, username_or_token: String) -> Result<(String, Uuid), RegisterError> {
         // Based on whether auth server is provided or not we expect an username or
         // token
         match &self.auth_server {
@@ -61,9 +66,9 @@ impl AuthProvider {
                     return Err(RegisterError::AlreadyLoggedIn);
                 }
                 // Log in
-                let username = srv.uuid_to_username(uuid.clone())?;
-                self.accounts.insert(uuid, username);
-                Ok(())
+                let username = srv.uuid_to_username(uuid)?;
+                self.accounts.insert(uuid, username.clone());
+                Ok((username, uuid))
             },
             // Username is expected
             None => {
@@ -72,8 +77,8 @@ impl AuthProvider {
                 let uuid = derive_uuid(&username);
                 if !self.accounts.contains_key(&uuid) {
                     log::info!("New User '{}'", username);
-                    self.accounts.insert(uuid, username);
-                    Ok(())
+                    self.accounts.insert(uuid, username.clone());
+                    Ok((username, uuid))
                 } else {
                     Err(RegisterError::AlreadyLoggedIn)
                 }
