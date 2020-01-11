@@ -20,7 +20,7 @@ use client::Client;
 use common::{
     comp,
     terrain::{BlockKind, TerrainChunk, TerrainChunkSize},
-    vol::{RectVolSize, ReadVol},
+    vol::{ReadVol, RectVolSize},
 };
 use specs::{Join, WorldExt};
 use vek::*;
