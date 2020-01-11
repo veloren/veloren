@@ -152,7 +152,7 @@ impl<'a> Widget for MiniMap<'a> {
                 .map_or(Vec3::zero(), |pos| pos.0);
 
             let x = player_pos.x as f64 / worldsize.x * 92.0 * 4.0;
-            let y = (1.0 - player_pos.y as f64 / worldsize.y) * 82.0 * 4.0;
+            let y = player_pos.y as f64 / worldsize.y * 82.0 * 4.0;
             let indic_ani = (self.pulse * 6.0).cos() * 0.5 + 0.5; //Animation timer
             let indic_scale = 0.8;
             // Indicator
