@@ -1,6 +1,6 @@
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
 use client::{self, Client};
-use common::comp;
+use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
     color,
     image::Id,
@@ -30,7 +30,7 @@ widget_ids! {
 pub struct Map<'a> {
     _show: &'a Show,
     client: &'a Client,
-    _world_map: Id,
+    world_map: (Id, Vec2<u32>),
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
@@ -43,7 +43,7 @@ impl<'a> Map<'a> {
         show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
-        world_map: Id,
+        world_map: (Id, Vec2<u32>),
         fonts: &'a Fonts,
         pulse: f32,
         velocity: f32,
@@ -51,7 +51,7 @@ impl<'a> Map<'a> {
         Self {
             _show: show,
             imgs,
-            _world_map: world_map,
+            world_map,
             client,
             fonts: fonts,
             common: widget::CommonBuilder::default(),
@@ -159,7 +159,10 @@ impl<'a> Widget for Map<'a> {
         }
 
         // Map Image
-        Image::new(/*self.world_map*/ self.imgs.map_placeholder)
+        let (world_map, worldsize) = self.world_map;
+        let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
+
+        Image::new(world_map/*self.imgs.map_placeholder*/)
             .middle_of(state.ids.map_bg)
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade - 0.1)))
             .w_h(700.0, 700.0)
@@ -174,9 +177,8 @@ impl<'a> Widget for Map<'a> {
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
-        let x = player_pos.x as f64 / worldsize * 700.0/*= x-Size of the map image*/;
-        let y = (/*1.0 -*/player_pos.y as f64 / worldsize) * 700.0;
+        let x = player_pos.x as f64 / worldsize.x * 700.0;
+        let y = (1.0 - player_pos.y as f64 / worldsize.y) * 700.0;
         let indic_ani = (self.pulse * 6.0/*animation speed*/).cos()/*starts at 1.0*/ * 0.5 + 0.50; // changes the animation frame
         let indic_scale = 1.2;
         // Indicator

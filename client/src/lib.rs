@@ -11,6 +11,7 @@ pub use specs::{
     Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, WorldExt,
 };
 
+use byteorder::{ByteOrder, LittleEndian};
 use common::{
     comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
     msg::{
@@ -55,7 +56,7 @@ pub struct Client {
     client_state: ClientState,
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
-    pub world_map: Arc<DynamicImage>,
+    pub world_map: (Arc<DynamicImage>, Vec2<u32>),
     pub player_list: HashMap<u64, String>,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
@@ -87,7 +88,7 @@ impl Client {
                 entity_package,
                 server_info,
                 time_of_day,
-                // world_map: /*(map_size, world_map)*/map_size,
+                world_map: (map_size, world_map),
             }) => {
                 // TODO: Display that versions don't match in Voxygen
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
@@ -105,23 +106,23 @@ impl Client {
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
 
-                // assert_eq!(world_map.len(), map_size.x * map_size.y);
-                let map_size = Vec2::new(1024, 1024);
-                let world_map_raw = vec![0u8; 4 * /*world_map.len()*/map_size.x * map_size.y];
-                // LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
+                assert_eq!(world_map.len(), (map_size.x * map_size.y) as usize);
+                // let map_size = Vec2::new(1024, 1024);
+                let mut world_map_raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
+                LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
                 log::debug!("Preparing image...");
                 let world_map = Arc::new(image::DynamicImage::ImageRgba8({
                     // Should not fail if the dimensions are correct.
                     let world_map = image::ImageBuffer::from_raw(
-                        map_size.x as u32,
-                        map_size.y as u32,
+                        map_size.x,
+                        map_size.y,
                         world_map_raw,
                     );
                     world_map.ok_or(Error::Other("Server sent a bad world map image".into()))?
                 }));
                 log::debug!("Done preparing image...");
 
-                (state, entity, server_info, world_map)
+                (state, entity, server_info, (world_map, map_size))
             }
             Some(ServerMsg::Error(ServerError::TooManyPlayers)) => {
                 return Err(Error::TooManyPlayers)
