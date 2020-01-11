@@ -15,7 +15,7 @@ use vek::*;
 pub fn map_edge_factor(posi: usize) -> f32 {
     uniform_idx_as_vec2(posi)
         .map2(WORLD_SIZE.map(|e| e as i32), |e, sz| {
-            (sz / 2 - (e - sz / 2).abs()) as f32 / 16.0
+            (sz / 2 - (e - sz / 2).abs()) as f32 / (16.0 / 1024.0 * sz as f32)
         })
         .reduce_partial_min()
         .max(0.0)
@@ -217,20 +217,22 @@ pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item = usize> {
         .map(vec2_as_uniform_idx)
 }
 
+// NOTE: want to keep this such that the chunk index is in ascending order!
+pub const NEIGHBOR_DELTA : [(i32, i32); 8] = [
+    (-1, -1),
+    (0, -1),
+    (1, -1),
+    (-1, 0),
+    (1, 0),
+    (-1, 1),
+    (0, 1),
+    (1, 1),
+];
+
 /// Iterate through all cells adjacent to a chunk.
 pub fn neighbors(posi: usize) -> impl Clone + Iterator<Item = usize> {
     let pos = uniform_idx_as_vec2(posi);
-    // NOTE: want to keep this such that the chunk index is in ascending order!
-    [
-        (-1, -1),
-        (0, -1),
-        (1, -1),
-        (-1, 0),
-        (1, 0),
-        (-1, 1),
-        (0, 1),
-        (1, 1),
-    ]
+    NEIGHBOR_DELTA
     .iter()
     .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
     .filter(|pos| {
@@ -277,14 +279,14 @@ pub fn downhill<F: Float>(h: impl Fn(usize) -> F + Sync, is_ocean: impl Fn(usize
 /// Find all ocean tiles from a height map, using an inductive definition of ocean as one of:
 /// - posi is at the side of the world (map_edge_factor(posi) == 0.0)
 /// - posi has a neighboring ocean tile, and has a height below sea level (oldh(posi) <= 0.0).
-pub fn get_oceans(oldh: impl Fn(usize) -> f32 + Sync) -> BitBox {
+pub fn get_oceans<F: Float>(oldh: impl Fn(usize) -> F + Sync) -> BitBox {
     // We can mark tiles as ocean candidates by scanning row by row, since the top edge is ocean,
     // the sides are connected to it, and any subsequent ocean tiles must be connected to it.
     let mut is_ocean = bitbox![0; WORLD_SIZE.x * WORLD_SIZE.y];
     let mut stack = Vec::new();
     let mut do_push = |pos| {
         let posi = vec2_as_uniform_idx(pos);
-        if oldh(posi) <= 0.0 {
+        if oldh(posi) <= F::zero() {
             stack.push(posi);
         } else {
             // panic!("Hopefully no border tiles are above sea level.");
@@ -306,7 +308,7 @@ pub fn get_oceans(oldh: impl Fn(usize) -> f32 + Sync) -> BitBox {
         *is_ocean.at(chunk_idx) = true;
         stack.extend(neighbors(chunk_idx).filter(|&neighbor_idx| {
             // println!("Ocean neighbor: {:?}: {:?}", uniform_idx_as_vec2(neighbor_idx), oldh(neighbor_idx));
-            oldh(neighbor_idx) <= 0.0
+            oldh(neighbor_idx) <= F::zero()
         }));
     }
     is_ocean

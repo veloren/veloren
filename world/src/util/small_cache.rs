@@ -9,7 +9,7 @@ fn calc_idx(v: Vec2<i32>) -> usize {
     (x ^ y) as usize
 }
 
-const CACHE_LEN: usize = 32;
+const CACHE_LEN: usize = /*512*//*128*/32;
 
 pub struct SmallCache<V: Default> {
     index: [Option<Vec2<i32>>; CACHE_LEN + 9],
@@ -20,7 +20,7 @@ impl<V: Default> Default for SmallCache<V> {
     fn default() -> Self {
         Self {
             index: [None; CACHE_LEN + 9],
-            data: arr![V::default(); 41], // TODO: Use CACHE_LEN
+            data: arr![V::default(); /*521*//*137*/41], // TODO: Use CACHE_LEN
             random: 1,
         }
     }
