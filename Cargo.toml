@@ -38,11 +38,20 @@ opt-level = 2
 opt-level = 2
 [profile.dev.package."veloren-world"]
 opt-level = 2
+[profile.no_overflow.overrides."veloren-world"]
+opt-level = 3
 
 # this profile is used by developers if dev doesn't has enough debug information, the name must != debug, as debug is used by dev because....
 [profile.debuginfo]
 inherits= 'dev'
 debug = true
+
+# used to perform things that do a *lot* of math (i.e. worldgen) but still need reasonable compilation time.  Ideally this would also
+# add -C target-cpu=native, but I don't think you can set this by profile currently.
+[profile.no_overflow]
+inherits= 'dev'
+overflow-checks = false
+debug-assertions = false
 
 # this profile is used for veloren releases, compile time doesn't matter
 # we need stacktraces, light debug information, as much checks as possible
