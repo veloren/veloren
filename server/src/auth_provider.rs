@@ -42,6 +42,8 @@ impl AuthProvider {
         }
     }
 
+    pub fn logout(&mut self, username: &str) { self.accounts.retain(|_, v| v != username); }
+
     pub fn query(&mut self, username_or_token: String) -> Result<(), RegisterError> {
         // Based on whether auth server is provided or not we expect an username or
         // token
