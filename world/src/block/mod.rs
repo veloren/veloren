@@ -262,10 +262,10 @@ impl<'a> BlockGen<'a> {
             let block = if (wposf.z as f32) < height - grass_depth {
                 let col = Lerp::lerp(
                     // saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
-                    sub_surface_color.map(|e| (e * 255.0) as u8),
-                    stone_col,
+                    sub_surface_color,
+                    stone_col.map(|e| e as f32 / 255.0),
                     (height - grass_depth - wposf.z as f32) * 0.15,
-                );
+                ).map(|e| (e * 255.0) as u8);
 
                 // Underground
                 if (wposf.z as f32) > alt - 32.0 * chaos {
