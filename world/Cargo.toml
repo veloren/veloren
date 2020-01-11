@@ -28,5 +28,5 @@ serde_derive = "1.0.102"
 ron = "0.5.1"
 
 [dev-dependencies]
-minifb = { git = "https://github.com/emoon/rust_minifb.git" }
 pretty_env_logger = "0.3.0"
+minifb = "0.14.0"

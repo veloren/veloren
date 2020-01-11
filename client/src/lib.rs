@@ -175,27 +175,24 @@ impl Client {
     /// Request a state transition to `ClientState::Registered`.
     pub fn register(
         &mut self,
-        player: comp::Player,
+        username: String,
         password: String,
         mut auth_trusted: impl FnMut(&str) -> bool,
     ) -> Result<(), Error> {
         // Authentication
-        let token_or_username = match &self.server_info.auth_provider {
-            Some(addr) => {
+        let token_or_username = self.server_info.auth_provider.as_ref().map(|addr|
                 // Query whether this is a trusted auth server
                 if auth_trusted(&addr) {
-                    authc::AuthClient::new(addr)
-                        .sign_in(&player.alias, &password)?
-                        .serialize()
+                    Ok(authc::AuthClient::new(addr)
+                        .sign_in(&username, &password)?
+                        .serialize())
                 } else {
-                    return Err(Error::AuthServerNotTrusted);
+                    Err(Error::AuthServerNotTrusted)
                 }
-            },
-            None => player.alias.clone(),
-        };
+        ).unwrap_or(Ok(username))?;
 
         self.postbox.send_message(ClientMsg::Register {
-            player,
+            view_distance: self.view_distance,
             token_or_username,
         });
         self.client_state = ClientState::Pending;

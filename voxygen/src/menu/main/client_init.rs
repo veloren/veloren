@@ -1,5 +1,5 @@
 use client::{error::Error as ClientError, Client};
-use common::{comp, net::PostError};
+use common::net::PostError;
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
     net::ToSocketAddrs,
@@ -40,7 +40,8 @@ pub struct ClientInit {
 impl ClientInit {
     pub fn new(
         connection_args: (String, u16, bool),
-        player: comp::Player,
+        username: String,
+        view_distance: Option<u32>,
         password: String,
     ) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
@@ -72,10 +73,10 @@ impl ClientInit {
                         for socket_addr in
                             first_addrs.clone().into_iter().chain(second_addrs.clone())
                         {
-                            match Client::new(socket_addr, player.view_distance) {
+                            match Client::new(socket_addr, view_distance) {
                                 Ok(mut client) => {
                                     if let Err(err) =
-                                        client.register(player.clone(), password, |auth_server| {
+                                        client.register(username, password, |auth_server| {
                                             let _ = tx
                                                 .send(Msg::IsAuthTrusted(auth_server.to_string()));
                                             trust_rx
@@ -89,7 +90,7 @@ impl ClientInit {
                                         last_err = Some(Error::ClientError(err));
                                         break 'tries;
                                     }
-                                    let _ = tx.send(Ok(client));
+                                    let _ = tx.send(Msg::Done(Ok(client)));
                                     return;
                                 },
                                 Err(err) => {

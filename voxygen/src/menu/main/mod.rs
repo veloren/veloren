@@ -3,13 +3,10 @@ mod client_init;
 
 use super::char_selection::CharSelectionState;
 use crate::{
-    i18n::{i18n_asset_key, VoxygenLocalization},
-    singleplayer::Singleplayer,
-    window::Event,
-    Direction, GlobalState, PlayState, PlayStateResult,
+    singleplayer::Singleplayer, window::Event, Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
-use common::{assets::load_expect, clock::Clock, comp};
+use common::{clock::Clock, comp};
 use log::{error, warn};
 #[cfg(feature = "singleplayer")]
 use std::time::Duration;
@@ -66,7 +63,7 @@ impl PlayState for MainMenuState {
 
             // Poll client creation.
             match client_init.as_ref().and_then(|init| init.poll()) {
-                Some(Ok(mut client)) => {
+                Some(InitMsg::Done(Ok(mut client))) => {
                     self.main_menu_ui.connected();
                     // Register voxygen components / resources
                     crate::ecs::init(client.state_mut().ecs_mut());
@@ -203,9 +200,6 @@ impl PlayState for MainMenuState {
                     },
                 }
             }
-            let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
-                &global_state.settings.language.selected_language,
-            ));
 
             if let Some(info) = global_state.info_message.take() {
                 self.main_menu_ui.show_info(info);
@@ -249,21 +243,17 @@ fn attempt_login(
         warn!("Failed to save settings: {:?}", err);
     }
 
-    let player = comp::Player::new(
-        username.clone(),
-        Some(global_state.settings.graphics.view_distance),
-    );
-
-    if player.is_valid() {
+    if comp::Player::alias_is_valid(&username) {
         // Don't try to connect if there is already a connection in progress.
         if client_init.is_none() {
             *client_init = Some(ClientInit::new(
                 (server_address, server_port, false),
-                player,
+                username,
+                Some(global_state.settings.graphics.view_distance),
                 { password },
             ));
         }
     } else {
-        global_state.info_message = Some("Invalid username or password".to_string());
+        global_state.info_message = Some("Invalid username".to_string());
     }
 }
