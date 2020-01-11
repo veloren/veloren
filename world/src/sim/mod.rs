@@ -2128,7 +2128,7 @@ impl SimChunk {
         // Take the weighted average of our randomly generated base humidity, the scaled
         // negative altitude, and the calculated water flux over this point in order to compute
         // humidity.
-        const HUMID_WEIGHTS: [f32; /*3*/2] = [4.0, 1.0/*, 1.0*/];
+        const HUMID_WEIGHTS: [f32; /*3*/2] = [2.0, 1.0/*, 1.0*/];
         let humidity = /*if flux_non_uniform.is_nan() {
             0.0
         } else */{
