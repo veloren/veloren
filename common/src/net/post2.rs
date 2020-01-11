@@ -43,7 +43,7 @@ impl From<channel::TryRecvError> for Error {
 
 pub trait PostMsg = Serialize + DeserializeOwned + 'static + Send;
 
-const MAX_MSG_SIZE: usize = 1 << 20;
+const MAX_MSG_SIZE: usize = 1 << 24;
 
 pub struct PostOffice<S: PostMsg, R: PostMsg> {
     listener: TcpListener,

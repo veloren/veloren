@@ -1078,7 +1078,7 @@ impl Server {
                             .create_entity_package(entity),
                         server_info: self.server_info.clone(),
                         time_of_day: *self.state.ecs().read_resource(),
-                        // world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
+                        world_map: (WORLD_SIZE.map(|e| e as u32), self.world.sim().get_map()),
                     });
                 log::debug!("Done initial sync with client.");
 
