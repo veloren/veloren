@@ -6,8 +6,10 @@ mod util;
 
 // Reexports
 pub use self::diffusion::diffusion;
+use self::erosion::Compute;
 pub use self::erosion::{
-    Alt, do_erosion, fill_sinks, get_drainage, get_lakes, get_rivers, RiverData, RiverKind,
+    do_erosion, fill_sinks, get_drainage, get_lakes, get_multi_drainage, get_multi_rec, get_rivers,
+    mrec_downhill, Alt, RiverData, RiverKind,
 };
 pub use self::location::Location;
 pub use self::settlement::Settlement;
@@ -69,8 +71,8 @@ struct GenCdf {
     dh: Box<[isize]>,
     /// NOTE: Until we hit 4096 × 4096, this should suffice since integers with an absolute value
     /// under 2^24 can be exactly represented in an f32.
-    flux: Box<[f32]>,
-    pure_flux: InverseCdf,
+    flux: Box<[Compute]>,
+    pure_flux: InverseCdf<Compute>,
     alt_no_water: InverseCdf,
     rivers: Box<[RiverData]>,
 }
@@ -904,6 +906,130 @@ impl WorldSim {
             1.0
             // 1.5
         };
+        let epsilon_0_func = |posi| {
+            if is_ocean_fn(posi) {
+                // marine: ε₀ = 2.078e-3
+                return 2.078e-3;
+                // return 5.0;
+            }
+            let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+                .map(|e| e as f64);
+            let turb_wposf = wposf
+                .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                .div(turb_wposf_div);
+            let turb = Vec2::new(
+                gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
+                gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
+            ) * uplift_turb_scale
+                * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+            // let turb = Vec2::zero();
+            let turb_wposf = wposf + turb;
+            let turb_wposi = turb_wposf
+                .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
+                .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
+            let turb_posi = vec2_as_uniform_idx(turb_wposi);
+            let uheight = gen_ctx
+                .uplift_nz
+                .get(turb_wposf.into_array())
+                /* .min(0.5)
+                .max(-0.5)*/
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            let wposf3 = Vec3::new(
+                wposf.x,
+                wposf.y,
+                uheight * CONFIG.mountain_scale as f64 * rock_strength_div_factor,
+            );
+            let rock_strength = gen_ctx
+                .rock_strength_nz
+                .get(wposf3.into_array())
+                /* .min(0.5)
+                .max(-0.5)*/
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            let center = /*0.25*/0.4;
+            let dmin = center - /*0.15;//0.05*/0.05;
+            let dmax = center + /*0.05*//*0.10*/0.05; //0.05;
+            let log_odds = |x: f64| logit(x) - logit(center);
+            let ustrength = logistic_cdf(
+                1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
+                    + 1.0 * log_odds(uheight.min(dmax).max(dmin)),
+            );
+            // marine: ε₀ = 2.078e-3
+            // San Gabriel Mountains: ε₀ = 3.18e-4
+            // Oregon Coast Range: ε₀ = 2.68e-4
+            // Frogs Hollow (peak production = 0.25): ε₀ = 1.41e-4
+            // Point Reyes: ε₀ = 8.1e-5
+            // Nunnock River (fractured granite, least weathered?): ε₀ = 5.3e-5
+            // The stronger the rock, the lower the production rate of exposed bedrock.
+            // ((1.0 - ustrength) * (/*3.18e-4*/2.078e-3 - 5.3e-5) + 5.3e-5) as f32
+            0.0
+        };
+        let alpha_func = |posi| {
+            if is_ocean_fn(posi) {
+                // marine: α = 3.7e-2
+                return 3.7e-2;
+            }
+            let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+                .map(|e| e as f64);
+            let turb_wposf = wposf
+                .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                .div(turb_wposf_div);
+            let turb = Vec2::new(
+                gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
+                gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
+            ) * uplift_turb_scale
+                * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+            // let turb = Vec2::zero();
+            let turb_wposf = wposf + turb;
+            let turb_wposi = turb_wposf
+                .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
+                .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
+            let turb_posi = vec2_as_uniform_idx(turb_wposi);
+            let uheight = gen_ctx
+                .uplift_nz
+                .get(turb_wposf.into_array())
+                /* .min(0.5)
+                .max(-0.5)*/
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            let wposf3 = Vec3::new(
+                wposf.x,
+                wposf.y,
+                uheight * CONFIG.mountain_scale as f64 * rock_strength_div_factor,
+            );
+            let rock_strength = gen_ctx
+                .rock_strength_nz
+                .get(wposf3.into_array())
+                /* .min(0.5)
+                .max(-0.5)*/
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            let center = /*0.25*/0.4;
+            let dmin = center - /*0.15;//0.05*/0.05;
+            let dmax = center + /*0.05*//*0.10*/0.05; //0.05;
+            let log_odds = |x: f64| logit(x) - logit(center);
+            let ustrength = logistic_cdf(
+                1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
+                    + 1.0 * log_odds(uheight.min(dmax).max(dmin)),
+            );
+            // Frog Hollow (peak production = 0.25): α = 4.2e-2
+            // San Gabriel Mountains: α = 3.8e-2
+            // marine: α = 3.7e-2
+            // Oregon Coast Range: α = 3e-2
+            // Nunnock river (fractured granite, least weathered?): α = 2e-3
+            // Point Reyes: α = 1.6e-2
+            // The stronger  the rock, the faster the decline in soil production.
+            (ustrength * (4.2e-2 - 1.6e-2) + 1.6e-2) as f32
+        };
         let uplift_fn = |posi| {
             if is_ocean_fn(posi) {
                 /* return 1e-2
@@ -1044,7 +1170,7 @@ impl WorldSim {
                 .add(bump_factor);
             /* .sub(/*1.0 / CONFIG.mountain_scale as f64*/(f32::EPSILON * 0.5) as f64)
             .add(bump_factor); */
-            height as f32
+            height as f64
         };
         let alt_func = |posi| {
             if is_ocean_fn(posi) {
@@ -1163,10 +1289,14 @@ impl WorldSim {
             }
         })();
 
-        let (alt, basement) = if let Some(map) = parsed_world_file {
-            (map.alt, map.basement)
+        let (alt, basement /*, alluvium*/) = if let Some(map) = parsed_world_file {
+            // let map_len = map.alt.len();
+            (
+                map.alt,
+                map.basement, /* vec![0.0; map_len].into_boxed_slice() */
+            )
         } else {
-            let (alt, basement) = do_erosion(
+            let (alt, basement /*, alluvium*/) = do_erosion(
                 0.0,
                 max_erosion_per_delta_t as f32,
                 n_steps,
@@ -1182,6 +1312,7 @@ impl WorldSim {
                             0.0
                         }
                 }, // if is_ocean_fn(posi) { old_height(posi) } else { 0.0 },
+                // |posi| 0.0,
                 is_ocean_fn,
                 uplift_fn,
                 |posi| n_func(posi),
@@ -1189,6 +1320,8 @@ impl WorldSim {
                 |posi| kf_func(posi),
                 |posi| kd_func(posi),
                 |posi| g_func(posi),
+                |posi| epsilon_0_func(posi),
+                |posi| alpha_func(posi),
             );
 
             // Quick "small scale" erosion cycle in order to lower extreme angles.
@@ -1198,15 +1331,18 @@ impl WorldSim {
                 n_small_steps,
                 &river_seed,
                 &rock_strength_nz,
-                |posi| /* if is_ocean_fn(posi) { old_height(posi) } else { alt[posi] } */alt[posi] as f32,
+                |posi| /* if is_ocean_fn(posi) { old_height(posi) } else { alt[posi] } *//*alt[posi] as f32*/(alt[posi]/* + alluvium[posi]*/) as f32,
                 |posi| basement[posi] as f32,
+                // |posi| /*alluvium[posi] as f32*/0.0f32,
                 is_ocean_fn,
-                |posi| uplift_fn(posi) * (1.0 * height_scale / max_erosion_per_delta_t) as f32,
+                |posi| uplift_fn(posi) * (1.0 * height_scale / max_erosion_per_delta_t),
                 |posi| n_func(posi),
                 |posi| theta_func(posi),
                 |posi| kf_func(posi),
                 |posi| kd_func(posi),
                 |posi| g_func(posi),
+                |posi| epsilon_0_func(posi),
+                |posi| alpha_func(posi),
             )
         };
 
@@ -1248,8 +1384,8 @@ impl WorldSim {
         let (alt, basement) = (map.alt, map.basement);
 
         // Additional small-scale eroson after map load, only used during testing.
-        let (alt, basement) = if n_post_load_steps == 0 {
-            (alt, basement)
+        let (alt, basement /*, alluvium*/) = if n_post_load_steps == 0 {
+            (alt, basement /*, alluvium*/)
         } else {
             do_erosion(
                 0.0,
@@ -1259,24 +1395,45 @@ impl WorldSim {
                 &rock_strength_nz,
                 |posi| /* if is_ocean_fn(posi) { old_height(posi) } else { alt[posi] } */alt[posi] as f32,
                 |posi| basement[posi] as f32,
+                // |posi| alluvium[posi] as f32,
                 is_ocean_fn,
-                |posi| uplift_fn(posi) * (1.0 * height_scale / max_erosion_per_delta_t) as f32,
+                |posi| uplift_fn(posi) * (1.0 * height_scale / max_erosion_per_delta_t),
                 |posi| n_func(posi),
                 |posi| theta_func(posi),
                 |posi| kf_func(posi),
                 |posi| kd_func(posi),
                 |posi| g_func(posi),
+                |posi| epsilon_0_func(posi),
+                |posi| alpha_func(posi),
             )
         };
 
         let is_ocean = get_oceans(|posi| alt[posi]);
         let is_ocean_fn = |posi: usize| is_ocean[posi];
         let mut dh = downhill(
-            |posi| alt[posi] as f32, /*&alt*/
+            |posi| alt[posi], /*&alt*/
             /*old_height*/ is_ocean_fn,
         );
-        let (boundary_len, indirection, water_alt_pos, _) = get_lakes(/*&/*water_alt*/alt*/|posi| alt[posi] as f32, &mut dh);
-        let flux_old = get_drainage(&water_alt_pos, &dh, boundary_len);
+        let (boundary_len, indirection, water_alt_pos, maxh) =
+            get_lakes(/*&/*water_alt*/alt*/ |posi| alt[posi], &mut dh);
+        log::debug!("Max height: {:?}", maxh);
+        let (mrec, mstack, mwrec) = {
+            let mut wh = vec![0.0; WORLD_SIZE.x * WORLD_SIZE.y];
+            get_multi_rec(
+                |posi| alt[posi],
+                &dh,
+                &water_alt_pos,
+                &mut wh,
+                WORLD_SIZE.x,
+                WORLD_SIZE.y,
+                TerrainChunkSize::RECT_SIZE.x as Compute,
+                TerrainChunkSize::RECT_SIZE.y as Compute,
+                maxh,
+            )
+        };
+        let flux_old = get_multi_drainage(&mstack, &mrec, &*mwrec, boundary_len);
+        let flux_rivers = get_drainage(&water_alt_pos, &dh, boundary_len);
+        // let flux_rivers = flux_old.clone();
 
         let water_height_initial = |chunk_idx| {
             let indirection_idx = indirection[chunk_idx];
@@ -1321,7 +1478,7 @@ impl WorldSim {
             };
             // Use the maximum of the pass height and chunk height as the parameter to fill_sinks.
             let chunk_alt = alt[chunk_idx];
-            chunk_alt.max(chunk_water_alt) as f32
+            chunk_alt.max(chunk_water_alt)
         };
 
         let water_alt = fill_sinks(water_height_initial, is_ocean_fn);
@@ -1330,7 +1487,7 @@ impl WorldSim {
         .map(|posi| water_height_initial(posi))
         .collect::<Vec<_>>(); */
 
-        let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
+        let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_rivers);
 
         let water_alt = indirection
             .par_iter()
@@ -1357,7 +1514,7 @@ impl WorldSim {
                     0.0
                 } else {
                     // This is not flowing into the ocean, so we can use the existing water_alt.
-                    water_alt[chunk_idx]
+                    water_alt[chunk_idx] as f32
                 }
             })
             .collect::<Vec<_>>()
@@ -1948,7 +2105,7 @@ impl SimChunk {
         let basement_pre = gen_cdf.basement[posi] as f32;
         let water_alt_pre = gen_cdf.water_alt[posi];
         let downhill_pre = gen_cdf.dh[posi];
-        let flux = gen_cdf.flux[posi];
+        let flux = gen_cdf.flux[posi] as f32;
         let river = gen_cdf.rivers[posi].clone();
 
         // Can have NaNs in non-uniform part where pure_water returned true.  We just test one of

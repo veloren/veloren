@@ -8,7 +8,7 @@ pub struct Config {
     pub desert_hum: f32,
     pub forest_hum: f32,
     pub jungle_hum: f32,
-    /// Rainfall (in meters) per chunk per minute.  Default is set to make it approximately
+    /// Rainfall (in meters) per m² of surface per minute.  Default is set to make it approximately
     /// 1 m rainfall / year uniformly across the whole land area, which is the average rainfall
     /// on Earth.
     pub rainfall_chunk_rate: f32,
@@ -54,7 +54,7 @@ pub const CONFIG: Config = Config {
     desert_hum: 0.15,
     forest_hum: 0.5,
     jungle_hum: 0.85,
-    rainfall_chunk_rate: 1.0 / 512.0,
+    rainfall_chunk_rate: 1.0 / (512.0 * 32.0 * 32.0),
     river_roughness: 0.06125,
     river_max_width: 2.0,
     river_min_height: 0.25,

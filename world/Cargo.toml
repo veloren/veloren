@@ -8,6 +8,7 @@ edition = "2018"
 bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
 bitvec = "0.15.2"
+faster = { git = "https://github.com/AdamNiederer/faster.git", rev = "6f99e0396e9992222bb33e8fd1e84347b410d9c0" }
 vek = "0.9.9"
 noise = { version = "0.6.0", default-features = false }
 num = "0.2.0"
@@ -18,6 +19,7 @@ log = "0.4.8"
 rand = "0.7.2"
 rand_chacha = "0.2.1"
 arr_macro = "0.1.2"
+packed_simd = "0.3.3"
 rayon = "1.2.0"
 roots = "0.0.5"
 serde = "1.0.102"
