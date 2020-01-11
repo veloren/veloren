@@ -1,6 +1,6 @@
 use crate::{
     comp::{HealthSource, Stats},
-    event::{EventBus, ServerEvent, SfxEvent, SfxEventItem},
+    event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, System, WriteStorage};
@@ -13,14 +13,10 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
-        Read<'a, EventBus<SfxEventItem>>,
         WriteStorage<'a, Stats>,
     );
 
-    fn run(
-        &mut self,
-        (entities, dt, server_event_bus, audio_event_bus, mut stats): Self::SystemData,
-    ) {
+    fn run(&mut self, (entities, dt, server_event_bus, mut stats): Self::SystemData) {
         let mut server_event_emitter = server_event_bus.emitter();
 
         // Increment last change timer
@@ -57,10 +53,6 @@ impl<'a> System<'a> for Sys {
                     stat.exp.change_maximum_by(25);
                     stat.level.change_by(1);
                 }
-
-                audio_event_bus
-                    .emitter()
-                    .emit(SfxEventItem::at_player_position(SfxEvent::LevelUp));
 
                 stat.update_max_hp();
                 stat.health
