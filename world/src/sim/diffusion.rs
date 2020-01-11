@@ -168,7 +168,7 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
     f(1)=zintp(1,j)+factyp*zintp(1,j+1)-(factyp+factym)*zintp(1,j)+factym*zintp(1,j-1)
     endif
 */
-        if false {
+        if true {
             diag[0] = 1.0;
             sup[0] = 0.0;
             f[0] = zintp[aij(0, j)];
@@ -199,7 +199,7 @@ pub fn diffusion(nx: usize, ny: usize, xl: f64, yl: f64, dt: f64, _ibc: (),
     f(nx)=zintp(nx,j)+factyp*zintp(nx,j+1)-(factyp+factym)*zintp(nx,j)+factym*zintp(nx,j-1)
     endif
 */
-        if false {
+        if true {
             diag[nx - 1] = 1.0;
             inf[nx - 1] = 0.0;
             f[nx - 1] = zintp[aij(nx - 1, j)];

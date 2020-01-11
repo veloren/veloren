@@ -13,7 +13,7 @@ pub use self::location::Location;
 pub use self::settlement::Settlement;
 pub use self::util::{
     cdf_irwin_hall, downhill, get_oceans, HybridMulti as HybridMulti_, local_cells, map_edge_factor, neighbors,
-    ScaleBias,
+    NEIGHBOR_DELTA, ScaleBias,
     uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf,
 };
 
@@ -107,7 +107,7 @@ pub(crate) struct GenCtx {
     pub town_gen: StructureGen2d,
 
     pub river_seed: RandomField,
-    pub rock_strength_nz: HybridMulti_,
+    pub rock_strength_nz: /*HybridMulti_*/Fbm,
     pub uplift_nz: Worley,
 }
 
@@ -167,7 +167,9 @@ impl WorldSim {
     pub fn generate(seed: u32, opts: WorldOpts) -> Self {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let continent_scale = 5_000.0f64/*32768.0*/.div(32.0).mul(TerrainChunkSize::RECT_SIZE.x as f64);
-        let rock_lacunarity = 0.5/*2.0*//*HybridMulti::DEFAULT_LACUNARITY*/;
+        let rock_lacunarity = /*0.5*/2.0/*HybridMulti::DEFAULT_LACUNARITY*/;
+        let uplift_scale = /*512.0*//*256.0*/128.0;
+        let uplift_turb_scale = uplift_scale / 4.0/*32.0*//*64.0*/;
 
         let gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
@@ -175,8 +177,8 @@ impl WorldSim {
             chaos_nz: RidgedMulti::new()
                 .set_octaves(/*7*//*3*/ /*7*//*3*/7)
                 .set_frequency(
-                    // RidgedMulti::DEFAULT_FREQUENCY * (5_000.0 / continent_scale)
-                    /*RidgedMulti::DEFAULT_FREQUENCY **/ 3_000.0 * 8.0 / continent_scale,
+                    RidgedMulti::DEFAULT_FREQUENCY * (5_000.0 / continent_scale)
+                    // /*RidgedMulti::DEFAULT_FREQUENCY **/ 3_000.0 * 8.0 / continent_scale,
                 )
                 // .set_persistence(RidgedMulti::DEFAULT_LACUNARITY.powf(-(1.0 - 0.5)))
                 .set_seed(rng.gen()),
@@ -240,27 +242,29 @@ impl WorldSim {
 
             town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
             river_seed: RandomField::new(rng.gen()),
-            rock_strength_nz: /*Fbm*/HybridMulti_/*BasicMulti*//*Fbm*/::new()
+            rock_strength_nz: Fbm/*HybridMulti_*//*BasicMulti*//*Fbm*/::new()
             .set_octaves(/*6*//*5*//*4*//*5*//*4*//*6*/10)
             .set_lacunarity(rock_lacunarity)
             // persistence = lacunarity^(-(1.0 - fractal increment))
             // NOTE: In paper, fractal increment is roughly 0.25.
-            .set_offset(0.0)
-            .set_persistence(/*0.9*/ /*2.0*//*1.5*//*HybridMulti::DEFAULT_LACUNARITY*/rock_lacunarity.powf(-(1.0 - 0.25/*0.9*/)))
+            // .set_offset(0.0)
+            // .set_offset(0.7)
+            .set_persistence(/*0.9*/ /*2.0*//*1.5*//*HybridMulti::DEFAULT_LACUNARITY*/rock_lacunarity.powf(-(1.0 - 0.25/*0.75*//*0.9*/)))
             // 256*32/2^4
             // (0.5^(-(1.0-0.9)))^4/256/32*2^4*16*32
             // (0.5^(-(1.0-0.9)))^4/256/32*2^4*256*4
             // (0.5^(-(1.0-0.9)))^1/256/32*2^4*256*4
             // (2^(-(1.0-0.9)))^4
             // 16.0
-            .set_frequency(/*0.9*/ /*Fbm*//*HybridMulti_::DEFAULT_FREQUENCY*/1.0 / (8.0/*8.0*//*256.0*//*1.0*//*16.0*/ * 32.0/* TerrainChunkSize::RECT_SIZE.x as f64 */))
+            .set_frequency(/*0.9*/ /*Fbm*//*HybridMulti_::DEFAULT_FREQUENCY*/1.0 / (2.0/*8.0*//*256.0*//*1.0*//*16.0*/ * TerrainChunkSize::RECT_SIZE.x as f64/*4.0*//* TerrainChunkSize::RECT_SIZE.x as f64 */ * 2.0.powi(10 - 1)))
+            // .set_frequency(/*0.9*/ /*Fbm*//*HybridMulti_::DEFAULT_FREQUENCY*/1.0 / (8.0/*8.0*//*256.0*//*1.0*//*16.0*/ * 32.0/*4.0*//* TerrainChunkSize::RECT_SIZE.x as f64 */ * 2.0.powi(10 - 1)))
             // .set_persistence(/*0.9*/ /*2.0*/0.67)
             // .set_frequency(/*0.9*/ Fbm::DEFAULT_FREQUENCY / (2.0 * 32.0))
             // .set_lacunarity(0.5)
             .set_seed(rng.gen()),
             uplift_nz: Worley::new()
                 .set_seed(rng.gen())
-                .set_frequency(1.0 / (TerrainChunkSize::RECT_SIZE.x as f64 * /*256.0*/128.0))
+                .set_frequency(1.0 / (TerrainChunkSize::RECT_SIZE.x as f64 * uplift_scale))
                 // .set_displacement(/*0.5*/0.0)
                 .set_displacement(/*0.5*/1.0)
                 .set_range_function(RangeFunction::Euclidean)
@@ -282,13 +286,13 @@ impl WorldSim {
             .set_scale(1.0 / rock_strength_scale); */
 
         let height_scale = 1.0f64; // 1.0 / CONFIG.mountain_scale as f64;
-        let max_erosion_per_delta_t = /*8.0*/32.0/*32.0*//*128.0*//*16.0*//*128.0*//*32.0*/ * height_scale;
+        let max_erosion_per_delta_t = /*8.0*//*32.0*//*1.0*//*32.0*//*32.0*//*64.0*/16.0/*128.0*//*1.0*//*0.2 * /*100.0*/250.0*//*128.0*//*16.0*//*128.0*//*32.0*/ * height_scale;
         let erosion_pow_low = /*0.25*//*1.5*//*2.0*//*0.5*//*4.0*//*0.25*//*1.0*//*2.0*//*1.5*//*1.5*//*0.35*//*0.43*//*0.5*//*0.45*//*0.37*/1.002;
         let erosion_pow_high = /*1.5*//*1.0*//*0.55*//*0.51*//*2.0*/1.002;
         let erosion_center = /*0.45*//*0.75*//*0.75*//*0.5*//*0.75*/0.5;
-        let n_steps = 100;//100; // /*100*//*50*//*100*//*100*//*50*//*25*/25/*100*//*37*/;//150;//37/*100*/;//50;//50;//37;//50;//37; // /*37*//*29*//*40*//*150*/37; //150;//200;
-        let n_small_steps = 25;//25;//8;//50;//50;//8;//8;//8;//8;//8; // 8
-        let n_post_load_steps = 0;//8
+        let n_steps = /*200*//*10_000*//*1000*//*50*//*100*/100;//100; // /*100*//*50*//*100*//*100*//*50*//*25*/25/*100*//*37*/;//150;//37/*100*/;//50;//50;//37;//50;//37; // /*37*//*29*//*40*//*150*/37; //150;//200;
+        let n_small_steps = 0;//25;//8;//50;//50;//8;//8;//8;//8;//8; // 8
+        let n_post_load_steps = 0;//25;//8
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f64| x.ln() - (-x).ln_1p();
@@ -528,6 +532,7 @@ impl WorldSim {
             .collect::<Vec<_>>(); */
         let is_ocean = get_oceans(old_height);
         let is_ocean_fn = |posi: usize| is_ocean[posi];
+        let turb_wposf_div = 8.0/*64.0*/;
 
         let uplift_nz_dist = gen_ctx.uplift_nz
             .clone()
@@ -548,11 +553,11 @@ impl WorldSim {
                     None
                 } else {
                     let turb_wposf =
-                        wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(64.0);
+                        wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(turb_wposf_div);
                     let turb = Vec2::new(
                         gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
                         gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
-                    ) * /*64.0*/32.0 * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+                    ) * uplift_turb_scale * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
                     // let turb = Vec2::zero();
                     let turb_wposf = wposf + turb;
                     let turb_wposi = turb_wposf
@@ -571,15 +576,34 @@ impl WorldSim {
                         .max(-1.0)
                         .mul(0.5)
                         .add(0.5);
+                    let uchaos = /* gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array())
+                        .min(1.0)
+                        .max(-1.0)
+                        .mul(0.5)
+                        .add(0.5); */
+                        chaos[posi].1;
+
+                    let uchaos_1 = (uchaos as f64) / 1.32;
+
                     let oheight = /*alt_old*//*alt_base*/alt_old_no_ocean[/*(turb_posi / 64) * 64*/posi].0 as f64 - 0.5;
                     assert!(udist >= 0.0);
                     assert!(udist <= 1.0);
                     let uheight_1 = uheight;//.powf(2.0);
                     let udist_1 = (0.5 - udist).mul(2.0).max(0.0);
                     let udist_2 = udist.mul(2.0).min(1.0);
+                    let udist_3 = (1.0 - udist).max(0.0);
+                    let udist_4 = udist.min(1.0);
+                    let variation = 1.0.min(64.0 * 64.0 / (WORLD_SIZE.x as f64 * WORLD_SIZE.y as f64 * (TerrainChunkSize::RECT_SIZE.x as f64 * TerrainChunkSize::RECT_SIZE.y as f64 / 128.0 / 128.0)));
+                    let variation_1 = (uheight * /*udist_2*/udist_4).min(variation);
                     let height =
+                        (oheight + 0.5).powf(2.0);
+                        // 1.0 - variation + variation * uchaos_1;
+                        // uheight * /*udist_2*/udist_4 - variation_1 + variation_1 * uchaos_1;
+                        // uheight * (0.5 + 0.5 * ((uchaos as f64) / 1.32)) - 0.125;
+                        // 0.2;
                         // 1.0;
                         // uheight_1;
+                        // uheight_1 * (0.8 + 0.2 * oheight.signum() * oheight.abs().powf(0.25));
                         // uheight_1 * (/*udist_2*/udist.powf(2.0) * (f64::consts::PI * 2.0 * (1.0 / (1.0 - udist).max(f64::EPSILON)).min(2.5)/*udist * 5.0*/ * 2.0).cos().mul(0.5).add(0.5));
                         // uheight * udist_ * (udist_ * 4.0 * 2 * f64::consts::PI).sin()
                         // uheight;
@@ -590,7 +614,7 @@ impl WorldSim {
                         /* uheight * 0.8 * udist_1.powf(2.0) +
                         /*exp_inverse_cdf*/(oheight/*.max(0.0).min(max_epsilon).abs()*/).powf(2.0) * 0.2 * udist_2.powf(2.0); */
                         // (uheight + oheight.powf(2.0) * 0.05).max(0.0).min(1.0);
-                        (uheight + oheight.powf(2.0) * 0.2).max(0.0).min(1.0);
+                        // (uheight + oheight.powf(2.0) * 0.2).max(0.0).min(1.0);
                         // * (1.0 - udist);// uheight * (1.0 - udist)/*oheight*//* * udist*/ + oheight * udist;/*uheight * (1.0 - udist);*/
                     // let height = uheight * (0.5 - udist) * 0.8 + (oheight.signum() * oheight.max(0.0).abs().powf(2.0)) * 0.2;// * (1.0 - udist);// uheight * (1.0 - udist)/*oheight*//* * udist*/ + oheight * udist;/*uheight * (1.0 - udist);*/
 
@@ -655,6 +679,7 @@ impl WorldSim {
         ).powf(erosion_pow).mul(0.5))*/; */
         let erosion_factor = |x: f64| (/*if x <= /*erosion_center*/alt_old_center_uniform/*alt_old_center*/ { erosion_pow_low.ln() } else { erosion_pow_high.ln() } * */(/*exp_inverse_cdf*//*logit*/inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform))/*0.5 + (x - 0.5).signum() * ((x - 0.5).mul(2.0).abs(
 ).powf(erosion_pow).mul(0.5))*//*.powf(0.5)*//*.powf(1.5)*//*.powf(2.0)*/;
+        let rock_strength_div_factor = /*8.0*/(2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0;
         let n_func = |posi| {
             if is_ocean_fn(posi) {
                 return 1.0;
@@ -663,11 +688,11 @@ impl WorldSim {
                 * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
             .map(|e| e as f64);
             let turb_wposf =
-                wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(64.0);
+                wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(turb_wposf_div);
             let turb = Vec2::new(
                 gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
                 gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
-            ) * /*64.0*/32.0 * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+            ) * uplift_turb_scale * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
             // let turb = Vec2::zero();
             let turb_wposf = wposf + turb;
             let turb_wposi = turb_wposf
@@ -707,11 +732,11 @@ impl WorldSim {
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
                 let turb_wposf =
-                    wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(64.0);
+                    wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(turb_wposf_div);
                 let turb = Vec2::new(
                     gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
                     gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
-                ) * /*64.0*/32.0 * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+                ) * uplift_turb_scale * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
                 // let turb = Vec2::zero();
                 let turb_wposf = wposf + turb;
                 let turb_wposi = turb_wposf
@@ -725,6 +750,17 @@ impl WorldSim {
                     .max(-1.0)
                     .mul(0.5)
                     .add(0.5);
+
+                let uchaos = /* gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array())
+                    .min(1.0)
+                    .max(-1.0)
+                    .mul(0.5)
+                    .add(0.5); */
+                    chaos[posi].1;
+
+                let oheight = /*alt_old*//*alt_base*/alt_old_no_ocean[/*(turb_posi / 64) * 64*/posi].0 as f64;
+                let oheight_2 = /*alt_old*//*alt_base*/(alt_old_no_ocean[/*(turb_posi / 64) * 64*/posi].1 as f64 / CONFIG.mountain_scale as f64);
+
                 // kf = 1.5e-4: high-high (plateau [fan sediment])
                 // kf = 1e-4: high (plateau)
                 // kf = 2e-5: normal (dike [unexposed])
@@ -742,8 +778,13 @@ impl WorldSim {
                 // ((1.0 - uheight) * (5e-5 - 9.88e-15) + 9.88e-15)
                 // ((1.0 - uheight) * (1.5e-4 - 9.88e-15) + 9.88e-15)
                 // ((1.0 - uheight) * (8.345e5 - 2.0e-6) + 2.0e-6) as f32
-                ((1.0 - uheight) * (1.5e-4 - 2.0e-6) + 2.0e-6)
+                // ((1.0 - uheight) * (1.5e-4 - 2.0e-6) + 2.0e-6)
+                // ((1.0 - uheight) * (0.5 + 0.5 * ((1.32 - uchaos as f64) / 1.32)) * (1.5e-4 - 2.0e-6) + 2.0e-6)
+                // ((1.0 - uheight) * (0.5 + 0.5 * /*((1.32 - uchaos as f64) / 1.32)*/oheight) * (1.5e-4 - 2.0e-6) + 2.0e-6)
+                // ((1.0 - uheight) * (0.5 - 0.5 * /*((1.32 - uchaos as f64) / 1.32)*/oheight_2) * (1.5e-4 - 2.0e-6) + 2.0e-6)
+                // ((1.0 - uheight) * (0.5 - 0.5 * /*((1.32 - uchaos as f64) / 1.32)*/oheight) * (1.5e-4 - 2.0e-6) + 2.0e-6)
                 // 2e-5
+                2.5e-6 * 16.0.powf(0.4)/* / 4.0 * 0.25 *//* * 4.0*/
                 // 2.9e-10
                 // ((1.0 - uheight) * (5e-5 - 2.9e-10) + 2.9e-10)
                 // ((1.0 - uheight) * (5e-5 - 2.9e-14) + 2.9e-14)
@@ -758,11 +799,11 @@ impl WorldSim {
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
                 let turb_wposf =
-                    wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(64.0);
+                    wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(turb_wposf_div);
                 let turb = Vec2::new(
                     gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
                     gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
-                ) * /*64.0*/32.0 * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+                ) * uplift_turb_scale * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
                 // let turb = Vec2::zero();
                 let turb_wposf = wposf + turb;
                 let turb_wposi = turb_wposf
@@ -779,7 +820,7 @@ impl WorldSim {
                 // kd = 1e-1: high (mountain, dike)
                 // kd = 1.5e-2: normal-high (plateau [fan sediment])
                 // kd = 1e-2: normal (plateau)
-                1.0e-2
+                1.0e-2 * (1.0 / 16.0) // m_old^2 / y * (1 m_new / 4 m_old)^2
                 // (uheight * (1.0e-1 - 1.0e-2) + 1.0e-2)
             }
         };
@@ -793,11 +834,11 @@ impl WorldSim {
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
                 let turb_wposf =
-                    wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(64.0);
+                    wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(turb_wposf_div);
                 let turb = Vec2::new(
                     gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
                     gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
-                ) * /*64.0*/32.0 * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+                ) * uplift_turb_scale * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
                 // let turb = Vec2::zero();
                 let turb_wposf = wposf + turb;
                 let turb_wposi = turb_wposf
@@ -831,13 +872,16 @@ impl WorldSim {
                 //
                 // G is typically on the order of 1 or greater.  However, we are only guaranteed to
                 // converge for G ≤ 1, so we keep it in the chaos range of [0.12, 1.32].
-                ((1.32 - uchaos) / 1.32).powf(0.75) * 1.32
+                // (((1.32 - uchaos) / 1.32).powf(0.75) * 1.32).min(/*1.1*/1.0)
                 // ((1.32 - 0.12) * (1.0 - uheight) + 0.12) as f32
                 // 1.1 * (1.0 - uheight) as f32
                 // 1.0 * (1.0 - uheight) as f32
                 // 1.0
+                // 5.0
+                // 10.0
+                // 2.0
                 // 0.0
-                // 1.0
+                1.0
                 // 1.5
             };
         let uplift_fn =
@@ -938,11 +982,11 @@ impl WorldSim {
                 // tan(54/360*2*pi)*32
                 // let height = 1.0f64;
                 let turb_wposf =
-                    wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(64.0);
+                    wposf.div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64)).div(turb_wposf_div);
                 let turb = Vec2::new(
                     gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
                     gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
-                ) * /*64.0*/32.0 * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+                ) * uplift_turb_scale * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
                 let turb_wposf = wposf + turb;
                 let uheight = gen_ctx.uplift_nz.get(turb_wposf.into_array())
                     /* .min(0.5)
@@ -963,8 +1007,8 @@ impl WorldSim {
                 let bfrac = /*erosion_factor(0.5);*/0.0;
                 let height = (height - bfrac).abs().div(1.0 - bfrac);
                 let height = height
-                    .mul(31.0 / 32.0)
-                    .add(1.0 / 32.0)
+                    /* .mul(31.0 / 32.0)
+                    .add(1.0 / 32.0) */
                     /* .mul(15.0 / 16.0)
                     .add(1.0 / 16.0) */
                     /* .mul(5.0 / 8.0)
@@ -1023,7 +1067,14 @@ impl WorldSim {
                             .mul(0.045)*/)
                 };
 
-                (old_height_uniform(posi) - 0.5)/* * max_erosion_per_delta_t as f32*/
+                // (kf_func(posi) / 1.5e-4 * CONFIG.mountain_scale as f64) as f32
+                // (old_height_uniform(posi) as f64 * CONFIG.mountain_scale as f64) as f32
+                // (old_height_uniform(posi) as f64 * CONFIG.mountain_scale as f64) as f32
+                // (uplift_fn(posi) * CONFIG.mountain_scale as f64) as f32
+                // (old_height_uniform(posi) - 0.5)/* * max_erosion_per_delta_t as f32*/
+                (old_height(posi) as f64 / CONFIG.mountain_scale as f64) as f32 - 0.5
+                // ((((old_height(posi) - alt_old_min) as f64 / (alt_old_max - alt_old_min) as f64) - 0.25) * (CONFIG.mountain_scale as f64)) as f32
+                // old_height(posi)/* * max_erosion_per_delta_t as f32*/
                 // uplift_fn(posi) * (CONFIG.mountain_scale / max_erosion_per_delta_t as f32)
                 // 0.0
                 // /*-CONFIG.mountain_scale * 0.5 + *//*-CONFIG.mountain_scale/* * 0.75*/ + */(old_height_uniform(posi)/*.powf(2.0)*/ - 0.5)/* * CONFIG.mountain_scale as f32*/
@@ -1073,6 +1124,15 @@ impl WorldSim {
                     log::warn!("World size of map is invalid.");
                     return None;
                 }
+
+                /* let f = |h| h;// / 4.0;
+                let mut map = map;
+                map.alt.par_iter_mut()
+                    .zip(map.basement.par_iter_mut())
+                    .for_each(|(mut h, mut b)| {
+                        *h = f(*h);
+                        *b = f(*b);
+                    }); */
 
                 Some(map)
             } else {
@@ -1181,7 +1241,7 @@ impl WorldSim {
             )
         };
 
-        let is_ocean = get_oceans(|posi| alt[posi] as f32);
+        let is_ocean = get_oceans(|posi| alt[posi]);
         let is_ocean_fn = |posi: usize| is_ocean[posi];
         let mut dh = downhill(|posi| alt[posi] as f32/*&alt*/, /*old_height*/ is_ocean_fn);
         let (boundary_len, indirection, water_alt_pos, _) = get_lakes(/*&/*water_alt*/alt*/|posi| alt[posi] as f32, &mut dh);
@@ -1948,7 +2008,7 @@ impl SimChunk {
                         wposf, river, river_slope
                     ); */
                 }
-                if river_slope.abs() >= 1.0 && cross_section.x >= 1.0 {
+                if river_slope.abs() >= /*1.0*//*3.0.sqrt() / 3.0*/0.25 && cross_section.x >= 1.0 {
                     log::debug!(
                         "Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}",
                         wposf,
