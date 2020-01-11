@@ -162,7 +162,7 @@ impl<'a> Widget for Map<'a> {
         let (world_map, worldsize) = self.world_map;
         let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
 
-        Image::new(world_map/*self.imgs.map_placeholder*/)
+        Image::new(world_map /*self.imgs.map_placeholder*/)
             .middle_of(state.ids.map_bg)
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade - 0.1)))
             .w_h(700.0, 700.0)

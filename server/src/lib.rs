@@ -46,7 +46,10 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{sim::{FileOpts, WORLD_SIZE, WorldOpts}, World};
+use world::{
+    sim::{FileOpts, WorldOpts, WORLD_SIZE},
+    World,
+};
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
@@ -104,15 +107,18 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
-        let world = World::generate(settings.world_seed, WorldOpts {
-            seed_elements: true,
-            world_file: if let Some(ref file) = settings.map_file {
-                FileOpts::Load(file.clone())
-            } else {
-                FileOpts::Generate
+        let world = World::generate(
+            settings.world_seed,
+            WorldOpts {
+                seed_elements: true,
+                world_file: if let Some(ref file) = settings.map_file {
+                    FileOpts::Load(file.clone())
+                } else {
+                    FileOpts::Generate
+                },
+                ..WorldOpts::default()
             },
-            ..WorldOpts::default()
-        });
+        );
 
         let spawn_point = {
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,

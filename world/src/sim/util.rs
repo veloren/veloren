@@ -218,7 +218,7 @@ pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item = usize> {
 }
 
 // NOTE: want to keep this such that the chunk index is in ascending order!
-pub const NEIGHBOR_DELTA : [(i32, i32); 8] = [
+pub const NEIGHBOR_DELTA: [(i32, i32); 8] = [
     (-1, -1),
     (0, -1),
     (1, -1),
@@ -233,12 +233,12 @@ pub const NEIGHBOR_DELTA : [(i32, i32); 8] = [
 pub fn neighbors(posi: usize) -> impl Clone + Iterator<Item = usize> {
     let pos = uniform_idx_as_vec2(posi);
     NEIGHBOR_DELTA
-    .iter()
-    .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
-    .filter(|pos| {
-        pos.x >= 0 && pos.y >= 0 && pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32
-    })
-    .map(vec2_as_uniform_idx)
+        .iter()
+        .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
+        .filter(|pos| {
+            pos.x >= 0 && pos.y >= 0 && pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32
+        })
+        .map(vec2_as_uniform_idx)
 }
 
 // Note that we should already have okay cache locality since we have a grid.
@@ -249,10 +249,14 @@ pub fn uphill<'a>(dh: &'a [isize], posi: usize) -> impl Clone + Iterator<Item = 
 /// Compute the neighbor "most downhill" from all chunks.
 ///
 /// TODO: See if allocating in advance is worthwhile.
-pub fn downhill<F: Float>(h: impl Fn(usize) -> F + Sync, is_ocean: impl Fn(usize) -> bool + Sync) -> Box<[isize]> {
+pub fn downhill<F: Float>(
+    h: impl Fn(usize) -> F + Sync,
+    is_ocean: impl Fn(usize) -> bool + Sync,
+) -> Box<[isize]> {
     // Constructs not only the list of downhill nodes, but also computes an ordering (visiting
     // nodes in order from roots to leaves).
-    (0..WORLD_SIZE.x * WORLD_SIZE.y).into_par_iter()
+    (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        .into_par_iter()
         // .enumerate()
         .map(|(posi/*, &nh*/)| {
             let nh = h(posi);
@@ -702,5 +706,3 @@ impl<'a, F: NoiseFn<T> + 'a, T> NoiseFn<T> for ScaleBias<'a, F> {
         (self.source.get(point) * self.scale) + self.bias
     }
 }
-
-

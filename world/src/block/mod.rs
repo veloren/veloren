@@ -265,7 +265,8 @@ impl<'a> BlockGen<'a> {
                     sub_surface_color,
                     stone_col.map(|e| e as f32 / 255.0),
                     (height - grass_depth - wposf.z as f32) * 0.15,
-                ).map(|e| (e * 255.0) as u8);
+                )
+                .map(|e| (e * 255.0) as u8);
 
                 // Underground
                 if (wposf.z as f32) > alt - 32.0 * chaos {

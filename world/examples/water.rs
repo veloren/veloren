@@ -36,12 +36,15 @@ fn main() {
     let mut _map_file = PathBuf::from("./maps");
     _map_file.push(map_file);
 
-    let world = World::generate(1337, WorldOpts {
-        seed_elements: false,
-        // world_file: sim::FileOpts::Load(_map_file),
-        world_file: sim::FileOpts::Save,
-        ..WorldOpts::default()
-    });
+    let world = World::generate(
+        1337,
+        WorldOpts {
+            seed_elements: false,
+            // world_file: sim::FileOpts::Load(_map_file),
+            world_file: sim::FileOpts::Save,
+            ..WorldOpts::default()
+        },
+    );
 
     let sampler = world.sim();
 
@@ -87,25 +90,35 @@ fn main() {
 
         for i in 0..W {
             for j in 0..H {
-                let pos = (focus_rect + Vec2::new(i as f64, j as f64) * scale).map(|e: f64| e as i32);
+                let pos =
+                    (focus_rect + Vec2::new(i as f64, j as f64) * scale).map(|e: f64| e as i32);
                 /* let top_left = pos;
                 let top_right = focus + Vec2::new(i as i32 + light_res, j as i32) * scale;
                 let bottom_left = focus + Vec2::new(i as i32, j as i32 + light_res) * scale; */
 
-                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind) = sampler
-                    .get(pos)
-                    .map(|sample| {
-                        (
-                            sample.alt,
-                            sample.basement,
-                            sample.water_alt,
-                            sample.humidity,
-                            sample.temp,
-                            sample.downhill,
-                            sample.river.river_kind,
-                        )
-                    })
-                    .unwrap_or((CONFIG.sea_level, CONFIG.sea_level, CONFIG.sea_level, 0.0, 0.0, None, None));
+                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind) =
+                    sampler
+                        .get(pos)
+                        .map(|sample| {
+                            (
+                                sample.alt,
+                                sample.basement,
+                                sample.water_alt,
+                                sample.humidity,
+                                sample.temp,
+                                sample.downhill,
+                                sample.river.river_kind,
+                            )
+                        })
+                        .unwrap_or((
+                            CONFIG.sea_level,
+                            CONFIG.sea_level,
+                            CONFIG.sea_level,
+                            0.0,
+                            0.0,
+                            None,
+                            None,
+                        ));
                 let humidity = humidity.min(1.0).max(0.0);
                 let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
                 let pos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
@@ -177,15 +190,9 @@ fn main() {
 
                 let true_water_alt = (alt.max(water_alt) as f64 - focus.z) / gain as f64;
                 let true_alt = (alt as f64 - focus.z) / gain as f64;
-                let water_depth = (true_water_alt - true_alt)
-                    .min(1.0)
-                    .max(0.0);
-                let water_alt = true_water_alt
-                    .min(1.0)
-                    .max(0.0);
-                let alt = true_alt
-                    .min(1.0)
-                    .max(0.0);
+                let water_depth = (true_water_alt - true_alt).min(1.0).max(0.0);
+                let water_alt = true_water_alt.min(1.0).max(0.0);
+                let alt = true_alt.min(1.0).max(0.0);
                 let quad =
                     |x: f32| ((x as f64 * QUADRANTS as f64).floor() as usize).min(QUADRANTS - 1);
                 if river_kind.is_none() || humidity != 0.0 {
@@ -205,17 +212,29 @@ fn main() {
                 }
 
                 buf[j * W + i] = match (river_kind, (is_water, true_alt >= true_sea_level)) {
-                    (_, (false, _)) | ( None, (_, true)) => {
+                    (_, (false, _)) | (None, (_, true)) => {
                         let (r, g, b) = (
-                            (if is_shaded { alt } else { alt } * if is_temperature { temperature as f64 } else if is_shaded { alt } else { 0.0 }).sqrt(),
+                            (if is_shaded { alt } else { alt }
+                                * if is_temperature {
+                                    temperature as f64
+                                } else if is_shaded {
+                                    alt
+                                } else {
+                                    0.0
+                                })
+                            .sqrt(),
                             if is_shaded { 0.2 + (alt * 0.8) } else { alt },
-                            (if is_shaded { alt } else { alt } * if is_humidity { humidity as f64 } else if is_shaded { alt } else { 0.0 }).sqrt(),
+                            (if is_shaded { alt } else { alt }
+                                * if is_humidity {
+                                    humidity as f64
+                                } else if is_shaded {
+                                    alt
+                                } else {
+                                    0.0
+                                })
+                            .sqrt(),
                         );
-                        let light = if is_shaded {
-                            light
-                        } else {
-                            1.0
-                        };
+                        let light = if is_shaded { light } else { 1.0 };
                         u32::from_le_bytes([
                             (b * light * 255.0) as u8,
                             (g * light * 255.0) as u8,
@@ -228,7 +247,7 @@ fn main() {
                             (/*alt*//*alt * *//*(1.0 - humidity)*/(alt * temperature).sqrt() * 255.0) as u8,
                             255,
                         ]) */
-                    },
+                    }
                     (Some(RiverKind::Ocean), _) => u32::from_le_bytes([
                         ((64.0 - water_depth * 64.0) * 1.0) as u8,
                         ((32.0 - water_depth * 32.0) * 1.0) as u8,
@@ -242,8 +261,8 @@ fn main() {
                         255,
                     ]),
                     (None, _) | (Some(RiverKind::Lake { .. }), _) => u32::from_le_bytes([
-                        (((64.0 + water_alt * 191.0) + (- water_depth * 64.0)) * 1.0) as u8,
-                        (((32.0 + water_alt * 95.0) + (- water_depth * 32.0)) * 1.0) as u8,
+                        (((64.0 + water_alt * 191.0) + (-water_depth * 64.0)) * 1.0) as u8,
+                        (((32.0 + water_alt * 95.0) + (-water_depth * 32.0)) * 1.0) as u8,
                         0,
                         255,
                     ]),
@@ -280,7 +299,8 @@ fn main() {
         }
         if win.get_mouse_down(minifb::MouseButton::Left) {
             if let Some((mx, my)) = win.get_mouse_pos(minifb::MouseMode::Clamp) {
-                let pos = (focus_rect + (Vec2::new(mx as f64, my as f64) * scale)).map(|e| e as i32);
+                let pos =
+                    (focus_rect + (Vec2::new(mx as f64, my as f64) * scale)).map(|e| e as i32);
                 println!(
                     "Chunk position: {:?}",
                     pos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e * f as i32)

@@ -437,13 +437,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
          downhill_alt.sub(CONFIG.sea_level) >= CONFIG.mountain_scale * 0.25)*/
         is_rocky {
             sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
-            // sim.get_interpolated_bilinear(wpos, |chunk| chunk.alt)?
-            // sim.get_interpolated(wpos, |chunk| chunk.alt)?
+        // sim.get_interpolated_bilinear(wpos, |chunk| chunk.alt)?
+        // sim.get_interpolated(wpos, |chunk| chunk.alt)?
         } else {
             sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
             // sim.get_interpolated(wpos, |chunk| chunk.alt)?
         };
-        let basement = alt + sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
+        let basement = alt
+            + sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
         // Find the average distance to each neighboring body of water.
         let mut river_count = 0.0f64;
@@ -830,7 +831,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .mul(1.0 - humidity) */
                 /* .mul(32.0) */;
 
-
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt_ + riverless_alt_delta;
         let basement = basement.min(alt);
@@ -895,7 +895,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         );
         let tundra = Lerp::lerp(snow, Rgb::new(0.01, 0.3, 0.0), 0.4 + marble * 0.6);
         let dead_tundra = Lerp::lerp(warm_stone, Rgb::new(0.3, 0.12, 0.2), marble);
-        let cliff = Rgb::lerp(cold_stone, /*warm_stone*/hot_stone, marble);
+        let cliff = Rgb::lerp(cold_stone, /*warm_stone*/ hot_stone, marble);
 
         let grass = Rgb::lerp(
             cold_grass,
@@ -953,11 +953,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .mul(1.0),
         );
 
-        let sub_surface_color = Lerp::lerp(
-            cliff,
-            ground,
-            alt.sub(basement).mul(0.25)
-        );
+        let sub_surface_color = Lerp::lerp(cliff, ground, alt.sub(basement).mul(0.25));
 
         /*  let ground = Rgb::lerp(
             dead_tundra,
@@ -1087,15 +1083,18 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         ); */
 
         // Snow covering
-        let snow_cover =
-            temp.sub(CONFIG.snow_temp)
-                .max(-humidity.sub(CONFIG.desert_hum))
-                .mul(16.0)
-                .add((marble_small - 0.5) * 0.5);
+        let snow_cover = temp
+            .sub(CONFIG.snow_temp)
+            .max(-humidity.sub(CONFIG.desert_hum))
+            .mul(16.0)
+            .add((marble_small - 0.5) * 0.5);
         let (alt, ground, sub_surface_color) = if snow_cover /*< 0.1*/<= 0.5 && alt > water_level {
             // Allow snow cover.
-            (alt + 1.0 - snow_cover.max(0.0), Rgb::lerp(snow, ground, snow_cover),
-                Lerp::lerp(sub_surface_color, ground, alt.sub(basement).mul(0.15)))
+            (
+                alt + 1.0 - snow_cover.max(0.0),
+                Rgb::lerp(snow, ground, snow_cover),
+                Lerp::lerp(sub_surface_color, ground, alt.sub(basement).mul(0.15)),
+            )
         } else {
             (alt, ground, sub_surface_color)
         };
@@ -1165,7 +1164,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 // Beach
                 ((ocean_level - 1.0) / 2.0).max(0.0),
             ),
-            sub_surface_color,// /*warm_grass*/Lerp::lerp(cliff, dirt, alt.sub(basement).mul(0.25)),
+            sub_surface_color, // /*warm_grass*/Lerp::lerp(cliff, dirt, alt.sub(basement).mul(0.25)),
             // No growing directly on bedrock.
             tree_density: Lerp::lerp(0.0, tree_density, alt.sub(2.0).sub(basement).mul(0.5)),
             forest_kind: sim_chunk.forest_kind,
@@ -1183,7 +1182,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             humidity,
             spawn_rate,
             location: sim_chunk.location.as_ref(),
-	    stone_col,
+            stone_col,
 
             chunk: sim_chunk,
             spawn_rules: sim_chunk

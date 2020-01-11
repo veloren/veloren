@@ -6,10 +6,13 @@ const W: usize = 640;
 const H: usize = 480;
 
 fn main() {
-    let world = World::generate(0, WorldOpts {
-        seed_elements: true,
-        ..WorldOpts::default()
-    });
+    let world = World::generate(
+        0,
+        WorldOpts {
+            seed_elements: true,
+            ..WorldOpts::default()
+        },
+    );
 
     let sampler = world.sample_columns();
 

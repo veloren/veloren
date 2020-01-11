@@ -137,7 +137,7 @@ impl<'a> Widget for MiniMap<'a> {
             // Map Image
             let (world_map, worldsize) = self.world_map;
             let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
-            Image::new(world_map/*self.imgs.map_placeholder*/)
+            Image::new(world_map /*self.imgs.map_placeholder*/)
                 .middle_of(state.ids.mmap_frame_bg)
                 .w_h(92.0 * 4.0 * zoom, 82.0 * 4.0 * zoom)
                 .parent(state.ids.mmap_frame_bg)

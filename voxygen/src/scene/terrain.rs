@@ -175,7 +175,9 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                         let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
 
                         if let Some(cfg) = sprite_config_for(kind) {
-                            let seed = wpos.x as u64 * 3 + wpos.y as u64 * 7 + wpos.x as u64 * wpos.y as u64; // Awful PRNG
+                            let seed = wpos.x as u64 * 3
+                                + wpos.y as u64 * 7
+                                + wpos.x as u64 * wpos.y as u64; // Awful PRNG
 
                             let instance = SpriteInstance::new(
                                 Mat4::identity()
