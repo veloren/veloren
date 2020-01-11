@@ -54,7 +54,7 @@ fn main() {
     let mut gain = CONFIG.mountain_scale;
     // The Z component during normal calculations is multiplied by gain; thus,
     let mut lgain = 1.0;
-    let mut scale = (WORLD_SIZE.x / W) as f64;
+    let mut scale = (WORLD_SIZE.x as f64 / W as f64);
 
     // Right-handed coordinate system: light is going left, down, and "backwards" (i.e. on the
     // map, where we translate the y coordinate on the world map to z in the coordinate system,
@@ -111,11 +111,11 @@ fn main() {
                 let pos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
                 let downhill_pos = (downhill
                     .map(|downhill_pos| downhill_pos/*.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32)*/)
-                    .unwrap_or(pos + Vec2::new(1, 0))
+                    .unwrap_or(pos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                     - pos)/* * scale*/
                     + pos;
                 let downhill_alt = sampler
-                    .get(downhill_pos)
+                    .get_wpos(downhill_pos)
                     .map(|s| if is_basement { s.basement } else { s.alt })
                     .unwrap_or(CONFIG.sea_level);
                 let alt = if is_basement { basement } else { alt };
@@ -131,7 +131,7 @@ fn main() {
                         .rotated_z(f32::consts::FRAC_PI_2)
                         .map(|e| e as i32));
                 let cross_alt = sampler
-                    .get(cross_pos)
+                    .get_wpos(cross_pos)
                     .map(|s| if is_basement { s.basement } else { s.alt })
                     .unwrap_or(CONFIG.sea_level);
                 // Pointing downhill, forward
