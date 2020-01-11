@@ -1474,17 +1474,17 @@ impl WorldSim {
                     .min(1.0)
                     .max(0.0);
                 match river_kind {
-                    Some(RiverKind::Ocean) => u32::from_le_bytes([64, 32, 0, 255]),
+                    Some(RiverKind::Ocean) => u32::from_le_bytes([0, 32, 64, 255]),
                     Some(RiverKind::Lake { .. }) => u32::from_le_bytes([
-                        64 + (water_alt * 191.0) as u8,
-                        32 + (water_alt * 95.0) as u8,
                         0,
+                        32 + (water_alt * 95.0) as u8,
+                        64 + (water_alt * 191.0) as u8,
                         255,
                     ]),
                     Some(RiverKind::River { .. }) => u32::from_le_bytes([
-                        64 + (alt * 191.0) as u8,
-                        32 + (alt * 95.0) as u8,
                         0,
+                        32 + (alt * 95.0) as u8,
+                        64 + (alt * 191.0) as u8,
                         255,
                     ]),
                     None => u32::from_le_bytes([0, (alt * 255.0) as u8, 0, 255]),
