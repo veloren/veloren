@@ -113,11 +113,8 @@ impl Client {
                 log::debug!("Preparing image...");
                 let world_map = Arc::new(image::DynamicImage::ImageRgba8({
                     // Should not fail if the dimensions are correct.
-                    let world_map = image::ImageBuffer::from_raw(
-                        map_size.x,
-                        map_size.y,
-                        world_map_raw,
-                    );
+                    let world_map =
+                        image::ImageBuffer::from_raw(map_size.x, map_size.y, world_map_raw);
                     world_map.ok_or(Error::Other("Server sent a bad world map image".into()))?
                 }));
                 log::debug!("Done preparing image...");

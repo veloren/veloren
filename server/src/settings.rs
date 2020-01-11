@@ -104,8 +104,7 @@ impl ServerSettings {
             max_players: 100,
             start_time: 9.0 * 3600.0,
             admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
-            ..
-            Self::load() // Fill in remaining fields from settings.ron.
+            ..Self::load()                            // Fill in remaining fields from settings.ron.
         }
     }
 
