@@ -87,12 +87,8 @@ impl<'a> Widget for Map<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
         // Set map transparency to 0.5 when player is moving
-        /*let vel = match self.velocity {
-            Some(velocity) => velocity.0.magnitude(),
-            None => 0.0,
-        };*/
         let mut fade = 1.0;
-        if self.velocity > 7.0 {
+        if self.velocity > 2.5 {
             fade = 0.7
         };
 
@@ -165,7 +161,7 @@ impl<'a> Widget for Map<'a> {
         // Map Image
         Image::new(/*self.world_map*/ self.imgs.map_placeholder)
             .middle_of(state.ids.map_bg)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade - 0.1)))
             .w_h(700.0, 700.0)
             .parent(state.ids.map_bg)
             .set(state.ids.grid, ui);
