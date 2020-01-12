@@ -372,8 +372,8 @@ pub fn regions_in_vd(pos: Vec3<f32>, vd: f32) -> HashSet<Vec2<i32>> {
     let max = RegionMap::pos_key(pos_xy.map(|e| (e + vd_extended) as i32));
     let min = RegionMap::pos_key(pos_xy.map(|e| (e - vd_extended) as i32));
 
-    for x in min.x..=max.x {
-        for y in min.y..=max.y {
+    for x in min.x..max.x + 1 {
+        for y in min.y..max.y + 1 {
             let key = Vec2::new(x, y);
 
             if region_in_vd(key, pos, vd) {
