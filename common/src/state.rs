@@ -110,6 +110,7 @@ impl State {
         ecs.register::<comp::Body>();
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();
+        ecs.register::<comp::Energy>();
         ecs.register::<comp::CanBuild>();
         ecs.register::<comp::LightEmitter>();
         ecs.register::<comp::Item>();
