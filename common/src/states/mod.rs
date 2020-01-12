@@ -15,7 +15,7 @@ pub mod swim;
 pub mod utils;
 pub mod wield;
 
-use super::{
+use crate::comp::{
     ActionState, ActionState::*, AttackKind::*, BlockKind::*, DodgeKind::*, EcsStateData,
     MoveState, MoveState::*, StateUpdate,
 };

@@ -1,5 +1,6 @@
-use crate::comp::{ActionState, EcsStateData, ItemKind::Tool, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, ItemKind::Tool, StateUpdate};
 
+use crate::states::StateHandler;
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct State;
 

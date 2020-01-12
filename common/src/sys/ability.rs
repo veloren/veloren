@@ -2,8 +2,8 @@
 #![allow(dead_code)]
 use crate::comp::{
     AbilityAction, AbilityActionKind, AbilityPool, ActionState::*, AttackKind, CharacterState,
-    StateHandler,
 };
+use crate::states::StateHandler;
 
 use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
 
