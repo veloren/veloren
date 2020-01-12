@@ -38,9 +38,8 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     const SUNLIGHT: u8 = 24;
 
     let outer = Aabb {
-        // TODO: subtract 1 from sunlight here
-        min: bounds.min - Vec3::new(SUNLIGHT as i32, SUNLIGHT as i32, 1),
-        max: bounds.max + Vec3::new(SUNLIGHT as i32, SUNLIGHT as i32, 1),
+        min: bounds.min - Vec3::new(SUNLIGHT as i32 - 1, SUNLIGHT as i32 - 1, 1),
+        max: bounds.max + Vec3::new(SUNLIGHT as i32 - 1, SUNLIGHT as i32 - 1, 1),
     };
 
     let mut vol_cached = vol.cached();
@@ -48,7 +47,6 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     // Voids are voxels that that contain air or liquid that are protected from direct rays by blocks
     // above them
     let mut light_map = vec![UNKOWN; outer.size().product() as usize];
-    // TODO: would a morton curve be more efficient?
     let lm_idx = {
         let (w, h, _) = outer.clone().size().into_tuple();
         move |x, y, z| (z * h * w + x * h + y) as usize
@@ -56,7 +54,6 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     // Light propagation queue
     let mut prop_que = VecDeque::new();
     // Start rays
-    // TODO: how much would it cost to clone the whole sample into a flat array?
     for x in 0..outer.size().w {
         for y in 0..outer.size().h {
             let z = outer.size().d - 1;
@@ -72,8 +69,11 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                     .map_or(false, |b| b.is_air())
                 {
                     light_map[lm_idx(x, y, z - 1)] = SUNLIGHT;
-                    // TODO: access efficiency of using less space to store pos
-                    prop_que.push_back(Vec3::new(x, y, z - 1));
+                    prop_que.push_back(
+                        ((x as u32 & 0xff) << 24)
+                            | ((y as u32 & 0xff) << 16)
+                            | ((z - 1) as u32 & 0xffff),
+                    );
                 }
                 SUNLIGHT
             } else {
@@ -98,7 +98,11 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                     *dest = src - 1;
                     // Can't propagate further
                     if *dest > 1 {
-                        prop_que.push_back(pos);
+                        prop_que.push_back(
+                            ((pos.x as u32 & 0xff) << 24)
+                                | ((pos.y as u32 & 0xff) << 16)
+                                | (pos.z as u32 & 0xffff),
+                        );
                     }
                 } else {
                     *dest = OPAQUE;
@@ -107,7 +111,11 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 *dest = src - 1;
                 // Can't propagate further
                 if *dest > 1 {
-                    prop_que.push_back(pos);
+                    prop_que.push_back(
+                        ((pos.x as u32 & 0xff) << 24)
+                            | ((pos.y as u32 & 0xff) << 16)
+                            | (pos.z as u32 & 0xffff),
+                    );
                 }
             }
         }
@@ -115,9 +123,11 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 
     // Propage light
     while let Some(pos) = prop_que.pop_front() {
-        // TODO: access efficiency of storing current light level in queue
-        // TODO: access efficiency of storing originating direction index in queue so that dir
-        // doesn't need to be checked
+        let pos = Vec3::new(
+            ((pos >> 24) & 0xFF) as i32,
+            ((pos >> 16) & 0xFF) as i32,
+            (pos & 0xFFFF) as i32,
+        );
         let light = light_map[lm_idx(pos.x, pos.y, pos.z)];
 
         // If ray propagate downwards at full strength
@@ -130,10 +140,18 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 .ok()
                 .map_or((false, false), |b| (b.is_air(), b.is_fluid()));
             light_map[lm_idx(pos.x, pos.y, pos.z)] = if is_air {
-                prop_que.push_back(pos);
+                prop_que.push_back(
+                    ((pos.x as u32 & 0xff) << 24)
+                        | ((pos.y as u32 & 0xff) << 16)
+                        | (pos.z as u32 & 0xffff),
+                );
                 SUNLIGHT
             } else if is_fluid {
-                prop_que.push_back(pos);
+                prop_que.push_back(
+                    ((pos.x as u32 & 0xff) << 24)
+                        | ((pos.y as u32 & 0xff) << 16)
+                        | (pos.z as u32 & 0xffff),
+                );
                 SUNLIGHT - 1
             } else {
                 OPAQUE
@@ -226,8 +244,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         let mut fluid_mesh = Mesh::new();
 
         let light = calc_light(range, self);
-
-        //let mut vol_cached = self.cached();
 
         let mut lowest_opaque = range.size().d;
         let mut highest_opaque = 0;
