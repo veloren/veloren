@@ -3,7 +3,7 @@ use super::{
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::{item::Debug, item::Tool, ItemKind, Stats};
+use common::comp::{item::Debug, item::Tool, Energy, ItemKind, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -97,6 +97,7 @@ pub struct Skillbar<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     stats: &'a Stats,
+    energy: &'a Energy,
     pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -109,12 +110,14 @@ impl<'a> Skillbar<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         stats: &'a Stats,
+        energy: &'a Energy,
         pulse: f32,
     ) -> Self {
         Self {
             imgs,
             fonts: fonts,
             stats,
+            energy,
             global_state,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
@@ -162,8 +165,7 @@ impl<'a> Widget for Skillbar<'a> {
 
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
-        let energy_percentage =
-            self.stats.energy.current() as f64 / self.stats.energy.maximum() as f64 * 100.0;
+        let energy_percentage = self.energy.current() as f64 / self.energy.maximum() as f64 * 100.0;
 
         let scale = 2.0;
 
@@ -839,8 +841,8 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.health_text, ui);
             let energy_text = format!(
                 "{}/{}",
-                self.stats.energy.current() as u32,
-                self.stats.energy.maximum() as u32
+                self.energy.current() as u32,
+                self.energy.maximum() as u32
             );
             Text::new(&energy_text)
                 .mid_top_with_margin_on(state.ids.energybar_bg, 6.0 * scale)

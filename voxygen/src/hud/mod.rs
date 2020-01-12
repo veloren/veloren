@@ -531,6 +531,7 @@ impl Hud {
             let ecs = client.state().ecs();
             let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let energy = ecs.read_storage::<comp::Energy>();
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let players = ecs.read_storage::<comp::Player>();
@@ -615,22 +616,24 @@ impl Hud {
             let mut health_front_id_walker = self.ids.health_bar_fronts.walk();
             let mut sct_bg_id_walker = self.ids.sct_bgs.walk();
             let mut sct_id_walker = self.ids.scts.walk();
+
             // Render Health Bars
-            for (pos, stats, scale, hp_floater_list) in (
+            for (pos, stats, energy, scale, hp_floater_list) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
+                &energy,
                 scales.maybe(),
                 hp_floater_lists.maybe(), // Potentially move this to its own loop
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _)| {
+                .filter(|(entity, _, _, stats, _, _, _)| {
                     *entity != me && !stats.is_dead
                     //&& stats.health.current() != stats.health.maximum()
                 })
                 // Don't process health bars outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _, _, _)| {
+                .filter(|(_, pos, _, _, _, _, _)| {
                     Vec2::from(pos.0 - player_pos)
                         .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
                             d.abs() as f32 / sz as f32
@@ -638,10 +641,11 @@ impl Hud {
                         .magnitude()
                         < view_distance as f32
                 })
-                .map(|(_, pos, interpolated, stats, scale, f)| {
+                .map(|(_, pos, interpolated, stats, energy, scale, f)| {
                     (
                         interpolated.map_or(pos.0, |i| i.pos),
                         stats,
+                        energy,
                         scale.map_or(1.0, |s| s.0),
                         f,
                     )
@@ -665,8 +669,7 @@ impl Hud {
                 );
                 let hp_percentage =
                     stats.health.current() as f64 / stats.health.maximum() as f64 * 100.0;
-                let energy_percentage =
-                    stats.energy.current() as f64 / stats.energy.maximum() as f64 * 100.0;
+                let energy_percentage = energy.current() as f64 / energy.maximum() as f64 * 100.0;
                 let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 1.0; //Animation timer
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
@@ -694,7 +697,7 @@ impl Hud {
                 // % Mana Filling
                 Rectangle::fill_with(
                     [
-                        73.0 * (stats.energy.current() as f64 / stats.energy.maximum() as f64),
+                        73.0 * (energy.current() as f64 / energy.maximum() as f64),
                         1.5,
                     ],
                     MANA_COLOR,
@@ -1643,14 +1646,20 @@ impl Hud {
 
         // Skillbar
         // Get player stats
-        if let Some(stats) = client
-            .state()
-            .ecs()
-            .read_storage::<comp::Stats>()
-            .get(client.entity())
-        {
-            Skillbar::new(global_state, &self.imgs, &self.fonts, &stats, self.pulse)
-                .set(self.ids.skillbar, ui_widgets);
+        let ecs = client.state().ecs();
+        let stats = ecs.read_storage::<comp::Stats>();
+        let energy = ecs.read_storage::<comp::Energy>();
+        let entity = client.entity();
+        if let (Some(stats), Some(energy)) = (stats.get(entity), energy.get(entity)) {
+            Skillbar::new(
+                global_state,
+                &self.imgs,
+                &self.fonts,
+                &stats,
+                &energy,
+                self.pulse,
+            )
+            .set(self.ids.skillbar, ui_widgets);
         }
 
         // Chat box

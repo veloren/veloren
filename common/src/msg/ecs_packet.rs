@@ -12,6 +12,7 @@ sum_type! {
         Player(comp::Player),
         CanBuild(comp::CanBuild),
         Stats(comp::Stats),
+        Energy(comp::Energy),
         LightEmitter(comp::LightEmitter),
         Item(comp::Item),
         Scale(comp::Scale),
@@ -31,6 +32,7 @@ sum_type! {
         Player(PhantomData<comp::Player>),
         CanBuild(PhantomData<comp::CanBuild>),
         Stats(PhantomData<comp::Stats>),
+        Energy(PhantomData<comp::Energy>),
         LightEmitter(PhantomData<comp::LightEmitter>),
         Item(PhantomData<comp::Item>),
         Scale(PhantomData<comp::Scale>),
@@ -49,6 +51,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Player(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::CanBuild(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Stats(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Energy(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::LightEmitter(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Item(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Scale(comp) => sync::handle_insert(comp, entity, world),
@@ -65,6 +68,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Player(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::CanBuild(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Stats(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Energy(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::LightEmitter(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Item(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Scale(comp) => sync::handle_modify(comp, entity, world),
@@ -81,6 +85,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Player(_) => sync::handle_remove::<comp::Player>(entity, world),
             EcsCompPhantom::CanBuild(_) => sync::handle_remove::<comp::CanBuild>(entity, world),
             EcsCompPhantom::Stats(_) => sync::handle_remove::<comp::Stats>(entity, world),
+            EcsCompPhantom::Energy(_) => sync::handle_remove::<comp::Energy>(entity, world),
             EcsCompPhantom::LightEmitter(_) => {
                 sync::handle_remove::<comp::LightEmitter>(entity, world)
             }
