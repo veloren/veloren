@@ -1,4 +1,5 @@
-use crate::comp::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, MoveState, StateUpdate};
+use crate::states::StateHandler;
 use crate::sys::phys::GRAVITY;
 use std::time::Duration;
 use vek::{Vec2, Vec3};

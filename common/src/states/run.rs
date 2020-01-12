@@ -1,5 +1,6 @@
 use super::utils::*;
-use crate::comp::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, MoveState, StateUpdate};
+use crate::states::StateHandler;
 use vek::vec::{Vec2, Vec3};
 
 const HUMANOID_ACCEL: f32 = 50.0;

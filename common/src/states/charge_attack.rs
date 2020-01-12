@@ -1,9 +1,10 @@
 use super::utils::*;
 use crate::comp::{
     ActionState::Attack, AttackKind::Charge, EcsStateData, HealthChange, HealthSource,
-    ItemKind::Tool, MoveState::Run, StateHandler, StateUpdate, ToolData,
+    ItemKind::Tool, MoveState::Run, StateUpdate, ToolData,
 };
 use crate::event::ServerEvent;
+use crate::states::StateHandler;
 use std::time::Duration;
 use vek::Vec3;
 
