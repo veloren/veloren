@@ -11,7 +11,6 @@ mod location;
 mod phys;
 mod player;
 pub mod projectile;
-pub mod states;
 mod stats;
 mod visual;
 
@@ -40,6 +39,5 @@ pub use location::Waypoint;
 pub use phys::{ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::Player;
 pub use projectile::Projectile;
-pub use states::*;
 pub use stats::{Equipment, Exp, HealthChange, HealthSource, Level, Stats};
 pub use visual::LightEmitter;

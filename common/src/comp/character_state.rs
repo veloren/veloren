@@ -1,5 +1,5 @@
 use self::ActionState::*;
-use super::states::*;
+use crate::states::*;
 use crate::{
     comp::{Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, Vel},
     event::{EventBus, LocalEvent, ServerEvent},

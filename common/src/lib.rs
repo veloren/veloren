@@ -20,6 +20,7 @@ pub mod pathfinding;
 pub mod ray;
 pub mod region;
 pub mod state;
+pub mod states;
 pub mod sys;
 pub mod terrain;
 pub mod util;

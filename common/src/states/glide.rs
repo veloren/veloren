@@ -1,4 +1,5 @@
-use crate::comp::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
+use crate::comp::{ActionState, EcsStateData, MoveState, StateUpdate};
+use crate::states::StateHandler;
 use vek::{Vec2, Vec3};
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
