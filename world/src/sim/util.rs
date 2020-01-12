@@ -101,7 +101,7 @@ pub fn cdf_irwin_hall<const N: usize>(weights: &[f32; N], samples: [f32; N]) -> 
     y /= weights.iter().product::<f32>();
 
     // Remember to multiply by 1 / N! at the end.
-    y / (1..=N as i32).product::<i32>() as f32
+    y / (1..(N as i32) + 1).product::<i32>() as f32
 }
 
 /// First component of each element of the vector is the computed CDF of the noise function at this

@@ -454,8 +454,8 @@ impl WorldSim {
                 _ => {}
             } */
             let pos = uniform_idx_as_vec2(posi);
-            for x in pos.x - 1..=pos.x + 1 {
-                for y in pos.y - 1..=pos.y + 1 {
+            for x in pos.x - 1..(pos.x + 1) + 1 {
+                for y in pos.y - 1..(pos.y + 1) + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
                         if !is_underwater(posi) {

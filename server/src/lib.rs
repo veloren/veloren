@@ -132,7 +132,7 @@ impl Server {
             // until the first air block is found
             // (up to max_z + 1, because max_z could still be a soild block)
             // if no air block is found default to max_z + 1
-            let z = (min_z..=max_z + 1)
+            let z = (min_z..(max_z + 1) + 1)
                 .find(|z| {
                     block_sampler
                         .get_with_z_cache(

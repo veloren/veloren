@@ -110,8 +110,10 @@ impl<'a> System<'a> for Sys {
             let hdist = player_rad.ceil() as i32;
             let vdist = player_height.ceil() as i32;
             // Neighbouring blocks iterator
-            let near_iter = (-hdist..=hdist)
-                .map(move |i| (-hdist..=hdist).map(move |j| (0..=vdist).map(move |k| (i, j, k))))
+            let near_iter = (-hdist..hdist + 1)
+                .map(move |i| {
+                    (-hdist..hdist + 1).map(move |j| (0..vdist + 1).map(move |k| (i, j, k)))
+                })
                 .flatten()
                 .flatten();
 

@@ -411,7 +411,7 @@ impl Client {
 
             // Request chunks from the server.
             let mut all_loaded = true;
-            'outer: for dist in 0..=view_distance as i32 {
+            'outer: for dist in 0..(view_distance as i32) + 1 {
                 // Only iterate through chunks that need to be loaded for circular vd
                 // The (dist - 2) explained:
                 // -0.5 because a chunk is visible if its corner is within the view distance
@@ -428,7 +428,7 @@ impl Client {
                     dist
                 };
 
-                for i in -top..=top {
+                for i in -top..top + 1 {
                     let keys = [
                         chunk_pos + Vec2::new(dist, i),
                         chunk_pos + Vec2::new(i, dist),
