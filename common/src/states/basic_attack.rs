@@ -49,6 +49,6 @@ impl StateHandler for State {
                 .unwrap_or_default(),
         })));
 
-        return update;
+        update
     }
 }

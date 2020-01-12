@@ -30,6 +30,6 @@ impl StateHandler for State {
             // else unarmed stuff?
         }
 
-        return update;
+        update
     }
 }

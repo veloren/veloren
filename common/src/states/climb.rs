@@ -98,6 +98,6 @@ impl StateHandler for State {
             }
         }
 
-        return update;
+        update
     }
 }

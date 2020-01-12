@@ -69,14 +69,14 @@ use crate::comp::{
 ///         // Try to jump
 ///         if state_utils::can_jump(ecs_data.physics, ecs_data.inputs) {
 ///             update.character.move_state = Jump(None);
-///             return update;
+///             update
 ///         }
 ///
 ///         // Update based on groundedness
 ///         update.character.move_state =
 ///             state_utils::determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);
 ///
-///         return update;
+///         update
 ///     }
 /// }
 /// ```

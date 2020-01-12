@@ -65,7 +65,7 @@ impl StateHandler for State {
         // Not on ground
         if !ecs_data.physics.on_ground {
             update.character.move_state = MoveState::Swim(None);
-            return update;
+            update
         }
         // On ground
         else {
@@ -76,7 +76,7 @@ impl StateHandler for State {
                 MoveState::Stand(None)
             };
 
-            return update;
+            update
         }
     }
 }

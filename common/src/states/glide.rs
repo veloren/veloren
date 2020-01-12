@@ -77,6 +77,6 @@ impl StateHandler for State {
         }
 
         // Otherwise keep gliding
-        return update;
+        update
     }
 }
