@@ -49,6 +49,6 @@ impl StateHandler for State {
         }
 
         // No move has occurred, keep sitting
-        return update;
+        update
     }
 }
