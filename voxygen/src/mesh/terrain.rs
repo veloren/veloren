@@ -229,6 +229,12 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
         //let mut vol_cached = self.cached();
 
+        let mut lowest_opaque = range.size().d;
+        let mut highest_opaque = 0;
+        let mut lowest_fluid = range.size().d;
+        let mut highest_fluid = 0;
+        let mut lowest_air = range.size().d;
+        let mut highest_air = 0;
         let flat_get = {
             let (w, h, d) = range.size().into_tuple();
             // z can range from -1..range.size().d + 1
@@ -240,7 +246,19 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
             for x in 0..range.size().w {
                 for y in 0..range.size().h {
                     for z in -1..range.size().d + 1 {
-                        flat[i] = *volume.get(range.min + Vec3::new(x, y, z)).unwrap();
+                        let block = *volume.get(range.min + Vec3::new(x, y, z)).unwrap();
+                        if block.is_opaque() {
+                            lowest_opaque = lowest_opaque.min(z);
+                            highest_opaque = highest_opaque.max(z);
+                        } else if block.is_fluid() {
+                            lowest_fluid = lowest_fluid.min(z);
+                            highest_fluid = highest_fluid.max(z);
+                        } else {
+                            // Assume air
+                            lowest_air = lowest_air.min(z);
+                            highest_air = highest_air.max(z);
+                        };
+                        flat[i] = block;
                         i += 1;
                     }
                 }
@@ -259,6 +277,31 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
             }
         };
 
+        // TODO: figure out why this has to be -2 instead of -1
+        let z_start = if (lowest_air > lowest_opaque && lowest_air <= lowest_fluid)
+            || (lowest_air > lowest_fluid && lowest_air <= lowest_opaque)
+        {
+            lowest_air - 2
+        } else if lowest_fluid > lowest_opaque && lowest_fluid <= lowest_air {
+            lowest_fluid - 2
+        } else if lowest_fluid > lowest_air && lowest_fluid <= lowest_opaque {
+            lowest_fluid - 1
+        } else {
+            lowest_opaque - 1
+        }
+        .max(0);
+        let z_end = if (highest_air < highest_opaque && highest_air >= highest_fluid)
+            || (highest_air < highest_fluid && highest_air >= highest_opaque)
+        {
+            highest_air + 1
+        } else if highest_fluid < highest_opaque && highest_fluid >= highest_air {
+            highest_fluid + 1
+        } else if highest_fluid < highest_air && highest_fluid >= highest_opaque {
+            highest_fluid
+        } else {
+            highest_opaque
+        }
+        .min(range.size().d - 1);
         for x in 1..range.size().w - 1 {
             for y in 1..range.size().w - 1 {
                 let mut lights = [[[0.0; 3]; 3]; 3];
@@ -266,7 +309,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     for j in 0..3 {
                         for k in 0..3 {
                             lights[k][j][i] = light(
-                                Vec3::new(x + range.min.x, y + range.min.y, range.min.z)
+                                Vec3::new(x + range.min.x, y + range.min.y, z_start + range.min.z)
                                     + Vec3::new(i as i32, j as i32, k as i32)
                                     - 1,
                             );
@@ -294,16 +337,16 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                                         - 1,
                                 )
                                 .ok()
-                                .copied()*/ Some(flat_get(Vec3::new(x, y, 0) + Vec3::new(i as i32, j as i32, k as i32) - 1));
+                                .copied()*/ Some(flat_get(Vec3::new(x, y, z_start) + Vec3::new(i as i32, j as i32, k as i32) - 1));
                             colors[k][j][i] = get_color(block.as_ref());
                             blocks[k][j][i] = block;
                         }
                     }
                 }
 
-                for z in 0..range.size().d {
+                for z in z_start..z_end + 1 {
                     let pos = Vec3::new(x, y, z);
-                    let offs = (pos - Vec3::new(1, 1, 0)).map(|e| e as f32);
+                    let offs = (pos - Vec3::new(1, 1, -range.min.z)).map(|e| e as f32);
 
                     lights[0] = lights[1];
                     lights[1] = lights[2];
@@ -314,7 +357,8 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
                     for i in 0..3 {
                         for j in 0..3 {
-                            lights[2][j][i] = light(pos + Vec3::new(i as i32, j as i32, 2) - 1);
+                            lights[2][j][i] =
+                                light(pos + range.min + Vec3::new(i as i32, j as i32, 2) - 1);
                         }
                     }
                     for i in 0..3 {
@@ -331,7 +375,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     let block = blocks[1][1][1];
 
                     // Create mesh polygons
-                    let pos = pos + range.min;
                     if block.map(|vox| vox.is_opaque()).unwrap_or(false) {
                         vol::push_vox_verts(
                             &mut opaque_mesh,
@@ -470,16 +513,3 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug> Meshable for VolGrid3d<V> {
     }
 }
 */
-
-fn interleave_i32_with_zeros(mut x: i32) -> i64 {
-    x = (x ^ (x << 16)) & 0x0000ffff0000ffff;
-    x = (x ^ (x << 8)) & 0x00ff00ff00ff00ff;
-    x = (x ^ (x << 4)) & 0x0f0f0f0f0f0f0f0f;
-    x = (x ^ (x << 2)) & 0x3333333333333333;
-    x = (x ^ (x << 1)) & 0x5555555555555555;
-    x
-}
-
-fn morton_code(pos: Vec2<i32>) -> i64 {
-    interleave_i32_with_zeros(pos.x) | (interleave_i32_with_zeros(pos.y) << 1)
-}
