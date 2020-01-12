@@ -43,6 +43,6 @@ impl StateHandler for State {
             return update;
         }
 
-        return update;
+        update
     }
 }

@@ -24,6 +24,6 @@ impl StateHandler for State {
 
         // Immediately go to falling state after jump impulse
         update.character.move_state = MoveState::Fall(None);
-        return update;
+        update
     }
 }

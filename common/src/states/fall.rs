@@ -64,6 +64,6 @@ impl StateHandler for State {
         update.character.move_state =
             determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);
 
-        return update;
+        update
     }
 }

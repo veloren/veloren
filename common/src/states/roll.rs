@@ -64,6 +64,6 @@ impl StateHandler for State {
         })));
 
         // Keep rolling
-        return update;
+        update
     }
 }
