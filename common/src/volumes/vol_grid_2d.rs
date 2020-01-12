@@ -69,8 +69,8 @@ impl<I: Into<Aabr<i32>>, V: RectRasterableVol + ReadVol + Debug> SampleVol<I> fo
         let mut sample = VolGrid2d::new()?;
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
-        for x in chunk_min.x..=chunk_max.x {
-            for y in chunk_min.y..=chunk_max.y {
+        for x in chunk_min.x..chunk_max.x + 1 {
+            for y in chunk_min.y..chunk_max.y + 1 {
                 let chunk_key = Vec2::new(x, y);
 
                 let chunk = self.get_key_arc(chunk_key).cloned();
