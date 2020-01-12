@@ -128,13 +128,11 @@ impl MovementEventMapper {
             (MovementState::Climb, ..) => SfxEvent::Climb,
             (MovementState::Swim, ..) => SfxEvent::Swim,
             (MovementState::Run, ..) => SfxEvent::Run,
-            (MovementState::Fall, _, previous_event) => {
-                if previous_event != SfxEvent::Glide {
-                    SfxEvent::Fall
-                } else {
-                    SfxEvent::GliderClose
-                }
-            }
+            (MovementState::Jump, ..) => SfxEvent::Jump,
+            (MovementState::Fall, _, SfxEvent::Glide) => SfxEvent::GliderClose,
+            (MovementState::Stand, _, SfxEvent::Fall) => SfxEvent::Run,
+            (MovementState::Fall, _, SfxEvent::Jump) => SfxEvent::Idle,
+            (MovementState::Fall, _, _) => SfxEvent::Fall,
             (MovementState::Glide, _, previous_event) => {
                 if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
                     SfxEvent::GliderOpen
@@ -142,13 +140,7 @@ impl MovementEventMapper {
                     SfxEvent::Glide
                 }
             }
-            (MovementState::Stand, _, previous_event) => {
-                if previous_event == SfxEvent::Glide {
-                    SfxEvent::GliderClose
-                } else {
-                    SfxEvent::Idle
-                }
-            }
+            (MovementState::Stand, _, SfxEvent::Glide) => SfxEvent::GliderClose,
             _ => SfxEvent::Idle,
         }
     }
@@ -287,10 +279,23 @@ mod tests {
                 movement: MovementState::Fall,
                 action: ActionState::Idle,
             },
-            SfxEvent::Idle,
+            SfxEvent::Fall,
         );
 
         assert_eq!(result, SfxEvent::Fall);
+    }
+
+    #[test]
+    fn maps_land_on_ground_to_run() {
+        let result = MovementEventMapper::map_movement_event(
+            &CharacterState {
+                movement: MovementState::Stand,
+                action: ActionState::Idle,
+            },
+            SfxEvent::Fall,
+        );
+
+        assert_eq!(result, SfxEvent::Run);
     }
 
     #[test]
