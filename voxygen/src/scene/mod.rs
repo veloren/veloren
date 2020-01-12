@@ -208,7 +208,7 @@ impl Scene {
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
 
         // Update chunk loaded distance smoothly for nice shader fog
-        let loaded_distance = client.loaded_distance().unwrap_or(0) as f32 * 32.0; // TODO: No magic!
+        let loaded_distance = client.loaded_distance();
         self.loaded_distance = (0.98 * self.loaded_distance + 0.02 * loaded_distance).max(0.01);
 
         // Update light constants
