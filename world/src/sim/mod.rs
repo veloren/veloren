@@ -21,6 +21,7 @@ pub use self::util::{
 
 use crate::{
     all::ForestKind,
+    block::BlockGen,
     column::ColumnGen,
     generator::TownState,
     util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d},
@@ -30,6 +31,7 @@ use common::{
     terrain::{BiomeKind, TerrainChunkSize},
     vol::RectVolSize,
 };
+use hashbrown::HashMap;
 use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
     Seedable, SuperSimplex, Worley,
@@ -40,7 +42,6 @@ use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
     f32, f64,
     fs::File,
     io::{BufReader, BufWriter},
@@ -1688,6 +1689,7 @@ impl WorldSim {
     /// Prepare the world for simulation
     pub fn seed_elements(&mut self) {
         let mut rng = self.rng.clone();
+        let random_loc = RandomField::new(rng.gen());
 
         let cell_size = 16;
         let grid_size = WORLD_SIZE / cell_size;
@@ -1697,7 +1699,7 @@ impl WorldSim {
         let mut locations = Vec::new();
 
         // Seed the world with some locations
-        for _ in 0..loc_count {
+        (0..loc_count).for_each(|_| {
             let cell_pos = Vec2::new(
                 self.rng.gen::<usize>() % grid_size.x,
                 self.rng.gen::<usize>() % grid_size.y,
@@ -1710,7 +1712,7 @@ impl WorldSim {
             locations.push(Location::generate(wpos, &mut rng));
 
             loc_grid[cell_pos.y * grid_size.x + cell_pos.x] = Some(locations.len() - 1);
-        }
+        });
 
         // Find neighbours
         let mut loc_clone = locations
@@ -1718,7 +1720,7 @@ impl WorldSim {
             .map(|l| l.center)
             .enumerate()
             .collect::<Vec<_>>();
-        for i in 0..locations.len() {
+        (0..locations.len()).for_each(|i| {
             let pos = locations[i].center.map(|e| e as i64);
 
             loc_clone.sort_by_key(|(_, l)| l.map(|e| e as i64).distance_squared(pos));
@@ -1727,13 +1729,13 @@ impl WorldSim {
                 locations[i].neighbours.insert(*j);
                 locations[*j].neighbours.insert(i);
             });
-        }
+        });
 
         // Simulate invasion!
         let invasion_cycles = 25;
-        for _ in 0..invasion_cycles {
-            for i in 0..grid_size.x {
-                for j in 0..grid_size.y {
+        (0..invasion_cycles).for_each(|_| {
+            (0..grid_size.y).for_each(|j| {
+                (0..grid_size.x).for_each(|i| {
                     if loc_grid[j * grid_size.x + i].is_none() {
                         const R_COORDS: [i32; 5] = [-1, 0, 1, 0, -1];
                         let idx = self.rng.gen::<usize>() % 4;
@@ -1745,15 +1747,20 @@ impl WorldSim {
                                 loc_grid.get(loc.y * grid_size.x + loc.x).cloned().flatten();
                         }
                     }
-                }
-            }
-        }
+                });
+            });
+        });
 
         // Place the locations onto the world
         let gen = StructureGen2d::new(self.seed, cell_size as u32, cell_size as u32 / 2);
-        for i in 0..WORLD_SIZE.x {
-            for j in 0..WORLD_SIZE.y {
-                let chunk_pos = Vec2::new(i as i32, j as i32);
+
+        self.chunks
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(ij, chunk)| {
+                let chunk_pos = uniform_idx_as_vec2(ij);
+                let i = chunk_pos.x as usize;
+                let j = chunk_pos.y as usize;
                 let block_pos = Vec2::new(
                     chunk_pos.x * TerrainChunkSize::RECT_SIZE.x as i32,
                     chunk_pos.y * TerrainChunkSize::RECT_SIZE.y as i32,
@@ -1779,16 +1786,14 @@ impl WorldSim {
                 let nearest_cell_pos = near[0].chunk_pos;
                 if nearest_cell_pos.x >= 0 && nearest_cell_pos.y >= 0 {
                     let nearest_cell_pos = nearest_cell_pos.map(|e| e as usize) / cell_size;
-                    self.get_mut(chunk_pos).unwrap().location = loc_grid
+                    chunk.location = loc_grid
                         .get(nearest_cell_pos.y * grid_size.x + nearest_cell_pos.x)
                         .cloned()
                         .unwrap_or(None)
                         .map(|loc_idx| LocationInfo { loc_idx, near });
 
                     let town_size = 200;
-                    let in_town = self
-                        .get(chunk_pos)
-                        .unwrap()
+                    let in_town = chunk
                         .location
                         .as_ref()
                         .map(|l| {
@@ -1799,46 +1804,61 @@ impl WorldSim {
                                 < town_size * town_size
                         })
                         .unwrap_or(false);
+
                     if in_town {
-                        self.get_mut(chunk_pos).unwrap().spawn_rate = 0.0;
+                        chunk.spawn_rate = 0.0;
                     }
                 }
-            }
-        }
+            });
 
         // Stage 2 - towns!
-        let mut maybe_towns = HashMap::new();
-        for i in 0..WORLD_SIZE.x {
-            for j in 0..WORLD_SIZE.y {
-                let chunk_pos = Vec2::new(i as i32, j as i32);
-                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                    e * sz as i32 + sz as i32 / 2
-                });
+        let chunk_idx_center = |e: Vec2<i32>| {
+            e.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+                e * sz as i32 + sz as i32 / 2
+            })
+        };
+        let maybe_towns = self
+            .gen_ctx
+            .town_gen
+            .par_iter(
+                chunk_idx_center(Vec2::zero()),
+                chunk_idx_center(WORLD_SIZE.map(|e| e as i32)),
+            )
+            .map_init(
+                || BlockGen::new(ColumnGen::new(self)),
+                |mut block_gen, (pos, seed)| {
+                    let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+                    // println!("Town: {:?}", town);
+                    TownState::generate(pos, &mut block_gen, &mut rng).map(|t| (pos, Arc::new(t)))
+                },
+            )
+            .filter_map(|x| x)
+            .collect::<HashMap<_, _>>();
 
-                let near_towns = self.gen_ctx.town_gen.get(wpos);
+        let gen_ctx = &self.gen_ctx;
+        self.chunks
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(ij, chunk)| {
+                let chunk_pos = uniform_idx_as_vec2(ij);
+                let wpos = chunk_idx_center(chunk_pos);
+
+                let near_towns = gen_ctx.town_gen.get(wpos);
                 let town = near_towns
                     .iter()
                     .min_by_key(|(pos, _seed)| wpos.distance_squared(*pos));
 
-                if let Some((pos, _)) = town {
-                    let maybe_town = maybe_towns
-                        .entry(*pos)
-                        .or_insert_with(|| {
-                            // println!("Town: {:?}", town);
-                            TownState::generate(*pos, &mut ColumnGen::new(self), &mut rng)
-                                .map(|t| Arc::new(t))
-                        })
-                        .as_mut()
-                        // Only care if we're close to the town
-                        .filter(|town| {
-                            Vec2::from(town.center()).distance_squared(wpos)
-                                < town.radius().add(64).pow(2)
-                        })
-                        .cloned();
-                    self.get_mut(chunk_pos).unwrap().structures.town = maybe_town;
-                }
-            }
-        }
+                let maybe_town = town
+                    .and_then(|(pos, _seed)| maybe_towns.get(pos))
+                    // Only care if we're close to the town
+                    .filter(|town| {
+                        Vec2::from(town.center()).distance_squared(wpos)
+                            < town.radius().add(64).pow(2)
+                    })
+                    .cloned();
+
+                chunk.structures.town = maybe_town;
+            });
 
         self.rng = rng;
         self.locations = locations;
