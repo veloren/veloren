@@ -23,13 +23,10 @@ static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 pub fn structure_gen<'a>(
     column_gen: &ColumnGen<'a>,
     column_cache: &mut SmallCache<Option<ColumnSample<'a>>>,
-    idx: usize,
     st_pos: Vec2<i32>,
     st_seed: u32,
-    structure_samples: &[Option<ColumnSample>; 9],
+    st_sample: &ColumnSample,
 ) -> Option<StructureInfo> {
-    let st_sample = &structure_samples[idx].as_ref()?;
-
     // Assuming it's a tree... figure out when it SHOULDN'T spawn
     let random_seed = (st_seed as f64) / (u32::MAX as f64);
     if (st_sample.tree_density as f64) < random_seed
