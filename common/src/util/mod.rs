@@ -7,74 +7,16 @@ lazy_static::lazy_static! {
 
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
-
-#[inline(always)]
-#[allow(unsafe_code)]
-unsafe fn approx_powf_internal(mut a: f64, b: f64) -> f64 {
-    let mut e = b as i32;
-    union Swagger {
-        d: f64,
-        x: [i32; 2],
-    }
-    let mut u = Swagger { d: a };
-    u.x[1] = ((b - e as f64) * (u.x[1] as f64 - 1072632447.0) + 1072632447.0) as i32;
-    u.x[0] = 0;
-    let mut r = 1.0_f64;
-    while e > 0 {
-        if e & 1 > 0 {
-            r *= a;
-        }
-        a *= a;
-        e >>= 1;
-    }
-    return r * u.d;
-}
-
-#[inline(always)]
-#[allow(unsafe_code)]
-fn approx_powf(a: f32, b: f32) -> f32 {
-    unsafe { approx_powf_internal(a as f64, b as f64) as f32 }
-}
-
-#[cfg(test)]
-mod approx_powf_tests {
-    fn close_ei(a: f32, b: f32) -> bool {
-        const ACCEPTABLE_DIFF: f32 = 0.05;
-        (a - b < ACCEPTABLE_DIFF && a - b > 0.0) || (b - a < ACCEPTABLE_DIFF && b - a > 0.0)
-    }
-
-    #[test]
-    fn accuracy_1() {
-        let test_values: Vec<f32> = vec![3.0, 2.5, 1.5, 2.2];
-        test_values.windows(2).for_each(|a| {
-            assert!(close_ei(a[0].powf(a[1]), super::approx_powf(a[0], a[1])));
-        });
-    }
-}
-
 #[inline(always)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
-    #[inline(always)]
-    fn to_linear(x: f32) -> f32 {
-        if x <= 0.04045 {
-            x / 12.92
-        } else {
-            approx_powf((x + 0.055) / 1.055, 2.4)
-        }
-    }
-    col.map(to_linear)
+    0.012522878 * col + 0.682171111 * col * col + 0.305306011 * col * col * col
 }
 #[inline(always)]
 pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
-    #[inline(always)]
-    fn to_srgb(x: f32) -> f32 {
-        if x <= 0.0031308 {
-            x * 12.92
-        } else {
-            approx_powf(x, 1.0 / 2.4) * 1.055 - 0.055
-        }
-    }
-    col.map(to_srgb)
+    let s1 = col.sqrt();
+    let s2 = s1.sqrt();
+    let s3 = s2.sqrt();
+    0.585122381 * s1 + 0.783140355 * s2 - 0.368262736 * s3
 }
 #[inline(always)]
 pub fn srgba_to_linear(col: Rgba<f32>) -> Rgba<f32> {
