@@ -57,7 +57,7 @@ impl World {
     }
 
     pub fn sample_blocks(&self) -> BlockGen {
-        BlockGen::new(self, ColumnGen::new(&self.sim))
+        BlockGen::new(ColumnGen::new(&self.sim))
     }
 
     pub fn generate_chunk(
@@ -101,8 +101,8 @@ impl World {
         let chunk_block_pos = Vec3::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
-        for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
-            for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
+        for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
+            for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
                 if should_continue() {
                     return Err(());
                 };
@@ -116,11 +116,11 @@ impl World {
 
                 let (min_z, only_structures_min_z, max_z) = z_cache.get_z_limits(&mut sampler);
 
-                for z in base_z..min_z as i32 {
+                (base_z..min_z as i32).for_each(|z| {
                     let _ = chunk.set(Vec3::new(x, y, z), stone);
-                }
+                });
 
-                for z in min_z as i32..max_z as i32 {
+                (min_z as i32..max_z as i32).for_each(|z| {
                     let lpos = Vec3::new(x, y, z);
                     let wpos = chunk_block_pos + lpos;
                     let only_structures = lpos.z >= only_structures_min_z as i32;
@@ -130,7 +130,7 @@ impl World {
                     {
                         let _ = chunk.set(lpos, block);
                     }
-                }
+                });
             }
         }
 

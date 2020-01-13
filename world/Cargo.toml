@@ -13,7 +13,7 @@ vek = "0.9.9"
 noise = { version = "0.6.0", default-features = false }
 num = "0.2.0"
 ordered-float = "1.0"
-hashbrown = { version = "0.6.2", features = ["serde"] }
+hashbrown = { version = "0.6.2", features = ["rayon", "serde"] }
 lazy_static = "1.4.0"
 log = "0.4.8"
 rand = "0.7.2"

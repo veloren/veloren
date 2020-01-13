@@ -40,13 +40,13 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
     // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y) as f32);
     let base_flux = 1.0;
     let mut flux = vec![base_flux; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    for &chunk_idx in newh.into_iter().rev() {
+    newh.into_iter().rev().for_each(|&chunk_idx| {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
         if downhill_idx >= 0 {
             flux[downhill_idx as usize] += flux[chunk_idx];
         }
-    }
+    });
     flux
 }
 
@@ -68,18 +68,18 @@ pub fn get_multi_drainage(
     // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y) as f32);
     let base_area = 1.0;
     let mut area = vec![base_area; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    for &ij in mstack {
+    mstack.into_iter().for_each(|&ij| {
         let ij = ij as usize;
         let wrec_ij = &mwrec[ij];
         let area_ij = area[ij];
         // debug_assert!(area_ij >= 0.0);
-        for (k, ijr) in mrec_downhill(mrec, ij) {
+        mrec_downhill(mrec, ij).for_each(|(k, ijr)| {
             /* if area_ij != 1.0 {
                 println!("ij={:?} wrec_ij={:?} k={:?} ijr={:?} area_ij={:?} wrec_ij={:?}", ij, wrec_ij, k, ijr, area_ij, wrec_ij[k]);
             } */
             area[ijr] += area_ij * /*wrec_ij.extract(k);*/wrec_ij[k];
-        }
-    }
+        });
+    });
     area
     /*
       a=dx*dy*precip
@@ -218,14 +218,14 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     // NOTE: This technically makes us discontinuous, so we should be cautious about using this.
     let derivative_divisor = 1.0;
     let height_scale = 1.0; // 1.0 / CONFIG.mountain_scale as f64;
-    for &chunk_idx in newh.into_iter().rev() {
+    newh.into_iter().rev().for_each(|&chunk_idx| {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
         if downhill_idx < 0 {
             // We are in the ocean.
             debug_assert!(downhill_idx == -2);
             rivers[chunk_idx].river_kind = Some(RiverKind::Ocean);
-            continue;
+            return;
         }
         let downhill_idx = downhill_idx as usize;
         let downhill_pos = uniform_idx_as_vec2(downhill_idx);
@@ -405,7 +405,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
                     neighbor_pass_pos: neighbor_pass_pos
                         * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 });
-                continue;
+                return;
             }
         // Otherwise, we must be a river.
         } else {
@@ -541,7 +541,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
         } else {
             None
         };
-    }
+    });
     rivers
 }
 
@@ -922,7 +922,7 @@ fn erode(
                         let m = m_f(posi) as f64;
 
                         let mwrec_i = &mwrec[posi];
-                        for (kk, posj) in mrec_downhill(&mrec, posi) {
+                        mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
                             // let posj = posj as usize;
                             let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
                             let neighbor_distance = (neighbor_coef * dxy).magnitude();
@@ -930,7 +930,7 @@ fn erode(
                             // let knew = (k * (p * chunk_area * (area[posi] as f64 * mwrec_i.extract(kk) as f64)).powf(m) / neighbor_distance.powf(n)) as Compute;
                             k_tot[kk] = knew;
                             // k_tot = k_tot.replace(kk, knew);
-                        }
+                        });
                         k_tot
                     }
                 })
@@ -984,7 +984,7 @@ fn erode(
                         // let k = k_df * dt;
 
                         let mwrec_i = &mwrec[posi];
-                        for (kk, posj) in mrec_downhill(&mrec, posi) {
+                        mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
                             let mwrec_kk = mwrec_i[kk];
                             // let posj = posj as usize;
 
@@ -1048,7 +1048,7 @@ fn erode(
                             // let knew = 0.0;
                             k_tot[kk] = knew;
                             // k_tot = k_tot.replace(kk, knew);
-                        }
+                        });
                         k_tot
                     }
                 })
@@ -1145,7 +1145,7 @@ fn erode(
                 {
                     // guess/update the elevation at t+Δt (k)
                     h_p.par_iter_mut()
-                        .zip(/*h_*/ h.par_iter()) /*.zip(wh.par_iter())*/
+                        .zip_eq(/*h_*/ h.par_iter()) /*.zip(wh.par_iter())*/
                         .for_each(|((mut h_p, h_)/*, wh_*/)| {
                             *h_p = (*h_)/*.max(*wh_)*/ as Compute;
                         });
@@ -1205,7 +1205,8 @@ fn erode(
         //
         // After:
         // deltah_i = Σ{j ∈ {i} ∪ upstream_i(t)}(h_j(t, FINAL) + U_j * Δt - h_i(t + Δt, k))
-        for &posi in /*newh.iter().rev()*/mstack.into_iter() {
+        /*newh.iter().rev()*/
+        mstack.into_iter().for_each(|&posi| {
             let posi = posi as usize;
             let posj = dh[posi];
             if posj < 0 {
@@ -1245,9 +1246,9 @@ fn erode(
                 }
                 deltah[posi] += (/* ht[posi] + at[posi].max(0.0) */h_t[posi] + uplift_i) as Compute - h_p[posi];
                 let mwrec_i = &mwrec[posi];
-                for (k, posj) in mrec_downhill(&mrec, posi) {
+                mrec_downhill(&mrec, posi).for_each(|(k, posj)| {
                     deltah[posj] += deltah[posi] * mwrec_i[k]/*mwrec_i.extract(k)*/;
-                }
+                });
                 /* let posj = posj as usize;
                 deltah[posj] += deltah[posi]; */
 
@@ -1263,7 +1264,7 @@ fn erode(
                          ht[posi], at[posi]);
                 debug_assert_eq!(deltah[posi], deltah_sediment[posi] + deltah_alluvium[posi]);
             } */
-        }
+        });
         log::debug!("(Done sediment transport computation).");
         // do ij=nn,1,-1
         //   ijk=stack(ij)
@@ -1348,7 +1349,8 @@ fn erode(
         let mut simd_buf = [0.0; 8];
         let mut simd_buf2 = [0.0; 8];
         let mut simd_buf3 = [0.0; 8];
-        for &posi in /*&*newh*/mstack.into_iter().rev() {
+        /*&*newh*/
+        mstack.into_iter().rev().for_each(|&posi| {
             let posi = posi as usize;
             let old_elev_i = /*h*/elev[posi] as f64;
             let old_wh_i = wh[posi];
@@ -1470,7 +1472,7 @@ fn erode(
                     if /*n == 1.0*/(n - 1.0).abs() <= 1.0e-3/*f64::EPSILON*/ && (q_ - 1.0).abs() <= 1.0e-3 {
                         let mut f = h0;
                         let mut df = 1.0;
-                        for (kk, posj) in mrec_downhill(&mrec, posi) {
+                        mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
                             // This can happen in cases where receiver kk is neither uphill of
                             // nor downhill from posi's direct receiver.
                             if /*new_ht_i/*old_ht_i*/ >= (h_t[posj]/* + uplift(posj) as f64*/)*/old_elev_i /*>=*/> wh[posj] as f64/*h[posj]*//*h_j*/ {
@@ -1484,7 +1486,7 @@ fn erode(
                                 f += fact * elev_j;
                                 df += fact;
                             }
-                        }
+                        });
                         new_h_i = f / df;
                     } else {
                         // Local Newton-Raphson
@@ -1506,7 +1508,7 @@ fn erode(
                         // let czero = f64s(0.0);//f64x8::splat(0.0); */
                         let mut rec_heights = [0.0; 8];//f64s(0.0);//f64x8::splat(0.0);
                         let mut mask = [MaskType::new(false); 8];
-                        for (kk, posj) in mrec_downhill(&mrec, posi) {
+                        mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
                             if old_elev_i > wh[posj] as f64 {
                                 // k_fs_weights[kk] = k_fs_fact[kk] as SimdType;
                                 // k_fs_weights[max] = k_fs_fact[kk] as SimdType;
@@ -1520,7 +1522,7 @@ fn erode(
                                 // /*rec_heights = */rec_heights.replace(max, h[posj] as f64);
                                 // max += 1;
                             }
-                        }
+                        });
                         /* let (weights_heights, max) = {
                             let mut iter = mrec_downhill(&mrec, posi);
                             let mut max = 0usize;
@@ -1664,7 +1666,7 @@ fn erode(
                                     df += (n as SimdType * dh_fs_sample + q_ as SimdType * dh_df_sample) as f64;
                                 }
                             } */
-                            for kk in (0..8) {
+                            (0..8).for_each(|kk| {
                                 //if /*new_ht_i/*old_ht_i*/ > (h_t[posj]/* + uplift(posj) as f64*/)*/old_elev_i /*>=*/> wh[posj] as f64/*h[posj]*//*h_j*/ {
                                 if mask[kk].test() {
                                     let h_j = rec_heights[kk];
@@ -1679,7 +1681,7 @@ fn erode(
                                     df += (n as SimdType * dh_fs_sample + q_ as SimdType * dh_df_sample) as f64;
                                 }
                                 //}
-                            }
+                            });
                             /* for (kk, posj) in mrec_downhill(&mrec, posi) {
                                 if /*new_ht_i/*old_ht_i*/ > (h_t[posj]/* + uplift(posj) as f64*/)*/old_elev_i /*>=*/> wh[posj] as f64/*h[posj]*//*h_j*/ {
                                     let h_j = h[posj] as f64;
@@ -1979,7 +1981,7 @@ fn erode(
             } */
             // Add sum of squares of errors.
             sum_err += (h[posi]/*.max(wh[posi])*/ as Compute/* + a[posi].max(0.0) as Compute*/ - /*hp*/h_p[posi] as Compute/* - ap[posi].max(0.0) as Compute*/).powi(2);
-        }
+        });
         log::debug!(
             "(Done erosion computation, time={:?}ms)",
             start_time.elapsed().as_millis()
@@ -2047,7 +2049,7 @@ fn erode(
     } */
     // TODO: Consider taking advantage of multi-receiver flow here.
     b.par_iter_mut()
-        .zip(h.par_iter())
+        .zip_eq(h.par_iter())
         .enumerate()
         .for_each(|(posi, (mut b, &h_i))| {
             let old_b_i = *b;
@@ -2174,7 +2176,7 @@ fn erode(
     ntherm = 0usize;
     prods_therm = 0.0;
     prodscrit_therm = 0.0;
-    for &posi in &*newh {
+    newh.iter().for_each(|&posi| {
         let posi = posi as usize;
         let old_h_i = h/*b*/[posi] as f64;
         // let old_a_i = a[posi];
@@ -2351,7 +2353,7 @@ fn erode(
             }
             maxh = h_i.max(maxh);
         }
-    }
+    });
     log::debug!(
         "Done applying thermal erosion (max height: {:?}) (avg height: {:?}) (min height: {:?}) (avg slope: {:?})\n        \
         (above talus angle, geom. mean slope [actual/critical/ratio]: {:?} / {:?} / {:?})\n        \
@@ -2438,11 +2440,11 @@ pub fn fill_sinks<F: Float + Send + Sync>(
 
     loop {
         let mut changed = false;
-        for posi in 0..newh.len() {
+        (0..newh.len()).for_each(|posi| {
             let nh = newh[posi];
             let oh = oldh[posi];
             if nh == oh {
-                continue;
+                return;
             }
             for nposi in neighbors(posi) {
                 let onbh = newh[nposi];
@@ -2471,7 +2473,7 @@ pub fn fill_sinks<F: Float + Send + Sync>(
                     changed = true;
                 }
             }
-        }
+        });
         if !changed {
             return newh;
         }
@@ -2520,44 +2522,44 @@ pub fn get_lakes<F: Float>(
     let mut indirection_ = vec![0u32; indirection.len()];
     // First, find all the lakes.
     let mut lake_roots = Vec::with_capacity(downhill.len()); // Test
-    for (chunk_idx, &dh) in (&*downhill)
+    (&*downhill)
         .into_iter()
         .enumerate()
         .filter(|(_, &dh_idx)| dh_idx < 0)
-    {
-        if dh == -2 {
-            // On the boundary, add to the boundary vector.
-            boundary.push(chunk_idx);
-        // Still considered a lake root, though.
-        } else if dh == -1 {
-            lake_roots.push(chunk_idx);
-        } else {
-            panic!("Impossible.");
-        }
-        // Find all the nodes uphill from this lake.  Since there is only one outgoing edge
-        // in the "downhill" graph, this is guaranteed never to visit a node more than
-        // once.
-        let start = newh.len();
-        let indirection_idx = (start * 8) as u32;
-        // New lake root
-        newh.push(chunk_idx as u32);
-        let mut cur = start;
-        while cur < newh.len() {
-            let node = newh[cur as usize];
-            for child in uphill(downhill, node as usize) {
-                // lake_idx is the index of our lake root.
-                indirection[child] = chunk_idx as i32;
-                indirection_[child] = indirection_idx;
-                newh.push(child as u32);
+        .for_each(|(chunk_idx, &dh)| {
+            if dh == -2 {
+                // On the boundary, add to the boundary vector.
+                boundary.push(chunk_idx);
+            // Still considered a lake root, though.
+            } else if dh == -1 {
+                lake_roots.push(chunk_idx);
+            } else {
+                panic!("Impossible.");
             }
-            cur += 1;
-        }
-        // Find the number of elements pushed.
-        let length = (cur - start) * 8;
-        // New lake root (lakes have indirection set to -length).
-        indirection[chunk_idx] = -(length as i32);
-        indirection_[chunk_idx] = indirection_idx;
-    }
+            // Find all the nodes uphill from this lake.  Since there is only one outgoing edge
+            // in the "downhill" graph, this is guaranteed never to visit a node more than
+            // once.
+            let start = newh.len();
+            let indirection_idx = (start * 8) as u32;
+            // New lake root
+            newh.push(chunk_idx as u32);
+            let mut cur = start;
+            while cur < newh.len() {
+                let node = newh[cur as usize];
+                uphill(downhill, node as usize).for_each(|child| {
+                    // lake_idx is the index of our lake root.
+                    indirection[child] = chunk_idx as i32;
+                    indirection_[child] = indirection_idx;
+                    newh.push(child as u32);
+                });
+                cur += 1;
+            }
+            // Find the number of elements pushed.
+            let length = (cur - start) * 8;
+            // New lake root (lakes have indirection set to -length).
+            indirection[chunk_idx] = -(length as i32);
+            indirection_[chunk_idx] = indirection_idx;
+        });
     assert_eq!(newh.len(), downhill.len());
 
     log::debug!("Old lake roots: {:?}", lake_roots.len());
@@ -2569,7 +2571,7 @@ pub fn get_lakes<F: Float>(
     // space, and augment our indirection vector with the starting index, resulting in a vector of
     // slices.  As we go, we replace each lake entry with its index in the new indirection buffer,
     // allowing
-    for &chunk_idx_ in newh.into_iter() {
+    newh.into_iter().for_each(|&chunk_idx_| {
         let chunk_idx = chunk_idx_ as usize;
         let lake_idx_ = indirection_[chunk_idx];
         let lake_idx = lake_idx_ as usize;
@@ -2582,7 +2584,7 @@ pub fn get_lakes<F: Float>(
         // get its height.  We do the same thing in our own lake's entry list.  If the maximum
         // of the heights we get out from this process is greater than the maximum of this
         // chunk and its neighbor chunk, we switch to this new edge.
-        for neighbor_idx in neighbors(chunk_idx) {
+        neighbors(chunk_idx).for_each(|neighbor_idx| {
             let neighbor_height = h(neighbor_idx);
             let neighbor_lake_idx_ = indirection_[neighbor_idx];
             let neighbor_lake_idx = neighbor_lake_idx_ as usize;
@@ -2670,8 +2672,8 @@ pub fn get_lakes<F: Float>(
                     }
                 }
             }
-        }
-    }
+        });
+    });
 
     // Now it's time to calculate the lake connections graph T_L covering G_L.
     let mut candidates = BinaryHeap::with_capacity(indirection.len());
@@ -2679,11 +2681,11 @@ pub fn get_lakes<F: Float>(
 
     // We start by going through each pass, deleting the ones that point out of boundary nodes and
     // adding ones that point into boundary nodes from non-boundary nodes.
-    for edge in &mut lakes {
+    lakes.iter_mut().for_each(|edge| {
         let edge: &mut (i32, u32) = edge;
         // Only consider valid elements.
         if edge.0 == -1 {
-            continue;
+            return;
         }
         // Check to see if this edge points out *from* a boundary node.
         // Delete it if so.
@@ -2696,7 +2698,7 @@ pub fn get_lakes<F: Float>(
         };
         if downhill[lake_idx] == -2 {
             edge.0 = -1;
-            continue;
+            return;
         }
         // This edge is not pointing out from a boundary node.
         // Check to see if this edge points *to* a boundary node.
@@ -2716,7 +2718,7 @@ pub fn get_lakes<F: Float>(
                 (edge.0 as u32, edge.1),
             )));
         }
-    }
+    });
 
     let mut pass_flows_sorted: Vec<usize> = Vec::with_capacity(indirection.len());
 
@@ -2875,10 +2877,10 @@ pub fn get_lakes<F: Float>(
                         let mut rcv_cost = -f64::INFINITY;/*f64::EPSILON;*/
                         let outflow_distance = (outflow_coords - coords).map(|e| e as f64);
 
-                        for ineighbor in neighbors(node) {
+                        neighbors(node).for_each(|ineighbor| {
                             if indirection[ineighbor] != chunk_idx as i32 &&
                                 ineighbor != chunk_idx && ineighbor != neighbor_pass_idx || h(ineighbor) > elev {
-                                continue;
+                                return;
                             }
                             let dxy = (uniform_idx_as_vec2(ineighbor) - coords).map(|e| e as f64);
                             let neighbor_distance = (/*neighbor_coef * */dxy);
@@ -2912,7 +2914,7 @@ pub fn get_lakes<F: Float>(
                                 },
                                 _ => {}
                             }
-                        }
+                        });
                         assert!(rcv != -1);
                         downhill[node] = rcv;
                         // dist2receivers(node) = d8_distances[detail::get_d8_distance_id(node, rcv, static_cast<Node_T>(ncols))];
@@ -2935,7 +2937,7 @@ pub fn get_lakes<F: Float>(
                 // let node = newh[cur as usize];
                 // cur += 1;
 
-                for child in uphill(downhill, node as usize) {
+                uphill(downhill, node as usize).for_each(|child| {
                     // lake_idx is the index of our lake root.
                     // Check to make sure child (flowing into us) is in the same lake.
                     if indirection[child] == chunk_idx as i32 || child == chunk_idx
@@ -2946,7 +2948,7 @@ pub fn get_lakes<F: Float>(
                         // assert!(h[child] >= h[node as usize]);
                         newh.push(child as u32);
                     }
-                }
+                });
 
                 if cur == newh.len() {
                     break;
@@ -3053,7 +3055,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
     // let deltah = F::epsilon() * 2 * maxh;
     // NumCast::from(nn); /* 1.0e-8 */
     // let deltah : F = (1.0e-7 as Compute).into();
-    for &ijk in newh {
+    newh.into_iter().for_each(|&ijk| {
         let ijk = ijk as usize;
         let h_i = h(ijk);
         let ijr = downhill[ijk];
@@ -3074,7 +3076,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
         } else {
             h_i
         };
-    }
+    });
 
     let mut wrec = Vec::<Computex8>::with_capacity(nn);
     let mut mrec = Vec::with_capacity(nn);
@@ -3104,7 +3106,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                     .map(move |(k, pos)| (k, vec2_as_uniform_idx(pos)))
             };
 
-            for (k, ijk) in neighbor_iter(ij) {
+            neighbor_iter(ij).for_each(|(k, ijk)| {
                 let wh_ijk = wh[ijk];
                 // let h_ijk = h(ijk);
                 if
@@ -3119,7 +3121,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                     // Avoiding ambiguous cases.
                     ndon_ij += 1;
                 }
-            }
+            });
             // let vis_ij = mrec_ij.count_ones();
             (mrec_ij, (ndon_ij, ndon_ij))
         })
@@ -3135,7 +3137,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                     let mut wrec = /*Computex8::splat(czero)*/[czero; 8];
                     let mut nrec = 0;
                     // let mut wrec: [Compute; 8] = [czero, czero, czero, czero, czero, czero, czero, czero];
-                    for (k, ijk) in mrec_downhill(&mrec, ij) {
+                    mrec_downhill(&mrec, ij).for_each(|(k, ijk)| {
                         let lrec_ijk = ((uniform_idx_as_vec2(ijk) - uniform_idx_as_vec2(ij))
                             .map(|e| e as Compute)
                             * dxdy)
@@ -3146,7 +3148,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                         // wrec = wrec.replace(k, wrec_ijk);
                         sumweight += wrec_ijk;
                         nrec += 1;
-                    }
+                    });
                     // let (_, ndon_ij) = ndon[ij];
                     let slope = sumweight / (nrec as Compute).max(1.0);
                     let p_mfd_exp = 0.5 + 0.6 * slope;
@@ -3171,16 +3173,16 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                         debug_assert_eq!(sumweight, <Compute as One>::one());
                     } */
                     sumweight = czero;
-                    for wrec_k in &mut wrec {
+                    wrec.iter_mut().for_each(|wrec_k| {
                         let wrec_ijk = wrec_k.powf(p_mfd_exp);
                         sumweight += wrec_ijk;
                         *wrec_k = wrec_ijk;
-                    }
+                    });
                     if sumweight > czero {
                         // wrec /= sumweight;
-                        for wrec_k in &mut wrec {
+                        wrec.iter_mut().for_each(|wrec_k| {
                             *wrec_k /= sumweight;
-                        }
+                        });
                     }
                     wrec
                 })
@@ -3192,7 +3194,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
             let mut parse = Vec::with_capacity(nn);
 
             // we go through the nodes
-            for ij in 0..nn {
+            (0..nn).for_each(|ij| {
                 let (ndon_ij, _) = don_vis[ij];
                 // when we find a "summit" (ie a node that has no donors)
                 // we parse it (put it in a stack called parse)
@@ -3203,7 +3205,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                 while let Some(ijn) = parse.pop() {
                     // we add the node to the stack
                     stack.push(ijn as u32);
-                    for (_, ijr) in mrec_downhill(&mrec, ijn) {
+                    mrec_downhill(&mrec, ijn).for_each(|(_, ijr)| {
                         let (_, ref mut vis_ijr) = don_vis[ijr];
                         if *vis_ijr >= 1 {
                             *vis_ijr -= 1;
@@ -3211,9 +3213,9 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                                 parse.push(ijr);
                             }
                         }
-                    }
+                    });
                 }
-            }
+            });
 
             assert_eq!(stack.len(), nn);
             stack
@@ -3360,7 +3362,7 @@ pub fn do_erosion(
     let alpha = |posi: usize| alpha[posi];
     // Hillslope diffusion coefficient for sediment.
     let mut is_done = bitbox![0; WORLD_SIZE.x * WORLD_SIZE.y];
-    for i in 0..n_steps {
+    (0..n_steps).for_each(|i| {
         log::debug!("Erosion iteration #{:?}", i);
         erode(
             &mut h,
@@ -3389,6 +3391,6 @@ pub fn do_erosion(
             alpha,
             |posi| is_ocean(posi),
         );
-    }
+    });
     (h, b /*, a*/)
 }

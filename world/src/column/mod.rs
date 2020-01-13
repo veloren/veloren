@@ -476,13 +476,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // this point towards the altitude of the river.  Specifically, as the dist goes from
         // TerrainChunkSize::RECT_SIZE.x to 0, the weighted altitude of this point should go from
         // alt to river_alt.
-        for (river_chunk_idx, river_chunk, river, dist) in neighbor_river_data {
+        neighbor_river_data.for_each(|(river_chunk_idx, river_chunk, river, dist)| {
             match river.river_kind {
                 Some(kind) => {
                     if kind.is_river() && !dist.is_some() {
                         // Ostensibly near a river segment, but not "usefully" so (there is no
                         // closest point between t = 0.0 and t = 1.0).
-                        continue;
+                        return;
                     } else {
                         let river_dist = dist.map(|(_, dist, _, (river_t, _, downhill_river))| {
                             let downhill_height = if kind.is_river() {
@@ -537,7 +537,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         let river_dist = dist.y;
 
                         if !(dist.x == 0.0 && river_dist < scale_factor) {
-                            continue;
+                            return;
                         }
                         // We basically want to project outwards from river_pos, along the current
                         // tangent line, to chunks <= river_width * 1.0 away from this
@@ -564,7 +564,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 }
                 None => {}
             }
-        }
+        });
+
         let river_scale_factor = if river_count == 0.0 {
             1.0
         } else {
