@@ -97,15 +97,16 @@ impl<'a> System<'a> for Sys {
             // Handle chunk supplement
             for npc in supplement.npcs {
                 let (mut stats, mut body) = if rand::random() {
+                    let body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     let stats = comp::Stats::new(
                         "Traveler".to_string(),
+                        body,
                         Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
                     );
-                    let body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     (stats, body)
                 } else {
-                    let stats = comp::Stats::new("Wolf".to_string(), None);
                     let body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
+                    let stats = comp::Stats::new("Wolf".to_string(), body, None);
                     (stats, body)
                 };
                 let mut scale = 1.0;
@@ -115,11 +116,13 @@ impl<'a> System<'a> for Sys {
 
                 if npc.boss {
                     if rand::random::<f32>() < 0.8 {
+                        let hbody = comp::humanoid::Body::random();
+                        body = comp::Body::Humanoid(hbody);
                         stats = comp::Stats::new(
                             "Fearless Wanderer".to_string(),
+                            body,
                             Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
                         );
-                        body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     }
                     stats.level.set_level(rand::thread_rng().gen_range(8, 15));
                     scale = 2.0 + rand::random::<f32>();

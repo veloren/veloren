@@ -1,3 +1,4 @@
+use crate::comp::{body::humanoid::Race, Body};
 use crate::{comp, sync::Uid};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
@@ -135,7 +136,7 @@ impl Level {
     }
 
     pub fn change_by(&mut self, level: u32) {
-        self.amount = self.amount + level;
+        self.amount += level;
     }
 }
 
@@ -146,6 +147,9 @@ pub struct Stats {
     pub level: Level,
     pub exp: Exp,
     pub equipment: Equipment,
+    pub endurance: u32,
+    pub fitness: u32,
+    pub willpower: u32,
     pub is_dead: bool,
 }
 
@@ -166,7 +170,23 @@ impl Stats {
 }
 
 impl Stats {
-    pub fn new(name: String, main: Option<comp::Item>) -> Self {
+    pub fn new(name: String, body: Body, main: Option<comp::Item>) -> Self {
+        let race = if let comp::Body::Humanoid(hbody) = body {
+            Some(hbody.race)
+        } else {
+            None
+        };
+
+        let (endurance, fitness, willpower) = match race {
+            Some(Race::Danari) => (0, 1, 2),
+            Some(Race::Dwarf) => (1, 2, 0),
+            Some(Race::Elf) => (2, 1, 0),
+            Some(Race::Human) => (1, 0, 2),
+            Some(Race::Orc) => (0, 2, 1),
+            Some(Race::Undead) => (2, 0, 1),
+            None => (0, 0, 0),
+        };
+
         let mut stats = Self {
             name,
             health: Health {
@@ -186,6 +206,9 @@ impl Stats {
                 maximum: 50,
             },
             equipment: Equipment { main, alt: None },
+            endurance,
+            fitness,
+            willpower,
             is_dead: false,
         };
 
