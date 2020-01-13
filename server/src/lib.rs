@@ -257,7 +257,7 @@ impl Server {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
         state.write_component(entity, body);
-        state.write_component(entity, comp::Stats::new(name, main));
+        state.write_component(entity, comp::Stats::new(name, body, main));
         state.write_component(entity, comp::Energy::new(1000));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
@@ -501,11 +501,10 @@ impl Server {
                                         .get(entity)
                                         .map(|inv| !inv.is_full())
                                         .unwrap_or(false)
+                                    && state.try_set_block(pos, Block::empty()).is_some()
                                 {
-                                    if state.try_set_block(pos, Block::empty()).is_some() {
-                                        comp::Item::try_reclaim_from_block(block)
-                                            .map(|item| state.give_item(entity, item));
-                                    }
+                                    comp::Item::try_reclaim_from_block(block)
+                                        .map(|item| state.give_item(entity, item));
                                 }
                             }
                         }
@@ -517,8 +516,8 @@ impl Server {
                                 .get_mut(entity)
                                 .and_then(|inv| inv.remove(slot));
 
-                            match item_opt {
-                                Some(item) => match item.kind {
+                            if let Some(item) = item_opt {
+                                match item.kind {
                                     comp::ItemKind::Tool { .. } => {
                                         if let Some(stats) = state
                                             .ecs()
@@ -548,8 +547,7 @@ impl Server {
                                             .get_mut(entity)
                                             .map(|inv| inv.insert(slot, item));
                                     }
-                                },
-                                _ => {}
+                                }
                             }
 
                             state.write_component(entity, comp::InventoryUpdate);

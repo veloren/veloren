@@ -484,9 +484,14 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                             );
 
                             let body = kind_to_body(id);
+
                             let new_entity = server
                                 .state
-                                .create_npc(pos, comp::Stats::new(get_npc_name(id), None), body)
+                                .create_npc(
+                                    pos,
+                                    comp::Stats::new(get_npc_name(id), body, None),
+                                    body,
+                                )
                                 .with(comp::Vel(vel))
                                 .with(comp::MountState::Unmounted)
                                 .with(agent.clone())
