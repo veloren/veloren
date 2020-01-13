@@ -76,6 +76,7 @@ pub struct Tick(u64);
 pub struct Server {
     state: State,
     world: Arc<World>,
+    map: Vec<u32>,
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
 
@@ -119,6 +120,7 @@ impl Server {
                 ..WorldOpts::default()
             },
         );
+        let map = world.sim().get_map();
 
         let spawn_point = {
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
@@ -178,6 +180,7 @@ impl Server {
         let this = Self {
             state,
             world: Arc::new(world),
+            map,
 
             postoffice: PostOffice::bind(settings.gameserver_address)?,
 
@@ -1084,7 +1087,7 @@ impl Server {
                             .create_entity_package(entity),
                         server_info: self.server_info.clone(),
                         time_of_day: *self.state.ecs().read_resource(),
-                        world_map: (WORLD_SIZE.map(|e| e as u32), self.world.sim().get_map()),
+                        world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                     });
                 log::debug!("Done initial sync with client.");
 
