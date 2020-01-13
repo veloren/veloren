@@ -7,28 +7,40 @@ lazy_static::lazy_static! {
 
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
-/// This is a fast approximation of powf. This should only be used when minor accuracy loss is acceptable.
+
 #[inline(always)]
 #[allow(unsafe_code)]
-fn approx_powf(b: f32, e: f32) -> f32 {
-    unsafe {
-        let b = b as f64;
-        let e = e as f64;
-        union Swagger {
-            f: f64,
-            a: [i32; 2],
-        }
-        let mut b = Swagger { f: b };
-        b.a[1] = (e * (b.a[1] as f64 - 1072632447.0) + 1072632447.0) as i32;
-        b.a[0] = 0;
-        b.f as f32
+unsafe fn approx_powf_internal(mut a: f64, b: f64) -> f64 {
+    let mut e = b as i32;
+    union Swagger {
+        d: f64,
+        x: [i32; 2],
     }
+    let mut u = Swagger { d: a };
+    u.x[1] = ((b - e as f64) * (u.x[1] as f64 - 1072632447.0) + 1072632447.0) as i32;
+    u.x[0] = 0;
+    let mut r = 1.0_f64;
+    while e > 0 {
+        if e & 1 > 0 {
+            r *= a;
+        }
+        a *= a;
+        e >>= 1;
+    }
+    return r * u.d;
+}
+
+#[inline(always)]
+#[allow(unsafe_code)]
+fn approx_powf(a: f32, b: f32) -> f32 {
+    unsafe { approx_powf_internal(a as f64, b as f64) as f32 }
 }
 
 #[cfg(test)]
 mod approx_powf_tests {
     fn close_ei(a: f32, b: f32) -> bool {
-        (a - b < 1.0 && a - b > 0.0) || (b - a < 1.0 && b - a > 0.0)
+        const ACCEPTABLE_DIFF: f32 = 0.05;
+        (a - b < ACCEPTABLE_DIFF && a - b > 0.0) || (b - a < ACCEPTABLE_DIFF && b - a > 0.0)
     }
 
     #[test]
