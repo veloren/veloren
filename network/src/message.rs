@@ -1,20 +1,29 @@
 use bincode;
 use serde::{Deserialize, Serialize};
-use std::{collections::VecDeque, sync::Arc};
+//use std::collections::VecDeque;
+use std::sync::Arc;
 pub trait Message<'a> = Serialize + Deserialize<'a>;
 
-struct MessageBuffer {
+#[derive(Debug)]
+pub(crate) struct MessageBuffer {
     // use VecDeque for msg storage, because it allows to quickly remove data from front.
     //however VecDeque needs custom bincode code, but it's possible
     data: Vec<u8>,
 }
 
-struct OutGoingMessage {
+#[derive(Debug)]
+pub(crate) struct OutGoingMessage {
     buffer: Arc<MessageBuffer>,
     cursor: u64,
 }
 
-fn serialize<'a, M: Message<'a>>(message: &M) -> MessageBuffer {
+#[derive(Debug)]
+pub(crate) struct InCommingMessage {
+    buffer: MessageBuffer,
+    cursor: u64,
+}
+
+pub(crate) fn serialize<'a, M: Message<'a>>(message: &M) -> MessageBuffer {
     let mut writer = {
         let actual_size = bincode::serialized_size(message).unwrap();
         Vec::<u8>::with_capacity(actual_size as usize)
