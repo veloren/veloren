@@ -9,14 +9,26 @@ use vek::{Mat3, Rgb, Rgba, Vec3};
 
 #[inline(always)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
-    0.012522878 * col + 0.682171111 * col * col + 0.305306011 * col * col * col
+    col.map(|c| {
+        if c <= 0.104 {
+            c * 0.08677088
+        } else {
+            0.012522878 * c + 0.682171111 * c * c + 0.305306011 * c * c * c
+        }
+    })
 }
 #[inline(always)]
 pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
-    let s1 = col.sqrt();
-    let s2 = s1.sqrt();
-    let s3 = s2.sqrt();
-    0.585122381 * s1 + 0.783140355 * s2 - 0.368262736 * s3
+    col.map(|c| {
+        if c <= 0.0060 {
+            c * 11.500726
+        } else {
+            let s1 = c.sqrt();
+            let s2 = s1.sqrt();
+            let s3 = s2.sqrt();
+            0.585122381 * s1 + 0.783140355 * s2 - 0.368262736 * s3
+        }
+    })
 }
 #[inline(always)]
 pub fn srgba_to_linear(col: Rgba<f32>) -> Rgba<f32> {
