@@ -37,3 +37,7 @@ criterion = "0.3"
 [[bench]]
 name = "chonk_benchmark"
 harness = false
+
+[[bench]]
+name = "color_benchmark"
+harness = false
