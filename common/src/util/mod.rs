@@ -7,62 +7,28 @@ lazy_static::lazy_static! {
 
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
-/// This is a fast approximation of powf. This should only be used when minor accuracy loss is acceptable.
-#[inline(always)]
-#[allow(unsafe_code)]
-fn approx_powf(b: f32, e: f32) -> f32 {
-    unsafe {
-        let b = b as f64;
-        let e = e as f64;
-        union Swagger {
-            f: f64,
-            a: [i32; 2],
-        }
-        let mut b = Swagger { f: b };
-        b.a[1] = (e * (b.a[1] as f64 - 1072632447.0) + 1072632447.0) as i32;
-        b.a[0] = 0;
-        b.f as f32
-    }
-}
-
-#[cfg(test)]
-mod approx_powf_tests {
-    fn close_ei(a: f32, b: f32) -> bool {
-        (a - b < 1.0 && a - b > 0.0) || (b - a < 1.0 && b - a > 0.0)
-    }
-
-    #[test]
-    fn accuracy_1() {
-        let test_values: Vec<f32> = vec![3.0, 2.5, 1.5, 2.2];
-        test_values.windows(2).for_each(|a| {
-            assert!(close_ei(a[0].powf(a[1]), super::approx_powf(a[0], a[1])));
-        });
-    }
-}
-
 #[inline(always)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
-    #[inline(always)]
-    fn to_linear(x: f32) -> f32 {
-        if x <= 0.04045 {
-            x / 12.92
+    col.map(|c| {
+        if c <= 0.104 {
+            c * 0.08677088
         } else {
-            approx_powf((x + 0.055) / 1.055, 2.4)
+            0.012522878 * c + 0.682171111 * c * c + 0.305306011 * c * c * c
         }
-    }
-    col.map(to_linear)
+    })
 }
 #[inline(always)]
 pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
-    #[inline(always)]
-    fn to_srgb(x: f32) -> f32 {
-        if x <= 0.0031308 {
-            x * 12.92
+    col.map(|c| {
+        if c <= 0.0060 {
+            c * 11.500726
         } else {
-            approx_powf(x, 1.0 / 2.4) * 1.055 - 0.055
+            let s1 = c.sqrt();
+            let s2 = s1.sqrt();
+            let s3 = s2.sqrt();
+            0.585122381 * s1 + 0.783140355 * s2 - 0.368262736 * s3
         }
-    }
-    col.map(to_srgb)
+    })
 }
 #[inline(always)]
 pub fn srgba_to_linear(col: Rgba<f32>) -> Rgba<f32> {
