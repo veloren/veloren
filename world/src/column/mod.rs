@@ -443,8 +443,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?
             // sim.get_interpolated(wpos, |chunk| chunk.alt)?
         };
-        let basement = alt
-            + sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
         // Find the average distance to each neighboring body of water.
         let mut river_count = 0.0f64;
@@ -831,6 +829,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 /* .mul((1.0 - chaos).min(1.0).max(0.3))
                 .mul(1.0 - humidity) */
                 /* .mul(32.0) */;
+        let basement = alt_
+            + sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt_ + riverless_alt_delta;

@@ -20,11 +20,15 @@ impl<V: Default> Default for SmallCache<V> {
     fn default() -> Self {
         Self {
             index: [None; CACHE_LEN + 9],
-            data: arr![V::default(); /*521*//*137*/41], // TODO: Use CACHE_LEN
+            data: arr![V::default(); /*521*//*137*/41], // TODO: Use CACHE_LEN + 9
             random: 1,
         }
     }
 }
+
+/* pub struct SmalllCacheKeys<'id, V> {
+} */
+
 impl<V: Default> SmallCache<V> {
     pub fn get<F: FnOnce(Vec2<i32>) -> V>(&mut self, key: Vec2<i32>, f: F) -> &V {
         let idx = calc_idx(key) % CACHE_LEN;
