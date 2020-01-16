@@ -8,7 +8,6 @@ use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, ReadStorage, System, WriteStorage,
 };
-use sphynx::{Uid, UidAllocator};
 
 /// # Controller System
 /// #### Responsible for validating and updating controller inputs

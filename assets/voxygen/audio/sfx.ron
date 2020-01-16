@@ -23,26 +23,17 @@
             ],
             threshold: 0.5,
         ),
-        (
-            trigger: Attack(Sword(Rapier)),
+        Attack(Melee): (
             files: [
                 "voxygen.audio.sfx.weapon.sword",
             ],
             threshold: 0.5,
         ),
-        (
-            trigger: Attack(Hammer),
-            files: [
-                "voxygen.audio.sfx.weapon.sword",
-            ],
-            threshold: 0.5,
-        ),
-        (
-            trigger: Attack(Bow),
+        Attack(Bow): (
             files: [
                 "voxygen.audio.sfx.weapon.bow",
             ],
             threshold: 0.5,
         ),
-    ],
+    }
 )

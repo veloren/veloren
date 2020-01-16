@@ -126,8 +126,12 @@ impl MovementEventMapper {
     /// as opening or closing the glider. These methods translate those entity states with some additional
     /// data into more specific `SfxEvent`'s which we attach sounds to
     fn map_movement_event(current_event: &CharacterState, previous_event: SfxEvent) -> SfxEvent {
-        match (current_event.movement, current_event.action, previous_event) {
-            (_, ActionState::Roll(_), _) => SfxEvent::Roll,
+        match (
+            current_event.move_state,
+            current_event.action_state,
+            previous_event,
+        ) {
+            (_, ActionState::Dodge(_), _) => SfxEvent::Roll,
             (MoveState::Climb(_), ..) => SfxEvent::Climb,
             (MoveState::Swim(_), ..) => SfxEvent::Swim,
             (MoveState::Run(_), ..) => SfxEvent::Run,
@@ -290,8 +294,8 @@ mod tests {
     fn maps_land_on_ground_to_run() {
         let result = MovementEventMapper::map_movement_event(
             &CharacterState {
-                movement: MovementState::Stand,
-                action: ActionState::Idle,
+                move_state: MoveState::Stand(None),
+                action_state: ActionState::Idle(None),
             },
             SfxEvent::Fall,
         );
@@ -342,8 +346,8 @@ mod tests {
     fn maps_glider_close_when_landing() {
         let result = MovementEventMapper::map_movement_event(
             &CharacterState {
-                movement: MoveState::Stand(None),
-                action: ActionState::Idle(None),
+                move_state: MoveState::Stand(None),
+                action_state: ActionState::Idle(None),
             },
             SfxEvent::Glide,
         );

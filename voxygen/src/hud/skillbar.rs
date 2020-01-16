@@ -119,7 +119,6 @@ impl<'a> Skillbar<'a> {
             fonts,
             stats,
             energy,
-            global_state,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
             pulse,
