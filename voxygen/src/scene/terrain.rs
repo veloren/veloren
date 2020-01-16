@@ -16,9 +16,9 @@ use common::{
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
-use frustum_query::frustum::Frustum;
-use hashbrown::HashMap;
-use std::{f32, fmt::Debug, i32, marker::PhantomData, ops::Mul, time::Duration};
+use hashbrown::{hash_map::Entry, HashMap};
+use std::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
+use treeculler::{BVol, Frustum, AABB};
 use vek::*;
 
 struct TerrainChunkData {
@@ -31,6 +31,7 @@ struct TerrainChunkData {
 
     visible: bool,
     z_bounds: (f32, f32),
+    frustum_last_plane_index: u8,
 }
 
 struct ChunkMeshState {
@@ -836,31 +837,48 @@ impl<V: RectRasterableVol> Terrain<V> {
             .map(|(p, _)| *p)
         {
             let chunk_pos = client.state().terrain().pos_key(pos);
+            let new_mesh_state = ChunkMeshState {
+                pos: chunk_pos,
+                started_tick: current_tick,
+                active_worker: None,
+            };
+            // Only mesh if this chunk has all its neighbors
+            // If it does have all its neighbors either it should have already been meshed or is in
+            // mesh_todo
+            match self.mesh_todo.entry(chunk_pos) {
+                Entry::Occupied(mut entry) => {
+                    entry.insert(new_mesh_state);
+                }
+                Entry::Vacant(entry) => {
+                    if self.chunks.contains_key(&chunk_pos) {
+                        entry.insert(new_mesh_state);
+                    }
+                }
+            }
 
-            self.mesh_todo.insert(
-                chunk_pos,
-                ChunkMeshState {
-                    pos: chunk_pos,
-                    started_tick: current_tick,
-                    active_worker: None,
-                },
-            );
-
-            // Handle chunks on chunk borders
+            // Handle block changes on chunk borders
             for x in -1..2 {
                 for y in -1..2 {
                     let neighbour_pos = pos + Vec3::new(x, y, 0);
                     let neighbour_chunk_pos = client.state().terrain().pos_key(neighbour_pos);
 
                     if neighbour_chunk_pos != chunk_pos {
-                        self.mesh_todo.insert(
-                            neighbour_chunk_pos,
-                            ChunkMeshState {
-                                pos: neighbour_chunk_pos,
-                                started_tick: current_tick,
-                                active_worker: None,
-                            },
-                        );
+                        let new_mesh_state = ChunkMeshState {
+                            pos: neighbour_chunk_pos,
+                            started_tick: current_tick,
+                            active_worker: None,
+                        };
+                        // Only mesh if this chunk has all its neighbors
+                        match self.mesh_todo.entry(neighbour_chunk_pos) {
+                            Entry::Occupied(mut entry) => {
+                                entry.insert(new_mesh_state);
+                            }
+                            Entry::Vacant(entry) => {
+                                if self.chunks.contains_key(&neighbour_chunk_pos) {
+                                    entry.insert(new_mesh_state);
+                                }
+                            }
+                        }
                     }
 
                     // TODO: Remesh all neighbours because we have complex lighting now
@@ -1004,6 +1022,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 .expect("Failed to upload chunk locals to the GPU!"),
                             visible: false,
                             z_bounds: response.z_bounds,
+                            frustum_last_plane_index: 0,
                         },
                     );
 
@@ -1018,10 +1037,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         }
 
         // Construct view frustum
-        let frustum = Frustum::from_modelview_and_projection(
-            &view_mat.into_col_array(),
-            &proj_mat.into_col_array(),
-        );
+        let frustum = Frustum::from_modelview_projection((proj_mat * view_mat).into_col_arrays());
 
         // Update chunk visibility
         let chunk_sz = V::RECT_SIZE.x as f32;
@@ -1033,26 +1049,33 @@ impl<V: RectRasterableVol> Terrain<V> {
             let in_range = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk)
                 < loaded_distance.powf(2.0);
 
-            // Ensure the chunk is within the view frustrum
-            let chunk_mid = Vec3::new(
-                chunk_pos.x + chunk_sz / 2.0,
-                chunk_pos.y + chunk_sz / 2.0,
-                (chunk.z_bounds.0 + chunk.z_bounds.1) * 0.5,
-            );
-            let chunk_radius = ((chunk.z_bounds.1 - chunk.z_bounds.0) / 2.0)
-                .max(chunk_sz / 2.0)
-                .powf(2.0)
-                .mul(2.0)
-                .sqrt();
-            let in_frustum = frustum.sphere_intersecting(
-                &chunk_mid.x,
-                &chunk_mid.y,
-                &chunk_mid.z,
-                &chunk_radius,
-            );
+            if !in_range {
+                chunk.visible = in_range;
+                continue;
+            }
 
-            chunk.visible = in_range && in_frustum;
+            // Ensure the chunk is within the view frustum
+            let chunk_min = [chunk_pos.x, chunk_pos.y, chunk.z_bounds.0];
+            let chunk_max = [
+                chunk_pos.x + chunk_sz,
+                chunk_pos.y + chunk_sz,
+                chunk.z_bounds.1,
+            ];
+
+            let (in_frustum, last_plane_index) = AABB::new(chunk_min, chunk_max)
+                .coherent_test_against_frustum(&frustum, chunk.frustum_last_plane_index);
+
+            chunk.frustum_last_plane_index = last_plane_index;
+            chunk.visible = in_frustum;
         }
+    }
+
+    pub fn chunk_count(&self) -> usize {
+        self.chunks.len()
+    }
+
+    pub fn visible_chunk_count(&self) -> usize {
+        self.chunks.iter().filter(|(_, c)| c.visible).count()
     }
 
     pub fn render(

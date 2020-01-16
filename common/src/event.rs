@@ -1,9 +1,8 @@
-use crate::comp;
+use crate::{comp, sync::Uid};
 use comp::item::ToolKind;
 use parking_lot::Mutex;
 use serde::Deserialize;
 use specs::Entity as EcsEntity;
-use sphynx::Uid;
 use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
 
@@ -30,18 +29,17 @@ pub enum SfxEvent {
     OpenChest,
     ChatTellReceived,
     OpenBag,
-    LevelUp,
+    Run,
     Roll,
     Climb,
     Swim,
-    Run,
     GliderOpen,
     Glide,
     GliderClose,
     Jump,
     Fall,
-    InventoryAdd,
-    InventoryDrop,
+    ExperienceGained,
+    LevelUp,
     LightLantern,
     ExtinguishLantern,
     Attack(ToolKind),
@@ -90,11 +88,14 @@ pub enum ServerEvent {
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
-    CreatePlayer {
+    CreateCharacter {
         entity: EcsEntity,
         name: String,
         body: comp::Body,
         main: Option<String>,
+    },
+    ExitIngame {
+        entity: EcsEntity,
     },
     CreateNpc {
         pos: comp::Pos,

@@ -7,19 +7,22 @@ use chrono::{NaiveTime, Timelike};
 use common::{
     assets, comp,
     event::{EventBus, ServerEvent},
-    msg::ServerMsg,
+    hierarchical::ChunkPath,
+    msg::{PlayerListUpdate, ServerMsg},
     npc::{get_npc_name, NpcKind},
     pathfinding::WorldPath,
     state::TimeOfDay,
+    sync::{Uid, WorldSyncExt},
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::RectVolSize,
 };
 use rand::Rng;
-use specs::{Builder, Entity as EcsEntity, Join};
+use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 use world::util::Sampler;
 
 use lazy_static::lazy_static;
+use log::error;
 use scan_fmt::{scan_fmt, scan_fmt_some};
 
 /// Struct representing a command that a user can run from server chat.
@@ -84,9 +87,9 @@ lazy_static! {
     /// Static list of chat commands available to the server.
     pub static ref CHAT_COMMANDS: Vec<ChatCommand> = vec![
         ChatCommand::new(
-            "giveitem",
+            "give_item",
             "{d}",
-            "/giveitem <path to item>\n\
+            "/give_item <path to item>\n\
             Example: common/items/debug/boost",
             true,
             handle_give,),
@@ -404,6 +407,19 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
             .write_storage::<comp::Player>()
             .get_mut(entity)
             .map(|player| player.alias = alias);
+
+        // Update name on client player lists
+        let ecs = server.state.ecs();
+        if let (Some(uid), Some(player)) = (
+            ecs.read_storage::<Uid>().get(entity),
+            ecs.read_storage::<comp::Player>().get(entity),
+        ) {
+            let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(
+                (*uid).into(),
+                player.alias.clone(),
+            ));
+            server.state.notify_registered_clients(msg);
+        }
     } else {
         server.notify_client(entity, ServerMsg::private(String::from(action.help_string)));
     }
@@ -515,7 +531,8 @@ fn handle_pathfind(server: &mut Server, player: EcsEntity, args: String, action:
                 .read_component_cloned::<comp::Pos>(target_entity)
             {
                 let target = start_pos.0 + Vec3::new(x, y, z);
-                let new_path = WorldPath::new(&*server.state.terrain(), start_pos.0, target);
+                let new_path = ChunkPath::new(&*server.state.terrain(), start_pos.0, target)
+                    .get_worldpath(&*server.state.terrain());
 
                 server.state.write_component(
                     target_entity,
@@ -1117,7 +1134,9 @@ fn handle_remove_lights(
     let size = to_delete.len();
 
     for entity in to_delete {
-        let _ = server.state.ecs_mut().delete_entity_synced(entity);
+        if let Err(err) = server.state.delete_entity_recorded(entity) {
+            error!("Failed to delete light: {:?}", err);
+        }
     }
 
     server.notify_client(

@@ -1,6 +1,6 @@
-use super::{ClientState, EcsCompPacket, EcsResPacket};
+use super::{ClientState, EcsCompPacket};
 use crate::{
-    comp,
+    comp, state, sync,
     terrain::{Block, TerrainChunk},
     ChatType,
 };
@@ -24,15 +24,26 @@ pub struct ServerInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PlayerListUpdate {
+    Init(HashMap<u64, String>),
+    Add(u64, String),
+    Remove(u64),
+    Alias(u64, String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
-        ecs_state: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
-        entity_uid: u64,
+        entity_package: sync::EntityPackage<EcsCompPacket>,
         server_info: ServerInfo,
+        time_of_day: state::TimeOfDay,
         // world_map: Vec2<usize>, /*, Vec<u32>)*/
     },
+    PlayerListUpdate(PlayerListUpdate),
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
-    ForceState(ClientState),
+    /// Trigger cleanup for when the client goes back to the `Registered` state from an ingame
+    /// state
+    ExitIngameCleanup,
     Ping,
     Pong,
     ChatMsg {
@@ -40,7 +51,9 @@ pub enum ServerMsg {
         message: String,
     },
     SetPlayerEntity(u64),
-    EcsSync(sphynx::SyncPackage<EcsCompPacket, EcsResPacket>),
+    TimeOfDay(state::TimeOfDay),
+    EcsSync(sync::SyncPackage<EcsCompPacket>),
+    CreateEntity(sync::EntityPackage<EcsCompPacket>),
     DeleteEntity(u64),
     EntityPos {
         entity: u64,

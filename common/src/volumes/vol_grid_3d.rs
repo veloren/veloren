@@ -73,9 +73,9 @@ impl<I: Into<Aabb<i32>>, V: RasterableVol + ReadVol + Debug> SampleVol<I> for Vo
         let mut sample = VolGrid3d::new()?;
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
-        for x in chunk_min.x..=chunk_max.x {
-            for y in chunk_min.y..=chunk_max.y {
-                for z in chunk_min.z..=chunk_max.z {
+        for x in chunk_min.x..chunk_max.x + 1 {
+            for y in chunk_min.y..chunk_max.y + 1 {
+                for z in chunk_min.z..chunk_max.z + 1 {
                     let chunk_key = Vec3::new(x, y, z);
 
                     let chunk = self.get_key_arc(chunk_key).cloned();

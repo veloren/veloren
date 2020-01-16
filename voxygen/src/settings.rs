@@ -85,8 +85,8 @@ impl Default for ControlSettings {
             screenshot: KeyMouse::Key(VirtualKeyCode::F4),
             toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
             roll: KeyMouse::Mouse(MouseButton::Middle),
-            respawn: KeyMouse::Mouse(MouseButton::Left),
-            interact: KeyMouse::Key(VirtualKeyCode::E),
+            respawn: KeyMouse::Key(VirtualKeyCode::Space),
+            interact: KeyMouse::Mouse(MouseButton::Right),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
             charge: KeyMouse::Key(VirtualKeyCode::V),
         }
@@ -100,6 +100,10 @@ pub struct GameplaySettings {
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
     pub zoom_inversion: bool,
+    pub toggle_debug: bool,
+    pub sct: bool,
+    pub sct_player_batch: bool,
+    pub sct_damage_batch: bool,
     pub mouse_y_inversion: bool,
     pub crosshair_transp: f32,
     pub chat_transp: f32,
@@ -118,6 +122,10 @@ impl Default for GameplaySettings {
             zoom_sensitivity: 100,
             zoom_inversion: false,
             mouse_y_inversion: false,
+            toggle_debug: false,
+            sct: true,
+            sct_player_batch: true,
+            sct_damage_batch: false,
             crosshair_transp: 0.6,
             chat_transp: 0.4,
             crosshair_type: CrosshairType::Round,
@@ -151,18 +159,18 @@ impl Default for NetworkingSettings {
     }
 }
 
-/// `Log` stores the name to the log file.
+/// `Log` stores whether we should create a log file
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Log {
-    pub file: PathBuf,
+    // Whether to create a log file or not.
+    // Default is to create one.
+    pub log_to_file: bool,
 }
 
 impl Default for Log {
     fn default() -> Self {
-        Self {
-            file: "voxygen.log".into(),
-        }
+        Self { log_to_file: true }
     }
 }
 
@@ -179,9 +187,9 @@ pub struct GraphicsSettings {
 impl Default for GraphicsSettings {
     fn default() -> Self {
         Self {
-            view_distance: 5,
+            view_distance: 10,
             max_fps: 60,
-            fov: 75,
+            fov: 50,
             aa_mode: AaMode::Fxaa,
         }
     }
@@ -290,7 +298,7 @@ impl Settings {
         Ok(())
     }
 
-    fn get_settings_path() -> PathBuf {
+    pub fn get_settings_path() -> PathBuf {
         if let Some(val) = std::env::var_os("VOXYGEN_CONFIG") {
             let settings = PathBuf::from(val).join("settings.ron");
             if settings.exists() || settings.parent().map(|x| x.exists()).unwrap_or(false) {

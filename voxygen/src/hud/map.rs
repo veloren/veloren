@@ -5,10 +5,10 @@ use conrod_core::{
     color,
     image::Id,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use specs::WorldExt;
 use vek::*;
-
 widget_ids! {
     struct Ids {
         map_frame,
@@ -30,12 +30,13 @@ widget_ids! {
 pub struct Map<'a> {
     _show: &'a Show,
     client: &'a Client,
-
     _world_map: Id,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    pulse: f32,
+    velocity: f32,
 }
 impl<'a> Map<'a> {
     pub fn new(
@@ -44,6 +45,8 @@ impl<'a> Map<'a> {
         imgs: &'a Imgs,
         world_map: Id,
         fonts: &'a Fonts,
+        pulse: f32,
+        velocity: f32,
     ) -> Self {
         Self {
             _show: show,
@@ -52,6 +55,8 @@ impl<'a> Map<'a> {
             client,
             fonts: fonts,
             common: widget::CommonBuilder::default(),
+            pulse,
+            velocity,
         }
     }
 }
@@ -81,6 +86,11 @@ impl<'a> Widget for Map<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
+        // Set map transparency to 0.5 when player is moving
+        let mut fade = 1.0;
+        if self.velocity > 2.5 {
+            fade = 0.7
+        };
 
         // BG
         Rectangle::fill_with([824.0, 976.0], color::TRANSPARENT)
@@ -93,24 +103,29 @@ impl<'a> Widget for Map<'a> {
         Image::new(self.imgs.map_frame_l)
             .top_left_with_margins_on(state.ids.map_bg, 0.0, 0.0)
             .w_h(412.0, 488.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
             .set(state.ids.map_frame_l, ui);
         Image::new(self.imgs.map_frame_r)
             .right_from(state.ids.map_frame_l, 0.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
             .w_h(412.0, 488.0)
             .set(state.ids.map_frame_r, ui);
         Image::new(self.imgs.map_frame_br)
             .down_from(state.ids.map_frame_r, 0.0)
             .w_h(412.0, 488.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
             .set(state.ids.map_frame_br, ui);
         Image::new(self.imgs.map_frame_bl)
             .down_from(state.ids.map_frame_l, 0.0)
             .w_h(412.0, 488.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
             .set(state.ids.map_frame_bl, ui);
 
         // Icon
         Image::new(self.imgs.map_icon)
             .w_h(224.0 / 3.0, 224.0 / 3.0)
             .top_left_with_margins_on(state.ids.map_frame, -10.0, -10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
             .set(state.ids.map_icon, ui);
 
         // X-Button
@@ -118,6 +133,7 @@ impl<'a> Widget for Map<'a> {
             .w_h(28.0, 28.0)
             .hover_image(self.imgs.close_button_hover)
             .press_image(self.imgs.close_button_press)
+            .color(Color::Rgba(1.0, 1.0, 1.0, fade - 0.5))
             .top_right_with_margins_on(state.ids.map_frame_r, 0.0, 0.0)
             .set(state.ids.map_close, ui)
             .was_clicked()
@@ -128,9 +144,10 @@ impl<'a> Widget for Map<'a> {
         // Location Name
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(state.ids.map_bg, 70.0)
-                .font_size(20)
+                .mid_top_with_margin_on(state.ids.map_bg, 55.0)
+                .font_size(60)
                 .color(TEXT_COLOR)
+                .font_id(self.fonts.alkhemi)
                 .parent(state.ids.map_frame_r)
                 .set(state.ids.location_name, ui),
             None => Text::new(" ")
@@ -140,9 +157,11 @@ impl<'a> Widget for Map<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.location_name, ui),
         }
+
         // Map Image
         Image::new(/*self.world_map*/ self.imgs.map_placeholder)
             .middle_of(state.ids.map_bg)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade - 0.1)))
             .w_h(700.0, 700.0)
             .parent(state.ids.map_bg)
             .set(state.ids.grid, ui);
@@ -156,15 +175,33 @@ impl<'a> Widget for Map<'a> {
             .map_or(Vec3::zero(), |pos| pos.0);
 
         let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
-        let x = player_pos.x as f64 / worldsize * 700.0;
+        let x = player_pos.x as f64 / worldsize * 700.0/*= x-Size of the map image*/;
         let y = (/*1.0 -*/player_pos.y as f64 / worldsize) * 700.0;
+        let indic_ani = (self.pulse * 6.0/*animation speed*/).cos()/*starts at 1.0*/ * 0.5 + 0.50; // changes the animation frame
+        let indic_scale = 1.2;
         // Indicator
-        Image::new(self.imgs.map_indicator)
-            .bottom_left_with_margins_on(state.ids.grid, y, x - (12.0 * 1.4) / 2.0)
-            .w_h(12.0 * 1.4, 21.0 * 1.4)
-            .floating(true)
-            .parent(ui.window)
-            .set(state.ids.indicator, ui);
+        Image::new(if indic_ani <= 0.3 {
+            self.imgs.indicator_mmap
+        } else if indic_ani <= 0.6 {
+            self.imgs.indicator_mmap_2
+        } else {
+            self.imgs.indicator_mmap_3
+        })
+        .bottom_left_with_margins_on(state.ids.grid, y, x - (20.0 * 1.2) / 2.0)
+        .w_h(
+            22.0 * 1.2,
+            if indic_ani <= 0.3 {
+                16.0 * indic_scale
+            } else if indic_ani <= 0.6 {
+                23.0 * indic_scale
+            } else {
+                34.0 * indic_scale
+            },
+        )
+        .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade + 0.2)))
+        .floating(true)
+        .parent(ui.window)
+        .set(state.ids.indicator, ui);
 
         None
     }
