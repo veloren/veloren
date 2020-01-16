@@ -37,7 +37,7 @@ fn main() {
     _map_file.push(map_file);
 
     let world = World::generate(
-        1337,
+        5284,
         WorldOpts {
             seed_elements: false,
             // world_file: sim::FileOpts::Load(_map_file),
