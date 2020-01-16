@@ -2,23 +2,15 @@
 #![feature(drain_filter)]
 #![recursion_limit = "2048"]
 
-#[cfg(feature = "discord")]
-#[macro_use]
-extern crate lazy_static;
-
-#[cfg(feature = "discord")]
-pub mod discord;
-
-#[cfg(feature = "discord")]
-use std::sync::Mutex;
-
 #[macro_use]
 pub mod ui;
 pub mod anim;
 pub mod audio;
+mod ecs;
 pub mod error;
 pub mod hud;
 pub mod key_state;
+mod logging;
 pub mod menu;
 pub mod mesh;
 pub mod render;
@@ -33,9 +25,7 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
-use log::{self, debug, error, info};
-
-use fern::colors::{Color, ColoredLevelConfig};
+use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
 /// A type used to store state that is shared between all play states.
@@ -88,17 +78,25 @@ pub trait PlayState {
     fn name(&self) -> &'static str;
 }
 
-#[cfg(feature = "discord")]
-lazy_static! {
-    //Set up discord rich presence
-    static ref DISCORD_INSTANCE: Mutex<discord::DiscordState> = {
-        discord::run()
-    };
-}
-
 fn main() {
+    // Initialize logging.
+    let term_log_level = std::env::var_os("VOXYGEN_LOG")
+        .and_then(|env| env.to_str().map(|s| s.to_owned()))
+        .and_then(|s| log::LevelFilter::from_str(&s).ok())
+        .unwrap_or(log::LevelFilter::Warn);
+
+    let file_log_level = std::env::var_os("VOXYGEN_FILE_LOG")
+        .and_then(|env| env.to_str().map(|s| s.to_owned()))
+        .and_then(|s| log::LevelFilter::from_str(&s).ok())
+        .unwrap_or(log::LevelFilter::Debug);
+
     // Load the settings
+    // Note: This won't log anything due to it being called before ``logging::init``.
+    //       The issue is we need to read a setting to decide whether we create a log file or not.
     let settings = Settings::load();
+
+    logging::init(&settings, term_log_level, file_log_level);
+
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
@@ -124,67 +122,7 @@ fn main() {
         info_message: None,
     };
 
-    let settings = &global_state.settings;
-
-    // Initialize logging.
-    let term_log_level = std::env::var_os("VOXYGEN_LOG")
-        .and_then(|env| env.to_str().map(|s| s.to_owned()))
-        .and_then(|s| log::LevelFilter::from_str(&s).ok())
-        .unwrap_or(log::LevelFilter::Warn);
-
-    let colors = ColoredLevelConfig::new()
-        .error(Color::Red)
-        .warn(Color::Yellow)
-        .info(Color::Cyan)
-        .debug(Color::Green)
-        .trace(Color::BrightBlack);
-
-    let base = fern::Dispatch::new()
-        .level_for("dot_vox::parser", log::LevelFilter::Warn)
-        .level_for("gfx_device_gl::factory", log::LevelFilter::Warn)
-        .level_for("veloren_voxygen::discord", log::LevelFilter::Warn);
-    // TODO: Filter tracing better such that our own tracing gets seen more easily
-
-    let time = chrono::offset::Utc::now();
-
-    let file_cfg = fern::Dispatch::new()
-        .level(log::LevelFilter::Trace)
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{}[{}:{}][{}] {}",
-                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-                record.target(),
-                record
-                    .line()
-                    .map(|x| x.to_string())
-                    .unwrap_or("X".to_string()),
-                record.level(),
-                message
-            ))
-        })
-        .chain(
-            fern::log_file(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H")))
-                .expect("Failed to create log file!"),
-        );
-
-    let stdout_cfg = fern::Dispatch::new()
-        .level(term_log_level)
-        .format(move |out, message, record| {
-            out.finish(format_args!(
-                "[{}] {}",
-                colors.color(record.level()),
-                message
-            ))
-        })
-        .chain(std::io::stdout());
-
-    base.chain(file_cfg)
-        .chain(stdout_cfg)
-        .apply()
-        .expect("Failed to setup logging!");
-
     // Set up panic handler to relay swish panic messages to the user
-    let settings_clone = settings.clone();
     let default_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         let panic_info_payload = panic_info.payload();
@@ -231,7 +169,12 @@ fn main() {
             \n\
             Panic Payload: {:?}\n\
             PanicInfo: {}",
-            settings_clone.log.file, reason, panic_info,
+            // TODO: Verify that this works
+            Settings::get_settings_path()
+                .join("voxygen-<date>.log")
+                .display(),
+            reason,
+            panic_info,
         );
 
         error!(
@@ -241,27 +184,22 @@ fn main() {
         );
 
         #[cfg(feature = "msgbox")]
-        msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error);
+        {
+            #[cfg(target_os = "macos")]
+            dispatch::Queue::main()
+                .sync(|| msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error));
+            #[cfg(not(target_os = "macos"))]
+            msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error);
+        }
 
         default_hook(panic_info);
     }));
-
-    // Initialise Discord
-    #[cfg(feature = "discord")]
-    {
-        use discord::DiscordUpdate;
-        discord::send_all(vec![
-            DiscordUpdate::Details("Menu".into()),
-            DiscordUpdate::State("Idling".into()),
-            DiscordUpdate::LargeImg("bg_main".into()),
-        ]);
-    }
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states
         .last()
-        .map(|current_state| info!("Started game with state '{}'", current_state.name()));
+        .map(|current_state| debug!("Started game with state '{}'", current_state.name()));
 
     // What's going on here?
     // ---------------------
@@ -279,7 +217,7 @@ fn main() {
         match state_result {
             PlayStateResult::Shutdown => {
                 direction = Direction::Backwards;
-                info!("Shutting down all states...");
+                debug!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {
                         debug!("Popped state '{}'.", old_state.name());
@@ -312,25 +250,6 @@ fn main() {
                     global_state.on_play_state_changed();
                 });
             }
-        }
-    }
-
-    //Properly shutdown discord thread
-    #[cfg(feature = "discord")]
-    {
-        match DISCORD_INSTANCE.lock() {
-            Ok(mut disc) => {
-                let _ = disc.tx.send(discord::DiscordUpdate::Shutdown);
-                match disc.thread.take() {
-                    Some(th) => {
-                        let _ = th.join();
-                    }
-                    None => {
-                        error!("couldn't gracefully shutdown discord thread");
-                    }
-                }
-            }
-            Err(e) => error!("couldn't gracefully shutdown discord thread: {}", e),
         }
     }
 

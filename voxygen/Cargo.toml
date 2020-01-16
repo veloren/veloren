@@ -7,7 +7,6 @@ default-run = "veloren-voxygen"
 
 [features]
 gl = ["gfx_device_gl"]
-discord = ["discord-rpc-sdk", "lazy_static"]
 singleplayer = ["server"]
 
 default = ["gl", "singleplayer", "msgbox"]
@@ -27,14 +26,11 @@ conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 euc = "0.3.0"
 
 # ECS
-specs = "0.14.2"
+specs = "0.15.1"
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 # Mathematics
 vek = { version = "0.9.9", features = ["serde"] }
-
-# Discord
-discord-rpc-sdk = { git = "https://github.com/Songtronix/rust-discord-rpc.git", optional = true }
-lazy_static = { version = "1.4.0", optional = true }
 
 # Singleplayer
 server = { package = "veloren-server", path = "../server", optional = true }
@@ -55,7 +51,7 @@ directories = "2.0.2"
 num = "0.2.0"
 backtrace = "0.3.40"
 rand = "0.7.2"
-frustum_query = "0.1.2"
+treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
 # context for pinning to commit: https://gitlab.com/veloren/veloren/issues/280
 rodio = { git = "https://github.com/RustAudio/rodio", rev = "e5474a2"}
 cpal = "0.10"
@@ -63,6 +59,9 @@ crossbeam = "=0.7.2"
 hashbrown = { version = "0.6.2", features = ["serde", "nightly"] }
 chrono = "0.4.9"
 rust-argon2 = "0.5"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+dispatch = "0.1.4" 
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"

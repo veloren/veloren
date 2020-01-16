@@ -1,12 +1,9 @@
 use client::{error::Error as ClientError, Client};
-use common::comp;
+use common::{comp, net::PostError};
 use crossbeam::channel::{unbounded, Receiver, TryRecvError};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{net::ToSocketAddrs, thread, time::Duration};
-
-#[cfg(feature = "discord")]
-use crate::{discord, discord::DiscordUpdate};
 
 #[derive(Debug)]
 pub enum Error {
@@ -54,7 +51,7 @@ impl ClientInit {
 
                     let mut last_err = None;
 
-                    'tries: for _ in 0..=60 {
+                    'tries: for _ in 0..60 + 1 {
                         // 300 Seconds
                         if cancel2.load(Ordering::Relaxed) {
                             break;
@@ -72,21 +69,14 @@ impl ClientInit {
                                     }
                                     //client.register(player, password);
                                     let _ = tx.send(Ok(client));
-
-                                    #[cfg(feature = "discord")]
-                                    {
-                                        if !server_address.eq("127.0.0.1") {
-                                            discord::send_all(vec![
-                                                DiscordUpdate::Details(server_address),
-                                                DiscordUpdate::State("Playing...".into()),
-                                            ]);
-                                        }
-                                    }
-
                                     return;
                                 }
                                 Err(err) => {
                                     match err {
+                                        ClientError::Network(PostError::Bincode(_)) => {
+                                            last_err = Some(Error::ConnectionFailed(err));
+                                            break 'tries;
+                                        }
                                         // Assume the connection failed and try again soon
                                         ClientError::Network(_) => {}
                                         ClientError::TooManyPlayers => {

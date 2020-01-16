@@ -3,11 +3,11 @@ use {
         comp::{Body, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
         event::{EventBus, ServerEvent},
         state::DeltaTime,
+        sync::Uid,
         terrain::{Block, TerrainGrid},
         vol::ReadVol,
     },
     specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
-    sphynx::Uid,
     vek::*,
 };
 
@@ -102,6 +102,7 @@ impl<'a> System<'a> for Sys {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
             // Basic collision with terrain
+            // TODO: rename this, not just the player entity
             let player_rad = 0.3 * scale; // half-width of the player's AABB
             let player_height = 1.5 * scale;
 
@@ -109,8 +110,10 @@ impl<'a> System<'a> for Sys {
             let hdist = player_rad.ceil() as i32;
             let vdist = player_height.ceil() as i32;
             // Neighbouring blocks iterator
-            let near_iter = (-hdist..=hdist)
-                .map(move |i| (-hdist..=hdist).map(move |j| (0..=vdist).map(move |k| (i, j, k))))
+            let near_iter = (-hdist..hdist + 1)
+                .map(move |i| {
+                    (-hdist..hdist + 1).map(move |j| (0..vdist + 1).map(move |k| (i, j, k)))
+                })
                 .flatten()
                 .flatten();
 
@@ -342,16 +345,20 @@ impl<'a> System<'a> for Sys {
         }
 
         // Apply pushback
-        for (pos, scale, mass, vel, _, _, physics) in (
+        for (pos, scale, mass, vel, _, _, _, physics) in (
             &positions,
             scales.maybe(),
             masses.maybe(),
             &mut velocities,
             &bodies,
             !&mountings,
+            stickies.maybe(),
             &mut physics_states,
         )
             .join()
+            .filter(|(_, _, _, _, _, _, sticky, physics)| {
+                sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
+            })
         {
             physics.touch_entity = None;
 

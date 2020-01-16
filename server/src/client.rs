@@ -11,6 +11,7 @@ pub struct Client {
     pub client_state: ClientState,
     pub postbox: PostBox<ServerMsg, ClientMsg>,
     pub last_ping: f64,
+    pub login_msg_sent: bool,
 }
 
 impl Component for Client {
@@ -23,16 +24,13 @@ impl Client {
     }
     pub fn is_registered(&self) -> bool {
         match self.client_state {
-            ClientState::Registered
-            | ClientState::Spectator
-            | ClientState::Dead
-            | ClientState::Character => true,
+            ClientState::Registered | ClientState::Spectator | ClientState::Character => true,
             _ => false,
         }
     }
     pub fn is_ingame(&self) -> bool {
         match self.client_state {
-            ClientState::Spectator | ClientState::Character | ClientState::Dead => true,
+            ClientState::Spectator | ClientState::Character => true,
             _ => false,
         }
     }
@@ -44,10 +42,6 @@ impl Client {
     pub fn error_state(&mut self, error: RequestStateError) {
         self.postbox
             .send_message(ServerMsg::StateAnswer(Err((error, self.client_state))));
-    }
-    pub fn force_state(&mut self, new_state: ClientState) {
-        self.client_state = new_state;
-        self.postbox.send_message(ServerMsg::ForceState(new_state));
     }
 }
 

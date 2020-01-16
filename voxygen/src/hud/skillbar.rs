@@ -3,7 +3,7 @@ use super::{
     LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::{item::Debug, item::ToolData, item::ToolKind, ItemKind, Stats};
+use common::comp::{item::Debug, item::ToolData, item::ToolKind, Energy, ItemKind, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -70,14 +70,19 @@ widget_ids! {
         healthbar_bg,
         healthbar_filling,
         health_text,
+        health_text_bg,
         energybar_bg,
         energybar_filling,
         energy_text,
+        energy_text_bg,
         level_up,
         level_down,
         level_align,
         level_message,
+        level_message_bg,
         stamina_wheel,
+        death_bg,
+        hurt_bg,
     }
 }
 
@@ -92,6 +97,8 @@ pub struct Skillbar<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     stats: &'a Stats,
+    energy: &'a Energy,
+    pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     current_resource: ResourceType,
@@ -103,14 +110,19 @@ impl<'a> Skillbar<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         stats: &'a Stats,
+        energy: &'a Energy,
+        pulse: f32,
     ) -> Self {
         Self {
             global_state,
             imgs,
             fonts,
             stats,
+            energy,
+            global_state,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
+            pulse,
         }
     }
 }
@@ -154,8 +166,7 @@ impl<'a> Widget for Skillbar<'a> {
 
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
-        let energy_percentage =
-            self.stats.energy.current() as f64 / self.stats.energy.maximum() as f64 * 100.0;
+        let energy_percentage = self.energy.current() as f64 / self.energy.maximum() as f64 * 100.0;
 
         let scale = 2.0;
 
@@ -164,6 +175,8 @@ impl<'a> Widget for Skillbar<'a> {
 
         const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
         const BG_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 0.99);
+        let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.8; //Animation timer
+        let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
         // Stamina Wheel
         /*
@@ -210,7 +223,7 @@ impl<'a> Widget for Skillbar<'a> {
             // Update last_value
             state.update(|s| s.last_level = current_level);
             state.update(|s| s.last_update_level = Instant::now());
-        }
+        };
 
         let seconds_level = state.last_update_level.elapsed().as_secs_f32();
         let fade_level = if current_level == 1 {
@@ -231,6 +244,12 @@ impl<'a> Widget for Skillbar<'a> {
             .middle_of(state.ids.level_align)
             .font_size(30)
             .font_id(self.fonts.cyri)
+            .color(Color::Rgba(0.0, 0.0, 0.0, fade_level))
+            .set(state.ids.level_message_bg, ui);
+        Text::new(&level_up_text)
+            .bottom_left_with_margins_on(state.ids.level_message_bg, 2.0, 2.0)
+            .font_size(30)
+            .font_id(self.fonts.cyri)
             .color(Color::Rgba(1.0, 1.0, 1.0, fade_level))
             .set(state.ids.level_message, ui);
         Image::new(self.imgs.level_up)
@@ -246,35 +265,38 @@ impl<'a> Widget for Skillbar<'a> {
             .graphics_for(state.ids.level_align)
             .set(state.ids.level_down, ui);
         // Death message
-        if hp_percentage == 0.0 {
+        if self.stats.is_dead {
             Text::new("You Died")
-                .mid_top_with_margin_on(ui.window, 60.0)
-                .font_size(40)
+                .middle_of(ui.window)
+                .font_size(50)
                 .font_id(self.fonts.cyri)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_1_bg, ui);
             Text::new(&format!(
-                "Press {:?} to respawn.",
+                "Press {:?} to respawn at your Waypoint.\n\
+                 \n\
+                 Press Enter, type in /waypoint and confirm to set it here.",
                 self.global_state.settings.controls.respawn
             ))
-            .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
-            .font_size(15)
+            .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
+            .font_size(30)
             .font_id(self.fonts.cyri)
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.death_message_2_bg, ui);
-
             Text::new("You Died")
-                .top_left_with_margins_on(state.ids.death_message_1_bg, -2.0, -2.0)
-                .font_size(40)
+                .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
+                .font_size(50)
                 .font_id(self.fonts.cyri)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
             Text::new(&format!(
-                "Press {:?} to respawn.",
+                "Press {:?} to respawn at your Waypoint.\n\
+                 \n\
+                 Press Enter, type in /waypoint and confirm to set it here.",
                 self.global_state.settings.controls.respawn
             ))
-            .top_left_with_margins_on(state.ids.death_message_2_bg, -1.5, -1.5)
-            .font_size(15)
+            .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
+            .font_size(30)
             .color(CRITICAL_HP_COLOR)
             .set(state.ids.death_message_2, ui);
         }
@@ -300,7 +322,6 @@ impl<'a> Widget for Skillbar<'a> {
                     .top_left_with_margins_on(state.ids.xp_bar_left, 2.0 * scale, 10.0 * scale)
                     .set(state.ids.xp_bar_filling, ui);
                 // Level Display
-
                 if self.stats.level.level() < 10 {
                     Text::new(&level)
                         .bottom_left_with_margins_on(
@@ -777,7 +798,7 @@ impl<'a> Widget for Skillbar<'a> {
         Image::new(self.imgs.bar_content)
             .w_h(97.0 * scale * hp_percentage / 100.0, 16.0 * scale)
             .color(Some(if hp_percentage <= 20.0 {
-                CRITICAL_HP_COLOR
+                crit_hp_color
             } else if hp_percentage <= 40.0 {
                 LOW_HP_COLOR
             } else {
@@ -808,18 +829,30 @@ impl<'a> Widget for Skillbar<'a> {
                 self.stats.health.maximum() as u32
             );
             Text::new(&hp_text)
-                .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
+                .mid_top_with_margin_on(state.ids.healthbar_bg, 6.0 * scale)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.health_text_bg, ui);
+            Text::new(&hp_text)
+                .bottom_left_with_margins_on(state.ids.health_text_bg, 2.0, 2.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.health_text, ui);
             let energy_text = format!(
                 "{}/{}",
-                self.stats.energy.current() as u32,
-                self.stats.energy.maximum() as u32
+                self.energy.current() as u32,
+                self.energy.maximum() as u32
             );
             Text::new(&energy_text)
-                .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
+                .mid_top_with_margin_on(state.ids.energybar_bg, 6.0 * scale)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.energy_text_bg, ui);
+            Text::new(&energy_text)
+                .bottom_left_with_margins_on(state.ids.energy_text_bg, 2.0, 2.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
@@ -829,14 +862,26 @@ impl<'a> Widget for Skillbar<'a> {
         if let BarNumbers::Percent = bar_values {
             let hp_text = format!("{}%", hp_percentage as u32);
             Text::new(&hp_text)
-                .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
+                .mid_top_with_margin_on(state.ids.healthbar_bg, 6.0 * scale)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.health_text_bg, ui);
+            Text::new(&hp_text)
+                .bottom_left_with_margins_on(state.ids.health_text_bg, 2.0, 2.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.health_text, ui);
             let energy_text = format!("{}%", energy_percentage as u32);
             Text::new(&energy_text)
-                .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
+                .mid_top_with_margin_on(state.ids.energybar_bg, 6.0 * scale)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.energy_text_bg, ui);
+            Text::new(&energy_text)
+                .bottom_left_with_margins_on(state.ids.energy_text_bg, 2.0, 2.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)

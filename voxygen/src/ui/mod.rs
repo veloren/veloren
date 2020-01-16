@@ -305,7 +305,7 @@ impl Ui {
         enum Placement {
             Interface,
             // Number of primitives left to render ingame and relative scaling/resolution
-            InWorld(usize, Option<f32>),
+            InWorld(usize, Option<(f64, f64)>),
         };
 
         let mut placement = Placement::Interface;
@@ -342,7 +342,7 @@ impl Ui {
                 // moving origin to top-left corner (from middle).
                 let min_x = self.ui.win_w / 2.0 + l;
                 let min_y = self.ui.win_h / 2.0 - b - h;
-                Aabr {
+                let intersection = Aabr {
                     min: Vec2 {
                         x: (min_x * scale_factor) as u16,
                         y: (min_y * scale_factor) as u16,
@@ -352,7 +352,13 @@ impl Ui {
                         y: ((min_y + h) * scale_factor) as u16,
                     },
                 }
-                .intersection(window_scissor)
+                .intersection(window_scissor);
+
+                if intersection.is_valid() {
+                    intersection
+                } else {
+                    Aabr::new_empty(Vec2::zero())
+                }
             };
             if new_scissor != current_scissor {
                 // Finish the current command.
@@ -393,7 +399,7 @@ impl Ui {
 
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
             let (ui_win_w, ui_win_h) = match placement {
-                Placement::InWorld(_, Some(res)) => (res as f64, res as f64),
+                Placement::InWorld(_, Some(res)) => res,
                 // Behind the camera or far away
                 Placement::InWorld(_, None) => continue,
                 Placement::Interface => (self.ui.win_w, self.ui.win_h),
@@ -618,10 +624,12 @@ impl Ui {
                                 .parameters;
 
                             let pos_in_view = view_mat * Vec4::from_point(parameters.pos);
+
                             let scale_factor = self.ui.win_w as f64
                                 / (-2.0
                                     * pos_in_view.z as f64
                                     * (0.5 * fov as f64).tan()
+                                    // TODO: make this have no effect for fixed scale
                                     * parameters.res as f64);
                             // Don't process ingame elements behind the camera or very far away
                             placement = if scale_factor > 0.2 {
@@ -636,32 +644,43 @@ impl Ui {
                                 });
                                 start = mesh.vertices().len();
                                 // Push new position command
+                                let mut world_pos = Vec4::from_point(parameters.pos);
+                                if parameters.fixed_scale {
+                                    world_pos.w = -1.0
+                                };
+
                                 if self.ingame_locals.len() > ingame_local_index {
                                     renderer
                                         .update_consts(
                                             &mut self.ingame_locals[ingame_local_index],
-                                            &[parameters.pos.into()],
+                                            &[world_pos.into()],
                                         )
                                         .unwrap();
                                 } else {
-                                    self.ingame_locals.push(
-                                        renderer.create_consts(&[parameters.pos.into()]).unwrap(),
-                                    );
+                                    self.ingame_locals
+                                        .push(renderer.create_consts(&[world_pos.into()]).unwrap());
                                 }
                                 self.draw_commands
                                     .push(DrawCommand::WorldPos(Some(ingame_local_index)));
                                 ingame_local_index += 1;
 
-                                p_scale_factor = ((scale_factor * 10.0).log2().round().powi(2)
-                                    / 10.0)
-                                    .min(1.6)
-                                    .max(0.2);
+                                p_scale_factor = if parameters.fixed_scale {
+                                    self.scale.scale_factor_physical()
+                                } else {
+                                    ((scale_factor * 10.0).log2().round().powi(2) / 10.0)
+                                        .min(1.6)
+                                        .max(0.2)
+                                };
 
                                 // Scale down ingame elements that are close to the camera
-                                let res = if scale_factor > 3.2 {
-                                    parameters.res * scale_factor as f32 / 3.2
+                                let res = if parameters.fixed_scale {
+                                    (self.ui.win_w, self.ui.win_h)
+                                } else if scale_factor > 3.2 {
+                                    let res = parameters.res * scale_factor as f32 / 3.2;
+                                    (res as f64, res as f64)
                                 } else {
-                                    parameters.res
+                                    let res = parameters.res;
+                                    (res as f64, res as f64)
                                 };
 
                                 Placement::InWorld(parameters.num, Some(res))
@@ -750,7 +769,7 @@ impl Ui {
 }
 
 fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
-    let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as u16).into_tuple();
+    let (screen_w, screen_h) = renderer.get_resolution().into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {

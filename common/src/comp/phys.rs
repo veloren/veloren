@@ -1,4 +1,4 @@
-use crate::state::Uid;
+use crate::sync::Uid;
 use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IDVStorage;
 use vek::*;

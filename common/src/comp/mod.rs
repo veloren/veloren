@@ -4,6 +4,7 @@ mod agent;
 mod body;
 mod character_state;
 mod controller;
+mod energy;
 mod inputs;
 mod inventory;
 mod last;
@@ -30,6 +31,7 @@ pub use controller::{
     ControlEvent, Controller, ControllerInputs, Input, InputState, InventoryManip, MountState,
     Mounting,
 };
+pub use energy::Energy;
 pub use inputs::CanBuild;
 pub use inventory::{
     item, Inventory, InventoryUpdate, Item, ItemKind, SwordKind, ToolData, ToolKind,

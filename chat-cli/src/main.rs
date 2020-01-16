@@ -65,7 +65,11 @@ fn main() {
             client.send_chat(msg)
         }
 
-        let events = match client.tick(comp::ControllerInputs::default(), clock.get_last_delta()) {
+        let events = match client.tick(
+            comp::ControllerInputs::default(),
+            clock.get_last_delta(),
+            |_| {},
+        ) {
             Ok(events) => events,
             Err(err) => {
                 error!("Error: {:?}", err);

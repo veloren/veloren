@@ -13,19 +13,31 @@ pub struct WorldPath {
 }
 
 impl WorldPath {
-    pub fn new<V: ReadVol>(vol: &V, from: Vec3<f32>, dest: Vec3<f32>) -> Self {
+    pub fn new<V: ReadVol, I>(
+        vol: &V,
+        from: Vec3<f32>,
+        dest: Vec3<f32>,
+        get_neighbors: impl FnMut(&V, &Vec3<i32>) -> I,
+    ) -> Self
+    where
+        I: IntoIterator<Item = Vec3<i32>>,
+    {
         let ifrom: Vec3<i32> = Vec3::from(from.map(|e| e.floor() as i32));
         let idest: Vec3<i32> = Vec3::from(dest.map(|e| e.floor() as i32));
-        let path = WorldPath::get_path(vol, ifrom, idest);
+        let path = WorldPath::get_path(vol, ifrom, idest, get_neighbors);
 
         Self { from, dest, path }
     }
 
-    pub fn get_path<V: ReadVol>(
+    pub fn get_path<V: ReadVol, I>(
         vol: &V,
         from: Vec3<i32>,
         dest: Vec3<i32>,
-    ) -> Option<Vec<Vec3<i32>>> {
+        mut get_neighbors: impl FnMut(&V, &Vec3<i32>) -> I,
+    ) -> Option<Vec<Vec3<i32>>>
+    where
+        I: IntoIterator<Item = Vec3<i32>>,
+    {
         let new_start = WorldPath::get_z_walkable_space(vol, from);
         let new_dest = WorldPath::get_z_walkable_space(vol, dest);
 
@@ -34,7 +46,7 @@ impl WorldPath {
                 new_start,
                 new_dest,
                 euclidean_distance,
-                |pos| WorldPath::get_neighbors(vol, pos),
+                |pos| get_neighbors(vol, pos),
                 transition_cost,
             )
         } else {
@@ -136,7 +148,7 @@ impl WorldPath {
         if let Some(mut block_path) = self.path.clone() {
             if let Some(next_pos) = block_path.clone().last() {
                 if self.path_is_blocked(vol) {
-                    self.path = WorldPath::get_path(vol, ipos, idest)
+                    self.path = WorldPath::get_path(vol, ipos, idest, WorldPath::get_neighbors);
                 }
 
                 if Vec2::<i32>::from(ipos) == Vec2::<i32>::from(*next_pos) {
