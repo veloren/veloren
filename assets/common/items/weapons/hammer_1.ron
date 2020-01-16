@@ -2,7 +2,13 @@ Item(
     name: "Crude Mallet",
     description: "Breaks bones like sticks and stones.",
     kind: Tool(
-        kind: Hammer,
-        power: 20,
-    ),
+        ToolData (
+            kind: Hammer,    
+            equip_time_millis: 1000,
+            attack_buildup_millis: 700,
+            attack_recover_millis: 100,
+            range: 3,
+            base_damage: 10, 
+        )
+    )
 )

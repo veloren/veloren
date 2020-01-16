@@ -4,12 +4,12 @@ use crate::{
     comp::{Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, Vel},
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
+    sync::Uid,
 };
 use serde::Deserialize;
 use serde::Serialize;
 use specs::LazyUpdate;
 use specs::{Component, Entity, FlaggedStorage, HashMapStorage, NullStorage};
-use sphynx::Uid;
 use std::time::Duration;
 
 pub struct EcsStateData<'a> {

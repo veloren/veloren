@@ -5,10 +5,10 @@ use crate::{
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
+    sync::{Uid, UidAllocator},
 };
 
 use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
-use sphynx::{Uid, UidAllocator};
 
 /// ## Character State System
 /// #### Calls updates to `CharacterState`s. Acts on tuples of ( `CharacterState`, `Pos`, `Vel`, and `Ori` ).
