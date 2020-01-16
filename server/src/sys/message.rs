@@ -1,14 +1,18 @@
 use super::SysTimer;
 use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
-    comp::{Admin, Body, CanBuild, Controller, Ori, Player, Pos, Vel},
+    comp::{Admin, Body, CanBuild, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
-    msg::{validate_chat_msg, ChatMsgValidationError, MAX_BYTES_CHAT_MSG},
-    msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
+    msg::{
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
+        RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
+    },
     state::{BlockChange, Time},
+    sync::Uid,
     terrain::{Block, TerrainGrid},
     vol::Vox,
 };
+use hashbrown::HashMap;
 use specs::{
     Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
 };
@@ -22,9 +26,12 @@ impl<'a> System<'a> for Sys {
         Read<'a, Time>,
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
+        ReadStorage<'a, Uid>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, Admin>,
+        ReadStorage<'a, ForceUpdate>,
+        ReadStorage<'a, Stats>,
         WriteExpect<'a, AuthProvider>,
         Write<'a, BlockChange>,
         WriteStorage<'a, Pos>,
@@ -43,9 +50,12 @@ impl<'a> System<'a> for Sys {
             time,
             terrain,
             mut timer,
+            uids,
             bodies,
             can_build,
             admins,
+            force_updates,
+            stats,
             mut accounts,
             mut block_changes,
             mut positions,
@@ -61,6 +71,14 @@ impl<'a> System<'a> for Sys {
         let time = time.0;
 
         let mut new_chat_msgs = Vec::new();
+
+        // Player list to send new players.
+        let player_list = (&uids, &players)
+            .join()
+            .map(|(uid, player)| ((*uid).into(), player.alias.clone()))
+            .collect::<HashMap<_, _>>();
+        // List of new players to update player lists of all clients.
+        let mut new_players = Vec::new();
 
         for (entity, client) in (&entities, &mut clients).join() {
             let mut disconnect = false;
@@ -82,39 +100,26 @@ impl<'a> System<'a> for Sys {
             // Process incoming messages.
             for msg in new_msgs {
                 match msg {
-                    ClientMsg::RequestState(requested_state) => match requested_state {
-                        ClientState::Connected => disconnect = true, // Default state
-                        ClientState::Registered => match client.client_state {
-                            // Use ClientMsg::Register instead.
-                            ClientState::Connected => {
-                                client.error_state(RequestStateError::WrongMessage)
-                            }
-                            ClientState::Registered => {
-                                client.error_state(RequestStateError::Already)
-                            }
-                            ClientState::Spectator | ClientState::Character | ClientState::Dead => {
-                                client.allow_state(ClientState::Registered)
-                            }
-                            ClientState::Pending => {}
-                        },
-                        ClientState::Spectator => match requested_state {
-                            // Become Registered first.
-                            ClientState::Connected => {
-                                client.error_state(RequestStateError::Impossible)
-                            }
-                            ClientState::Spectator => {
-                                client.error_state(RequestStateError::Already)
-                            }
-                            ClientState::Registered
-                            | ClientState::Character
-                            | ClientState::Dead => client.allow_state(ClientState::Spectator),
-                            ClientState::Pending => {}
-                        },
-                        // Use ClientMsg::Character instead.
-                        ClientState::Character => {
+                    // Go back to registered state (char selection screen)
+                    ClientMsg::ExitIngame => match client.client_state {
+                        // Use ClientMsg::Register instead.
+                        ClientState::Connected => {
                             client.error_state(RequestStateError::WrongMessage)
                         }
-                        ClientState::Dead => client.error_state(RequestStateError::Impossible),
+                        ClientState::Registered => client.error_state(RequestStateError::Already),
+                        ClientState::Spectator | ClientState::Character => {
+                            server_emitter.emit(ServerEvent::ExitIngame { entity });
+                        }
+                        ClientState::Pending => {}
+                    },
+                    // Request spectator state
+                    ClientMsg::Spectate => match client.client_state {
+                        // Become Registered first.
+                        ClientState::Connected => client.error_state(RequestStateError::Impossible),
+                        ClientState::Spectator => client.error_state(RequestStateError::Already),
+                        ClientState::Registered | ClientState::Character => {
+                            client.allow_state(ClientState::Spectator)
+                        }
                         ClientState::Pending => {}
                     },
                     // Valid player
@@ -125,10 +130,18 @@ impl<'a> System<'a> for Sys {
                         }
                         match client.client_state {
                             ClientState::Connected => {
+                                // Add Player component to this client
                                 let _ = players.insert(entity, player);
 
                                 // Tell the client its request was successful.
                                 client.allow_state(ClientState::Registered);
+
+                                // Send initial player list
+                                client.notify(ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(
+                                    player_list.clone(),
+                                )));
+                                // Add to list to notify all clients of the new player
+                                new_players.push(entity);
                             }
                             // Use RequestState instead (No need to send `player` again).
                             _ => client.error_state(RequestStateError::Impossible),
@@ -148,12 +161,12 @@ impl<'a> System<'a> for Sys {
                     ClientMsg::Character { name, body, main } => match client.client_state {
                         // Become Registered first.
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
-                        ClientState::Registered | ClientState::Spectator | ClientState::Dead => {
-                            if let (Some(player), None) = (
+                        ClientState::Registered | ClientState::Spectator => {
+                            if let (Some(player), false) = (
                                 players.get(entity),
-                                // Only send login message if the player didn't have a body
+                                // Only send login message if it wasn't already sent
                                 // previously
-                                bodies.get(entity),
+                                client.login_msg_sent,
                             ) {
                                 new_chat_msgs.push((
                                     None,
@@ -162,9 +175,10 @@ impl<'a> System<'a> for Sys {
                                         &player.alias
                                     )),
                                 ));
+                                client.login_msg_sent = true;
                             }
 
-                            server_emitter.emit(ServerEvent::CreatePlayer {
+                            server_emitter.emit(ServerEvent::CreateCharacter {
                                 entity,
                                 name,
                                 body,
@@ -180,7 +194,7 @@ impl<'a> System<'a> for Sys {
                         | ClientState::Spectator => {
                             client.error_state(RequestStateError::Impossible)
                         }
-                        ClientState::Dead | ClientState::Character => {
+                        ClientState::Character => {
                             if let Some(controller) = controllers.get_mut(entity) {
                                 controller.inputs = inputs;
                             }
@@ -193,21 +207,19 @@ impl<'a> System<'a> for Sys {
                         | ClientState::Spectator => {
                             client.error_state(RequestStateError::Impossible)
                         }
-                        ClientState::Dead | ClientState::Character => {
+                        ClientState::Character => {
                             if let Some(controller) = controllers.get_mut(entity) {
                                 controller.events.push(event);
                             }
                         }
                         ClientState::Pending => {}
                     },
-                    ClientMsg::ChatMsg { chat_type, message } => match client.client_state {
+                    ClientMsg::ChatMsg { message } => match client.client_state {
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered
                         | ClientState::Spectator
-                        | ClientState::Dead
                         | ClientState::Character => match validate_chat_msg(&message) {
-                            Ok(()) => new_chat_msgs
-                                .push((Some(entity), ServerMsg::ChatMsg { chat_type, message })),
+                            Ok(()) => new_chat_msgs.push((Some(entity), ServerMsg::chat(message))),
                             Err(ChatMsgValidationError::TooLong) => log::warn!(
                                 "Recieved a chat message that's too long (max:{} len:{})",
                                 MAX_BYTES_CHAT_MSG,
@@ -218,9 +230,13 @@ impl<'a> System<'a> for Sys {
                     },
                     ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
                         ClientState::Character => {
-                            let _ = positions.insert(entity, pos);
-                            let _ = velocities.insert(entity, vel);
-                            let _ = orientations.insert(entity, ori);
+                            if force_updates.get(entity).is_none()
+                                && stats.get(entity).map_or(true, |s| !s.is_dead)
+                            {
+                                let _ = positions.insert(entity, pos);
+                                let _ = velocities.insert(entity, vel);
+                                let _ = orientations.insert(entity, ori);
+                            }
                         }
                         // Only characters can send positions.
                         _ => client.error_state(RequestStateError::Impossible),
@@ -236,7 +252,7 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                     ClientMsg::TerrainChunkRequest { key } => match client.client_state {
-                        ClientState::Connected | ClientState::Registered | ClientState::Dead => {
+                        ClientState::Connected | ClientState::Registered => {
                             client.error_state(RequestStateError::Impossible);
                         }
                         ClientState::Spectator | ClientState::Character => {
@@ -274,6 +290,20 @@ impl<'a> System<'a> for Sys {
                 }
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                 client.postbox.send_message(ServerMsg::Disconnect);
+            }
+        }
+
+        // Handle new players.
+        // Tell all clients to add them to the player list.
+        for entity in new_players {
+            if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
+                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(
+                    (*uid).into(),
+                    player.alias.clone(),
+                ));
+                for client in (&mut clients).join().filter(|c| c.is_registered()) {
+                    client.notify(msg.clone())
+                }
             }
         }
 

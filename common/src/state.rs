@@ -1,11 +1,8 @@
-// Reexports
-pub use sphynx::Uid;
-
 use crate::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent, SfxEventItem},
-    msg::{EcsCompPacket, EcsResPacket},
     region::RegionMap,
+    sync::WorldSyncExt,
     sys,
     terrain::{Block, TerrainChunk, TerrainGrid},
     vol::WriteVol,
@@ -14,12 +11,10 @@ use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde_derive::{Deserialize, Serialize};
 use specs::{
-    saveload::Marker,
     shred::{Fetch, FetchMut},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
-    Component, DispatcherBuilder, Entity as EcsEntity, Join,
+    Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
-use sphynx;
 use std::{sync::Arc, time::Duration};
 use vek::*;
 
@@ -28,7 +23,7 @@ use vek::*;
 const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
 
 /// A resource that stores the time of day.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct TimeOfDay(pub f64);
 
 /// A resource that stores the tick (i.e: physics) time.
@@ -89,7 +84,7 @@ impl TerrainChanges {
 /// A type used to represent game state stored on both the client and the server. This includes
 /// things like entity components, terrain data, and global states like weather, time of day, etc.
 pub struct State {
-    ecs: sphynx::World<EcsCompPacket, EcsResPacket>,
+    ecs: specs::World,
     // Avoid lifetime annotation by storing a thread pool instead of the whole dispatcher
     thread_pool: Arc<ThreadPool>,
 }
@@ -98,49 +93,39 @@ impl Default for State {
     /// Create a new `State`.
     fn default() -> Self {
         Self {
-            ecs: sphynx::World::new(specs::World::new(), Self::setup_sphynx_world),
+            ecs: Self::setup_ecs_world(),
             thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
         }
     }
 }
 
 impl State {
-    /// Create a new `State` from an ECS state package.
-    pub fn from_state_package(
-        state_package: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
-    ) -> Self {
-        Self {
-            ecs: sphynx::World::from_state_package(
-                specs::World::new(),
-                Self::setup_sphynx_world,
-                state_package,
-            ),
-            thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
-        }
-    }
-
-    // Create a new Sphynx ECS world.
+    /// Creates ecs world and registers all the common components and resources
     // TODO: Split up registering into server and client (e.g. move EventBus<ServerEvent> to the server)
-    fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
+    fn setup_ecs_world() -> specs::World {
+        let mut ecs = specs::World::new();
+        // Uids for sync
+        ecs.register_sync_marker();
         // Register server -> all clients synced components.
-        ecs.register_synced::<comp::AbilityPool>();
-        ecs.register_synced::<comp::AbilityAction>();
-        ecs.register_synced::<comp::Body>();
-        ecs.register_synced::<comp::Player>();
-        ecs.register_synced::<comp::Stats>();
-        ecs.register_synced::<comp::CanBuild>();
-        ecs.register_synced::<comp::LightEmitter>();
-        ecs.register_synced::<comp::Item>();
-        ecs.register_synced::<comp::Scale>();
-        ecs.register_synced::<comp::Mounting>();
-        ecs.register_synced::<comp::MountState>();
-        ecs.register_synced::<comp::Mass>();
-        ecs.register_synced::<comp::Sticky>();
-        ecs.register_synced::<comp::Gravity>();
-        ecs.register_synced::<comp::Projectile>();
-        ecs.register_synced::<comp::OverrideAction>();
-        ecs.register_synced::<comp::OverrideMove>();
-        ecs.register_synced::<comp::OverrideState>();
+        ecs.register::<comp::AbilityPool>();
+        ecs.register::<comp::AbilityAction>();
+        ecs.register::<comp::Projectile>();
+        ecs.register::<comp::OverrideAction>();
+        ecs.register::<comp::OverrideMove>();
+        ecs.register::<comp::OverrideState>();
+        ecs.register::<comp::Body>();
+        ecs.register::<comp::Player>();
+        ecs.register::<comp::Stats>();
+        ecs.register::<comp::Energy>();
+        ecs.register::<comp::CanBuild>();
+        ecs.register::<comp::LightEmitter>();
+        ecs.register::<comp::Item>();
+        ecs.register::<comp::Scale>();
+        ecs.register::<comp::Mounting>();
+        ecs.register::<comp::MountState>();
+        ecs.register::<comp::Mass>();
+        ecs.register::<comp::Sticky>();
+        ecs.register::<comp::Gravity>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -156,6 +141,7 @@ impl State {
         ecs.register::<comp::Inventory>();
 
         // Register server-local components
+        // TODO: only register on the server
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
@@ -163,23 +149,26 @@ impl State {
         ecs.register::<comp::Agent>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();
-        ecs.register::<comp::Inventory>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
+        ecs.register::<comp::Projectile>();
 
         // Register synced resources used by the ECS.
-        ecs.insert_synced(TimeOfDay(0.0));
+        ecs.insert(TimeOfDay(0.0));
 
         // Register unsynced resources used by the ECS.
-        ecs.add_resource(Time(0.0));
-        ecs.add_resource(DeltaTime(0.0));
-        ecs.add_resource(TerrainGrid::new().unwrap());
-        ecs.add_resource(BlockChange::default());
-        ecs.add_resource(TerrainChanges::default());
-        ecs.add_resource(EventBus::<ServerEvent>::default());
-        ecs.add_resource(EventBus::<LocalEvent>::default());
-        ecs.add_resource(EventBus::<SfxEventItem>::default());
-        ecs.add_resource(RegionMap::new());
+        ecs.insert(Time(0.0));
+        ecs.insert(DeltaTime(0.0));
+        ecs.insert(TerrainGrid::new().unwrap());
+        ecs.insert(BlockChange::default());
+        ecs.insert(TerrainChanges::default());
+        // TODO: only register on the server
+        ecs.insert(EventBus::<ServerEvent>::default());
+        ecs.insert(EventBus::<LocalEvent>::default());
+        ecs.insert(EventBus::<SfxEventItem>::default());
+        ecs.insert(RegionMap::new());
+
+        ecs
     }
 
     /// Register a component with the state's ECS.
@@ -212,12 +201,12 @@ impl State {
     }
 
     /// Get a reference to the internal ECS world.
-    pub fn ecs(&self) -> &sphynx::World<EcsCompPacket, EcsResPacket> {
+    pub fn ecs(&self) -> &specs::World {
         &self.ecs
     }
 
     /// Get a mutable reference to the internal ECS world.
-    pub fn ecs_mut(&mut self) -> &mut sphynx::World<EcsCompPacket, EcsResPacket> {
+    pub fn ecs_mut(&mut self) -> &mut specs::World {
         &mut self.ecs
     }
 
@@ -324,68 +313,6 @@ impl State {
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping important physics events.
         self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f32().min(MAX_DELTA_TIME);
 
-        // Mounted entities. We handle this here because we need access to the Uid registry and I
-        // forgot how to access that within a system. Anyhow, here goes.
-        for (entity, mount_state) in (
-            &self.ecs.entities(),
-            &mut self.ecs.write_storage::<comp::MountState>(),
-        )
-            .join()
-        {
-            match mount_state {
-                comp::MountState::Unmounted => {}
-                comp::MountState::MountedBy(mounter) => {
-                    if let Some((controller, mounter)) =
-                        self.ecs.entity_from_uid(mounter.id()).and_then(|mounter| {
-                            self.ecs
-                                .read_storage::<comp::Controller>()
-                                .get(mounter)
-                                .cloned()
-                                .map(|x| (x, mounter))
-                        })
-                    {
-                        let pos = self.ecs.read_storage::<comp::Pos>().get(entity).copied();
-                        let ori = self.ecs.read_storage::<comp::Ori>().get(entity).copied();
-                        let vel = self.ecs.read_storage::<comp::Vel>().get(entity).copied();
-                        if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
-                            let _ = self
-                                .ecs
-                                .write_storage()
-                                .insert(mounter, comp::Pos(pos.0 + Vec3::unit_z() * 1.0));
-                            let _ = self.ecs.write_storage().insert(mounter, ori);
-                            let _ = self.ecs.write_storage().insert(mounter, vel);
-                        }
-                        let _ = self
-                            .ecs
-                            .write_storage::<comp::Controller>()
-                            .insert(entity, controller);
-                    } else {
-                        *mount_state = comp::MountState::Unmounted;
-                    }
-                }
-            }
-        }
-
-        let mut to_unmount = Vec::new();
-        for (entity, comp::Mounting(mountee)) in (
-            &self.ecs.entities(),
-            &self.ecs.read_storage::<comp::Mounting>(),
-        )
-            .join()
-        {
-            if self
-                .ecs
-                .entity_from_uid(mountee.id())
-                .filter(|mountee| self.ecs.is_alive(*mountee))
-                .is_none()
-            {
-                to_unmount.push(entity);
-            }
-        }
-        for entity in to_unmount {
-            self.ecs.write_storage::<comp::Mounting>().remove(entity);
-        }
-
         // Run RegionMap tick to update entity region occupancy
         self.ecs.write_resource::<RegionMap>().tick(
             self.ecs.read_storage::<comp::Pos>(),
@@ -400,23 +327,20 @@ impl State {
         // TODO: Consider alternative ways to do this
         add_foreign_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel.
-        dispatch_builder.build().dispatch(&self.ecs.res);
+        dispatch_builder.build().dispatch(&self.ecs);
 
         self.ecs.maintain();
 
         // Apply terrain changes
         let mut terrain = self.ecs.write_resource::<TerrainGrid>();
-        self.ecs
-            .read_resource::<BlockChange>()
-            .blocks
-            .iter()
-            .for_each(|(pos, block)| {
-                let _ = terrain.set(*pos, *block);
-            });
-        self.ecs.write_resource::<TerrainChanges>().modified_blocks = std::mem::replace(
+        let mut modified_blocks = std::mem::replace(
             &mut self.ecs.write_resource::<BlockChange>().blocks,
             Default::default(),
         );
+        // Apply block modifications
+        // Only include in `TerrainChanges` if successful
+        modified_blocks.retain(|pos, block| terrain.set(*pos, *block).is_ok());
+        self.ecs.write_resource::<TerrainChanges>().modified_blocks = modified_blocks;
 
         // Process local events
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();

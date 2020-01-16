@@ -1,4 +1,5 @@
 use crate::{
+    ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud},
     key_state::KeyState,
     render::Renderer,
@@ -17,7 +18,7 @@ use common::{
     ChatType,
 };
 use log::error;
-use specs::Join;
+use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
@@ -40,6 +41,14 @@ impl SessionState {
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
         let hud = Hud::new(global_state, &client.borrow());
+        {
+            let my_entity = client.borrow().entity();
+            client
+                .borrow_mut()
+                .state_mut()
+                .ecs_mut()
+                .insert(MyEntity(my_entity));
+        }
         Self {
             scene,
             client,
@@ -55,7 +64,11 @@ impl SessionState {
     /// Tick the session (and the client attached to it).
     fn tick(&mut self, dt: Duration) -> Result<(), Error> {
         self.inputs.tick(dt);
-        for event in self.client.borrow_mut().tick(self.inputs.clone(), dt)? {
+        for event in self.client.borrow_mut().tick(
+            self.inputs.clone(),
+            dt,
+            crate::ecs::sys::add_local_systems,
+        )? {
             match event {
                 Chat {
                     chat_type: _,
@@ -121,9 +134,7 @@ impl PlayState for SessionState {
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
-        while let ClientState::Pending | ClientState::Character | ClientState::Dead =
-            current_client_state
-        {
+        while let ClientState::Pending | ClientState::Character = current_client_state {
             // Compute camera data
             let (view_mat, _, cam_pos) = self
                 .scene
@@ -388,8 +399,13 @@ impl PlayState for SessionState {
                         .read_storage::<Vel>()
                         .get(self.client.borrow().entity())
                         .cloned(),
+                    num_chunks: self.scene.terrain().chunk_count() as u32,
+                    num_visible_chunks: self.scene.terrain().visible_chunk_count() as u32,
+                    num_figures: self.scene.figure_mgr().figure_count() as u32,
+                    num_figures_visible: self.scene.figure_mgr().figure_count_visible() as u32,
                 },
                 &self.scene.camera(),
+                clock.get_last_delta(),
             );
 
             // Maintain the UI.
@@ -419,6 +435,22 @@ impl PlayState for SessionState {
                     HudEvent::ToggleZoomInvert(zoom_inverted) => {
                         global_state.window.zoom_inversion = zoom_inverted;
                         global_state.settings.gameplay.zoom_inversion = zoom_inverted;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::Sct(sct) => {
+                        global_state.settings.gameplay.sct = sct;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::SctPlayerBatch(sct_player_batch) => {
+                        global_state.settings.gameplay.sct_player_batch = sct_player_batch;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::SctDamageBatch(sct_damage_batch) => {
+                        global_state.settings.gameplay.sct_damage_batch = sct_damage_batch;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::ToggleDebug(toggle_debug) => {
+                        global_state.settings.gameplay.toggle_debug = toggle_debug;
                         global_state.settings.save_to_file_warn();
                     }
                     HudEvent::ToggleMouseYInvert(mouse_y_inverted) => {

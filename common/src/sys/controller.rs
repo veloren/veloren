@@ -2,6 +2,7 @@ use crate::{
     comp::{ControlEvent, Controller},
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
+    sync::{Uid, UidAllocator},
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},

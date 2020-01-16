@@ -1,8 +1,7 @@
 use crate::comp::{Pos, Vel};
 use hashbrown::{hash_map::DefaultHashBuilder, HashSet};
-use hibitset::BitSetLike;
 use indexmap::IndexMap;
-use specs::{BitSet, Entities, Join, ReadStorage};
+use specs::{hibitset::BitSetLike, BitSet, Entities, Join, ReadStorage};
 use vek::*;
 
 pub enum Event {
@@ -104,6 +103,16 @@ impl RegionMap {
     // TODO special case large entities
     pub fn tick(&mut self, pos: ReadStorage<Pos>, vel: ReadStorage<Vel>, entities: Entities) {
         self.tick += 1;
+        // Clear events within each region
+        for i in 0..self.regions.len() {
+            self.regions
+                .get_index_mut(i)
+                .map(|(_, v)| v)
+                .unwrap()
+                .events
+                .clear();
+        }
+
         // Add any untracked entites
         for (pos, id) in (&pos, &entities, !&self.tracked_entities)
             .join()
@@ -118,14 +127,6 @@ impl RegionMap {
         let mut regions_to_remove = Vec::new();
 
         for i in 0..self.regions.len() {
-            // Clear events within each region
-            self.regions
-                .get_index_mut(i)
-                .map(|(_, v)| v)
-                .unwrap()
-                .events
-                .clear();
-
             for (maybe_pos, _maybe_vel, id) in (
                 pos.maybe(),
                 vel.maybe(),
@@ -214,6 +215,47 @@ impl RegionMap {
     }
     pub fn key_pos(key: Vec2<i32>) -> Vec2<i32> {
         key.map(|e| e << REGION_LOG2)
+    }
+    /// Finds the region where a given entity is located using a given position to speed up the search
+    pub fn find_region(&self, entity: specs::Entity, pos: Vec3<f32>) -> Option<Vec2<i32>> {
+        let id = entity.id();
+        // Compute key for most likely region
+        let key = Self::pos_key(pos.map(|e| e as i32));
+        // Get region
+        if let Some(region) = self.regions.get(&key) {
+            if region.entities().contains(id) {
+                return Some(key);
+            } else {
+                // Check neighbors
+                for i in 0..8 {
+                    if let Some(idx) = region.neighbors[i] {
+                        let (key, region) = self.regions.get_index(idx).unwrap();
+                        if region.entities().contains(id) {
+                            return Some(*key);
+                        }
+                    }
+                }
+            }
+        } else {
+            // Check neighbors
+            for i in 0..8 {
+                let key = key + NEIGHBOR_OFFSETS[i];
+                if let Some(region) = self.regions.get(&key) {
+                    if region.entities().contains(id) {
+                        return Some(key);
+                    }
+                }
+            }
+        }
+
+        // Scan though all regions
+        for (key, region) in self.iter() {
+            if region.entities().contains(id) {
+                return Some(key);
+            }
+        }
+
+        None
     }
     fn key_index(&self, key: Vec2<i32>) -> Option<usize> {
         self.regions.get_full(&key).map(|(i, _, _)| i)
@@ -330,8 +372,8 @@ pub fn regions_in_vd(pos: Vec3<f32>, vd: f32) -> HashSet<Vec2<i32>> {
     let max = RegionMap::pos_key(pos_xy.map(|e| (e + vd_extended) as i32));
     let min = RegionMap::pos_key(pos_xy.map(|e| (e - vd_extended) as i32));
 
-    for x in min.x..=max.x {
-        for y in min.y..=max.y {
+    for x in min.x..max.x + 1 {
+        for y in min.y..max.y + 1 {
             let key = Vec2::new(x, y);
 
             if region_in_vd(key, pos, vd) {

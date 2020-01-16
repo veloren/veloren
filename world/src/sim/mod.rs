@@ -454,8 +454,8 @@ impl WorldSim {
                 _ => {}
             } */
             let pos = uniform_idx_as_vec2(posi);
-            for x in pos.x - 1..=pos.x + 1 {
-                for y in pos.y - 1..=pos.y + 1 {
+            for x in pos.x - 1..(pos.x + 1) + 1 {
+                for y in pos.y - 1..(pos.y + 1) + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
                         if !is_underwater(posi) {
@@ -970,6 +970,7 @@ pub struct SimChunk {
     pub spawn_rate: f32,
     pub location: Option<LocationInfo>,
     pub river: RiverData,
+    pub is_underwater: bool,
 
     pub structures: Structures,
 }
@@ -1083,7 +1084,7 @@ impl SimChunk {
                     ); */
                 }
                 if river_slope.abs() >= 1.0 && cross_section.x >= 1.0 {
-                    log::info!(
+                    log::debug!(
                         "Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}",
                         wposf,
                         river,
@@ -1146,6 +1147,7 @@ impl SimChunk {
             } else {
                 0.0
             },
+            is_underwater,
             is_cliffs: cliff > 0.5 && !is_underwater,
             near_cliffs: cliff > 0.2,
             tree_density,

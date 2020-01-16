@@ -45,7 +45,7 @@ impl PlayState for MainMenuState {
         if self.title_music_channel.is_none() && global_state.settings.audio.audio_on {
             self.title_music_channel = global_state
                 .audio
-                .play_music("voxygen.audio.soundtrack.veloren_title_tune-3");
+                .play_music("voxygen.audio.soundtrack.veloren_title_tune");
         }
 
         // Reset singleplayer server if it was running already
@@ -69,8 +69,10 @@ impl PlayState for MainMenuState {
 
             // Poll client creation.
             match client_init.as_ref().and_then(|init| init.poll()) {
-                Some(Ok(client)) => {
+                Some(Ok(mut client)) => {
                     self.main_menu_ui.connected();
+                    // Register voxygen components / resources
+                    crate::ecs::init(client.state_mut().ecs_mut());
                     return PlayStateResult::Push(Box::new(CharSelectionState::new(
                         global_state,
                         std::rc::Rc::new(std::cell::RefCell::new(client)),

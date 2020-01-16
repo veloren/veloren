@@ -5,16 +5,21 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
-pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage};
+pub use specs::{
+    join::Join,
+    saveload::{Marker, MarkerAllocator},
+    Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, WorldExt,
+};
 
 use common::{
     comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, RequestStateError,
-        ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
+        RequestStateError, ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     net::PostBox,
-    state::{State, Uid},
+    state::State,
+    sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
     ChatType,
@@ -51,6 +56,7 @@ pub struct Client {
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
     pub world_map: Arc<DynamicImage>,
+    pub player_list: HashMap<u64, String>,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
 
@@ -70,7 +76,6 @@ pub struct Client {
 
 impl Client {
     /// Create a new `Client`.
-    #[allow(dead_code)]
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
         let client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
@@ -78,12 +83,12 @@ impl Client {
         // Wait for initial sync
         let (state, entity, server_info, world_map) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
-                ecs_state,
-                entity_uid,
+                entity_package,
                 server_info,
+                time_of_day,
                 // world_map: /*(map_size, world_map)*/map_size,
             }) => {
-                // TODO: Voxygen should display this.
+                // TODO: Display that versions don't match in Voxygen
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
                     log::warn!(
                         "Server is running {}[{}], you are running {}[{}], versions might be incompatible!",
@@ -94,11 +99,10 @@ impl Client {
                     );
                 }
 
-                let state = State::from_state_package(ecs_state);
-                let entity = state
-                    .ecs()
-                    .entity_from_uid(entity_uid)
-                    .ok_or(Error::ServerWentMad)?;
+                // Initialize `State`
+                let mut state = State::default();
+                let entity = state.ecs_mut().apply_entity_package(entity_package);
+                *state.ecs_mut().write_resource() = time_of_day;
 
                 // assert_eq!(world_map.len(), map_size.x * map_size.y);
                 let map_size = Vec2::new(1024, 1024);
@@ -137,6 +141,7 @@ impl Client {
             thread_pool,
             server_info,
             world_map,
+            player_list: HashMap::new(),
 
             postbox,
 
@@ -154,7 +159,6 @@ impl Client {
         })
     }
 
-    #[allow(dead_code)]
     pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
         self.thread_pool = thread_pool;
         self
@@ -183,17 +187,15 @@ impl Client {
         self.client_state = ClientState::Pending;
     }
 
-    /// Request a state transition to `ClientState::Character`.
+    /// Send disconnect message to the server
     pub fn request_logout(&mut self) {
-        self.postbox
-            .send_message(ClientMsg::RequestState(ClientState::Connected));
+        self.postbox.send_message(ClientMsg::Disconnect);
         self.client_state = ClientState::Pending;
     }
 
-    /// Request a state transition to `ClientState::Character`.
+    /// Request a state transition to `ClientState::Registered` from an ingame state.
     pub fn request_remove_character(&mut self) {
-        self.postbox
-            .send_message(ClientMsg::RequestState(ClientState::Registered));
+        self.postbox.send_message(ClientMsg::ExitIngame);
         self.client_state = ClientState::Pending;
     }
 
@@ -282,10 +284,9 @@ impl Client {
     }
 
     /// Send a chat message to the server.
-    #[allow(dead_code)]
-    pub fn send_chat(&mut self, msg: String) {
-        match validate_chat_msg(&msg) {
-            Ok(()) => self.postbox.send_message(ClientMsg::chat(msg)),
+    pub fn send_chat(&mut self, message: String) {
+        match validate_chat_msg(&message) {
+            Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg { message }),
             Err(ChatMsgValidationError::TooLong) => log::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
@@ -294,7 +295,6 @@ impl Client {
     }
 
     /// Remove all cached terrain
-    #[allow(dead_code)]
     pub fn clear_terrain(&mut self) {
         self.state.clear_terrain();
         self.pending_chunks.clear();
@@ -316,8 +316,12 @@ impl Client {
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
-    #[allow(dead_code)]
-    pub fn tick(&mut self, inputs: ControllerInputs, dt: Duration) -> Result<Vec<Event>, Error> {
+    pub fn tick(
+        &mut self,
+        inputs: ControllerInputs,
+        dt: Duration,
+        add_foreign_systems: impl Fn(&mut DispatcherBuilder),
+    ) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -334,7 +338,7 @@ impl Client {
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
-        if let ClientState::Character | ClientState::Dead = self.client_state {
+        if let ClientState::Character = self.client_state {
             self.state.write_component(
                 self.entity,
                 Controller {
@@ -375,7 +379,7 @@ impl Client {
         // 3) Update client local data
 
         // 4) Tick the client's LocalState
-        self.state.tick(dt, |_| {});
+        self.state.tick(dt, add_foreign_systems);
 
         // 5) Terrain
         let pos = self
@@ -389,6 +393,10 @@ impl Client {
             // Remove chunks that are too far from the player.
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
+                // Subtract 2 from the offset before computing squared magnitude
+                // 1 for the chunks needed bordering other chunks for meshing
+                // 1 as a buffer so that if the player moves back in that direction the chunks
+                //   don't need to be reloaded
                 if (chunk_pos - key)
                     .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
                     .magnitude_squared()
@@ -403,7 +411,7 @@ impl Client {
 
             // Request chunks from the server.
             let mut all_loaded = true;
-            'outer: for dist in 0..=view_distance as i32 {
+            'outer: for dist in 0..(view_distance as i32) + 1 {
                 // Only iterate through chunks that need to be loaded for circular vd
                 // The (dist - 2) explained:
                 // -0.5 because a chunk is visible if its corner is within the view distance
@@ -420,7 +428,7 @@ impl Client {
                     dist
                 };
 
-                for i in -top..=top {
+                for i in -top..top + 1 {
                     let keys = [
                         chunk_pos + Vec2::new(dist, i),
                         chunk_pos + Vec2::new(i, dist),
@@ -492,7 +500,6 @@ impl Client {
     }
 
     /// Clean up the client after a tick.
-    #[allow(dead_code)]
     pub fn cleanup(&mut self) {
         // Cleanup the local state
         self.state.cleanup();
@@ -531,16 +538,37 @@ impl Client {
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
+                        self.player_list = list
+                    }
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, name)) => {
+                        if let Some(old_name) = self.player_list.insert(uid, name.clone()) {
+                            warn!("Received msg to insert {} with uid {} into the player list but there was already an entry for {} with the same uid that was overwritten!", name, uid, old_name);
+                        }
+                    }
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+                        if self.player_list.remove(&uid).is_none() {
+                            warn!("Received msg to remove uid {} from the player list by they weren't in the list!", uid);
+                        }
+                    }
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
+                        if let Some(name) = self.player_list.get_mut(&uid) {
+                            *name = new_name;
+                        } else {
+                            warn!("Received msg to alias player with uid {} to {} but this uid is not in the player list", uid, new_name);
+                        }
+                    }
+
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {
                         self.last_server_pong = Instant::now();
 
                         self.last_ping_delta = Instant::now()
                             .duration_since(self.last_server_ping)
-                            .as_secs_f64()
+                            .as_secs_f64();
                     }
-                    ServerMsg::ChatMsg { chat_type, message } => {
-                        frontend_events.push(Event::Chat { chat_type, message })
+                    ServerMsg::ChatMsg { message, chat_type } => {
+                        frontend_events.push(Event::Chat { message, chat_type })
                     }
                     ServerMsg::SetPlayerEntity(uid) => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
@@ -549,15 +577,46 @@ impl Client {
                             return Err(Error::Other("Failed to find entity from uid.".to_owned()));
                         }
                     }
+                    ServerMsg::TimeOfDay(time_of_day) => {
+                        *self.state.ecs_mut().write_resource() = time_of_day;
+                    }
                     ServerMsg::EcsSync(sync_package) => {
-                        self.state.ecs_mut().sync_with_package(sync_package)
+                        self.state.ecs_mut().apply_sync_package(sync_package);
+                    }
+                    ServerMsg::CreateEntity(entity_package) => {
+                        self.state.ecs_mut().apply_entity_package(entity_package);
                     }
                     ServerMsg::DeleteEntity(entity) => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            if entity != self.entity {
-                                let _ = self.state.ecs_mut().delete_entity(entity);
-                            }
+                        if self
+                            .state
+                            .read_component_cloned::<Uid>(self.entity)
+                            .map(|u| u.into())
+                            != Some(entity)
+                        {
+                            self.state
+                                .ecs_mut()
+                                .delete_entity_and_clear_from_uid_allocator(entity);
                         }
+                    }
+                    // Cleanup for when the client goes back to the `Registered` state
+                    ServerMsg::ExitIngameCleanup => {
+                        // Get client entity Uid
+                        let client_uid = self
+                            .state
+                            .read_component_cloned::<Uid>(self.entity)
+                            .map(|u| u.into())
+                            .expect("Client doesn't have a Uid!!!");
+                        // Clear ecs of all entities
+                        self.state.ecs_mut().delete_all();
+                        self.state.ecs_mut().maintain();
+                        self.state.ecs_mut().insert(UidAllocator::default());
+                        // Recreate client entity with Uid
+                        let entity_builder = self.state.ecs_mut().create_entity();
+                        let uid = entity_builder
+                            .world
+                            .write_resource::<UidAllocator>()
+                            .allocate(entity_builder.entity, Some(client_uid));
+                        self.entity = entity_builder.with(uid).build();
                     }
                     ServerMsg::EntityPos { entity, pos } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
@@ -591,9 +650,11 @@ impl Client {
                         }
                         self.pending_chunks.remove(&key);
                     }
-                    ServerMsg::TerrainBlockUpdates(mut blocks) => blocks
-                        .drain()
-                        .for_each(|(pos, block)| self.state.set_block(pos, block)),
+                    ServerMsg::TerrainBlockUpdates(mut blocks) => {
+                        blocks.drain().for_each(|(pos, block)| {
+                            self.state.set_block(pos, block);
+                        });
+                    }
                     ServerMsg::StateAnswer(Ok(state)) => {
                         self.client_state = state;
                     }
@@ -606,9 +667,6 @@ impl Client {
                             "StateAnswer: {:?}. Server thinks client is in state {:?}.",
                             error, state
                         );
-                    }
-                    ServerMsg::ForceState(state) => {
-                        self.client_state = state;
                     }
                     ServerMsg::Disconnect => {
                         frontend_events.push(Event::Disconnect);
@@ -625,24 +683,20 @@ impl Client {
     }
 
     /// Get the player's entity.
-    #[allow(dead_code)]
     pub fn entity(&self) -> EcsEntity {
         self.entity
     }
 
     /// Get the client state
-    #[allow(dead_code)]
     pub fn get_client_state(&self) -> ClientState {
         self.client_state
     }
 
     /// Get the current tick number.
-    #[allow(dead_code)]
     pub fn get_tick(&self) -> u64 {
         self.tick
     }
 
-    #[allow(dead_code)]
     pub fn get_ping_ms(&self) -> f64 {
         self.last_ping_delta * 1000.0
     }
@@ -650,19 +704,16 @@ impl Client {
     /// Get a reference to the client's worker thread pool. This pool should be used for any
     /// computationally expensive operations that run outside of the main thread (i.e., threads that
     /// block on I/O operations are exempt).
-    #[allow(dead_code)]
     pub fn thread_pool(&self) -> &ThreadPool {
         &self.thread_pool
     }
 
     /// Get a reference to the client's game state.
-    #[allow(dead_code)]
     pub fn state(&self) -> &State {
         &self.state
     }
 
     /// Get a mutable reference to the client's game state.
-    #[allow(dead_code)]
     pub fn state_mut(&mut self) -> &mut State {
         &mut self.state
     }

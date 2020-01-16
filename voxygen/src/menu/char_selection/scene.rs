@@ -21,6 +21,7 @@ use common::{
     terrain::BlockKind,
 };
 use log::error;
+use specs::WorldExt;
 use vek::*;
 
 struct Skybox {
@@ -168,6 +169,8 @@ impl Scene {
             1.0 / 60.0, // TODO: Use actual deltatime here?
             1.0,
             1.0,
+            0,
+            true,
         );
     }
 

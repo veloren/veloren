@@ -38,3 +38,4 @@ todo.txt
 
 # direnv
 /.envrc
+*.bat

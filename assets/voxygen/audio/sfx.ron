@@ -1,7 +1,6 @@
 (
-    items: [
-        (
-            trigger: Run,
+    {
+        Run: (
             files: [
                 "voxygen.audio.sfx.footsteps.stepgrass_1",
                 "voxygen.audio.sfx.footsteps.stepgrass_2",
@@ -12,15 +11,13 @@
             ],
             threshold: 0.25,
         ),
-        (
-            trigger: GliderOpen,
+        GliderOpen: (
             files: [
                 "voxygen.audio.sfx.glider_open",
             ],
             threshold: 0.5,
         ),
-        (
-            trigger: GliderClose,
+        GliderClose: (
             files: [
                 "voxygen.audio.sfx.glider_close",
             ],
