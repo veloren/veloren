@@ -107,7 +107,7 @@ pub(crate) struct GenCtx {
     pub fast_turb_y_nz: FastNoise,
 
     pub town_gen: StructureGen2d,
-
+    // pub loc_gen: StructureGen2d,
     pub river_seed: RandomField,
     pub rock_strength_nz: Fbm,
     pub uplift_nz: Worley,
@@ -175,6 +175,7 @@ impl WorldSim {
         let uplift_scale = /*512.0*//*256.0*/128.0;
         let uplift_turb_scale = uplift_scale / 4.0/*32.0*//*64.0*/;
 
+        // NOTE: Changing order will significantly change WorldGen, so try not to!
         let gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
             turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
@@ -271,9 +272,10 @@ impl WorldSim {
                 .set_frequency(1.0 / (TerrainChunkSize::RECT_SIZE.x as f64 * uplift_scale))
                 // .set_displacement(/*0.5*/0.0)
                 .set_displacement(/*0.5*/1.0)
-                .set_range_function(RangeFunction::Euclidean)
+                .set_range_function(RangeFunction::Euclidean),
                 // .enable_range(true),
             // g_nz: RidgedMulti::new()
+            // loc_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
         };
 
         let river_seed = &gen_ctx.river_seed;
@@ -290,7 +292,7 @@ impl WorldSim {
             .set_scale(1.0 / rock_strength_scale); */
 
         let height_scale = 1.0f64; // 1.0 / CONFIG.mountain_scale as f64;
-        let max_erosion_per_delta_t = /*8.0*//*32.0*//*1.0*//*32.0*//*32.0*//*64.0*/16.0/*128.0*//*1.0*//*0.2 * /*100.0*/250.0*//*128.0*//*16.0*//*128.0*//*32.0*/ * height_scale;
+        let max_erosion_per_delta_t = /*8.0*//*32.0*//*1.0*//*32.0*//*32.0*//*16.0*//*64.0*//*32.0*/16.0/*128.0*//*1.0*//*0.2 * /*100.0*/250.0*//*128.0*//*16.0*//*128.0*//*32.0*/ * height_scale;
         let erosion_pow_low = /*0.25*//*1.5*//*2.0*//*0.5*//*4.0*//*0.25*//*1.0*//*2.0*//*1.5*//*1.5*//*0.35*//*0.43*//*0.5*//*0.45*//*0.37*/1.002;
         let erosion_pow_high = /*1.5*//*1.0*//*0.55*//*0.51*//*2.0*/1.002;
         let erosion_center = /*0.45*//*0.75*//*0.75*//*0.5*//*0.75*/0.5;
@@ -692,6 +694,7 @@ impl WorldSim {
         let erosion_factor = |x: f64| (/*if x <= /*erosion_center*/alt_old_center_uniform/*alt_old_center*/ { erosion_pow_low.ln() } else { erosion_pow_high.ln() } * */(/*exp_inverse_cdf*//*logit*/inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform))/*0.5 + (x - 0.5).signum() * ((x - 0.5).mul(2.0).abs(
 ).powf(erosion_pow).mul(0.5))*//*.powf(0.5)*//*.powf(1.5)*//*.powf(2.0)*/;
         let rock_strength_div_factor = /*8.0*/(2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0;
+        let time_scale = 1.0; //4.0/*4.0*/;
         let n_func = |posi| {
             if is_ocean_fn(posi) {
                 return 1.0;
@@ -734,12 +737,15 @@ impl WorldSim {
         let theta_func = |posi| 0.4;
         let kf_func = {
             |posi| {
+                let m_i = (theta_func(posi) * n_func(posi)) as f64;
+                // let precip_mul = (0.25).powf(m);
                 if is_ocean_fn(posi) {
-                    return 1.0e-4;
-                    // return 2.0e-5;
-                    // return 2.0e-6;
-                    // return 2.0e-10;
-                    // return 0.0;
+                    // multiplied by height_scale^(2m) to account for change in area.
+                    return 1.0e-4 * 4.0.powf(2.0 * m_i)/* / time_scale*/; // .powf(-(1.0 - 2.0 * m_i))/* * 4.0*/;
+                                                                          // return 2.0e-5;
+                                                                          // return 2.0e-6;
+                                                                          // return 2.0e-10;
+                                                                          // return 0.0;
                 }
                 let wposf = (uniform_idx_as_vec2(posi)
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
@@ -801,7 +807,8 @@ impl WorldSim {
                 // ((1.0 - uheight) * (0.5 - 0.5 * /*((1.32 - uchaos as f64) / 1.32)*/oheight_2) * (1.5e-4 - 2.0e-6) + 2.0e-6)
                 // ((1.0 - uheight) * (0.5 - 0.5 * /*((1.32 - uchaos as f64) / 1.32)*/oheight) * (1.5e-4 - 2.0e-6) + 2.0e-6)
                 // 2e-5
-                2.5e-6 * 16.0.powf(0.4) /* / 4.0 * 0.25 *//* * 4.0*/
+                // multiplied by height_scale^(2m) to account for change in area.
+                2.5e-6 * 4.0.powf(/*-(1.0 - 2.0 * m_i)*/ 2.0 * m_i) /* / time_scale*//* / 4.0 * 0.25 *//* * 4.0*/
                 // 2.9e-10
                 // ((1.0 - uheight) * (5e-5 - 2.9e-10) + 2.9e-10)
                 // ((1.0 - uheight) * (5e-5 - 2.9e-14) + 2.9e-14)
@@ -809,8 +816,9 @@ impl WorldSim {
         };
         let kd_func = {
             |posi| {
+                // let height_scale = 1.0 / 4.0.powf(-n_i);
                 if is_ocean_fn(posi) {
-                    return 1.0e-2;
+                    return 1.0e-2 * 4.0.powf(-2.0) * time_scale;
                 }
                 let wposf = (uniform_idx_as_vec2(posi)
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
@@ -841,8 +849,10 @@ impl WorldSim {
                 // kd = 1e-1: high (mountain, dike)
                 // kd = 1.5e-2: normal-high (plateau [fan sediment])
                 // kd = 1e-2: normal (plateau)
-                1.0e-2 * (1.0 / 16.0) // m_old^2 / y * (1 m_new / 4 m_old)^2
-                                      // (uheight * (1.0e-1 - 1.0e-2) + 1.0e-2)
+                // multiplied by height_scale² to account for change in area, then divided by
+                // time_scale to account for lower dt.
+                1.0e-2 * 4.0.powf(-2.0) * time_scale // m_old^2 / y * (1 m_new / 4 m_old)^2
+                                                     // (uheight * (1.0e-1 - 1.0e-2) + 1.0e-2)
             }
         };
         let g_func = |posi| {
@@ -907,12 +917,42 @@ impl WorldSim {
             // 2.0
             // 0.0
             1.0
+            // 4.0
+            // 1.0
             // 1.5
         };
         let epsilon_0_func = |posi| {
+            let n_i = n_func(posi);
+            // height_scale is roughly [using Hack's Law with b = 2 and SPL without debris flow or
+            // hillslopes] equal to the ratio of the old to new area, to the power of -n_i.
+            let height_scale = 4.0.powf(-n_i);
             if is_ocean_fn(posi) {
                 // marine: ε₀ = 2.078e-3
-                return 2.078e-3;
+                // divide by height scale, multiplied by time_scale, cancels out to 1; idea is that
+                // we are finishing in time τ = τ' * height_scale.  We have production
+                // rate
+                //
+                // ∆P = ε₀ e^(-αH) Δt
+                //    = ε₀ e^(-α' / height_scale * (H' * height_scale)) (Δt' * height_scale)
+                //    = ε₀ e^(-α' H') (Δt' * height_scale)
+                //
+                // while the old production rate was
+                //
+                // ∆P' = ε₀' e^(-α'H') Δt'.
+                //
+                // BUT, we don't actually want the same production rate, but rather the same
+                // *relative* production rate, which means we actually want to multiply by
+                // height_scale again... this entails multiplying the right hand side by the
+                // production rate, which gets us
+                //
+                // ΔP = ΔP' * height_scale
+                // ΔP / height_scale = ΔP'
+                //
+                // so to equate them we need
+                //
+                //      ε₀ e^(-α' H') (Δt' * height_scale) / height_scale = ε₀' e^(-α' H') Δt'
+                //      ε₀ = ε₀'
+                return 2.078e-3 * height_scale/* * time_scale*/;
                 // return 5.0;
             }
             let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
@@ -954,9 +994,9 @@ impl WorldSim {
                 .max(-1.0)
                 .mul(0.5)
                 .add(0.5);
-            let center = /*0.25*/0.4;
-            let dmin = center - /*0.15;//0.05*/0.05;
-            let dmax = center + /*0.05*//*0.10*/0.05; //0.05;
+            let center = /*0.25*/0.4 / 4.0;
+            let dmin = center - /*0.15;//0.05*/0.05 / 4.0;
+            let dmax = center + /*0.05*//*0.10*/0.05 / 4.0; //0.05;
             let log_odds = |x: f64| logit(x) - logit(center);
             let ustrength = logistic_cdf(
                 1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
@@ -969,13 +1009,26 @@ impl WorldSim {
             // Point Reyes: ε₀ = 8.1e-5
             // Nunnock River (fractured granite, least weathered?): ε₀ = 5.3e-5
             // The stronger the rock, the lower the production rate of exposed bedrock.
-            // ((1.0 - ustrength) * (/*3.18e-4*/2.078e-3 - 5.3e-5) + 5.3e-5) as f32
-            0.0
+            // divide by height scale, then multiplied by time_scale, cancels out.
+            ((1.0 - ustrength) * (/*3.18e-4*/2.078e-3 - 5.3e-5) + 5.3e-5) as f32 * height_scale
+            /* * time_scale*/
+            // 0.0
         };
         let alpha_func = |posi| {
+            let n_i = n_func(posi);
+            // height_scale is roughly [using Hack's Law with b = 2 and SPL without debris flow or
+            // hillslopes] equal to the ratio of the old to new area, to the power of -n_i.
+            let height_scale = 4.0.powf(-n_i);
             if is_ocean_fn(posi) {
                 // marine: α = 3.7e-2
-                return 3.7e-2;
+                // divided by height_scale; idea is that since the final height itself will be
+                // the old height * height scale, and we take the rate as ε₀ * e^(-αH), to keep
+                // the rate of rate of change in soil production consistent we must divide H by
+                // height_scale.
+                //
+                // αH = α(H' * height_scale) = α'H'
+                // α = α' / height_scale
+                return 3.7e-2 / height_scale;
             }
             let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
@@ -1016,9 +1069,9 @@ impl WorldSim {
                 .max(-1.0)
                 .mul(0.5)
                 .add(0.5);
-            let center = /*0.25*/0.4;
-            let dmin = center - /*0.15;//0.05*/0.05;
-            let dmax = center + /*0.05*//*0.10*/0.05; //0.05;
+            let center = /*0.25*/0.4 / 4.0;
+            let dmin = center - /*0.15;//0.05*/0.05 / 4.0;
+            let dmax = center + /*0.05*//*0.10*/0.05 / 4.0; //0.05;
             let log_odds = |x: f64| logit(x) - logit(center);
             let ustrength = logistic_cdf(
                 1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
@@ -1031,7 +1084,8 @@ impl WorldSim {
             // Nunnock river (fractured granite, least weathered?): α = 2e-3
             // Point Reyes: α = 1.6e-2
             // The stronger  the rock, the faster the decline in soil production.
-            (ustrength * (4.2e-2 - 1.6e-2) + 1.6e-2) as f32
+            // divided by height_scale.
+            (ustrength * (4.2e-2 - 1.6e-2) + 1.6e-2) as f32 / height_scale
         };
         let uplift_fn = |posi| {
             if is_ocean_fn(posi) {
@@ -1664,7 +1718,6 @@ impl WorldSim {
     /// Prepare the world for simulation
     pub fn seed_elements(&mut self) {
         let mut rng = self.rng.clone();
-        let random_loc = RandomField::new(rng.gen());
 
         let cell_size = 16;
         let grid_size = WORLD_SIZE / cell_size;

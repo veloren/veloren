@@ -7,6 +7,7 @@ use arr_macro::arr;
 use bitvec::prelude::{bitbox, bitvec, BitBox};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use faster::*;
+use itertools::izip;
 use noise::{NoiseFn, Point3};
 use num::{Float, FromPrimitive, One, Zero};
 use ordered_float::NotNan;
@@ -26,6 +27,24 @@ pub type Alt = f64;
 // pub type Altx8 = /*f64x8*/f32x8;
 pub type Compute = f64;
 pub type Computex8 = [Compute; 8];
+
+/// This is a fast approximation of powf. This should only be used when minor accuracy loss is acceptable.
+#[inline(always)]
+#[allow(unsafe_code)]
+fn approx_powf(b: f32, e: f32) -> f32 {
+    unsafe {
+        let b = b as f64;
+        let e = e as f64;
+        union Swagger {
+            f: f64,
+            a: [i32; 2],
+        }
+        let mut b = Swagger { f: b };
+        b.a[1] = (e * (b.a[1] as f64 - 1072632447.0) + 1072632447.0) as i32;
+        b.a[0] = 0;
+        b.f as f32
+    }
+}
 
 /// Compute the water flux at all chunks, given a list of chunk indices sorted by increasing
 /// height.
@@ -742,8 +761,8 @@ fn erode(
     let k_df = 1.0e-4/*0.0*/;
     // Debris flow area coefficient (m^(-2q)).
     let q = 0.2;
-    let q_ = 1.5/*1.0*/;
-    let k_da = /*5.0*/2.5 * 16.0.powf(q);
+    let q_ = /*1.0*/1.5/*1.0*/;
+    let k_da = /*5.0*//*2.5*//*5.0*//*2.5*//*5.0*/2.5 * 4.0.powf(2.0 * q);
     let nx = WORLD_SIZE.x;
     let ny = WORLD_SIZE.y;
     let dx = TerrainChunkSize::RECT_SIZE.x as f64/* * height_scale*//* / CONFIG.mountain_scale as f64*/;
@@ -797,8 +816,9 @@ fn erode(
     /* let epsilon_0 = 2.68e-4;
     let alpha = 3e-2;
     let epsilon_0_tot = epsilon_0 * dt; */
-    // Net precipitation rate (m / year)
-    let p = 1.0 * height_scale;
+    // Spatio-temporal variation in net precipitation rate ((m / year) / (m / year))  (ratio of
+    // precipitation rate at chunk relative to mean precipitation rate p₀).
+    let p = 1.0/*0.25*//* * height_scale*/;
     /* let n = 2.4;// 1.0;//1.5;//2.4;//1.0;
     let m = n * 0.5;// n * 0.4;// 0.96;// 0.4;//0.6;//0.96;//0.4; */
     // Stream power erosion constant (bedrock), in m^(1-2m) / year  (times dt).
@@ -833,20 +853,22 @@ fn erode(
     ) = rayon::join(
         || {
             let mut dh = downhill(
-                |posi| h[posi], /* + a[posi].max(0.0)*//* + uplift(posi) as Alt*/
+                |posi| h[posi], /* + uplift(posi) as Alt*/
+                /* + a[posi].max(0.0)*//* + uplift(posi) as Alt*/
                 |posi| {
                     is_ocean(posi)
-                        && h[posi]/* + a[posi].max(0.0)*//* + uplift(posi) as Alt*/ <= 0.0
+                        && h[posi]/* + uplift(posi) as Alt*//* + a[posi].max(0.0)*//* + uplift(posi) as Alt*/ <= 0.0
                 },
             );
             log::debug!("Computed downhill...");
             let (boundary_len, indirection, newh, maxh) = get_lakes(
-                |posi| h[posi], /* + a[posi].max(0.0)*//* + uplift(posi) as Alt*/
+                |posi| h[posi], /* + uplift(posi) as Alt*/
+                /* + a[posi].max(0.0)*//* + uplift(posi) as Alt*/
                 &mut dh,
             );
             log::debug!("Got lakes...");
             let (mrec, mstack, mwrec) = get_multi_rec(
-                |posi| h[posi],
+                |posi| h[posi], /* + uplift(posi) as Alt*/
                 &dh,
                 &newh,
                 wh,
@@ -870,7 +892,8 @@ fn erode(
                     max_slope
                 },
                 || {
-                    h.to_vec().into_boxed_slice()
+                    h.to_vec() /*.map(|posi| h[mstack[posi]])*/
+                        .into_boxed_slice()
                     /* rayon::join(
                         || {
                             // Store the elevation at t
@@ -892,9 +915,9 @@ fn erode(
     // TODO: Make more principled.
     let mid_slope = (30.0 / 360.0 * 2.0 * f64::consts::PI).tan(); //1.0;
 
-    type SimdType = f64;
-    type MaskType = m64;
-    let simd_func = f64s/*f32s*/;
+    type SimdType = f32;
+    type MaskType = m32;
+    let simd_func = /*f64s*/f32s;
 
     // Precompute factors for Stream Power Law.
     let czero = </*Compute*/SimdType as Zero>::zero();
@@ -971,8 +994,8 @@ fn erode(
                         // Higher rock strength tends to lead to higher curvature?
                         let kd_factor =
                             // 1.0;
-                            (1.0 / (max_slope / mid_slope/*.sqrt()*//*.powf(0.03125)*/).powf(/*2.0*/2.0))/*.min(kdsed)*/;
-                        let k_da = k_da / /*max_slope*/kd_factor;
+                            (/*1.0 / */(max_slope / mid_slope/*.sqrt()*//*.powf(0.03125)*/).powf(/*2.0*/2.0/* * q*/))/*.min(kdsed)*/;
+                        let k_da = k_da /*/ /*max_slope*/*/ * kd_factor;// .powf(q/* / q_*/);
 
                         // let k_df = /*uplift_i*/0.05e-3 / (1.0 + k_da * /*chunk_area_pow*/(10_000.0).powf(q)) / max_slope.powf(q_);
                         // let k = (uplift_i - kf(posi) * dt * (p * chunk_area).powf(m_f(posi) as f64) * max_slope.powf(n_f(posi) as f64)).max(0.0) / (1.0 + k_da * chunk_area_pow) / max_slope.powf(q_);
@@ -1026,8 +1049,8 @@ fn erode(
                             //
                             // (eliminating EΔt maintains the sign, but it's somewhat imprecise;
                             //  we can address this later, e.g. by assigning a debris flow / fluvial erosion ratio).
-                            let chunk_neutral_area = /*10.0e6*/1.0e6/*0.1e6*//*100.0 * 100.0*/; // 1 km^2 * (1000 m / km)^2 = 1e6 m^2
-                            let k = (mwrec_kk * (uplift_i + max_uplift as f64 * g_i/* / p*/)) / (1.0 + k_da * (mwrec_kk * chunk_neutral_area).powf(q)) / max_slope.powf(q_);
+                            let chunk_neutral_area = /*10.0e6*//*1.0e6*/0.1e6/*0.01e6*//*100.0 * 100.0*/; // 1 km^2 * (1000 m / km)^2 = 1e6 m^2
+                            let k = (mwrec_kk * (uplift_i + max_uplift as f64 * g_i / p)) / (1.0 + k_da * (mwrec_kk * chunk_neutral_area).powf(q)) / max_slope.powf(q_);
 
                             //     ∆p = ||chunk_i - rec_i,kk||
                             //     k = k_df * Δt / (Δp)^(q_)
@@ -1117,6 +1140,30 @@ fn erode(
 
     let mut n_gs_stream_power_law = 0;
     let max_n_gs_stream_power_law = /*199*/99;
+    let mut mstack_inv = vec![0usize; dh.len()];
+    let mut h_t_stack = vec![Zero::zero(); dh.len()];
+    let mut dh_stack = vec![0isize; dh.len()];
+    let mut h_stack = vec![Zero::zero(); dh.len()];
+    let mut b_stack = vec![Zero::zero(); dh.len()];
+    let mut area_stack = vec![Zero::zero(); dh.len()];
+    assert!(mstack.len() == dh.len());
+    assert!(b.len() == dh.len());
+    assert!(h_t.len() == dh.len());
+    let mut mstack_inv = &mut *mstack_inv;
+    mstack.iter().enumerate().for_each(|(stacki, &posi)| {
+        let posi = posi as usize;
+        mstack_inv[posi] = stacki;
+        dh_stack[stacki] = /*if dh_i < 0 {
+            dh_i
+        } else {
+            mstack[dh_i]
+        };*/dh[posi];
+        h_t_stack[stacki] = h_t[posi]/* + uplift(posi) as Alt*/;
+        h_stack[stacki] = h[posi];
+        b_stack[stacki] = b[posi];
+        area_stack[stacki] = area[posi];
+    });
+
     while err > tol && n_gs_stream_power_law < max_n_gs_stream_power_law {
         log::debug!("Stream power iteration #{:?}", n_gs_stream_power_law);
 
@@ -1135,6 +1182,7 @@ fn erode(
         prods_therm = 0.0;
         prodscrit_therm = 0.0;
 
+        let start_time = Instant::now();
         // Keep track of how many iterations we've gone to test for convergence.
         n_gs_stream_power_law += 1;
 
@@ -1144,10 +1192,11 @@ fn erode(
                 || */
                 {
                     // guess/update the elevation at t+Δt (k)
-                    h_p.par_iter_mut()
-                        .zip_eq(/*h_*/ h.par_iter()) /*.zip(wh.par_iter())*/
-                        .for_each(|((mut h_p, h_)/*, wh_*/)| {
-                            *h_p = (*h_)/*.max(*wh_)*/ as Compute;
+                    (&mut *h_p, &*h_stack)
+                        .into_par_iter()
+                        // .enumerate()
+                        .for_each(|(/*stacki, */((mut h_p, h_)/*, wh_*/))| {
+                            *h_p = (*h_)/*.max(*wh_)*/ as Compute/* + (0.5 - (stacki & 1) as Compute) * err as Compute*/;
                         });
                     /* hp.par_iter_mut().zip(h.par_iter()).for_each(|(mut hp, h)| {
                         *hp = *h as Compute;
@@ -1166,7 +1215,11 @@ fn erode(
                 || */
                 {
                     // calculate erosion/deposition of sediment at each node
-                    deltah.par_iter_mut().enumerate().for_each(|(posi, mut deltah)| {
+                    (&*mstack, &mut *deltah, &*h_t_stack, &*h_stack).into_par_iter()/*.enumerate()*/
+                        .for_each(|(/*stacki, */(&posi, mut deltah, &h_t_i, &h_i))| {
+                            let posi = posi as usize;
+                            /* assert_eq!(mstack_inv[posi], stacki);
+                            assert_eq!(h_t[posi], h_t_i); */
                             let uplift_i = uplift(posi) as Alt;
                             // h_j(t, FINAL) + U_j * Δt - h_j(t + Δt, k)
                             /* debug_assert!(((h[posi] + a[posi].max(0.0)) - h_[posi]).abs() <= 1.0e-6);
@@ -1174,7 +1227,7 @@ fn erode(
                             let foo = (ht[posi] + uplift_i - h[posi] - (at[posi] - a[posi].max(0.0)/*.max(0.0)*/)) as Compute;
                             // let foo = (ht[posi] + at[posi] + uplift_i - (h[posi] + a[posi].max(0.0))) as Compute;
                             let bar = (at[posi]/* + uplift_i*/ - a[posi].max(0.0)/* - (h[posi] - ht[posi]*/)) as Compute; */
-                            let delta = (/*ht[posi] + at[posi].max(0.0)*/h_t[posi] + uplift_i - /*h_*/h[posi]/*.max(wh[posi])*/) as Compute;
+                            let delta = (/*ht[posi] + at[posi].max(0.0)*/h_t_i + uplift_i - /*h_*/h_i/*.max(wh[posi])*/) as Compute;
                             /* if (delta - (foo + bar)).abs() > 1.0e-6 {
                                 println!("dh: {:?}, foo: {:?}, bar: {:?}, delta: {:?}, ht: {:?}, at: {:?}, h: {:?}, a: {:?}, h_: {:?}",
                                          dh[posi], foo, bar, delta,
@@ -1200,20 +1253,29 @@ fn erode(
                   )*/
             },
         );
-        log::debug!("(Done precomputation).");
+        log::debug!(
+            "(Done precomputation, time={:?}ms).",
+            start_time.elapsed().as_millis()
+        );
         // sum the erosion in stack order
         //
         // After:
         // deltah_i = Σ{j ∈ {i} ∪ upstream_i(t)}(h_j(t, FINAL) + U_j * Δt - h_i(t + Δt, k))
         /*newh.iter().rev()*/
-        mstack.into_iter().for_each(|&posi| {
+        let start_time = Instant::now();
+        izip!(&*mstack, &*dh_stack, /*&mut *deltah, */&h_t_stack, &*h_p).enumerate().for_each(|(stacki, (&posi, &posj, /*deltah_i, */&h_t_i, &h_p_i))| {
             let posi = posi as usize;
-            let posj = dh[posi];
+            /* assert_eq!(mstack_inv[posi], stacki);
+            assert_eq!(posj, dh[posi]);
+            assert_eq!(h_t_i, h_t[posi]);
+            /* let posj = dh[posi]; */ */
+            let deltah_i = deltah[/*posi*/stacki];
             if posj < 0 {
-                lake_silt[posi] = deltah[posi];
+                lake_silt[stacki] = deltah_i;// deltah[posi];
                 /* lake_sediment[posi] = deltah_sediment[posi];
                 lake_alluvium[posi] = deltah_alluvium[posi]; */
             } else {
+                let posj = posj as usize;
                 let uplift_i = uplift(posi) as Alt;
                 /* if (deltah[posi] - (deltah_sediment[posi] + deltah_alluvium[posi])).abs() > 1.0e-2 {
                     println!("deltah_sediment: {:?}, deltah_alluvium: {:?}, deltah: {:?}, hp: {:?}, ap: {:?}, h_p: {:?}, ht: {:?}, at: {:?}, h: {:?}, a: {:?}, h_: {:?}",
@@ -1223,15 +1285,15 @@ fn erode(
                              h[posi], a[posi], h_[posi]);
                     debug_assert_eq!(deltah[posi], deltah_sediment[posi] + deltah_alluvium[posi]);
                 } */
-                deltah[posi] -= ((/*ht[posi] + at[posi].max(0.0)*/h_t[posi] + uplift_i) as Compute - h_p[posi]);
+                let uphill_deltah_i =  /*deltah[posi]*/deltah_i - ((/*ht[posi] + at[posi].max(0.0)*//*h_t[posi]*/h_t_i + uplift_i) as Compute - /*h_p[posi]*/h_p_i);
                 /* deltah_sediment[posi] -= ((ht[posi] + uplift_i - (at[posi] - ap[posi].max(0.0))) as Compute - hp[posi]);
                 deltah_alluvium[posi] -= ((at[posi]/* + uplift_i - (hp[posi] - ht[posi])*/) as Compute - ap[posi].max(0.0)); */
-                let lposi = lake_sill[posi];
-                if lposi == posi as isize {
-                    if deltah[posi] <= 0.0 {
-                        lake_silt[posi] = 0.0;
-                    } else  {
-                        lake_silt[posi] = deltah[posi];
+                let lposi = lake_sill[stacki];
+                if lposi == stacki as isize {
+                    if /*deltah[posi]*/uphill_deltah_i <= 0.0 {
+                        lake_silt[stacki] = 0.0;
+                    } else {
+                        lake_silt[stacki] = /*deltah[posi]*/uphill_deltah_i;
                     }
                     /* if deltah_sediment[posi] <= 0.0 {
                         lake_sediment[posi] = 0.0;
@@ -1244,11 +1306,12 @@ fn erode(
                         lake_alluvium[posi] = deltah_alluvium[posi];
                     } */
                 }
-                deltah[posi] += (/* ht[posi] + at[posi].max(0.0) */h_t[posi] + uplift_i) as Compute - h_p[posi];
+                // /*deltah[posi]*/deltah_i += (/* ht[posi] + at[posi].max(0.0) *//*h_t[posi]*/h_t_i + uplift_i) as Compute - /*h_p[posi]*/h_p_i;
                 let mwrec_i = &mwrec[posi];
                 mrec_downhill(&mrec, posi).for_each(|(k, posj)| {
-                    deltah[posj] += deltah[posi] * mwrec_i[k]/*mwrec_i.extract(k)*/;
-                });
+                    let stack_posj = mstack_inv[posj];
+                    deltah[stack_posj] += deltah_i * mwrec_i[k];/*mwrec_i.extract(k)*/
+                })/*.sum::<Compute>()*/;
                 /* let posj = posj as usize;
                 deltah[posj] += deltah[posi]; */
 
@@ -1265,7 +1328,10 @@ fn erode(
                 debug_assert_eq!(deltah[posi], deltah_sediment[posi] + deltah_alluvium[posi]);
             } */
         });
-        log::debug!("(Done sediment transport computation).");
+        log::debug!(
+            "(Done sediment transport computation, time={:?}ms).",
+            start_time.elapsed().as_millis()
+        );
         // do ij=nn,1,-1
         //   ijk=stack(ij)
         //   ijr=rec(ijk)
@@ -1285,18 +1351,26 @@ fn erode(
         //   endif
         // enddo
 
-        elev.par_iter_mut().enumerate().for_each(|(posi, mut elev)| {
+        let start_time = Instant::now();
+        (&*mstack, &mut *elev, &*dh_stack, &*h_t_stack, &*area_stack, &*deltah, &*h_p, &*b_stack).into_par_iter()./*enumerate().*/for_each(|(/*stacki, */(&posi, mut elev, &dh_i, &h_t_i, &area_i, &deltah_i, &h_p_i, &b_i))| {
+            let posi = posi as usize;
+            /* assert_eq!(mstack_inv[posi], stacki);
+            assert_eq!(dh_i, dh[posi]);
+            assert_eq!(h_t_i, h_t[posi]);
+            assert_eq!(area_i, area[posi]);
+            assert_eq!(b_i, b[posi]); */
+
             let uplift_i = uplift(posi) as Alt;
             // let delta_a = a[posi] - at[posi];
-            if dh[posi] < 0 {
+            if dh_i < 0 {
                 // *elev = (ht[posi] + uplift_i - delta_a) as Compute;
-                *elev = (/*ht[posi] + at[posi].max(0.0)*/h_t[posi] + uplift_i) as Compute;
+                *elev = (/*ht[posi] + at[posi].max(0.0)*/h_t_i + uplift_i) as Compute;
             } else {
                 // let old_h_after_uplift_i = (ht[posi] + uplift_i - delta_a) as Compute;
-                let old_h_after_uplift_i = (/*ht[posi] + at[posi].max(0.0)*/h_t[posi] + uplift_i) as Compute;
-                let area_i = area[posi] as Compute;
+                let old_h_after_uplift_i = (/*ht[posi] + at[posi].max(0.0)*/h_t_i + uplift_i) as Compute;
+                let area_i = area_i as Compute;
                 // debug_assert!(area_i > 0.0);
-                let uphill_silt_i = deltah[posi] - (old_h_after_uplift_i - h_p[posi]);
+                let uphill_silt_i = deltah_i - (old_h_after_uplift_i - h_p_i);
                 // let uphill_sediment_i = deltah_sediment[posi] - (old_h_after_uplift_i - hp[posi]);
                 /* let uphill_sediment_alluvium_i =
                     deltah_sediment[posi] - (ht[posi] + uplift_i - (at[posi] - ap[posi].max(0.0)) - hp[posi]) +
@@ -1305,8 +1379,8 @@ fn erode(
                     deltah_sediment[posi] + deltah_alluvium[posi] -
                     2.0 * (old_h_after_uplift_i - (hp[posi] + ap[posi])); */
                 // let g_i = g(posi) as Compute;
-                let old_b_i = b[posi];
-                let sed = (h_t[posi] - old_b_i) as f64;
+                let old_b_i = b_i;
+                let sed = (h_t_i - old_b_i) as f64;
                 let g_i = if sed > sediment_thickness {
                     g_fs_mult_sed * g(posi) as Compute
                 } else {
@@ -1316,7 +1390,7 @@ fn erode(
                 // actually was material to deposit.  The current assumption is that as long as we
                 // are storing at most as much sediment as there actually was along the river, we
                 // are in the clear.
-                let g_i_ratio = (g_i / area_i)/*.min(1.0)*/;
+                let g_i_ratio = (g_i / (p * area_i))/*.min(1.0)*/;
                 // One side of nonlinear equation (23):
                 //
                 // h_i(t) + U_i * Δt + G / (p̃ * Ã_i) * Σ{j ∈ upstream_i(t)}(h_j(t, FINAL) + U_j * Δt - h_j(t + Δt, k))
@@ -1334,7 +1408,10 @@ fn erode(
                 } */
             }
         });
-        log::debug!("(Done elevation estimation).");
+        log::debug!(
+            "(Done elevation estimation, time={:?}ms).",
+            start_time.elapsed().as_millis()
+        );
 
         let start_time = Instant::now();
         // TODO: Consider taking advantage of multi-receiver flow here.
@@ -1350,29 +1427,37 @@ fn erode(
         let mut simd_buf2 = [0.0; 8];
         let mut simd_buf3 = [0.0; 8];
         /*&*newh*/
-        mstack.into_iter().rev().for_each(|&posi| {
+        itertools::izip!(&*mstack, &*elev, /*&mut *wh, */&*b_stack/*, &mut *h_stack*/, &*h_t_stack, &*dh_stack, &*h_p)
+        .enumerate()
+        .rev()
+        .for_each(|(stacki, (&posi, &elev_i, /*wh_i, */&b_i, /*h_i, */&h_t_i, &dh_i, &h_p_i))| {
+            let mut iteration_error = 0.0;
             let posi = posi as usize;
-            let old_elev_i = /*h*/elev[posi] as f64;
-            let old_wh_i = wh[posi];
-            let old_b_i = b[posi];
-            let old_ht_i = /*ht*/h_t[posi];
+            /* assert_eq!(mstack_inv[posi], stacki);
+            assert_eq!(dh_i, dh[posi]);
+            assert_eq!(h_t_i, h_t[posi]);
+            assert_eq!(b_i, b[posi]); */
+            let old_elev_i = /*h*//*elev[posi]*/elev_i as f64;
+            let old_wh_i = wh[posi]/*wh_i*/;
+            let old_b_i = /*b[posi]*/b_i;
+            let old_ht_i = /*ht*//*h_t[posi]*/h_t_i;
             let sed = (old_ht_i - old_b_i) as f64;
 
-            let posj = dh[posi];
+            let posj = /*dh[posi]*/dh_i;
             if posj < 0 {
                 if posj == -1 {
                     panic!("Disconnected lake!");
                 }
-                if /*ht*/h_t[posi] > 0.0 {
+                if /*ht*//*h_t[posi]*/h_t_i > 0.0 {
                     log::warn!("Ocean above zero?");
                 }
                 // wh for oceans is always at least min_erosion_height.
                 let uplift_i = uplift(posi) as Alt;
                 // wh[posi] = min_erosion_height.max(ht[posi] + uplift_i);
-                wh[posi] = min_erosion_height.max(/*ht[posi] + at[posi].max(0.0)*/h_t[posi] + uplift_i);
+                wh[posi] = min_erosion_height.max(/*ht[posi] + at[posi].max(0.0)*//*h_t[posi]*/h_t_i + uplift_i);
                 // debug_assert!(wh[posi].is_normal() || wh[posi] == 0.0);
-                lake_sill[posi] = posi as isize;
-                lake_water_volume[posi] = 0.0;
+                lake_sill[stacki] = posi as isize;
+                lake_water_volume[stacki] = 0.0;
                 // max_slopes[posi] = kd(posi);
                 // Egress with no outgoing flows.
             } else {
@@ -1397,7 +1482,7 @@ fn erode(
                 // let a_j = a[posj] as f64;
                 let wh_j = wh[posj] as f64;
                 // let old_a_i = a[posi] as f64;
-                let old_h_i = h[posi] as f64;
+                let old_h_i = /*h*/h_stack[/*posi*/stacki] as f64;
                 let mut new_h_i = /*old_elev_i*//*old_h_i + old_a_i.max(0.0)*/old_h_i/*h[posi] as f64*//* + uplift_i*/;
                 /* let mut df_part;
 
@@ -1473,10 +1558,15 @@ fn erode(
                         let mut f = h0;
                         let mut df = 1.0;
                         mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
+                            let posj_stack = mstack_inv[posj];
+                            /* if posj_stack <= stacki {
+                                println!("Huh?  {:?} {:?}", posj_stack, stacki);
+                            }
+                            assert!(posj_stack > stacki); */
                             // This can happen in cases where receiver kk is neither uphill of
                             // nor downhill from posi's direct receiver.
                             if /*new_ht_i/*old_ht_i*/ >= (h_t[posj]/* + uplift(posj) as f64*/)*/old_elev_i /*>=*/> wh[posj] as f64/*h[posj]*//*h_j*/ {
-                                let h_j = h[posj] as f64;
+                                let h_j = h_stack[posj_stack] as f64;
                                 let elev_j = h_j/* + a_j.max(0.0)*/;
                                 /* let flux = /*k * (p * chunk_area * area[posi] as f64).powf(m) / neighbor_distance;*/k_fs_fact[kk] + k_df_fact[kk];
                                 assert!(flux.is_normal() && flux.is_positive() || flux == 0.0);
@@ -1494,6 +1584,7 @@ fn erode(
                         let omega2 = 0.875f64 / q_;/*if q_ < 0.5 { 0.875f64/* * q_*/ } else { 0.875f64 / q_ }*/;
                         let omega = omega1.max(omega2);
                         let tolp = 1.0e-3/*1.0e-4*/;
+                        // let tolp = tol;
                         let mut errp = 2.0 * tolp;
                         // let h0 = old_elev_i + (new_h_i - old_h_i);
                         // let mut count = 0;
@@ -1509,6 +1600,7 @@ fn erode(
                         let mut rec_heights = [0.0; 8];//f64s(0.0);//f64x8::splat(0.0);
                         let mut mask = [MaskType::new(false); 8];
                         mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
+                            let posj_stack = mstack_inv[posj];
                             if old_elev_i > wh[posj] as f64 {
                                 // k_fs_weights[kk] = k_fs_fact[kk] as SimdType;
                                 // k_fs_weights[max] = k_fs_fact[kk] as SimdType;
@@ -1517,7 +1609,7 @@ fn erode(
                                 // k_df_weights[max] = k_df_fact[kk] as SimdType;
                                 // /*k_df_weights = */k_df_weights.replace(max, k_df_fact[kk]/*.extract(kk)*/ as f64);
                                 mask[kk] = MaskType::new(true);
-                                rec_heights[kk] = h[posj] as SimdType;
+                                rec_heights[kk] = h_stack[posj_stack] as SimdType;
                                 // rec_heights[max] = h[posj] as SimdType;
                                 // /*rec_heights = */rec_heights.replace(max, h[posj] as f64);
                                 // max += 1;
@@ -1546,7 +1638,8 @@ fn erode(
                         /* let czero = &czero[..max];
                         let n_weights = &n_weights[..max];
                         let q__weights = &q__weights[..max]; */
-                        while errp > tolp {
+                        // let mut count = 0;
+                        while errp > tolp /*&& count < 4 */{
                             // count += 1;
                             /* if count > -1 {
                                 println!("posi={:?} errp={:?} tolp={:?} h0={:?} new_h_i={:?} elev_j={:?} area={:?}", posi, errp, tolp, h0, new_h_i, elev_j, area[posi]);
@@ -1666,14 +1759,16 @@ fn erode(
                                     df += (n as SimdType * dh_fs_sample + q_ as SimdType * dh_df_sample) as f64;
                                 }
                             } */
-                            (0..8).for_each(|kk| {
+                            izip!(&mask, &rec_heights, k_fs_fact, k_df_fact).for_each(|(&mask_kk, &rec_heights_kk, &k_fs_fact_kk, &k_df_fact_kk)| {
                                 //if /*new_ht_i/*old_ht_i*/ > (h_t[posj]/* + uplift(posj) as f64*/)*/old_elev_i /*>=*/> wh[posj] as f64/*h[posj]*//*h_j*/ {
-                                if mask[kk].test() {
-                                    let h_j = rec_heights[kk];
+                                if /*mask[kk]*/mask_kk.test() {
+                                    let h_j = rec_heights_kk;//rec_heights[kk];
                                     let elev_j = h_j/* + a_j.max(0.0)*/;
                                     let dh = 0.0.max((new_h_i as SimdType - elev_j)/*.abs()*/);
-                                    let dh_fs_sample = k_fs_fact[kk] as /*f64*/SimdType * dh.powf(n as SimdType - 1.0);
-                                    let dh_df_sample = k_df_fact[kk] as /*f64*/SimdType * dh.powf(q_ as SimdType - 1.0);
+                                    let powf = |a: SimdType, b| a.powf(b);
+                                    // let powf = |a, b| approx_powf(a as f32, b as f32) as SimdType;
+                                    let dh_fs_sample = /*k_fs_fact[kk]*/k_fs_fact_kk as /*f64*/SimdType * powf(dh, n as SimdType - 1.0);
+                                    let dh_df_sample = /*k_df_fact[kk]*/k_df_fact_kk as /*f64*/SimdType * powf(dh, q_ as SimdType - 1.0);
                                     // Want: h_i(t+Δt) = h0 - fact * (h_i(t+Δt) - h_j(t+Δt))^n
                                     // Goal: h_i(t+Δt) - h0 + fact * (h_i(t+Δt) - h_j(t+Δt))^n = 0
                                     f += ((dh_fs_sample + dh_df_sample) * dh) as f64;
@@ -1703,12 +1798,40 @@ fn erode(
                             // h_i(t+∆t, k+1) = ...
                             new_h_i = new_h_i * (1.0 - omega) + hn * omega;
                         }
+                        /* let mut f = new_h_i - h0;
+                        let mut df = 1.0;
+                        (0..8).for_each(|kk| {
+                            //if /*new_ht_i/*old_ht_i*/ > (h_t[posj]/* + uplift(posj) as f64*/)*/old_elev_i /*>=*/> wh[posj] as f64/*h[posj]*//*h_j*/ {
+                            if mask[kk].test() {
+                                let h_j = rec_heights[kk];
+                                let elev_j = h_j/* + a_j.max(0.0)*/;
+                                let dh = 0.0.max((new_h_i as SimdType - elev_j)/*.abs()*/);
+                                let powf = |a: SimdType, b| a.powf(b);
+                                // let powf = |a, b| approx_powf(a as f32, b as f32) as SimdType;
+                                let dh_fs_sample = k_fs_fact[kk] as /*f64*/SimdType * powf(dh, n as SimdType - 1.0);
+                                let dh_df_sample = k_df_fact[kk] as /*f64*/SimdType * powf(dh, q_ as SimdType - 1.0);
+                                // Want: h_i(t+Δt) = h0 - fact * (h_i(t+Δt) - h_j(t+Δt))^n
+                                // Goal: h_i(t+Δt) - h0 + fact * (h_i(t+Δt) - h_j(t+Δt))^n = 0
+                                f += ((dh_fs_sample + dh_df_sample) * dh) as f64;
+                                // ∂h_i(t+Δt)/∂n = 1 + fact * n * (h_i(t+Δt) - h_j(t+Δt))^(n - 1)
+                                df += (n as SimdType * dh_fs_sample + q_ as SimdType * dh_df_sample) as f64;
+                            }
+                            //}
+                        });
+                        // hn = h_i(t+Δt, k) - (h_i(t+Δt, k) - (h0 - fact * (h_i(t+Δt, k) - h_j(t+Δt))^n)) / ∂h_i/∂n(t+Δt, k)
+                        let hn = new_h_i - f / df;
+                        // errp = |(h_i(t+Δt, k) - (h0 - fact * (h_i(t+Δt, k) - h_j(t+Δt))^n)) / ∂h_i/∂n(t+Δt, k)|
+                        errp = (hn - new_h_i).abs(); */
+                        // iteration_error += errp;//.abs();
+                        // assert!((h0 - new_h_i).abs() <= tolp);
                         // Correct new_h_i to keep it at or under h0.
                         /* if h0 < new_h_i {
                             println!("Huh? h0={:?}, new_h_i={:?},", h0, new_h_i);
                             // debug_assert!(new_h_i <= h0);
                         } */
-                        new_h_i = h0.min(new_h_i);
+
+                        // new_h_i = h0.min(new_h_i);
+
                         /* let omega = 0.875f64 / n;
                         let tolp = 1.0e-3;
                         let mut errp = 2.0 * tolp;
@@ -1800,8 +1923,8 @@ fn erode(
                             }
                         }
                     } */
-                    lake_sill[posi] = posi as isize;
-                    lake_water_volume[posi] = 0.0;
+                    lake_sill[stacki] = posi as isize;
+                    lake_water_volume[stacki] = 0.0;
 
                     // If we dipped below the receiver's water level, set our height to the receiver's
                     // water level.
@@ -1876,8 +1999,9 @@ fn erode(
                     // h_[posi] = old_elev_i;
                     // new_h_i = old_elev_i - df_part.max(0.0);
                     new_h_i = old_elev_i;
-                    let lposj = lake_sill[posj];
-                    lake_sill[posi] = lposj;
+                    let posj_stack = mstack_inv[posj];
+                    let lposj = lake_sill[posj_stack];
+                    lake_sill[stacki] = lposj;
                     if lposj >= 0 {
                         let lposj = lposj as usize;
                         lake_water_volume[lposj] += (wh_j - old_elev_i) as Compute;
@@ -1952,7 +2076,8 @@ fn erode(
                         sums += mag_slope;
                         // Just use the computed rate.
                     } */
-                    h[posi] = new_h_i as Alt;
+                    h_stack[/*(posi*/stacki] = new_h_i as Alt;
+                    // println!("Delta: {:?} - {:?} = {:?}", new_h_i, h_p_i, new_h_i - h_p_i);
                     // a[posi] = df_part as Alt;
                     // Make sure to update the basement as well!
                     // b[posi] = (old_b_i + uplift_i).min(new_h_i) as f32;
@@ -1962,7 +2087,7 @@ fn erode(
             if compute_stats {
                 sumsed += sed;
                 // suma += a[posi];
-                let h_i = h[posi];
+                let h_i = h_stack[/*posi*/stacki];
                 if h_i > 0.0 {
                     minh = h_i.min(minh);
                 }
@@ -1980,7 +2105,7 @@ fn erode(
                 debug_assert_eq!(h[posi] + a[posi].max(0.0), h_[posi]);
             } */
             // Add sum of squares of errors.
-            sum_err += (h[posi]/*.max(wh[posi])*/ as Compute/* + a[posi].max(0.0) as Compute*/ - /*hp*/h_p[posi] as Compute/* - ap[posi].max(0.0) as Compute*/).powi(2);
+            sum_err += (iteration_error + h_stack[/*posi*/stacki]/*.max(wh[posi])*/ as Compute/* + a[posi].max(0.0) as Compute*/ - /*hp*//*h_p[/*posi*/stacki]*/h_p_i as Compute/* - ap[posi].max(0.0) as Compute*/).powi(2);
         });
         log::debug!(
             "(Done erosion computation, time={:?}ms)",
@@ -1988,6 +2113,7 @@ fn erode(
         );
 
         err = (sum_err / /*newh*/mstack.len() as Compute).sqrt();
+        log::debug!("(RMSE: {:?})", err);
         /* if max_g == 0.0 {
             err = 0.0;
         } */
@@ -1999,6 +2125,14 @@ fn erode(
             );
         }
     }
+
+    (&*mstack_inv, &mut *h)
+        .into_par_iter()
+        .enumerate()
+        .for_each(|(posi, (&stacki, h))| {
+            assert!(posi == mstack[stacki] as usize);
+            *h = h_stack[stacki];
+        });
 
     //b=min(h,b)
 
@@ -2098,21 +2232,25 @@ fn erode(
     log::debug!("Done updating basement and applying soil production...");
 
     // update the height to reflect sediment flux.
-    h.par_iter_mut().enumerate().for_each(|(posi, mut h)| {
-        let lposi = lake_sill[posi];
-        if lposi >= 0 {
-            let lposi = lposi as usize;
-            if lake_water_volume[lposi] > 0.0 {
-                // +max(0.d0,min(lake_sediment(lake_sill(ij)),lake_water_volume(lake_sill(ij))))/
-                // lake_water_volume(lake_sill(ij))*(water(ij)-h(ij))
-                *h += (0.0.max(
-                    /*lake_sediment[lposi]*/ lake_silt[posi].min(lake_water_volume[lposi]),
-                ) / lake_water_volume[lposi]
-                    * (wh[posi]/* - a[posi].max(0.0)*/ - *h) as Compute)
-                    as Alt;
+    (&mut *h, &*mstack_inv)
+        .into_par_iter()
+        .enumerate()
+        .for_each(|(posi, (mut h, &stacki))| {
+            let lposi = lake_sill[stacki];
+            if lposi >= 0 {
+                let lposi = lposi as usize;
+                if lake_water_volume[lposi] > 0.0 {
+                    // +max(0.d0,min(lake_sediment(lake_sill(ij)),lake_water_volume(lake_sill(ij))))/
+                    // lake_water_volume(lake_sill(ij))*(water(ij)-h(ij))
+                    *h += (0.0.max(
+                        /*lake_sediment[lposi]*/
+                        lake_silt[stacki].min(lake_water_volume[lposi]),
+                    ) / lake_water_volume[lposi]
+                        * (wh[posi]/* - a[posi].max(0.0)*/ - *h) as Compute)
+                        as Alt;
+                }
             }
-        }
-    });
+        });
     // do ij=1,nn
     //   if (lake_sill(ij).ne.0) then
     //     if (lake_water_volume(lake_sill(ij)).gt.0.d0) h(ij)=h(ij) &
@@ -3341,7 +3479,8 @@ pub fn do_erosion(
     // Bedrock transport coefficients (diffusivity) in m^2 / year.  For now, we set them all to be equal
     // on land, but in theory we probably want to at least differentiate between soil, bedrock, and
     // sediment.
-    let height_scale = 1.0; // 1.0 / CONFIG.mountain_scale as f64;
+    let height_scale = 1.0 / 4.0; // 1.0 / CONFIG.mountain_scale as f64;
+    let time_scale = 1.0; //1.0 / 4.0; // 4.0.powf(-n)
     let mmaxh = CONFIG.mountain_scale as f64 * height_scale;
     let dt = max_uplift as f64 / height_scale /* * CONFIG.mountain_scale as f64*/ / 5.010e-4;
     let k_fb = /*(erosion_base as f64 + 2.244 / mmaxh as f64 * /*10.0*//*5.0*//*9.0*//*7.5*//*5.0*//*2.5*//*1.5*/4.0/*1.0*//*3.75*/ * max_uplift as f64) / dt;*/
@@ -3350,7 +3489,7 @@ pub fn do_erosion(
         /*1e-2*//*0.25e-2*/1e-2 / 1.0 * height_scale * height_scale/* / (CONFIG.mountain_scale as f64 * CONFIG.mountain_scale as f64) */
         /* * k_fb / 2e-5 */;
     let kdsed =
-        /*1.5e-2*//*1e-4*//*1.25e-2*//*1.5e-2 */1.5e-2/ 1.0 * height_scale * height_scale/* / (CONFIG.mountain_scale as f64 * CONFIG.mountain_scale as f64) */
+        /*1.5e-2*//*1e-4*//*1.25e-2*//*1.5e-2 */1.5e-2 / 1.0 * height_scale * height_scale / time_scale/* / (CONFIG.mountain_scale as f64 * CONFIG.mountain_scale as f64) */
         /* * k_fb / 2e-5 */;
     // let kd = |posi: usize| kd_bedrock; // if is_ocean(posi) { /*0.0*/kd_bedrock } else { kd_bedrock };
     let n = |posi: usize| n[posi];
