@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Body, CharacterState, Controller, EcsStateData, Mounting, MoveState::*, Ori,
-        OverrideAction, OverrideMove, OverrideState, PhysicsState, Pos, Stats, Vel,
+        Body, CharacterState, Controller, EcsStateData, Mounting, MoveState::*, Ori, PhysicsState,
+        Pos, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -35,9 +35,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
-        ReadStorage<'a, OverrideState>,
-        ReadStorage<'a, OverrideMove>,
-        ReadStorage<'a, OverrideAction>,
     );
     fn run(
         &mut self,
@@ -58,12 +55,9 @@ impl<'a> System<'a> for Sys {
             physics_states,
             uids,
             mountings,
-            state_overrides,
-            move_overrides,
-            action_overrides,
         ): Self::SystemData,
     ) {
-        for (entity, uid, mut character, pos, vel, ori, controller, stats, body, physics, ()) in (
+        for (entity, uid, mut character, pos, vel, ori, controller, stats, body, physics) in (
             &entities,
             &uids,
             &mut character_states,
@@ -74,7 +68,6 @@ impl<'a> System<'a> for Sys {
             &stats,
             &bodies,
             &physics_states,
-            !&state_overrides,
         )
             .join()
         {
@@ -99,10 +92,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Determine new action if character can act
-            if let (None, false) = (
-                action_overrides.get(entity),
-                character.move_state.overrides_action_state(),
-            ) {
+            if !character.move_state.overrides_action_state() {
                 let state_update = character.action_state.update(&EcsStateData {
                     entity: &entity,
                     uid,
@@ -127,10 +117,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Determine new move state if character can move
-            if let (None, false) = (
-                move_overrides.get(entity),
-                character.action_state.overrides_move_state(),
-            ) {
+            if !character.action_state.overrides_move_state() {
                 let state_update = character.move_state.update(&EcsStateData {
                     entity: &entity,
                     uid,

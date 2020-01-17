@@ -21,9 +21,6 @@ sum_type! {
         Mass(comp::Mass),
         Gravity(comp::Gravity),
         Sticky(comp::Sticky),
-        OverrideAction(comp::OverrideAction),
-        OverrideMove(comp::OverrideMove),
-        OverrideState(comp::OverrideState),
         AbilityAction(comp::AbilityAction),
         AbilityPool(comp::AbilityPool),
     }
@@ -46,9 +43,6 @@ sum_type! {
         Mass(PhantomData<comp::Mass>),
         Gravity(PhantomData<comp::Gravity>),
         Sticky(PhantomData<comp::Sticky>),
-        OverrideAction(PhantomData<comp::OverrideAction>),
-        OverrideMove(PhantomData<comp::OverrideMove>),
-        OverrideState(PhantomData<comp::OverrideState>),
         AbilityAction(PhantomData<comp::AbilityAction>),
         AbilityPool(PhantomData<comp::AbilityPool>),
     }
@@ -70,9 +64,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Mass(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Gravity(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::OverrideAction(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::OverrideMove(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::OverrideState(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::AbilityAction(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::AbilityPool(comp) => sync::handle_insert(comp, entity, world),
         }
@@ -92,9 +83,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Mass(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Gravity(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::OverrideAction(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::OverrideMove(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::OverrideState(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::AbilityAction(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::AbilityPool(comp) => sync::handle_modify(comp, entity, world),
         }
@@ -116,15 +104,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Mass(_) => sync::handle_remove::<comp::Mass>(entity, world),
             EcsCompPhantom::Gravity(_) => sync::handle_remove::<comp::Gravity>(entity, world),
             EcsCompPhantom::Sticky(_) => sync::handle_remove::<comp::Sticky>(entity, world),
-            EcsCompPhantom::OverrideAction(_) => {
-                sync::handle_remove::<comp::OverrideAction>(entity, world)
-            }
-            EcsCompPhantom::OverrideMove(_) => {
-                sync::handle_remove::<comp::OverrideMove>(entity, world)
-            }
-            EcsCompPhantom::OverrideState(_) => {
-                sync::handle_remove::<comp::OverrideState>(entity, world)
-            }
             EcsCompPhantom::AbilityAction(_) => {
                 sync::handle_remove::<comp::AbilityAction>(entity, world)
             }
