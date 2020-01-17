@@ -4,10 +4,7 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
 use common::{
-    comp::{
-        ActionState, AttackKind::*, Body, CharacterState, DodgeKind::*, ItemKind, MoveState, Pos,
-        Stats, SwordKind::*, ToolData, ToolKind::*,
-    },
+    comp::{ActionState, Body, CharacterState, MoveState, Pos},
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
@@ -157,8 +154,7 @@ impl MovementEventMapper {
 mod tests {
     use super::*;
     use common::{
-        assets,
-        comp::{ActionState, MoveState, Stats},
+        comp::{ActionState, CharacterState, DodgeKind::*, MoveState},
         event::SfxEvent,
     };
     use std::time::{Duration, Instant};

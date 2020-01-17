@@ -110,9 +110,6 @@ impl State {
         ecs.register::<comp::AbilityPool>();
         ecs.register::<comp::AbilityAction>();
         ecs.register::<comp::Projectile>();
-        ecs.register::<comp::OverrideAction>();
-        ecs.register::<comp::OverrideMove>();
-        ecs.register::<comp::OverrideState>();
         ecs.register::<comp::Body>();
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();

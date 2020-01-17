@@ -32,7 +32,7 @@ use crate::comp::{
 ///
 /// ## Example Implementation:
 /// ```
-/// use super::utils::*;
+/// use crate::states::utils;
 ///
 /// #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 /// pub struct RunState {
@@ -54,27 +54,12 @@ use crate::comp::{
 ///             ori: *ecs_data.ori,
 ///         };
 ///
-///         // Update player's Vel
-///         update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
-///             * ecs_data.inputs.move_dir
-///             * if update.vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) {
-///                 HUMANOID_ACCEL
-///             } else {
-///                 0.0
-///             };
-///
 ///         // -- snip --
-///         // Other updates; checks for gliding, climbing, etc.
-///
-///         // Try to jump
-///         if state_utils::can_jump(ecs_data.physics, ecs_data.inputs) {
-///             update.character.move_state = Jump(None);
-///             update
-///         }
+///         // Updates; checks for gliding, climbing, etc.
 ///
 ///         // Update based on groundedness
 ///         update.character.move_state =
-///             state_utils::determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);
+///             utils::determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);
 ///
 ///         update
 ///     }
@@ -125,6 +110,7 @@ impl ActionState {
         }
     }
 
+    // TODO: remove when we split up character states into SingleAction and MultiAction enum variants
     /// Returns whether a given `ActionState` overrides `MoveState` `handle()`ing
     pub fn overrides_move_state(&self) -> bool {
         match self {
@@ -149,6 +135,7 @@ impl ActionState {
 // fn's that relate to individual `MoveState`s
 // or passing data from system to handlers
 impl MoveState {
+    // TODO: remove when we split up character states into SingleAction and MultiAction enum variants
     /// Passes data to variant or subvariant handlers
     /// States contain `Option<StateHandler Implementor>`s, and will be
     /// `None` if state data has not been initialized. So we have to

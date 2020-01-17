@@ -1,5 +1,4 @@
 use crate::{comp, sync::Uid};
-use comp::item::ToolKind;
 use parking_lot::Mutex;
 use serde::Deserialize;
 use specs::Entity as EcsEntity;
