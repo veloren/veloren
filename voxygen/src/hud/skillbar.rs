@@ -550,7 +550,7 @@ impl<'a> Widget for Skillbar<'a> {
         // M1 Slot
 
         Image::new(self.imgs.skillbar_slot_big_bg)
-            .w_h(36.0 * scale, 36.0 * scale)
+            .w_h(38.0 * scale, 38.0 * scale)
             .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
                 Some(ItemKind::Tool { kind, .. }) => match kind {
                     Tool::Bow => Some(BG_COLOR_2),
@@ -615,7 +615,7 @@ impl<'a> Widget for Skillbar<'a> {
         }
 
         Image::new(self.imgs.skillbar_slot_big_bg)
-            .w_h(36.0 * scale, 36.0 * scale)
+            .w_h(38.0 * scale, 38.0 * scale)
             .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
                 Some(ItemKind::Tool { kind, .. }) => match kind {
                     Tool::Bow => Some(BG_COLOR_2),
@@ -726,7 +726,7 @@ impl<'a> Widget for Skillbar<'a> {
             }
         }
         Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
+            .w_h(19.5 * scale, 19.5 * scale)
             .color(Some(BG_COLOR))
             .middle_of(state.ids.slot1)
             .set(state.ids.slot1_bg, ui);
