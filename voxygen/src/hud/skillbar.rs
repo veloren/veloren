@@ -733,7 +733,11 @@ impl<'a> Widget for Skillbar<'a> {
         // TODO: Changeable slot image
         Image::new(self.imgs.charge)
             .w_h(18.0 * scale, 18.0 * scale)
-            //.color(Some(BG_COLOR))
+            .color(if self.energy.current() as f64 >= 200.0 {
+                Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+            } else {
+                Some(Color::Rgba(0.4, 0.4, 0.4, 1.0))
+            })
             .middle_of(state.ids.slot1_bg)
             .set(state.ids.slot1_icon, ui);
         // Slot 6
@@ -915,8 +919,8 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.health_text, ui);
             let energy_text = format!(
                 "{}/{}",
-                self.energy.current() as u32,
-                self.energy.maximum() as u32
+                self.energy.current() as u32 / 10,
+                self.energy.maximum() as u32 / 10
             );
             Text::new(&energy_text)
                 .mid_top_with_margin_on(state.ids.energybar_bg, 6.0 * scale)
