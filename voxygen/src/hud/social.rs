@@ -1,13 +1,13 @@
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR, TEXT_COLOR_3};
 
+use crate::i18n::VoxygenLocalization;
+use client::{self, Client};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, /*, Color*/
     Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
-use client::{self, Client};
 
 widget_ids! {
     pub struct Ids {
@@ -41,25 +41,30 @@ pub struct Social<'a> {
     client: &'a Client,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> Social<'a> {
-    pub fn new(show: &'a Show, client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        show: &'a Show,
+        client: &'a Client,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    ) -> Self {
         Self {
-            show: show,
+            show,
+            client,
             imgs,
-            client: client,
-            fonts: fonts,
+            fonts,
+            localized_strings,
             common: widget::CommonBuilder::default(),
         }
     }
 }
-
-/*pub struct State {
-    ids: Ids,
-}*/
 
 pub enum Event {
     Close,
@@ -113,7 +118,7 @@ impl<'a> Widget for Social<'a> {
         }
 
         // Title
-        Text::new("Social")
+        Text::new(&self.localized_strings.get("hud.social"))
             .mid_top_with_margin_on(ids.social_frame, 6.0)
             .font_id(self.fonts.cyri)
             .font_size(14)
@@ -159,7 +164,7 @@ impl<'a> Widget for Social<'a> {
             self.imgs.social_button_press
         })
         .top_left_with_margins_on(ids.align, 4.0, 0.0)
-        .label("Online")
+        .label(&self.localized_strings.get("hud.social.online"))
         .label_font_size(14)
         .parent(ids.frame)
         .label_color(TEXT_COLOR)
@@ -183,12 +188,17 @@ impl<'a> Widget for Social<'a> {
                         .resize(count, &mut ui.widget_id_generator())
                 })
             }
-            Text::new(&format!("{} player(s) online\n", count))
-                .top_left_with_margins_on(ids.content_align, -2.0, 7.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(ids.online_title, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.social.play_online_fmt")
+                    .replace("{nb_player}", &format!("{:?}", count)),
+            )
+            .top_left_with_margins_on(ids.content_align, -2.0, 7.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .color(TEXT_COLOR)
+            .set(ids.online_title, ui);
             for (i, (_, player_alias)) in self.client.player_list.iter().enumerate() {
                 Text::new(player_alias)
                     .down(3.0)
@@ -218,7 +228,7 @@ impl<'a> Widget for Social<'a> {
             self.imgs.social_button
         })
         .right_from(ids.online_tab, 0.0)
-        .label("Friends")
+        .label(&self.localized_strings.get("hud.social.friends"))
         .label_font_size(14)
         .parent(ids.frame)
         .label_color(TEXT_COLOR_3)
@@ -231,7 +241,7 @@ impl<'a> Widget for Social<'a> {
         // Contents
 
         if let SocialTab::Friends = self.show.social_tab {
-            Text::new("Not yet available")
+            Text::new(&self.localized_strings.get("hud.social.not_yet_available"))
                 .middle_of(ids.content_align)
                 .font_size(18)
                 .font_id(self.fonts.cyri)
@@ -248,7 +258,7 @@ impl<'a> Widget for Social<'a> {
         if Button::image(button_img)
             .w_h(30.0 * 4.0, 12.0 * 4.0)
             .right_from(ids.friends_tab, 0.0)
-            .label("Faction")
+            .label(&self.localized_strings.get("hud.social.faction"))
             .parent(ids.frame)
             .label_font_size(14)
             .label_color(TEXT_COLOR_3)
@@ -261,7 +271,7 @@ impl<'a> Widget for Social<'a> {
         // Contents
 
         if let SocialTab::Faction = self.show.social_tab {
-            Text::new("Not yet available")
+            Text::new(&self.localized_strings.get("hud.social.not_yet_available"))
                 .middle_of(ids.content_align)
                 .font_size(18)
                 .font_id(self.fonts.cyri)

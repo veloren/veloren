@@ -3,6 +3,7 @@ use super::{
     TEXT_COLOR,
 };
 use crate::{
+    i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, FluidMode},
     ui::{ImageSlider, ScaleMode, ToggleButton},
     GlobalState,
@@ -41,6 +42,8 @@ widget_ids! {
         absolute_scale_text,
         gameplay,
         controls,
+        languages,
+        languages_list,
         rectangle,
         general_txt,
         debug_button,
@@ -48,6 +51,7 @@ widget_ids! {
         tips_button,
         tips_button_label,
         interface,
+        language_text,
         mouse_pan_slider,
         mouse_pan_label,
         mouse_pan_value,
@@ -146,11 +150,10 @@ pub enum SettingsTab {
 #[derive(WidgetCommon)]
 pub struct SettingsWindow<'a> {
     global_state: &'a GlobalState,
-
     show: &'a Show,
-
     imgs: &'a Imgs,
     fonts: &'a Fonts,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -161,12 +164,14 @@ impl<'a> SettingsWindow<'a> {
         show: &'a Show,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
             global_state,
             show,
             imgs,
             fonts,
+            localized_strings,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -205,6 +210,7 @@ pub enum Event {
     Sct(bool),
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
+    ChangeLanguage(LanguageMetadata),
 }
 
 pub enum ScaleChange {
@@ -277,7 +283,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         }
 
         // Title
-        Text::new("Settings")
+        Text::new(&self.localized_strings.get("common.settings"))
             .mid_top_with_margin_on(state.ids.settings_bg, 5.0)
             .font_size(14)
             .color(TEXT_COLOR)
@@ -301,7 +307,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             self.imgs.settings_button_press
         })
         .top_left_with_margins_on(state.ids.settings_l, 8.0 * 4.0, 2.0 * 4.0)
-        .label("Interface")
+        .label(&self.localized_strings.get("common.interface"))
         .label_font_size(14)
         .label_color(TEXT_COLOR)
         .set(state.ids.interface, ui)
@@ -317,7 +323,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             let ui_scale = self.global_state.settings.gameplay.ui_scale;
             let chat_transp = self.global_state.settings.gameplay.chat_transp;
 
-            Text::new("General")
+            Text::new(&self.localized_strings.get("hud.settings.general"))
                 .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
                 .font_size(18)
                 .font_id(self.fonts.cyri)
@@ -340,7 +346,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ToggleHelp);
             }
 
-            Text::new("Help Window")
+            Text::new(&self.localized_strings.get("hud.settings.help_window"))
                 .right_from(state.ids.button_help, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -364,7 +370,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ToggleDebug);
             }
 
-            Text::new("Debug Info")
+            Text::new(&self.localized_strings.get("hud.settings.debug_info"))
                 .right_from(state.ids.debug_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -391,7 +397,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     Intro::Never => events.push(Event::Intro(Intro::Show)),
                 }
             };
-            Text::new("Tips on Startup")
+            Text::new(&self.localized_strings.get("hud.settings.tips_on_startup"))
                 .right_from(state.ids.tips_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -400,7 +406,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.tips_button_label, ui);
 
             // Ui Scale
-            Text::new("UI-Scale")
+            Text::new(&self.localized_strings.get("hud.settings.ui_scale"))
                 .down_from(state.ids.tips_button, 20.0)
                 .font_size(18)
                 .font_id(self.fonts.cyri)
@@ -646,13 +652,13 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .graphics_for(state.ids.ch_3_bg)
                 .set(state.ids.crosshair_inner_3, ui);
             // Crosshair Transparency Text and Slider
-            Text::new("Crosshair")
+            Text::new(&self.localized_strings.get("hud.settings.crosshair"))
                 .down_from(state.ids.absolute_scale_button, 20.0)
                 .font_size(18)
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.ch_title, ui);
-            Text::new("Transparency")
+            Text::new(&self.localized_strings.get("hud.settings.transparency"))
                 .right_from(state.ids.ch_3_bg, 20.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -685,7 +691,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.ch_transp_value, ui);
 
             // Hotbar text
-            Text::new("Hotbar")
+            Text::new(&self.localized_strings.get("hud.settings.hotbar"))
                 .down_from(state.ids.ch_1_bg, 20.0)
                 .font_size(18)
                 .font_id(self.fonts.cyri)
@@ -714,13 +720,17 @@ impl<'a> Widget for SettingsWindow<'a> {
                     XpBar::OnGain => events.push(Event::ToggleXpBar(XpBar::Always)),
                 }
             }
-            Text::new("Toggle Experience Bar")
-                .right_from(state.ids.show_xpbar_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .graphics_for(state.ids.show_xpbar_button)
-                .color(TEXT_COLOR)
-                .set(state.ids.show_xpbar_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.toggle_bar_experience"),
+            )
+            .right_from(state.ids.show_xpbar_button, 10.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .graphics_for(state.ids.show_xpbar_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_xpbar_text, ui);
             // Show Shortcut Numbers
             if Button::image(match self.global_state.settings.gameplay.shortcut_numbers {
                 ShortcutNumbers::On => self.imgs.checkbox_checked,
@@ -748,7 +758,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     }
                 }
             }
-            Text::new("Toggle Shortcuts")
+            Text::new(&self.localized_strings.get("hud.settings.toggle_shortcuts"))
                 .right_from(state.ids.show_shortcuts_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -773,12 +783,16 @@ impl<'a> Widget for SettingsWindow<'a> {
             Number Display Duration: 1s ----I----5s
              */
             // SCT/ Scrolling Combat Text
-            Text::new("Scrolling Combat Text")
-                .top_left_with_margins_on(state.ids.settings_content_r, 5.0, 5.0)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(state.ids.sct_title, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.scrolling_combat_text"),
+            )
+            .top_left_with_margins_on(state.ids.settings_content_r, 5.0, 5.0)
+            .font_size(18)
+            .font_id(self.fonts.cyri)
+            .color(TEXT_COLOR)
+            .set(state.ids.sct_title, ui);
             // Generally toggle the SCT
             let show_sct = ToggleButton::new(
                 self.global_state.settings.gameplay.sct,
@@ -794,13 +808,17 @@ impl<'a> Widget for SettingsWindow<'a> {
             if self.global_state.settings.gameplay.sct != show_sct {
                 events.push(Event::Sct(!self.global_state.settings.gameplay.sct))
             }
-            Text::new("Scrolling Combat Text")
-                .right_from(state.ids.sct_show_radio, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .graphics_for(state.ids.sct_show_radio)
-                .color(TEXT_COLOR)
-                .set(state.ids.sct_show_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.scrolling_combat_text"),
+            )
+            .right_from(state.ids.sct_show_radio, 10.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .graphics_for(state.ids.sct_show_radio)
+            .color(TEXT_COLOR)
+            .set(state.ids.sct_show_text, ui);
             if self.global_state.settings.gameplay.sct {
                 // Toggle single damage numbers
                 let show_sct_damage_batch = !ToggleButton::new(
@@ -814,13 +832,17 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
                 .set(state.ids.sct_single_dmg_radio, ui);
 
-                Text::new("Single Damage Numbers")
-                    .right_from(state.ids.sct_single_dmg_radio, 10.0)
-                    .font_size(14)
-                    .font_id(self.fonts.cyri)
-                    .graphics_for(state.ids.sct_single_dmg_radio)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.sct_single_dmg_text, ui);
+                Text::new(
+                    &self
+                        .localized_strings
+                        .get("hud.settings.single_damage_number"),
+                )
+                .right_from(state.ids.sct_single_dmg_radio, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .graphics_for(state.ids.sct_single_dmg_radio)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_single_dmg_text, ui);
                 // Toggle Batched Damage
                 let show_sct_damage_batch = ToggleButton::new(
                     show_sct_damage_batch,
@@ -838,7 +860,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                         !self.global_state.settings.gameplay.sct_damage_batch,
                     ))
                 }
-                Text::new("Cumulated Damage")
+                Text::new(&self.localized_strings.get("hud.settings.cumulated_damage"))
                     .right_from(state.ids.sct_show_batch_radio, 10.0)
                     .font_size(14)
                     .font_id(self.fonts.cyri)
@@ -857,7 +879,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
                 .set(state.ids.sct_inc_dmg_radio, ui);
 
-                Text::new("Incoming Damage")
+                Text::new(&self.localized_strings.get("hud.settings.incoming_damage"))
                     .right_from(state.ids.sct_inc_dmg_radio, 10.0)
                     .font_size(14)
                     .font_id(self.fonts.cyri)
@@ -881,18 +903,22 @@ impl<'a> Widget for SettingsWindow<'a> {
                         !self.global_state.settings.gameplay.sct_player_batch,
                     ))
                 }
-                Text::new("Cumulated Incoming Damage")
-                    .right_from(state.ids.sct_batch_inc_radio, 10.0)
-                    .font_size(14)
-                    .font_id(self.fonts.cyri)
-                    .graphics_for(state.ids.sct_batch_inc_radio)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.sct_batch_inc_text, ui);
+                Text::new(
+                    &self
+                        .localized_strings
+                        .get("hud.settings.cumulated_incoming_damage"),
+                )
+                .right_from(state.ids.sct_batch_inc_radio, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .graphics_for(state.ids.sct_batch_inc_radio)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_batch_inc_text, ui);
             }
 
             // Energybars Numbers
             // Hotbar text
-            Text::new("Energybar Numbers")
+            Text::new(&self.localized_strings.get("hud.settings.energybar_numbers"))
                 .down_from(
                     if self.global_state.settings.gameplay.sct {
                         state.ids.sct_batch_inc_radio
@@ -929,7 +955,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ToggleBarNumbers(BarNumbers::Off))
             }
-            Text::new("None")
+            Text::new(&self.localized_strings.get("hud.settings.none"))
                 .right_from(state.ids.show_bar_numbers_none_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -960,7 +986,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ToggleBarNumbers(BarNumbers::Values))
             }
-            Text::new("Values")
+            Text::new(&self.localized_strings.get("hud.settings.values"))
                 .right_from(state.ids.show_bar_numbers_values_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -991,7 +1017,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ToggleBarNumbers(BarNumbers::Percent))
             }
-            Text::new("Percentages")
+            Text::new(&self.localized_strings.get("hud.settings.percentages"))
                 .right_from(state.ids.show_bar_numbers_percentage_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1000,18 +1026,22 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.show_bar_numbers_percentage_text, ui);
 
             // Chat Transp
-            Text::new("Chat")
+            Text::new(&self.localized_strings.get("hud.settings.chat"))
                 .down_from(state.ids.show_bar_numbers_percentage_button, 20.0)
                 .font_size(18)
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.chat_transp_title, ui);
-            Text::new("Background Transparency")
-                .right_from(state.ids.chat_transp_slider, 20.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(state.ids.chat_transp_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.background_transparency"),
+            )
+            .right_from(state.ids.chat_transp_slider, 20.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .color(TEXT_COLOR)
+            .set(state.ids.chat_transp_text, ui);
 
             if let Some(new_val) = ImageSlider::continuous(
                 chat_transp,
@@ -1028,6 +1058,34 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.chat_transp_slider, ui)
             {
                 events.push(Event::ChatTransp(new_val));
+            }
+
+            Text::new(&self.localized_strings.get("common.languages"))
+                .down_from(state.ids.chat_transp_slider, 20.0)
+                .font_size(18)
+                .font_id(self.fonts.cyri)
+                .color(TEXT_COLOR)
+                .set(state.ids.language_text, ui);
+
+            let selected_language = &self.global_state.settings.language.selected_language;
+            let language_list = list_localizations();
+            let language_list_str: Vec<String> = language_list
+                .iter()
+                .map(|e| e.language_name.clone())
+                .collect();
+            let selected = language_list
+                .iter()
+                .position(|x| x.language_identifier.contains(selected_language));
+
+            if let Some(clicked) = DropDownList::new(&language_list_str, selected)
+                .down_from(state.ids.language_text, 8.0)
+                .w_h(200.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri)
+                .set(state.ids.languages_list, ui)
+            {
+                events.push(Event::ChangeLanguage(language_list[clicked].to_owned()));
             }
         }
 
@@ -1049,7 +1107,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             self.imgs.settings_button_press
         })
         .right_from(state.ids.interface, 0.0)
-        .label("Gameplay")
+        .label(&self.localized_strings.get("common.gameplay"))
         .label_font_size(14)
         .label_color(TEXT_COLOR)
         .set(state.ids.gameplay, ui)
@@ -1064,7 +1122,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             let display_zoom = self.global_state.settings.gameplay.zoom_sensitivity;
 
             // Mouse Pan Sensitivity
-            Text::new("Pan Sensitivity")
+            Text::new(&self.localized_strings.get("hud.settings.pan_sensitivity"))
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1096,7 +1154,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.mouse_pan_value, ui);
 
             // Mouse Zoom Sensitivity
-            Text::new("Zoom Sensitivity")
+            Text::new(&self.localized_strings.get("hud.settings.zoom_sensitivity"))
                 .down_from(state.ids.mouse_pan_slider, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1145,13 +1203,17 @@ impl<'a> Widget for SettingsWindow<'a> {
                 ));
             }
 
-            Text::new("Invert Scroll Zoom")
-                .right_from(state.ids.mouse_zoom_invert_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .graphics_for(state.ids.button_help)
-                .color(TEXT_COLOR)
-                .set(state.ids.mouse_zoom_invert_label, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.invert_scroll_zoom"),
+            )
+            .right_from(state.ids.mouse_zoom_invert_button, 10.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .graphics_for(state.ids.button_help)
+            .color(TEXT_COLOR)
+            .set(state.ids.mouse_zoom_invert_label, ui);
 
             // Mouse Y Inversion
             let mouse_y_inverted = ToggleButton::new(
@@ -1171,13 +1233,17 @@ impl<'a> Widget for SettingsWindow<'a> {
                 ));
             }
 
-            Text::new("Invert Mouse Y Axis")
-                .right_from(state.ids.mouse_y_invert_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .graphics_for(state.ids.button_help)
-                .color(TEXT_COLOR)
-                .set(state.ids.mouse_y_invert_label, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.invert_mouse_y_axis"),
+            )
+            .right_from(state.ids.mouse_y_invert_button, 10.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .graphics_for(state.ids.button_help)
+            .color(TEXT_COLOR)
+            .set(state.ids.mouse_y_invert_label, ui);
         }
 
         // 3) Controls Tab --------------------------------
@@ -1198,7 +1264,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             self.imgs.settings_button_press
         })
         .right_from(state.ids.gameplay, 0.0)
-        .label("Controls")
+        .label(&self.localized_strings.get("common.controls"))
         .label_font_size(14)
         .label_color(TEXT_COLOR)
         .set(state.ids.controls, ui)
@@ -1210,94 +1276,12 @@ impl<'a> Widget for SettingsWindow<'a> {
         // Contents
         if let SettingsTab::Controls = self.show.settings_tab {
             let controls = &self.global_state.settings.controls;
-            Text::new(
-                "Free Cursor\n\
-            Toggle Help Window\n\
-            Toggle Interface\n\
-            Toggle FPS and Debug Info\n\
-            Take Screenshot\n\
-            Toggle Nametags\n\
-            Toggle Fullscreen\n\
-            \n\
-            \n\
-            Move Forward\n\
-            Move Left\n\
-            Move Right\n\
-            Move Backwards\n\
-            \n\
-            Jump\n\
-            \n\
-            Glider
-            \n\
-            Dodge\n\
-            \n\
-            Roll\n\
-            \n\
-            Climb\n\
-            \n\
-            Climb down\n\
-            \n\
-            Auto Walk\n\
-            \n\
-            Sheathe/Draw Weapons\n\
-            \n\
-            Put on/Remove Helmet\n\
-            \n\
-            Sit\n\
-            \n\
-            Mount\n\
-            \n\
-            Interact\n\
-            \n\
-            \n\
-            Basic Attack\n\
-            Secondary Attack/Block/Aim\n\
-            \n\
-            \n\
-            Skillbar Slot 1\n\
-            Skillbar Slot 2\n\
-            Skillbar Slot 3\n\
-            Skillbar Slot 4\n\
-            Skillbar Slot 5\n\
-            Skillbar Slot 6\n\
-            Skillbar Slot 7\n\
-            Skillbar Slot 8\n\
-            Skillbar Slot 9\n\
-            Skillbar Slot 10\n\
-            \n\
-            \n\
-            Pause Menu\n\
-            Settings\n\
-            Social\n\
-            Map\n\
-            Spellbook\n\
-            Character\n\
-            Questlog\n\
-            Bag\n\
-            \n\
-            \n\
-            \n\
-            Send Chat Message\n\
-            Scroll Chat\n\
-            \n\
-            \n\
-            Chat commands:  \n\
-            \n\
-            /alias [Name] - Change your Chat Name   \n\
-            /tp [Name] - Teleports you to another player    \n\
-            /jump <dx> <dy> <dz> - Offset your position \n\
-            /goto <x> <y> <z> - Teleport to a position  \n\
-            /kill - Kill yourself   \n\
-            /pig - Spawn pig NPC    \n\
-            /wolf - Spawn wolf NPC  \n\
-            /help - Display chat commands
-            ",
-            )
-            .color(TEXT_COLOR)
-            .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(18)
-            .set(state.ids.controls_text, ui);
+            Text::new(&self.localized_strings.get("hud.settings.control_names"))
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
+                .font_id(self.fonts.cyri)
+                .font_size(18)
+                .set(state.ids.controls_text, ui);
             // TODO: Replace with buttons that show actual keybinds and allow the user to change them.
             Text::new(&format!(
                 "{}\n\
@@ -1446,7 +1430,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             self.imgs.settings_button_press
         })
         .right_from(state.ids.controls, 0.0)
-        .label("Video")
+        .label(&self.localized_strings.get("common.video"))
         .parent(state.ids.settings_r)
         .label_font_size(14)
         .label_color(TEXT_COLOR)
@@ -1459,7 +1443,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         // Contents
         if let SettingsTab::Video = self.show.settings_tab {
             // View Distance
-            Text::new("View Distance")
+            Text::new(&self.localized_strings.get("hud.settings.view_distance"))
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1494,7 +1478,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.vd_value, ui);
 
             // Max FPS
-            Text::new("Maximum FPS")
+            Text::new(&self.localized_strings.get("hud.settings.maximum_fps"))
                 .down_from(state.ids.vd_slider, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1561,7 +1545,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.fov_value, ui);
 
             // AaMode
-            Text::new("AntiAliasing Mode")
+            Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
                 .down_from(state.ids.fov_slider, 8.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1602,15 +1586,24 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // CloudMode
-            Text::new("Cloud Rendering Mode")
-                .down_from(state.ids.aa_mode_list, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(state.ids.cloud_mode_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.cloud_rendering_mode"),
+            )
+            .down_from(state.ids.aa_mode_list, 8.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .color(TEXT_COLOR)
+            .set(state.ids.cloud_mode_text, ui);
 
             let mode_list = [CloudMode::None, CloudMode::Regular];
-            let mode_label_list = ["None", "Regular"];
+            let mode_label_list = [
+                &self.localized_strings.get("common.none"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.cloud_rendering_mode.regular"),
+            ];
 
             // Get which cloud rendering mode is currently active
             let selected = mode_list
@@ -1629,15 +1622,26 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // FluidMode
-            Text::new("Fluid Rendering Mode")
-                .down_from(state.ids.cloud_mode_list, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(state.ids.fluid_mode_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.fluid_rendering_mode"),
+            )
+            .down_from(state.ids.cloud_mode_list, 8.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .color(TEXT_COLOR)
+            .set(state.ids.fluid_mode_text, ui);
 
             let mode_list = [FluidMode::Cheap, FluidMode::Shiny];
-            let mode_label_list = ["Cheap", "Shiny"];
+            let mode_label_list = [
+                &self
+                    .localized_strings
+                    .get("hud.settings.fluid_rendering_mode.cheap"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.fluid_rendering_mode.shiny"),
+            ];
 
             // Get which fluid rendering mode is currently active
             let selected = mode_list
@@ -1675,7 +1679,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         })
         .right_from(state.ids.video, 0.0)
         .parent(state.ids.settings_r)
-        .label("Sound")
+        .label(&self.localized_strings.get("common.sound"))
         .label_font_size(14)
         .label_color(TEXT_COLOR)
         .set(state.ids.sound, ui)
@@ -1687,7 +1691,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         // Contents
         if let SettingsTab::Sound = self.show.settings_tab {
             // Music Volume -----------------------------------------------------
-            Text::new("Music Volume")
+            Text::new(&self.localized_strings.get("hud.settings.music_volume"))
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1712,12 +1716,16 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // SFX Volume -------------------------------------------------------
-            Text::new("Sound Effects Volume")
-                .down_from(state.ids.audio_volume_slider, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(state.ids.sfx_volume_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.sound_effect_volume"),
+            )
+            .down_from(state.ids.audio_volume_slider, 10.0)
+            .font_size(14)
+            .font_id(self.fonts.cyri)
+            .color(TEXT_COLOR)
+            .set(state.ids.sfx_volume_text, ui);
 
             if let Some(new_val) = ImageSlider::continuous(
                 self.global_state.settings.audio.sfx_volume,
@@ -1739,7 +1747,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Audio Device Selector --------------------------------------------
             let device = &self.global_state.audio.device;
             let device_list = &self.global_state.audio.device_list;
-            Text::new("Audio Device")
+            Text::new(&self.localized_strings.get("hud.settings.audio_device"))
                 .down_from(state.ids.sfx_volume_slider, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)

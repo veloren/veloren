@@ -1,3 +1,4 @@
+use crate::i18n::{i18n_asset_key, VoxygenLocalization};
 use crate::{
     ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud},
@@ -9,6 +10,8 @@ use crate::{
 };
 use client::{self, Client, Event::Chat};
 use common::{
+    assets::load_watched,
+    assets::watch,
     clock::Clock,
     comp,
     comp::{Pos, Vel},
@@ -131,6 +134,14 @@ impl PlayState for SessionState {
                 self.client.borrow_mut().send_chat(cmd.to_string());
             }
         }
+
+        // Keep a watcher on the language
+        let mut localization_watcher = watch::ReloadIndicator::new();
+        let mut localized_strings = load_watched::<VoxygenLocalization>(
+            &i18n_asset_key(&global_state.settings.language.selected_language),
+            &mut localization_watcher,
+        )
+        .unwrap();
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
@@ -363,10 +374,7 @@ impl PlayState for SessionState {
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_avg_delta()) {
-                global_state.info_message = Some(
-                    "Connection lost!\nDid the server restart?\nIs the client up to date?"
-                        .to_owned(),
-                );
+                global_state.info_message = Some(localized_strings.get("common.connection_lost"));
                 error!("[session] Failed to tick the scene: {:?}", err);
 
                 return PlayStateResult::Pop;
@@ -376,7 +384,7 @@ impl PlayState for SessionState {
             global_state.maintain(clock.get_last_delta().as_secs_f32());
 
             // Extract HUD events ensuring the client borrow gets dropped.
-            let hud_events = self.hud.maintain(
+            let mut hud_events = self.hud.maintain(
                 &self.client.borrow(),
                 global_state,
                 DebugInfo {
@@ -406,6 +414,11 @@ impl PlayState for SessionState {
                 &self.scene.camera(),
                 clock.get_last_delta(),
             );
+
+            // Look for changes in the localization files
+            if localization_watcher.reloaded() {
+                hud_events.push(HudEvent::ChangeLanguage(localized_strings.metadata.clone()));
+            }
 
             // Maintain the UI.
             for event in hud_events {
@@ -559,6 +572,16 @@ impl PlayState for SessionState {
                             .unwrap();
                         global_state.settings.graphics.fluid_mode = new_fluid_mode;
                         global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::ChangeLanguage(new_language) => {
+                        global_state.settings.language.selected_language =
+                            new_language.language_identifier;
+                        localized_strings = load_watched::<VoxygenLocalization>(
+                            &i18n_asset_key(&global_state.settings.language.selected_language),
+                            &mut localization_watcher,
+                        )
+                        .unwrap();
+                        localized_strings.log_missing_entries();
                     }
                 }
             }
