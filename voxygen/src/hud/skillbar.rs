@@ -3,7 +3,7 @@ use super::{
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::{item::Debug, item::Tool, Energy, ItemKind, Stats};
+use common::comp::{item::Debug, item::Tool, ActionState, CharacterState, Energy, ItemKind, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -32,14 +32,18 @@ widget_ids! {
         m1_slot,
         m1_slot_bg,
         m1_text,
+        m1_slot_act,
         m1_content,
         m2_slot,
         m2_slot_bg,
         m2_text,
+        m2_slot_act,
         m2_content,
         slot1,
         slot1_bg,
         slot1_text,
+        slot1_icon,
+        slot1_act,
         slot2,
         slot2_bg,
         slot2_text,
@@ -98,6 +102,7 @@ pub struct Skillbar<'a> {
     fonts: &'a Fonts,
     stats: &'a Stats,
     energy: &'a Energy,
+    character_state: &'a CharacterState,
     pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -111,6 +116,7 @@ impl<'a> Skillbar<'a> {
         fonts: &'a Fonts,
         stats: &'a Stats,
         energy: &'a Energy,
+        character_state: &'a CharacterState,
         pulse: f32,
     ) -> Self {
         Self {
@@ -121,6 +127,7 @@ impl<'a> Skillbar<'a> {
             global_state,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
+            character_state,
             pulse,
         }
     }
@@ -516,13 +523,32 @@ impl<'a> Widget for Skillbar<'a> {
                     .mid_bottom_with_margin_on(ui.window, 9.0)
                     .set(state.ids.hotbar_align, ui);
                 // M1 Slot
-                Image::new(self.imgs.skillbar_slot_big)
-                    .w_h(40.0 * scale, 40.0 * scale)
-                    .top_left_with_margins_on(state.ids.hotbar_align, -40.0 * scale, 0.0)
-                    .set(state.ids.m1_slot, ui);
+
+                match self.character_state.action {
+                    ActionState::Attack { .. } => {
+                        let fade_pulse = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.6; //Animation timer;
+                        Image::new(self.imgs.skillbar_slot_big)
+                            .w_h(40.0 * scale, 40.0 * scale)
+                            .top_left_with_margins_on(state.ids.hotbar_align, -40.0 * scale, 0.0)
+                            .set(state.ids.m1_slot, ui);
+                        Image::new(self.imgs.skillbar_slot_big_act)
+                            .w_h(40.0 * scale, 40.0 * scale)
+                            .middle_of(state.ids.m1_slot)
+                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_pulse)))
+                            .floating(true)
+                            .set(state.ids.m1_slot_act, ui);
+                    }
+                    _ => {
+                        Image::new(self.imgs.skillbar_slot_big)
+                            .w_h(40.0 * scale, 40.0 * scale)
+                            .top_left_with_margins_on(state.ids.hotbar_align, -40.0 * scale, 0.0)
+                            .set(state.ids.m1_slot, ui);
+                    }
+                }
             }
         }
         // M1 Slot
+
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(36.0 * scale, 36.0 * scale)
             .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
@@ -566,10 +592,28 @@ impl<'a> Widget for Skillbar<'a> {
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
         // M2 Slot
-        Image::new(self.imgs.skillbar_slot_big)
-            .w_h(40.0 * scale, 40.0 * scale)
-            .right_from(state.ids.m1_slot, 0.0)
-            .set(state.ids.m2_slot, ui);
+        match self.character_state.action {
+            ActionState::Block { .. } => {
+                let fade_pulse = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.6; //Animation timer;
+                Image::new(self.imgs.skillbar_slot_big)
+                    .w_h(40.0 * scale, 40.0 * scale)
+                    .right_from(state.ids.m1_slot, 0.0)
+                    .set(state.ids.m2_slot, ui);
+                Image::new(self.imgs.skillbar_slot_big_act)
+                    .w_h(40.0 * scale, 40.0 * scale)
+                    .middle_of(state.ids.m2_slot)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_pulse)))
+                    .floating(true)
+                    .set(state.ids.m2_slot_act, ui);
+            }
+            _ => {
+                Image::new(self.imgs.skillbar_slot_big)
+                    .w_h(40.0 * scale, 40.0 * scale)
+                    .right_from(state.ids.m1_slot, 0.0)
+                    .set(state.ids.m2_slot, ui);
+            }
+        }
+
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(36.0 * scale, 36.0 * scale)
             .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
@@ -653,15 +697,45 @@ impl<'a> Widget for Skillbar<'a> {
             .middle_of(state.ids.slot2)
             .set(state.ids.slot2_bg, ui);
         // Slot 1
-        Image::new(self.imgs.skillbar_slot_l)
-            .w_h(20.0 * scale, 20.0 * scale)
-            .left_from(state.ids.slot2, 0.0)
-            .set(state.ids.slot1, ui);
+        // TODO: Don't hardcode this to one Skill...
+        // Frame flashes whenever the active skill inside this slot is activated
+        match self.character_state.action {
+            ActionState::Charge { time_left } => {
+                let fade = time_left.as_secs_f32() * 10.0;
+                Image::new(self.imgs.skillbar_slot_l)
+                    .w_h(20.0 * scale, 20.0 * scale)
+                    .left_from(state.ids.slot2, 0.0)
+                    .set(state.ids.slot1, ui);
+                Image::new(self.imgs.skillbar_slot_l_act)
+                    .w_h(20.0 * scale, 20.0 * scale)
+                    .middle_of(state.ids.slot1)
+                    .color(Some(Color::Rgba(
+                        1.0,
+                        1.0,
+                        1.0,
+                        if fade > 0.6 { 0.6 } else { fade },
+                    )))
+                    .floating(true)
+                    .set(state.ids.slot1_act, ui);
+            }
+            _ => {
+                Image::new(self.imgs.skillbar_slot_l)
+                    .w_h(20.0 * scale, 20.0 * scale)
+                    .left_from(state.ids.slot2, 0.0)
+                    .set(state.ids.slot1, ui);
+            }
+        }
         Image::new(self.imgs.skillbar_slot_bg)
             .w_h(19.0 * scale, 19.0 * scale)
             .color(Some(BG_COLOR))
             .middle_of(state.ids.slot1)
             .set(state.ids.slot1_bg, ui);
+        // TODO: Changeable slot image
+        Image::new(self.imgs.charge)
+            .w_h(18.0 * scale, 18.0 * scale)
+            //.color(Some(BG_COLOR))
+            .middle_of(state.ids.slot1_bg)
+            .set(state.ids.slot1_icon, ui);
         // Slot 6
         Image::new(self.imgs.skillbar_slot)
             .w_h(20.0 * scale, 20.0 * scale)
