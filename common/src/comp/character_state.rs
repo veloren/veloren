@@ -9,7 +9,7 @@ use crate::{
 use serde::Deserialize;
 use serde::Serialize;
 use specs::LazyUpdate;
-use specs::{Component, Entity, FlaggedStorage, HashMapStorage, NullStorage};
+use specs::{Component, Entity, FlaggedStorage, HashMapStorage};
 use std::time::Duration;
 
 pub struct EcsStateData<'a> {
@@ -158,22 +158,4 @@ impl Default for CharacterState {
 
 impl Component for CharacterState {
     type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct OverrideState;
-impl Component for OverrideState {
-    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct OverrideAction;
-impl Component for OverrideAction {
-    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct OverrideMove;
-impl Component for OverrideMove {
-    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
 }

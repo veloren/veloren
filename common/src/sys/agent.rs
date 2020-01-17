@@ -1,6 +1,4 @@
-use crate::comp::{
-    Agent, CharacterState, Controller, ControllerInputs, MountState, MoveState::Glide, Pos, Stats,
-};
+use crate::comp::{Agent, CharacterState, Controller, MountState, MoveState::Glide, Pos, Stats};
 use crate::hierarchical::ChunkPath;
 use crate::pathfinding::WorldPath;
 use crate::terrain::TerrainGrid;
