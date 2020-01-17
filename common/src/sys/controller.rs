@@ -16,7 +16,7 @@ use specs::{
 use std::time::Duration;
 use vek::*;
 
-const CHARGE_COST: i32 = 50;
+const CHARGE_COST: i32 = 200;
 
 /// # Controller System
 /// #### Responsible for validating controller inputs and setting new Character States
