@@ -63,6 +63,7 @@ hashbrown = { version = "0.6.2", features = ["serde", "nightly"] }
 chrono = "0.4.9"
 rust-argon2 = "0.5"
 bincode = "1.2"
+deunicode = "1.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
