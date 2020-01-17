@@ -281,10 +281,7 @@ impl<'a> BlockGen<'a> {
                 && (marble * 3173.7).fract() < 0.6
                 && humidity > 0.4
             {
-                let treasures = [
-                    BlockKind::Chest,
-                    //BlockKind::Velorite,
-                ];
+                let treasures = [BlockKind::Chest, BlockKind::Velorite];
 
                 let flowers = [
                     BlockKind::BlueFlower,
@@ -334,14 +331,6 @@ impl<'a> BlockGen<'a> {
                     },
                     Rgb::broadcast(0),
                 ))
-            } else if (wposf.z as f32) < height + 0.9
-                && chaos > 0.6
-                && (wposf.z as f32 > water_height + 3.0)
-                && marble > 0.75
-                && marble_small > 0.3
-                && (marble * 7323.07).fract() < 0.75
-            {
-                Some(Block::new(BlockKind::Velorite, Rgb::broadcast(0)))
             } else {
                 None
             }

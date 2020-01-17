@@ -30,10 +30,14 @@ image_ids! {
         xp_bar_left: "voxygen.element.skillbar.xp_bar_left",
         xp_bar_right: "voxygen.element.skillbar.xp_bar_right",
         skillbar_slot: "voxygen.element.skillbar.skillbar_slot",
+        skillbar_slot_act: "voxygen.element.skillbar.skillbar_slot_active",
         skillbar_slot_l: "voxygen.element.skillbar.skillbar_slot_l",
         skillbar_slot_r: "voxygen.element.skillbar.skillbar_slot_r",
+        skillbar_slot_l_act: "voxygen.element.skillbar.skillbar_slot_l_active",
+        skillbar_slot_r_act: "voxygen.element.skillbar.skillbar_slot_r_active",
         skillbar_slot_bg: "voxygen.element.skillbar.skillbar_slot_bg",
         skillbar_slot_big: "voxygen.element.skillbar.skillbar_slot_big",
+        skillbar_slot_big_act: "voxygen.element.skillbar.skillbar_slot_big_active",
         skillbar_slot_big_bg: "voxygen.element.skillbar.skillbar_slot_big_bg",
         healthbar_bg: "voxygen.element.skillbar.healthbar_bg",
         energybar_bg: "voxygen.element.skillbar.energybar_bg",
@@ -97,7 +101,12 @@ image_ids! {
         // Crosshair
         crosshair_inner: "voxygen.element.misc_bg.crosshair_inner",
 
-        // Icons
+
+
+////////////////////////////////////////////////////////////////////////
+        <VoxelMs9Graphic>
+
+        // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",
         twohsword_m2: "voxygen.element.icons.2hsword_m2",
         twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
@@ -111,8 +120,9 @@ image_ids! {
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
 
-////////////////////////////////////////////////////////////////////////
-        <VoxelMs9Graphic>
+        charge: "voxygen.element.icons.skill_charge_2",
+
+
         // Icons
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
