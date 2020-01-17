@@ -1649,14 +1649,20 @@ impl Hud {
         let ecs = client.state().ecs();
         let stats = ecs.read_storage::<comp::Stats>();
         let energy = ecs.read_storage::<comp::Energy>();
+        let character_state = ecs.read_storage::<comp::CharacterState>();
         let entity = client.entity();
-        if let (Some(stats), Some(energy)) = (stats.get(entity), energy.get(entity)) {
+        if let (Some(stats), Some(energy), Some(character_state)) = (
+            stats.get(entity),
+            energy.get(entity),
+            character_state.get(entity),
+        ) {
             Skillbar::new(
                 global_state,
                 &self.imgs,
                 &self.fonts,
                 &stats,
                 &energy,
+                &character_state,
                 self.pulse,
             )
             .set(self.ids.skillbar, ui_widgets);
