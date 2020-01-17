@@ -1,5 +1,6 @@
 use crate::window::{Event as WinEvent, PressState};
 use crate::{
+    i18n::{i18n_asset_key, VoxygenLocalization},
     meta::CharacterData,
     render::{Consts, Globals, Renderer},
     ui::{
@@ -9,6 +10,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
+use common::assets::load_expect;
 use common::comp::{self, humanoid};
 use conrod_core::{
     color,
@@ -256,6 +258,7 @@ pub struct CharSelectionUi {
     fonts: Fonts,
     character_creation: bool,
     info_content: InfoContent,
+    selected_language: String,
     //deletion_confirmation: bool,
     pub character_name: String,
     pub character_body: humanoid::Body,
@@ -287,6 +290,7 @@ impl CharSelectionUi {
             info_content: InfoContent::None,
             //deletion_confirmation: false,
             character_creation: false,
+            selected_language: global_state.settings.language.selected_language.clone(),
             character_name: "Character Name".to_string(),
             character_body: humanoid::Body::random(),
             character_tool: Some(STARTER_SWORD),
@@ -302,6 +306,9 @@ impl CharSelectionUi {
             env!("CARGO_PKG_VERSION"),
             common::util::GIT_VERSION.to_string()
         );
+        let localized_strings =
+            load_expect::<VoxygenLocalization>(&i18n_asset_key(&self.selected_language));
+
         // Tooltip
         let tooltip_human = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -337,7 +344,7 @@ impl CharSelectionUi {
             match self.info_content {
                 InfoContent::None => unreachable!(),
                 InfoContent::Deletion(character_index) => {
-                    Text::new("Permanently delete this Character?")
+                    Text::new(&localized_strings.get("char_selection.delete_permanently"))
                         .mid_top_with_margin_on(self.ids.info_frame, 40.0)
                         .font_size(24)
                         .font_id(self.fonts.cyri)
@@ -349,7 +356,7 @@ impl CharSelectionUi {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
-                        .label("No")
+                        .label(&localized_strings.get("common.no"))
                         .label_font_id(self.fonts.cyri)
                         .label_font_size(18)
                         .label_color(TEXT_COLOR)
@@ -364,8 +371,7 @@ impl CharSelectionUi {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
-                        .label("Yes")
-                        .label_font_id(self.fonts.cyri)
+                        .label(&localized_strings.get("common.yes"))
                         .label_font_size(18)
                         .label_color(TEXT_COLOR)
                         .set(self.ids.info_ok, ui_widgets)
@@ -435,7 +441,7 @@ impl CharSelectionUi {
                 .parent(self.ids.charlist_bg)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label("Change Server")
+                .label(&localized_strings.get("char_selection.change_server"))
                 .label_color(TEXT_COLOR)
                 .label_font_id(self.fonts.cyri)
                 .label_font_size(18)
@@ -452,7 +458,7 @@ impl CharSelectionUi {
                 .w_h(250.0, 60.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label("Enter World")
+                .label(&localized_strings.get("char_selection.enter_world"))
                 .label_color(TEXT_COLOR)
                 .label_font_size(26)
                 .label_font_id(self.fonts.cyri)
@@ -469,7 +475,7 @@ impl CharSelectionUi {
                 .w_h(150.0, 40.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label("Logout")
+                .label(&localized_strings.get("char_selection.logout"))
                 .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
@@ -486,7 +492,7 @@ impl CharSelectionUi {
                 .w_h(270.0, 50.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label("Create Character")
+                .label(&localized_strings.get("char_selection.create_charater"))
                 .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
@@ -599,7 +605,7 @@ impl CharSelectionUi {
                 .w_h(386.0, 80.0)
                 .hover_image(self.imgs.selection_hover)
                 .press_image(self.imgs.selection_press)
-                .label("Create New Character")
+                .label(&localized_strings.get("char_selection.create_new_charater"))
                 .label_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
                 .label_font_id(self.fonts.cyri)
                 .image_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
@@ -619,7 +625,7 @@ impl CharSelectionUi {
                 .w_h(150.0, 40.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label("Back")
+                .label(&localized_strings.get("common.back"))
                 .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
@@ -635,7 +641,7 @@ impl CharSelectionUi {
                 .w_h(150.0, 40.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label("Create")
+                .label(&localized_strings.get("common.create"))
                 .label_font_id(self.fonts.cyri)
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
@@ -704,7 +710,7 @@ impl CharSelectionUi {
                 .set(self.ids.selection_scrollbar, ui_widgets);
 
             // Male/Female/Race Icons
-            Text::new("Character Creation")
+            Text::new(&localized_strings.get("char_selection.character_creation"))
                 .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
                 .font_size(24)
                 .font_id(self.fonts.cyri)
@@ -794,7 +800,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.human)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Human", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.races.human"),
+                "",
+                &tooltip_human,
+            )
             /*.tooltip_image(
                 if let humanoid::BodyType::Male = self.character_body.body_type {
                     self.imgs.human_m
@@ -822,7 +833,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.orc)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Orc", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.races.orc"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.race_2, ui_widgets)
             .was_clicked()
             {
@@ -842,7 +858,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.dwarf)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Dwarf", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.races.dwarf"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.race_3, ui_widgets)
             .was_clicked()
             {
@@ -862,7 +883,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.elf)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Elf", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.races.elf"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.race_4, ui_widgets)
             .was_clicked()
             {
@@ -882,7 +908,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.undead)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Undead", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.races.undead"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.race_5, ui_widgets)
             .was_clicked()
             {
@@ -902,7 +933,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.danari)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Danari", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.races.danari"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.race_6, ui_widgets)
             .was_clicked()
             {
@@ -924,7 +960,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.hammer)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Hammer", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.weapons.hammer"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.hammer_button, ui_widgets)
             .was_clicked()
             {
@@ -949,7 +990,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.bow)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Bow", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.weapons.bow"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.bow_button, ui_widgets)
             .was_clicked()
             {
@@ -972,7 +1018,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.staff)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Staff", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.weapons.staff"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.staff_button, ui_widgets)
             .was_clicked()
             {
@@ -995,7 +1046,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.sword)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Sword", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.weapons.sword"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.sword_button, ui_widgets)
             .was_clicked()
             {
@@ -1038,7 +1094,12 @@ impl CharSelectionUi {
             .middle_of(self.ids.axe)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
-            .with_tooltip(tooltip_manager, "Axe", "", &tooltip_human)
+            .with_tooltip(
+                tooltip_manager,
+                &localized_strings.get("common.weapons.axe"),
+                "",
+                &tooltip_human,
+            )
             .set(self.ids.axe_button, ui_widgets)
             .was_clicked()
             {
@@ -1056,13 +1117,13 @@ impl CharSelectionUi {
                 self.imgs.slider_range,
             );
             let char_slider = move |prev_id,
-                                    text,
+                                    text: String,
                                     text_id,
                                     max,
                                     selected_val,
                                     slider_id,
                                     ui_widgets: &mut UiCell| {
-                Text::new(text)
+                Text::new(&text.clone())
                     .down_from(prev_id, 22.0)
                     .align_middle_x_of(prev_id)
                     .font_size(18)
@@ -1081,7 +1142,7 @@ impl CharSelectionUi {
             // Hair Style
             if let Some(new_val) = char_slider(
                 self.ids.creation_buttons_alignment_2,
-                "Hair Style",
+                localized_strings.get("char_selection.hair_style"),
                 self.ids.hairstyle_text,
                 self.character_body
                     .race
@@ -1096,7 +1157,7 @@ impl CharSelectionUi {
             // Hair Color
             if let Some(new_val) = char_slider(
                 self.ids.hairstyle_slider,
-                "Hair Color",
+                localized_strings.get("char_selection.hair_color"),
                 self.ids.haircolor_text,
                 self.character_body.race.num_hair_colors() as usize - 1,
                 self.character_body.hair_color as usize,
@@ -1108,7 +1169,7 @@ impl CharSelectionUi {
             // Skin
             if let Some(new_val) = char_slider(
                 self.ids.haircolor_slider,
-                "Skin",
+                localized_strings.get("char_selection.skin"),
                 self.ids.skin_text,
                 self.character_body.race.num_skin_colors() as usize - 1,
                 self.character_body.skin as usize,
@@ -1121,7 +1182,7 @@ impl CharSelectionUi {
             let current_eyebrows = self.character_body.eyebrows;
             if let Some(new_val) = char_slider(
                 self.ids.skin_slider,
-                "Eyebrows",
+                localized_strings.get("char_selection.eyebrows"),
                 self.ids.eyebrows_text,
                 humanoid::ALL_EYEBROWS.len() - 1,
                 humanoid::ALL_EYEBROWS
@@ -1136,7 +1197,7 @@ impl CharSelectionUi {
             // EyeColor
             if let Some(new_val) = char_slider(
                 self.ids.eyebrows_slider,
-                "Eye Color",
+                localized_strings.get("char_selection.eye_color"),
                 self.ids.eyecolor_text,
                 self.character_body.race.num_eye_colors() as usize - 1,
                 self.character_body.eye_color as usize,
@@ -1149,7 +1210,7 @@ impl CharSelectionUi {
             let _current_accessory = self.character_body.accessory;
             if let Some(new_val) = char_slider(
                 self.ids.eyecolor_slider,
-                "Accessories",
+                localized_strings.get("char_selection.accessories"),
                 self.ids.accessories_text,
                 self.character_body
                     .race
@@ -1170,7 +1231,7 @@ impl CharSelectionUi {
             {
                 if let Some(new_val) = char_slider(
                     self.ids.accessories_slider,
-                    "Beard",
+                    localized_strings.get("char_selection.beard"),
                     self.ids.beard_text,
                     self.character_body
                         .race
@@ -1183,7 +1244,7 @@ impl CharSelectionUi {
                     self.character_body.beard = new_val as u8;
                 }
             } else {
-                Text::new("Beard")
+                Text::new(&localized_strings.get("char_selection.beard"))
                     .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
                     .font_size(18)
                     .font_id(self.fonts.cyri)
@@ -1203,7 +1264,7 @@ impl CharSelectionUi {
             let current_chest = self.character_body.chest;
             if let Some(new_val) = char_slider(
                 self.ids.beard_slider,
-                "Chest Color",
+                localized_strings.get("char_selection.chest_color"),
                 self.ids.chest_text,
                 humanoid::ALL_CHESTS.len() - 1,
                 humanoid::ALL_CHESTS

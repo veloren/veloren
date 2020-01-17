@@ -8,6 +8,8 @@ use conrod_core::{
 
 use client::{self, Client};
 
+use crate::i18n::VoxygenLocalization;
+
 widget_ids! {
     pub struct Ids {
         spell_frame,
@@ -25,17 +27,26 @@ pub struct Spell<'a> {
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> Spell<'a> {
-    pub fn new(show: &'a Show, _client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        show: &'a Show,
+        _client: &'a Client,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    ) -> Self {
         Self {
             _show: show,
-            imgs,
             _client,
-            fonts: fonts,
+            imgs,
+            fonts,
+            localized_strings,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -93,7 +104,7 @@ impl<'a> Widget for Spell<'a> {
 
         // Title
         // TODO: Use an actual character name.
-        Text::new("Spell")
+        Text::new(&self.localized_strings.get("hud.spell"))
             .mid_top_with_margin_on(state.spell_frame, 6.0)
             .font_id(self.fonts.cyri)
             .font_size(14)
