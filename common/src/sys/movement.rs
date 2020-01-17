@@ -15,13 +15,13 @@ use vek::*;
 
 pub const ROLL_DURATION: Duration = Duration::from_millis(600);
 
-const HUMANOID_ACCEL: f32 = 50.0;
+const HUMANOID_ACCEL: f32 = 100.0;
 const HUMANOID_SPEED: f32 = 120.0;
-const HUMANOID_AIR_ACCEL: f32 = 10.0;
+const HUMANOID_AIR_ACCEL: f32 = 15.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_WATER_ACCEL: f32 = 70.0;
 const HUMANOID_WATER_SPEED: f32 = 120.0;
-const HUMANOID_CLIMB_ACCEL: f32 = 5.0;
+const HUMANOID_CLIMB_ACCEL: f32 = 10.0;
 const ROLL_SPEED: f32 = 17.0;
 const CHARGE_SPEED: f32 = 20.0;
 const GLIDE_ACCEL: f32 = 15.0;
@@ -221,14 +221,9 @@ impl<'a> System<'a> for Sys {
                 if inputs.climb_down.is_pressed() && !inputs.climb.is_pressed() {
                     vel.0 -= dt.0 * vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
                 } else if inputs.climb.is_pressed() && !inputs.climb_down.is_pressed() {
-                    vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
+                    vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED).max(0.0);
                 } else {
-                    vel.0.z = vel.0.z + dt.0 * GRAVITY * 1.5;
-                    vel.0 = Lerp::lerp(
-                        vel.0,
-                        Vec3::zero(),
-                        30.0 * dt.0 / (1.0 - vel.0.z.min(0.0) * 5.0),
-                    );
+                    vel.0.z = (vel.0.z - dt.0 * GRAVITY * 0.01).min(CLIMB_SPEED);
                 }
             }
 

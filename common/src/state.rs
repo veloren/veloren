@@ -39,7 +39,7 @@ pub struct DeltaTime(pub f32);
 /// upper limit. If delta time exceeds this value, the game's physics will begin to produce time
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
-const HUMANOID_JUMP_ACCEL: f32 = 16.0;
+const HUMANOID_JUMP_ACCEL: f32 = 26.0;
 
 #[derive(Default)]
 pub struct BlockChange {

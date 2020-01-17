@@ -258,7 +258,7 @@ impl Server {
 
         state.write_component(entity, body);
         state.write_component(entity, comp::Stats::new(name, main));
-        state.write_component(entity, comp::Energy::new(200));
+        state.write_component(entity, comp::Energy::new(1000));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
@@ -1185,7 +1185,7 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
-            .with(comp::Energy::new(100))
+            .with(comp::Energy::new(500))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
     }

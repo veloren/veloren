@@ -5,7 +5,7 @@ use crate::{
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
-const ENERGY_REGEN_ACCEL: f32 = 1.0;
+const ENERGY_REGEN_ACCEL: f32 = 0.5;
 
 /// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
