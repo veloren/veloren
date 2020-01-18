@@ -165,6 +165,8 @@ image_ids! {
         charlist_frame: "voxygen.element.frames.window_4",
         server_frame: "voxygen.element.frames.server_frame",
         selection: "voxygen.element.frames.selection",
+        selection_hover: "voxygen.element.frames.selection_hover",
+        selection_press: "voxygen.element.frames.selection_press",
         slider_range: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",
 
@@ -462,7 +464,7 @@ impl CharSelectionUi {
             }
 
             // Create Character Button.
-            if Button::image(self.imgs.button)
+            /*if Button::image(self.imgs.button)
                 .mid_bottom_with_margin_on(self.ids.charlist_bg, -60.0)
                 .w_h(270.0, 50.0)
                 .hover_image(self.imgs.button_hover)
@@ -477,7 +479,7 @@ impl CharSelectionUi {
             {
                 self.character_creation = true;
                 self.character_tool = Some(STARTER_SWORD);
-            }
+            }*/
 
             // Alpha Version
             Text::new(&version)
@@ -511,7 +513,7 @@ impl CharSelectionUi {
                 self.info_content = InfoContent::Deletion;
                 self.info_window = true;
             }
-            Text::new("Human Default")
+            Text::new("Test Character")
                 .top_left_with_margins_on(self.ids.character_box_1, 6.0, 9.0)
                 .font_size(19)
                 .font_id(self.fonts.cyri)
@@ -532,37 +534,22 @@ impl CharSelectionUi {
                 .color(TEXT_COLOR)
                 .set(self.ids.character_location_1, ui_widgets);
 
-            // 2nd Character in List
-            if Button::image(self.imgs.nothing)
+            // Create Character Button
+            if Button::image(self.imgs.selection)
                 .down_from(self.ids.character_box_1, 5.0)
                 .w_h(386.0, 80.0)
-                .hover_image(self.imgs.selection)
-                .press_image(self.imgs.selection)
-                .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
-                .label_y(conrod_core::position::Relative::Scalar(20.0))
+                .hover_image(self.imgs.selection_hover)
+                .press_image(self.imgs.selection_press)
+                .label("Create New Character")
+                .label_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
+                .label_font_id(self.fonts.cyri)
+                .image_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
                 .set(self.ids.character_box_2, ui_widgets)
                 .was_clicked()
-            {}
-            Text::new("Example 2nd Char")
-                .top_left_with_margins_on(self.ids.character_box_2, 6.0, 9.0)
-                .font_size(19)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.character_name_2, ui_widgets);
-
-            Text::new("Level ??")
-                .down_from(self.ids.character_name_2, 4.0)
-                .font_size(17)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.character_level_2, ui_widgets);
-
-            Text::new("Plains of Uncertainty")
-                .down_from(self.ids.character_level_2, 4.0)
-                .font_size(17)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.character_location_2, ui_widgets);
+            {
+                self.character_creation = true;
+                self.character_tool = Some(STARTER_SWORD);
+            }
         }
         // Character_Creation //////////////////////////////////////////////////////////////////////
         else {
@@ -629,17 +616,23 @@ impl CharSelectionUi {
             }
 
             // Window
-            Rectangle::fill_with([386.0, 988.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
-                .set(self.ids.creation_bg, ui_widgets);
+            Rectangle::fill_with(
+                [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.2],
+                color::rgba(0.0, 0.0, 0.0, 0.8),
+            )
+            .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
+            .set(self.ids.creation_bg, ui_widgets);
             Image::new(self.imgs.charlist_frame)
-                .w_h(400.0, 1000.0)
+                .w_h(400.0, ui_widgets.win_h - ui_widgets.win_h * 0.19)
                 .middle_of(self.ids.creation_bg)
                 .set(self.ids.charlist_frame, ui_widgets);
-            Rectangle::fill_with([386.0, 983.0], color::TRANSPARENT)
-                .middle_of(self.ids.creation_bg)
-                .scroll_kids_vertically()
-                .set(self.ids.creation_alignment, ui_widgets);
+            Rectangle::fill_with(
+                [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.19],
+                color::TRANSPARENT,
+            )
+            .middle_of(self.ids.creation_bg)
+            .scroll_kids_vertically()
+            .set(self.ids.creation_alignment, ui_widgets);
             Scrollbar::y_axis(self.ids.creation_alignment)
                 .thickness(5.0)
                 .auto_hide(true)
