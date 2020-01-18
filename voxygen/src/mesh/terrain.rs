@@ -3,7 +3,7 @@ use crate::{
     render::{self, FluidPipeline, Mesh, TerrainPipeline},
 };
 use common::{
-    terrain::Block,
+    terrain::{Block, BlockKind},
     vol::{ReadVol, RectRasterableVol, Vox},
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
 };
@@ -12,6 +12,19 @@ use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 type FluidVertex = <FluidPipeline as render::Pipeline>::Vertex;
+
+trait Blendable {
+    fn is_blended(&self) -> bool;
+}
+
+impl Blendable for BlockKind {
+    fn is_blended(&self) -> bool {
+        match self {
+            BlockKind::Leaves => false,
+            _ => true,
+        }
+    }
+}
 
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
@@ -317,16 +330,15 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     }
                 }
 
-                let get_color = |maybe_block: Option<&Block>| {
+                let get_color = |maybe_block: Option<&Block>, neighbour: bool| {
                     maybe_block
-                        .filter(|vox| vox.is_opaque())
+                        .filter(|vox| vox.is_opaque() && (!neighbour || vox.is_blended()))
                         .and_then(|vox| vox.get_color())
                         .map(|col| Rgba::from_opaque(col))
                         .unwrap_or(Rgba::zero())
                 };
 
                 let mut blocks = [[[None; 3]; 3]; 3];
-                let mut colors = [[[Rgba::zero(); 3]; 3]; 3];
                 for i in 0..3 {
                     for j in 0..3 {
                         for k in 0..3 {
@@ -334,7 +346,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                                 Vec3::new(x, y, z_start) + Vec3::new(i as i32, j as i32, k as i32)
                                     - 1,
                             ));
-                            colors[k][j][i] = get_color(block.as_ref());
                             blocks[k][j][i] = block;
                         }
                     }
@@ -348,8 +359,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     lights[1] = lights[2];
                     blocks[0] = blocks[1];
                     blocks[1] = blocks[2];
-                    colors[0] = colors[1];
-                    colors[1] = colors[2];
 
                     for i in 0..3 {
                         for j in 0..3 {
@@ -360,20 +369,35 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     for i in 0..3 {
                         for j in 0..3 {
                             let block = Some(flat_get(pos + Vec3::new(i as i32, j as i32, 2) - 1));
-                            colors[2][j][i] = get_color(block.as_ref());
                             blocks[2][j][i] = block;
                         }
                     }
 
                     let block = blocks[1][1][1];
+                    let colors = if block.map_or(false, |vox| vox.is_blended()) {
+                        let mut colors = [[[Rgba::zero(); 3]; 3]; 3];
+                        for i in 0..3 {
+                            for j in 0..3 {
+                                for k in 0..3 {
+                                    colors[i][j][k] = get_color(
+                                        blocks[i][j][k].as_ref(),
+                                        i != 1 || j != 1 || k != 1,
+                                    )
+                                }
+                            }
+                        }
+                        colors
+                    } else {
+                        [[[get_color(blocks[1][1][1].as_ref(), false); 3]; 3]; 3]
+                    };
 
                     // Create mesh polygons
-                    if block.map(|vox| vox.is_opaque()).unwrap_or(false) {
+                    if block.map_or(false, |vox| vox.is_opaque()) {
                         vol::push_vox_verts(
                             &mut opaque_mesh,
                             faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
                             offs,
-                            &colors, //&[[[colors[1][1][1]; 3]; 3]; 3],
+                            &colors,
                             |pos, norm, col, ao, light| {
                                 let light = (light.min(ao) * 255.0) as u32;
                                 let norm = if norm.x != 0.0 {
@@ -399,7 +423,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             },
                             &lights,
                         );
-                    } else if block.map(|vox| vox.is_fluid()).unwrap_or(false) {
+                    } else if block.map_or(false, |vox| vox.is_fluid()) {
                         vol::push_vox_verts(
                             &mut fluid_mesh,
                             faces_to_make(&blocks, false, |vox| vox.is_air()),
