@@ -243,7 +243,10 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                 for x in 0..range.size().w {
                     for y in 0..range.size().h {
                         for z in -1..range.size().d + 1 {
-                            let block = *volume.get(range.min + Vec3::new(x, y, z)).unwrap();
+                            let block = volume
+                                .get(range.min + Vec3::new(x, y, z))
+                                .map(|b| *b)
+                                .unwrap_or(Block::empty());
                             if block.is_opaque() {
                                 lowest_opaque = lowest_opaque.min(z);
                                 highest_opaque = highest_opaque.max(z);
