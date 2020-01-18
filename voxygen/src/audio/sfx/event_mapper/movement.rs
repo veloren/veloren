@@ -4,7 +4,7 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
 use common::{
-    comp::{ActionState, Body, CharacterState, MovementState, Pos},
+    comp::{ActionState, Body, CharacterState, MovementState, Pos, Vel},
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
@@ -38,9 +38,10 @@ impl MovementEventMapper {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, body, character) in (
+        for (entity, pos, vel, body, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
@@ -59,7 +60,9 @@ impl MovementEventMapper {
                     });
 
                 let mapped_event = match body {
-                    Body::Humanoid(_) => Self::map_movement_event(character, state.event.clone()),
+                    Body::Humanoid(_) => {
+                        Self::map_movement_event(character, state.event.clone(), vel.0)
+                    }
                     Body::QuadrupedMedium(_) => {
                         // TODO: Quadriped running sfx
                         SfxEvent::Idle
@@ -122,12 +125,25 @@ impl MovementEventMapper {
     /// however that list does not provide enough resolution to target specific entity events, such
     /// as opening or closing the glider. These methods translate those entity states with some additional
     /// data into more specific `SfxEvent`'s which we attach sounds to
-    fn map_movement_event(current_event: &CharacterState, previous_event: SfxEvent) -> SfxEvent {
+    fn map_movement_event(
+        current_event: &CharacterState,
+        previous_event: SfxEvent,
+        vel: Vec3<f32>,
+    ) -> SfxEvent {
         match (current_event.movement, current_event.action, previous_event) {
             (_, ActionState::Roll { .. }, _) => SfxEvent::Roll,
             (MovementState::Climb, ..) => SfxEvent::Climb,
             (MovementState::Swim, ..) => SfxEvent::Swim,
-            (MovementState::Run, ..) => SfxEvent::Run,
+            (MovementState::Run, ..) => {
+                // If the entitys's velocity is very low, they may be stuck, or walking into a solid object.
+                // We should not trigger the run SFX in this case, even if their move state indicates running.
+                // The 0.1 value is an approximation from playtesting scenarios where this can occur.
+                if vel.magnitude() > 0.1 {
+                    SfxEvent::Run
+                } else {
+                    SfxEvent::Idle
+                }
+            }
             (MovementState::Jump, ..) => SfxEvent::Jump,
             (MovementState::Fall, _, SfxEvent::Glide) => SfxEvent::GliderClose,
             (MovementState::Stand, _, SfxEvent::Fall) => SfxEvent::Run,
@@ -238,22 +254,38 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Idle,
+            Vec3::zero(),
         );
 
         assert_eq!(result, SfxEvent::Idle);
     }
 
     #[test]
-    fn maps_run() {
+    fn maps_run_with_sufficient_velocity() {
         let result = MovementEventMapper::map_movement_event(
             &CharacterState {
                 movement: MovementState::Run,
                 action: ActionState::Idle,
             },
             SfxEvent::Idle,
+            Vec3::new(0.5, 0.8, 0.0),
         );
 
         assert_eq!(result, SfxEvent::Run);
+    }
+
+    #[test]
+    fn does_not_map_run_with_insufficient_velocity() {
+        let result = MovementEventMapper::map_movement_event(
+            &CharacterState {
+                movement: MovementState::Run,
+                action: ActionState::Idle,
+            },
+            SfxEvent::Idle,
+            Vec3::new(0.02, 0.0001, 0.0),
+        );
+
+        assert_eq!(result, SfxEvent::Idle);
     }
 
     #[test]
@@ -267,6 +299,7 @@ mod tests {
                 movement: MovementState::Run,
             },
             SfxEvent::Run,
+            Vec3::zero(),
         );
 
         assert_eq!(result, SfxEvent::Roll);
@@ -280,6 +313,7 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Fall,
+            Vec3::zero(),
         );
 
         assert_eq!(result, SfxEvent::Fall);
@@ -293,6 +327,7 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Fall,
+            Vec3::zero(),
         );
 
         assert_eq!(result, SfxEvent::Run);
@@ -306,6 +341,7 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Jump,
+            Vec3::zero(),
         );
 
         assert_eq!(result, SfxEvent::GliderOpen);
@@ -319,6 +355,7 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Glide,
+            Vec3::zero(),
         );
 
         assert_eq!(result, SfxEvent::Glide);
@@ -332,6 +369,7 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Glide,
+            Vec3::zero(),
         );
 
         assert_eq!(result, SfxEvent::GliderClose);
@@ -345,6 +383,7 @@ mod tests {
                 action: ActionState::Idle,
             },
             SfxEvent::Glide,
+            Vec3::zero(),
         );
 
         assert_eq!(result, SfxEvent::GliderClose);
