@@ -101,12 +101,13 @@ fn main() {
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
     }
-    let audio_device = match &settings.audio.audio_device {
-        Some(d) => d.to_string(),
-        None => audio::get_default_device(),
-    };
 
     let mut audio = if settings.audio.audio_on {
+        let audio_device = match &settings.audio.audio_device {
+            Some(d) => d.to_string(),
+            None => audio::get_default_device(),
+        };
+
         AudioFrontend::new(audio_device, 16)
     } else {
         AudioFrontend::no_audio()
