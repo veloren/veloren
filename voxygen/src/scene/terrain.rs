@@ -16,7 +16,7 @@ use common::{
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
-use hashbrown::{hash_map::Entry, HashMap};
+use hashbrown::HashMap;
 use std::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
 use treeculler::{BVol, Frustum, AABB};
 use vek::*;
@@ -837,60 +837,60 @@ impl<V: RectRasterableVol> Terrain<V> {
             .map(|(p, _)| *p)
         {
             let chunk_pos = client.state().terrain().pos_key(pos);
-            let new_mesh_state = ChunkMeshState {
-                pos: chunk_pos,
-                started_tick: current_tick,
-                active_worker: None,
-            };
             // Only mesh if this chunk has all its neighbors
-            // If it does have all its neighbors either it should have already been meshed or is in
-            // mesh_todo
-            match self.mesh_todo.entry(chunk_pos) {
-                Entry::Occupied(mut entry) => {
-                    entry.insert(new_mesh_state);
+            let mut neighbours = true;
+            for i in -1..2 {
+                for j in -1..2 {
+                    neighbours &= client
+                        .state()
+                        .terrain()
+                        .get_key(chunk_pos + Vec2::new(i, j))
+                        .is_some();
                 }
-                Entry::Vacant(entry) => {
-                    if self.chunks.contains_key(&chunk_pos) {
-                        entry.insert(new_mesh_state);
-                    }
-                }
+            }
+            if neighbours {
+                self.mesh_todo.insert(
+                    chunk_pos,
+                    ChunkMeshState {
+                        pos: chunk_pos,
+                        started_tick: current_tick,
+                        active_worker: None,
+                    },
+                );
             }
 
             // Handle block changes on chunk borders
+            // Remesh all neighbours because we have complex lighting now
+            // TODO: if lighting is on the server this can be updated to only remesh when lighting
+            // changes in that neighbouring chunk or if the block change was on the border
             for x in -1..2 {
                 for y in -1..2 {
                     let neighbour_pos = pos + Vec3::new(x, y, 0);
                     let neighbour_chunk_pos = client.state().terrain().pos_key(neighbour_pos);
 
                     if neighbour_chunk_pos != chunk_pos {
-                        let new_mesh_state = ChunkMeshState {
-                            pos: neighbour_chunk_pos,
-                            started_tick: current_tick,
-                            active_worker: None,
-                        };
-                        // Only mesh if this chunk has all its neighbors
-                        match self.mesh_todo.entry(neighbour_chunk_pos) {
-                            Entry::Occupied(mut entry) => {
-                                entry.insert(new_mesh_state);
-                            }
-                            Entry::Vacant(entry) => {
-                                if self.chunks.contains_key(&neighbour_chunk_pos) {
-                                    entry.insert(new_mesh_state);
-                                }
+                        // Only remesh if this chunk has all its neighbors
+                        let mut neighbours = true;
+                        for i in -1..2 {
+                            for j in -1..2 {
+                                neighbours &= client
+                                    .state()
+                                    .terrain()
+                                    .get_key(neighbour_chunk_pos + Vec2::new(i, j))
+                                    .is_some();
                             }
                         }
+                        if neighbours {
+                            self.mesh_todo.insert(
+                                neighbour_chunk_pos,
+                                ChunkMeshState {
+                                    pos: neighbour_chunk_pos,
+                                    started_tick: current_tick,
+                                    active_worker: None,
+                                },
+                            );
+                        }
                     }
-
-                    // TODO: Remesh all neighbours because we have complex lighting now
-                    /*self.mesh_todo.insert(
-                        neighbour_chunk_pos,
-                        ChunkMeshState {
-                            pos: chunk_pos + Vec2::new(x, y),
-                            started_tick: current_tick,
-                            active_worker: None,
-                        },
-                    );
-                    */
                 }
             }
         }

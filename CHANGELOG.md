@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made shadows and lights use interpolated positions
 - Changed "Create Character" button position
 - Made clouds bigger, more performant and prettier
+- Terrain meshing optimized further
 
 ### Removed
 
