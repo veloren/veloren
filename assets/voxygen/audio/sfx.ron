@@ -23,17 +23,5 @@
             ],
             threshold: 0.5,
         ),
-        Attack(Melee): (
-            files: [
-                "voxygen.audio.sfx.weapon.sword",
-            ],
-            threshold: 0.5,
-        ),
-        Attack(Bow): (
-            files: [
-                "voxygen.audio.sfx.weapon.bow",
-            ],
-            threshold: 0.5,
-        ),
     }
 )

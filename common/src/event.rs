@@ -19,13 +19,7 @@ impl SfxEventItem {
         Self { sfx, pos: None }
     }
 }
-#[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
-/// Which Kind of Attack Sfx to play,
-pub enum AttackSFX {
-    // Decouples attack sfx assets from attack kinds
-    Melee,
-    Bow,
-}
+
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum SfxEvent {
     Idle,
@@ -47,7 +41,7 @@ pub enum SfxEvent {
     LevelUp,
     LightLantern,
     ExtinguishLantern,
-    Attack(AttackSFX),
+    Attack,
     AttackWolf,
 }
 
