@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
-#![feature(const_generics, label_break_value)]
+#![feature(arbitrary_enum_discriminant, const_generics, label_break_value)]
 
 mod all;
 mod block;

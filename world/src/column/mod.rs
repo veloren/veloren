@@ -829,12 +829,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 /* .mul((1.0 - chaos).min(1.0).max(0.3))
                 .mul(1.0 - humidity) */
                 /* .mul(32.0) */;
-        let basement = alt_
-            + sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt_ + riverless_alt_delta;
-        let basement = basement.min(alt);
+        let basement = alt
+            + sim./*get_interpolated*/get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
+        // let basement = basement.min(alt);
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)

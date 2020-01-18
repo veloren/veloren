@@ -30,6 +30,7 @@ use crate::{
     CONFIG,
 };
 use common::{
+    assets,
     terrain::{BiomeKind, TerrainChunkSize},
     vol::RectVolSize,
 };
@@ -113,6 +114,7 @@ pub(crate) struct GenCtx {
     pub uplift_nz: Worley,
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum FileOpts {
     /// If set, generate the world map and do not try to save to or load from file
     /// (default).
@@ -120,8 +122,17 @@ pub enum FileOpts {
     /// If set, generate the world map and save the world file (path is created
     /// the same way screenshot paths are).
     Save,
+    /// If set, load the world file from this path in legacy format (errors if
+    /// path not found).  This option may be removed at some point, since it only applies to maps
+    /// generated before map saving was merged into master.
+    LoadLegacy(PathBuf),
     /// If set, load the world file from this path (errors if path not found).
     Load(PathBuf),
+    /// If set, look for  the world file at this asset specifier (errors if asset is not found).
+    ///
+    /// NOTE: Could stand to merge this with `Load` and construct an enum that can handle either a
+    /// PathBuf or an asset specifier, at some point.
+    LoadAsset(String),
 }
 
 impl Default for FileOpts {
@@ -145,15 +156,129 @@ impl Default for WorldOpts {
     }
 }
 
-/// A way to store certain components between runs of map generation.  Only intended for
-/// development purposes--no attempt is made to detect map invalidation or make sure that the map
-/// is synchronized with updates to noise-rs, changes to other parameters, etc.
+/// LEGACY: Remove when people stop caring.
 #[derive(Serialize, Deserialize)]
-pub struct WorldFile {
+#[repr(C)]
+pub struct WorldFileLegacy {
     /// Saved altitude height map.
     pub alt: Box<[Alt]>,
     /// Saved basement height map.
     pub basement: Box<[Alt]>,
+}
+
+/// Version of the world map intended for use in Veloren 0.5.0.
+#[derive(Serialize, Deserialize)]
+#[repr(C)]
+pub struct WorldMap_0_5_0 {
+    /// Saved altitude height map.
+    pub alt: Box<[Alt]>,
+    /// Saved basement height map.
+    pub basement: Box<[Alt]>,
+}
+
+/// Errors when converting a map to the most recent type (currently,
+/// shared by the various map types, but at some point we might switch to
+/// version-specific errors if it feels worthwhile).
+#[derive(Debug)]
+pub enum WorldFileError {
+    /// Map size was invalid, and it can't be converted to a valid one.
+    WorldSizeInvalid,
+}
+
+/// WORLD MAP.
+///
+/// A way to store certain components between runs of map generation.  Only intended for
+/// development purposes--no attempt is made to detect map invalidation or make sure that the map
+/// is synchronized with updates to noise-rs, changes to other parameters, etc.
+///
+/// The map is verisoned to enable format detection between versions of Veloren, so that when we
+/// update the map format we don't break existing maps (or at least, we will try hard not to break
+/// maps between versions; if we can't avoid it, we can at least give a reasonable error message).
+///
+/// NOTE: We rely somemwhat heavily on the implementation specifics of bincode to make sure this is
+/// backwards compatible.  When adding new variants here, Be very careful to make sure tha the old
+/// variants are preserved in the correct order and with the correct names and indices, and make
+/// sure to keep the #[repr(u32)]!
+///
+/// All non-legacy versions of world files should (ideally) fit in this format.  Since the format
+/// contains a version and is designed to be extensible backwards-compatibly, the only
+/// reason not to use this forever would be if we decided to move away from BinCode, or
+/// store data across multiple files (or something else weird I guess).
+///
+/// Update this when you add a new map version.
+#[derive(Serialize, Deserialize)]
+#[repr(u32)]
+pub enum WorldFile {
+    Veloren_0_5_0(WorldMap_0_5_0) = 0,
+}
+
+/// Data for the most recent map type.  Update this when you add a new map verson.
+pub type ModernMap = WorldMap_0_5_0;
+
+impl WorldFileLegacy {
+    #[inline]
+    /// Idea: each map type except the latest knows how to transform
+    /// into the the subsequent map version, and each map type including the
+    /// latest exposes an "into_modern()" method that converts this map type
+    /// to the modern map type.  Thus, to migrate a map from an old format to a new
+    /// format, we just need to transform the old format to the subsequent map
+    /// version, and then call .into_modern() on that--this should construct a call chain that
+    /// ultimately ends up with a modern version.
+    pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
+        if self.alt.len() != self.basement.len()
+            || self.alt.len() != WORLD_SIZE.x as usize * WORLD_SIZE.y as usize
+        {
+            return Err(WorldFileError::WorldSizeInvalid);
+        }
+
+        /* let f = |h| h;// / 4.0;
+        let mut map = map;
+        map.alt.par_iter_mut()
+            .zip(map.basement.par_iter_mut())
+            .for_each(|(mut h, mut b)| {
+                *h = f(*h);
+                *b = f(*b);
+            }); */
+
+        let map = WorldMap_0_5_0 {
+            alt: self.alt,
+            basement: self.basement,
+        };
+
+        map.into_modern()
+    }
+}
+
+impl WorldMap_0_5_0 {
+    #[inline]
+    pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
+        if self.alt.len() != self.basement.len()
+            || self.alt.len() != WORLD_SIZE.x as usize * WORLD_SIZE.y as usize
+        {
+            return Err(WorldFileError::WorldSizeInvalid);
+        }
+
+        Ok(self)
+    }
+}
+
+impl WorldFile {
+    /// Turns map data from the latest version into a versioned WorldFile ready for serialization.
+    /// Whenever a new map is updated, just change the variant we construct here to make sure we're
+    /// using the latest map version.
+
+    pub fn new(map: ModernMap) -> Self {
+        WorldFile::Veloren_0_5_0(map)
+    }
+
+    #[inline]
+    /// Turns a WorldFile into the latest version.  Whenever a new map version is added, just add
+    /// it to this match statement.
+    pub fn into_modern(self) -> Result<ModernMap, (WorldFileError)> {
+        match self {
+            WorldFile::Veloren_0_5_0(map) => map.into_modern(),
+        }
+    }
 }
 
 pub struct WorldSim {
@@ -291,8 +416,48 @@ impl WorldSim {
         let rock_strength_nz = ScaleBias::new(&rock_strength_nz)
             .set_scale(1.0 / rock_strength_scale); */
 
-        let height_scale = 1.0f64; // 1.0 / CONFIG.mountain_scale as f64;
-        let max_erosion_per_delta_t = /*8.0*//*32.0*//*1.0*//*32.0*//*32.0*//*16.0*//*64.0*//*32.0*/16.0/*128.0*//*1.0*//*0.2 * /*100.0*/250.0*//*128.0*//*16.0*//*128.0*//*32.0*/ * height_scale;
+        // Suppose the old world has grid spacing Δx' = Δy', new Δx = Δy.
+        // We define grid_scale such that Δx = height_scale * Δx' ⇒
+        //  grid_scale = Δx / Δx'.
+        let grid_scale = 1.0f64 / 4.0/*1.0*/;
+        // Now, suppose we want to generate a world with "similar" topography, defined in this case
+        // as having roughly equal slopes at steady state, with the simulation taking roughly as
+        // many steps to get to the point the previous world was at when it finished being
+        // simulated.
+        //
+        // Some computations with our coupled SPL/debris flow give us (for slope S constant) the following
+        // suggested scaling parameters to make this work:
+        //   k_fs_scale ≡ (K𝑓 / K𝑓') = grid_scale^(-2m) = grid_scale^(-2θn)
+        let k_fs_scale = |theta, n| grid_scale.powf(-2.0 * (theta * n) as f64);
+
+        //   k_da_scale ≡ (K_da / K_da') = grid_scale^(-2q)
+        let k_da_scale = |q| grid_scale.powf(-2.0 * q);
+        //
+        // Some other estimated parameters are harder to come by and *much* more dubious, not being accurate
+        // for the coupled equation. But for the SPL only one we roughly find, for h the height at steady
+        // state and time τ = time to steady state, with Hack's Law estimated b = 2.0 and various other
+        // simplifying assumptions, the estimate:
+        //   height_scale ≡ (h / h') = grid_scale^(n)
+        let height_scale = |n: f32| grid_scale.powf(n as f64) as Alt;
+        //   time_scale ≡ (τ / τ') = grid_scale^(n)
+        let time_scale = |n: f32| grid_scale.powf(n as f64);
+        //
+        // Based on this estimate, we have:
+        //   delta_t_scale ≡ (Δt / Δt') = time_scale
+        let delta_t_scale = |n: f32| time_scale(n);
+        //   alpha_scale ≡ (α / α') = height_scale^(-1)
+        let alpha_scale = |n: f32| height_scale(n).recip() as f32;
+        //
+        // Slightly more dubiously (need to work out the math better) we find:
+        //   k_d_scale ≡ (K_d / K_d') = grid_scale^2 / (height_scale * time_scale)
+        let k_d_scale = |n: f32| /*grid_scale.powi(2) / time_scale(n)*//*height_scale(n)*/grid_scale.powi(2) / (/*height_scale(n) * */time_scale(n))/* * (1.0 / 16.0)*/;
+        //   epsilon_0_scale ≡ (ε₀ / ε₀') = height_scale(n) / time_scale(n)
+        let epsilon_0_scale = |n| /*height_scale(n) as f32*//*1.0*/(height_scale(n) / time_scale(n)) as f32/* * 1.0 / 4.0*/;
+
+        // Approximate n for purposes of computation of parameters above over the whole grid (when
+        // a chunk isn't available).
+        let n_approx = 1.0;
+        let max_erosion_per_delta_t = /*8.0*//*32.0*//*1.0*//*32.0*//*32.0*//*16.0*//*64.0*//*32.0*/64.0/*128.0*//*1.0*//*0.2 * /*100.0*/250.0*//*128.0*//*16.0*//*128.0*//*32.0*/ * delta_t_scale(n_approx);
         let erosion_pow_low = /*0.25*//*1.5*//*2.0*//*0.5*//*4.0*//*0.25*//*1.0*//*2.0*//*1.5*//*1.5*//*0.35*//*0.43*//*0.5*//*0.45*//*0.37*/1.002;
         let erosion_pow_high = /*1.5*//*1.0*//*0.55*//*0.51*//*2.0*/1.002;
         let erosion_center = /*0.45*//*0.75*//*0.75*//*0.5*//*0.75*/0.5;
@@ -531,15 +696,56 @@ impl WorldSim {
         });
 
         // Calculate oceans.
-        let old_height =
-            |posi: usize| alt_old[posi].1 * CONFIG.mountain_scale * height_scale as f32;
+        let is_ocean = get_oceans(|posi: usize| alt_old[posi].1);
+        let is_ocean_fn = |posi: usize| is_ocean[posi];
         /* let is_ocean = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
         .map(|i| map_edge_factor(i) == 0.0)
         .collect::<Vec<_>>(); */
-        let is_ocean = get_oceans(old_height);
-        let is_ocean_fn = |posi: usize| is_ocean[posi];
+
         let turb_wposf_div = 8.0/*64.0*/;
+        let n_func = |posi| {
+            if is_ocean_fn(posi) {
+                return 1.0;
+            }
+            let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+                .map(|e| e as f64);
+            let turb_wposf = wposf
+                .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                .div(turb_wposf_div);
+            let turb = Vec2::new(
+                gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
+                gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
+            ) * uplift_turb_scale
+                * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+            // let turb = Vec2::zero();
+            let turb_wposf = wposf + turb;
+            let turb_wposi = turb_wposf
+                .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
+                .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
+            let turb_posi = vec2_as_uniform_idx(turb_wposi);
+            let uheight = gen_ctx
+                .uplift_nz
+                .get(turb_wposf.into_array())
+                /* .min(0.5)
+                .max(-0.5)*/
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            /* if uheight > 0.8 {
+                1.5
+            } else {
+                1.0
+            } */
+            // ((1.5 - 0.6) * uheight + 0.6) as f32
+            // ((1.5 - 1.0) * uheight + 1.0) as f32
+            // ((3.5 - 1.5) * (1.0 - uheight) + 1.5) as f32
+            1.0
+        };
+        let old_height = |posi: usize| {
+            alt_old[posi].1 * CONFIG.mountain_scale * height_scale(n_func(posi)) as f32
+        };
 
         let uplift_nz_dist = gen_ctx.uplift_nz.clone().enable_range(true);
         // Recalculate altitudes without oceans.
@@ -694,58 +900,19 @@ impl WorldSim {
         let erosion_factor = |x: f64| (/*if x <= /*erosion_center*/alt_old_center_uniform/*alt_old_center*/ { erosion_pow_low.ln() } else { erosion_pow_high.ln() } * */(/*exp_inverse_cdf*//*logit*/inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform))/*0.5 + (x - 0.5).signum() * ((x - 0.5).mul(2.0).abs(
 ).powf(erosion_pow).mul(0.5))*//*.powf(0.5)*//*.powf(1.5)*//*.powf(2.0)*/;
         let rock_strength_div_factor = /*8.0*/(2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0;
-        let time_scale = 1.0; //4.0/*4.0*/;
-        let n_func = |posi| {
-            if is_ocean_fn(posi) {
-                return 1.0;
-            }
-            let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
-                .map(|e| e as f64);
-            let turb_wposf = wposf
-                .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
-                .div(turb_wposf_div);
-            let turb = Vec2::new(
-                gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
-                gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
-            ) * uplift_turb_scale
-                * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
-            // let turb = Vec2::zero();
-            let turb_wposf = wposf + turb;
-            let turb_wposi = turb_wposf
-                .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
-                .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
-            let turb_posi = vec2_as_uniform_idx(turb_wposi);
-            let uheight = gen_ctx
-                .uplift_nz
-                .get(turb_wposf.into_array())
-                /* .min(0.5)
-                .max(-0.5)*/
-                .min(1.0)
-                .max(-1.0)
-                .mul(0.5)
-                .add(0.5);
-            /* if uheight > 0.8 {
-                1.5
-            } else {
-                1.0
-            } */
-            // ((1.5 - 0.6) * uheight + 0.6) as f32
-            // ((1.5 - 1.0) * uheight + 1.0) as f32
-            // ((3.5 - 1.5) * (1.0 - uheight) + 1.5) as f32
-            1.0
-        };
+        // let time_scale = 1.0; //4.0/*4.0*/;
         let theta_func = |posi| 0.4;
         let kf_func = {
             |posi| {
-                let m_i = (theta_func(posi) * n_func(posi)) as f64;
+                let kf_scale_i = k_fs_scale(theta_func(posi), n_func(posi)) as f64;
                 // let precip_mul = (0.25).powf(m);
                 if is_ocean_fn(posi) {
                     // multiplied by height_scale^(2m) to account for change in area.
-                    return 1.0e-4 * 4.0.powf(2.0 * m_i)/* / time_scale*/; // .powf(-(1.0 - 2.0 * m_i))/* * 4.0*/;
-                                                                          // return 2.0e-5;
-                                                                          // return 2.0e-6;
-                                                                          // return 2.0e-10;
-                                                                          // return 0.0;
+                    return 1.0e-4 * kf_scale_i/* / time_scale*/; // .powf(-(1.0 - 2.0 * m_i))/* * 4.0*/;
+                                                                 // return 2.0e-5;
+                                                                 // return 2.0e-6;
+                                                                 // return 2.0e-10;
+                                                                 // return 0.0;
                 }
                 let wposf = (uniform_idx_as_vec2(posi)
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
@@ -784,7 +951,7 @@ impl WorldSim {
                 let oheight = /*alt_old*//*alt_base*/alt_old_no_ocean[/*(turb_posi / 64) * 64*/posi].0 as f64;
                 let oheight_2 = /*alt_old*//*alt_base*/(alt_old_no_ocean[/*(turb_posi / 64) * 64*/posi].1 as f64 / CONFIG.mountain_scale as f64);
 
-                // kf = 1.5e-4: high-high (plateau [fan sediment])
+                let kf_i = // kf = 1.5e-4: high-high (plateau [fan sediment])
                 // kf = 1e-4: high (plateau)
                 // kf = 2e-5: normal (dike [unexposed])
                 // kf = 1e-6: normal-low (dike [exposed])
@@ -808,17 +975,26 @@ impl WorldSim {
                 // ((1.0 - uheight) * (0.5 - 0.5 * /*((1.32 - uchaos as f64) / 1.32)*/oheight) * (1.5e-4 - 2.0e-6) + 2.0e-6)
                 // 2e-5
                 // multiplied by height_scale^(2m) to account for change in area.
-                2.5e-6 * 4.0.powf(/*-(1.0 - 2.0 * m_i)*/ 2.0 * m_i) /* / time_scale*//* / 4.0 * 0.25 *//* * 4.0*/
+                // 2.5e-6/* / time_scale*//* / 4.0 * 0.25 *//* * 4.0*/
+                1.0e-6
+                // 2.0e-6
                 // 2.9e-10
                 // ((1.0 - uheight) * (5e-5 - 2.9e-10) + 2.9e-10)
                 // ((1.0 - uheight) * (5e-5 - 2.9e-14) + 2.9e-14)
+                ;
+                kf_i * kf_scale_i
             }
         };
         let kd_func = {
             |posi| {
-                // let height_scale = 1.0 / 4.0.powf(-n_i);
+                let n = n_func(posi);
+                let kd_scale_i = k_d_scale(n);
                 if is_ocean_fn(posi) {
-                    return 1.0e-2 * 4.0.powf(-2.0) * time_scale;
+                    let kd_i =
+                        /*1.0e-2*/
+                        1.0e-2 / 4.0
+                    ;
+                    kd_i * kd_scale_i;
                 }
                 let wposf = (uniform_idx_as_vec2(posi)
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
@@ -846,13 +1022,25 @@ impl WorldSim {
                     .max(-1.0)
                     .mul(0.5)
                     .add(0.5);
+                let uchaos = /* gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array())
+                    .min(1.0)
+                    .max(-1.0)
+                    .mul(0.5)
+                    .add(0.5); */
+                    chaos[posi].1;
+
                 // kd = 1e-1: high (mountain, dike)
                 // kd = 1.5e-2: normal-high (plateau [fan sediment])
                 // kd = 1e-2: normal (plateau)
                 // multiplied by height_scale² to account for change in area, then divided by
                 // time_scale to account for lower dt.
-                1.0e-2 * 4.0.powf(-2.0) * time_scale // m_old^2 / y * (1 m_new / 4 m_old)^2
-                                                     // (uheight * (1.0e-1 - 1.0e-2) + 1.0e-2)
+                let kd_i = // 1.0e-2 * kd_scale_i;// m_old^2 / y * (1 m_new / 4 m_old)^2
+                    1.10e-2  / 4.0
+                    // (uheight * (1.0e-1 - 1.0e-2) + 1.0e-2)
+                    // ((1.0 - uheight) * (0.5 + 0.5 * ((1.32 - uchaos as f64) / 1.32)) * (1.0e-2 - 1.0e-3) + 1.0e-3)
+                    // (uheight * (1.0e-2 - 1.0e-3) + 1.0e-3) / 2.0
+                ;
+                kd_i * kd_scale_i
             }
         };
         let g_func = |posi| {
@@ -922,10 +1110,9 @@ impl WorldSim {
             // 1.5
         };
         let epsilon_0_func = |posi| {
-            let n_i = n_func(posi);
-            // height_scale is roughly [using Hack's Law with b = 2 and SPL without debris flow or
+            // epsilon_0_scale is roughly [using Hack's Law with b = 2 and SPL without debris flow or
             // hillslopes] equal to the ratio of the old to new area, to the power of -n_i.
-            let height_scale = 4.0.powf(-n_i);
+            let epsilon_0_scale_i = epsilon_0_scale(n_func(posi));
             if is_ocean_fn(posi) {
                 // marine: ε₀ = 2.078e-3
                 // divide by height scale, multiplied by time_scale, cancels out to 1; idea is that
@@ -952,7 +1139,11 @@ impl WorldSim {
                 //
                 //      ε₀ e^(-α' H') (Δt' * height_scale) / height_scale = ε₀' e^(-α' H') Δt'
                 //      ε₀ = ε₀'
-                return 2.078e-3 * height_scale/* * time_scale*/;
+                let epsilon_0_i =
+                    //2.078e-3
+                    2.078e-3 /  4.0
+                ;
+                return epsilon_0_i * epsilon_0_scale_i/* * time_scale*/;
                 // return 5.0;
             }
             let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
@@ -980,6 +1171,9 @@ impl WorldSim {
                 .max(-1.0)
                 .mul(0.5)
                 .add(0.5);
+            /* let n_i = n_func(posi);
+            let height_scale = height_scale(n_i);
+            let uheight = uheight / height_scale; */
             let wposf3 = Vec3::new(
                 wposf.x,
                 wposf.y,
@@ -994,9 +1188,9 @@ impl WorldSim {
                 .max(-1.0)
                 .mul(0.5)
                 .add(0.5);
-            let center = /*0.25*/0.4 / 4.0;
-            let dmin = center - /*0.15;//0.05*/0.05 / 4.0;
-            let dmax = center + /*0.05*//*0.10*/0.05 / 4.0; //0.05;
+            let center = /*0.25*/0.4;
+            let dmin = center - /*0.15;//0.05*/0.05;
+            let dmax = center + /*0.05*//*0.10*/0.05; //0.05;
             let log_odds = |x: f64| logit(x) - logit(center);
             let ustrength = logistic_cdf(
                 1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
@@ -1010,25 +1204,28 @@ impl WorldSim {
             // Nunnock River (fractured granite, least weathered?): ε₀ = 5.3e-5
             // The stronger the rock, the lower the production rate of exposed bedrock.
             // divide by height scale, then multiplied by time_scale, cancels out.
-            ((1.0 - ustrength) * (/*3.18e-4*/2.078e-3 - 5.3e-5) + 5.3e-5) as f32 * height_scale
+            let epsilon_0_i =
+                // ((1.0 - ustrength) * (/*3.18e-4*/2.078e-3 - 5.3e-5) + 5.3e-5) as f32
+                ((1.0 - ustrength) * (/*3.18e-4*/2.078e-3 - 5.3e-5) + 5.3e-5) as f32 / 4.0
+            ;
             /* * time_scale*/
             // 0.0
+            ;
+            epsilon_0_i * epsilon_0_scale_i
         };
         let alpha_func = |posi| {
-            let n_i = n_func(posi);
             // height_scale is roughly [using Hack's Law with b = 2 and SPL without debris flow or
             // hillslopes] equal to the ratio of the old to new area, to the power of -n_i.
-            let height_scale = 4.0.powf(-n_i);
+            // the old height * height scale, and we take the rate as ε₀ * e^(-αH), to keep
+            // the rate of rate of change in soil production consistent we must divide H by
+            // height_scale.
+            //
+            // αH = α(H' * height_scale) = α'H'
+            // α = α' / height_scale
+            let alpha_scale_i = alpha_scale(n_func(posi));
             if is_ocean_fn(posi) {
                 // marine: α = 3.7e-2
-                // divided by height_scale; idea is that since the final height itself will be
-                // the old height * height scale, and we take the rate as ε₀ * e^(-αH), to keep
-                // the rate of rate of change in soil production consistent we must divide H by
-                // height_scale.
-                //
-                // αH = α(H' * height_scale) = α'H'
-                // α = α' / height_scale
-                return 3.7e-2 / height_scale;
+                return 3.7e-2 * alpha_scale_i;
             }
             let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
@@ -1055,6 +1252,9 @@ impl WorldSim {
                 .max(-1.0)
                 .mul(0.5)
                 .add(0.5);
+            /* let n_i = n_func(posi);
+            let height_scale = height_scale(n_i);
+            let uheight = uheight / height_scale; */
             let wposf3 = Vec3::new(
                 wposf.x,
                 wposf.y,
@@ -1069,9 +1269,9 @@ impl WorldSim {
                 .max(-1.0)
                 .mul(0.5)
                 .add(0.5);
-            let center = /*0.25*/0.4 / 4.0;
-            let dmin = center - /*0.15;//0.05*/0.05 / 4.0;
-            let dmax = center + /*0.05*//*0.10*/0.05 / 4.0; //0.05;
+            let center = /*0.25*/0.4;
+            let dmin = center - /*0.15;//0.05*/0.05;
+            let dmax = center + /*0.05*//*0.10*/0.05; //0.05;
             let log_odds = |x: f64| logit(x) - logit(center);
             let ustrength = logistic_cdf(
                 1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
@@ -1084,8 +1284,8 @@ impl WorldSim {
             // Nunnock river (fractured granite, least weathered?): α = 2e-3
             // Point Reyes: α = 1.6e-2
             // The stronger  the rock, the faster the decline in soil production.
-            // divided by height_scale.
-            (ustrength * (4.2e-2 - 1.6e-2) + 1.6e-2) as f32 / height_scale
+            let alpha_i = (ustrength * (4.2e-2 - 1.6e-2) + 1.6e-2) as f32;
+            alpha_i * alpha_scale_i
         };
         let uplift_fn = |posi| {
             if is_ocean_fn(posi) {
@@ -1304,45 +1504,85 @@ impl WorldSim {
             .collect::<Vec<_>>();
         let is_ocean_fn = |posi: usize| is_ocean[posi]; */
 
-        // Load map, if necessary.
+        // Parse out the contents of various map formats into the values we need.
         let parsed_world_file = (|| {
-            if let FileOpts::Load(ref path) = opts.world_file {
-                let file = match File::open(path) {
-                    Ok(file) => file,
-                    Err(err) => {
-                        log::warn!("Couldn't read path for maps: {:?}", err);
-                        return None;
-                    }
-                };
+            let map = match opts.world_file {
+                FileOpts::LoadLegacy(ref path) => {
+                    let file = match File::open(path) {
+                        Ok(file) => file,
+                        Err(err) => {
+                            log::warn!("Couldn't read path for maps: {:?}", err);
+                            return None;
+                        }
+                    };
 
-                let reader = BufReader::new(file);
-                let map: WorldFile = match bincode::deserialize_from(reader) {
-                    Ok(map) => map,
-                    Err(err) => {
-                        log::warn!("Couldn't parse map: {:?})", err);
-                        return None;
-                    }
-                };
+                    let reader = BufReader::new(file);
+                    let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(err) => {
+                            log::warn!("Couldn't parse legacy map: {:?}).  Maybe you meant to try a regular load?", err);
+                            return None;
+                        }
+                    };
 
-                if map.alt.len() != map.basement.len()
-                    || map.alt.len() != WORLD_SIZE.x as usize * WORLD_SIZE.y as usize
-                {
-                    log::warn!("World size of map is invalid.");
-                    return None;
+                    map.into_modern()
                 }
+                FileOpts::Load(ref path) => {
+                    let file = match File::open(path) {
+                        Ok(file) => file,
+                        Err(err) => {
+                            log::warn!("Couldn't read path for maps: {:?}", err);
+                            return None;
+                        }
+                    };
 
-                /* let f = |h| h;// / 4.0;
-                let mut map = map;
-                map.alt.par_iter_mut()
-                    .zip(map.basement.par_iter_mut())
-                    .for_each(|(mut h, mut b)| {
-                        *h = f(*h);
-                        *b = f(*b);
-                    }); */
+                    let reader = BufReader::new(file);
+                    let map: WorldFile = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(err) => {
+                            log::warn!("Couldn't parse modern map: {:?}).  Maybe you meant to try a legacy load?", err);
+                            return None;
+                        }
+                    };
 
-                Some(map)
-            } else {
-                None
+                    map.into_modern()
+                }
+                FileOpts::LoadAsset(ref specifier) => {
+                    let reader = match assets::load_file(specifier, &["bin"]) {
+                        Ok(reader) => reader,
+                        Err(err) => {
+                            log::warn!(
+                                "Couldn't read asset specifier {:?} for maps: {:?}",
+                                specifier,
+                                err
+                            );
+                            return None;
+                        }
+                    };
+
+                    let map: WorldFile = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(err) => {
+                            log::warn!("Couldn't parse modern map: {:?}).  Maybe you meant to try a legacy load?", err);
+                            return None;
+                        }
+                    };
+
+                    map.into_modern()
+                }
+                FileOpts::Generate | FileOpts::Save => return None,
+            };
+
+            match map {
+                Ok(map) => Some(map),
+                Err(e) => {
+                    match e {
+                        WorldFileError::WorldSizeInvalid => {
+                            log::warn!("World size of map is invalid.");
+                        }
+                    }
+                    None
+                }
             }
         })();
 
@@ -1358,7 +1598,9 @@ impl WorldSim {
                 max_erosion_per_delta_t as f32,
                 n_steps,
                 &river_seed,
+                // varying conditions
                 &rock_strength_nz,
+                // initial conditions
                 |posi| alt_func(posi), // + if is_ocean_fn(posi) { 0.0 } else { 128.0 },
                 |posi| {
                     alt_func(posi)
@@ -1371,6 +1613,7 @@ impl WorldSim {
                 }, // if is_ocean_fn(posi) { old_height(posi) } else { 0.0 },
                 // |posi| 0.0,
                 is_ocean_fn,
+                // empirical constants
                 uplift_fn,
                 |posi| n_func(posi),
                 |posi| theta_func(posi),
@@ -1379,12 +1622,16 @@ impl WorldSim {
                 |posi| g_func(posi),
                 |posi| epsilon_0_func(posi),
                 |posi| alpha_func(posi),
+                // scaling factors
+                |n| height_scale(n),
+                k_d_scale(n_approx),
+                |q| k_da_scale(q),
             );
 
             // Quick "small scale" erosion cycle in order to lower extreme angles.
             do_erosion(
                 0.0,
-                (1.0 * height_scale) as f32,
+                (1.0/* * height_scale*/) as f32,
                 n_small_steps,
                 &river_seed,
                 &rock_strength_nz,
@@ -1392,7 +1639,7 @@ impl WorldSim {
                 |posi| basement[posi] as f32,
                 // |posi| /*alluvium[posi] as f32*/0.0f32,
                 is_ocean_fn,
-                |posi| uplift_fn(posi) * (1.0 * height_scale / max_erosion_per_delta_t),
+                |posi| uplift_fn(posi) * (1.0/* * height_scale*/ / max_erosion_per_delta_t),
                 |posi| n_func(posi),
                 |posi| theta_func(posi),
                 |posi| kf_func(posi),
@@ -1400,11 +1647,15 @@ impl WorldSim {
                 |posi| g_func(posi),
                 |posi| epsilon_0_func(posi),
                 |posi| alpha_func(posi),
+                |n| height_scale(n),
+                k_d_scale(n_approx),
+                |q| k_da_scale(q),
             )
         };
 
         // Save map, if necessary.
-        let map = WorldFile { alt, basement };
+        // NOTE: We wll always save a map with latest version.
+        let map = WorldFile::new(ModernMap { alt, basement });
         (|| {
             if let FileOpts::Save = opts.world_file {
                 use std::time::SystemTime;
@@ -1438,7 +1689,10 @@ impl WorldSim {
                 }
             }
         })();
-        let (alt, basement) = (map.alt, map.basement);
+
+        // Skip validation--we just performed a no-op conversion for this map, so it had better be
+        // valid!
+        let ModernMap { alt, basement } = map.into_modern().unwrap();
 
         // Additional small-scale eroson after map load, only used during testing.
         let (alt, basement /*, alluvium*/) = if n_post_load_steps == 0 {
@@ -1446,7 +1700,7 @@ impl WorldSim {
         } else {
             do_erosion(
                 0.0,
-                (1.0 * height_scale) as f32,
+                (1.0/* * height_scale*/) as f32,
                 n_post_load_steps,
                 &river_seed,
                 &rock_strength_nz,
@@ -1454,7 +1708,7 @@ impl WorldSim {
                 |posi| basement[posi] as f32,
                 // |posi| alluvium[posi] as f32,
                 is_ocean_fn,
-                |posi| uplift_fn(posi) * (1.0 * height_scale / max_erosion_per_delta_t),
+                |posi| uplift_fn(posi) * (1.0/* * height_scale*/ / max_erosion_per_delta_t),
                 |posi| n_func(posi),
                 |posi| theta_func(posi),
                 |posi| kf_func(posi),
@@ -1462,6 +1716,9 @@ impl WorldSim {
                 |posi| g_func(posi),
                 |posi| epsilon_0_func(posi),
                 |posi| alpha_func(posi),
+                |n| height_scale(n),
+                k_d_scale(n_approx),
+                |q| k_da_scale(q),
             )
         };
 
@@ -2207,10 +2464,10 @@ impl SimChunk {
             panic!("Halp!");
         } */
 
-        let height_scale = 1.0; // 1.0 / CONFIG.mountain_scale;
-        let mut alt = CONFIG.sea_level.add(alt_pre.div(height_scale));
-        let mut basement = CONFIG.sea_level.add(basement_pre.div(height_scale));
-        let water_alt = CONFIG.sea_level.add(water_alt_pre.div(height_scale));
+        // let height_scale = 1.0; // 1.0 / CONFIG.mountain_scale;
+        let mut alt = CONFIG.sea_level.add(alt_pre /*.div(height_scale)*/);
+        let mut basement = CONFIG.sea_level.add(basement_pre /*.div(height_scale)*/);
+        let water_alt = CONFIG.sea_level.add(water_alt_pre /*.div(height_scale)*/);
         let downhill = if downhill_pre == -2 {
             None
         } else if downhill_pre < 0 {
