@@ -434,6 +434,17 @@ impl Server {
                             .map(|err| {
                                 error!("Failed to insert ForceUpdate on dead client: {:?}", err)
                             });
+                        state
+                            .ecs()
+                            .write_storage::<comp::Energy>()
+                            .get_mut(entity)
+                            .map(|energy| {
+                                energy.set_to(energy.maximum(), comp::EnergySource::Revive)
+                            });
+                        let _ = state
+                            .ecs()
+                            .write_storage::<comp::CharacterState>()
+                            .insert(entity, comp::CharacterState::default());
                     } else {
                         // If not a player delete the entity
                         if let Err(err) = state.delete_entity_recorded(entity) {

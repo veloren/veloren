@@ -14,6 +14,7 @@ pub enum EnergySource {
     CastSpell,
     LevelUp,
     Regen,
+    Revive,
     Unknown,
 }
 
