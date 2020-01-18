@@ -70,7 +70,7 @@ impl<'a> BlockGen<'a> {
                         // (height max) [12.70, 46.33] + 3 = [15.70, 49.33]
                         / (1.0 + 3.0 * cliff_sample.chaos)
                         + 3.0;
-                    // COnservative range of radius: [8, 47]
+                    // Conservative range of radius: [8, 47]
                     let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
                     max_height.max(
@@ -191,8 +191,8 @@ impl<'a> BlockGen<'a> {
                         .gen_ctx
                         .warp_nz
                         .get(wposf.div(24.0))
-                        .mul((chaos - 0.1).max(0.0).powf(2.0))
-                        .mul(48.0);
+                        .mul((chaos - 0.1).max(0.0).min(1.0).powf(2.0))
+                        .mul(/*48.0*/ 16.0);
                     let warp = Lerp::lerp(0.0, warp, warp_factor);
 
                     let surface_height = alt + warp;
@@ -227,7 +227,7 @@ impl<'a> BlockGen<'a> {
                         false,
                         height,
                         on_cliff,
-                        basement.min(basement + warp),
+                        basement + height - alt,
                         (if water_level <= alt {
                             water_level + warp
                         } else {
@@ -430,7 +430,7 @@ impl<'a> ZCache<'a> {
                 0.0
             };
 
-        let min = self.sample.alt - (self.sample.chaos * 48.0 + cave_depth);
+        let min = self.sample.alt - (self.sample.chaos.min(1.0) * 16.0 + cave_depth);
         let min = min - 4.0;
 
         let cliff = BlockGen::get_cliff_height(
