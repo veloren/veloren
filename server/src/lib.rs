@@ -112,10 +112,15 @@ impl Server {
             settings.world_seed,
             WorldOpts {
                 seed_elements: true,
-                world_file: if let Some(ref file) = settings.map_file {
-                    FileOpts::Load(file.clone())
+                world_file: if let Some(ref opts) = settings.map_file {
+                    opts.clone()
                 } else {
-                    FileOpts::Generate
+                    // Load default map from assets.
+                    //
+                    // TODO: Consider using some naming convention to automatically change this
+                    // with changing versions, or at least keep it in a constant somewhere that's
+                    // easy to change.
+                    FileOpts::LoadAsset("world.map.veloren_0_5_0_0".into())
                 },
                 ..WorldOpts::default()
             },

@@ -1,6 +1,9 @@
 use portpicker::pick_unused_port;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf};
+use world::sim::FileOpts;
+
+const DEFAULT_WORLD_SEED: u32 = 5284;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
@@ -15,7 +18,9 @@ pub struct ServerSettings {
     //pub login_server: whatever
     pub start_time: f64,
     pub admins: Vec<String>,
-    pub map_file: Option<PathBuf>,
+    /// When set to None, loads the default map file (if available); otherwise, uses the value of
+    /// the file options to decide how to proceed.
+    pub map_file: Option<FileOpts>,
 }
 
 impl Default for ServerSettings {
@@ -23,7 +28,7 @@ impl Default for ServerSettings {
         Self {
             gameserver_address: SocketAddr::from(([0; 4], 14004)),
             metrics_address: SocketAddr::from(([0; 4], 14005)),
-            world_seed: 5284,
+            world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".to_owned(),
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,
@@ -89,6 +94,11 @@ impl ServerSettings {
     }
 
     pub fn singleplayer() -> Self {
+        let mut load = Self::load();
+        if let None = load.map_file {
+            // If lodaing the default map file, make sure the seed is also default.
+            load.world_seed = DEFAULT_WORLD_SEED;
+        };
         Self {
             //BUG: theoretically another process can grab the port between here and server creation, however the timewindow is quite small
             gameserver_address: SocketAddr::from((
