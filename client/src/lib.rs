@@ -69,6 +69,7 @@ pub struct Client {
     entity: EcsEntity,
 
     view_distance: Option<u32>,
+    // TODO: move into voxygen
     loaded_distance: f32,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
