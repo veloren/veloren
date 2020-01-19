@@ -53,3 +53,8 @@ overflow-checks = false
 debug-assertions = false
 lto = true
 debug = false
+
+# this profile is used by developers for release profiling
+[profile.releasedebuginfo]
+inherits =  'release'
+debug = 1

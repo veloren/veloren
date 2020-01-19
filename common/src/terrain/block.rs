@@ -32,6 +32,7 @@ pub enum BlockKind {
     Velorite,
     VeloriteFrag,
     Chest,
+    Leaves,
 }
 
 impl BlockKind {

@@ -69,7 +69,8 @@ pub struct Client {
     entity: EcsEntity,
 
     view_distance: Option<u32>,
-    loaded_distance: Option<u32>,
+    // TODO: move into voxygen
+    loaded_distance: f32,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
 }
@@ -153,7 +154,7 @@ impl Client {
             state,
             entity,
             view_distance,
-            loaded_distance: None,
+            loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),
         })
@@ -260,7 +261,7 @@ impl Client {
         self.view_distance
     }
 
-    pub fn loaded_distance(&self) -> Option<u32> {
+    pub fn loaded_distance(&self) -> f32 {
         self.loaded_distance
     }
 
@@ -410,8 +411,9 @@ impl Client {
             }
 
             // Request chunks from the server.
-            let mut all_loaded = true;
-            'outer: for dist in 0..(view_distance as i32) + 1 {
+            self.loaded_distance = ((view_distance * TerrainChunkSize::RECT_SIZE.x) as f32).powi(2);
+            // +1 so we can find a chunk that's outside the vd for better fog
+            for dist in 0..view_distance as i32 + 1 {
                 // Only iterate through chunks that need to be loaded for circular vd
                 // The (dist - 2) explained:
                 // -0.5 because a chunk is visible if its corner is within the view distance
@@ -428,6 +430,7 @@ impl Client {
                     dist
                 };
 
+                let mut skip_mode = false;
                 for i in -top..top + 1 {
                     let keys = [
                         chunk_pos + Vec2::new(dist, i),
@@ -438,25 +441,32 @@ impl Client {
 
                     for key in keys.iter() {
                         if self.state.terrain().get_key(*key).is_none() {
-                            if !self.pending_chunks.contains_key(key) {
+                            if !skip_mode && !self.pending_chunks.contains_key(key) {
                                 if self.pending_chunks.len() < 4 {
                                     self.postbox
                                         .send_message(ClientMsg::TerrainChunkRequest { key: *key });
                                     self.pending_chunks.insert(*key, Instant::now());
                                 } else {
-                                    break 'outer;
+                                    skip_mode = true;
                                 }
                             }
 
-                            all_loaded = false;
+                            let dist_to_player =
+                                (self.state.terrain().key_pos(*key).map(|x| x as f32)
+                                    + TerrainChunkSize::RECT_SIZE.map(|x| x as f32) / 2.0)
+                                    .distance_squared(pos.0.into());
+
+                            if dist_to_player < self.loaded_distance {
+                                self.loaded_distance = dist_to_player;
+                            }
                         }
                     }
                 }
-
-                if all_loaded {
-                    self.loaded_distance = Some((dist - 1).max(0) as u32);
-                }
             }
+            self.loaded_distance = self.loaded_distance.sqrt()
+                - ((TerrainChunkSize::RECT_SIZE.x as f32 / 2.0).powi(2)
+                    + (TerrainChunkSize::RECT_SIZE.y as f32 / 2.0).powi(2))
+                .sqrt();
 
             // If chunks are taking too long, assume they're no longer pending.
             let now = Instant::now();
