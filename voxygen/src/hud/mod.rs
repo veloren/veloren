@@ -1208,8 +1208,7 @@ impl Hud {
         }
 
         // Introduction Text
-        let intro_text: &'static str =
-            "Welcome to the Veloren Alpha!\n\
+        let intro_text: &'static str = "Welcome to the Veloren Alpha!\n\
              \n\
              \n\
              Some tips before you start:\n\
@@ -1433,8 +1432,9 @@ impl Hud {
                 .set(self.ids.velocity, ui_widgets);
             // Loaded distance
             Text::new(&format!(
-                "View distance: {} chunks",
-                client.loaded_distance().unwrap_or(0)
+                "View distance: {:.2} blocks ({:.2} chunks)",
+                client.loaded_distance(),
+                client.loaded_distance() / TerrainChunk::RECT_SIZE.x as f32,
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.velocity, 5.0)

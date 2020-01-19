@@ -3248,6 +3248,7 @@ dependencies = [
  "conrod_core 0.63.0 (git+https://gitlab.com/veloren/conrod.git)",
  "conrod_winit 0.63.0 (git+https://gitlab.com/veloren/conrod.git)",
  "cpal 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "criterion 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossbeam 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "directories 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "dispatch 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3279,6 +3280,7 @@ dependencies = [
  "veloren-client 0.4.0",
  "veloren-common 0.4.0",
  "veloren-server 0.4.0",
+ "veloren-world 0.4.0",
  "winit 0.19.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "winres 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
