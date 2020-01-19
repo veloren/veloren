@@ -81,7 +81,11 @@ impl<'a> System<'a> for Sys {
                     } {
                         let mut energy = energy.get_mut_unchecked();
                         // Have to account for Calc I differential equations due to acceleration
-                        energy.change_by((energy.regen_rate * dt.0 + ENERGY_REGEN_ACCEL * dt.0.powf(2.0) / 2.0) as i32, EnergySource::Regen);
+                        energy.change_by(
+                            (energy.regen_rate * dt.0 + ENERGY_REGEN_ACCEL * dt.0.powf(2.0) / 2.0)
+                                as i32,
+                            EnergySource::Regen,
+                        );
                         energy.regen_rate += ENERGY_REGEN_ACCEL * dt.0;
                     }
                 }
