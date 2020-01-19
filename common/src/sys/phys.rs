@@ -11,14 +11,14 @@ use {
     vek::*,
 };
 
-pub const GRAVITY: f32 = 9.81 * 4.0;
+pub const GRAVITY: f32 = 9.81 * 7.0;
 const BOUYANCY: f32 = 0.0;
 // Friction values used for linear damping. They are unitless quantities. The
 // value of these quantities must be between zero and one. They represent the
 // amount an object will slow down within 1/60th of a second. Eg. if the frction
 // is 0.01, and the speed is 1.0, then after 1/60th of a second the speed will
 // be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^ 60.
-const FRIC_GROUND: f32 = 0.08;
+const FRIC_GROUND: f32 = 0.15;
 const FRIC_AIR: f32 = 0.0125;
 const FRIC_FLUID: f32 = 0.2;
 
@@ -33,7 +33,7 @@ fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f3
     // must be interpolated accordingly
     let linear_damp = (1.0 - damp.min(1.0)).powf(dt * 60.0);
 
-    lv.z = (lv.z - grav * dt).max(-50.0);
+    lv.z = (lv.z - grav * dt).max(-80.0);
     lv * linear_damp
 }
 
@@ -275,6 +275,7 @@ impl<'a> System<'a> for Sys {
                     {
                         // ...block-hop!
                         pos.0.z = (pos.0.z + 0.1).ceil();
+                        vel.0.z = 0.0;
                         on_ground = true;
                         break;
                     } else {

@@ -544,7 +544,7 @@ impl Hud {
             let own_level = stats
                 .get(client.entity())
                 .map_or(0, |stats| stats.level.level());
-
+            //self.input = client.read_storage::<comp::ControllerInputs>();
             if let Some(stats) = stats.get(me) {
                 // Hurt Frame
                 let hp_percentage =
@@ -1653,10 +1653,12 @@ impl Hud {
         let energy = ecs.read_storage::<comp::Energy>();
         let character_state = ecs.read_storage::<comp::CharacterState>();
         let entity = client.entity();
-        if let (Some(stats), Some(energy), Some(character_state)) = (
+        let controller = ecs.read_storage::<comp::Controller>();
+        if let (Some(stats), Some(energy), Some(character_state), Some(controller)) = (
             stats.get(entity),
             energy.get(entity),
             character_state.get(entity),
+            controller.get(entity).map(|c| &c.inputs),
         ) {
             Skillbar::new(
                 global_state,
@@ -1666,6 +1668,7 @@ impl Hud {
                 &energy,
                 &character_state,
                 self.pulse,
+                &controller,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
