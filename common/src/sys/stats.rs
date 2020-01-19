@@ -33,11 +33,11 @@ impl<'a> System<'a> for Sys {
         stats.set_event_emission(true);
 
         // Mutates all stats every tick causing the server to resend this component for every entity every tick
-        for (entity, character_state, mut stats, energy) in (
+        for (entity, character_state, mut stats, mut energy) in (
             &entities,
             &character_states,
             &mut stats.restrict_mut(),
-            &mut energies,
+            &mut energies.restrict_mut(),
         )
             .join()
         {
@@ -75,11 +75,21 @@ impl<'a> System<'a> for Sys {
             // Accelerate recharging energy if not wielding.
             match character_state.action {
                 ActionState::Idle => {
-                    energy.regen_rate += ENERGY_REGEN_ACCEL * dt.0;
-                    energy.change_by(energy.regen_rate as i32, EnergySource::Regen);
+                    if {
+                        let energy = energy.get_unchecked();
+                        energy.current() < energy.maximum()
+                    } {
+                        let mut energy = energy.get_mut_unchecked();
+                        energy.regen_rate += ENERGY_REGEN_ACCEL * dt.0;
+                        energy.change_by(energy.regen_rate as i32, EnergySource::Regen);
+                    }
                 }
                 // All other states do not regen and set the rate back to zero.
-                _ => energy.regen_rate = 0.0,
+                _ => {
+                    if energy.get_unchecked().regen_rate != 0.0 {
+                        energy.get_mut_unchecked().regen_rate = 0.0
+                    }
+                }
             }
         }
     }

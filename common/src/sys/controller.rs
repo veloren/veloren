@@ -277,13 +277,24 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
-        for (entity, uid, controller, mut character, stats, energy, body, vel, physics, mount) in (
+        for (
+            entity,
+            uid,
+            controller,
+            mut character,
+            stats,
+            mut energy,
+            body,
+            vel,
+            physics,
+            mount,
+        ) in (
             &entities,
             &uids,
             &mut controllers,
             &mut character_states,
             &stats,
-            &mut energies,
+            &mut energies.restrict_mut(),
             &bodies,
             &velocities,
             &physics_states,
@@ -585,6 +596,7 @@ impl<'a> System<'a> for Sys {
                         // Try to charge
                         if inputs.charge.is_pressed() && !inputs.charge.is_held_down() {
                             if energy
+                                .get_mut_unchecked()
                                 .try_change_by(-CHARGE_COST, EnergySource::CastSpell)
                                 .is_ok()
                             {
