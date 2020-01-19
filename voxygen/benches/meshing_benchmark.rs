@@ -12,6 +12,8 @@ const CENTER: Vec2<i32> = Vec2 { x: 512, y: 512 };
 const GEN_SIZE: i32 = 4;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
+    // Lower sample size to save time
+    c = c.sample_size(15);
     // Generate chunks here to test
     let mut terrain = TerrainGrid::new().unwrap();
     let world = World::generate(42);
