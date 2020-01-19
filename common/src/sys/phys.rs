@@ -33,7 +33,7 @@ fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f3
     // must be interpolated accordingly
     let linear_damp = (1.0 - damp.min(1.0)).powf(dt * 60.0);
 
-    lv.z = (lv.z - grav * dt).max(-50.0);
+    lv.z = (lv.z - grav * dt).max(-80.0);
     lv * linear_damp
 }
 
