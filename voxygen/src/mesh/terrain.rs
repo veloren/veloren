@@ -30,7 +30,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
 ) -> impl Fn(Vec3<i32>) -> f32 {
-    const UNKOWN: u8 = 255;
+    const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;
     const SUNLIGHT: u8 = 24;
 
@@ -41,7 +41,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 
     let mut vol_cached = vol.cached();
 
-    let mut light_map = vec![UNKOWN; outer.size().product() as usize];
+    let mut light_map = vec![UNKNOWN; outer.size().product() as usize];
     let lm_idx = {
         let (w, h, _) = outer.clone().size().into_tuple();
         move |x, y, z| (z * h * w + x * h + y) as usize
@@ -64,11 +64,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                     .map_or(false, |b| b.is_air())
                 {
                     light_map[lm_idx(x, y, z - 1)] = SUNLIGHT;
-                    prop_que.push_back(
-                        ((x as u32 & 0xff) << 24)
-                            | ((y as u32 & 0xff) << 16)
-                            | ((z - 1) as u32 & 0xffff),
-                    );
+                    prop_que.push_back(Vec3::new(x as u8, y as u8, z as u8));
                 }
                 SUNLIGHT
             } else {
@@ -84,7 +80,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                      prop_que: &mut VecDeque<_>,
                      vol: &mut CachedVolGrid2d<V>| {
         if *dest != OPAQUE {
-            if *dest == UNKOWN {
+            if *dest == UNKNOWN {
                 if vol
                     .get(outer.min + pos)
                     .ok()
@@ -93,11 +89,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                     *dest = src - 1;
                     // Can't propagate further
                     if *dest > 1 {
-                        prop_que.push_back(
-                            ((pos.x as u32 & 0xff) << 24)
-                                | ((pos.y as u32 & 0xff) << 16)
-                                | (pos.z as u32 & 0xffff),
-                        );
+                        prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
                     }
                 } else {
                     *dest = OPAQUE;
@@ -106,11 +98,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 *dest = src - 1;
                 // Can't propagate further
                 if *dest > 1 {
-                    prop_que.push_back(
-                        ((pos.x as u32 & 0xff) << 24)
-                            | ((pos.y as u32 & 0xff) << 16)
-                            | (pos.z as u32 & 0xffff),
-                    );
+                    prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
                 }
             }
         }
@@ -118,11 +106,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 
     // Propage light
     while let Some(pos) = prop_que.pop_front() {
-        let pos = Vec3::new(
-            ((pos >> 24) & 0xFF) as i32,
-            ((pos >> 16) & 0xFF) as i32,
-            (pos & 0xFFFF) as i32,
-        );
+        let pos = pos.map(|e| e as i32);
         let light = light_map[lm_idx(pos.x, pos.y, pos.z)];
 
         // If ray propagate downwards at full strength
@@ -135,18 +119,10 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 .ok()
                 .map_or((false, false), |b| (b.is_air(), b.is_fluid()));
             light_map[lm_idx(pos.x, pos.y, pos.z)] = if is_air {
-                prop_que.push_back(
-                    ((pos.x as u32 & 0xff) << 24)
-                        | ((pos.y as u32 & 0xff) << 16)
-                        | (pos.z as u32 & 0xffff),
-                );
+                prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
                 SUNLIGHT
             } else if is_fluid {
-                prop_que.push_back(
-                    ((pos.x as u32 & 0xff) << 24)
-                        | ((pos.y as u32 & 0xff) << 16)
-                        | (pos.z as u32 & 0xffff),
-                );
+                prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
                 SUNLIGHT - 1
             } else {
                 OPAQUE
@@ -217,7 +193,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         let pos = wpos - outer.min;
         light_map
             .get(lm_idx(pos.x, pos.y, pos.z))
-            .filter(|l| **l != OPAQUE && **l != UNKOWN)
+            .filter(|l| **l != OPAQUE && **l != UNKNOWN)
             .map(|l| *l as f32 / SUNLIGHT as f32)
             .unwrap_or(0.0)
     }
