@@ -575,7 +575,7 @@ pub fn block_from_structure(
     match sblock {
         StructureBlock::None => None,
         StructureBlock::TemperateLeaves => Some(Block::new(
-            BlockKind::Normal,
+            BlockKind::Leaves,
             Lerp::lerp(
                 Rgb::new(0.0, 132.0, 94.0),
                 Rgb::new(142.0, 181.0, 0.0),
@@ -584,12 +584,12 @@ pub fn block_from_structure(
             .map(|e| e as u8),
         )),
         StructureBlock::PineLeaves => Some(Block::new(
-            BlockKind::Normal,
+            BlockKind::Leaves,
             Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
                 .map(|e| e as u8),
         )),
         StructureBlock::PalmLeaves => Some(Block::new(
-            BlockKind::Normal,
+            BlockKind::Leaves,
             Lerp::lerp(
                 Rgb::new(0.0, 108.0, 113.0),
                 Rgb::new(30.0, 156.0, 10.0),

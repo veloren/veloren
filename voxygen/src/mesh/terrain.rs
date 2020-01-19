@@ -3,138 +3,198 @@ use crate::{
     render::{self, FluidPipeline, Mesh, TerrainPipeline},
 };
 use common::{
-    terrain::Block,
+    terrain::{Block, BlockKind},
     vol::{ReadVol, RectRasterableVol, Vox},
-    volumes::vol_grid_2d::VolGrid2d,
+    volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
 };
-use hashbrown::{HashMap, HashSet};
-use std::fmt::Debug;
+use std::{collections::VecDeque, fmt::Debug};
 use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 type FluidVertex = <FluidPipeline as render::Pipeline>::Vertex;
 
-const DIRS: [Vec2<i32>; 4] = [
-    Vec2 { x: 1, y: 0 },
-    Vec2 { x: 0, y: 1 },
-    Vec2 { x: -1, y: 0 },
-    Vec2 { x: 0, y: -1 },
-];
+trait Blendable {
+    fn is_blended(&self) -> bool;
+}
 
-const DIRS_3D: [Vec3<i32>; 6] = [
-    Vec3 { x: 1, y: 0, z: 0 },
-    Vec3 { x: 0, y: 1, z: 0 },
-    Vec3 { x: 0, y: 0, z: 1 },
-    Vec3 { x: -1, y: 0, z: 0 },
-    Vec3 { x: 0, y: -1, z: 0 },
-    Vec3 { x: 0, y: 0, z: -1 },
-];
+impl Blendable for BlockKind {
+    fn is_blended(&self) -> bool {
+        match self {
+            BlockKind::Leaves => false,
+            _ => true,
+        }
+    }
+}
 
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
 ) -> impl Fn(Vec3<i32>) -> f32 {
-    let sunlight = 24;
+    const UNKNOWN: u8 = 255;
+    const OPAQUE: u8 = 254;
+    const SUNLIGHT: u8 = 24;
 
     let outer = Aabb {
-        min: bounds.min - sunlight,
-        max: bounds.max + sunlight,
+        min: bounds.min - Vec3::new(SUNLIGHT as i32 - 1, SUNLIGHT as i32 - 1, 1),
+        max: bounds.max + Vec3::new(SUNLIGHT as i32 - 1, SUNLIGHT as i32 - 1, 1),
     };
 
     let mut vol_cached = vol.cached();
 
-    let mut voids = HashMap::new();
-    let mut rays = vec![(outer.size().d, 0); outer.size().product() as usize];
+    let mut light_map = vec![UNKNOWN; outer.size().product() as usize];
+    let lm_idx = {
+        let (w, h, _) = outer.clone().size().into_tuple();
+        move |x, y, z| (z * h * w + x * h + y) as usize
+    };
+    // Light propagation queue
+    let mut prop_que = VecDeque::new();
+    // Start sun rays
     for x in 0..outer.size().w {
         for y in 0..outer.size().h {
-            let mut outside = true;
-            for z in (0..outer.size().d).rev() {
-                let block = vol_cached
-                    .get(outer.min + Vec3::new(x, y, z))
+            let z = outer.size().d - 1;
+            let is_air = vol_cached
+                .get(outer.min + Vec3::new(x, y, z))
+                .ok()
+                .map_or(false, |b| b.is_air());
+
+            light_map[lm_idx(x, y, z)] = if is_air {
+                if vol_cached
+                    .get(outer.min + Vec3::new(x, y, z - 1))
                     .ok()
-                    .copied()
-                    .unwrap_or(Block::empty());
-
-                if !block.is_air() {
-                    if outside {
-                        rays[(outer.size().w * y + x) as usize].0 = z;
-                        outside = false;
-                    }
-                    rays[(outer.size().w * y + x) as usize].1 = z;
+                    .map_or(false, |b| b.is_air())
+                {
+                    light_map[lm_idx(x, y, z - 1)] = SUNLIGHT;
+                    prop_que.push_back(Vec3::new(x as u8, y as u8, z as u8));
                 }
-
-                if (block.is_air() || block.is_fluid()) && !outside {
-                    voids.insert(Vec3::new(x, y, z), None);
-                }
-            }
+                SUNLIGHT
+            } else {
+                OPAQUE
+            };
         }
     }
 
-    let mut opens = HashSet::new();
-    'voids: for (pos, l) in &mut voids {
-        for dir in &DIRS {
-            let col = Vec2::<i32>::from(*pos) + dir;
-            if pos.z
-                > *rays
-                    .get(((outer.size().w * col.y) + col.x) as usize)
-                    .map(|(ray, _)| ray)
-                    .unwrap_or(&0)
-            {
-                *l = Some(sunlight - 1);
-                opens.insert(*pos);
-                continue 'voids;
-            }
-        }
-
-        if pos.z
-            >= *rays
-                .get(((outer.size().w * pos.y) + pos.x) as usize)
-                .map(|(ray, _)| ray)
-                .unwrap_or(&0)
-        {
-            *l = Some(sunlight - 1);
-            opens.insert(*pos);
-        }
-    }
-
-    while opens.len() > 0 {
-        let mut new_opens = HashSet::new();
-        for open in &opens {
-            let parent_l = voids[open].unwrap_or(0);
-            for dir in &DIRS_3D {
-                let other = *open + *dir;
-                if !opens.contains(&other) {
-                    if let Some(l) = voids.get_mut(&other) {
-                        if l.unwrap_or(0) < parent_l - 1 {
-                            new_opens.insert(other);
-                        }
-                        *l = Some(parent_l - 1);
+    // Determines light propagation
+    let propagate = |src: u8,
+                     dest: &mut u8,
+                     pos: Vec3<i32>,
+                     prop_que: &mut VecDeque<_>,
+                     vol: &mut CachedVolGrid2d<V>| {
+        if *dest != OPAQUE {
+            if *dest == UNKNOWN {
+                if vol
+                    .get(outer.min + pos)
+                    .ok()
+                    .map_or(false, |b| b.is_air() || b.is_fluid())
+                {
+                    *dest = src - 1;
+                    // Can't propagate further
+                    if *dest > 1 {
+                        prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
                     }
+                } else {
+                    *dest = OPAQUE;
+                }
+            } else if *dest < src - 1 {
+                *dest = src - 1;
+                // Can't propagate further
+                if *dest > 1 {
+                    prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
                 }
             }
         }
-        opens = new_opens;
+    };
+
+    // Propage light
+    while let Some(pos) = prop_que.pop_front() {
+        let pos = pos.map(|e| e as i32);
+        let light = light_map[lm_idx(pos.x, pos.y, pos.z)];
+
+        // If ray propagate downwards at full strength
+        if light == SUNLIGHT {
+            // Down is special cased and we know up is a ray
+            // Special cased ray propagation
+            let pos = Vec3::new(pos.x, pos.y, pos.z - 1);
+            let (is_air, is_fluid) = vol_cached
+                .get(outer.min + pos)
+                .ok()
+                .map_or((false, false), |b| (b.is_air(), b.is_fluid()));
+            light_map[lm_idx(pos.x, pos.y, pos.z)] = if is_air {
+                prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
+                SUNLIGHT
+            } else if is_fluid {
+                prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
+                SUNLIGHT - 1
+            } else {
+                OPAQUE
+            }
+        } else {
+            // Up
+            // Bounds checking
+            if pos.z + 1 < outer.size().d {
+                propagate(
+                    light,
+                    light_map.get_mut(lm_idx(pos.x, pos.y, pos.z + 1)).unwrap(),
+                    Vec3::new(pos.x, pos.y, pos.z + 1),
+                    &mut prop_que,
+                    &mut vol_cached,
+                )
+            }
+            // Down
+            if pos.z > 0 {
+                propagate(
+                    light,
+                    light_map.get_mut(lm_idx(pos.x, pos.y, pos.z - 1)).unwrap(),
+                    Vec3::new(pos.x, pos.y, pos.z - 1),
+                    &mut prop_que,
+                    &mut vol_cached,
+                )
+            }
+        }
+        // The XY directions
+        if pos.y + 1 < outer.size().h {
+            propagate(
+                light,
+                light_map.get_mut(lm_idx(pos.x, pos.y + 1, pos.z)).unwrap(),
+                Vec3::new(pos.x, pos.y + 1, pos.z),
+                &mut prop_que,
+                &mut vol_cached,
+            )
+        }
+        if pos.y > 0 {
+            propagate(
+                light,
+                light_map.get_mut(lm_idx(pos.x, pos.y - 1, pos.z)).unwrap(),
+                Vec3::new(pos.x, pos.y - 1, pos.z),
+                &mut prop_que,
+                &mut vol_cached,
+            )
+        }
+        if pos.x + 1 < outer.size().w {
+            propagate(
+                light,
+                light_map.get_mut(lm_idx(pos.x + 1, pos.y, pos.z)).unwrap(),
+                Vec3::new(pos.x + 1, pos.y, pos.z),
+                &mut prop_que,
+                &mut vol_cached,
+            )
+        }
+        if pos.x > 0 {
+            propagate(
+                light,
+                light_map.get_mut(lm_idx(pos.x - 1, pos.y, pos.z)).unwrap(),
+                Vec3::new(pos.x - 1, pos.y, pos.z),
+                &mut prop_que,
+                &mut vol_cached,
+            )
+        }
     }
 
     move |wpos| {
         let pos = wpos - outer.min;
-        rays.get(((outer.size().w * pos.y) + pos.x) as usize)
-            .and_then(|(ray, deep)| {
-                if pos.z > *ray {
-                    Some(1.0)
-                } else if pos.z < *deep {
-                    Some(0.0)
-                } else {
-                    None
-                }
-            })
-            .or_else(|| {
-                if let Some(Some(l)) = voids.get(&pos) {
-                    Some(*l as f32 / sunlight as f32)
-                } else {
-                    None
-                }
-            })
+        light_map
+            .get(lm_idx(pos.x, pos.y, pos.z))
+            .filter(|l| **l != OPAQUE && **l != UNKNOWN)
+            .map(|l| *l as f32 / SUNLIGHT as f32)
             .unwrap_or(0.0)
     }
 }
@@ -155,16 +215,90 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
         let light = calc_light(range, self);
 
-        let mut vol_cached = self.cached();
+        let mut lowest_opaque = range.size().d;
+        let mut highest_opaque = 0;
+        let mut lowest_fluid = range.size().d;
+        let mut highest_fluid = 0;
+        let mut lowest_air = range.size().d;
+        let mut highest_air = 0;
+        let flat_get = {
+            let (w, h, d) = range.size().into_tuple();
+            // z can range from -1..range.size().d + 1
+            let d = d + 2;
+            let flat = {
+                let mut volume = self.cached();
+                let mut flat = vec![Block::empty(); (w * h * d) as usize];
+                let mut i = 0;
+                for x in 0..range.size().w {
+                    for y in 0..range.size().h {
+                        for z in -1..range.size().d + 1 {
+                            let block = volume
+                                .get(range.min + Vec3::new(x, y, z))
+                                .map(|b| *b)
+                                .unwrap_or(Block::empty());
+                            if block.is_opaque() {
+                                lowest_opaque = lowest_opaque.min(z);
+                                highest_opaque = highest_opaque.max(z);
+                            } else if block.is_fluid() {
+                                lowest_fluid = lowest_fluid.min(z);
+                                highest_fluid = highest_fluid.max(z);
+                            } else {
+                                // Assume air
+                                lowest_air = lowest_air.min(z);
+                                highest_air = highest_air.max(z);
+                            };
+                            flat[i] = block;
+                            i += 1;
+                        }
+                    }
+                }
+                flat
+            };
 
-        for x in range.min.x + 1..range.max.x - 1 {
-            for y in range.min.y + 1..range.max.y - 1 {
+            move |Vec3 { x, y, z }| {
+                // z can range from -1..range.size().d + 1
+                let z = z + 1;
+                match flat.get((x * h * d + y * d + z) as usize).copied() {
+                    Some(b) => b,
+                    None => panic!("x {} y {} z {} d {} h {}"),
+                }
+            }
+        };
+
+        // TODO: figure out why this has to be -2 instead of -1
+        // Constrain iterated area
+        let z_start = if (lowest_air > lowest_opaque && lowest_air <= lowest_fluid)
+            || (lowest_air > lowest_fluid && lowest_air <= lowest_opaque)
+        {
+            lowest_air - 2
+        } else if lowest_fluid > lowest_opaque && lowest_fluid <= lowest_air {
+            lowest_fluid - 2
+        } else if lowest_fluid > lowest_air && lowest_fluid <= lowest_opaque {
+            lowest_fluid - 1
+        } else {
+            lowest_opaque - 1
+        }
+        .max(0);
+        let z_end = if (highest_air < highest_opaque && highest_air >= highest_fluid)
+            || (highest_air < highest_fluid && highest_air >= highest_opaque)
+        {
+            highest_air + 1
+        } else if highest_fluid < highest_opaque && highest_fluid >= highest_air {
+            highest_fluid + 1
+        } else if highest_fluid < highest_air && highest_fluid >= highest_opaque {
+            highest_fluid
+        } else {
+            highest_opaque
+        }
+        .min(range.size().d - 1);
+        for x in 1..range.size().w - 1 {
+            for y in 1..range.size().w - 1 {
                 let mut lights = [[[0.0; 3]; 3]; 3];
                 for i in 0..3 {
                     for j in 0..3 {
                         for k in 0..3 {
                             lights[k][j][i] = light(
-                                Vec3::new(x, y, range.min.z)
+                                Vec3::new(x + range.min.x, y + range.min.y, z_start + range.min.z)
                                     + Vec3::new(i as i32, j as i32, k as i32)
                                     - 1,
                             );
@@ -172,69 +306,74 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     }
                 }
 
-                let get_color = |maybe_block: Option<&Block>| {
+                let get_color = |maybe_block: Option<&Block>, neighbour: bool| {
                     maybe_block
-                        .filter(|vox| vox.is_opaque())
+                        .filter(|vox| vox.is_opaque() && (!neighbour || vox.is_blended()))
                         .and_then(|vox| vox.get_color())
                         .map(|col| Rgba::from_opaque(col))
                         .unwrap_or(Rgba::zero())
                 };
 
                 let mut blocks = [[[None; 3]; 3]; 3];
-                let mut colors = [[[Rgba::zero(); 3]; 3]; 3];
                 for i in 0..3 {
                     for j in 0..3 {
                         for k in 0..3 {
-                            let block = vol_cached
-                                .get(
-                                    Vec3::new(x, y, range.min.z)
-                                        + Vec3::new(i as i32, j as i32, k as i32)
-                                        - 1,
-                                )
-                                .ok()
-                                .copied();
-                            colors[k][j][i] = get_color(block.as_ref());
+                            let block = Some(flat_get(
+                                Vec3::new(x, y, z_start) + Vec3::new(i as i32, j as i32, k as i32)
+                                    - 1,
+                            ));
                             blocks[k][j][i] = block;
                         }
                     }
                 }
 
-                for z in range.min.z..range.max.z {
+                for z in z_start..z_end + 1 {
                     let pos = Vec3::new(x, y, z);
-                    let offs = (pos - (range.min + 1) * Vec3::new(1, 1, 0)).map(|e| e as f32);
+                    let offs = (pos - Vec3::new(1, 1, -range.min.z)).map(|e| e as f32);
 
                     lights[0] = lights[1];
                     lights[1] = lights[2];
                     blocks[0] = blocks[1];
                     blocks[1] = blocks[2];
-                    colors[0] = colors[1];
-                    colors[1] = colors[2];
 
                     for i in 0..3 {
                         for j in 0..3 {
-                            lights[2][j][i] = light(pos + Vec3::new(i as i32, j as i32, 2) - 1);
+                            lights[2][j][i] =
+                                light(pos + range.min + Vec3::new(i as i32, j as i32, 2) - 1);
                         }
                     }
                     for i in 0..3 {
                         for j in 0..3 {
-                            let block = vol_cached
-                                .get(pos + Vec3::new(i as i32, j as i32, 2) - 1)
-                                .ok()
-                                .copied();
-                            colors[2][j][i] = get_color(block.as_ref());
+                            let block = Some(flat_get(pos + Vec3::new(i as i32, j as i32, 2) - 1));
                             blocks[2][j][i] = block;
                         }
                     }
 
                     let block = blocks[1][1][1];
+                    let colors = if block.map_or(false, |vox| vox.is_blended()) {
+                        let mut colors = [[[Rgba::zero(); 3]; 3]; 3];
+                        for i in 0..3 {
+                            for j in 0..3 {
+                                for k in 0..3 {
+                                    colors[i][j][k] = get_color(
+                                        blocks[i][j][k].as_ref(),
+                                        i != 1 || j != 1 || k != 1,
+                                    )
+                                }
+                            }
+                        }
+                        colors
+                    } else {
+                        [[[get_color(blocks[1][1][1].as_ref(), false); 3]; 3]; 3]
+                    };
 
                     // Create mesh polygons
-                    if block.map(|vox| vox.is_opaque()).unwrap_or(false) {
+                    if block.map_or(false, |vox| vox.is_opaque()) {
                         vol::push_vox_verts(
                             &mut opaque_mesh,
                             faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
                             offs,
-                            &colors, //&[[[colors[1][1][1]; 3]; 3]; 3],
+                            &colors,
                             |pos, norm, col, ao, light| {
                                 let light = (light.min(ao) * 255.0) as u32;
                                 let norm = if norm.x != 0.0 {
@@ -260,7 +399,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             },
                             &lights,
                         );
-                    } else if block.map(|vox| vox.is_fluid()).unwrap_or(false) {
+                    } else if block.map_or(false, |vox| vox.is_fluid()) {
                         vol::push_vox_verts(
                             &mut fluid_mesh,
                             faces_to_make(&blocks, false, |vox| vox.is_air()),
