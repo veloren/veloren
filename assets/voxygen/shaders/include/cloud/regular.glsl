@@ -1,4 +1,4 @@
-uniform sampler2D t_noise;
+#include <random.glsl>
 
 const float CLOUD_AVG_HEIGHT = 1025.0;
 const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 50.0;

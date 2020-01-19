@@ -1,11 +1,13 @@
 pub mod camera;
 pub mod figure;
+pub mod lod;
 pub mod terrain;
 
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
     music::MusicMgr,
+    lod::Lod,
     terrain::Terrain,
 };
 use crate::{
