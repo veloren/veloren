@@ -965,7 +965,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.health_text, ui);
             let energy_text = format!(
                 "{}/{}",
-                self.energy.current() as u32 / 10,
+                self.energy.current() as u32 / 10, //TODO Fix regeneration with smaller energy numbers instead of dividing by 10 here
                 self.energy.maximum() as u32 / 10
             );
             Text::new(&energy_text)
