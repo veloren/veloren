@@ -141,7 +141,7 @@ vec2 cloud_at(vec3 pos) {
 
 	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 400.0, 0.0) * CLOUD_DENSITY;
 
-	float shade = ((pos.z - CLOUD_AVG_HEIGHT) * 1.8 / (CLOUD_AVG_HEIGHT - CLOUD_HEIGHT_MIN) + 0.5);
+	float shade = ((pos.z - CLOUD_AVG_HEIGHT) * 1.5 / (CLOUD_AVG_HEIGHT - CLOUD_HEIGHT_MIN) + 0.5);
 
 	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 5000));
 }
@@ -170,7 +170,7 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 	if (do_cast) {
 		for (float d = 0.0; d < 1.0; d += incr) {
 			float dist = start + d * delta;
-			dist += fuzz * pow(maxd - mind, 0.5) * 0.01 * min(pow(dist * 0.005, 2.0), 1.0);
+			dist += fuzz * pow(maxd - mind, 0.5) * 0.02 * min(pow(dist * 0.005, 2.0), 1.0);
 
 			vec3 pos = origin + dir * min(dist, max_dist);
 			vec2 sample = cloud_at(pos);
