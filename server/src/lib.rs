@@ -258,7 +258,7 @@ impl Server {
 
         state.write_component(entity, body);
         state.write_component(entity, comp::Stats::new(name, main));
-        state.write_component(entity, comp::Energy::new(200));
+        state.write_component(entity, comp::Energy::new(1000));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
@@ -434,6 +434,17 @@ impl Server {
                             .map(|err| {
                                 error!("Failed to insert ForceUpdate on dead client: {:?}", err)
                             });
+                        state
+                            .ecs()
+                            .write_storage::<comp::Energy>()
+                            .get_mut(entity)
+                            .map(|energy| {
+                                energy.set_to(energy.maximum(), comp::EnergySource::Revive)
+                            });
+                        let _ = state
+                            .ecs()
+                            .write_storage::<comp::CharacterState>()
+                            .insert(entity, comp::CharacterState::default());
                     } else {
                         // If not a player delete the entity
                         if let Err(err) = state.delete_entity_recorded(entity) {
@@ -613,11 +624,11 @@ impl Server {
                 }
 
                 ServerEvent::LandOnGround { entity, vel } => {
-                    if vel.z <= -25.0 {
+                    if vel.z <= -37.0 {
                         if let Some(stats) =
                             state.ecs().write_storage::<comp::Stats>().get_mut(entity)
                         {
-                            let falldmg = (vel.z / 5.0) as i32;
+                            let falldmg = (vel.z / 2.5) as i32;
                             if falldmg < 0 {
                                 stats.health.change_by(comp::HealthChange {
                                     amount: falldmg,
@@ -1185,7 +1196,7 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
-            .with(comp::Energy::new(100))
+            .with(comp::Energy::new(500))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
     }
