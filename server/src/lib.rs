@@ -624,11 +624,11 @@ impl Server {
                 }
 
                 ServerEvent::LandOnGround { entity, vel } => {
-                    if vel.z <= -25.0 {
+                    if vel.z <= -37.0 {
                         if let Some(stats) =
                             state.ecs().write_storage::<comp::Stats>().get_mut(entity)
                         {
-                            let falldmg = (vel.z / 5.0) as i32;
+                            let falldmg = (vel.z / 2.5) as i32;
                             if falldmg < 0 {
                                 stats.health.change_by(comp::HealthChange {
                                     amount: falldmg,
