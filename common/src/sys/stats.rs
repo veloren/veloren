@@ -5,7 +5,7 @@ use crate::{
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
-const ENERGY_REGEN_ACCEL: f32 = 0.5;
+const ENERGY_REGEN_ACCEL: f32 = 20.0;
 
 /// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
@@ -80,8 +80,9 @@ impl<'a> System<'a> for Sys {
                         energy.current() < energy.maximum()
                     } {
                         let mut energy = energy.get_mut_unchecked();
+                        // Have to account for Calc I differential equations due to acceleration
+                        energy.change_by((energy.regen_rate * dt.0 + ENERGY_REGEN_ACCEL * dt.0.powf(2.0) / 2.0) as i32, EnergySource::Regen);
                         energy.regen_rate += ENERGY_REGEN_ACCEL * dt.0;
-                        energy.change_by(energy.regen_rate as i32, EnergySource::Regen);
                     }
                 }
                 // All other states do not regen and set the rate back to zero.
