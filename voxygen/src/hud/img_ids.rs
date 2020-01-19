@@ -120,7 +120,7 @@ image_ids! {
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
 
-        charge: "voxygen.element.icons.skill_charge_2",
+        charge: "voxygen.element.icons.skill_charge_3",
 
 
         // Icons
