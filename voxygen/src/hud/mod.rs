@@ -1208,8 +1208,7 @@ impl Hud {
         }
 
         // Introduction Text
-        let intro_text: &'static str =
-            "Welcome to the Veloren Alpha!\n\
+        let intro_text: &'static str = "Welcome to the Veloren Alpha!\n\
              \n\
              \n\
              Some tips before you start:\n\
