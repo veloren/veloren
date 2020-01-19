@@ -64,7 +64,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                     .map_or(false, |b| b.is_air())
                 {
                     light_map[lm_idx(x, y, z - 1)] = SUNLIGHT;
-                    prop_que.push_back(Vec3::new(x as u8, y as u8, z as u8));
+                    prop_que.push_back((x as u8, y as u8, z as u16));
                 }
                 SUNLIGHT
             } else {
@@ -89,7 +89,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                     *dest = src - 1;
                     // Can't propagate further
                     if *dest > 1 {
-                        prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
+                        prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
                     }
                 } else {
                     *dest = OPAQUE;
@@ -98,7 +98,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 *dest = src - 1;
                 // Can't propagate further
                 if *dest > 1 {
-                    prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
+                    prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
                 }
             }
         }
@@ -106,7 +106,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 
     // Propage light
     while let Some(pos) = prop_que.pop_front() {
-        let pos = pos.map(|e| e as i32);
+        let pos = Vec3::new(pos.0 as i32, pos.1 as i32, pos.2 as i32);
         let light = light_map[lm_idx(pos.x, pos.y, pos.z)];
 
         // If ray propagate downwards at full strength
@@ -119,10 +119,10 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 .ok()
                 .map_or((false, false), |b| (b.is_air(), b.is_fluid()));
             light_map[lm_idx(pos.x, pos.y, pos.z)] = if is_air {
-                prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
+                prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
                 SUNLIGHT
             } else if is_fluid {
-                prop_que.push_back(Vec3::new(pos.x as u8, pos.y as u8, pos.z as u8));
+                prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
                 SUNLIGHT - 1
             } else {
                 OPAQUE
