@@ -540,6 +540,26 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.aa_mode = new_aa_mode;
                         global_state.settings.save_to_file_warn();
                     }
+                    HudEvent::ChangeCloudMode(new_cloud_mode) => {
+                        // Do this first so if it crashes the setting isn't saved :)
+                        global_state
+                            .window
+                            .renderer_mut()
+                            .set_cloud_mode(new_cloud_mode)
+                            .unwrap();
+                        global_state.settings.graphics.cloud_mode = new_cloud_mode;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::ChangeFluidMode(new_fluid_mode) => {
+                        // Do this first so if it crashes the setting isn't saved :)
+                        global_state
+                            .window
+                            .renderer_mut()
+                            .set_fluid_mode(new_fluid_mode)
+                            .unwrap();
+                        global_state.settings.graphics.fluid_mode = new_fluid_mode;
+                        global_state.settings.save_to_file_warn();
+                    }
                 }
             }
 

@@ -241,6 +241,8 @@ impl Window {
                 win_color_view,
                 win_depth_view,
                 settings.graphics.aa_mode,
+                settings.graphics.cloud_mode,
+                settings.graphics.fluid_mode,
             )?,
             window,
             cursor_grabbed: false,
