@@ -56,7 +56,7 @@ float wave_height(vec3 pos) {
 
 void main() {
 	// First 3 normals are negative, next 3 are positive
-	vec3 normals[6] = vec3[]( vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) );
+	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
 
 	// TODO: last 3 bits in v_pos_norm should be a number between 0 and 5, rather than 0-2 and a direction.
 	uint norm_axis = (f_pos_norm >> 30) & 0x3u;
