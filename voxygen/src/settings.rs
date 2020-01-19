@@ -1,6 +1,6 @@
 use crate::{
     hud::{BarNumbers, CrosshairType, Intro, ShortcutNumbers, XpBar},
-    render::AaMode,
+    render::{AaMode, CloudMode, FluidMode},
     ui::ScaleMode,
     window::KeyMouse,
 };
@@ -182,6 +182,8 @@ pub struct GraphicsSettings {
     pub max_fps: u32,
     pub fov: u16,
     pub aa_mode: AaMode,
+    pub cloud_mode: CloudMode,
+    pub fluid_mode: FluidMode,
 }
 
 impl Default for GraphicsSettings {
@@ -191,6 +193,8 @@ impl Default for GraphicsSettings {
             max_fps: 60,
             fov: 50,
             aa_mode: AaMode::Fxaa,
+            cloud_mode: CloudMode::Regular,
+            fluid_mode: FluidMode::Shiny,
         }
     }
 }

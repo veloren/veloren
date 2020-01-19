@@ -3,7 +3,7 @@ use super::{
     TEXT_COLOR,
 };
 use crate::{
-    render::AaMode,
+    render::{AaMode, CloudMode, FluidMode},
     ui::{ImageSlider, ScaleMode, ToggleButton},
     GlobalState,
 };
@@ -87,6 +87,10 @@ widget_ids! {
         fov_value,
         aa_mode_text,
         aa_mode_list,
+        cloud_mode_text,
+        cloud_mode_list,
+        fluid_mode_text,
+        fluid_mode_list,
         audio_volume_slider,
         audio_volume_text,
         sfx_volume_slider,
@@ -188,6 +192,8 @@ pub enum Event {
     AdjustViewDistance(u32),
     AdjustFOV(u16),
     ChangeAaMode(AaMode),
+    ChangeCloudMode(CloudMode),
+    ChangeFluidMode(FluidMode),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -1527,6 +1533,60 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.aa_mode_list, ui)
             {
                 events.push(Event::ChangeAaMode(mode_list[clicked]));
+            }
+
+            // CloudMode
+            Text::new("Cloud Rendering Mode")
+                .down_from(state.ids.aa_mode_list, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .color(TEXT_COLOR)
+                .set(state.ids.cloud_mode_text, ui);
+
+            let mode_list = [CloudMode::None, CloudMode::Regular];
+            let mode_label_list = ["None", "Regular"];
+
+            // Get which cloud rendering mode is currently active
+            let selected = mode_list
+                .iter()
+                .position(|x| *x == self.global_state.settings.graphics.cloud_mode);
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri)
+                .down_from(state.ids.cloud_mode_text, 8.0)
+                .set(state.ids.cloud_mode_list, ui)
+            {
+                events.push(Event::ChangeCloudMode(mode_list[clicked]));
+            }
+
+            // FluidMode
+            Text::new("Fluid Rendering Mode")
+                .down_from(state.ids.cloud_mode_list, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.cyri)
+                .color(TEXT_COLOR)
+                .set(state.ids.fluid_mode_text, ui);
+
+            let mode_list = [FluidMode::Cheap, FluidMode::Shiny];
+            let mode_label_list = ["Cheap", "Shiny"];
+
+            // Get which fluid rendering mode is currently active
+            let selected = mode_list
+                .iter()
+                .position(|x| *x == self.global_state.settings.graphics.fluid_mode);
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri)
+                .down_from(state.ids.fluid_mode_text, 8.0)
+                .set(state.ids.fluid_mode_list, ui)
+            {
+                events.push(Event::ChangeFluidMode(mode_list[clicked]));
             }
         }
 
