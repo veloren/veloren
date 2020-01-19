@@ -6,7 +6,7 @@ use super::{
     model::{DynamicModel, Model},
     pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light, Shadow},
     texture::Texture,
-    AaMode, Pipeline, RenderError,
+    AaMode, CloudMode, FluidMode, Pipeline, RenderError,
 };
 use common::assets::{self, watch::ReloadIndicator};
 use gfx::{
@@ -75,6 +75,8 @@ pub struct Renderer {
     noise_tex: Texture<(gfx::format::R8, gfx::format::Unorm)>,
 
     aa_mode: AaMode,
+    cloud_mode: CloudMode,
+    fluid_mode: FluidMode,
 }
 
 impl Renderer {
@@ -85,6 +87,8 @@ impl Renderer {
         win_color_view: WinColorView,
         win_depth_view: WinDepthView,
         aa_mode: AaMode,
+        cloud_mode: CloudMode,
+        fluid_mode: FluidMode,
     ) -> Result<Self, RenderError> {
         let mut shader_reload_indicator = ReloadIndicator::new();
 
@@ -96,7 +100,13 @@ impl Renderer {
             sprite_pipeline,
             ui_pipeline,
             postprocess_pipeline,
-        ) = create_pipelines(&mut factory, aa_mode, &mut shader_reload_indicator)?;
+        ) = create_pipelines(
+            &mut factory,
+            aa_mode,
+            cloud_mode,
+            fluid_mode,
+            &mut shader_reload_indicator,
+        )?;
 
         let dims = win_color_view.get_dimensions();
         let (tgt_color_view, tgt_depth_view, tgt_color_res) =
@@ -138,6 +148,8 @@ impl Renderer {
             noise_tex,
 
             aa_mode,
+            cloud_mode,
+            fluid_mode,
         })
     }
 
@@ -173,6 +185,32 @@ impl Renderer {
         self.on_resize()?;
 
         // Recreate pipelines with the new AA mode
+        self.recreate_pipelines();
+
+        Ok(())
+    }
+
+    /// Change the cloud rendering mode
+    pub fn set_cloud_mode(&mut self, cloud_mode: CloudMode) -> Result<(), RenderError> {
+        self.cloud_mode = cloud_mode;
+
+        // Recreate render target
+        self.on_resize()?;
+
+        // Recreate pipelines with the new cloud mode
+        self.recreate_pipelines();
+
+        Ok(())
+    }
+
+    /// Change the fluid rendering mode
+    pub fn set_fluid_mode(&mut self, fluid_mode: FluidMode) -> Result<(), RenderError> {
+        self.fluid_mode = fluid_mode;
+
+        // Recreate render target
+        self.on_resize()?;
+
+        // Recreate pipelines with the new fluid mode
         self.recreate_pipelines();
 
         Ok(())
@@ -278,6 +316,8 @@ impl Renderer {
         match create_pipelines(
             &mut self.factory,
             self.aa_mode,
+            self.cloud_mode,
+            self.fluid_mode,
             &mut self.shader_reload_indicator,
         ) {
             Ok((
@@ -658,6 +698,8 @@ struct GfxPipeline<P: gfx::pso::PipelineInit> {
 fn create_pipelines(
     factory: &mut gfx_backend::Factory,
     aa_mode: AaMode,
+    cloud_mode: CloudMode,
+    fluid_mode: FluidMode,
     shader_reload_indicator: &mut ReloadIndicator,
 ) -> Result<
     (
@@ -703,6 +745,19 @@ fn create_pipelines(
     )
     .unwrap();
 
+    let cloud = assets::load_watched::<String>(
+        &[
+            "voxygen.shaders.include.cloud.",
+            match cloud_mode {
+                CloudMode::None => "none",
+                CloudMode::Regular => "regular",
+            },
+        ]
+        .concat(),
+        shader_reload_indicator,
+    )
+    .unwrap();
+
     let mut include_ctx = IncludeContext::new();
     include_ctx.include("globals.glsl", &globals);
     include_ctx.include("sky.glsl", &sky);
@@ -710,6 +765,7 @@ fn create_pipelines(
     include_ctx.include("srgb.glsl", &srgb);
     include_ctx.include("random.glsl", &random);
     include_ctx.include("anti-aliasing.glsl", &anti_alias);
+    include_ctx.include("cloud.glsl", &cloud);
 
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = create_pipeline(
@@ -753,8 +809,18 @@ fn create_pipelines(
         fluid::pipe::new(),
         &assets::load_watched::<String>("voxygen.shaders.fluid-vert", shader_reload_indicator)
             .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.fluid-frag", shader_reload_indicator)
-            .unwrap(),
+        &assets::load_watched::<String>(
+            &[
+                "voxygen.shaders.fluid-frag.",
+                match fluid_mode {
+                    FluidMode::Cheap => "cheap",
+                    FluidMode::Shiny => "shiny",
+                },
+            ]
+            .concat(),
+            shader_reload_indicator,
+        )
+        .unwrap(),
         &include_ctx,
         gfx::state::CullFace::Nothing,
     )?;

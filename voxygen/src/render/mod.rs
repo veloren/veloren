@@ -64,3 +64,17 @@ pub enum AaMode {
     MsaaX16,
     SsaaX4,
 }
+
+/// Cloud modes
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum CloudMode {
+    None,
+    Regular,
+}
+
+/// Fluid modes
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum FluidMode {
+    Cheap,
+    Shiny,
+}
