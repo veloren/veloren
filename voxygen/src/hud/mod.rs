@@ -36,7 +36,7 @@ use spell::Spell;
 
 use crate::{
     ecs::comp as vcomp,
-    render::{AaMode, Consts, Globals, Renderer},
+    render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
     scene::camera::Camera,
     //settings::ControlSettings,
     ui::{Graphic, Ingameable, ScaleMode, Ui},
@@ -205,6 +205,8 @@ pub enum Event {
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
     ChangeAaMode(AaMode),
+    ChangeCloudMode(CloudMode),
+    ChangeFluidMode(FluidMode),
     CrosshairTransp(f32),
     ChatTransp(f32),
     CrosshairType(CrosshairType),
@@ -1770,6 +1772,12 @@ impl Hud {
                     }
                     settings_window::Event::ChangeAaMode(new_aa_mode) => {
                         events.push(Event::ChangeAaMode(new_aa_mode));
+                    }
+                    settings_window::Event::ChangeCloudMode(new_cloud_mode) => {
+                        events.push(Event::ChangeCloudMode(new_cloud_mode));
+                    }
+                    settings_window::Event::ChangeFluidMode(new_fluid_mode) => {
+                        events.push(Event::ChangeFluidMode(new_fluid_mode));
                     }
                 }
             }
