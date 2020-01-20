@@ -63,15 +63,13 @@ pub fn diffusion(
     let mut zint: Vec<f64>;
     let mut kdint: Vec<f64>;
     let mut zintp: Vec<f64>;
-    let mut i: usize;
-    let mut j: usize;
     let mut ij: usize;
     let mut factxp: f64;
     let mut factxm: f64;
     let mut factyp: f64;
     let mut factym: f64;
-    let mut dx: f64;
-    let mut dy: f64;
+    let dx: f64;
+    let dy: f64;
     /*
       character cbc*4
 
@@ -93,7 +91,7 @@ pub fn diffusion(
     */
     zint = vec![Default::default(); nx * ny];
     kdint = vec![Default::default(); nx * ny];
-    zintp = vec![Default::default(); nx * ny];
+    // zintp = vec![Default::default(); nx * ny];
     /*
       do j=1,ny
         do i=1,nx
@@ -381,7 +379,7 @@ pub fn diffusion(
         }
     }
 
-    b.par_iter_mut().zip(h).for_each(|(mut b, h)| {
+    b.par_iter_mut().zip(h).for_each(|(b, h)| {
         *b = h.min(*b);
     });
     /*
@@ -415,9 +413,7 @@ pub fn tridag(a: &[f64], b: &[f64], c: &[f64], r: &[f64], u: &mut [f64], n: usiz
 
           if(b(1).eq.0.d0) stop 'in tridag'
     */
-    let mut j: usize;
     let mut bet: f64;
-    let mut precision: f64;
     let mut gam: Vec<f64>;
 
     gam = vec![Default::default(); n];

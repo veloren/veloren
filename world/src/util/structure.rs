@@ -1,5 +1,4 @@
 use super::{RandomField, Sampler};
-use crate::block::BlockGen;
 use rayon::prelude::*;
 use vek::*;
 

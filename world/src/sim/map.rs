@@ -1,6 +1,5 @@
 use crate::{
-    sim::{self, uniform_idx_as_vec2, RiverKind, WorldSim, WORLD_SIZE},
-    util::Sampler,
+    sim::{RiverKind, WorldSim, WORLD_SIZE},
     CONFIG,
 };
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
