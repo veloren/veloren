@@ -1,6 +1,7 @@
 use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Body {
     pub head: Head,
     pub upper_torso: UpperTorso,
@@ -34,66 +35,77 @@ impl Body {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Head {
     Default,
 }
 const ALL_HEADS: [Head; 1] = [Head::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum UpperTorso {
     Default,
 }
 const ALL_UPPER_TORSOS: [UpperTorso; 1] = [UpperTorso::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum LowerTorso {
     Default,
 }
 const ALL_LOWER_TORSOS: [LowerTorso; 1] = [LowerTorso::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum ShoulderL {
     Default,
 }
 const ALL_SHOULDER_LS: [ShoulderL; 1] = [ShoulderL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum ShoulderR {
     Default,
 }
 const ALL_SHOULDER_RS: [ShoulderR; 1] = [ShoulderR::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum HandL {
     Default,
 }
 const ALL_HAND_LS: [HandL; 1] = [HandL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum HandR {
     Default,
 }
 const ALL_HAND_RS: [HandR; 1] = [HandR::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum LegL {
     Default,
 }
 const ALL_LEG_LS: [LegL; 1] = [LegL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum LegR {
     Default,
 }
 const ALL_LEG_RS: [LegR; 1] = [LegR::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum FootL {
     Default,
 }
 const ALL_FOOT_LS: [FootL; 1] = [FootL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum FootR {
     Default,
 }

@@ -1,14 +1,15 @@
 use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Body {
-    pub head: Head,       
+    pub head: Head,
     pub shoulder: Shoulder,
     pub chest: Chest,
-    pub hand: Hand   
+    pub hand: Hand
     pub belt: Belt,
     pub pants: Pants,
-    pub foot: Foot,   
+    pub foot: Foot,
 }
 
 impl Body {
@@ -27,40 +28,47 @@ impl Body {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Head {
     Default,
 }
 const ALL_HEADS: [Head; 1] = [Head::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Shoulder {
     Default,
 }
 const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Chest {
     Default,
 }
 const ALL_CHESTS: [Chest; 1] = [Chest::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Hand {
     Default,
 }
 const ALL_HANDS: [Hand; 1] = [Hand::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Belt {
     Default,
 }
 const ALL_BELTS: [Belt; 1] = [Belt::Default];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Pants {
     Default,
 }
 const ALL_FEET: [Foot; 1] = [Foot::Default];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Foot {
     Default,
 }

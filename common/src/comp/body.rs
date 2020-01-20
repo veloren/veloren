@@ -13,17 +13,18 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Body {
-    Humanoid(humanoid::Body),
-    QuadrupedSmall(quadruped_small::Body),
-    QuadrupedMedium(quadruped_medium::Body),
-    BirdMedium(bird_medium::Body),
-    FishMedium(fish_medium::Body),
-    Dragon(dragon::Body),
-    BirdSmall(bird_small::Body),
-    FishSmall(fish_small::Body),
-    BipedLarge(biped_large::Body),
-    Object(object::Body),
+    Humanoid(humanoid::Body) = 0,
+    QuadrupedSmall(quadruped_small::Body) = 1,
+    QuadrupedMedium(quadruped_medium::Body) = 2,
+    BirdMedium(bird_medium::Body) = 3,
+    FishMedium(fish_medium::Body) = 4,
+    Dragon(dragon::Body) = 5,
+    BirdSmall(bird_small::Body) = 6,
+    FishSmall(fish_small::Body) = 7,
+    BipedLarge(biped_large::Body) = 8,
+    Object(object::Body) = 9,
 }
 
 impl Body {

@@ -5,6 +5,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::{fs, io, path::PathBuf};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[repr(C)]
 pub struct CharacterData {
     pub name: String,
     pub body: comp::Body,
@@ -12,6 +13,7 @@ pub struct CharacterData {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
+#[repr(C)]
 pub struct Meta {
     pub characters: Vec<CharacterData>,
     pub selected_character: usize,
