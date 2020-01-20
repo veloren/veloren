@@ -300,6 +300,7 @@ impl CharSelectionUi {
             rot_imgs,
             fonts,
             info_content: InfoContent::None,
+            selected_language: global_state.settings.language.selected_language.clone(),
             //deletion_confirmation: false,
             /*
             character_creation: false,
@@ -587,7 +588,12 @@ impl CharSelectionUi {
                         .top_right_with_margins_on(self.ids.character_boxes[i], 15.0, 15.0)
                         .hover_image(self.imgs.delete_button_hover)
                         .press_image(self.imgs.delete_button_press)
-                        .with_tooltip(tooltip_manager, &localized_strings.get("char_selection.delete_permanently"), "", &tooltip_human)
+                        .with_tooltip(
+                            tooltip_manager,
+                            &localized_strings.get("char_selection.delete_permanently"),
+                            "",
+                            &tooltip_human,
+                        )
                         .set(self.ids.character_deletes[i], ui_widgets)
                         .was_clicked()
                     {
@@ -825,7 +831,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.human)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.races.human"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.human"),
+                    "",
+                    &tooltip_human,
+                )
                 /*.tooltip_image(
                     if let humanoid::BodyType::Male = body.body_type {
                         self.imgs.human_m
@@ -853,7 +864,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.orc)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.races.orc"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.orc"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.race_2, ui_widgets)
                 .was_clicked()
                 {
@@ -873,7 +889,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.dwarf)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.races.dwarf"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.dwarf"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.race_3, ui_widgets)
                 .was_clicked()
                 {
@@ -893,7 +914,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.elf)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.races.elf"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.elf"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.race_4, ui_widgets)
                 .was_clicked()
                 {
@@ -914,7 +940,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.undead)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.races.undead"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.undead"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.race_5, ui_widgets)
                 .was_clicked()
                 {
@@ -934,7 +965,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.danari)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.races.danari"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.danari"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.race_6, ui_widgets)
                 .was_clicked()
                 {
@@ -955,7 +991,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.hammer)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.weapons.hammer"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.hammer"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.hammer_button, ui_widgets)
                 .was_clicked()
                 {
@@ -979,7 +1020,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.bow)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.weapons.bow"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.bow"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.bow_button, ui_widgets)
                 .was_clicked()
                 {
@@ -1002,7 +1048,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.staff)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.weapons.staff"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.staff"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.staff_button, ui_widgets)
                 .was_clicked()
                 {
@@ -1025,7 +1076,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.sword)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.weapons.sword"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.sword"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.sword_button, ui_widgets)
                 .was_clicked()
                 {
@@ -1068,7 +1124,12 @@ impl CharSelectionUi {
                 .middle_of(self.ids.axe)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .with_tooltip(tooltip_manager, &localized_strings.get("common.weapons.axe"), "", &tooltip_human)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.axe"),
+                    "",
+                    &tooltip_human,
+                )
                 .set(self.ids.axe_button, ui_widgets)
                 .was_clicked()
                 {
@@ -1086,13 +1147,13 @@ impl CharSelectionUi {
                     self.imgs.slider_range,
                 );
                 let char_slider = move |prev_id,
-                                        text,
+                                        text: String,
                                         text_id,
                                         max,
                                         selected_val,
                                         slider_id,
                                         ui_widgets: &mut UiCell| {
-                    Text::new(text)
+                    Text::new(&text)
                         .down_from(prev_id, 22.0)
                         .align_middle_x_of(prev_id)
                         .font_size(18)
@@ -1189,7 +1250,7 @@ impl CharSelectionUi {
                 if body.race.num_beards(body.body_type) > 1 {
                     if let Some(new_val) = char_slider(
                         self.ids.accessories_slider,
-                        &localized_strings.get("char_selection.beard"),
+                        localized_strings.get("char_selection.beard"),
                         self.ids.beard_text,
                         body.race.num_beards(body.body_type) as usize - 1,
                         body.beard as usize,
