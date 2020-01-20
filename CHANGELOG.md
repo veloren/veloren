@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a Death Screen and Hurt Screen
 - Added randomly selected Loading Screen background images
 - Added options to disable clouds and to use cheaper water rendering
-
+- Added client-side character saving
 
 ### Changed
 

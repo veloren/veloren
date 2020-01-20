@@ -2,6 +2,7 @@ use rand::{seq::SliceRandom, thread_rng, Rng};
 use vek::Rgb;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Body {
     pub race: Race,
     pub body_type: BodyType,
@@ -59,13 +60,14 @@ impl Body {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Race {
-    Danari,
-    Dwarf,
-    Elf,
-    Human,
-    Orc,
-    Undead,
+    Danari = 0,
+    Dwarf = 1,
+    Elf = 2,
+    Human = 3,
+    Orc = 4,
+    Undead = 5,
 }
 pub const ALL_RACES: [Race; 6] = [
     Race::Danari,
@@ -379,21 +381,23 @@ impl Race {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum BodyType {
-    Female,
-    Male,
+    Female = 0,
+    Male = 1,
 }
 pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Chest {
-    Blue,
-    Brown,
-    Dark,
-    Green,
-    Orange,
-    Midnight,
-    Kimono,
+    Blue = 0,
+    Brown = 1,
+    Dark = 2,
+    Green = 3,
+    Orange = 4,
+    Midnight = 5,
+    Kimono = 6,
 }
 pub const ALL_CHESTS: [Chest; 7] = [
     Chest::Blue,
@@ -406,20 +410,22 @@ pub const ALL_CHESTS: [Chest; 7] = [
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Belt {
-    Dark,
-    Cloth,
+    Dark = 0,
+    Cloth = 1,
 }
 pub const ALL_BELTS: [Belt; 2] = [Belt::Dark, Belt::Cloth];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Pants {
-    Blue,
-    Brown,
-    Dark,
-    Green,
-    Orange,
-    Kimono,
+    Blue = 0,
+    Brown = 1,
+    Dark = 2,
+    Green = 3,
+    Orange = 4,
+    Kimono = 5,
 }
 pub const ALL_PANTS: [Pants; 6] = [
     Pants::Blue,
@@ -431,47 +437,52 @@ pub const ALL_PANTS: [Pants; 6] = [
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Hand {
-    Bare,
-    Cloth,
+    Bare = 0,
+    Cloth = 1,
 }
 pub const ALL_HANDS: [Hand; 2] = [Hand::Bare, Hand::Cloth];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Foot {
-    Bare,
-    Dark,
-    Sandal,
-    Jester,
+    Bare = 0,
+    Dark = 1,
+    Sandal = 2,
+    Jester = 3,
 }
 pub const ALL_FEET: [Foot; 4] = [Foot::Bare, Foot::Dark, Foot::Sandal, Foot::Jester];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Shoulder {
-    None,
-    Brown1,
-    Chain,
+    None = 0,
+    Brown1 = 1,
+    Chain = 2,
 }
 pub const ALL_SHOULDERS: [Shoulder; 3] = [Shoulder::None, Shoulder::Brown1, Shoulder::Chain];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Eyebrows {
-    Yup,
+    Yup = 0,
 }
 pub const ALL_EYEBROWS: [Eyebrows; 1] = [Eyebrows::Yup];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum EyeColor {
-    VigorousBlack,
-    NobleBlue,
-    CuriousGreen,
-    LoyalBrown,
-    ViciousRed,
-    PumpkinOrange,
-    GhastlyYellow,
-    MagicPurple,
-    ToxicGreen,
-    ExoticPurple,
+    VigorousBlack = 0,
+    NobleBlue = 1,
+    CuriousGreen = 2,
+    LoyalBrown = 3,
+    ViciousRed = 4,
+    PumpkinOrange = 5,
+    GhastlyYellow = 6,
+    MagicPurple = 7,
+    ToxicGreen = 8,
+    ExoticPurple = 9,
 }
 impl EyeColor {
     pub fn light_rgb(self) -> Rgb<u8> {
@@ -508,35 +519,37 @@ impl EyeColor {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Accessory {
-    Nothing,
-    Some,
+    Nothing = 0,
+    Some = 1,
 }
 pub const ALL_ACCESSORIES: [Accessory; 2] = [Accessory::Nothing, Accessory::Some];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Skin {
-    Pale,
-    White,
-    Tanned,
-    Brown,
-    TannedBrown,
-    TannedDarkBrown,
-    Iron,
-    Steel,
-    DanariOne,
-    DanariTwo,
-    DanariThree,
-    DanariFour,
-    ElfOne,
-    ElfTwo,
-    ElfThree,
-    OrcOne,
-    OrcTwo,
-    OrcThree,
-    UndeadOne,
-    UndeadTwo,
-    UndeadThree,
+    Pale = 0,
+    White = 1,
+    Tanned = 2,
+    Brown = 3,
+    TannedBrown = 4,
+    TannedDarkBrown = 5,
+    Iron = 6,
+    Steel = 7,
+    DanariOne = 8,
+    DanariTwo = 9,
+    DanariThree = 10,
+    DanariFour = 11,
+    ElfOne = 12,
+    ElfTwo = 13,
+    ElfThree = 14,
+    OrcOne = 15,
+    OrcTwo = 16,
+    OrcThree = 17,
+    UndeadOne = 18,
+    UndeadTwo = 19,
+    UndeadThree = 20,
 }
 impl Skin {
     pub fn rgb(self) -> Rgb<u8> {

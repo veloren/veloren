@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![type_length_limit = "1664759"]
-#![feature(trait_alias)]
+#![feature(trait_alias, arbitrary_enum_discriminant)]
 
 #[macro_use]
 extern crate serde_derive;
