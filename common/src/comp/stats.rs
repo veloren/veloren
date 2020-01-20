@@ -71,7 +71,8 @@ impl Health {
         self.last_change = (0.0, change);
     }
 
-    pub fn set_maximum(&mut self, amount: u32) {
+    // This is private because max hp is based on the level
+    fn set_maximum(&mut self, amount: u32) {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
     }
@@ -160,7 +161,7 @@ impl Stats {
 
     // TODO: Delete this once stat points will be a thing
     pub fn update_max_hp(&mut self) {
-        self.health.set_maximum(42 * self.level.amount);
+        self.health.set_maximum(27 + 15 * self.level.amount);
     }
 }
 

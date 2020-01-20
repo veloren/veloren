@@ -132,7 +132,7 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 Agent::Enemy { bearing, target } => {
-                    const SIGHT_DIST: f32 = 30.0;
+                    const SIGHT_DIST: f32 = 18.0;
                     const MIN_ATTACK_DIST: f32 = 3.25;
                     let mut choose_new = false;
 
