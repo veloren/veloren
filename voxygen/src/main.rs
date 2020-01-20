@@ -13,6 +13,7 @@ pub mod key_state;
 mod logging;
 pub mod menu;
 pub mod mesh;
+pub mod meta;
 pub mod render;
 pub mod scene;
 pub mod session;
@@ -24,13 +25,16 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
-use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
+use crate::{
+    audio::AudioFrontend, menu::main::MainMenuState, meta::Meta, settings::Settings, window::Window,
+};
 use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
     settings: Settings,
+    meta: Meta,
     window: Window,
     audio: AudioFrontend,
     info_message: Option<String>,
@@ -97,6 +101,9 @@ fn main() {
 
     logging::init(&settings, term_log_level, file_log_level);
 
+    // Load metadata
+    let meta = Meta::load();
+
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
@@ -120,6 +127,7 @@ fn main() {
         audio,
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
+        meta,
         info_message: None,
     };
 
@@ -254,6 +262,7 @@ fn main() {
         }
     }
 
-    // Save any unsaved changes to settings
+    // Save any unsaved changes to settings and meta
     global_state.settings.save_to_file_warn();
+    global_state.meta.save_to_file_warn();
 }
