@@ -250,19 +250,31 @@ enum InfoContent {
     //Name,
 }
 
+pub enum Mode {
+    Select(Option<CharacterData>),
+    Create {
+        name: String,
+        body: humanoid::Body,
+        tool: Option<&'static str>,
+    },
+}
+
 pub struct CharSelectionUi {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
     rot_imgs: ImgsRot,
     fonts: Fonts,
-    character_creation: bool,
+    //character_creation: bool,
     info_content: InfoContent,
     selected_language: String,
     //deletion_confirmation: bool,
+    /*
     pub character_name: String,
     pub character_body: humanoid::Body,
     pub character_tool: Option<&'static str>,
+    */
+    pub mode: Mode,
 }
 
 impl CharSelectionUi {
@@ -288,12 +300,27 @@ impl CharSelectionUi {
             rot_imgs,
             fonts,
             info_content: InfoContent::None,
+            selected_language: global_state.settings.language.selected_language.clone(),
             //deletion_confirmation: false,
+            /*
             character_creation: false,
             selected_language: global_state.settings.language.selected_language.clone(),
             character_name: "Character Name".to_string(),
             character_body: humanoid::Body::random(),
             character_tool: Some(STARTER_SWORD),
+            */
+            mode: Mode::Select(None),
+        }
+    }
+
+    pub fn get_character_data(&self) -> Option<CharacterData> {
+        match &self.mode {
+            Mode::Select(data) => data.clone(),
+            Mode::Create { name, body, tool } => Some(CharacterData {
+                name: name.clone(),
+                body: comp::Body::Humanoid(body.clone()),
+                tool: tool.map(|specifier| specifier.to_string()),
+            }),
         }
     }
 
@@ -372,6 +399,7 @@ impl CharSelectionUi {
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
                         .label(&localized_strings.get("common.yes"))
+                        .label_font_id(self.fonts.cyri)
                         .label_font_size(18)
                         .label_color(TEXT_COLOR)
                         .set(self.ids.info_ok, ui_widgets)
@@ -384,918 +412,912 @@ impl CharSelectionUi {
             }
         }
         // Character Selection /////////////////
-        if !self.character_creation {
-            // Set active body
-            self.character_body = if let Some(character) = global_state
-                .meta
-                .characters
-                .get(global_state.meta.selected_character)
-            {
-                match character.body {
-                    comp::Body::Humanoid(body) => Some(body.clone()),
-                    _ => None,
-                }
-            } else {
-                None
-            }
-            .unwrap_or_else(|| humanoid::Body::random());
-
-            // Background for Server Frame
-            Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.9))
-                .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
-                .set(self.ids.server_frame_bg, ui_widgets);
-            Image::new(self.imgs.server_frame)
-                .w_h(400.0, 100.0)
-                .middle_of(self.ids.server_frame_bg)
-                .set(self.ids.server_frame, ui_widgets);
-
-            // Background for Char List
-            Rectangle::fill_with([386.0, 788.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .down_from(self.ids.server_frame_bg, 20.0)
-                .set(self.ids.charlist_bg, ui_widgets);
-            Image::new(self.imgs.charlist_frame)
-                .w_h(400.0, 800.0)
-                .middle_of(self.ids.charlist_bg)
-                .set(self.ids.charlist_frame, ui_widgets);
-            Rectangle::fill_with([386.0, 783.0], color::TRANSPARENT)
-                .middle_of(self.ids.charlist_bg)
-                .scroll_kids()
-                .scroll_kids_vertically()
-                .set(self.ids.charlist_alignment, ui_widgets);
-            Scrollbar::y_axis(self.ids.charlist_alignment)
-                .thickness(5.0)
-                .auto_hide(true)
-                .rgba(0.0, 0.0, 0., 0.0)
-                .set(self.ids.selection_scrollbar, ui_widgets);
-            // Server Name
-            Text::new(&client.server_info.name)
-                .mid_top_with_margin_on(self.ids.server_frame_bg, 5.0)
-                .font_size(26)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.server_name_text, ui_widgets);
-            //Change Server
-            if Button::image(self.imgs.button)
-                .mid_top_with_margin_on(self.ids.server_frame_bg, 45.0)
-                .w_h(200.0, 40.0)
-                .parent(self.ids.charlist_bg)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label(&localized_strings.get("char_selection.change_server"))
-                .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri)
-                .label_font_size(18)
-                .label_y(conrod_core::position::Relative::Scalar(3.0))
-                .set(self.ids.change_server, ui_widgets)
-                .was_clicked()
-            {
-                events.push(Event::Logout);
-            }
-
-            // Enter World Button
-            if Button::image(self.imgs.button)
-                .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
-                .w_h(250.0, 60.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label(&localized_strings.get("char_selection.enter_world"))
-                .label_color(TEXT_COLOR)
-                .label_font_size(26)
-                .label_font_id(self.fonts.cyri)
-                .label_y(conrod_core::position::Relative::Scalar(3.0))
-                .set(self.ids.enter_world_button, ui_widgets)
-                .was_clicked()
-            {
-                events.push(Event::Play);
-            }
-
-            // Logout_Button
-            if Button::image(self.imgs.button)
-                .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
-                .w_h(150.0, 40.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label(&localized_strings.get("char_selection.logout"))
-                .label_font_id(self.fonts.cyri)
-                .label_color(TEXT_COLOR)
-                .label_font_size(20)
-                .label_y(conrod_core::position::Relative::Scalar(3.0))
-                .set(self.ids.logout_button, ui_widgets)
-                .was_clicked()
-            {
-                events.push(Event::Logout);
-            }
-
-            // Create Character Button.
-            /*if Button::image(self.imgs.button)
-                .mid_bottom_with_margin_on(self.ids.charlist_bg, -60.0)
-                .w_h(270.0, 50.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label(&localized_strings.get("char_selection.create_charater"))
-                .label_font_id(self.fonts.cyri)
-                .label_color(TEXT_COLOR)
-                .label_font_size(20)
-                .label_y(conrod_core::position::Relative::Scalar(3.0))
-                .set(self.ids.create_character_button, ui_widgets)
-                .was_clicked()
-            {
-                self.character_creation = true;
-                self.character_tool = Some(STARTER_SWORD);
-            }*/
-
-            // Alpha Version
-            Text::new(&version)
-                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.version, ui_widgets);
-
-            // Resize character selection widgets
-            let character_count = global_state.meta.characters.len();
-            self.ids
-                .character_boxes
-                .resize(character_count, &mut ui_widgets.widget_id_generator());
-            self.ids
-                .character_deletes
-                .resize(character_count, &mut ui_widgets.widget_id_generator());
-            self.ids
-                .character_names
-                .resize(character_count, &mut ui_widgets.widget_id_generator());
-            self.ids
-                .character_levels
-                .resize(character_count, &mut ui_widgets.widget_id_generator());
-            self.ids
-                .character_locations
-                .resize(character_count, &mut ui_widgets.widget_id_generator());
-
-            // Character selection
-            for (i, character) in global_state.meta.characters.iter().enumerate() {
-                let character_box = Button::image(if global_state.meta.selected_character == i {
-                    self.imgs.selection_hover
+        match &mut self.mode {
+            Mode::Select(data) => {
+                // Set active body
+                *data = if let Some(character) = global_state
+                    .meta
+                    .characters
+                    .get(global_state.meta.selected_character)
+                {
+                    Some(character.clone())
                 } else {
-                    self.imgs.selection
-                });
-                let character_box = if i == 0 {
-                    character_box.top_left_with_margins_on(self.ids.charlist_alignment, 0.0, 2.0)
-                } else {
-                    character_box.down_from(self.ids.character_boxes[i - 1], 5.0)
+                    None
                 };
-                if character_box
+
+                // Background for Server Frame
+                Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.9))
+                    .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
+                    .set(self.ids.server_frame_bg, ui_widgets);
+                Image::new(self.imgs.server_frame)
+                    .w_h(400.0, 100.0)
+                    .middle_of(self.ids.server_frame_bg)
+                    .set(self.ids.server_frame, ui_widgets);
+
+                // Background for Char List
+                Rectangle::fill_with([386.0, 788.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                    .down_from(self.ids.server_frame_bg, 20.0)
+                    .set(self.ids.charlist_bg, ui_widgets);
+                Image::new(self.imgs.charlist_frame)
+                    .w_h(400.0, 800.0)
+                    .middle_of(self.ids.charlist_bg)
+                    .set(self.ids.charlist_frame, ui_widgets);
+                Rectangle::fill_with([386.0, 783.0], color::TRANSPARENT)
+                    .middle_of(self.ids.charlist_bg)
+                    .scroll_kids()
+                    .scroll_kids_vertically()
+                    .set(self.ids.charlist_alignment, ui_widgets);
+                Scrollbar::y_axis(self.ids.charlist_alignment)
+                    .thickness(5.0)
+                    .auto_hide(true)
+                    .rgba(0.0, 0.0, 0., 0.0)
+                    .set(self.ids.selection_scrollbar, ui_widgets);
+                // Server Name
+                Text::new(&client.server_info.name)
+                    .mid_top_with_margin_on(self.ids.server_frame_bg, 5.0)
+                    .font_size(26)
+                    .font_id(self.fonts.cyri)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.server_name_text, ui_widgets);
+                //Change Server
+                if Button::image(self.imgs.button)
+                    .mid_top_with_margin_on(self.ids.server_frame_bg, 45.0)
+                    .w_h(200.0, 40.0)
+                    .parent(self.ids.charlist_bg)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label(&localized_strings.get("char_selection.change_server"))
+                    .label_color(TEXT_COLOR)
+                    .label_font_id(self.fonts.cyri)
+                    .label_font_size(18)
+                    .label_y(conrod_core::position::Relative::Scalar(3.0))
+                    .set(self.ids.change_server, ui_widgets)
+                    .was_clicked()
+                {
+                    events.push(Event::Logout);
+                }
+
+                // Enter World Button
+                if Button::image(self.imgs.button)
+                    .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
+                    .w_h(250.0, 60.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label(&localized_strings.get("char_selection.enter_world"))
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(26)
+                    .label_font_id(self.fonts.cyri)
+                    .label_y(conrod_core::position::Relative::Scalar(3.0))
+                    .set(self.ids.enter_world_button, ui_widgets)
+                    .was_clicked()
+                {
+                    events.push(Event::Play);
+                }
+
+                // Logout_Button
+                if Button::image(self.imgs.button)
+                    .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
+                    .w_h(150.0, 40.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label(&localized_strings.get("char_selection.logout"))
+                    .label_font_id(self.fonts.cyri)
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(20)
+                    .label_y(conrod_core::position::Relative::Scalar(3.0))
+                    .set(self.ids.logout_button, ui_widgets)
+                    .was_clicked()
+                {
+                    events.push(Event::Logout);
+                }
+
+                // Create Character Button.
+                /*if Button::image(self.imgs.button)
+                    .mid_bottom_with_margin_on(self.ids.charlist_bg, -60.0)
+                    .w_h(270.0, 50.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label("Create Character")
+                    .label_font_id(self.fonts.cyri)
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(20)
+                    .label_y(conrod_core::position::Relative::Scalar(3.0))
+                    .set(self.ids.create_character_button, ui_widgets)
+                    .was_clicked()
+                {
+                    self.character_creation = true;
+                    self.character_tool = Some(STARTER_SWORD);
+                }*/
+
+                // Alpha Version
+                Text::new(&version)
+                    .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                    .font_size(14)
+                    .font_id(self.fonts.cyri)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.version, ui_widgets);
+
+                // Resize character selection widgets
+                let character_count = global_state.meta.characters.len();
+                self.ids
+                    .character_boxes
+                    .resize(character_count, &mut ui_widgets.widget_id_generator());
+                self.ids
+                    .character_deletes
+                    .resize(character_count, &mut ui_widgets.widget_id_generator());
+                self.ids
+                    .character_names
+                    .resize(character_count, &mut ui_widgets.widget_id_generator());
+                self.ids
+                    .character_levels
+                    .resize(character_count, &mut ui_widgets.widget_id_generator());
+                self.ids
+                    .character_locations
+                    .resize(character_count, &mut ui_widgets.widget_id_generator());
+
+                // Character selection
+                for (i, character) in global_state.meta.characters.iter().enumerate() {
+                    let character_box =
+                        Button::image(if global_state.meta.selected_character == i {
+                            self.imgs.selection_hover
+                        } else {
+                            self.imgs.selection
+                        });
+                    let character_box = if i == 0 {
+                        character_box.top_left_with_margins_on(
+                            self.ids.charlist_alignment,
+                            0.0,
+                            2.0,
+                        )
+                    } else {
+                        character_box.down_from(self.ids.character_boxes[i - 1], 5.0)
+                    };
+                    if character_box
+                        .w_h(386.0, 80.0)
+                        .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
+                        .hover_image(self.imgs.selection_hover)
+                        .press_image(self.imgs.selection_press)
+                        .label_font_id(self.fonts.cyri)
+                        .label_y(conrod_core::position::Relative::Scalar(20.0))
+                        .set(self.ids.character_boxes[i], ui_widgets)
+                        .was_clicked()
+                    {
+                        global_state.meta.selected_character = i;
+                    }
+                    if Button::image(self.imgs.delete_button)
+                        .w_h(30.0 * 0.5, 30.0 * 0.5)
+                        .top_right_with_margins_on(self.ids.character_boxes[i], 15.0, 15.0)
+                        .hover_image(self.imgs.delete_button_hover)
+                        .press_image(self.imgs.delete_button_press)
+                        .with_tooltip(
+                            tooltip_manager,
+                            &localized_strings.get("char_selection.delete_permanently"),
+                            "",
+                            &tooltip_human,
+                        )
+                        .set(self.ids.character_deletes[i], ui_widgets)
+                        .was_clicked()
+                    {
+                        self.info_content = InfoContent::Deletion(i);
+                    }
+                    Text::new(&character.name)
+                        .top_left_with_margins_on(self.ids.character_boxes[i], 6.0, 9.0)
+                        .font_size(19)
+                        .font_id(self.fonts.cyri)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.character_names[i], ui_widgets);
+
+                    Text::new("Level <n/a>")
+                        .down_from(self.ids.character_names[i], 4.0)
+                        .font_size(17)
+                        .font_id(self.fonts.cyri)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.character_levels[i], ui_widgets);
+
+                    Text::new("Uncanny Valley")
+                        .down_from(self.ids.character_levels[i], 4.0)
+                        .font_size(17)
+                        .font_id(self.fonts.cyri)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.character_locations[i], ui_widgets);
+                }
+
+                // Create Character Button
+                let create_char_button = Button::image(self.imgs.selection);
+
+                let create_char_button = if character_count > 0 {
+                    create_char_button.down_from(self.ids.character_boxes[character_count - 1], 5.0)
+                } else {
+                    create_char_button.top_left_with_margins_on(
+                        self.ids.charlist_alignment,
+                        0.0,
+                        2.0,
+                    )
+                };
+
+                if create_char_button
                     .w_h(386.0, 80.0)
-                    .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
                     .hover_image(self.imgs.selection_hover)
                     .press_image(self.imgs.selection_press)
+                    .label(&localized_strings.get("char_selection.create_new_charater"))
+                    .label_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
                     .label_font_id(self.fonts.cyri)
-                    .label_y(conrod_core::position::Relative::Scalar(20.0))
-                    .set(self.ids.character_boxes[i], ui_widgets)
+                    .image_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
+                    .set(self.ids.character_box_2, ui_widgets)
                     .was_clicked()
                 {
-                    self.character_name = character.name.clone();
-                    self.character_body = match &character.body {
-                        comp::Body::Humanoid(body) => body.clone(),
-                        _ => panic!("Unsupported body type!"),
+                    self.mode = Mode::Create {
+                        name: "Character Name".to_string(),
+                        body: humanoid::Body::random(),
+                        tool: Some(STARTER_SWORD),
                     };
-                    global_state.meta.selected_character = i;
                 }
-                if Button::image(self.imgs.delete_button)
-                    .w_h(30.0 * 0.5, 30.0 * 0.5)
-                    .top_right_with_margins_on(self.ids.character_boxes[i], 15.0, 15.0)
-                    .hover_image(self.imgs.delete_button_hover)
-                    .press_image(self.imgs.delete_button_press)
-                    .with_tooltip(tooltip_manager, "Delete Character", "", &tooltip_human)
-                    .set(self.ids.character_deletes[i], ui_widgets)
+            }
+            // Character_Creation //////////////////////////////////////////////////////////////////////
+            Mode::Create { name, body, tool } => {
+                let mut to_select = false;
+                // Back Button
+                if Button::image(self.imgs.button)
+                    .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
+                    .w_h(150.0, 40.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label(&localized_strings.get("common.back"))
+                    .label_font_id(self.fonts.cyri)
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(20)
+                    .label_y(conrod_core::position::Relative::Scalar(3.0))
+                    .set(self.ids.back_button, ui_widgets)
                     .was_clicked()
                 {
-                    self.info_content = InfoContent::Deletion(i);
+                    to_select = true;
                 }
-                Text::new(&character.name)
-                    .top_left_with_margins_on(self.ids.character_boxes[i], 6.0, 9.0)
-                    .font_size(19)
+                // Create Button
+                if Button::image(self.imgs.button)
+                    .bottom_right_with_margins_on(ui_widgets.window, 10.0, 10.0)
+                    .w_h(150.0, 40.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label(&localized_strings.get("common.create"))
+                    .label_font_id(self.fonts.cyri)
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(20)
+                    .label_y(conrod_core::position::Relative::Scalar(3.0))
+                    .set(self.ids.create_button, ui_widgets)
+                    .was_clicked()
+                {
+                    // TODO: Save character.
+                    global_state.meta.add_character(CharacterData {
+                        name: name.clone(),
+                        body: comp::Body::Humanoid(body.clone()),
+                        tool: tool.map(|tool| tool.to_string()),
+                    });
+                    to_select = true;
+                }
+                // Character Name Input
+                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
+                    .mid_bottom_with_margin_on(ui_widgets.window, 20.0)
+                    .set(self.ids.name_input_bg, ui_widgets);
+                Button::image(self.imgs.name_input)
+                    .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.9))
+                    .w_h(337.0, 67.0)
+                    .middle_of(self.ids.name_input_bg)
+                    .set(self.ids.name_input, ui_widgets);
+                for event in TextBox::new(name)
+                    .w_h(300.0, 60.0)
+                    .mid_top_with_margin_on(self.ids.name_input, 2.0)
+                    .font_size(26)
                     .font_id(self.fonts.cyri)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_names[i], ui_widgets);
-
-                Text::new("Level <n/a>")
-                    .down_from(self.ids.character_names[i], 4.0)
-                    .font_size(17)
+                    .center_justify()
+                    .text_color(TEXT_COLOR)
                     .font_id(self.fonts.cyri)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_levels[i], ui_widgets);
-
-                Text::new("Uncanny Valley")
-                    .down_from(self.ids.character_levels[i], 4.0)
-                    .font_size(17)
-                    .font_id(self.fonts.cyri)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_locations[i], ui_widgets);
-            }
-
-            // Create Character Button
-            let create_char_button = Button::image(self.imgs.selection);
-
-            let create_char_button = if character_count > 0 {
-                create_char_button.down_from(self.ids.character_boxes[character_count - 1], 5.0)
-            } else {
-                create_char_button.top_left_with_margins_on(self.ids.charlist_alignment, 0.0, 2.0)
-            };
-
-            if create_char_button
-                .w_h(386.0, 80.0)
-                .hover_image(self.imgs.selection_hover)
-                .press_image(self.imgs.selection_press)
-                .label(&localized_strings.get("char_selection.create_new_charater"))
-                .label_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
-                .label_font_id(self.fonts.cyri)
-                .image_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
-                .set(self.ids.character_box_2, ui_widgets)
-                .was_clicked()
-            {
-                self.character_creation = true;
-                self.character_tool = Some(STARTER_SWORD);
-                self.character_body = humanoid::Body::random();
-            }
-        }
-        // Character_Creation //////////////////////////////////////////////////////////////////////
-        else {
-            // Back Button
-            if Button::image(self.imgs.button)
-                .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
-                .w_h(150.0, 40.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label(&localized_strings.get("common.back"))
-                .label_font_id(self.fonts.cyri)
-                .label_color(TEXT_COLOR)
-                .label_font_size(20)
-                .label_y(conrod_core::position::Relative::Scalar(3.0))
-                .set(self.ids.back_button, ui_widgets)
-                .was_clicked()
-            {
-                self.character_creation = false;
-            }
-            // Create Button
-            if Button::image(self.imgs.button)
-                .bottom_right_with_margins_on(ui_widgets.window, 10.0, 10.0)
-                .w_h(150.0, 40.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label(&localized_strings.get("common.create"))
-                .label_font_id(self.fonts.cyri)
-                .label_color(TEXT_COLOR)
-                .label_font_size(20)
-                .label_y(conrod_core::position::Relative::Scalar(3.0))
-                .set(self.ids.create_button, ui_widgets)
-                .was_clicked()
-            {
-                // TODO: Save character.
-                self.character_creation = false;
-                global_state.meta.add_character(CharacterData {
-                    name: self.character_name.clone(),
-                    body: comp::Body::Humanoid(self.character_body.clone()),
-                });
-            }
-            // Character Name Input
-            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-                .mid_bottom_with_margin_on(ui_widgets.window, 20.0)
-                .set(self.ids.name_input_bg, ui_widgets);
-            Button::image(self.imgs.name_input)
-                .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.9))
-                .w_h(337.0, 67.0)
-                .middle_of(self.ids.name_input_bg)
-                .set(self.ids.name_input, ui_widgets);
-            for event in TextBox::new(&self.character_name)
-                .w_h(300.0, 60.0)
-                .mid_top_with_margin_on(self.ids.name_input, 2.0)
-                .font_size(26)
-                .font_id(self.fonts.cyri)
-                .center_justify()
-                .text_color(TEXT_COLOR)
-                .font_id(self.fonts.cyri)
-                .color(TRANSPARENT)
-                .border_color(TRANSPARENT)
-                .set(self.ids.name_field, ui_widgets)
-            {
-                match event {
-                    TextBoxEvent::Update(name) => {
-                        self.character_name = name;
+                    .color(TRANSPARENT)
+                    .border_color(TRANSPARENT)
+                    .set(self.ids.name_field, ui_widgets)
+                {
+                    match event {
+                        TextBoxEvent::Update(new_name) => *name = new_name,
+                        TextBoxEvent::Enter => {}
                     }
-                    TextBoxEvent::Enter => {}
                 }
-            }
 
-            // Window
-            Rectangle::fill_with(
-                [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.2],
-                color::rgba(0.0, 0.0, 0.0, 0.8),
-            )
-            .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
-            .set(self.ids.creation_bg, ui_widgets);
-            Image::new(self.imgs.charlist_frame)
-                .w_h(400.0, ui_widgets.win_h - ui_widgets.win_h * 0.19)
+                // Window
+                Rectangle::fill_with(
+                    [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.2],
+                    color::rgba(0.0, 0.0, 0.0, 0.8),
+                )
+                .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
+                .set(self.ids.creation_bg, ui_widgets);
+                Image::new(self.imgs.charlist_frame)
+                    .w_h(400.0, ui_widgets.win_h - ui_widgets.win_h * 0.19)
+                    .middle_of(self.ids.creation_bg)
+                    .set(self.ids.charlist_frame, ui_widgets);
+                Rectangle::fill_with(
+                    [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.19],
+                    color::TRANSPARENT,
+                )
                 .middle_of(self.ids.creation_bg)
-                .set(self.ids.charlist_frame, ui_widgets);
-            Rectangle::fill_with(
-                [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.19],
-                color::TRANSPARENT,
-            )
-            .middle_of(self.ids.creation_bg)
-            .scroll_kids_vertically()
-            .set(self.ids.creation_alignment, ui_widgets);
-            Scrollbar::y_axis(self.ids.creation_alignment)
-                .thickness(5.0)
-                .auto_hide(true)
-                .rgba(0.33, 0.33, 0.33, 1.0)
-                .set(self.ids.selection_scrollbar, ui_widgets);
+                .scroll_kids_vertically()
+                .set(self.ids.creation_alignment, ui_widgets);
+                Scrollbar::y_axis(self.ids.creation_alignment)
+                    .thickness(5.0)
+                    .auto_hide(true)
+                    .rgba(0.33, 0.33, 0.33, 1.0)
+                    .set(self.ids.selection_scrollbar, ui_widgets);
 
-            // Male/Female/Race Icons
-            Text::new(&localized_strings.get("char_selection.character_creation"))
-                .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
-                .font_size(24)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.bodyrace_text, ui_widgets);
-            // Alignment
-            Rectangle::fill_with([140.0, 72.0], color::TRANSPARENT)
-                .mid_top_with_margin_on(self.ids.creation_alignment, 60.0)
-                .set(self.ids.creation_buttons_alignment_1, ui_widgets);
-            // Male
-            Image::new(self.imgs.male)
-                .w_h(70.0, 70.0)
-                .top_left_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
-                .set(self.ids.male, ui_widgets);
-            if Button::image(
-                if let humanoid::BodyType::Male = self.character_body.body_type {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                },
-            )
-            .middle_of(self.ids.male)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .set(self.ids.body_type_1, ui_widgets)
-            .was_clicked()
-            {
-                self.character_body.body_type = humanoid::BodyType::Male;
-                self.character_body.validate();
-            }
-            // Female
-            Image::new(self.imgs.female)
-                .w_h(70.0, 70.0)
-                .top_right_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
-                .set(self.ids.female, ui_widgets);
-            if Button::image(
-                if let humanoid::BodyType::Female = self.character_body.body_type {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                },
-            )
-            .middle_of(self.ids.female)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .set(self.ids.body_type_2, ui_widgets)
-            .was_clicked()
-            {
-                self.character_body.body_type = humanoid::BodyType::Female;
-                self.character_body.validate();
-            }
-
-            // Alignment for Races and Tools
-            Rectangle::fill_with([214.0, 304.0], color::TRANSPARENT)
-                .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_1, -324.0)
-                .set(self.ids.creation_buttons_alignment_2, ui_widgets);
-
-            let (human_icon, orc_icon, dwarf_icon, elf_icon, undead_icon, danari_icon) =
-                match self.character_body.body_type {
-                    humanoid::BodyType::Male => (
-                        self.imgs.human_m,
-                        self.imgs.orc_m,
-                        self.imgs.dwarf_m,
-                        self.imgs.elf_m,
-                        self.imgs.undead_m,
-                        self.imgs.danari_m,
-                    ),
-                    humanoid::BodyType::Female => (
-                        self.imgs.human_f,
-                        self.imgs.orc_f,
-                        self.imgs.dwarf_f,
-                        self.imgs.elf_f,
-                        self.imgs.undead_f,
-                        self.imgs.danari_f,
-                    ),
-                };
-            // Human
-            Image::new(human_icon)
-                .w_h(70.0, 70.0)
-                .top_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
-                .set(self.ids.human, ui_widgets);
-            if Button::image(if let humanoid::Race::Human = self.character_body.race {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.human)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.races.human"),
-                "",
-                &tooltip_human,
-            )
-            /*.tooltip_image(
-                if let humanoid::BodyType::Male = self.character_body.body_type {
-                    self.imgs.human_m
-                } else {
-                    self.imgs.human_f
-                },
-            )*/
-            .set(self.ids.race_1, ui_widgets)
-            .was_clicked()
-            {
-                self.character_body.race = humanoid::Race::Human;
-                self.character_body.validate();
-            }
-
-            // Orc
-            Image::new(orc_icon)
-                .w_h(70.0, 70.0)
-                .right_from(self.ids.human, 2.0)
-                .set(self.ids.orc, ui_widgets);
-            if Button::image(if let humanoid::Race::Orc = self.character_body.race {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.orc)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.races.orc"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.race_2, ui_widgets)
-            .was_clicked()
-            {
-                self.character_body.race = humanoid::Race::Orc;
-                self.character_body.validate();
-            }
-            // Dwarf
-            Image::new(dwarf_icon)
-                .w_h(70.0, 70.0)
-                .right_from(self.ids.orc, 2.0)
-                .set(self.ids.dwarf, ui_widgets);
-            if Button::image(if let humanoid::Race::Dwarf = self.character_body.race {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.dwarf)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.races.dwarf"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.race_3, ui_widgets)
-            .was_clicked()
-            {
-                self.character_body.race = humanoid::Race::Dwarf;
-                self.character_body.validate();
-            }
-            // Elf
-            Image::new(elf_icon)
-                .w_h(70.0, 70.0)
-                .down_from(self.ids.human, 2.0)
-                .set(self.ids.elf, ui_widgets);
-            if Button::image(if let humanoid::Race::Elf = self.character_body.race {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.elf)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.races.elf"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.race_4, ui_widgets)
-            .was_clicked()
-            {
-                self.character_body.race = humanoid::Race::Elf;
-                self.character_body.validate();
-            }
-            // Undead
-            Image::new(undead_icon)
-                .w_h(70.0, 70.0)
-                .right_from(self.ids.elf, 2.0)
-                .set(self.ids.undead, ui_widgets);
-            if Button::image(if let humanoid::Race::Undead = self.character_body.race {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.undead)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.races.undead"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.race_5, ui_widgets)
-            .was_clicked()
-            {
-                self.character_body.race = humanoid::Race::Undead;
-                self.character_body.validate();
-            }
-            // Danari
-            Image::new(danari_icon)
-                .w_h(70.0, 70.0)
-                .right_from(self.ids.undead, 2.0)
-                .set(self.ids.danari, ui_widgets);
-            if Button::image(if let humanoid::Race::Danari = self.character_body.race {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.danari)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.races.danari"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.race_6, ui_widgets)
-            .was_clicked()
-            {
-                self.character_body.race = humanoid::Race::Danari;
-                self.character_body.validate();
-            }
-
-            // Hammer
-
-            Image::new(self.imgs.hammer)
-                .w_h(70.0, 70.0)
-                .bottom_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
-                .set(self.ids.hammer, ui_widgets);
-            if Button::image(if let Some(STARTER_HAMMER) = self.character_tool {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.hammer)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.weapons.hammer"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.hammer_button, ui_widgets)
-            .was_clicked()
-            {
-                self.character_tool = Some(STARTER_HAMMER);
-            }
-            // REMOVE THIS AFTER IMPLEMENTATION
-            /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-            .middle_of(self.ids.hammer)
-            .set(self.ids.hammer_grey, ui_widgets);*/
-
-            // Bow
-
-            Image::new(self.imgs.bow)
-                .w_h(70.0, 70.0)
-                .right_from(self.ids.hammer, 2.0)
-                .set(self.ids.bow, ui_widgets);
-            if Button::image(if let Some(STARTER_BOW) = self.character_tool {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.bow)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.weapons.bow"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.bow_button, ui_widgets)
-            .was_clicked()
-            {
-                self.character_tool = Some(STARTER_BOW);
-            }
-            // REMOVE THIS AFTER IMPLEMENTATION
-            /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-            .middle_of(self.ids.bow)
-            .set(self.ids.bow_grey, ui_widgets);*/
-            // Staff
-            Image::new(self.imgs.staff)
-                .w_h(70.0, 70.0)
-                .right_from(self.ids.bow, 2.0)
-                .set(self.ids.staff, ui_widgets);
-            if Button::image(if let Some(STARTER_STAFF) = self.character_tool {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.staff)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.weapons.staff"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.staff_button, ui_widgets)
-            .was_clicked()
-            {
-                self.character_tool = Some(STARTER_STAFF);
-            }
-            // REMOVE THIS AFTER IMPLEMENTATION
-            /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-            .middle_of(self.ids.staff)
-            .set(self.ids.staff_grey, ui_widgets);*/
-            // Sword
-            Image::new(self.imgs.sword)
-                .w_h(70.0, 70.0)
-                .up_from(self.ids.hammer, 2.0)
-                .set(self.ids.sword, ui_widgets);
-            if Button::image(if let Some(STARTER_SWORD) = self.character_tool {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.sword)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.weapons.sword"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.sword_button, ui_widgets)
-            .was_clicked()
-            {
-                self.character_tool = Some(STARTER_SWORD);
-            }
-
-            // Daggers
-            Image::new(self.imgs.daggers)
-                .w_h(70.0, 70.0)
-                .right_from(self.ids.sword, 2.0)
-                .set(self.ids.daggers, ui_widgets);
-            if Button::image(if let Some(STARTER_DAGGER) = self.character_tool {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.daggers)
-            //.hover_image(self.imgs.icon_border_mo)
-            //.press_image(self.imgs.icon_border_press)
-            //.with_tooltip(tooltip_manager, "Daggers", "", &tooltip_human)
-            .set(self.ids.daggers_button, ui_widgets)
-            .was_clicked()
-            {
-                // self.character_tool = Some(STARTER_DAGGER);
-            } // REMOVE THIS AFTER IMPLEMENTATION
-            Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .middle_of(self.ids.daggers)
-                .set(self.ids.daggers_grey, ui_widgets);
-
-            // Axe
-            Image::new(self.imgs.axe)
-                .w_h(70.0, 70.0)
-                .right_from(self.ids.daggers, 2.0)
-                .set(self.ids.axe, ui_widgets);
-            if Button::image(if let Some(STARTER_AXE) = self.character_tool {
-                self.imgs.icon_border_pressed
-            } else {
-                self.imgs.icon_border
-            })
-            .middle_of(self.ids.axe)
-            .hover_image(self.imgs.icon_border_mo)
-            .press_image(self.imgs.icon_border_press)
-            .with_tooltip(
-                tooltip_manager,
-                &localized_strings.get("common.weapons.axe"),
-                "",
-                &tooltip_human,
-            )
-            .set(self.ids.axe_button, ui_widgets)
-            .was_clicked()
-            {
-                self.character_tool = Some(STARTER_AXE);
-            }
-            // REMOVE THIS AFTER IMPLEMENTATION
-            /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-            .middle_of(self.ids.axe)
-            .set(self.ids.axe_grey, ui_widgets);*/
-
-            // Sliders
-            let (metamorph, slider_indicator, slider_range) = (
-                self.fonts.cyri,
-                self.imgs.slider_indicator,
-                self.imgs.slider_range,
-            );
-            let char_slider = move |prev_id,
-                                    text: String,
-                                    text_id,
-                                    max,
-                                    selected_val,
-                                    slider_id,
-                                    ui_widgets: &mut UiCell| {
-                Text::new(&text.clone())
-                    .down_from(prev_id, 22.0)
-                    .align_middle_x_of(prev_id)
-                    .font_size(18)
-                    .font_id(metamorph)
+                // Male/Female/Race Icons
+                Text::new(&localized_strings.get("char_selection.character_creation"))
+                    .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
+                    .font_size(24)
+                    .font_id(self.fonts.cyri)
                     .color(TEXT_COLOR)
-                    .set(text_id, ui_widgets);
-                ImageSlider::discrete(selected_val, 0, max, slider_indicator, slider_range)
-                    .w_h(208.0, 22.0)
-                    .down_from(text_id, 8.0)
-                    .align_middle_x()
-                    .track_breadth(12.0)
-                    .slider_length(10.0)
-                    .pad_track((5.0, 5.0))
-                    .set(slider_id, ui_widgets)
-            };
-            // Hair Style
-            if let Some(new_val) = char_slider(
-                self.ids.creation_buttons_alignment_2,
-                localized_strings.get("char_selection.hair_style"),
-                self.ids.hairstyle_text,
-                self.character_body
-                    .race
-                    .num_hair_styles(self.character_body.body_type) as usize
-                    - 1,
-                self.character_body.hair_style as usize,
-                self.ids.hairstyle_slider,
-                ui_widgets,
-            ) {
-                self.character_body.hair_style = new_val as u8;
-            }
-            // Hair Color
-            if let Some(new_val) = char_slider(
-                self.ids.hairstyle_slider,
-                localized_strings.get("char_selection.hair_color"),
-                self.ids.haircolor_text,
-                self.character_body.race.num_hair_colors() as usize - 1,
-                self.character_body.hair_color as usize,
-                self.ids.haircolor_slider,
-                ui_widgets,
-            ) {
-                self.character_body.hair_color = new_val as u8;
-            }
-            // Skin
-            if let Some(new_val) = char_slider(
-                self.ids.haircolor_slider,
-                localized_strings.get("char_selection.skin"),
-                self.ids.skin_text,
-                self.character_body.race.num_skin_colors() as usize - 1,
-                self.character_body.skin as usize,
-                self.ids.skin_slider,
-                ui_widgets,
-            ) {
-                self.character_body.skin = new_val as u8;
-            }
-            // Eyebrows
-            let current_eyebrows = self.character_body.eyebrows;
-            if let Some(new_val) = char_slider(
-                self.ids.skin_slider,
-                localized_strings.get("char_selection.eyebrows"),
-                self.ids.eyebrows_text,
-                humanoid::ALL_EYEBROWS.len() - 1,
-                humanoid::ALL_EYEBROWS
-                    .iter()
-                    .position(|&c| c == current_eyebrows)
-                    .unwrap_or(0),
-                self.ids.eyebrows_slider,
-                ui_widgets,
-            ) {
-                self.character_body.eyebrows = humanoid::ALL_EYEBROWS[new_val];
-            }
-            // EyeColor
-            if let Some(new_val) = char_slider(
-                self.ids.eyebrows_slider,
-                localized_strings.get("char_selection.eye_color"),
-                self.ids.eyecolor_text,
-                self.character_body.race.num_eye_colors() as usize - 1,
-                self.character_body.eye_color as usize,
-                self.ids.eyecolor_slider,
-                ui_widgets,
-            ) {
-                self.character_body.eye_color = new_val as u8;
-            }
-            // Accessories
-            let _current_accessory = self.character_body.accessory;
-            if let Some(new_val) = char_slider(
-                self.ids.eyecolor_slider,
-                localized_strings.get("char_selection.accessories"),
-                self.ids.accessories_text,
-                self.character_body
-                    .race
-                    .num_accessories(self.character_body.body_type) as usize
-                    - 1,
-                self.character_body.accessory as usize,
-                self.ids.accessories_slider,
-                ui_widgets,
-            ) {
-                self.character_body.accessory = new_val as u8;
-            }
-            // Beard
-            if self
-                .character_body
-                .race
-                .num_beards(self.character_body.body_type)
-                > 1
-            {
+                    .set(self.ids.bodyrace_text, ui_widgets);
+                // Alignment
+                Rectangle::fill_with([140.0, 72.0], color::TRANSPARENT)
+                    .mid_top_with_margin_on(self.ids.creation_alignment, 60.0)
+                    .set(self.ids.creation_buttons_alignment_1, ui_widgets);
+                // Male
+                Image::new(self.imgs.male)
+                    .w_h(70.0, 70.0)
+                    .top_left_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
+                    .set(self.ids.male, ui_widgets);
+                if Button::image(if let humanoid::BodyType::Male = body.body_type {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.male)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.body_type_1, ui_widgets)
+                .was_clicked()
+                {
+                    body.body_type = humanoid::BodyType::Male;
+                    body.validate();
+                }
+                // Female
+                Image::new(self.imgs.female)
+                    .w_h(70.0, 70.0)
+                    .top_right_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
+                    .set(self.ids.female, ui_widgets);
+                if Button::image(if let humanoid::BodyType::Female = body.body_type {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.female)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.body_type_2, ui_widgets)
+                .was_clicked()
+                {
+                    body.body_type = humanoid::BodyType::Female;
+                    body.validate();
+                }
+
+                // Alignment for Races and Tools
+                Rectangle::fill_with([214.0, 304.0], color::TRANSPARENT)
+                    .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_1, -324.0)
+                    .set(self.ids.creation_buttons_alignment_2, ui_widgets);
+
+                let (human_icon, orc_icon, dwarf_icon, elf_icon, undead_icon, danari_icon) =
+                    match body.body_type {
+                        humanoid::BodyType::Male => (
+                            self.imgs.human_m,
+                            self.imgs.orc_m,
+                            self.imgs.dwarf_m,
+                            self.imgs.elf_m,
+                            self.imgs.undead_m,
+                            self.imgs.danari_m,
+                        ),
+                        humanoid::BodyType::Female => (
+                            self.imgs.human_f,
+                            self.imgs.orc_f,
+                            self.imgs.dwarf_f,
+                            self.imgs.elf_f,
+                            self.imgs.undead_f,
+                            self.imgs.danari_f,
+                        ),
+                    };
+                // Human
+                Image::new(human_icon)
+                    .w_h(70.0, 70.0)
+                    .top_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
+                    .set(self.ids.human, ui_widgets);
+                if Button::image(if let humanoid::Race::Human = body.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.human)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.human"),
+                    "",
+                    &tooltip_human,
+                )
+                /*.tooltip_image(
+                    if let humanoid::BodyType::Male = body.body_type {
+                        self.imgs.human_m
+                    } else {
+                        self.imgs.human_f
+                    },
+                )*/
+                .set(self.ids.race_1, ui_widgets)
+                .was_clicked()
+                {
+                    body.race = humanoid::Race::Human;
+                    body.validate();
+                }
+
+                // Orc
+                Image::new(orc_icon)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.human, 2.0)
+                    .set(self.ids.orc, ui_widgets);
+                if Button::image(if let humanoid::Race::Orc = body.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.orc)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.orc"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.race_2, ui_widgets)
+                .was_clicked()
+                {
+                    body.race = humanoid::Race::Orc;
+                    body.validate();
+                }
+                // Dwarf
+                Image::new(dwarf_icon)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.orc, 2.0)
+                    .set(self.ids.dwarf, ui_widgets);
+                if Button::image(if let humanoid::Race::Dwarf = body.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.dwarf)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.dwarf"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.race_3, ui_widgets)
+                .was_clicked()
+                {
+                    body.race = humanoid::Race::Dwarf;
+                    body.validate();
+                }
+                // Elf
+                Image::new(elf_icon)
+                    .w_h(70.0, 70.0)
+                    .down_from(self.ids.human, 2.0)
+                    .set(self.ids.elf, ui_widgets);
+                if Button::image(if let humanoid::Race::Elf = body.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.elf)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.elf"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.race_4, ui_widgets)
+                .was_clicked()
+                {
+                    body.race = humanoid::Race::Elf;
+                    body.validate();
+                }
+
+                // Undead
+                Image::new(undead_icon)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.elf, 2.0)
+                    .set(self.ids.undead, ui_widgets);
+                if Button::image(if let humanoid::Race::Undead = body.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.undead)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.undead"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.race_5, ui_widgets)
+                .was_clicked()
+                {
+                    body.race = humanoid::Race::Undead;
+                    body.validate();
+                }
+                // Danari
+                Image::new(danari_icon)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.undead, 2.0)
+                    .set(self.ids.danari, ui_widgets);
+                if Button::image(if let humanoid::Race::Danari = body.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.danari)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.races.danari"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.race_6, ui_widgets)
+                .was_clicked()
+                {
+                    body.race = humanoid::Race::Danari;
+                    body.validate();
+                }
+
+                // Hammer
+                Image::new(self.imgs.hammer)
+                    .w_h(70.0, 70.0)
+                    .bottom_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
+                    .set(self.ids.hammer, ui_widgets);
+                if Button::image(if let Some(STARTER_HAMMER) = tool {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.hammer)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.hammer"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.hammer_button, ui_widgets)
+                .was_clicked()
+                {
+                    *tool = Some(STARTER_HAMMER);
+                }
+                // REMOVE THIS AFTER IMPLEMENTATION
+                /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.hammer)
+                .set(self.ids.hammer_grey, ui_widgets);*/
+
+                // Bow
+                Image::new(self.imgs.bow)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.hammer, 2.0)
+                    .set(self.ids.bow, ui_widgets);
+                if Button::image(if let Some(STARTER_BOW) = tool {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.bow)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.bow"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.bow_button, ui_widgets)
+                .was_clicked()
+                {
+                    *tool = Some(STARTER_BOW);
+                }
+                // REMOVE THIS AFTER IMPLEMENTATION
+                /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.bow)
+                .set(self.ids.bow_grey, ui_widgets);*/
+                // Staff
+                Image::new(self.imgs.staff)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.bow, 2.0)
+                    .set(self.ids.staff, ui_widgets);
+                if Button::image(if let Some(STARTER_STAFF) = tool {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.staff)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.staff"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.staff_button, ui_widgets)
+                .was_clicked()
+                {
+                    *tool = Some(STARTER_STAFF);
+                }
+                // REMOVE THIS AFTER IMPLEMENTATION
+                /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.staff)
+                .set(self.ids.staff_grey, ui_widgets);*/
+                // Sword
+                Image::new(self.imgs.sword)
+                    .w_h(70.0, 70.0)
+                    .up_from(self.ids.hammer, 2.0)
+                    .set(self.ids.sword, ui_widgets);
+                if Button::image(if let Some(STARTER_SWORD) = tool {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.sword)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.sword"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.sword_button, ui_widgets)
+                .was_clicked()
+                {
+                    *tool = Some(STARTER_SWORD);
+                }
+
+                // Daggers
+                Image::new(self.imgs.daggers)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.sword, 2.0)
+                    .set(self.ids.daggers, ui_widgets);
+                if Button::image(if let Some(STARTER_DAGGER) = tool {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.daggers)
+                //.hover_image(self.imgs.icon_border_mo)
+                //.press_image(self.imgs.icon_border_press)
+                //.with_tooltip(tooltip_manager, "Daggers", "", &tooltip_human)
+                .set(self.ids.daggers_button, ui_widgets)
+                .was_clicked()
+                {
+                    // self.character_tool = Some(STARTER_DAGGER);
+                } // REMOVE THIS AFTER IMPLEMENTATION
+                Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                    .middle_of(self.ids.daggers)
+                    .set(self.ids.daggers_grey, ui_widgets);
+
+                // Axe
+                Image::new(self.imgs.axe)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.daggers, 2.0)
+                    .set(self.ids.axe, ui_widgets);
+                if Button::image(if let Some(STARTER_AXE) = tool {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.axe)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .with_tooltip(
+                    tooltip_manager,
+                    &localized_strings.get("common.weapons.axe"),
+                    "",
+                    &tooltip_human,
+                )
+                .set(self.ids.axe_button, ui_widgets)
+                .was_clicked()
+                {
+                    *tool = Some(STARTER_AXE);
+                }
+                // REMOVE THIS AFTER IMPLEMENTATION
+                /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.axe)
+                .set(self.ids.axe_grey, ui_widgets);*/
+
+                // Sliders
+                let (metamorph, slider_indicator, slider_range) = (
+                    self.fonts.cyri,
+                    self.imgs.slider_indicator,
+                    self.imgs.slider_range,
+                );
+                let char_slider = move |prev_id,
+                                        text: String,
+                                        text_id,
+                                        max,
+                                        selected_val,
+                                        slider_id,
+                                        ui_widgets: &mut UiCell| {
+                    Text::new(&text)
+                        .down_from(prev_id, 22.0)
+                        .align_middle_x_of(prev_id)
+                        .font_size(18)
+                        .font_id(metamorph)
+                        .color(TEXT_COLOR)
+                        .set(text_id, ui_widgets);
+                    ImageSlider::discrete(selected_val, 0, max, slider_indicator, slider_range)
+                        .w_h(208.0, 22.0)
+                        .down_from(text_id, 8.0)
+                        .align_middle_x()
+                        .track_breadth(12.0)
+                        .slider_length(10.0)
+                        .pad_track((5.0, 5.0))
+                        .set(slider_id, ui_widgets)
+                };
+                // Hair Style
                 if let Some(new_val) = char_slider(
-                    self.ids.accessories_slider,
-                    localized_strings.get("char_selection.beard"),
-                    self.ids.beard_text,
-                    self.character_body
-                        .race
-                        .num_beards(self.character_body.body_type) as usize
-                        - 1,
-                    self.character_body.beard as usize,
-                    self.ids.beard_slider,
+                    self.ids.creation_buttons_alignment_2,
+                    localized_strings.get("char_selection.hair_style"),
+                    self.ids.hairstyle_text,
+                    body.race.num_hair_styles(body.body_type) as usize - 1,
+                    body.hair_style as usize,
+                    self.ids.hairstyle_slider,
                     ui_widgets,
                 ) {
-                    self.character_body.beard = new_val as u8;
+                    body.hair_style = new_val as u8;
                 }
-            } else {
-                Text::new(&localized_strings.get("char_selection.beard"))
-                    .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
-                    .font_size(18)
-                    .font_id(self.fonts.cyri)
-                    .color(TEXT_COLOR_2)
-                    .set(self.ids.beard_text, ui_widgets);
-                ImageSlider::discrete(5, 0, 10, self.imgs.nothing, self.imgs.slider_range)
-                    .w_h(208.0, 22.0)
-                    .mid_bottom_with_margin_on(self.ids.beard_text, -30.0)
-                    .track_breadth(12.0)
-                    .slider_length(10.0)
-                    .track_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
-                    .slider_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
-                    .pad_track((5.0, 5.0))
-                    .set(self.ids.beard_slider, ui_widgets);
-            }
-            // Chest
-            let current_chest = self.character_body.chest;
-            if let Some(new_val) = char_slider(
-                self.ids.beard_slider,
-                localized_strings.get("char_selection.chest_color"),
-                self.ids.chest_text,
-                humanoid::ALL_CHESTS.len() - 1,
-                humanoid::ALL_CHESTS
-                    .iter()
-                    .position(|&c| c == current_chest)
-                    .unwrap_or(0),
-                self.ids.chest_slider,
-                ui_widgets,
-            ) {
-                self.character_body.chest = humanoid::ALL_CHESTS[new_val];
-            }
-            // Pants
-            /*let current_pants = self.character_body.pants;
-            if let Some(new_val) = char_slider(
-                self.ids.chest_slider,
-                "Pants",
-                self.ids.pants_text,
-                humanoid::ALL_PANTS.len() - 1,
-                humanoid::ALL_PANTS
-                    .iter()
-                    .position(|&c| c == current_pants)
-                    .unwrap_or(0),
-                self.ids.pants_slider,
-                ui_widgets,
-            ) {
-                self.character_body.pants = humanoid::ALL_PANTS[new_val];
-            }*/
-            Rectangle::fill_with([20.0, 20.0], color::TRANSPARENT)
-                .down_from(self.ids.chest_slider, 15.0)
-                .set(self.ids.space, ui_widgets);
-        } // Char Creation fin
+                // Hair Color
+                if let Some(new_val) = char_slider(
+                    self.ids.hairstyle_slider,
+                    localized_strings.get("char_selection.hair_color"),
+                    self.ids.haircolor_text,
+                    body.race.num_hair_colors() as usize - 1,
+                    body.hair_color as usize,
+                    self.ids.haircolor_slider,
+                    ui_widgets,
+                ) {
+                    body.hair_color = new_val as u8;
+                }
+                // Skin
+                if let Some(new_val) = char_slider(
+                    self.ids.haircolor_slider,
+                    localized_strings.get("char_selection.skin"),
+                    self.ids.skin_text,
+                    body.race.num_skin_colors() as usize - 1,
+                    body.skin as usize,
+                    self.ids.skin_slider,
+                    ui_widgets,
+                ) {
+                    body.skin = new_val as u8;
+                }
+                // Eyebrows
+                let current_eyebrows = body.eyebrows;
+                if let Some(new_val) = char_slider(
+                    self.ids.skin_slider,
+                    localized_strings.get("char_selection.eyebrows"),
+                    self.ids.eyebrows_text,
+                    humanoid::ALL_EYEBROWS.len() - 1,
+                    humanoid::ALL_EYEBROWS
+                        .iter()
+                        .position(|&c| c == current_eyebrows)
+                        .unwrap_or(0),
+                    self.ids.eyebrows_slider,
+                    ui_widgets,
+                ) {
+                    body.eyebrows = humanoid::ALL_EYEBROWS[new_val];
+                }
+                // EyeColor
+                if let Some(new_val) = char_slider(
+                    self.ids.eyebrows_slider,
+                    localized_strings.get("char_selection.eye_color"),
+                    self.ids.eyecolor_text,
+                    body.race.num_eye_colors() as usize - 1,
+                    body.eye_color as usize,
+                    self.ids.eyecolor_slider,
+                    ui_widgets,
+                ) {
+                    body.eye_color = new_val as u8;
+                }
+                // Accessories
+                let _current_accessory = body.accessory;
+                if let Some(new_val) = char_slider(
+                    self.ids.eyecolor_slider,
+                    localized_strings.get("char_selection.accessories"),
+                    self.ids.accessories_text,
+                    body.race.num_accessories(body.body_type) as usize - 1,
+                    body.accessory as usize,
+                    self.ids.accessories_slider,
+                    ui_widgets,
+                ) {
+                    body.accessory = new_val as u8;
+                }
+                // Beard
+                if body.race.num_beards(body.body_type) > 1 {
+                    if let Some(new_val) = char_slider(
+                        self.ids.accessories_slider,
+                        localized_strings.get("char_selection.beard"),
+                        self.ids.beard_text,
+                        body.race.num_beards(body.body_type) as usize - 1,
+                        body.beard as usize,
+                        self.ids.beard_slider,
+                        ui_widgets,
+                    ) {
+                        body.beard = new_val as u8;
+                    }
+                } else {
+                    Text::new(&localized_strings.get("char_selection.beard"))
+                        .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
+                        .font_size(18)
+                        .font_id(self.fonts.cyri)
+                        .color(TEXT_COLOR_2)
+                        .set(self.ids.beard_text, ui_widgets);
+                    ImageSlider::discrete(5, 0, 10, self.imgs.nothing, self.imgs.slider_range)
+                        .w_h(208.0, 22.0)
+                        .mid_bottom_with_margin_on(self.ids.beard_text, -30.0)
+                        .track_breadth(12.0)
+                        .slider_length(10.0)
+                        .track_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
+                        .slider_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
+                        .pad_track((5.0, 5.0))
+                        .set(self.ids.beard_slider, ui_widgets);
+                }
+                // Chest
+                let current_chest = body.chest;
+                if let Some(new_val) = char_slider(
+                    self.ids.beard_slider,
+                    localized_strings.get("char_selection.chest_color"),
+                    self.ids.chest_text,
+                    humanoid::ALL_CHESTS.len() - 1,
+                    humanoid::ALL_CHESTS
+                        .iter()
+                        .position(|&c| c == current_chest)
+                        .unwrap_or(0),
+                    self.ids.chest_slider,
+                    ui_widgets,
+                ) {
+                    body.chest = humanoid::ALL_CHESTS[new_val];
+                }
+                // Pants
+                /*let current_pants = body.pants;
+                if let Some(new_val) = char_slider(
+                    self.ids.chest_slider,
+                    "Pants",
+                    self.ids.pants_text,
+                    humanoid::ALL_PANTS.len() - 1,
+                    humanoid::ALL_PANTS
+                        .iter()
+                        .position(|&c| c == current_pants)
+                        .unwrap_or(0),
+                    self.ids.pants_slider,
+                    ui_widgets,
+                ) {
+                    body.pants = humanoid::ALL_PANTS[new_val];
+                }*/
+                Rectangle::fill_with([20.0, 20.0], color::TRANSPARENT)
+                    .down_from(self.ids.chest_slider, 15.0)
+                    .set(self.ids.space, ui_widgets);
+
+                if to_select {
+                    self.mode = Mode::Select(None);
+                }
+            } // Char Creation fin
+        }
 
         events
     }
