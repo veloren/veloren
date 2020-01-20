@@ -1,5 +1,6 @@
 use crate::window::{Event as WinEvent, PressState};
 use crate::{
+    meta::CharacterData,
     render::{Consts, Globals, Renderer},
     ui::{
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graphic},
@@ -8,7 +9,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::comp::humanoid;
+use common::comp::{self, humanoid};
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -43,7 +44,6 @@ widget_ids! {
         divider,
         bodyrace_text,
         facialfeatures_text,
-        char_delete,
         info_bg,
         info_frame,
         info_button_align,
@@ -61,10 +61,11 @@ widget_ids! {
 
 
         // Characters
-        character_box_1,
-        character_name_1,
-        character_location_1,
-        character_level_1,
+        character_boxes[],
+        character_deletes[],
+        character_names[],
+        character_locations[],
+        character_levels[],
 
         character_box_2,
         character_name_2,
@@ -242,7 +243,8 @@ const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
 
 enum InfoContent {
-    Deletion,
+    None,
+    Deletion(usize),
     //Name,
 }
 
@@ -254,7 +256,6 @@ pub struct CharSelectionUi {
     fonts: Fonts,
     character_creation: bool,
     info_content: InfoContent,
-    info_window: bool,
     //deletion_confirmation: bool,
     pub character_name: String,
     pub character_body: humanoid::Body,
@@ -283,18 +284,29 @@ impl CharSelectionUi {
             imgs,
             rot_imgs,
             fonts,
-            info_window: false,
-            info_content: InfoContent::Deletion,
+            info_content: InfoContent::None,
             //deletion_confirmation: false,
             character_creation: false,
             character_name: "Character Name".to_string(),
-            character_body: humanoid::Body::random(),
+            character_body: if let Some(character) = global_state
+                .meta
+                .characters
+                .get(global_state.meta.selected_character)
+            {
+                match character.body {
+                    comp::Body::Humanoid(body) => Some(body.clone()),
+                    _ => None,
+                }
+            } else {
+                None
+            }
+            .unwrap_or_else(|| humanoid::Body::random()),
             character_tool: Some(STARTER_SWORD),
         }
     }
 
     // TODO: Split this into multiple modules or functions.
-    fn update_layout(&mut self, client: &Client) -> Vec<Event> {
+    fn update_layout(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         let version = format!(
@@ -322,7 +334,8 @@ impl CharSelectionUi {
         .desc_text_color(TEXT_COLOR_2);
 
         // Information Window
-        if self.info_window {
+        if let InfoContent::None = self.info_content {
+        } else {
             Rectangle::fill_with([520.0, 150.0], color::rgba(0.0, 0.0, 0.0, 0.9))
                 .mid_top_with_margin_on(ui_widgets.window, 300.0)
                 .set(self.ids.info_bg, ui_widgets);
@@ -334,7 +347,8 @@ impl CharSelectionUi {
                 .bottom_left_with_margins_on(self.ids.info_frame, 0.0, 0.0)
                 .set(self.ids.info_button_align, ui_widgets);
             match self.info_content {
-                InfoContent::Deletion => {
+                InfoContent::None => unreachable!(),
+                InfoContent::Deletion(character_index) => {
                     Text::new("Permanently delete this Character?")
                         .mid_top_with_margin_on(self.ids.info_frame, 40.0)
                         .font_size(24)
@@ -354,23 +368,23 @@ impl CharSelectionUi {
                         .set(self.ids.info_no, ui_widgets)
                         .was_clicked()
                     {
-                        self.info_window = false
+                        self.info_content = InfoContent::None;
                     };
                     if Button::image(self.imgs.button)
                         .w_h(150.0, 40.0)
                         .right_from(self.ids.info_no, 100.0)
-                        //.hover_image(self.imgs.button_hover)
-                        //.press_image(self.imgs.button_press)
+                        .hover_image(self.imgs.button_hover)
+                        .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
                         .label("Yes")
-                        .label_font_size(18)
                         .label_font_id(self.fonts.cyri)
-                        .label_color(Color::Rgba(1.0, 1.0, 1.0, 0.1))
+                        .label_font_size(18)
+                        .label_color(TEXT_COLOR)
                         .set(self.ids.info_ok, ui_widgets)
                         .was_clicked()
                     {
-                        //self.info_window = false
-                        // TODO -> Char Deletion Event
+                        self.info_content = InfoContent::None;
+                        global_state.meta.delete_character(character_index);
                     };
                 }
             }
@@ -489,54 +503,96 @@ impl CharSelectionUi {
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
 
-            // 1st Character in Selection List
-            if Button::image(self.imgs.selection)
-                .top_left_with_margins_on(self.ids.charlist_alignment, 0.0, 2.0)
-                .w_h(386.0, 80.0)
-                .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
-                .hover_image(self.imgs.selection)
-                .press_image(self.imgs.selection)
-                .label_font_id(self.fonts.cyri)
-                .label_y(conrod_core::position::Relative::Scalar(20.0))
-                .set(self.ids.character_box_1, ui_widgets)
-                .was_clicked()
-            {}
-            if Button::image(self.imgs.delete_button)
-                .w_h(30.0 * 0.5, 30.0 * 0.5)
-                .top_right_with_margins_on(self.ids.character_box_1, 15.0, 15.0)
-                .hover_image(self.imgs.delete_button_hover)
-                .press_image(self.imgs.delete_button_press)
-                .with_tooltip(tooltip_manager, "Delete Character", "", &tooltip_human)
-                .set(self.ids.char_delete, ui_widgets)
-                .was_clicked()
-            {
-                self.info_content = InfoContent::Deletion;
-                self.info_window = true;
+            // Resize character selection widgets
+            let character_count = global_state.meta.characters.len();
+            self.ids
+                .character_boxes
+                .resize(character_count, &mut ui_widgets.widget_id_generator());
+            self.ids
+                .character_deletes
+                .resize(character_count, &mut ui_widgets.widget_id_generator());
+            self.ids
+                .character_names
+                .resize(character_count, &mut ui_widgets.widget_id_generator());
+            self.ids
+                .character_levels
+                .resize(character_count, &mut ui_widgets.widget_id_generator());
+            self.ids
+                .character_locations
+                .resize(character_count, &mut ui_widgets.widget_id_generator());
+
+            // Character selection
+            for (i, character) in global_state.meta.characters.iter().enumerate() {
+                let character_box = Button::image(if global_state.meta.selected_character == i {
+                    self.imgs.selection_hover
+                } else {
+                    self.imgs.selection
+                });
+                let character_box = if i == 0 {
+                    character_box.top_left_with_margins_on(self.ids.charlist_alignment, 0.0, 2.0)
+                } else {
+                    character_box.down_from(self.ids.character_boxes[i - 1], 5.0)
+                };
+                if character_box
+                    .w_h(386.0, 80.0)
+                    .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
+                    .hover_image(self.imgs.selection_hover)
+                    .press_image(self.imgs.selection_press)
+                    .label_font_id(self.fonts.cyri)
+                    .label_y(conrod_core::position::Relative::Scalar(20.0))
+                    .set(self.ids.character_boxes[i], ui_widgets)
+                    .was_clicked()
+                {
+                    self.character_name = character.name.clone();
+                    self.character_body = match &character.body {
+                        comp::Body::Humanoid(body) => body.clone(),
+                        _ => panic!("Unsupported body type!"),
+                    };
+                    global_state.meta.selected_character = i;
+                }
+                if Button::image(self.imgs.delete_button)
+                    .w_h(30.0 * 0.5, 30.0 * 0.5)
+                    .top_right_with_margins_on(self.ids.character_boxes[i], 15.0, 15.0)
+                    .hover_image(self.imgs.delete_button_hover)
+                    .press_image(self.imgs.delete_button_press)
+                    .with_tooltip(tooltip_manager, "Delete Character", "", &tooltip_human)
+                    .set(self.ids.character_deletes[i], ui_widgets)
+                    .was_clicked()
+                {
+                    self.info_content = InfoContent::Deletion(i);
+                }
+                Text::new(&character.name)
+                    .top_left_with_margins_on(self.ids.character_boxes[i], 6.0, 9.0)
+                    .font_size(19)
+                    .font_id(self.fonts.cyri)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.character_names[i], ui_widgets);
+
+                Text::new("Level <n/a>")
+                    .down_from(self.ids.character_names[i], 4.0)
+                    .font_size(17)
+                    .font_id(self.fonts.cyri)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.character_levels[i], ui_widgets);
+
+                Text::new("Uncanny Valley")
+                    .down_from(self.ids.character_levels[i], 4.0)
+                    .font_size(17)
+                    .font_id(self.fonts.cyri)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.character_locations[i], ui_widgets);
             }
-            Text::new("Test Character")
-                .top_left_with_margins_on(self.ids.character_box_1, 6.0, 9.0)
-                .font_size(19)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.character_name_1, ui_widgets);
-
-            Text::new("Level 1")
-                .down_from(self.ids.character_name_1, 4.0)
-                .font_size(17)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.character_level_1, ui_widgets);
-
-            Text::new("Uncanny Valley")
-                .down_from(self.ids.character_level_1, 4.0)
-                .font_size(17)
-                .font_id(self.fonts.cyri)
-                .color(TEXT_COLOR)
-                .set(self.ids.character_location_1, ui_widgets);
 
             // Create Character Button
-            if Button::image(self.imgs.selection)
-                .down_from(self.ids.character_box_1, 5.0)
+            let create_char_button = Button::image(self.imgs.selection);
+
+            let create_char_button = if character_count > 0 {
+                create_char_button.down_from(self.ids.character_boxes[character_count - 1], 5.0)
+            } else {
+                create_char_button.top_left_with_margins_on(self.ids.charlist_alignment, 0.0, 2.0)
+            };
+
+            if create_char_button
                 .w_h(386.0, 80.0)
                 .hover_image(self.imgs.selection_hover)
                 .press_image(self.imgs.selection_press)
@@ -549,6 +605,7 @@ impl CharSelectionUi {
             {
                 self.character_creation = true;
                 self.character_tool = Some(STARTER_SWORD);
+                self.character_body = humanoid::Body::random();
             }
         }
         // Character_Creation //////////////////////////////////////////////////////////////////////
@@ -585,6 +642,10 @@ impl CharSelectionUi {
             {
                 // TODO: Save character.
                 self.character_creation = false;
+                global_state.meta.add_character(CharacterData {
+                    name: self.character_name.clone(),
+                    body: comp::Body::Humanoid(self.character_body.clone()),
+                });
             }
             // Character Name Input
             Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
@@ -1186,9 +1247,9 @@ impl CharSelectionUi {
         }
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) -> Vec<Event> {
-        let events = self.update_layout(client);
-        self.ui.maintain(renderer, None);
+    pub fn maintain(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
+        let events = self.update_layout(global_state, client);
+        self.ui.maintain(global_state.window.renderer_mut(), None);
         events
     }
 
