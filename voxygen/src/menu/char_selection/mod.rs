@@ -65,12 +65,14 @@ impl PlayState for CharSelectionState {
                         return PlayStateResult::Pop;
                     }
                     ui::Event::Play => {
+                        let char_data = self
+                            .char_selection_ui
+                            .get_character_data()
+                            .expect("Character data is required to play");
                         self.client.borrow_mut().request_character(
-                            self.char_selection_ui.character_name.clone(),
-                            comp::Body::Humanoid(self.char_selection_ui.character_body),
-                            self.char_selection_ui
-                                .character_tool
-                                .map(|specifier| specifier.to_owned()),
+                            char_data.name,
+                            char_data.body,
+                            char_data.tool,
                         );
                         return PlayStateResult::Push(Box::new(SessionState::new(
                             global_state,
@@ -83,23 +85,32 @@ impl PlayState for CharSelectionState {
             // Maintain global state.
             global_state.maintain(clock.get_last_delta().as_secs_f32());
 
+            let humanoid_body = self
+                .char_selection_ui
+                .get_character_data()
+                .and_then(|data| match data.body {
+                    comp::Body::Humanoid(body) => Some(body),
+                    _ => None,
+                });
+
             // Maintain the scene.
             self.scene.maintain(
                 global_state.window.renderer_mut(),
                 &self.client.borrow(),
-                self.char_selection_ui.character_body,
+                humanoid_body.clone(),
             );
 
             // Render the scene.
             self.scene.render(
                 global_state.window.renderer_mut(),
                 &self.client.borrow(),
-                self.char_selection_ui.character_body,
+                humanoid_body.clone(),
                 &comp::Equipment {
                     main: self
                         .char_selection_ui
-                        .character_tool
-                        .and_then(|specifier| assets::load_cloned(&specifier).ok()),
+                        .get_character_data()
+                        .and_then(|data| data.tool)
+                        .and_then(|tool| assets::load_cloned(&tool).ok()),
                     alt: None,
                 },
             );

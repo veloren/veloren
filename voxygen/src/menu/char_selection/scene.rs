@@ -115,7 +115,12 @@ impl Scene {
         }
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, body: humanoid::Body) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        client: &Client,
+        body: Option<humanoid::Body>,
+    ) {
         self.camera.set_focus_pos(Vec3::unit_z() * 1.5);
         self.camera.update(client.state().get_time());
         self.camera.set_distance(3.0); // 4.2
@@ -147,17 +152,19 @@ impl Scene {
 
         self.figure_model_cache.clean(client.get_tick());
 
-        let tgt_skeleton = IdleAnimation::update_skeleton(
-            self.figure_state.skeleton_mut(),
-            client.state().get_time(),
-            client.state().get_time(),
-            &mut 0.0,
-            &SkeletonAttr::from(&body),
-        );
-        self.figure_state.skeleton_mut().interpolate(
-            &tgt_skeleton,
-            client.state().ecs().read_resource::<DeltaTime>().0,
-        );
+        if let Some(body) = body {
+            let tgt_skeleton = IdleAnimation::update_skeleton(
+                self.figure_state.skeleton_mut(),
+                client.state().get_time(),
+                client.state().get_time(),
+                &mut 0.0,
+                &SkeletonAttr::from(&body),
+            );
+            self.figure_state.skeleton_mut().interpolate(
+                &tgt_skeleton,
+                client.state().ecs().read_resource::<DeltaTime>().0,
+            );
+        }
 
         self.figure_state.update(
             renderer,
@@ -178,31 +185,33 @@ impl Scene {
         &mut self,
         renderer: &mut Renderer,
         client: &Client,
-        body: humanoid::Body,
+        body: Option<humanoid::Body>,
         equipment: &Equipment,
     ) {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
-        let model = &self
-            .figure_model_cache
-            .get_or_create_model(
-                renderer,
-                Body::Humanoid(body),
-                Some(equipment),
-                client.get_tick(),
-                CameraMode::default(),
-                None,
-            )
-            .0;
+        if let Some(body) = body {
+            let model = &self
+                .figure_model_cache
+                .get_or_create_model(
+                    renderer,
+                    Body::Humanoid(body),
+                    Some(equipment),
+                    client.get_tick(),
+                    CameraMode::default(),
+                    None,
+                )
+                .0;
 
-        renderer.render_figure(
-            model,
-            &self.globals,
-            self.figure_state.locals(),
-            self.figure_state.bone_consts(),
-            &self.lights,
-            &self.shadows,
-        );
+            renderer.render_figure(
+                model,
+                &self.globals,
+                self.figure_state.locals(),
+                self.figure_state.bone_consts(),
+                &self.lights,
+                &self.shadows,
+            );
+        }
 
         renderer.render_figure(
             &self.backdrop_model,
