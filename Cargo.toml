@@ -22,21 +22,21 @@ codegen-units = 8
 lto = false
 incremental = true
 # All dependencies (but not this crate itself)
-[profile.dev.overrides."*"]
+[profile.dev.package."*"]
 opt-level = 3
-[profile.dev.overrides."veloren-common"]
+[profile.dev.package."veloren-common"]
 opt-level = 2
-[profile.dev.overrides."veloren-client"]
+[profile.dev.package."veloren-client"]
 opt-level = 2
-[profile.dev.overrides."veloren-chat-cli"]
+[profile.dev.package."veloren-chat-cli"]
 opt-level = 2
-[profile.dev.overrides."veloren-server"]
+[profile.dev.package."veloren-server"]
 opt-level = 2
-[profile.dev.overrides."veloren-server-cli"]
+[profile.dev.package."veloren-server-cli"]
 opt-level = 2
-[profile.dev.overrides."veloren-voxygen"]
+[profile.dev.package."veloren-voxygen"]
 opt-level = 2
-[profile.dev.overrides."veloren-world"]
+[profile.dev.package."veloren-world"]
 opt-level = 2
 
 # this profile is used by developers if dev doesn't has enough debug information, the name must != debug, as debug is used by dev because....
