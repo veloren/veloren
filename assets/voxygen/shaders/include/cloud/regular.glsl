@@ -73,7 +73,7 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 		}
 	}
 
-	float total_density = 1.0 - passthrough / (1.0 + delta * 0.0001);
+	float total_density = 1.0 - passthrough / (1.0 + pow(max_dist, 0.5) * 0.0001 + max((0.015 - dir.z) * 0.0001, 0.0) * max_dist);
 
 	total_density = max(total_density - 1.0 / pow(max_dist, 0.25), 0.0); // Hack
 

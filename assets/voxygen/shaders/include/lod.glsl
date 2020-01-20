@@ -12,7 +12,7 @@ vec2 splay(vec2 pos, float e) {
 }
 
 vec3 lod_pos(vec2 v_pos) {
-	vec2 hpos = focus_pos.xy + splay(v_pos, 4.0) * 100000.0;
+	vec2 hpos = focus_pos.xy + splay(v_pos, 5.0) * 1000000.0;
 	return vec3(hpos, alt_at(hpos));
 }
 
