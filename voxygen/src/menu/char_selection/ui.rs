@@ -391,7 +391,8 @@ impl CharSelectionUi {
                 }
             } else {
                 None
-            }.unwrap_or_else(|| humanoid::Body::random());
+            }
+            .unwrap_or_else(|| humanoid::Body::random());
 
             // Background for Server Frame
             Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.9))
