@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Controls pane in settings window now shows actual configured keys
+- Fixed scroll wheel and roll keys on OS X
 - Fixed near and far view planes
 - Improvements to armor names
 - Animation fixes to line up with true positions

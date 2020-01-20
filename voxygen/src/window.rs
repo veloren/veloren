@@ -6,6 +6,7 @@ use crate::{
 use hashbrown::HashMap;
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
+use std::fmt;
 use vek::*;
 
 /// Represents a key that the game recognises after keyboard mapping.
@@ -84,6 +85,185 @@ pub type PressState = winit::ElementState;
 pub enum KeyMouse {
     Key(glutin::VirtualKeyCode),
     Mouse(glutin::MouseButton),
+}
+
+impl fmt::Display for KeyMouse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use self::KeyMouse::*;
+        use glutin::{MouseButton, VirtualKeyCode::*};
+        write!(
+            f,
+            "{}",
+            match self {
+                Key(Key1) => "1",
+                Key(Key2) => "2",
+                Key(Key3) => "3",
+                Key(Key4) => "4",
+                Key(Key5) => "5",
+                Key(Key6) => "6",
+                Key(Key7) => "7",
+                Key(Key8) => "8",
+                Key(Key9) => "9",
+                Key(Key0) => "0",
+                Key(A) => "A",
+                Key(B) => "B",
+                Key(C) => "C",
+                Key(D) => "D",
+                Key(E) => "E",
+                Key(F) => "F",
+                Key(G) => "G",
+                Key(H) => "H",
+                Key(I) => "I",
+                Key(J) => "J",
+                Key(K) => "K",
+                Key(L) => "L",
+                Key(M) => "M",
+                Key(N) => "N",
+                Key(O) => "O",
+                Key(P) => "P",
+                Key(Q) => "Q",
+                Key(R) => "R",
+                Key(S) => "S",
+                Key(T) => "T",
+                Key(U) => "U",
+                Key(V) => "V",
+                Key(W) => "W",
+                Key(X) => "X",
+                Key(Y) => "Y",
+                Key(Z) => "Z",
+                Key(Escape) => "ESC",
+                Key(F1) => "F1",
+                Key(F2) => "F2",
+                Key(F3) => "F3",
+                Key(F4) => "F4",
+                Key(F5) => "F5",
+                Key(F6) => "F6",
+                Key(F7) => "F7",
+                Key(F8) => "F8",
+                Key(F9) => "F9",
+                Key(F10) => "F10",
+                Key(F11) => "F11",
+                Key(F12) => "F12",
+                Key(F13) => "F13",
+                Key(F14) => "F14",
+                Key(F15) => "F15",
+                Key(F16) => "F16",
+                Key(F17) => "F17",
+                Key(F18) => "F18",
+                Key(F19) => "F19",
+                Key(F20) => "F20",
+                Key(F21) => "F21",
+                Key(F22) => "F22",
+                Key(F23) => "F23",
+                Key(F24) => "F24",
+                Key(Snapshot) => "Print Screen",
+                Key(Scroll) => "Scroll Lock",
+                Key(Pause) => "Pause/Break",
+                Key(Insert) => "Insert",
+                Key(Home) => "Home",
+                Key(Delete) => "Delete",
+                Key(End) => "End",
+                Key(PageDown) => "PageDown",
+                Key(PageUp) => "PageUp",
+                Key(Left) => "Left Arrow",
+                Key(Up) => "Up Arrow",
+                Key(Right) => "Right Arrow",
+                Key(Down) => "Down Arrow",
+                Key(Back) => "Backspace",
+                Key(Return) => "Enter",
+                Key(Space) => "Space",
+                Key(Compose) => "Compose",
+                Key(Caret) => "^",
+                Key(Numlock) => "Numlock",
+                Key(Numpad0) => "Numpad 0",
+                Key(Numpad1) => "Numpad 1",
+                Key(Numpad2) => "Numpad 2",
+                Key(Numpad3) => "Numpad 3",
+                Key(Numpad4) => "Numpad 4",
+                Key(Numpad5) => "Numpad 5",
+                Key(Numpad6) => "Numpad 6",
+                Key(Numpad7) => "Numpad 7",
+                Key(Numpad8) => "Numpad 8",
+                Key(Numpad9) => "Numpad 9",
+                Key(AbntC1) => "Abnt C1",
+                Key(AbntC2) => "Abnt C2",
+                Key(Add) => "Numpad +",
+                Key(Apostrophe) => "'",
+                Key(Apps) => "Context Menu",
+                Key(At) => "@",
+                Key(Ax) => "Ax",
+                Key(Backslash) => "\\",
+                Key(Calculator) => "Calculator",
+                Key(Capital) => "Caps Lock",
+                Key(Colon) => ":",
+                Key(Comma) => ",",
+                Key(Convert) => "Convert",
+                Key(Decimal) => "Numpad .",
+                Key(Divide) => "Numpad /",
+                Key(Equals) => "=",
+                Key(Grave) => "`",
+                Key(Kana) => "Kana",
+                Key(Kanji) => "Kanji",
+                Key(LAlt) => "LAlt",
+                Key(LBracket) => "[",
+                Key(LControl) => "LControl",
+                Key(LShift) => "LShift",
+                Key(LWin) => "LWin",
+                Key(Mail) => "Mail",
+                Key(MediaSelect) => "MediaSelect",
+                Key(MediaStop) => "MediaStop",
+                Key(Minus) => "-",
+                Key(Multiply) => "Numpad *",
+                Key(Mute) => "Mute",
+                Key(MyComputer) => "My Computer",
+                Key(NavigateForward) => "Navigate Forward",
+                Key(NavigateBackward) => "Navigate Backward",
+                Key(NextTrack) => "Next Track",
+                Key(NoConvert) => "Non Convert",
+                Key(NumpadComma) => "Numpad ,",
+                Key(NumpadEnter) => "Numpad Enter",
+                Key(NumpadEquals) => "Numpad =",
+                Key(OEM102) => "OEM 102",
+                Key(Period) => ".",
+                Key(PlayPause) => "Play / Pause",
+                Key(Power) => "Power",
+                Key(PrevTrack) => "Prev Track",
+                Key(RAlt) => "RAlt",
+                Key(RBracket) => "]",
+                Key(RControl) => "RControl",
+                Key(RShift) => "RShift",
+                Key(RWin) => "RWin",
+                Key(Semicolon) => ";",
+                Key(Slash) => "/",
+                Key(Sleep) => "Sleep",
+                Key(Stop) => "Media Stop",
+                Key(Subtract) => "Numpad -",
+                Key(Sysrq) => "Sysrq",
+                Key(Tab) => "Tab",
+                Key(Underline) => "_",
+                Key(Unlabeled) => "No Name",
+                Key(VolumeDown) => "Volume Down",
+                Key(VolumeUp) => "Volume Up",
+                Key(Wake) => "Wake",
+                Key(WebBack) => "Browser Back",
+                Key(WebFavorites) => "Browser Favorites",
+                Key(WebForward) => "Browser Forward",
+                Key(WebHome) => "Browser Home",
+                Key(WebRefresh) => "Browser Refresh",
+                Key(WebSearch) => "Browser Search",
+                Key(WebStop) => "Browser Stop",
+                Key(Yen) => "Yen",
+                Key(Copy) => "Copy",
+                Key(Paste) => "Paste",
+                Key(Cut) => "Cut",
+                Mouse(MouseButton::Left) => "Mouse L-Click",
+                Mouse(MouseButton::Right) => "Mouse R-Click",
+                Mouse(MouseButton::Middle) => "Mouse Middle-Click",
+                Mouse(MouseButton::Other(button)) =>
+                    return write!(f, "Unknown Mouse Button: {:?}", button),
+            }
+        )
+    }
 }
 
 pub struct Window {
@@ -391,12 +571,20 @@ impl Window {
                             events.push(Event::CursorMove(delta));
                         }
                     }
-                    glutin::DeviceEvent::MouseWheel {
-                        delta: glutin::MouseScrollDelta::LineDelta(_x, y),
-                        ..
-                    } if cursor_grabbed && *focused => events.push(Event::Zoom(
-                        y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion,
-                    )),
+                    glutin::DeviceEvent::MouseWheel { delta, .. } if cursor_grabbed && *focused => {
+                        events.push(Event::Zoom({
+                            let y = match delta {
+                                glutin::MouseScrollDelta::LineDelta(_x, y) => y,
+                                // TODO: Check to see if there is a better way to find the "line
+                                // height" than just hardcoding 16.0 pixels.  Alternately we could
+                                // get rid of this and have the user set zoom sensitivity, since
+                                // it's unlikely people would expect a configuration file to work
+                                // across operating systems.
+                                glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
+                            };
+                            y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion
+                        }))
+                    }
                     _ => {}
                 },
                 _ => {}

@@ -1209,6 +1209,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Contents
         if let SettingsTab::Controls = self.show.settings_tab {
+            let controls = &self.global_state.settings.controls;
             Text::new(
                 "Free Cursor\n\
             Toggle Help Window\n\
@@ -1288,65 +1289,65 @@ impl<'a> Widget for SettingsWindow<'a> {
             .font_size(18)
             .set(state.ids.controls_text, ui);
             // TODO: Replace with buttons that show actual keybinds and allow the user to change them.
-            Text::new(
-                "TAB\n\
-                 F1\n\
-                 F2\n\
-                 F3\n\
-                 F4\n\
-                 F6\n\
-                 F11\n\
+            Text::new(&format!(
+                "{}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
                  \n\
                  \n\
-                 W\n\
-                 A\n\
-                 S\n\
-                 D\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
                  \n\
-                 SPACE\n\
+                 {}\n\
                  \n\
-                 L-Shift\n\
+                 {}\n\
                  \n\
-                 ??\n\
+                 {}\n\
                  \n\
-                 ??\n\
+                 {}\n\
                  \n\
-                 ??\n\
+                 {}\n\
                  \n\
-                 ??\n\
+                 {}\n\
                  \n\
-                 ??\n\
-                 \n\
-                 \n\
-                 L-Click\n\
-                 R-Click\n\
+                 {}\n\
                  \n\
                  \n\
-                 1\n\
-                 2\n\
-                 3\n\
-                 4\n\
-                 5\n\
-                 6\n\
-                 7\n\
-                 8\n\
-                 9\n\
-                 0\n\
+                 {}\n\
+                 {}\n\
                  \n\
                  \n\
-                 ESC\n\
-                 N\n\
-                 O\n\
-                 M\n\
-                 P\n\
-                 C\n\
-                 L\n\
-                 B\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 \n\
+                 \n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
+                 {}\n\
                  \n\
                  \n\
                  \n\
-                 ENTER\n\
-                 Mousewheel\n\
+                 {}\n\
+                 {}\n\
                  \n\
                  \n\
                  \n\
@@ -1354,7 +1355,47 @@ impl<'a> Widget for SettingsWindow<'a> {
                  \n\
                  \n\
                  ",
-            )
+                controls.toggle_cursor,
+                controls.help,
+                controls.toggle_interface,
+                controls.toggle_debug,
+                controls.screenshot,
+                controls.toggle_ingame_ui,
+                controls.fullscreen,
+                controls.move_forward,
+                controls.move_left,
+                controls.move_back,
+                controls.move_right,
+                controls.jump,
+                controls.glide,
+                "??", // Dodge
+                "??", // Auto Walk
+                controls.toggle_wield,
+                "??", // Put on/Remove Helmet
+                controls.sit,
+                controls.primary,
+                controls.secondary,
+                "1", // Skillbar Slot 1
+                "2", // Skillbar Slot 2
+                "3", // Skillbar Slot 3
+                "4", // Skillbar Slot 4
+                "5", // Skillbar Slot 5
+                "6", // Skillbar Slot 6
+                "7", // Skillbar Slot 7
+                "8", // Skillbar Slot 8
+                "9", // Skillbar Slot 9
+                "0", // Skillbar Slot 10
+                controls.escape,
+                controls.settings,
+                controls.social,
+                controls.map,
+                controls.spellbook,
+                controls.character_window,
+                controls.quest_log,
+                controls.bag,
+                controls.enter,
+                "Mouse Wheel", // Scroll chat
+            ))
             .color(TEXT_COLOR)
             .right_from(state.ids.controls_text, 0.0)
             .font_id(self.fonts.cyri)
