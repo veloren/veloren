@@ -386,7 +386,7 @@ impl WorldSim {
             // (0.5^(-(1.0-0.9)))^1/256/32*2^4*256*4
             // (2^(-(1.0-0.9)))^4
             // 16.0
-            .set_frequency(/*0.9*/ /*Fbm*//*HybridMulti_::DEFAULT_FREQUENCY*/1.0 / (2.0/*8.0*//*256.0*//*1.0*//*16.0*/ * TerrainChunkSize::RECT_SIZE.x as f64/*4.0*//* TerrainChunkSize::RECT_SIZE.x as f64 */ * 2.0.powi(10 - 1)))
+            .set_frequency(/*0.9*/ /*Fbm*//*HybridMulti_::DEFAULT_FREQUENCY*/1.0 * (5_000.0 / continent_scale) / (2.0/*8.0*//*256.0*//*1.0*//*16.0*/ * TerrainChunkSize::RECT_SIZE.x as f64/*4.0*//* TerrainChunkSize::RECT_SIZE.x as f64 */ * 2.0.powi(10 - 1)))
             // .set_frequency(/*0.9*/ /*Fbm*//*HybridMulti_::DEFAULT_FREQUENCY*/1.0 / (8.0/*8.0*//*256.0*//*1.0*//*16.0*/ * 32.0/*4.0*//* TerrainChunkSize::RECT_SIZE.x as f64 */ * 2.0.powi(10 - 1)))
             // .set_persistence(/*0.9*/ /*2.0*/0.67)
             // .set_frequency(/*0.9*/ Fbm::DEFAULT_FREQUENCY / (2.0 * 32.0))
@@ -711,6 +711,7 @@ impl WorldSim {
             let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
             let turb_wposf = wposf
+                .mul(5_000.0 / continent_scale)
                 .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
                 .div(turb_wposf_div);
             let turb = Vec2::new(
@@ -721,6 +722,7 @@ impl WorldSim {
             // let turb = Vec2::zero();
             let turb_wposf = wposf + turb;
             let turb_wposi = turb_wposf
+                .div(5_000.0 / continent_scale)
                 .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
                 .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
             let turb_posi = vec2_as_uniform_idx(turb_wposi);
@@ -762,6 +764,7 @@ impl WorldSim {
                 None
             } else {
                 let turb_wposf = wposf
+                    .mul(5_000.0 / continent_scale)
                     .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
                     .div(turb_wposf_div);
                 let turb = Vec2::new(
@@ -772,6 +775,7 @@ impl WorldSim {
                 // let turb = Vec2::zero();
                 let turb_wposf = wposf + turb;
                 let turb_wposi = turb_wposf
+                    .div(5_000.0 / continent_scale)
                     .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
                     .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
                 let turb_posi = vec2_as_uniform_idx(turb_wposi);
@@ -918,6 +922,7 @@ impl WorldSim {
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
                 let turb_wposf = wposf
+                    .mul(5_000.0 / continent_scale)
                     .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
                     .div(turb_wposf_div);
                 let turb = Vec2::new(
@@ -928,6 +933,7 @@ impl WorldSim {
                 // let turb = Vec2::zero();
                 let turb_wposf = wposf + turb;
                 let turb_wposi = turb_wposf
+                    .div(5_000.0 / continent_scale)
                     .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
                     .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
                 let turb_posi = vec2_as_uniform_idx(turb_wposi);
@@ -977,6 +983,8 @@ impl WorldSim {
                 // multiplied by height_scale^(2m) to account for change in area.
                 // 2.5e-6/* / time_scale*//* / 4.0 * 0.25 *//* * 4.0*/
                 1.0e-6
+                // 2.0e-5 // 1.8e-4 to 2.2e-6
+                // 1.0e-5 // 9.0e-5 to 1.1e-6
                 // 2.0e-6
                 // 2.9e-10
                 // ((1.0 - uheight) * (5e-5 - 2.9e-10) + 2.9e-10)
@@ -1000,6 +1008,7 @@ impl WorldSim {
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
                 let turb_wposf = wposf
+                    .mul(5_000.0 / continent_scale)
                     .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
                     .div(turb_wposf_div);
                 let turb = Vec2::new(
@@ -1010,6 +1019,7 @@ impl WorldSim {
                 // let turb = Vec2::zero();
                 let turb_wposf = wposf + turb;
                 let turb_wposi = turb_wposf
+                    .div(5_000.0 / continent_scale)
                     .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
                     .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
                 let turb_posi = vec2_as_uniform_idx(turb_wposi);
@@ -1053,6 +1063,7 @@ impl WorldSim {
             let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
             let turb_wposf = wposf
+                .mul(5_000.0 / continent_scale)
                 .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
                 .div(turb_wposf_div);
             let turb = Vec2::new(
@@ -1063,6 +1074,7 @@ impl WorldSim {
             // let turb = Vec2::zero();
             let turb_wposf = wposf + turb;
             let turb_wposi = turb_wposf
+                .div(5_000.0 / continent_scale)
                 .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
                 .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
             let turb_posi = vec2_as_uniform_idx(turb_wposi);
@@ -1149,6 +1161,7 @@ impl WorldSim {
             let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
             let turb_wposf = wposf
+                .mul(5_000.0 / continent_scale)
                 .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
                 .div(turb_wposf_div);
             let turb = Vec2::new(
@@ -1159,6 +1172,7 @@ impl WorldSim {
             // let turb = Vec2::zero();
             let turb_wposf = wposf + turb;
             let turb_wposi = turb_wposf
+                .div(5_000.0 / continent_scale)
                 .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
                 .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
             let turb_posi = vec2_as_uniform_idx(turb_wposi);
@@ -1230,6 +1244,7 @@ impl WorldSim {
             let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                 .map(|e| e as f64);
             let turb_wposf = wposf
+                .mul(5_000.0 / continent_scale)
                 .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
                 .div(turb_wposf_div);
             let turb = Vec2::new(
@@ -1240,6 +1255,7 @@ impl WorldSim {
             // let turb = Vec2::zero();
             let turb_wposf = wposf + turb;
             let turb_wposi = turb_wposf
+                .div(5_000.0 / continent_scale)
                 .map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as f64)
                 .map2(WORLD_SIZE, |e, f| (e as i32).max(f as i32 - 1).min(0));
             let turb_posi = vec2_as_uniform_idx(turb_wposi);
@@ -1383,6 +1399,7 @@ impl WorldSim {
             // tan(54/360*2*pi)*32
             // let height = 1.0f64;
             let turb_wposf = wposf
+                .mul(5_000.0 / continent_scale)
                 .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
                 .div(turb_wposf_div);
             let turb = Vec2::new(
