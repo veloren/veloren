@@ -1,6 +1,6 @@
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 // use self::Mode::*;
-use std::{f64, path::PathBuf};
+use std::{f64, io::Write, path::PathBuf, time::SystemTime};
 use vek::*;
 use veloren_world::{
     sim::{self, MapConfig, MapDebug, WorldOpts, WORLD_SIZE},
@@ -101,6 +101,46 @@ fn main() {
             let j = pos.y;
             buf[j * W + i] = u32::from_le_bytes([b, g, r, a]);
         });
+
+        if win.is_key_down(minifb::Key::F4) {
+            if let Some(len) = (W * H)
+                .checked_mul(scale as usize)
+                .and_then(|acc| acc.checked_mul(scale as usize))
+            {
+                let x = W * scale as usize;
+                let y = H * scale as usize;
+                let config = sim::MapConfig {
+                    dimensions: Vec2::new(x, y),
+                    scale: 1.0,
+                    ..config
+                };
+                let mut buf = vec![0u8; 4 * len];
+                config.generate(sampler, |pos, (r, g, b, a)| {
+                    let i = pos.x;
+                    let j = pos.y;
+                    (&mut buf[(j * x + i) * 4..]).write(&[r, g, b, a]).unwrap();
+                });
+                // TODO: Justify fits in  u32.
+                let world_map = image::RgbaImage::from_raw(x as u32, y as u32, buf)
+                    .expect("Image dimensions must be valid");
+                let mut path = PathBuf::from("./screenshots");
+                if !path.exists() {
+                    if let Err(err) = std::fs::create_dir(&path) {
+                        log::warn!("Couldn't create folder for screenshot: {:?}", err);
+                    }
+                }
+                path.push(format!(
+                    "worldmap_{}.png",
+                    SystemTime::now()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .map(|d| d.as_millis())
+                        .unwrap_or(0)
+                ));
+                if let Err(err) = world_map.save(&path) {
+                    log::warn!("Couldn't save screenshot: {:?}", err);
+                }
+            }
+        }
 
         let spd = 32.0;
         let lspd = 0.1;

@@ -9,6 +9,7 @@ bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
 bitvec = "0.15.2"
 faster = { git = "https://github.com/AdamNiederer/faster.git", rev = "6f99e0396e9992222bb33e8fd1e84347b410d9c0" }
+image = "0.22.3"
 itertools = "0.8.2"
 vek = "0.9.9"
 noise = { version = "0.6.0", default-features = false }
