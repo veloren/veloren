@@ -74,7 +74,7 @@ impl<'a> System<'a> for Sys {
             {
                 kind.attack_recover_duration()
             } else {
-                Duration::from_secs(1)
+                Duration::from_millis(250)
             };
 
             let (deal_damage, should_end) = if let Some(Attack { time_left, applied }) =

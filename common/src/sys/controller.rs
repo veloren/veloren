@@ -140,7 +140,7 @@ impl Sys {
                 // Attack
                 if !character.action.is_attack() {
                     Attack {
-                        time_left: Duration::from_millis(100),
+                        time_left: Duration::from_millis(250),
                         applied: false,
                     }
                 } else {
