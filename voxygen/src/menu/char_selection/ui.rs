@@ -288,19 +288,7 @@ impl CharSelectionUi {
             //deletion_confirmation: false,
             character_creation: false,
             character_name: "Character Name".to_string(),
-            character_body: if let Some(character) = global_state
-                .meta
-                .characters
-                .get(global_state.meta.selected_character)
-            {
-                match character.body {
-                    comp::Body::Humanoid(body) => Some(body.clone()),
-                    _ => None,
-                }
-            } else {
-                None
-            }
-            .unwrap_or_else(|| humanoid::Body::random()),
+            character_body: humanoid::Body::random(),
             character_tool: Some(STARTER_SWORD),
         }
     }
@@ -391,6 +379,20 @@ impl CharSelectionUi {
         }
         // Character Selection /////////////////
         if !self.character_creation {
+            // Set active body
+            self.character_body = if let Some(character) = global_state
+                .meta
+                .characters
+                .get(global_state.meta.selected_character)
+            {
+                match character.body {
+                    comp::Body::Humanoid(body) => Some(body.clone()),
+                    _ => None,
+                }
+            } else {
+                None
+            }.unwrap_or_else(|| humanoid::Body::random());
+
             // Background for Server Frame
             Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.9))
                 .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
