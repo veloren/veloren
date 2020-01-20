@@ -399,6 +399,7 @@ impl CharSelectionUi {
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
                         .label(&localized_strings.get("common.yes"))
+                        .label_font_id(self.fonts.cyri)
                         .label_font_size(18)
                         .label_color(TEXT_COLOR)
                         .set(self.ids.info_ok, ui_widgets)
