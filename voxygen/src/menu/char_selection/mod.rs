@@ -1,6 +1,7 @@
 mod scene;
 mod ui;
 
+use crate::i18n::{i18n_asset_key, VoxygenLocalization};
 use crate::{
     session::SessionState, window::Event as WinEvent, Direction, GlobalState, PlayState,
     PlayStateResult,
@@ -108,15 +109,15 @@ impl PlayState for CharSelectionState {
                 .render(global_state.window.renderer_mut(), self.scene.globals());
 
             // Tick the client (currently only to keep the connection alive).
+            let localized_strings = assets::load_expect::<VoxygenLocalization>(&i18n_asset_key(
+                &global_state.settings.language.selected_language,
+            ));
             if let Err(err) = self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),
                 clock.get_last_delta(),
                 |_| {},
             ) {
-                global_state.info_message = Some(
-                    "Connection lost!\nDid the server restart?\nIs the client up to date?"
-                        .to_owned(),
-                );
+                global_state.info_message = Some(localized_strings.get("common.connection_lost"));
                 error!("[session] Failed to tick the scene: {:?}", err);
 
                 return PlayStateResult::Pop;

@@ -9,6 +9,7 @@ pub mod audio;
 mod ecs;
 pub mod error;
 pub mod hud;
+pub mod i18n;
 pub mod key_state;
 mod logging;
 pub mod menu;
@@ -26,8 +27,14 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{
-    audio::AudioFrontend, menu::main::MainMenuState, meta::Meta, settings::Settings, window::Window,
+    audio::AudioFrontend,
+    i18n::{i18n_asset_key, VoxygenLocalization},
+    menu::main::MainMenuState,
+    meta::Meta,
+    settings::Settings,
+    window::Window,
 };
+use common::assets::load_expect;
 use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
@@ -130,6 +137,12 @@ fn main() {
         meta,
         info_message: None,
     };
+
+    // Try to load the localization and log missing entries
+    let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+        &global_state.settings.language.selected_language,
+    ));
+    localized_strings.log_missing_entries();
 
     // Set up panic handler to relay swish panic messages to the user
     let default_hook = panic::take_hook();

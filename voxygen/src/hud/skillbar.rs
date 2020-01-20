@@ -2,7 +2,9 @@ use super::{
     img_ids::Imgs, BarNumbers, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR,
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
+use crate::i18n::{i18n_asset_key, VoxygenLocalization};
 use crate::GlobalState;
+use common::assets::load_expect;
 use common::comp::{
     item::Debug, item::Tool, ActionState, CharacterState, ControllerInputs, Energy, ItemKind, Stats,
 };
@@ -189,6 +191,10 @@ impl<'a> Widget for Skillbar<'a> {
         let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.8; //Animation timer
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
+        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &self.global_state.settings.language.selected_language,
+        ));
+
         // Stamina Wheel
         /*
         let stamina_percentage =
@@ -277,34 +283,30 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.level_down, ui);
         // Death message
         if self.stats.is_dead {
-            Text::new("You Died")
+            Text::new(&localized_strings.get("hud.you_died"))
                 .middle_of(ui.window)
                 .font_size(50)
                 .font_id(self.fonts.cyri)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_1_bg, ui);
-            Text::new(&format!(
-                "Press {:?} to respawn at your Waypoint.\n\
-                 \n\
-                 Press Enter, type in /waypoint and confirm to set it here.",
-                self.global_state.settings.controls.respawn
+            Text::new(&localized_strings.get("hud.press_key_to_respawn").replace(
+                "{key}",
+                &format!("{:?}", self.global_state.settings.controls.respawn),
             ))
             .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
             .font_size(30)
             .font_id(self.fonts.cyri)
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.death_message_2_bg, ui);
-            Text::new("You Died")
+            Text::new(&localized_strings.get("hud.you_died"))
                 .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
                 .font_size(50)
                 .font_id(self.fonts.cyri)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
-            Text::new(&format!(
-                "Press {:?} to respawn at your Waypoint.\n\
-                 \n\
-                 Press Enter, type in /waypoint and confirm to set it here.",
-                self.global_state.settings.controls.respawn
+            Text::new(&localized_strings.get("hud.press_key_to_respawn").replace(
+                "{key}",
+                &format!("{:?}", self.global_state.settings.controls.respawn),
             ))
             .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
             .font_size(30)

@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added randomly selected Loading Screen background images
 - Added options to disable clouds and to use cheaper water rendering
 - Added client-side character saving
+- Added a localization system to provide multi-language support
+  to voxygen
+- Added French language for Voxygen
 
 ### Changed
 

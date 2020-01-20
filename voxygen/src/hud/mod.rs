@@ -36,6 +36,7 @@ use spell::Spell;
 
 use crate::{
     ecs::comp as vcomp,
+    i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
     scene::camera::Camera,
     //settings::ControlSettings,
@@ -44,7 +45,7 @@ use crate::{
     GlobalState,
 };
 use client::{Client, Event as ClientEvent};
-use common::{comp, terrain::TerrainChunk, vol::RectRasterableVol};
+use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     image::Id,
     text::cursor::Index,
@@ -225,6 +226,7 @@ pub enum Event {
     DropInventorySlot(usize),
     Logout,
     Quit,
+    ChangeLanguage(LanguageMetadata),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -528,6 +530,10 @@ impl Hud {
             env!("CARGO_PKG_VERSION"),
             common::util::GIT_VERSION.to_string()
         );
+
+        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
 
         if self.show.ingame {
             let ecs = client.state().ecs();
@@ -1208,42 +1214,7 @@ impl Hud {
         }
 
         // Introduction Text
-        let intro_text: &'static str = "Welcome to the Veloren Alpha!\n\
-             \n\
-             \n\
-             Some tips before you start:\n\
-             \n\
-             \n\
-             MOST IMPORTANTLY: To set your respawn point type /waypoint into the chat.\n\
-             \n\
-             This can also be done when you are already dead!\n\
-             \n\
-             \n\
-             Press F1 to see the available key commands.\n\
-             \n\
-             Type /help into the chat to see chat commands\n\
-             \n\
-             \n\
-             There are chests and other objects randomly spawning in the World!\n\
-             \n\
-             Right-Click to collect them.\n\
-             \n\
-             To actually use whatever you loot from those chests open your inventory with 'B'.\n\
-             \n\
-             Double click the items in your bag to use or equip them.\n\
-             \n\
-             Throw them away by clicking them once and clicking outside of the bag\n\
-             \n\
-             \n\
-             Nights can get pretty dark in Veloren.\n\
-             \n\
-             Light your lantern by typing /lantern into the chat\n\
-             \n\
-             \n\
-             Want to free your cursor to close this window? Press TAB!\n\
-             \n\
-             \n\
-             Enjoy your stay in the World of Veloren.";
+        let intro_text = &localized_strings.get("hud.welcome");
         if self.show.intro && !self.show.esc_menu && !self.intro_2 {
             match global_state.settings.gameplay.intro_show {
                 Intro::Show => {
@@ -1260,7 +1231,7 @@ impl Hud {
                     if Button::image(self.imgs.button)
                         .w_h(100.0, 50.0)
                         .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                        .label("Close")
+                        .label(&localized_strings.get("common.close"))
                         .label_font_size(20)
                         .label_color(TEXT_COLOR)
                         .hover_image(self.imgs.button_hover)
@@ -1297,7 +1268,7 @@ impl Hud {
                     {
                         self.never_show = !self.never_show
                     };
-                    Text::new("Don't show this on Startup")
+                    Text::new(&localized_strings.get("hud.do_not_show_on_startup"))
                         .right_from(self.ids.intro_check, 10.0)
                         .font_size(10)
                         .font_id(self.fonts.cyri)
@@ -1343,7 +1314,7 @@ impl Hud {
             if Button::image(self.imgs.button)
                 .w_h(100.0, 50.0)
                 .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                .label("Close")
+                .label(&localized_strings.get("common.close"))
                 .label_font_size(20)
                 .label_color(TEXT_COLOR)
                 .hover_image(self.imgs.button_hover)
@@ -1490,20 +1461,28 @@ impl Hud {
             .set(self.ids.num_figures, ui_widgets);
 
             // Help Window
-            Text::new(&format!(
-                "Press {:?} to show keybindings",
-                global_state.settings.controls.help
-            ))
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_toggle_keybindings_fmt")
+                    .replace(
+                        "{key}",
+                        &format!("{:?}", global_state.settings.controls.help),
+                    ),
+            )
             .color(TEXT_COLOR)
             .down_from(self.ids.num_figures, 5.0)
             .font_id(self.fonts.cyri)
             .font_size(14)
             .set(self.ids.help_info, ui_widgets);
             // Info about Debug Shortcut
-            Text::new(&format!(
-                "Press {:?} to toggle debug info",
-                global_state.settings.controls.toggle_debug
-            ))
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_toggle_debug_info_fmt")
+                    .replace(
+                        "{key}",
+                        &format!("{:?}", global_state.settings.controls.toggle_debug),
+                    ),
+            )
             .color(TEXT_COLOR)
             .down_from(self.ids.help_info, 5.0)
             .font_id(self.fonts.cyri)
@@ -1511,20 +1490,28 @@ impl Hud {
             .set(self.ids.debug_info, ui_widgets);
         } else {
             // Help Window
-            Text::new(&format!(
-                "Press {:?} to show keybindings",
-                global_state.settings.controls.help
-            ))
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_show_keybindings_fmt")
+                    .replace(
+                        "{key}",
+                        &format!("{:?}", global_state.settings.controls.help),
+                    ),
+            )
             .color(TEXT_COLOR)
             .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .font_id(self.fonts.cyri)
             .font_size(16)
             .set(self.ids.help_info, ui_widgets);
             // Info about Debug Shortcut
-            Text::new(&format!(
-                "Press {:?} to toggle debug info",
-                global_state.settings.controls.toggle_debug
-            ))
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_show_debug_info_fmt")
+                    .replace(
+                        "{key}",
+                        &format!("{:?}", global_state.settings.controls.toggle_debug),
+                    ),
+            )
             .color(TEXT_COLOR)
             .down_from(self.ids.help_info, 5.0)
             .font_id(self.fonts.cyri)
@@ -1563,7 +1550,7 @@ impl Hud {
                 .w_h(120.0, 50.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label("Show Tips")
+                .label(&localized_strings.get("hud.show_tips"))
                 .label_font_size(20)
                 .label_color(TEXT_COLOR)
                 .mid_bottom_with_margin_on(self.ids.help, 20.0)
@@ -1702,8 +1689,14 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            for event in SettingsWindow::new(&global_state, &self.show, &self.imgs, &self.fonts)
-                .set(self.ids.settings_window, ui_widgets)
+            for event in SettingsWindow::new(
+                &global_state,
+                &self.show,
+                &self.imgs,
+                &self.fonts,
+                &localized_strings,
+            )
+            .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
                     settings_window::Event::Sct(sct) => {
@@ -1782,6 +1775,9 @@ impl Hud {
                     settings_window::Event::ChangeFluidMode(new_fluid_mode) => {
                         events.push(Event::ChangeFluidMode(new_fluid_mode));
                     }
+                    settings_window::Event::ChangeLanguage(language) => {
+                        events.push(Event::ChangeLanguage(language));
+                    }
                 }
             }
         }
@@ -1789,10 +1785,11 @@ impl Hud {
         // Social Window
         if self.show.social {
             for event in Social::new(
-                /*&global_state,*/ &self.show,
+                &self.show,
                 client,
                 &self.imgs,
                 &self.fonts,
+                &localized_strings,
             )
             .set(self.ids.social_window, ui_widgets)
             {
@@ -1810,8 +1807,14 @@ impl Hud {
             let ecs = client.state().ecs();
             let stats = ecs.read_storage::<comp::Stats>();
             let player_stats = stats.get(client.entity()).unwrap();
-            match CharacterWindow::new(&self.show, &player_stats, &self.imgs, &self.fonts)
-                .set(self.ids.character_window, ui_widgets)
+            match CharacterWindow::new(
+                &self.show,
+                &player_stats,
+                &self.imgs,
+                &self.fonts,
+                &localized_strings,
+            )
+            .set(self.ids.character_window, ui_widgets)
             {
                 Some(character_window::Event::Close) => {
                     self.show.character_window(false);
@@ -1823,8 +1826,14 @@ impl Hud {
 
         // Spellbook
         if self.show.spell {
-            match Spell::new(&self.show, client, &self.imgs, &self.fonts)
-                .set(self.ids.spell, ui_widgets)
+            match Spell::new(
+                &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+                &localized_strings,
+            )
+            .set(self.ids.spell, ui_widgets)
             {
                 Some(spell::Event::Close) => {
                     self.show.spell(false);
@@ -1836,8 +1845,14 @@ impl Hud {
 
         // Quest Log
         if self.show.quest {
-            match Quest::new(&self.show, client, &self.imgs, &self.fonts)
-                .set(self.ids.quest, ui_widgets)
+            match Quest::new(
+                &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+                &localized_strings,
+            )
+            .set(self.ids.quest, ui_widgets)
             {
                 Some(quest::Event::Close) => {
                     self.show.quest(false);
@@ -1868,7 +1883,9 @@ impl Hud {
         }
 
         if self.show.esc_menu {
-            match EscMenu::new(&self.imgs, &self.fonts).set(self.ids.esc_menu, ui_widgets) {
+            match EscMenu::new(&self.imgs, &self.fonts, &localized_strings)
+                .set(self.ids.esc_menu, ui_widgets)
+            {
                 Some(esc_menu::Event::OpenSettings(tab)) => {
                     self.show.open_setting_tab(tab);
                 }
