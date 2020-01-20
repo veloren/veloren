@@ -1,6 +1,8 @@
 use crate::{
     hud::{BarNumbers, CrosshairType, Intro, ShortcutNumbers, XpBar},
-    render::{AaMode, CloudMode, FluidMode},
+    i18n,
+    render::AaMode,
+    render::{CloudMode, FluidMode},
     ui::ScaleMode,
     window::KeyMouse,
 };
@@ -234,6 +236,20 @@ impl Default for AudioSettings {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct LanguageSettings {
+    pub selected_language: String,
+}
+
+impl Default for LanguageSettings {
+    fn default() -> Self {
+        Self {
+            selected_language: i18n::REFERENCE_LANG.to_string(),
+        }
+    }
+}
+
 /// `Settings` contains everything that can be configured in the settings.ron file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
@@ -248,6 +264,7 @@ pub struct Settings {
     pub send_logon_commands: bool,
     // TODO: Remove at a later date, for dev testing
     pub logon_commands: Vec<String>,
+    pub language: LanguageSettings,
 }
 
 impl Default for Settings {
@@ -262,6 +279,7 @@ impl Default for Settings {
             show_disclaimer: true,
             send_logon_commands: false,
             logon_commands: Vec::new(),
+            language: LanguageSettings::default(),
         }
     }
 }

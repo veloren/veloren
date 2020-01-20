@@ -1,9 +1,9 @@
+use super::{img_ids::Imgs, settings_window::SettingsTab, Fonts, TEXT_COLOR};
+use crate::i18n::VoxygenLocalization;
 use conrod_core::{
     widget::{self, Button, Image},
     widget_ids, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
-use super::{img_ids::Imgs, settings_window::SettingsTab, Fonts, TEXT_COLOR};
 
 widget_ids! {
     struct Ids {
@@ -22,15 +22,22 @@ widget_ids! {
 pub struct EscMenu<'a> {
     imgs: &'a Imgs,
     _fonts: &'a Fonts,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> EscMenu<'a> {
-    pub fn new(imgs: &'a Imgs, _fonts: &'a Fonts) -> Self {
+    pub fn new(
+        imgs: &'a Imgs,
+        _fonts: &'a Fonts,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    ) -> Self {
         Self {
             imgs,
             _fonts,
+            localized_strings,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -82,7 +89,7 @@ impl<'a> Widget for EscMenu<'a> {
             .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Resume")
+            .label(&self.localized_strings.get("common.resume"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(20)
@@ -98,7 +105,7 @@ impl<'a> Widget for EscMenu<'a> {
             .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Settings")
+            .label(&self.localized_strings.get("common.settings"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(20)
@@ -113,7 +120,7 @@ impl<'a> Widget for EscMenu<'a> {
             .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Controls")
+            .label(&self.localized_strings.get("common.controls"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(20)
@@ -128,7 +135,7 @@ impl<'a> Widget for EscMenu<'a> {
             .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Characters")
+            .label(&self.localized_strings.get("common.characters"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(20)
@@ -143,7 +150,7 @@ impl<'a> Widget for EscMenu<'a> {
             .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Logout")
+            .label(&self.localized_strings.get("esc_menu.logout"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(20)
@@ -158,7 +165,7 @@ impl<'a> Widget for EscMenu<'a> {
             .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Quit Game")
+            .label(&self.localized_strings.get("esc_menu.quit_game"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(20)
