@@ -9,6 +9,7 @@ use std::{fs, io, path::PathBuf};
 pub struct CharacterData {
     pub name: String,
     pub body: comp::Body,
+    pub tool: Option<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
