@@ -223,8 +223,9 @@ impl MainMenuUi {
                                         \n\
                                         The name you put in will be your character name ingame.\n\
                                         \n\
-                                        As of now you can't save your characters.\n\
-                                        Changing their appearance is possible though.";
+                                        Character names and appearances will be saved on your computer.\n\
+                                        \n\
+                                        Levels/Items are not saved yet.";
 
         // Tooltip
         let _tooltip = Tooltip::new({

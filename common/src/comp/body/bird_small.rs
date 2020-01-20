@@ -1,6 +1,7 @@
 use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Body {
     pub head: Head,
     pub torso: Torso,
@@ -20,24 +21,28 @@ impl Body {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Head {
     Default,
 }
 const ALL_HEADS: [Head; 1] = [Head::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Torso {
     Default,
 }
 const ALL_TORSOS: [Torso; 1] = [Torso::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum WingL {
     Default,
 }
 const ALL_WING_LS: [WingL; 1] = [WingL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum WingR {
     Default,
 }
