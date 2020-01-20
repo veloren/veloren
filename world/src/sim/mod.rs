@@ -215,6 +215,13 @@ pub enum WorldFile {
 /// Data for the most recent map type.  Update this when you add a new map verson.
 pub type ModernMap = WorldMap_0_5_0;
 
+/// The default world map.
+///
+/// TODO: Consider using some naming convention to automatically change this
+/// with changing versions, or at least keep it in a constant somewhere that's
+/// easy to change.
+pub const DEFAULT_WORLD_MAP: &'static str = "world.map.veloren_0_5_0_0";
+
 impl WorldFileLegacy {
     #[inline]
     /// Idea: each map type except the latest knows how to transform

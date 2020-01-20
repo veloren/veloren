@@ -1,10 +1,9 @@
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 // use self::Mode::*;
-use std::{f32, f64, path::PathBuf};
+use std::{f64, path::PathBuf};
 use vek::*;
 use veloren_world::{
-    sim::{self, MapConfig, MapDebug, RiverKind, WorldOpts, WORLD_SIZE},
-    util::Sampler,
+    sim::{self, MapConfig, MapDebug, WorldOpts, WORLD_SIZE},
     World, CONFIG,
 };
 
@@ -57,7 +56,7 @@ fn main() {
     let mut gain = CONFIG.mountain_scale;
     // The Z component during normal calculations is multiplied by gain; thus,
     let mut lgain = 1.0;
-    let mut scale = (WORLD_SIZE.x as f64 / W as f64);
+    let mut scale = WORLD_SIZE.x as f64 / W as f64;
 
     // Right-handed coordinate system: light is going left, down, and "backwards" (i.e. on the
     // map, where we translate the y coordinate on the world map to z in the coordinate system,

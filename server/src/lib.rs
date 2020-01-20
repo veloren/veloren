@@ -47,7 +47,7 @@ use std::{
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 use world::{
-    sim::{FileOpts, WorldOpts, WORLD_SIZE},
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
     World,
 };
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
@@ -116,11 +116,7 @@ impl Server {
                     opts.clone()
                 } else {
                     // Load default map from assets.
-                    //
-                    // TODO: Consider using some naming convention to automatically change this
-                    // with changing versions, or at least keep it in a constant somewhere that's
-                    // easy to change.
-                    FileOpts::LoadAsset("world.map.veloren_0_5_0_0".into())
+                    FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
                 },
                 ..WorldOpts::default()
             },
