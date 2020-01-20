@@ -3318,6 +3318,7 @@ dependencies = [
  "bitvec 0.15.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "faster 0.5.0 (git+https://github.com/AdamNiederer/faster.git?rev=6f99e0396e9992222bb33e8fd1e84347b410d9c0)",
  "hashbrown 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.22.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
