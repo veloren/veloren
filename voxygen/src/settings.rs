@@ -51,6 +51,15 @@ pub struct ControlSettings {
     pub charge: KeyMouse,
 }
 
+/// Since Macbook trackpads lack middle click, on OS X we default to LShift instead
+/// It is an imperfect heuristic, but hopefully it will be a slightly better default, and the
+/// two places we default to middle click currently (roll and wall jump) are both situations where
+/// you cannot glide (the other default mapping for LShift).
+#[cfg(target_os = "macos")]
+const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(VirtualKeyCode::LShift);
+#[cfg(not(target_os = "macos"))]
+const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Mouse(MouseButton::Middle);
+
 impl Default for ControlSettings {
     fn default() -> Self {
         Self {
@@ -69,7 +78,7 @@ impl Default for ControlSettings {
             glide: KeyMouse::Key(VirtualKeyCode::LShift),
             climb: KeyMouse::Key(VirtualKeyCode::Space),
             climb_down: KeyMouse::Key(VirtualKeyCode::LControl),
-            wall_leap: KeyMouse::Mouse(MouseButton::Middle),
+            wall_leap: MIDDLE_CLICK_KEY,
             mount: KeyMouse::Key(VirtualKeyCode::F),
             map: KeyMouse::Key(VirtualKeyCode::M),
             bag: KeyMouse::Key(VirtualKeyCode::B),
@@ -84,7 +93,7 @@ impl Default for ControlSettings {
             fullscreen: KeyMouse::Key(VirtualKeyCode::F11),
             screenshot: KeyMouse::Key(VirtualKeyCode::F4),
             toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
-            roll: KeyMouse::Mouse(MouseButton::Middle),
+            roll: MIDDLE_CLICK_KEY,
             respawn: KeyMouse::Key(VirtualKeyCode::Space),
             interact: KeyMouse::Mouse(MouseButton::Right),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
