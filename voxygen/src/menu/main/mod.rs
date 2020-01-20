@@ -4,11 +4,14 @@ mod ui;
 
 use super::char_selection::CharSelectionState;
 use crate::{
-    singleplayer::Singleplayer, window::Event, Direction, GlobalState, PlayState, PlayStateResult,
+    i18n::{i18n_asset_key, VoxygenLocalization},
+    singleplayer::Singleplayer,
+    window::Event,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use argon2::{self, Config};
 use client_init::{ClientInit, Error as InitError};
-use common::{clock::Clock, comp};
+use common::{assets::load_expect, clock::Clock, comp};
 use log::warn;
 #[cfg(feature = "singleplayer")]
 use std::time::Duration;
@@ -147,9 +150,13 @@ impl PlayState for MainMenuState {
                     }
                 }
             }
+            let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+                &global_state.settings.language.selected_language,
+            ));
 
             if let Some(info) = global_state.info_message.take() {
-                self.main_menu_ui.show_info(info);
+                self.main_menu_ui
+                    .show_info(info, localized_strings.get("common.okay"));
             }
 
             // Draw the UI to the screen.
