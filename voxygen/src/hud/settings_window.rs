@@ -1231,6 +1231,12 @@ impl<'a> Widget for SettingsWindow<'a> {
             \n\
             Dodge\n\
             \n\
+            Roll\n\
+            \n\
+            Climb\n\
+            \n\
+            Climb down\n\
+            \n\
             Auto Walk\n\
             \n\
             Sheathe/Draw Weapons\n\
@@ -1238,6 +1244,10 @@ impl<'a> Widget for SettingsWindow<'a> {
             Put on/Remove Helmet\n\
             \n\
             Sit\n\
+            \n\
+            Mount\n\
+            \n\
+            Interact\n\
             \n\
             \n\
             Basic Attack\n\
@@ -1318,6 +1328,16 @@ impl<'a> Widget for SettingsWindow<'a> {
                  \n\
                  {}\n\
                  \n\
+                 {}\n\
+                 \n\
+                 {}\n\
+                 \n\
+                 {}\n\
+                 \n\
+                 {}\n\
+                 \n\
+                 {}\n\
+                 \n\
                  \n\
                  {}\n\
                  {}\n\
@@ -1369,10 +1389,15 @@ impl<'a> Widget for SettingsWindow<'a> {
                 controls.jump,
                 controls.glide,
                 "??", // Dodge
+                controls.roll,
+                controls.climb,
+                controls.climb_down,
                 "??", // Auto Walk
                 controls.toggle_wield,
                 "??", // Put on/Remove Helmet
                 controls.sit,
+                controls.mount,
+                controls.interact,
                 controls.primary,
                 controls.secondary,
                 "1", // Skillbar Slot 1

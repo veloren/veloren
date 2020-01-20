@@ -107,8 +107,6 @@ coverage:
     tags:
         - veloren-docker
     script:
-        - sed -i '/cargo-features/d' Cargo.toml
-        - sed -i '/profile.dev.overrides/,+1d' Cargo.toml
         - cargo tarpaulin -v
     allow_failure: true
 
