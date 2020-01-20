@@ -4,7 +4,7 @@ mod vol;
 use super::{Generator, SpawnRules};
 use crate::{
     block::{block_from_structure, BlockGen},
-    column::{ColumnGen, ColumnSample},
+    column::ColumnSample,
     util::Sampler,
     CONFIG,
 };

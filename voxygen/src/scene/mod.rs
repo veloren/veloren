@@ -19,8 +19,8 @@ use crate::{
 use client::Client;
 use common::{
     comp,
-    terrain::{BlockKind, TerrainChunk, TerrainChunkSize},
-    vol::{ReadVol, RectVolSize},
+    terrain::{BlockKind, TerrainChunk},
+    vol::ReadVol,
 };
 use specs::{Join, WorldExt};
 use vek::*;

@@ -3,13 +3,11 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     generator::{Generator, TownGen},
-    sim::WorldSim,
     util::{RandomField, Sampler, SmallCache},
     CONFIG,
 };
 use common::{
     terrain::{structure::StructureBlock, Block, BlockKind, Structure},
-    util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
 use std::ops::{Add, Div, Mul, Neg};

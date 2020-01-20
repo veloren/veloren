@@ -258,7 +258,7 @@ pub fn downhill<F: Float>(
     (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
         // .enumerate()
-        .map(|(posi/*, &nh*/)| {
+        .map(|/*(*/ posi /*, &nh)*/| {
             let nh = h(posi);
             let _pos = uniform_idx_as_vec2(posi);
             if is_ocean(posi) {
