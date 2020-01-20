@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, Player, Pos},
+    comp::{self, item, Player, Pos},
     event::{EventBus, ServerEvent},
     msg::ServerMsg,
     state::TerrainChanges,
@@ -111,7 +111,7 @@ impl<'a> System<'a> for Sys {
                 let mut scale = 1.0;
 
                 // TODO: Remove this and implement scaling or level depending on stuff like species instead
-                stats.level.set_level(rand::thread_rng().gen_range(1, 10));
+                stats.level.set_level(rand::thread_rng().gen_range(1, 4));
 
                 if npc.boss {
                     if rand::random::<f32>() < 0.8 {
@@ -121,7 +121,7 @@ impl<'a> System<'a> for Sys {
                         );
                         body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     }
-                    stats.level.set_level(rand::thread_rng().gen_range(20, 50));
+                    stats.level.set_level(rand::thread_rng().gen_range(8, 15));
                     scale = 2.0 + rand::random::<f32>();
                 }
 
@@ -129,6 +129,13 @@ impl<'a> System<'a> for Sys {
                 stats
                     .health
                     .set_to(stats.health.maximum(), comp::HealthSource::Revive);
+                if let Some(item::Item {
+                    kind: item::ItemKind::Tool { power, .. },
+                    ..
+                }) = &mut stats.equipment.main
+                {
+                    *power = stats.level.level() * 3;
+                }
                 server_emitter.emit(ServerEvent::CreateNpc {
                     pos: Pos(npc.pos),
                     stats,
