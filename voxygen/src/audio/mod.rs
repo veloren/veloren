@@ -209,12 +209,6 @@ impl AudioFrontend {
     }
 }
 
-pub fn select_random_music() -> String {
-    let soundtracks = load_soundtracks();
-    let index = rand::random::<usize>() % soundtracks.len();
-    soundtracks[index].clone()
-}
-
 /// Returns the default audio device.
 /// Does not return rodio Device struct in case our audio backend changes.
 pub fn get_default_device() -> String {
@@ -222,21 +216,6 @@ pub fn get_default_device() -> String {
         .expect("No audio output devices detected.")
         .name()
         .expect("Unable to get device name")
-}
-
-/// Load the audio file directory selected by genre.
-pub fn load_soundtracks() -> Vec<String> {
-    let assets = assets::read_dir("voxygen.audio.soundtrack.regional").unwrap();
-    let soundtracks = assets
-        .filter_map(|entry| {
-            entry.ok().map(|f| {
-                let path = f.path();
-                path.to_string_lossy().into_owned()
-            })
-        })
-        .collect::<Vec<String>>();
-
-    soundtracks
 }
 
 /// Returns a vec of the audio devices available.
