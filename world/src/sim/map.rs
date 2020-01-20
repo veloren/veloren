@@ -133,9 +133,8 @@ impl MapConfig {
         (0..dimensions.y * dimensions.x)
             .into_iter()
             .for_each(|chunk_idx| {
-                let pos = uniform_idx_as_vec2(chunk_idx);
-                let i = pos.x as usize;
-                let j = pos.y as usize;
+                let i = chunk_idx % dimensions.x as usize;
+                let j = chunk_idx / dimensions.x as usize;
 
                 let pos =
                     (focus_rect + Vec2::new(i as f64, j as f64) * scale).map(|e: f64| e as i32);

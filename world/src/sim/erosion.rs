@@ -232,8 +232,8 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     let mut rivers = vec![RiverData::default(); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
     // (Roughly) area of a chunk, times minutes per second.
-    let mins_per_sec = /*64.0*/1.0/*1.0 / 16.0*/;
-    let chunk_area_factor = neighbor_coef.x * neighbor_coef.y / mins_per_sec;
+    let mins_per_sec = /*16.0*/1.0/*1.0 /  16.0*//*1.0 / 64.0*/;
+    let chunk_area_factor = neighbor_coef.x * neighbor_coef.y * mins_per_sec;
     // NOTE: This technically makes us discontinuous, so we should be cautious about using this.
     let derivative_divisor = 1.0;
     let height_scale = 1.0; // 1.0 / CONFIG.mountain_scale as f64;
@@ -944,14 +944,21 @@ fn erode(
                         let old_b_i = b[posi];
                         let sed = (h_t[posi] - old_b_i) as f64;
                         let n = n_f(posi);
+                        // Higher rock strength tends to lead to higher erodibility?
+                        // let max_slope = max_slopes[posi]/*mid_slope*/;
+                        let kd_factor =
+                            1.0;
+                            // (/*1.0 / */(max_slope / mid_slope/*.sqrt()*//*.powf(0.03125)*/).powf(/*2.0*/2.0/* * m*/))/*.min(kdsed)*/;
+                        let k_fs = kf(posi) / kd_factor;
+
                         let k = if sed > sediment_thickness(n) {
                             // Sediment
                             // k_fs
-                            k_fs_mult_sed * kf(posi)
+                            k_fs_mult_sed * k_fs
                         } else {
                             // Bedrock
                             // k_fb
-                            kf(posi)
+                            k_fs
                         } * dt;
                         let n = n as f64;
                         let m = m_f(posi) as f64;
