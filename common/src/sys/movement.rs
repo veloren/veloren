@@ -15,13 +15,13 @@ use vek::*;
 
 pub const ROLL_DURATION: Duration = Duration::from_millis(600);
 
-const HUMANOID_ACCEL: f32 = 100.0;
-const HUMANOID_SPEED: f32 = 120.0;
-const HUMANOID_AIR_ACCEL: f32 = 15.0;
-const HUMANOID_AIR_SPEED: f32 = 100.0;
-const HUMANOID_WATER_ACCEL: f32 = 70.0;
-const HUMANOID_WATER_SPEED: f32 = 120.0;
-const HUMANOID_CLIMB_ACCEL: f32 = 10.0;
+const BASE_HUMANOID_ACCEL: f32 = 100.0;
+const BASE_HUMANOID_SPEED: f32 = 120.0;
+const BASE_HUMANOID_AIR_ACCEL: f32 = 15.0;
+const BASE_HUMANOID_AIR_SPEED: f32 = 100.0;
+const BASE_HUMANOID_WATER_ACCEL: f32 = 70.0;
+const BASE_HUMANOID_WATER_SPEED: f32 = 120.0;
+const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
 const ROLL_SPEED: f32 = 17.0;
 const CHARGE_SPEED: f32 = 20.0;
 const GLIDE_ACCEL: f32 = 15.0;
@@ -142,24 +142,33 @@ impl<'a> System<'a> for Sys {
                 vel.0 += Vec2::broadcast(dt.0)
                     * inputs.move_dir
                     * match (physics.on_ground, &character.movement) {
-                        (true, Run) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {
-                            HUMANOID_ACCEL
+                        (true, Run)
+                            if vel.0.magnitude_squared()
+                                < (BASE_HUMANOID_SPEED + stats.fitness as f32 * 50.0).powf(2.0) =>
+                        {
+                            BASE_HUMANOID_ACCEL
                         }
-                        (false, Climb) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {
-                            HUMANOID_CLIMB_ACCEL
+                        (false, Climb)
+                            if vel.0.magnitude_squared() < BASE_HUMANOID_SPEED.powf(2.0) =>
+                        {
+                            BASE_HUMANOID_CLIMB_ACCEL
                         }
                         (false, Glide) if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) => {
                             GLIDE_ACCEL
                         }
                         (false, Fall) | (false, Jump)
-                            if vel.0.magnitude_squared() < HUMANOID_AIR_SPEED.powf(2.0) =>
+                            if vel.0.magnitude_squared()
+                                < (BASE_HUMANOID_AIR_SPEED + stats.fitness as f32 * 10.0)
+                                    .powf(2.0) =>
                         {
-                            HUMANOID_AIR_ACCEL
+                            BASE_HUMANOID_AIR_ACCEL
                         }
                         (false, Swim)
-                            if vel.0.magnitude_squared() < HUMANOID_WATER_SPEED.powf(2.0) =>
+                            if vel.0.magnitude_squared()
+                                < (BASE_HUMANOID_WATER_SPEED + stats.fitness as f32 * 30.0)
+                                    .powf(2.0) =>
                         {
-                            HUMANOID_WATER_ACCEL
+                            BASE_HUMANOID_WATER_ACCEL + stats.fitness as f32 * 10.0
                         }
                         _ => 0.0,
                     };
@@ -228,7 +237,7 @@ impl<'a> System<'a> for Sys {
             }
 
             if character.movement == Swim && inputs.jump.is_pressed() {
-                vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(HUMANOID_WATER_SPEED);
+                vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(BASE_HUMANOID_WATER_SPEED);
             }
         }
     }
