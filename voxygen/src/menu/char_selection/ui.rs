@@ -1135,13 +1135,13 @@ impl CharSelectionUi {
                     self.imgs.slider_range,
                 );
                 let char_slider = move |prev_id,
-                                        text: String,
+                                        text: &str,
                                         text_id,
                                         max,
                                         selected_val,
                                         slider_id,
                                         ui_widgets: &mut UiCell| {
-                    Text::new(&text)
+                    Text::new(text)
                         .down_from(prev_id, 22.0)
                         .align_middle_x_of(prev_id)
                         .font_size(18)
