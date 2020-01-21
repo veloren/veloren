@@ -21,6 +21,7 @@ gfx_defines! {
     constant Globals {
         view_mat: [[f32; 4]; 4] = "view_mat",
         proj_mat: [[f32; 4]; 4] = "proj_mat",
+        all_mat: [[f32; 4]; 4] = "all_mat",
         cam_pos: [f32; 4] = "cam_pos",
         focus_pos: [f32; 4] = "focus_pos",
         // TODO: Fix whatever alignment issue requires these uniforms to be aligned.
@@ -62,6 +63,7 @@ impl Globals {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
             proj_mat: arr_to_mat(proj_mat.into_col_array()),
+            all_mat: arr_to_mat((proj_mat * view_mat).into_col_array()),
             cam_pos: Vec4::from(cam_pos).into_array(),
             focus_pos: Vec4::from(focus_pos).into_array(),
             view_distance: [view_distance; 4],
