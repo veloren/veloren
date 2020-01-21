@@ -1,4 +1,5 @@
-use crate::comp::{ActionState, EcsStateData, ItemKind::Tool, StateUpdate};
+use super::utils::*;
+use crate::comp::{EcsStateData, StateUpdate};
 
 use crate::states::StateHandler;
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -17,18 +18,13 @@ impl StateHandler for State {
             ori: *ecs_data.ori,
         };
 
-        // Try to wield
-        if ecs_data.inputs.primary.is_pressed()
-            || ecs_data.inputs.secondary.is_pressed()
-            || (ecs_data.inputs.toggle_wield.is_just_pressed()
-                && update.character.action_state.is_equip_finished())
-        {
-            if let Some(Tool(_)) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
-                update.character.action_state = ActionState::Wield(None);
-            }
-
-            // else unarmed stuff?
-        }
+        handle_move_dir(ecs_data, &mut update);
+        handle_wield(ecs_data, &mut update);
+        handle_sit(ecs_data, &mut update);
+        handle_climb(ecs_data, &mut update);
+        handle_roll(ecs_data, &mut update);
+        //handle_jump(ecs_data, &mut update);
+        handle_glide(ecs_data, &mut update);
 
         update
     }

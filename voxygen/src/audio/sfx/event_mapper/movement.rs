@@ -4,7 +4,7 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
 use common::{
-    comp::{ActionState, Body, CharacterState, MoveState, Pos},
+    comp::{Body, CharacterState, Pos},
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
@@ -123,28 +123,21 @@ impl MovementEventMapper {
     /// as opening or closing the glider. These methods translate those entity states with some additional
     /// data into more specific `SfxEvent`'s which we attach sounds to
     fn map_movement_event(current_event: &CharacterState, previous_event: SfxEvent) -> SfxEvent {
-        match (
-            current_event.move_state,
-            current_event.action_state,
-            previous_event,
-        ) {
-            (_, ActionState::Dodge(_), _) => SfxEvent::Roll,
-            (MoveState::Climb(_), ..) => SfxEvent::Climb,
-            (MoveState::Swim(_), ..) => SfxEvent::Swim,
-            (MoveState::Run(_), ..) => SfxEvent::Run,
-            (MoveState::Jump(_), ..) => SfxEvent::Jump,
-            (MoveState::Fall(_), _, SfxEvent::Glide) => SfxEvent::GliderClose,
-            (MoveState::Stand(_), _, SfxEvent::Fall) => SfxEvent::Run,
-            (MoveState::Fall(_), _, SfxEvent::Jump) => SfxEvent::Idle,
-            (MoveState::Fall(_), _, _) => SfxEvent::Fall,
-            (MoveState::Glide(_), _, previous_event) => {
+        match (current_event, previous_event) {
+            (CharacterState::Roll(_), _) => SfxEvent::Roll,
+            (CharacterState::Climb(_), _) => SfxEvent::Climb,
+            (CharacterState::Idle(_), _) => SfxEvent::Run,
+            (CharacterState::Idle(_), SfxEvent::Glide) => SfxEvent::GliderClose,
+            (CharacterState::Idle(_), SfxEvent::Fall) => SfxEvent::Run,
+            (CharacterState::Idle(_), SfxEvent::Jump) => SfxEvent::Idle,
+            (CharacterState::Glide(_), previous_event) => {
                 if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
                     SfxEvent::GliderOpen
                 } else {
                     SfxEvent::Glide
                 }
             }
-            (MoveState::Stand(_), _, SfxEvent::Glide) => SfxEvent::GliderClose,
+            (CharacterState::Idle(_), SfxEvent::Glide) => SfxEvent::GliderClose,
             _ => SfxEvent::Idle,
         }
     }
@@ -153,10 +146,7 @@ impl MovementEventMapper {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{
-        comp::{ActionState, CharacterState, DodgeKind::*, MoveState},
-        event::SfxEvent,
-    };
+    use common::{comp::CharacterState, event::SfxEvent};
     use std::time::{Duration, Instant};
 
     #[test]
@@ -236,118 +226,50 @@ mod tests {
 
     #[test]
     fn maps_idle() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                move_state: MoveState::Stand(None),
-                action_state: ActionState::Idle(None),
-            },
-            SfxEvent::Idle,
-        );
-
+        let result =
+            MovementEventMapper::map_movement_event(&CharacterState::Idle(None), SfxEvent::Idle);
         assert_eq!(result, SfxEvent::Idle);
     }
 
     #[test]
-    fn maps_run() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                move_state: MoveState::Run(None),
-                action_state: ActionState::Idle(None),
-            },
-            SfxEvent::Idle,
-        );
-
-        assert_eq!(result, SfxEvent::Run);
-    }
-
-    #[test]
     fn maps_roll() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                action_state: ActionState::Dodge(Roll(None)),
-                move_state: MoveState::Run(None),
-            },
-            SfxEvent::Run,
-        );
-
+        let result =
+            MovementEventMapper::map_movement_event(&CharacterState::Roll(None), SfxEvent::Run);
         assert_eq!(result, SfxEvent::Roll);
     }
 
     #[test]
-    fn maps_fall() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                move_state: MoveState::Fall(None),
-                action_state: ActionState::Idle(None),
-            },
-            SfxEvent::Fall,
-        );
-
-        assert_eq!(result, SfxEvent::Fall);
-    }
-
-    #[test]
     fn maps_land_on_ground_to_run() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                move_state: MoveState::Stand(None),
-                action_state: ActionState::Idle(None),
-            },
-            SfxEvent::Fall,
-        );
-
+        let result =
+            MovementEventMapper::map_movement_event(&CharacterState::Idle(None), SfxEvent::Fall);
         assert_eq!(result, SfxEvent::Run);
     }
 
     #[test]
     fn maps_glider_open() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                move_state: MoveState::Glide(None),
-                action_state: ActionState::Idle(None),
-            },
-            SfxEvent::Jump,
-        );
-
+        let result =
+            MovementEventMapper::map_movement_event(&CharacterState::Glide(None), SfxEvent::Jump);
         assert_eq!(result, SfxEvent::GliderOpen);
     }
 
     #[test]
     fn maps_glide() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                move_state: MoveState::Glide(None),
-                action_state: ActionState::Idle(None),
-            },
-            SfxEvent::Glide,
-        );
-
+        let result =
+            MovementEventMapper::map_movement_event(&CharacterState::Glide(None), SfxEvent::Glide);
         assert_eq!(result, SfxEvent::Glide);
     }
 
     #[test]
     fn maps_glider_close_when_closing_mid_flight() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                move_state: MoveState::Fall(None),
-                action_state: ActionState::Idle(None),
-            },
-            SfxEvent::Glide,
-        );
-
+        let result =
+            MovementEventMapper::map_movement_event(&CharacterState::Idle(None), SfxEvent::Glide);
         assert_eq!(result, SfxEvent::GliderClose);
     }
 
     #[test]
     fn maps_glider_close_when_landing() {
-        let result = MovementEventMapper::map_movement_event(
-            &CharacterState {
-                move_state: MoveState::Stand(None),
-                action_state: ActionState::Idle(None),
-            },
-            SfxEvent::Glide,
-        );
-
+        let result =
+            MovementEventMapper::map_movement_event(&CharacterState::Idle(None), SfxEvent::Glide);
         assert_eq!(result, SfxEvent::GliderClose);
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Body, CharacterState, Controller, EcsStateData, Mounting, MoveState::*, Ori, PhysicsState,
-        Pos, Stats, Vel,
+        Body, CharacterState, Controller, EcsStateData, Mounting, Ori, PhysicsState, Pos, Stats,
+        Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -87,59 +87,31 @@ impl<'a> System<'a> for Sys {
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
             if let Some(Mounting(_)) = mountings.get(entity) {
-                character.move_state = Sit(None);
+                *character = CharacterState::Sit(None);
                 return;
             }
 
-            // Determine new action if character can act
-            if !character.move_state.overrides_action_state() {
-                let state_update = character.action_state.update(&EcsStateData {
-                    entity: &entity,
-                    uid,
-                    character,
-                    pos,
-                    vel,
-                    ori,
-                    dt: &dt,
-                    inputs,
-                    stats,
-                    body,
-                    physics,
-                    updater: &updater,
-                    server_bus: &server_bus,
-                    local_bus: &local_bus,
-                });
+            let state_update = character.update(&EcsStateData {
+                entity: &entity,
+                uid,
+                character,
+                pos,
+                vel,
+                ori,
+                dt: &dt,
+                inputs,
+                stats,
+                body,
+                physics,
+                updater: &updater,
+                server_bus: &server_bus,
+                local_bus: &local_bus,
+            });
 
-                *character = state_update.character;
-                *pos = state_update.pos;
-                *vel = state_update.vel;
-                *ori = state_update.ori;
-            }
-
-            // Determine new move state if character can move
-            if !character.action_state.overrides_move_state() {
-                let state_update = character.move_state.update(&EcsStateData {
-                    entity: &entity,
-                    uid,
-                    character,
-                    pos,
-                    vel,
-                    ori,
-                    dt: &dt,
-                    inputs,
-                    stats,
-                    body,
-                    physics,
-                    updater: &updater,
-                    server_bus: &server_bus,
-                    local_bus: &local_bus,
-                });
-
-                *character = state_update.character;
-                *pos = state_update.pos;
-                *vel = state_update.vel;
-                *ori = state_update.ori;
-            }
+            *character = state_update.character;
+            *pos = state_update.pos;
+            *vel = state_update.vel;
+            *ori = state_update.ori;
         }
     }
 }

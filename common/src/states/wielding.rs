@@ -1,4 +1,5 @@
-use crate::comp::{ActionState, EcsStateData, ItemKind::Tool, StateUpdate, ToolData};
+use super::utils::*;
+use crate::comp::{CharacterState, EcsStateData, ItemKind::Tool, StateUpdate, ToolData};
 use crate::states::StateHandler;
 use std::time::Duration;
 
@@ -17,6 +18,7 @@ impl StateHandler for State {
             } else {
                 ToolData::default()
             };
+
         Self {
             equip_delay: tool_data.equip_time(),
         }
@@ -30,30 +32,15 @@ impl StateHandler for State {
             ori: *ecs_data.ori,
         };
 
-        // Only act once equip_delay has expired
-        if self.equip_delay == Duration::default() {
-            // Toggle Weapons
-            if ecs_data.inputs.toggle_wield.is_just_pressed()
-                && ecs_data.character.action_state.is_equip_finished()
-            {
-                update.character.action_state = ActionState::Idle(None);
-                return update;
-            }
+        handle_move_dir(&ecs_data, &mut update);
 
-            // Try weapon actions
-            if ecs_data.inputs.primary.is_pressed() {
-                // ecs_data
-                //     .updater
-                //     .insert(*ecs_data.entity, AbilityAction(Primary));
-            } else if ecs_data.inputs.secondary.is_pressed() {
-                // ecs_data
-                //     .updater
-                //     .insert(*ecs_data.entity, AbilityAction(Secondary));
-            }
+        if self.equip_delay == Duration::default() {
+            // Wield delay has expired
+            update.character = CharacterState::Wielded(None);
         } else {
-            // Equip delay hasn't expired yet
+            // Wield delay hasn't expired yet
             // Update wield delay
-            update.character.action_state = ActionState::Wield(Some(State {
+            update.character = CharacterState::Wielding(Some(State {
                 equip_delay: self
                     .equip_delay
                     .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))

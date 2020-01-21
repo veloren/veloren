@@ -170,7 +170,7 @@ impl Scene {
             .ecs()
             .read_storage::<comp::CharacterState>()
             .get(client.entity())
-            .map_or(false, |cs| cs.action_state.is_dodging());
+            .map_or(false, |cs| cs.is_dodge());
 
         let player_scale = match client
             .state()

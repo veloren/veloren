@@ -18,8 +18,7 @@ use crate::{
 use client::Client;
 use common::{
     comp::{
-        ActionState::*, AttackKind::*, Body, CharacterState, ItemKind, Last, MoveState::*, Ori,
-        Pos, Scale, Stats, ToolData, Vel,
+        Body, CharacterState, ItemKind, Last, Ori, PhysicsState, Pos, Scale, Stats, ToolData, Vel,
     },
     terrain::TerrainChunk,
     vol::RectRasterableVol,
@@ -80,14 +79,16 @@ impl FigureMgr {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, ori, scale, body, character, last_character, stats) in (
+        for (entity, pos, vel, ori, scale, body, character, last_character, physics, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Ori>(),
             ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<CharacterState>().maybe(),
             ecs.read_storage::<Last<CharacterState>>().maybe(),
+            &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Stats>().maybe(),
         )
             .join()
@@ -328,8 +329,7 @@ impl FigureMgr {
                 )
                 .1;
 
-            let mut move_state_animation_rate = 1.0;
-            let mut action_animation_rate = 1.0;
+            let mut state_animation_rate = 1.0;
 
             let vel = ecs
                 .read_storage::<Vel>()
@@ -357,121 +357,142 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
-                    }
-                    if !character
-                        .action_state
-                        .equals(&last_character.0.action_state)
-                    {
-                        state.action_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match &character.move_state {
-                        Stand(_) => anim::character::StandAnimation::update_skeleton(
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Run(_) => anim::character::RunAnimation::update_skeleton(
+                        // Running
+                        (true, true, false) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, vel.0, ori.0, state.last_ori, time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump(_) | Fall(_) => anim::character::JumpAnimation::update_skeleton(
+                        // In air
+                        (false, _, false) => anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Glide(_) => anim::character::GlidingAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
-                            (active_tool_kind, vel.0, ori.0, state.last_ori, time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        Swim(_) => anim::character::SwimAnimation::update_skeleton(
+                        // Swim
+                        (_, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, vel.0.magnitude(), ori.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        Climb(_) => anim::character::ClimbAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
-                            (active_tool_kind, vel.0, ori.0, time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        Sit(_) => anim::character::SitAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
-                            (active_tool_kind, time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
                     };
-                    let target_bones = match (&character.move_state, &character.action_state) {
-                        (Stand(_), Wield { .. }) => {
+                    let target_bones = match &character {
+                        CharacterState::Roll(_) => anim::character::RollAnimation::update_skeleton(
+                            &target_base,
+                            (active_tool_kind, ori.0, state.last_ori, time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        CharacterState::Wielding(_) => {
                             anim::character::CidleAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
-                                state.action_time,
-                                &mut action_animation_rate,
+                                state.state_time,
+                                &mut state_animation_rate,
                                 skeleton_attr,
                             )
                         }
-                        (Stand(_), Block { .. }) => {
+                        CharacterState::Wielded(_) => {
+                            anim::character::CidleAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        /*CharacterState::Block(_) => {
                             anim::character::BlockIdleAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
-                                state.action_time,
-                                &mut action_animation_rate,
+                                state.state_time,
+                                &mut state_animation_rate,
                                 skeleton_attr,
                             )
                         }
-                        (_, Attack(kind)) => match kind {
-                            Charge(_) => anim::character::ChargeAnimation::update_skeleton(
+                        CharacterState::Charge(_) => {
+                            anim::character::ChargeAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
-                                state.action_time,
-                                &mut action_animation_rate,
+                                state.state_time,
+                                &mut state_animation_rate,
                                 skeleton_attr,
-                            ),
-                            BasicAttack(_) => anim::character::AttackAnimation::update_skeleton(
+                            )
+                        }
+                        CharacterState::BasicAttack(_) => {
+                            anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
-                                state.action_time,
-                                &mut action_animation_rate,
+                                state.state_time,
+                                &mut state_animation_rate,
                                 skeleton_attr,
-                            ),
-                        },
-                        (_, Wield(_)) => anim::character::WieldAnimation::update_skeleton(
-                            &target_base,
-                            (active_tool_kind, vel.0.magnitude(), time),
-                            state.action_time,
-                            &mut action_animation_rate,
-                            skeleton_attr,
-                        ),
-                        (_, Dodge(_)) => anim::character::RollAnimation::update_skeleton(
-                            &target_base,
-                            (active_tool_kind, ori.0, state.last_ori, time),
-                            state.action_time,
-                            &mut action_animation_rate,
-                            skeleton_attr,
-                        ),
-                        (_, Block(_)) => anim::character::BlockAnimation::update_skeleton(
-                            &target_base,
+                            )
+                        }*/
+                        CharacterState::Wielding(_) => {
+                            anim::character::WieldAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        CharacterState::Wielded(_) => {
+                            anim::character::WieldAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        CharacterState::Glide(_) => {
+                            anim::character::GlidingAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, vel.0, ori.0, state.last_ori, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        CharacterState::Climb(_) => {
+                            anim::character::ClimbAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (active_tool_kind, vel.0, ori.0, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        CharacterState::Sit(_) => anim::character::SitAnimation::update_skeleton(
+                            &CharacterSkeleton::new(),
                             (active_tool_kind, time),
-                            state.action_time,
-                            &mut action_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => target_base,
@@ -486,8 +507,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -505,30 +525,41 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match character.move_state {
-                        Stand(_) => anim::quadruped_small::IdleAnimation::update_skeleton(
-                            &QuadrupedSmallSkeleton::new(),
-                            time,
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        Run(_) => anim::quadruped_small::RunAnimation::update_skeleton(
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => {
+                            anim::quadruped_small::IdleAnimation::update_skeleton(
+                                &QuadrupedSmallSkeleton::new(),
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        // Running
+                        (true, true, false) => {
+                            anim::quadruped_small::RunAnimation::update_skeleton(
+                                &QuadrupedSmallSkeleton::new(),
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        // In air
+                        (false, _, false) => anim::quadruped_small::JumpAnimation::update_skeleton(
                             &QuadrupedSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        Jump(_) => anim::quadruped_small::JumpAnimation::update_skeleton(
-                            &QuadrupedSmallSkeleton::new(),
-                            (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -545,8 +576,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -564,32 +594,45 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match character.move_state {
-                        Stand(_) => anim::quadruped_medium::IdleAnimation::update_skeleton(
-                            &QuadrupedMediumSkeleton::new(),
-                            time,
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        Run(_) => anim::quadruped_medium::RunAnimation::update_skeleton(
-                            &QuadrupedMediumSkeleton::new(),
-                            (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        Jump(_) => anim::quadruped_medium::JumpAnimation::update_skeleton(
-                            &QuadrupedMediumSkeleton::new(),
-                            (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
-                            skeleton_attr,
-                        ),
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => {
+                            anim::quadruped_medium::IdleAnimation::update_skeleton(
+                                &QuadrupedMediumSkeleton::new(),
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        // Running
+                        (true, true, false) => {
+                            anim::quadruped_medium::RunAnimation::update_skeleton(
+                                &QuadrupedMediumSkeleton::new(),
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
+                        // In air
+                        (false, _, false) => {
+                            anim::quadruped_medium::JumpAnimation::update_skeleton(
+                                &QuadrupedMediumSkeleton::new(),
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
 
                         // TODO!
                         _ => state.skeleton_mut().clone(),
@@ -604,8 +647,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -621,30 +663,37 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match character.move_state {
-                        Stand(_) => anim::bird_medium::IdleAnimation::update_skeleton(
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::bird_medium::IdleAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             time,
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Run(_) => anim::bird_medium::RunAnimation::update_skeleton(
+                        // Running
+                        (true, true, false) => anim::bird_medium::RunAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump(_) => anim::bird_medium::JumpAnimation::update_skeleton(
+                        // In air
+                        (false, _, false) => anim::bird_medium::JumpAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -661,8 +710,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -678,30 +726,37 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match character.move_state {
-                        Stand(_) => anim::fish_medium::IdleAnimation::update_skeleton(
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::fish_medium::IdleAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             time,
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Run(_) => anim::fish_medium::RunAnimation::update_skeleton(
+                        // Running
+                        (true, true, false) => anim::fish_medium::RunAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump(_) => anim::fish_medium::JumpAnimation::update_skeleton(
+                        // In air
+                        (false, _, false) => anim::fish_medium::JumpAnimation::update_skeleton(
                             &FishMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -718,8 +773,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -735,30 +789,37 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match character.move_state {
-                        Stand(_) => anim::dragon::IdleAnimation::update_skeleton(
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::dragon::IdleAnimation::update_skeleton(
                             &DragonSkeleton::new(),
                             time,
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Run(_) => anim::dragon::RunAnimation::update_skeleton(
+                        // Running
+                        (true, true, false) => anim::dragon::RunAnimation::update_skeleton(
                             &DragonSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump(_) => anim::dragon::JumpAnimation::update_skeleton(
+                        // In air
+                        (false, _, false) => anim::dragon::JumpAnimation::update_skeleton(
                             &DragonSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -775,8 +836,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -792,30 +852,37 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match character.move_state {
-                        Stand(_) => anim::bird_small::IdleAnimation::update_skeleton(
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::bird_small::IdleAnimation::update_skeleton(
                             &BirdSmallSkeleton::new(),
                             time,
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Run(_) => anim::bird_small::RunAnimation::update_skeleton(
+                        // Running
+                        (true, true, false) => anim::bird_small::RunAnimation::update_skeleton(
                             &BirdSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump(_) => anim::bird_small::JumpAnimation::update_skeleton(
+                        // In air
+                        (false, _, false) => anim::bird_small::JumpAnimation::update_skeleton(
                             &BirdSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -832,8 +899,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -849,30 +915,37 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match character.move_state {
-                        Stand(_) => anim::fish_small::IdleAnimation::update_skeleton(
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::fish_small::IdleAnimation::update_skeleton(
                             &FishSmallSkeleton::new(),
                             time,
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Run(_) => anim::fish_small::RunAnimation::update_skeleton(
+                        // Running
+                        (true, true, false) => anim::fish_small::RunAnimation::update_skeleton(
                             &FishSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump(_) => anim::fish_small::JumpAnimation::update_skeleton(
+                        // In air
+                        (false, _, false) => anim::fish_small::JumpAnimation::update_skeleton(
                             &FishSmallSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -889,8 +962,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -906,30 +978,37 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.move_state.equals(&last_character.0.move_state) {
-                        state.move_state_time = 0.0;
+                    if !character.equals(&last_character.0) {
+                        state.state_time = 0.0;
                     }
 
-                    let target_base = match character.move_state {
-                        Stand(_) => anim::biped_large::IdleAnimation::update_skeleton(
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > 0.001, // Moving
+                        physics.in_fluid,                  // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::biped_large::IdleAnimation::update_skeleton(
                             &BipedLargeSkeleton::new(),
                             time,
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Run(_) => anim::biped_large::RunAnimation::update_skeleton(
+                        // Running
+                        (true, true, false) => anim::biped_large::RunAnimation::update_skeleton(
                             &BipedLargeSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        Jump(_) => anim::biped_large::JumpAnimation::update_skeleton(
+                        // In air
+                        (false, _, false) => anim::biped_large::JumpAnimation::update_skeleton(
                             &BipedLargeSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            state.move_state_time,
-                            &mut move_state_animation_rate,
+                            state.state_time,
+                            &mut state_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -946,8 +1025,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -967,8 +1045,7 @@ impl FigureMgr {
                         scale,
                         col,
                         dt,
-                        move_state_animation_rate,
-                        action_animation_rate,
+                        state_animation_rate,
                         lpindex,
                         true,
                     );
@@ -1163,8 +1240,7 @@ impl FigureMgr {
 pub struct FigureState<S: Skeleton> {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
-    move_state_time: f64,
-    action_time: f64,
+    state_time: f64,
     skeleton: S,
     pos: Vec3<f32>,
     ori: Vec3<f32>,
@@ -1180,8 +1256,7 @@ impl<S: Skeleton> FigureState<S> {
                 .create_consts(&skeleton.compute_matrices())
                 .unwrap(),
             locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
-            move_state_time: 0.0,
-            action_time: 0.0,
+            state_time: 0.0,
             skeleton,
             pos: Vec3::zero(),
             ori: Vec3::zero(),
@@ -1200,8 +1275,7 @@ impl<S: Skeleton> FigureState<S> {
         scale: f32,
         col: Rgba<f32>,
         dt: f32,
-        move_state_rate: f32,
-        action_rate: f32,
+        state_animation_rate: f32,
         lpindex: u8,
         visible: bool,
     ) {
@@ -1219,8 +1293,7 @@ impl<S: Skeleton> FigureState<S> {
             self.ori = ori;
         }
 
-        self.move_state_time += (dt * move_state_rate) as f64;
-        self.action_time += (dt * action_rate) as f64;
+        self.state_time += (dt * state_animation_rate) as f64;
 
         // TODO: what are the interpolated ori values used for if not here???
         let mat = Mat4::<f32>::identity()
