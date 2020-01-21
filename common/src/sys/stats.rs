@@ -69,7 +69,7 @@ impl<'a> System<'a> for Sys {
 
                 stat.update_max_hp();
                 stat.health
-                    .set_to(stat.health.maximum(), HealthSource::LevelUp)
+                    .set_to(stat.health.maximum(), HealthSource::LevelUp);
             }
 
             // Accelerate recharging energy if not wielding.
