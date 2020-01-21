@@ -38,8 +38,7 @@ void main() {
 	f_pos_norm = v_pos_norm;
 
     gl_Position =
-		proj_mat *
-		view_mat *
+		all_mat *
 		vec4(f_pos, 1);
 	gl_Position.z = 1.0 / (1.0 - gl_Position.z - 10.0);
 }
