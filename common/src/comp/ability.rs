@@ -23,10 +23,10 @@ impl Component for AbilityAction {
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct AbilityPool {
-    pub primary: Option<comp::AttackKind>,
-    pub secondary: Option<comp::AttackKind>,
-    pub block: Option<comp::BlockKind>,
-    pub dodge: Option<comp::DodgeKind>,
+    pub primary: Option<comp::CharacterState>,
+    pub secondary: Option<comp::CharacterState>,
+    pub block: Option<comp::CharacterState>,
+    pub dodge: Option<comp::CharacterState>,
 }
 
 impl Component for AbilityPool {

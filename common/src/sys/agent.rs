@@ -1,4 +1,4 @@
-use crate::comp::{Agent, CharacterState, Controller, MountState, MoveState::Glide, Pos, Stats};
+use crate::comp::{Agent, CharacterState, Controller, MountState, Pos, Stats};
 use crate::hierarchical::ChunkPath;
 use crate::pathfinding::WorldPath;
 use crate::terrain::TerrainGrid;
@@ -167,11 +167,11 @@ impl<'a> System<'a> for Sys {
                                 inputs.roll.set_state(true);
                             }
 
-                            if target_character.move_state == Glide(None)
-                                && target_pos.0.z > pos.0.z + 5.0
-                            {
-                                inputs.glide.set_state(true);
-                                inputs.jump.set_state(true);
+                            if let CharacterState::Glide(_) = target_character {
+                                if target_pos.0.z > pos.0.z + 5.0 {
+                                    inputs.glide.set_state(true);
+                                    inputs.jump.set_state(true);
+                                }
                             }
                         } else {
                             choose_new = true;

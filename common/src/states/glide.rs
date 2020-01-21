@@ -1,4 +1,4 @@
-use crate::comp::{ActionState, EcsStateData, MoveState, StateUpdate};
+use crate::comp::{CharacterState, EcsStateData, StateUpdate};
 use crate::states::StateHandler;
 use vek::{Vec2, Vec3};
 
@@ -16,6 +16,7 @@ impl StateHandler for State {
     }
 
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
+        dbg!();
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
@@ -23,26 +24,14 @@ impl StateHandler for State {
             character: *ecs_data.character,
         };
 
-        // Defaults for this state
-        update.character.action_state = ActionState::Idle(None);
-        update.character.move_state = MoveState::Glide(None);
-
-        // If glide button isn't held, start falling
-        if !ecs_data.inputs.glide.is_pressed() {
-            update.character.move_state = MoveState::Fall(None);
-            return update;
+        // If glide button isn't held or player is on ground, end glide
+        if !ecs_data.inputs.glide.is_pressed() || ecs_data.physics.on_ground {
+            update.character = CharacterState::Idle(None);
         }
 
         // If there is a wall in front of character go to climb
-        if let Some(_wall_dir) = ecs_data.physics.on_wall {
-            update.character.move_state = MoveState::Climb(None);
-            return update;
-        }
-
-        // If on ground go to stand
-        if ecs_data.physics.on_ground {
-            update.character.move_state = MoveState::Stand(None);
-            return update;
+        if let Some(_) = ecs_data.physics.on_wall {
+            update.character = CharacterState::Climb(None);
         }
 
         // Move player according to movement direction vector
