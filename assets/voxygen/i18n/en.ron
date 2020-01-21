@@ -90,9 +90,9 @@ Thanks for taking the time to read this notice, we hope you enjoy the game!
         // Login process description
         "main.login_process": r#"Information on the Login Process:
 
-The name you put in will be your character name ingame.
+Put in any username. No Account needed yet.
                                         
-Character names and appearances will be saved on your computer.
+Character names and appearances will be saved locally.
 
 Levels/Items are not saved yet."#,
 
