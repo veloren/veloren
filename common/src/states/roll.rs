@@ -1,7 +1,5 @@
 use super::utils::*;
-use crate::comp::{
-    ActionState::Dodge, DodgeKind::Roll, EcsStateData, ItemKind::Tool, StateUpdate, ToolData,
-};
+use crate::comp::{CharacterState, EcsStateData, ItemKind::Tool, StateUpdate, ToolData};
 use crate::states::StateHandler;
 use std::time::Duration;
 use vek::Vec3;
@@ -48,20 +46,13 @@ impl StateHandler for State {
             .unwrap_or_default()
                 * ROLL_SPEED;
 
-        // Check if roll duration has expired
-        if self.remaining_duration == Duration::default() {
-            // If so, go back to wielding or idling
-            update.character.action_state = attempt_wield(ecs_data.stats);
-            return update;
-        }
-
         // Otherwise, tick down remaining_duration
-        update.character.action_state = Dodge(Roll(Some(State {
+        update.character = CharacterState::Roll(Some(State {
             remaining_duration: self
                 .remaining_duration
                 .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
                 .unwrap_or_default(),
-        })));
+        }));
 
         // Keep rolling
         update

@@ -168,7 +168,6 @@ impl Scene {
             Rgba::broadcast(1.0),
             1.0 / 60.0, // TODO: Use actual deltatime here?
             1.0,
-            1.0,
             0,
             true,
         );

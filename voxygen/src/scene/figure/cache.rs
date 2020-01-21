@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{ActionState, Body, CharacterState, Equipment, MoveState},
+    comp::{Body, CharacterState, Equipment},
 };
 use hashbrown::HashMap;
 use std::mem::{discriminant, Discriminant};
@@ -24,15 +24,13 @@ enum FigureKey {
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 struct CharacterStateCacheKey {
-    move_state: Discriminant<MoveState>,
-    action: Discriminant<ActionState>,
+    state: Discriminant<CharacterState>, // TODO: Can this be simplified?
 }
 
 impl From<&CharacterState> for CharacterStateCacheKey {
     fn from(cs: &CharacterState) -> Self {
         Self {
-            move_state: discriminant(&cs.move_state),
-            action: discriminant(&cs.action_state),
+            state: discriminant(&cs),
         }
     }
 }
@@ -132,17 +130,14 @@ impl FigureModelCache {
                                     },
                                     if camera_mode == CameraMode::FirstPerson
                                         && character_state
-                                            .map(|cs| cs.action_state.is_dodging())
+                                            .map(|cs| cs.is_dodge())
                                             .unwrap_or_default()
                                     {
                                         None
                                     } else {
                                         Some(humanoid_armor_hand_spec.mesh_left_hand(&body))
                                     },
-                                    if character_state
-                                        .map(|cs| cs.action_state.is_dodging())
-                                        .unwrap_or_default()
-                                    {
+                                    if character_state.map(|cs| cs.is_dodge()).unwrap_or_default() {
                                         None
                                     } else {
                                         Some(humanoid_armor_hand_spec.mesh_right_hand(&body))
@@ -161,10 +156,11 @@ impl FigureModelCache {
                                     },
                                     if camera_mode != CameraMode::FirstPerson
                                         || character_state
-                                            .map(|cs| match cs.action_state {
-                                                ActionState::Attack(_)
-                                                | ActionState::Block(_)
-                                                | ActionState::Wield(_) => true,
+                                            .map(|cs| match cs {
+                                                //CharacterState::BasicAttack(_) // TODO: enable
+                                                //| CharacterState::BasicBlock(_)
+                                                CharacterState::Wielding(_)
+                                                | CharacterState::Wielded(_) => true,
                                                 _ => false,
                                             })
                                             .unwrap_or_default()

@@ -36,12 +36,6 @@ impl StateHandler for State {
             return update;
         }
 
-        // Check gliding
-        if can_glide(ecs_data.physics, ecs_data.inputs, ecs_data.body) {
-            update.character.move_state = MoveState::Glide(None);
-            return update;
-        }
-
         // Else update based on groundedness
         update.character.move_state =
             determine_move_from_grounded_state(ecs_data.physics, ecs_data.inputs);

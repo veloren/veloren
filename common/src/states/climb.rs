@@ -1,4 +1,5 @@
-use super::{ActionState, EcsStateData, MoveState, StateHandler, StateUpdate};
+use crate::comp::{CharacterState, EcsStateData, StateUpdate};
+use crate::states::StateHandler;
 use crate::sys::phys::GRAVITY;
 use vek::vec::{Vec2, Vec3};
 use vek::Lerp;
@@ -22,27 +23,20 @@ impl StateHandler for State {
             character: *ecs_data.character,
         };
 
-        update.character.action_state = ActionState::Idle(None);
-
         // If no wall is in front of character ...
         if let None = ecs_data.physics.on_wall {
             if ecs_data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
-                update.character.move_state = MoveState::Jump(None);
-
-                return update;
+                //TODO: JUMP EVENT
             } else {
                 // Just fall off
-                update.character.move_state = MoveState::Fall(None);
-
-                return update;
+                update.character = CharacterState::Idle(None);
             }
         }
 
         // Remove climb state on ground, otherwise character will get stuck
         if ecs_data.physics.on_ground {
-            update.character.move_state = MoveState::Stand(None);
-            return update;
+            update.character = CharacterState::Idle(None);
         }
 
         // Move player
@@ -65,6 +59,7 @@ impl StateHandler for State {
             Vec2::from(update.vel.0)
         };
 
+        // Smooth orientation
         if ori_dir.magnitude_squared() > 0.0001
             && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
                 > 0.001
