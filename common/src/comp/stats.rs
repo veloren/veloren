@@ -178,12 +178,12 @@ impl Stats {
         };
 
         let (endurance, fitness, willpower) = match race {
-            Some(Race::Danari) => (0, 1, 2),
-            Some(Race::Dwarf) => (1, 2, 0),
-            Some(Race::Elf) => (2, 1, 0),
-            Some(Race::Human) => (1, 0, 2),
-            Some(Race::Orc) => (0, 2, 1),
-            Some(Race::Undead) => (2, 0, 1),
+            Some(Race::Danari) => (0, 2, 3), // Small, flexible, intelligent, physically weak
+            Some(Race::Dwarf) => (2, 2, 1),  // phyiscally strong, intelligent, slow reflexes
+            Some(Race::Elf) => (1, 2, 2),    // Intelligent, quick, physically weak
+            Some(Race::Human) => (2, 1, 2),  // Perfectly balanced
+            Some(Race::Orc) => (3, 2, 0),    // Physically strong, non intelligent, medium reflexes
+            Some(Race::Undead) => (1, 3, 1), // Very good reflexes, equally intelligent and strong
             None => (0, 0, 0),
         };
 
