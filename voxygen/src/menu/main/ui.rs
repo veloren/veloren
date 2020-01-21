@@ -385,8 +385,8 @@ impl MainMenuUi {
                         self.connect = true;
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
-                            msg: localized_strings.get("main.connecting") + "...",
-                            button_text: localized_strings.get("common.cancel"),
+                            msg: [localized_strings.get("main.connecting"), "..."].concat(),
+                            button_text: localized_strings.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
 
@@ -423,8 +423,8 @@ impl MainMenuUi {
                         self.connect = true;
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
-                            msg: localized_strings.get("main.creating_world") + "...",
-                            button_text: localized_strings.get("common.cancel"),
+                            msg: [localized_strings.get("main.creating_world"), "..."].concat(),
+                            button_text: localized_strings.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
                     };

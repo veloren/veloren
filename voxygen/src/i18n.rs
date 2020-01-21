@@ -48,10 +48,10 @@ impl VoxygenLocalization {
     ///
     /// If the key is not present in the localization object
     /// then the key is returned.
-    pub fn get(&self, key: &str) -> String {
+    pub fn get<'a>(&'a self, key: &'a str) -> &'a str {
         match self.string_map.get(key) {
-            Some(localized_text) => localized_text.to_owned(),
-            None => key.to_string(),
+            Some(localized_text) => localized_text,
+            None => key,
         }
     }
 
