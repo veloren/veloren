@@ -128,7 +128,8 @@ impl PlayState for CharSelectionState {
                 clock.get_last_delta(),
                 |_| {},
             ) {
-                global_state.info_message = Some(localized_strings.get("common.connection_lost"));
+                global_state.info_message =
+                    Some(localized_strings.get("common.connection_lost").to_owned());
                 error!("[session] Failed to tick the scene: {:?}", err);
 
                 return PlayStateResult::Pop;
