@@ -18,28 +18,19 @@ out vec3 f_col;
 out float f_light;
 
 void main() {
-	f_pos = vec3(
-		float((v_pos_norm >>  0) & 0x00FFu),
-		float((v_pos_norm >>  8) & 0x00FFu),
-		float((v_pos_norm >> 16) & 0x1FFFu)
-	) + model_offs;
+	f_pos = vec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu, 0xFFu, 0x1FFFu)) + model_offs;
 
 	f_pos.z *= min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0);
 	f_pos.z -= 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0);
 
-	f_col = vec3(
-		float((v_col_light >>  8) & 0xFFu),
-		float((v_col_light >> 16) & 0xFFu),
-		float((v_col_light >> 24) & 0xFFu)
-	) / 255.0;
+	f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
 
 	f_light = float(v_col_light & 0xFFu) / 255.0;
 
 	f_pos_norm = v_pos_norm;
 
 	gl_Position =
-		proj_mat *
-		view_mat *
+		all_mat *
 		vec4(f_pos, 1);
 	gl_Position.z = 1.0 / (1.0 - gl_Position.z - 10.0);
 }
