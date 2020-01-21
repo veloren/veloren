@@ -45,7 +45,7 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 	float start = max(min(mind, maxd), 0.0);
 	float delta = min(abs(mind - maxd), max_dist);
 
-	float fuzz = sin(texture(t_noise, dir.xz * 100000.0 + tick.x).x * 100.0) * INCR * delta * pow(maxd - mind, 0.5);
+	float fuzz = sin(texture(t_noise, dir.xz * 100000.0 + tick.x).x * 100.0) * INCR * delta * pow(maxd - mind, 0.3) * 2.0;
 
 	float cloud_shade = 1.0;
 	float passthrough = 1.0;
