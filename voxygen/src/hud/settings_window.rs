@@ -445,7 +445,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::UiScale(ScaleChange::ToRelative));
             }
 
-            Text::new("Relative Scaling")
+            Text::new(self.localized_strings.get("hud.settings.relative_scaling"))
                 .right_from(state.ids.relative_to_win_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -480,7 +480,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::UiScale(ScaleChange::ToAbsolute));
             }
 
-            Text::new("Custom Scaling")
+            Text::new(self.localized_strings.get("hud.settings.custom_scaling"))
                 .right_from(state.ids.absolute_scale_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
