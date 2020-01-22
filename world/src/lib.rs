@@ -19,6 +19,7 @@ use crate::{
     util::Sampler,
 };
 use common::{
+    generation::{ChunkSupplement, NpcInfo},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -163,20 +164,5 @@ impl World {
         };
 
         Ok((chunk, supplement))
-    }
-}
-
-pub struct NpcInfo {
-    pub pos: Vec3<f32>,
-    pub boss: bool,
-}
-
-pub struct ChunkSupplement {
-    pub npcs: Vec<NpcInfo>,
-}
-
-impl Default for ChunkSupplement {
-    fn default() -> Self {
-        Self { npcs: Vec::new() }
     }
 }

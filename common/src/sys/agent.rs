@@ -1,9 +1,7 @@
 use crate::comp::{
     Agent, CharacterState, Controller, MountState, MovementState::Glide, Pos, Stats,
 };
-use crate::hierarchical::ChunkPath;
-use crate::pathfinding::WorldPath;
-use crate::terrain::TerrainGrid;
+use crate::{hierarchical::ChunkPath, path::Path, pathfinding::WorldPath, terrain::TerrainGrid};
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -75,7 +73,8 @@ impl<'a> System<'a> for Sys {
                             * MAX_TRAVEL_DIST;
                         new_path = Some(
                             ChunkPath::new(&*terrain, pos.0, pos.0 + new_dest)
-                                .get_worldpath(&*terrain),
+                                .get_worldpath(&*terrain)
+                                .unwrap(),
                         );
                     };
 
@@ -101,34 +100,39 @@ impl<'a> System<'a> for Sys {
                         inputs.move_dir = bearing.normalized();
                     }
                 }
-                Agent::Pet { target, offset } => {
+                Agent::Pet { target, chaser } => {
                     // Run towards target.
-                    match positions.get(*target) {
-                        Some(tgt_pos) => {
-                            let tgt_pos = tgt_pos.0 + *offset;
-
-                            if tgt_pos.z > pos.0.z + 1.0 {
-                                inputs.jump.set_state(true);
-                            }
-
-                            // Move towards the target.
-                            let dist: f32 = Vec2::from(tgt_pos - pos.0).magnitude();
-                            inputs.move_dir = if dist > 5.0 {
-                                Vec2::from(tgt_pos - pos.0).normalized()
-                            } else if dist < 1.5 && dist > 0.001 {
-                                Vec2::from(pos.0 - tgt_pos).normalized()
-                            } else {
-                                Vec2::zero()
-                            };
+                    if let Some(tgt_pos) = positions.get(*target) {
+                        if let Some(bearing) = chaser.chase(&*terrain, tgt_pos.0, pos.0) {
+                            inputs.move_dir = Vec2::from(bearing).normalized();
+                            inputs.jump.set_state(bearing.z > 0.9);
                         }
-                        _ => inputs.move_dir = Vec2::zero(),
-                    }
 
-                    // Change offset occasionally.
-                    if rand::random::<f32>() < 0.003 {
-                        *offset =
-                            Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
-                                * 10.0;
+                    /*
+                    const HAPPY_DIST: i32 = 4;
+                    let plot_path = if let Some(dir) = route.traverse(&*terrain, pos.0) {
+                        inputs.move_dir = Vec2::from(dir).normalized();
+                        inputs.jump.set_state(dir.z > 0.9);
+
+                        // Sometimes recalculate to avoid getting stuck
+                        rand::random::<f32>() < 0.005
+                    } else {
+                        true
+                    };
+
+                    if plot_path {
+                        let path: Path = WorldPath::find(&*terrain, pos.0, tgt_pos.0)
+                            .ok()
+                            .and_then(|wp| wp.path.map(|nodes| nodes.into_iter().rev()))
+                            .into_iter()
+                            .flatten()
+                            .collect();
+
+                        *route = path.into();
+                    }
+                    */
+                    } else {
+                        inputs.move_dir = Vec2::zero();
                     }
                 }
                 Agent::Enemy { bearing, target } => {

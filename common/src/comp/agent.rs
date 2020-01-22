@@ -1,4 +1,4 @@
-use crate::pathfinding::WorldPath;
+use crate::{path::Chaser, pathfinding::WorldPath};
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IDVStorage;
 use vek::*;
@@ -8,7 +8,7 @@ pub enum Agent {
     Wanderer(Vec2<f32>),
     Pet {
         target: EcsEntity,
-        offset: Vec2<f32>,
+        chaser: Chaser,
     },
     Enemy {
         bearing: Vec2<f32>,
@@ -24,6 +24,13 @@ impl Agent {
         Agent::Enemy {
             bearing: Vec2::zero(),
             target: None,
+        }
+    }
+
+    pub fn pet(target: EcsEntity) -> Self {
+        Agent::Pet {
+            target,
+            chaser: Chaser::default(),
         }
     }
 }
