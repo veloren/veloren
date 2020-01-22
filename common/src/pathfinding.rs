@@ -13,30 +13,38 @@ pub struct WorldPath {
 }
 
 impl WorldPath {
-    pub fn new<V: ReadVol, I>(
-        vol: &V,
+    pub fn find<'a, V: ReadVol>(vol: &'a V, from: Vec3<f32>, dest: Vec3<f32>) -> Result<Self, ()> {
+        Self::new(vol, from, dest, Self::get_neighbors)
+    }
+
+    pub fn new<'a, V: ReadVol, I>(
+        vol: &'a V,
         from: Vec3<f32>,
         dest: Vec3<f32>,
-        get_neighbors: impl FnMut(&V, &Vec3<i32>) -> I,
-    ) -> Self
+        get_neighbors: impl FnMut(&'a V, Vec3<i32>) -> I,
+    ) -> Result<Self, ()>
     where
-        I: IntoIterator<Item = Vec3<i32>>,
+        I: Iterator<Item = Vec3<i32>> + 'a,
     {
         let ifrom: Vec3<i32> = Vec3::from(from.map(|e| e.floor() as i32));
         let idest: Vec3<i32> = Vec3::from(dest.map(|e| e.floor() as i32));
-        let path = WorldPath::get_path(vol, ifrom, idest, get_neighbors);
+        let path = WorldPath::get_path(vol, ifrom, idest, get_neighbors).ok_or(())?;
 
-        Self { from, dest, path }
+        Ok(Self {
+            from,
+            dest,
+            path: Some(path),
+        })
     }
 
-    pub fn get_path<V: ReadVol, I>(
-        vol: &V,
+    pub fn get_path<'a, V: ReadVol, I>(
+        vol: &'a V,
         from: Vec3<i32>,
         dest: Vec3<i32>,
-        mut get_neighbors: impl FnMut(&V, &Vec3<i32>) -> I,
+        mut get_neighbors: impl FnMut(&'a V, Vec3<i32>) -> I,
     ) -> Option<Vec<Vec3<i32>>>
     where
-        I: IntoIterator<Item = Vec3<i32>>,
+        I: Iterator<Item = Vec3<i32>> + 'a,
     {
         let new_start = WorldPath::get_z_walkable_space(vol, from);
         let new_dest = WorldPath::get_z_walkable_space(vol, dest);
@@ -46,7 +54,7 @@ impl WorldPath {
                 new_start,
                 new_dest,
                 euclidean_distance,
-                |pos| get_neighbors(vol, pos),
+                |pos| get_neighbors(vol, *pos),
                 transition_cost,
             )
         } else {
@@ -55,46 +63,33 @@ impl WorldPath {
     }
 
     fn get_z_walkable_space<V: ReadVol>(vol: &V, pos: Vec3<i32>) -> Option<Vec3<i32>> {
-        if WorldPath::is_walkable_space(vol, pos) {
-            return Some(pos);
+        let mut z_incr = 0;
+        for i in 0..32 {
+            let test_pos = pos + Vec3::unit_z() * z_incr;
+            if WorldPath::is_walkable_space(vol, test_pos) {
+                return Some(test_pos);
+            }
+            z_incr = -z_incr + if z_incr <= 0 { 1 } else { 0 };
         }
 
-        let mut cur_pos_below = pos.clone();
-        while !WorldPath::is_walkable_space(vol, cur_pos_below) && cur_pos_below.z > 0 {
-            cur_pos_below.z -= 1;
-        }
-
-        let max_z = 1000;
-        let mut cur_pos_above = pos.clone();
-        while !WorldPath::is_walkable_space(vol, cur_pos_above) && cur_pos_above.z <= max_z {
-            cur_pos_above.z += 1;
-        }
-
-        if cur_pos_below.z > 0 {
-            Some(cur_pos_below)
-        } else if cur_pos_above.z < max_z {
-            Some(cur_pos_above)
-        } else {
-            None
-        }
+        None
     }
 
     pub fn is_walkable_space<V: ReadVol>(vol: &V, pos: Vec3<i32>) -> bool {
-        if let (Ok(voxel), Ok(upper_neighbor), Ok(upper_neighbor2)) = (
-            vol.get(pos),
-            vol.get(pos + Vec3::new(0, 0, 1)),
-            vol.get(pos + Vec3::new(0, 0, 2)),
-        ) {
-            !voxel.is_empty() && upper_neighbor.is_empty() && upper_neighbor2.is_empty()
-        } else {
-            false
-        }
+        vol.get(pos - Vec3::unit_z())
+            .map(|v| !v.is_empty())
+            .unwrap_or(false)
+            && (0..2).all(|z| {
+                vol.get(pos + Vec3::new(0, 0, z))
+                    .map(|v| v.is_empty())
+                    .unwrap_or(true)
+            })
     }
 
-    pub fn get_neighbors<V: ReadVol>(
-        vol: &V,
-        pos: &Vec3<i32>,
-    ) -> impl IntoIterator<Item = Vec3<i32>> {
+    pub fn get_neighbors<'a, V: ReadVol>(
+        vol: &'a V,
+        pos: Vec3<i32>,
+    ) -> impl Iterator<Item = Vec3<i32>> + 'a {
         let directions = vec![
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
@@ -115,13 +110,10 @@ impl WorldPath {
             Vec3::new(0, 0, -1),  // Downwards
         ];
 
-        let neighbors: Vec<Vec3<i32>> = directions
+        directions
             .into_iter()
-            .map(|dir| dir + pos)
-            .filter(|new_pos| Self::is_walkable_space(vol, *new_pos))
-            .collect();
-
-        neighbors.into_iter()
+            .map(move |dir| dir + pos)
+            .filter(move |new_pos| Self::is_walkable_space(vol, *new_pos))
     }
 
     pub fn move_along_path<V: ReadVol>(
@@ -130,7 +122,7 @@ impl WorldPath {
         pos: &Pos,
         inputs: &mut ControllerInputs,
         is_destination: impl Fn(Vec3<i32>, Vec3<i32>) -> bool,
-        found_destination: impl FnOnce(),
+        mut found_destination: impl FnMut(),
     ) {
         // No path available
         if self.path == None {
@@ -156,10 +148,8 @@ impl WorldPath {
                     self.path = Some(block_path);
                 }
 
-                let move_dir = Vec2::<i32>::from(next_pos - ipos);
-
                 // Move the input towards the next area on the path
-                inputs.move_dir = Vec2::<f32>::new(move_dir.x as f32, move_dir.y as f32);
+                inputs.move_dir = Vec2::from(next_pos.map(|e| (e as f32).floor() + 0.5) - pos.0);
 
                 // Need to jump to continue
                 if next_pos.z >= ipos.z + 1 {
@@ -171,7 +161,11 @@ impl WorldPath {
                 if next_pos.z - min_z_glide_height < ipos.z {
                     inputs.glide.set_state(true);
                 }
+            } else {
+                found_destination();
             }
+        } else {
+            found_destination();
         }
     }
 
@@ -186,9 +180,9 @@ impl WorldPath {
 }
 
 pub fn euclidean_distance(start: &Vec3<i32>, end: &Vec3<i32>) -> f32 {
-    start.map(|e| e as f32).distance(end.map(|e| e as f32))
+    start.map(|e| e as f32).distance((*end).map(|e| e as f32))
 }
 
 pub fn transition_cost(_start: &Vec3<i32>, _end: &Vec3<i32>) -> f32 {
-    1.0f32
+    1.0
 }

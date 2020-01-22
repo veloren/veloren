@@ -80,6 +80,7 @@ where
     let mut visited = HashSet::new();
     visited.insert(initial.clone());
 
+    let mut iters = 0;
     while let Some(PathEntry { node: current, .. }) = potential_nodes.pop() {
         if current == target {
             return Some(reconstruct_path(&came_from, &current));
@@ -104,6 +105,12 @@ where
                     });
                 }
             }
+        }
+
+        iters += 1;
+        if iters >= 10000 {
+            println!("Ran out of turns!");
+            break;
         }
     }
 

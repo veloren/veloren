@@ -1259,8 +1259,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                 .fold(i32::MIN, |max, (_, chunk)| chunk.get_max_z().max(max));
 
             let aabb = Aabb {
-                min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 1),
-                max: Vec3::from(aabr.max) + Vec3::unit_z() * (max_z + 1),
+                min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 2),
+                max: Vec3::from(aabr.max) + Vec3::unit_z() * (max_z + 2),
             };
 
             // Clone various things so that they can be moved into the thread.
