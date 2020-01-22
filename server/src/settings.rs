@@ -96,7 +96,7 @@ impl ServerSettings {
     pub fn singleplayer() -> Self {
         let mut load = Self::load();
         if let None = load.map_file {
-            // If lodaing the default map file, make sure the seed is also default.
+            // If loading the default map file, make sure the seed is also default.
             load.world_seed = DEFAULT_WORLD_SEED;
         };
         Self {

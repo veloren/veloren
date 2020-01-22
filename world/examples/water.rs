@@ -107,8 +107,8 @@ fn main() {
                 .checked_mul(scale as usize)
                 .and_then(|acc| acc.checked_mul(scale as usize))
             {
-                let x = W * scale as usize;
-                let y = H * scale as usize;
+                let x = (W as f64 * scale) as usize;
+                let y = (H as f64 * scale) as usize;
                 let config = sim::MapConfig {
                     dimensions: Vec2::new(x, y),
                     scale: 1.0,

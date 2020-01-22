@@ -229,7 +229,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     let mut rivers = vec![RiverData::default(); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
     // (Roughly) area of a chunk, times minutes per second.
-    let mins_per_sec = /*16.0*/1.0/*1.0 /  16.0*//*1.0 / 64.0*/;
+    let mins_per_sec = /*16.0*/1.0/*1.0 / 16.0*//*1.0 / 64.0*/;
     let chunk_area_factor = neighbor_coef.x * neighbor_coef.y * mins_per_sec;
     // NOTE: This technically makes us discontinuous, so we should be cautious about using this.
     let derivative_divisor = 1.0;
