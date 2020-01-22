@@ -83,6 +83,7 @@ impl Route {
 
 #[derive(Default, Clone, Debug)]
 pub struct Chaser {
+    last_search_tgt: Option<Vec3<f32>>,
     route: Route,
 }
 
@@ -102,6 +103,11 @@ impl Chaser {
             if end_to_tgt > pos_to_tgt * 0.3 + 5.0 {
                 None
             } else {
+                if rand::random::<f32>() < 0.005 {
+                    // TODO: Only re-calculate route when we're stuck
+                    self.route = Route::default();
+                }
+
                 self.route.traverse(vol, pos)
             }
         } else {
@@ -112,14 +118,20 @@ impl Chaser {
         if let Some(bearing) = bearing {
             Some(bearing)
         } else {
-            let path: Path = WorldPath::find(vol, pos, tgt)
-                .ok()
-                .and_then(|wp| wp.path.map(|nodes| nodes.into_iter().rev()))
-                .into_iter()
-                .flatten()
-                .collect();
+            if self
+                .last_search_tgt
+                .map(|last_tgt| last_tgt.distance(tgt) > pos_to_tgt * 0.15 + 5.0)
+                .unwrap_or(true)
+            {
+                let path: Path = WorldPath::find(vol, pos, tgt)
+                    .ok()
+                    .and_then(|wp| wp.path.map(|nodes| nodes.into_iter().rev()))
+                    .into_iter()
+                    .flatten()
+                    .collect();
 
-            self.route = path.into();
+                self.route = path.into();
+            }
 
             Some(tgt - pos)
         }

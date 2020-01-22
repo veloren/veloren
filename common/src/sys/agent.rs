@@ -105,32 +105,8 @@ impl<'a> System<'a> for Sys {
                     if let Some(tgt_pos) = positions.get(*target) {
                         if let Some(bearing) = chaser.chase(&*terrain, tgt_pos.0, pos.0) {
                             inputs.move_dir = Vec2::from(bearing).normalized();
-                            inputs.jump.set_state(bearing.z > 0.9);
+                            inputs.jump.set_state(bearing.z > 1.0);
                         }
-
-                    /*
-                    const HAPPY_DIST: i32 = 4;
-                    let plot_path = if let Some(dir) = route.traverse(&*terrain, pos.0) {
-                        inputs.move_dir = Vec2::from(dir).normalized();
-                        inputs.jump.set_state(dir.z > 0.9);
-
-                        // Sometimes recalculate to avoid getting stuck
-                        rand::random::<f32>() < 0.005
-                    } else {
-                        true
-                    };
-
-                    if plot_path {
-                        let path: Path = WorldPath::find(&*terrain, pos.0, tgt_pos.0)
-                            .ok()
-                            .and_then(|wp| wp.path.map(|nodes| nodes.into_iter().rev()))
-                            .into_iter()
-                            .flatten()
-                            .collect();
-
-                        *route = path.into();
-                    }
-                    */
                     } else {
                         inputs.move_dir = Vec2::zero();
                     }
