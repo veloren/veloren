@@ -21,27 +21,8 @@ use std::{
 use vek::*;
 
 pub type Alt = f64;
-// pub type Altx8 = /*f64x8*/f32x8;
 pub type Compute = f64;
 pub type Computex8 = [Compute; 8];
-
-/* /// This is a fast approximation of powf. This should only be used when minor accuracy loss is acceptable.
-#[inline(always)]
-#[allow(unsafe_code)]
-fn approx_powf(b: f32, e: f32) -> f32 {
-    unsafe {
-        let b = b as f64;
-        let e = e as f64;
-        union Swagger {
-            f: f64,
-            a: [i32; 2],
-        }
-        let mut b = Swagger { f: b };
-        b.a[1] = (e * (b.a[1] as f64 - 1072632447.0) + 1072632447.0) as i32;
-        b.a[0] = 0;
-        b.f as f32
-    }
-} */
 
 /// Compute the water flux at all chunks, given a list of chunk indices sorted by increasing
 /// height.
@@ -579,7 +560,7 @@ fn get_max_slope(
         .map(|(posi, &z)| {
             let wposf = uniform_idx_as_vec2(posi).map(|e| e as f64) * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
             let height_scale = height_scale(posi);
-            let wposz = z as f64 / height_scale;// * CONFIG.mountain_scale as f64;
+            let wposz = z as f64 / height_scale as f64;
             // Normalized to be between 6 and and 54 degrees.
             let div_factor = /*32.0*//*16.0*//*64.0*//*256.0*//*8.0 / 4.0*//*8.0*/(2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0/* * 8.0*//*1.0*//*4.0*//* * /*1.0*/16.0/* TerrainChunkSize::RECT_SIZE.x as f64 / 8.0 */*/;
             let rock_strength = rock_strength_nz
@@ -966,7 +947,7 @@ fn erode(
                             // let posj = posj as usize;
                             let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
                             let neighbor_distance = (neighbor_coef * dxy).magnitude();
-                            let knew = (k * (p * chunk_area * (area[posi] as f64 * mwrec_i[kk] as f64)).powf(m) / neighbor_distance.powf(n)) as /*Compute*/SimdType;
+                            let knew = (k * (p as f64 * chunk_area * (area[posi] as f64 * mwrec_i[kk] as f64)).powf(m) / neighbor_distance.powf(n)) as /*Compute*/SimdType;
                             // let knew = (k * (p * chunk_area * (area[posi] as f64 * mwrec_i.extract(kk) as f64)).powf(m) / neighbor_distance.powf(n)) as Compute;
                             k_tot[kk] = knew;
                             // k_tot = k_tot.replace(kk, knew);
@@ -1004,7 +985,7 @@ fn erode(
                         // let g_i = g(posi) as f64;
                         let n = n_f(posi);
                         let g_i = if sed > sediment_thickness(n) {
-                            g_fs_mult_sed * g(posi) as f64
+                            (g_fs_mult_sed * g(posi)) as f64
                         } else {
                             g(posi) as f64
                         };
@@ -1026,7 +1007,7 @@ fn erode(
 
                         let mwrec_i = &mwrec[posi];
                         mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
-                            let mwrec_kk = mwrec_i[kk];
+                            let mwrec_kk = mwrec_i[kk] as f64;
                             // let posj = posj as usize;
 
                             // Working equation:
@@ -1068,7 +1049,7 @@ fn erode(
                             // (eliminating EΔt maintains the sign, but it's somewhat imprecise;
                             //  we can address this later, e.g. by assigning a debris flow / fluvial erosion ratio).
                             let chunk_neutral_area = /*10.0e6*//*1.0e6*/0.1e6/*0.01e6*//*100.0 * 100.0*/; // 1 km^2 * (1000 m / km)^2 = 1e6 m^2
-                            let k = (mwrec_kk * (uplift_i + max_uplift as f64 * g_i / p)) / (1.0 + k_da * (mwrec_kk * chunk_neutral_area).powf(q)) / max_slope.powf(q_);
+                            let k = (mwrec_kk * (uplift_i + max_uplift as f64 * g_i / p as f64)) / (1.0 + k_da * (mwrec_kk * chunk_neutral_area).powf(q)) / max_slope.powf(q_);
 
                             //     ∆p = ||chunk_i - rec_i,kk||
                             //     k = k_df * Δt / (Δp)^(q_)
@@ -1084,7 +1065,7 @@ fn erode(
                             let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
                             let neighbor_distance = (neighbor_coef * dxy).magnitude();
 
-                            let knew = (k * (1.0 + k_da * chunk_area_pow * (area_i * mwrec_kk as f64).powf(q)) / neighbor_distance.powf(q_)) as SimdType/*Compute*/;
+                            let knew = (k * (1.0 + k_da * chunk_area_pow * (area_i * mwrec_kk).powf(q)) / neighbor_distance.powf(q_)) as SimdType/*Compute*/;
                             // let knew = (k * (1.0 + k_da * chunk_area_pow * (area_i * mwrec_i.extract(kk) as f64).powf(q)) / neighbor_distance.powf(q_)) as Compute;
                             // let knew = 0.0;
                             k_tot[kk] = knew;
@@ -1401,7 +1382,7 @@ fn erode(
                 let sed = (h_t_i - old_b_i) as f64;
                 let n = n_f(posi);
                 let g_i = if sed > sediment_thickness(n) {
-                    g_fs_mult_sed * g(posi) as Compute
+                    (g_fs_mult_sed * g(posi)) as Compute
                 } else {
                     g(posi) as Compute
                 };
