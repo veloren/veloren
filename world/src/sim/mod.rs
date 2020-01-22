@@ -60,7 +60,10 @@ use vek::*;
 // cleanly representable in f32 (that stops around 1024 * 4 * 1024 * 4, for signed floats anyway)
 // but I think that is probably less important since I don't think we actually cast a chunk id to
 // float, just coordinates... could be wrong though!
-pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
+pub const WORLD_SIZE: Vec2<usize> = Vec2 {
+    x: 1024 * 1,
+    y: 1024 * 1,
+};
 
 /// A structure that holds cached noise values and cumulative distribution functions for the input
 /// that led to those values.  See the definition of InverseCdf for a description of how to
@@ -300,9 +303,10 @@ pub struct WorldSim {
 impl WorldSim {
     pub fn generate(seed: u32, opts: WorldOpts) -> Self {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-        let continent_scale = 5_000.0f64 /*32768.0*/
-            .div(32.0)
-            .mul(TerrainChunkSize::RECT_SIZE.x as f64);
+        let continent_scale = 1.0/*4.0*/
+            * 5_000.0f64 /*32768.0*/
+                .div(32.0)
+                .mul(TerrainChunkSize::RECT_SIZE.x as f64);
         let rock_lacunarity = /*0.5*/2.0/*HybridMulti::DEFAULT_LACUNARITY*/;
         let uplift_scale = /*512.0*//*256.0*/128.0;
         let uplift_turb_scale = uplift_scale / 4.0/*32.0*//*64.0*/;
@@ -427,6 +431,7 @@ impl WorldSim {
         // We define grid_scale such that Δx = height_scale * Δx' ⇒
         //  grid_scale = Δx / Δx'.
         let grid_scale = 1.0f64 / 4.0/*1.0*/;
+
         // Now, suppose we want to generate a world with "similar" topography, defined in this case
         // as having roughly equal slopes at steady state, with the simulation taking roughly as
         // many steps to get to the point the previous world was at when it finished being
