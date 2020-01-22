@@ -1,5 +1,4 @@
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
-// use self::Mode::*;
 use std::{f64, io::Write, path::PathBuf, time::SystemTime};
 use vek::*;
 use veloren_world::{
@@ -10,24 +9,12 @@ use veloren_world::{
 const W: usize = 1024;
 const H: usize = 1024;
 
-/* enum Mode {
-    /// Directional keys affect position of the camera.
-    ///
-    /// (W A S D move left and right, F B zoom in and out).
-    Alt,
-    /// Directional keys affect angle of the lens
-    ///
-    /// (W
-    Lens,
-    /// Directional keys affect light direction.
-    ///
-    /// (W A S D move left and right, F B move towards and awaay).
-    Light,
-}; */
-
 fn main() {
     pretty_env_logger::init();
 
+    // To load a map file of your choice, replace map_file with the name of your map (stored
+    // locally in the map directory of your Veloren root), and swap the sim::FileOpts::Save line
+    // below for the sim::FileOpts::Load one.
     let map_file =
         // "map_1575990726223.bin";
         // "map_1575987666972.bin";
@@ -120,7 +107,7 @@ fn main() {
                     let j = pos.y;
                     (&mut buf[(j * x + i) * 4..]).write(&[r, g, b, a]).unwrap();
                 });
-                // TODO: Justify fits in  u32.
+                // TODO: Justify fits in u32.
                 let world_map = image::RgbaImage::from_raw(x as u32, y as u32, buf)
                     .expect("Image dimensions must be valid");
                 let mut path = PathBuf::from("./screenshots");
@@ -248,7 +235,6 @@ fn main() {
                 if (scale * 2.0).is_normal() {
                     scale *= 2.0;
                 }
-                // scale += 1;
             }
         }
         if win.is_key_down(minifb::Key::F) {
@@ -258,7 +244,6 @@ fn main() {
                 if (scale / 2.0).is_normal() {
                     scale /= 2.0;
                 }
-                // scale = (scale - 1).max(0);
             }
         }
 

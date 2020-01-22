@@ -107,7 +107,6 @@ impl Client {
                 *state.ecs_mut().write_resource() = time_of_day;
 
                 assert_eq!(world_map.len(), (map_size.x * map_size.y) as usize);
-                // let map_size = Vec2::new(1024, 1024);
                 let mut world_map_raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
                 LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
                 log::debug!("Preparing image...");
@@ -118,6 +117,8 @@ impl Client {
                             image::ImageBuffer::from_raw(map_size.x, map_size.y, world_map_raw);
                         world_map.ok_or(Error::Other("Server sent a bad world map image".into()))?
                     })
+                    // Flip the image, since Voxygen uses an orientation where rotation from
+                    // positive x axis to positive y axis is counterclockwise around the z axis.
                     .flipv(),
                 );
                 log::debug!("Done preparing image...");
