@@ -280,24 +280,13 @@ image_ids! {
         grid_button_press: "voxygen.element.buttons.border_press",
         grid_button_open: "voxygen.element.buttons.border_pressed",
 
-        esc_bg: "voxygen.element.frames.menu",
-
-        window_frame_2: "voxygen.element.frames.window_2",
-
         // Char Window
-        charwindow: "voxygen.element.misc_bg.charwindow",
-        charwindow_icon: "voxygen.element.icons.charwindow",
-        charwindow_tab_bg: "voxygen.element.frames.tab",
-        charwindow_tab: "voxygen.element.buttons.tab",
-        charwindow_expbar: "voxygen.element.misc_bg.small_bg",
         progress_frame: "voxygen.element.frames.progress_bar",
         progress: "voxygen.element.misc_bg.progress",
 
         // Quest-Log Window
         questlog_icon: "voxygen.element.icons.questlog",
 
-        // Window BG
-        window_bg: "voxygen.element.misc_bg.window_bg",
 
         // Social Window
         social_icon: "voxygen.element.icons.social",
