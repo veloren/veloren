@@ -1,8 +1,6 @@
 #![feature(trait_alias)]
 mod api;
-mod frame;
 mod internal;
-mod internal_messages;
 mod message;
 mod mio_worker;
 mod tcp_channel;
@@ -30,7 +28,6 @@ pub mod tests {
 
     pub fn test_tracing() {
         use tracing::Level;
-        use tracing_subscriber;
 
         tracing_subscriber::FmtSubscriber::builder()
             // all spans/events with a level higher than TRACE (e.g, info, warn, etc.)
@@ -62,12 +59,14 @@ pub mod tests {
         //let a2 = Address::Tcp(SocketAddr::from(([10, 42, 2, 2], 52001)));
         n1.listen(&a1); //await
         n2.listen(&a2); // only requiered here, but doesnt hurt on n1
-        std::thread::sleep(std::time::Duration::from_millis(5));
+        std::thread::sleep(std::time::Duration::from_millis(20));
 
         let p1 = n1.connect(&a2); //await
         //n2.OnRemoteConnectionOpen triggered
+        std::thread::sleep(std::time::Duration::from_millis(20));
 
         let s1 = n1.open(p1, 16, Promise::InOrder | Promise::NoCorrupt);
+        std::thread::sleep(std::time::Duration::from_millis(20));
         //n2.OnRemoteStreamOpen triggered
 
         n1.send("", &s1);

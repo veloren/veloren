@@ -1,15 +1,13 @@
-use crate::tcp_channel::TcpChannel;
+use crate::{api::Promise, internal::Channel, message::OutGoingMessage, tcp_channel::TcpChannel};
+use enumset::EnumSet;
 use mio::{self, net::TcpListener, Poll, PollOpt, Ready, Token};
-use rand::{self, seq::IteratorRandom};
+use mio_extras::channel::{channel, Receiver, Sender};
 use std::{
     collections::HashMap,
-    io::{Read, Write},
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, RwLock,
-    },
-    time::{Duration, Instant},
+    sync::{mpsc::TryRecvError, Arc, RwLock},
+    time::Instant,
 };
+use tlid;
 use tracing::{debug, error, info, span, trace, warn, Level};
 use uvth::ThreadPool;
 
@@ -20,23 +18,19 @@ pub(crate) enum TokenObjects {
 }
 
 pub(crate) struct MioTokens {
-    next_token_id: usize,
+    pool: tlid::Pool<tlid::Wrapping<usize>>,
     pub tokens: HashMap<Token, TokenObjects>, //TODO: move to Vec<Options> for faster lookup
 }
 
 impl MioTokens {
-    pub fn new() -> Self {
+    pub fn new(pool: tlid::Pool<tlid::Wrapping<usize>>) -> Self {
         MioTokens {
-            next_token_id: 10,
+            pool,
             tokens: HashMap::new(),
         }
     }
 
-    pub fn construct(&mut self) -> Token {
-        let tok = Token(self.next_token_id);
-        self.next_token_id += 1;
-        tok
-    }
+    pub fn construct(&mut self) -> Token { Token(self.pool.next()) }
 
     pub fn insert(&mut self, tok: Token, obj: TokenObjects) {
         trace!(?tok, ?obj, "added new token");
@@ -51,46 +45,71 @@ pub struct MioStatistics {
     nano_busy: u128,
 }
 
+pub(crate) enum CtrlMsg {
+    Shutdown,
+    Register(TokenObjects, Ready, PollOpt),
+    OpenStream {
+        pid: uuid::Uuid,
+        prio: u8,
+        promises: EnumSet<Promise>,
+    },
+    CloseStream {
+        pid: uuid::Uuid,
+        sid: u32,
+    },
+    Send(OutGoingMessage),
+}
+
 /*
     The MioWorker runs in it's own thread,
     it has a given set of Channels to work with.
     It is monitored, and when it's thread is fully loaded it can be splitted up into 2 MioWorkers
 */
 pub struct MioWorker {
-    worker_tag: u64, /* only relevant for logs */
+    tag: u64, /* only relevant for logs */
+    pid: uuid::Uuid,
     poll: Arc<Poll>,
-    mio_tokens: Arc<RwLock<MioTokens>>,
     mio_statistics: Arc<RwLock<MioStatistics>>,
-    shutdown: Arc<AtomicBool>,
+    ctrl_tx: Sender<CtrlMsg>,
 }
 
 impl MioWorker {
-    const CTRL_TOK: Token = Token(0);
+    pub const CTRL_TOK: Token = Token(0);
 
-    pub fn new(worker_tag: u64, thread_pool: Arc<ThreadPool>) -> Self {
+    pub fn new(
+        tag: u64,
+        pid: uuid::Uuid,
+        thread_pool: Arc<ThreadPool>,
+        mut token_pool: tlid::Pool<tlid::Wrapping<usize>>,
+    ) -> Self {
         let poll = Arc::new(Poll::new().unwrap());
         let poll_clone = poll.clone();
-        let mio_tokens = Arc::new(RwLock::new(MioTokens::new()));
-        let mio_tokens_clone = mio_tokens.clone();
         let mio_statistics = Arc::new(RwLock::new(MioStatistics::default()));
         let mio_statistics_clone = mio_statistics.clone();
-        let shutdown = Arc::new(AtomicBool::new(false));
-        let shutdown_clone = shutdown.clone();
+
+        let (ctrl_tx, ctrl_rx) = channel();
+        poll.register(&ctrl_rx, Self::CTRL_TOK, Ready::readable(), PollOpt::edge())
+            .unwrap();
+        // reserve 10 tokens in case they start with 0, //TODO: cleaner method
+        for _ in 0..10 {
+            token_pool.next();
+        }
 
         let mw = MioWorker {
-            worker_tag,
+            tag,
+            pid,
             poll,
-            mio_tokens,
             mio_statistics,
-            shutdown,
+            ctrl_tx,
         };
         thread_pool.execute(move || {
             mio_worker(
-                worker_tag,
+                tag,
+                pid,
                 poll_clone,
-                mio_tokens_clone,
                 mio_statistics_clone,
-                shutdown_clone,
+                token_pool,
+                ctrl_rx,
             )
         });
         mw
@@ -102,190 +121,188 @@ impl MioWorker {
     }
 
     //TODO: split 4->5 MioWorkers and merge 5->4 MioWorkers
-    pub fn split(&self, worker_id: u64, thread_pool: Arc<ThreadPool>) -> Self {
-        //fork off a second MioWorker and split load
-        let second = MioWorker::new(worker_id, thread_pool);
-        {
-            let mut first_tokens = self.mio_tokens.write().unwrap();
-            let mut second_tokens = second.mio_tokens.write().unwrap();
-            let cnt = first_tokens.tokens.len() / 2;
 
-            for (key, val) in first_tokens
-                .tokens
-                .drain()
-                .choose_multiple(&mut rand::thread_rng(), cnt / 2)
-            {
-                second_tokens.tokens.insert(key, val);
-            }
-            info!(
-                "split MioWorker with {} tokens. New MioWorker has now {} tokens",
-                cnt,
-                second_tokens.tokens.len()
-            );
-        }
-        second
-    }
-
-    pub fn merge(&self, other: MioWorker) {
-        //fork off a second MioWorker and split load
-        let mut first_tokens = self.mio_tokens.write().unwrap();
-        let mut second_tokens = other.mio_tokens.write().unwrap();
-        let cnt = first_tokens.tokens.len();
-
-        for (key, val) in second_tokens.tokens.drain() {
-            first_tokens.tokens.insert(key, val);
-        }
-        info!(
-            "merge MioWorker with {} tokens. New MioWorker has now {} tokens",
-            cnt,
-            first_tokens.tokens.len()
-        );
-    }
-
-    pub(crate) fn register(&self, handle: TokenObjects, interest: Ready, opts: PollOpt) {
-        let mut tokens = self.mio_tokens.write().unwrap();
-        let tok = tokens.construct();
-        match &handle {
-            TokenObjects::TcpListener(h) => self.poll.register(h, tok, interest, opts).unwrap(),
-            TokenObjects::TcpChannel(channel) => self
-                .poll
-                .register(&channel.stream, tok, interest, opts)
-                .unwrap(),
-        }
-        trace!(?handle, ?tok, "registered");
-        tokens.insert(tok, handle);
-    }
+    pub(crate) fn get_tx(&self) -> Sender<CtrlMsg> { self.ctrl_tx.clone() }
 }
 
 impl Drop for MioWorker {
-    fn drop(&mut self) { self.shutdown.store(true, Ordering::Relaxed); }
+    fn drop(&mut self) { let _ = self.ctrl_tx.send(CtrlMsg::Shutdown); }
 }
 
 fn mio_worker(
-    worker_tag: u64,
+    tag: u64,
+    pid: uuid::Uuid,
     poll: Arc<Poll>,
-    mio_tokens: Arc<RwLock<MioTokens>>,
     mio_statistics: Arc<RwLock<MioStatistics>>,
-    shutdown: Arc<AtomicBool>,
+    mut token_pool: tlid::Pool<tlid::Wrapping<usize>>,
+    ctrl_rx: Receiver<CtrlMsg>,
 ) {
+    let mut mio_tokens = MioTokens::new(token_pool);
     let mut events = mio::Events::with_capacity(1024);
-    let span = span!(Level::INFO, "mio worker", ?worker_tag);
+    let mut buf: [u8; 65000] = [0; 65000];
+    let span = span!(Level::INFO, "mio worker", ?tag);
     let _enter = span.enter();
-    while !shutdown.load(Ordering::Relaxed) {
+    loop {
         let time_before_poll = Instant::now();
-        if let Err(err) = poll.poll(&mut events, Some(Duration::from_millis(1000))) {
+        if let Err(err) = poll.poll(&mut events, None) {
             error!("network poll error: {}", err);
             return;
         }
         let time_after_poll = Instant::now();
+        for event in &events {
+            match event.token() {
+                MioWorker::CTRL_TOK => {
+                    if handle_ctl(&ctrl_rx, &mut mio_tokens, &poll, &mut buf, time_after_poll) {
+                        return;
+                    }
+                },
+                _ => handle_tok(
+                    pid,
+                    event,
+                    &mut mio_tokens,
+                    &poll,
+                    &mut buf,
+                    time_after_poll,
+                ),
+            };
+        }
+        handle_statistics(&mio_statistics, time_before_poll, time_after_poll);
+    }
+}
 
-        if !events.is_empty() {
-            let mut mio_tokens = mio_tokens.write().unwrap();
-            for event in &events {
-                match mio_tokens.tokens.get_mut(&event.token()) {
-                    Some(e) => {
-                        trace!(?event, "event");
-                        match e {
-                            TokenObjects::TcpListener(listener) => match listener.accept() {
-                                Ok((mut remote_stream, _)) => {
-                                    info!(?remote_stream, "remote connected");
-                                    remote_stream.write_all("Hello Client".as_bytes()).unwrap();
-                                    remote_stream.flush().unwrap();
-
-                                    let tok = mio_tokens.construct();
-                                    poll.register(
-                                        &remote_stream,
-                                        tok,
-                                        Ready::readable() | Ready::writable(),
-                                        PollOpt::edge(),
-                                    )
-                                    .unwrap();
-                                    trace!(?remote_stream, ?tok, "registered");
-                                    mio_tokens.tokens.insert(
-                                        tok,
-                                        TokenObjects::TcpChannel(TcpChannel::new(remote_stream)),
-                                    );
-                                },
-                                Err(err) => {
-                                    error!(?err, "error during remote connected");
-                                },
-                            },
-                            TokenObjects::TcpChannel(channel) => {
-                                if event.readiness().is_readable() {
-                                    trace!(?channel.stream, "stream readable");
-                                    //TODO: read values here and put to message assembly
-                                    let mut buf: [u8; 1500] = [0; 1500];
-                                    match channel.stream.read(&mut buf) {
-                                        Ok(n) => {
-                                            warn!("incomming message with len: {}", n);
-                                            channel
-                                                .to_receive
-                                                .write()
-                                                .unwrap()
-                                                .push_back(buf.to_vec());
-                                        },
-                                        Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                                            debug!("would block");
-                                        },
-                                        Err(e) => {
-                                            panic!("{}", e);
-                                        },
-                                    };
-                                }
-                                if event.readiness().is_writable() {
-                                    debug!(?channel.stream, "stream writeable");
-                                    let mut to_send = channel.to_send.write().unwrap();
-                                    if let Some(mut data) = to_send.pop_front() {
-                                        let total = data.len();
-                                        match channel.stream.write(&data) {
-                                            Ok(n) if n == total => {},
-                                            Ok(n) => {
-                                                debug!("could only send part");
-                                                let data = data.drain(n..).collect(); //TODO: validate n.. is correct
-                                                to_send.push_front(data);
-                                            },
-                                            Err(e)
-                                                if e.kind() == std::io::ErrorKind::WouldBlock =>
-                                            {
-                                                debug!("would block");
-                                            }
-                                            Err(e) => {
-                                                panic!("{}", e);
-                                            },
-                                        };
-                                    };
-                                }
-                            },
-                            _ => unimplemented!("still lazy me"),
-                        }
-                    },
-                    None => panic!("Unexpected event token '{:?}'", &event.token()),
-                };
+fn handle_ctl(
+    ctrl_rx: &Receiver<CtrlMsg>,
+    mio_tokens: &mut MioTokens,
+    poll: &Arc<Poll>,
+    buf: &mut [u8; 65000],
+    time_after_poll: Instant,
+) -> bool {
+    match ctrl_rx.try_recv() {
+        Ok(CtrlMsg::Shutdown) => {
+            debug!("Shutting Down");
+            return true;
+        },
+        Ok(CtrlMsg::Register(handle, interest, opts)) => {
+            let tok = mio_tokens.construct();
+            match &handle {
+                TokenObjects::TcpListener(h) => poll.register(h, tok, interest, opts).unwrap(),
+                TokenObjects::TcpChannel(channel) => poll
+                    .register(&channel.tcpstream, tok, interest, opts)
+                    .unwrap(),
             }
-        }
-        let time_after_work = Instant::now();
-        match mio_statistics.try_write() {
-            Ok(mut mio_statistics) => {
-                const OLD_KEEP_FACTOR: f64 = 0.995;
-                //in order to weight new data stronger than older we fade them out with a
-                // factor < 1. for 0.995 under full load (500 ticks a 1ms) we keep 8% of the old
-                // value this means, that we start to see load comming up after
-                // 500ms, but not for small spikes - as reordering for smaller spikes would be
-                // to slow
-                mio_statistics.nano_wait = (mio_statistics.nano_wait as f64 * OLD_KEEP_FACTOR)
-                    as u128
-                    + time_after_poll.duration_since(time_before_poll).as_nanos();
-                mio_statistics.nano_busy = (mio_statistics.nano_busy as f64 * OLD_KEEP_FACTOR)
-                    as u128
-                    + time_after_work.duration_since(time_after_poll).as_nanos();
+            debug!(?handle, ?tok, "Registered new handle");
+            mio_tokens.insert(tok, handle);
+        },
+        Ok(CtrlMsg::OpenStream {
+            pid,
+            prio,
+            promises,
+        }) => {
+            for (tok, obj) in mio_tokens.tokens.iter_mut() {
+                if let TokenObjects::TcpChannel(channel) = obj {
+                    channel.open_stream(prio, promises); //TODO: check participant
+                    channel.write(buf, time_after_poll);
+                }
+            }
+            //TODO:
+        },
+        Ok(CtrlMsg::CloseStream { pid, sid }) => {
+            //TODO:
+            for to in mio_tokens.tokens.values_mut() {
+                if let TokenObjects::TcpChannel(channel) = to {
+                    channel.close_stream(sid); //TODO: check participant
+                    channel.write(buf, time_after_poll);
+                }
+            }
+        },
+        Ok(_) => unimplemented!("dad"),
+        Err(TryRecvError::Empty) => {},
+        Err(err) => {
+            //postbox_tx.send(Err(err.into()))?;
+            return true;
+        },
+    }
+    false
+}
 
-                trace!(
-                    "current Load {}",
-                    mio_statistics.nano_busy as f32
-                        / (mio_statistics.nano_busy + mio_statistics.nano_wait + 1) as f32
-                );
-            },
-            Err(e) => warn!("statistics dropped because they are currently accecssed"),
-        }
+fn handle_tok(
+    pid: uuid::Uuid,
+    event: mio::Event,
+    mio_tokens: &mut MioTokens,
+    poll: &Arc<Poll>,
+    buf: &mut [u8; 65000],
+    time_after_poll: Instant,
+) {
+    match mio_tokens.tokens.get_mut(&event.token()) {
+        Some(e) => {
+            trace!(?event, "event");
+            match e {
+                TokenObjects::TcpListener(listener) => match listener.accept() {
+                    Ok((mut remote_stream, _)) => {
+                        info!(?remote_stream, "remote connected");
+
+                        let tok = mio_tokens.construct();
+                        poll.register(
+                            &remote_stream,
+                            tok,
+                            Ready::readable() | Ready::writable(),
+                            PollOpt::edge(),
+                        )
+                        .unwrap();
+                        trace!(?remote_stream, ?tok, "registered");
+                        let mut channel = TcpChannel::new(remote_stream);
+                        channel.handshake();
+                        channel.participant_id(pid);
+
+                        mio_tokens
+                            .tokens
+                            .insert(tok, TokenObjects::TcpChannel(channel));
+                    },
+                    Err(err) => {
+                        error!(?err, "error during remote connected");
+                    },
+                },
+                TokenObjects::TcpChannel(channel) => {
+                    if event.readiness().is_readable() {
+                        trace!(?channel.tcpstream, "stream readable");
+                        channel.read(buf, time_after_poll);
+                    }
+                    if event.readiness().is_writable() {
+                        trace!(?channel.tcpstream, "stream writeable");
+                        channel.write(buf, time_after_poll);
+                    }
+                },
+            }
+        },
+        None => panic!("Unexpected event token '{:?}'", &event.token()),
+    };
+}
+
+fn handle_statistics(
+    mio_statistics: &Arc<RwLock<MioStatistics>>,
+    time_before_poll: Instant,
+    time_after_poll: Instant,
+) {
+    let time_after_work = Instant::now();
+    match mio_statistics.try_write() {
+        Ok(mut mio_statistics) => {
+            const OLD_KEEP_FACTOR: f64 = 0.995;
+            //in order to weight new data stronger than older we fade them out with a
+            // factor < 1. for 0.995 under full load (500 ticks a 1ms) we keep 8% of the old
+            // value this means, that we start to see load comming up after
+            // 500ms, but not for small spikes - as reordering for smaller spikes would be
+            // to slow
+            mio_statistics.nano_wait = (mio_statistics.nano_wait as f64 * OLD_KEEP_FACTOR) as u128
+                + time_after_poll.duration_since(time_before_poll).as_nanos();
+            mio_statistics.nano_busy = (mio_statistics.nano_busy as f64 * OLD_KEEP_FACTOR) as u128
+                + time_after_work.duration_since(time_after_poll).as_nanos();
+
+            trace!(
+                "current Load {}",
+                mio_statistics.nano_busy as f32
+                    / (mio_statistics.nano_busy + mio_statistics.nano_wait + 1) as f32
+            );
+        },
+        Err(e) => warn!("statistics dropped because they are currently accecssed"),
     }
 }
