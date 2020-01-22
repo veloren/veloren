@@ -180,8 +180,7 @@ pub fn uniform_noise<F: Float + Send>(
     // position of the noise in the sorted vector (divided by the vector length).
     // This guarantees a uniform distribution among the samples (excluding those that returned
     // None, which will remain at zero).
-    let mut uniform_noise =
-        vec![(0.0, F::nan() /*zero()*/); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut uniform_noise = vec![(0.0, F::nan()); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     // NOTE: Consider using try_into here and elsewhere in this function, since i32::MAX
     // technically doesn't fit in an f32 (even if we should never reach that limit).
     let total = noise.len() as f32;
@@ -257,10 +256,8 @@ pub fn downhill<F: Float>(
     // nodes in order from roots to leaves).
     (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
-        // .enumerate()
-        .map(|/*(*/ posi /*, &nh)*/| {
+        .map(|posi| {
             let nh = h(posi);
-            let _pos = uniform_idx_as_vec2(posi);
             if is_ocean(posi) {
                 -2
             } else {
@@ -292,8 +289,6 @@ pub fn get_oceans<F: Float>(oldh: impl Fn(usize) -> F + Sync) -> BitBox {
         let posi = vec2_as_uniform_idx(pos);
         if oldh(posi) <= F::zero() {
             stack.push(posi);
-        } else {
-            // panic!("Hopefully no border tiles are above sea level.");
         }
     };
     for x in 0..WORLD_SIZE.x as i32 {

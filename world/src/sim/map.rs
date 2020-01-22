@@ -125,7 +125,6 @@ impl MapConfig {
         let mut lakes = 0u32;
         let mut oceans = 0u32;
 
-        // let water_light = (light_direction.z + 1.0) / 2.0 * 0.8 + 0.2;
         let focus_rect = Vec2::from(focus);
         let true_sea_level = (CONFIG.sea_level as f64 - focus.z) / gain as f64;
 
@@ -165,9 +164,9 @@ impl MapConfig {
                 let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
                 let pos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
                 let downhill_pos = (downhill
-                    .map(|downhill_pos| downhill_pos/*.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32)*/)
+                    .map(|downhill_pos| downhill_pos)
                     .unwrap_or(pos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
-                    - pos)/* * scale*/
+                    - pos)
                     + pos;
                 let downhill_alt = sampler
                     .get_wpos(downhill_pos)
@@ -200,27 +199,6 @@ impl MapConfig {
                 // Then cross points "to the right" (upwards) on a right-handed coordinate system.
                 // (right-handed coordinate system means (0, 0, 1.0) is "forward" into the screen).
                 let surface_normal = forward_vec.cross(up_vec).normalized();
-                // f = (0, alt_bl - alt_tl, 1) [backward right-handed = (0,0,1)]
-                // u = (1, alt_tr - alt_tl, 0) [right (90 degrees CCW backward) = (1,0,0)]
-                // (f × u in right-handed coordinate system: pointing up)
-                //
-                // f × u =
-                //   (a.y*b.z - a.z*b.y,
-                //    a.z*b.x - a.x*b.z,
-                //    a.x*b.y - a.y*b.x,
-                //   )
-                // =
-                //   (-(alt_tr - alt_tl),
-                //    1,
-                //    -(alt_bl - alt_tl),
-                //   )
-                // =
-                //   (alt_tl - alt_tr,
-                //    1,
-                //    alt_tl - alt_bl,
-                //   )
-                //
-                // let surface_normal = Vec3::new((alt_tl - alt_tr) as f64, 1.0, (alt_tl - alt_bl) as f64).normalized();
                 let light = (surface_normal.dot(light) + 1.0) / 2.0;
                 let light = (light * 0.9) + 0.1;
 
@@ -230,8 +208,9 @@ impl MapConfig {
                 let water_alt = true_water_alt.min(1.0).max(0.0);
                 let alt = true_alt.min(1.0).max(0.0);
                 if is_debug {
-                    let quad =
-                        |x: f32| ((x as f64 * QUADRANTS as f64).floor() as usize).min(QUADRANTS - 1);
+                    let quad = |x: f32| {
+                        ((x as f64 * QUADRANTS as f64).floor() as usize).min(QUADRANTS - 1)
+                    };
                     if river_kind.is_none() || humidity != 0.0 {
                         quads[quad(humidity)][quad(temperature)] += 1;
                     }
@@ -286,12 +265,9 @@ impl MapConfig {
                         ((64.0 - water_depth * 64.0) * 1.0) as u8,
                         255,
                     ),
-                    (Some(RiverKind::River { .. }), _) => (
-                        0,
-                        32 + (alt * 95.0) as u8,
-                        64 + (alt * 191.0) as u8,
-                        255,
-                    ),
+                    (Some(RiverKind::River { .. }), _) => {
+                        (0, 32 + (alt * 95.0) as u8, 64 + (alt * 191.0) as u8, 255)
+                    }
                     (None, _) | (Some(RiverKind::Lake { .. }), _) => (
                         0,
                         (((32.0 + water_alt * 95.0) + (-water_depth * 32.0)) * 1.0) as u8,
