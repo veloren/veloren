@@ -537,7 +537,8 @@ fn handle_pathfind(server: &mut Server, player: EcsEntity, args: String, action:
             {
                 let target = start_pos.0 + Vec3::new(x, y, z);
                 let new_path = ChunkPath::new(&*server.state.terrain(), start_pos.0, target)
-                    .get_worldpath(&*server.state.terrain());
+                    .get_worldpath(&*server.state.terrain())
+                    .unwrap();
 
                 server.state.write_component(
                     target_entity,
@@ -627,10 +628,7 @@ fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent> {
     match alignment {
         "hostile" => Some(comp::Agent::enemy()),
-        "friendly" => Some(comp::Agent::Pet {
-            target,
-            offset: Vec2::zero(),
-        }),
+        "friendly" => Some(comp::Agent::pet(target)),
         "traveler" => Some(comp::Agent::Traveler {
             path: WorldPath::default(),
         }),
@@ -981,6 +979,20 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
     }
 }
 
+#[cfg(not(feature = "worldgen"))]
+fn handle_debug_column(
+    server: &mut Server,
+    entity: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    server.notify_client(
+        entity,
+        ServerMsg::private(String::from("Unsupported without worldgen enabled")),
+    );
+}
+
+#[cfg(feature = "worldgen")]
 fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let sim = server.world.sim();
     let sampler = server.world.sample_columns();

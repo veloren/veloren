@@ -45,7 +45,7 @@ impl ChunkPath {
     pub fn chunk_get_neighbors<V: RectRasterableVol + ReadVol + Debug>(
         _vol: &VolGrid2d<V>,
         pos: &Vec2<i32>,
-    ) -> impl IntoIterator<Item = Vec2<i32>> {
+    ) -> impl Iterator<Item = Vec2<i32>> {
         let directions = vec![
             Vec2::new(1, 0),  // Right chunk
             Vec2::new(-1, 0), // Left chunk
@@ -53,7 +53,14 @@ impl ChunkPath {
             Vec2::new(0, -1), // Bottom chunk
         ];
 
-        let neighbors: Vec<Vec2<i32>> = directions.into_iter().map(|dir| dir + pos).collect();
+        let mut neighbors = Vec::new();
+        for x in -2..3 {
+            for y in -2..3 {
+                neighbors.push(pos + Vec2::new(x, y));
+            }
+        }
+
+        //let neighbors: Vec<Vec2<i32>> = directions.into_iter().map(|dir| dir + pos).collect();
 
         neighbors.into_iter()
     }
@@ -61,7 +68,7 @@ impl ChunkPath {
         &mut self,
         vol: &VolGrid2d<V>,
         pos: Vec3<i32>,
-    ) -> impl IntoIterator<Item = Vec3<i32>> {
+    ) -> impl Iterator<Item = Vec3<i32>> {
         let directions = vec![
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
@@ -102,7 +109,7 @@ impl ChunkPath {
                     .any(|new_pos| new_pos.cmpeq(&vol.pos_key(pos)).iter().all(|e| *e));
             }
             _ => {
-                println!("No chunk path");
+                //println!("No chunk path");
             }
         }
         return is_walkable_position && is_within_chunk;
@@ -110,11 +117,11 @@ impl ChunkPath {
     pub fn get_worldpath<V: RectRasterableVol + ReadVol + Debug>(
         &mut self,
         vol: &VolGrid2d<V>,
-    ) -> WorldPath {
+    ) -> Result<WorldPath, ()> {
         let wp = WorldPath::new(vol, self.from, self.dest, |vol, pos| {
-            self.worldpath_get_neighbors(vol, *pos)
+            self.worldpath_get_neighbors(vol, pos)
         });
-        println!("Fetching world path from hierarchical path: {:?}", wp);
+        //println!("Fetching world path from hierarchical path: {:?}", wp);
         wp
     }
 }

@@ -10,6 +10,8 @@ pub mod input;
 pub mod metrics;
 pub mod settings;
 pub mod sys;
+#[cfg(not(feature = "worldgen"))]
+mod test_world;
 
 // Reexports
 pub use crate::{error::Error, input::Input, settings::ServerSettings};
@@ -46,10 +48,14 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
+#[cfg(feature = "worldgen")]
 use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
     World,
 };
+#[cfg(not(feature = "worldgen"))]
+use test_world::World;
+
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
@@ -108,6 +114,7 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
+        #[cfg(feature = "worldgen")]
         let world = World::generate(
             settings.world_seed,
             WorldOpts {
@@ -121,8 +128,14 @@ impl Server {
                 ..WorldOpts::default()
             },
         );
+        #[cfg(feature = "worldgen")]
         let map = world.sim().get_map();
 
+        #[cfg(not(feature = "worldgen"))]
+        let world = World::generate(settings.world_seed);
+        let map = Vec::new();
+
+        #[cfg(feature = "worldgen")]
         let spawn_point = {
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
             // but are needed to be explicit about casting (and to make the compiler stop complaining)
@@ -166,6 +179,9 @@ impl Server {
             // add 0.5, so that the player spawns in the middle of the block
             Vec3::new(spawn_location.x, spawn_location.y, z).map(|e| (e as f32)) + 0.5
         };
+
+        #[cfg(not(feature = "worldgen"))]
+        let spawn_point = Vec3::new(0.0, 0.0, 256.0);
 
         // set the spawn point we calculated above
         state.ecs_mut().insert(SpawnPoint(spawn_point));
