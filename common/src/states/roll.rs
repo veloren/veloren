@@ -46,15 +46,19 @@ impl StateHandler for State {
             .unwrap_or_default()
                 * ROLL_SPEED;
 
-        // Otherwise, tick down remaining_duration
-        update.character = CharacterState::Roll(Some(State {
-            remaining_duration: self
-                .remaining_duration
-                .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
-                .unwrap_or_default(),
-        }));
+        if self.remaining_duration == Duration::default() {
+            // Roll duration has expired
+            update.character = CharacterState::Idle(None);
+        } else {
+            // Otherwise, tick down remaining_duration
+            update.character = CharacterState::Roll(Some(State {
+                remaining_duration: self
+                    .remaining_duration
+                    .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
+                    .unwrap_or_default(),
+            }));
+        }
 
-        // Keep rolling
         update
     }
 }

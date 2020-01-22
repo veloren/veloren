@@ -188,7 +188,6 @@ pub fn handle_glide(ecs_data: &EcsStateData, update: &mut StateUpdate) {
         && !ecs_data.physics.on_ground
         && ecs_data.body.is_humanoid()
     {
-        dbg!();
         update.character = CharacterState::Glide(None);
     }
 }

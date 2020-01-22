@@ -16,7 +16,6 @@ impl StateHandler for State {
     }
 
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
-        dbg!();
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
