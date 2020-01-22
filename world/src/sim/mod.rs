@@ -411,7 +411,7 @@ impl WorldSim {
         //   k_d_scale ≡ (K_d / K_d') = grid_scale^2 / (/*height_scale * */ time_scale)
         let k_d_scale = |n: f32| grid_scale.powi(2) / (/*height_scale(n) * */time_scale(n));
         //   epsilon_0_scale ≡ (ε₀ / ε₀') = height_scale(n) / time_scale(n)
-        let epsilon_0_scale = |n| (height_scale(n) / time_scale(n)) as f32;
+        let epsilon_0_scale = |n| (height_scale(n) / time_scale(n) as Alt) as f32;
 
         // Approximate n for purposes of computation of parameters above over the whole grid (when
         // a chunk isn't available).
