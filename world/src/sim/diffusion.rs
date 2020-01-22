@@ -91,7 +91,6 @@ pub fn diffusion(
     */
     zint = vec![Default::default(); nx * ny];
     kdint = vec![Default::default(); nx * ny];
-    // zintp = vec![Default::default(); nx * ny];
     /*
       do j=1,ny
         do i=1,nx
