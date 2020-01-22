@@ -34,7 +34,7 @@ use crate::{
     settings::Settings,
     window::Window,
 };
-use common::assets::load_expect;
+use common::assets::{load, load_expect};
 use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
@@ -139,9 +139,20 @@ fn main() {
     };
 
     // Try to load the localization and log missing entries
-    let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+    let localized_strings = load::<VoxygenLocalization>(&i18n_asset_key(
         &global_state.settings.language.selected_language,
-    ));
+    ))
+    .unwrap_or_else(|error| {
+        log::warn!(
+            "Impossible to load {} language: change to the default language (English) instead. Source error: {:?}",
+            &global_state.settings.language.selected_language,
+            error
+        );
+        global_state.settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
+        load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ))
+    });
     localized_strings.log_missing_entries();
 
     // Set up panic handler to relay swish panic messages to the user
