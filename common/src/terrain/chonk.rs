@@ -26,7 +26,8 @@ impl<ChonkSize: RectVolSize> VolSize for SubChunkSize<ChonkSize> {
     const SIZE: Vec3<u32> = Vec3 {
         x: ChonkSize::RECT_SIZE.x,
         y: ChonkSize::RECT_SIZE.x,
-        z: ChonkSize::RECT_SIZE.x / /*2*//*16*//*32*/2,
+        // NOTE: Currently, use 32 instead of 2 for RECT_SIZE.x = 128.
+        z: ChonkSize::RECT_SIZE.x / 2,
     };
 }
 

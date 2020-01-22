@@ -190,7 +190,7 @@ impl<'a> BlockGen<'a> {
                         .warp_nz
                         .get(wposf.div(24.0))
                         .mul((chaos - 0.1).max(0.0).min(1.0).powf(2.0))
-                        .mul(/*48.0*/ 16.0);
+                        .mul(16.0);
                     let warp = Lerp::lerp(0.0, warp, warp_factor);
 
                     let surface_height = alt + warp;
@@ -203,7 +203,6 @@ impl<'a> BlockGen<'a> {
                             world.gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
                             world.gen_ctx.fast_turb_y_nz.get(wposf.div(25.0)) as f32,
                         ) * 8.0;
-                        // let turb = Lerp::lerp(0.0, turb, warp_factor);
 
                         let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
                         let cliff_height = Self::get_cliff_height(
@@ -236,8 +235,7 @@ impl<'a> BlockGen<'a> {
 
             // Sample blocks
 
-            // let stone_col = Rgb::new(240, 230, 220);
-            //let stone_col = Rgb::new(195, 187, 201);
+            // let stone_col = Rgb::new(195, 187, 201);
 
             // let dirt_col = Rgb::new(79, 67, 60);
 
@@ -253,7 +251,6 @@ impl<'a> BlockGen<'a> {
             let grass_depth = (1.5 + 2.0 * chaos).min(height - basement_height);
             let block = if (wposf.z as f32) < height - grass_depth {
                 let col = Lerp::lerp(
-                    // saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
                     sub_surface_color,
                     stone_col.map(|e| e as f32 / 255.0),
                     (height - grass_depth - wposf.z as f32) * 0.15,
@@ -277,7 +274,6 @@ impl<'a> BlockGen<'a> {
                 // Surface
                 Some(Block::new(
                     BlockKind::Normal,
-                    // saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
                     col.map(|e| (e * 255.0) as u8),
                 ))
             } else if (wposf.z as f32) < height + 0.9
