@@ -33,6 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a localization system to provide multi-language support
   to voxygen
 - Added French language for Voxygen
+- Added rivers and lakes which follow realistic physical paths.
+- Added a sophisticated erosion system for world generation which
+  dramatically changes the world layout.
+- Added tracking of sediment vs. bedrock, which is visually reflected in the
+  world.
+- Added map saving and loading for altitude and bedrock, with built in
+  versioning for forwards compatibility.
+- Added a default map, which is used to speed up starting single player.
+- Added a 3D renderered map, which is also used by the server to send the map
+  to the client.
 
 ### Changed
 
@@ -66,6 +76,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Terrain meshing optimized further
 - Tree leaves no longer color blended
 - Actual character stats displayed in character window
+- Made significant changes to the noise functions used for world generation.
+- Improved colors during world generation.
+- Significantly reduced the use of warp during world generation.
+- Parallelized and otherwise sped up significant parts of world generation.
+- Various performance improvements to world generation.
 
 ### Removed
 
