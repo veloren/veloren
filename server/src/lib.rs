@@ -46,6 +46,8 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+#[cfg(not(feature = "worldgen"))]
+use test_world::{World, WORLD_SIZE};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
@@ -53,8 +55,6 @@ use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
     World,
 };
-#[cfg(not(feature = "worldgen"))]
-use test_world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 

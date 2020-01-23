@@ -1,5 +1,5 @@
 use crate::{
-    pathfinding::WorldPath,
+    astar::{Astar, PathResult},
     terrain::Block,
     vol::{BaseVol, ReadVol},
 };
@@ -9,29 +9,29 @@ use vek::*;
 // Path
 
 #[derive(Default, Clone, Debug)]
-pub struct Path {
-    nodes: Vec<Vec3<i32>>,
+pub struct Path<T> {
+    nodes: Vec<T>,
 }
 
-impl FromIterator<Vec3<i32>> for Path {
-    fn from_iter<I: IntoIterator<Item = Vec3<i32>>>(iter: I) -> Self {
+impl<T> FromIterator<T> for Path<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         Self {
             nodes: iter.into_iter().collect(),
         }
     }
 }
 
-impl Path {
+impl<T> Path<T> {
     pub fn len(&self) -> usize {
         self.nodes.len()
     }
 
-    pub fn start(&self) -> Option<Vec3<i32>> {
-        self.nodes.first().copied()
+    pub fn start(&self) -> Option<&T> {
+        self.nodes.first()
     }
 
-    pub fn end(&self) -> Option<Vec3<i32>> {
-        self.nodes.last().copied()
+    pub fn end(&self) -> Option<&T> {
+        self.nodes.last()
     }
 }
 
@@ -39,18 +39,18 @@ impl Path {
 
 #[derive(Default, Clone, Debug)]
 pub struct Route {
-    path: Path,
+    path: Path<Vec3<i32>>,
     next_idx: usize,
 }
 
-impl From<Path> for Route {
-    fn from(path: Path) -> Self {
+impl From<Path<Vec3<i32>>> for Route {
+    fn from(path: Path<Vec3<i32>>) -> Self {
         Self { path, next_idx: 0 }
     }
 }
 
 impl Route {
-    pub fn path(&self) -> &Path {
+    pub fn path(&self) -> &Path<Vec3<i32>> {
         &self.path
     }
 
@@ -85,10 +85,11 @@ impl Route {
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
     route: Route,
+    astar: Option<Astar<Vec3<i32>>>,
 }
 
 impl Chaser {
-    pub fn chase<V>(&mut self, vol: &V, tgt: Vec3<f32>, pos: Vec3<f32>) -> Option<Vec3<f32>>
+    pub fn chase<V>(&mut self, vol: &V, pos: Vec3<f32>, tgt: Vec3<f32>) -> Option<Vec3<f32>>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
@@ -98,7 +99,7 @@ impl Chaser {
             return None;
         }
 
-        let bearing = if let Some(end) = self.route.path().end() {
+        let bearing = if let Some(end) = self.route.path().end().copied() {
             let end_to_tgt = end.map(|e| e as f32).distance(tgt);
             if end_to_tgt > pos_to_tgt * 0.3 + 5.0 {
                 None
@@ -123,17 +124,104 @@ impl Chaser {
                 .map(|last_tgt| last_tgt.distance(tgt) > pos_to_tgt * 0.15 + 5.0)
                 .unwrap_or(true)
             {
-                let path: Path = WorldPath::find(vol, pos, tgt)
-                    .ok()
-                    .and_then(|wp| wp.path.map(|nodes| nodes.into_iter().rev()))
-                    .into_iter()
-                    .flatten()
-                    .collect();
-
-                self.route = path.into();
+                self.route = find_path(&mut self.astar, vol, pos, tgt).into();
             }
 
             Some(tgt - pos)
+        }
+    }
+}
+
+fn find_path<V>(
+    astar: &mut Option<Astar<Vec3<i32>>>,
+    vol: &V,
+    start: Vec3<f32>,
+    end: Vec3<f32>,
+) -> Path<Vec3<i32>>
+where
+    V: BaseVol<Vox = Block> + ReadVol,
+{
+    let is_walkable = |pos: &Vec3<i32>| {
+        vol.get(*pos - Vec3::new(0, 0, 1))
+            .map(|b| b.is_solid())
+            .unwrap_or(false)
+            && vol
+                .get(*pos + Vec3::new(0, 0, 0))
+                .map(|b| !b.is_solid())
+                .unwrap_or(true)
+            && vol
+                .get(*pos + Vec3::new(0, 0, 1))
+                .map(|b| !b.is_solid())
+                .unwrap_or(true)
+    };
+    let get_walkable_z = |pos| {
+        let mut z_incr = 0;
+        for i in 0..32 {
+            let test_pos = pos + Vec3::unit_z() * z_incr;
+            if is_walkable(&test_pos) {
+                return Some(test_pos);
+            }
+            z_incr = -z_incr + if z_incr <= 0 { 1 } else { 0 };
+        }
+        None
+    };
+
+    let (start, end) = match (
+        get_walkable_z(start.map(|e| e.floor() as i32)),
+        get_walkable_z(end.map(|e| e.floor() as i32)),
+    ) {
+        (Some(start), Some(end)) => (start, end),
+        _ => return Path::default(),
+    };
+
+    let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
+    let neighbors = |pos: &Vec3<i32>| {
+        let pos = *pos;
+        const dirs: [Vec3<i32>; 17] = [
+            Vec3::new(0, 1, 0),   // Forward
+            Vec3::new(0, 1, 1),   // Forward upward
+            Vec3::new(0, 1, 2),   // Forward Upwardx2
+            Vec3::new(0, 1, -1),  // Forward downward
+            Vec3::new(1, 0, 0),   // Right
+            Vec3::new(1, 0, 1),   // Right upward
+            Vec3::new(1, 0, 2),   // Right Upwardx2
+            Vec3::new(1, 0, -1),  // Right downward
+            Vec3::new(0, -1, 0),  // Backwards
+            Vec3::new(0, -1, 1),  // Backward Upward
+            Vec3::new(0, -1, 2),  // Backward Upwardx2
+            Vec3::new(0, -1, -1), // Backward downward
+            Vec3::new(-1, 0, 0),  // Left
+            Vec3::new(-1, 0, 1),  // Left upward
+            Vec3::new(-1, 0, 2),  // Left Upwardx2
+            Vec3::new(-1, 0, -1), // Left downward
+            Vec3::new(0, 0, -1),  // Downwards
+        ];
+
+        dirs.iter()
+            .map(move |dir| pos + dir)
+            .filter(move |pos| is_walkable(pos))
+    };
+    let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
+    let satisfied = |pos: &Vec3<i32>| pos == &end;
+
+    let mut new_astar = match astar.take() {
+        None => Astar::new(50000, start, heuristic.clone()),
+        Some(astar) => astar,
+    };
+
+    let path_result = new_astar.poll(30, heuristic, neighbors, transition, satisfied);
+
+    *astar = Some(new_astar);
+
+    match path_result {
+        PathResult::Path(path) => {
+            *astar = None;
+            path
+        }
+        PathResult::Pending => Path::default(),
+        _ => {
+            *astar = None;
+            Path::default()
         }
     }
 }
