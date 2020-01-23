@@ -145,7 +145,7 @@ Profitez de votre séjour dans le monde de Veloren."#,
         "hud.settings.hotbar": "Barre active",
         "hud.settings.toggle_bar_experience": "Activer la barre d'experience",
 
-        "hud.settings.scrolling_combat_text": "Texte de combat défillant",
+        "hud.settings.scrolling_combat_text": "Dégats de combat",
         "hud.settings.single_damage_number": "Dégat adversaire (par dégat)",
         "hud.settings.cumulated_damage": "Dégat adversaire (cumulé)",
         "hud.settings.incoming_damage": "Dégat personnage (par dégat)",
@@ -190,7 +190,7 @@ Activer le mode plein écran
 Avancer
 Aller à gauche
 Aller à droite
-Aller en arriere
+Reculer
 
 Sauter
 
@@ -198,7 +198,7 @@ Planer
 
 Esquiver
 
-Roullade
+Roulade
 
 Escalader
 
@@ -271,12 +271,12 @@ Commandes du tchat:
 
 
         "esc_menu.quit_game": "Quitter le jeu",
-        "esc_menu.logout": "Deconnexion",
+        "esc_menu.logout": "Se déconnecter",
 
 
         "char_selection.beard": "Barbe",
         "char_selection.hair_style": "Coupe de cheveux",
-        "char_selection.hair_color": "Couleur de cheveux",
+        "char_selection.hair_color": "Couleur des cheveux",
         "char_selection.skin": "Couleur de peau",
         "char_selection.eyebrows": "Sourcils",
         "char_selection.eye_color": "Couleur des yeux",
@@ -285,7 +285,7 @@ Commandes du tchat:
         "char_selection.create_new_charater": "Créer un nouveau personnage",
         "char_selection.human_default": "Humain par défault",
         "char_selection.uncanny_valley": "Vallée dérangeante",
-        "char_selection.chest_color": "Couleur du buste",
+        "char_selection.chest_color": "Couleur du torse",
         "char_selection.logout": "Se déconnecter",
         "char_selection.enter_world": "Entrer dans le monde",
         "char_selection.plains_of_uncertainty": "Plaines de l'incertitude",
