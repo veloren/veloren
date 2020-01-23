@@ -405,15 +405,14 @@ impl<'a> Widget for CharacterWindow<'a> {
         .set(state.charwindow_tab1_statnames, ui);
 
         // TODO: Shows actual stat points.
-        Text::new(
-            "1234\n\
-             \n\
-             12312\n\
-             \n\
-             12414\n\
-             \n\
-             124124",
-        )
+        Text::new(&format!(
+            "{}\n\
+        \n\
+        {}\n\
+        \n\
+        {}",
+            self.stats.endurance, self.stats.fitness, self.stats.willpower
+        ))
         .top_right_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
         .font_id(self.fonts.cyri)
         .font_size(16)
