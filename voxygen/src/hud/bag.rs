@@ -40,6 +40,7 @@ pub struct Bag<'a> {
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    pulse: f32,
 }
 
 impl<'a> Bag<'a> {
@@ -50,6 +51,7 @@ impl<'a> Bag<'a> {
         fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        pulse: f32,
     ) -> Self {
         Self {
             client,
@@ -59,6 +61,7 @@ impl<'a> Bag<'a> {
             common: widget::CommonBuilder::default(),
             rot_imgs,
             tooltip_manager,
+            pulse,
         }
     }
 }
@@ -103,6 +106,7 @@ impl<'a> Widget for Bag<'a> {
             Some(inv) => inv,
             None => return None,
         };
+
         // Tooltips
         let item_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -173,6 +177,7 @@ impl<'a> Widget for Bag<'a> {
             let is_selected = Some(i) == state.selected_slot;
 
             // Slot
+
             let slot_widget = Button::image(if !is_selected {
                 self.imgs.inv_slot
             } else {
@@ -182,9 +187,8 @@ impl<'a> Widget for Bag<'a> {
                 state.ids.inv_alignment,
                 0.0 + y as f64 * (40.0 + 2.0),
                 0.0 + x as f64 * (40.0 + 2.0),
-            ) // conrod uses a (y,x) format for placing...
-            // (the margin placement functions do this because that is the same order as "top left")
-            .w_h(40.0, 40.0)
+            )
+            .wh(if is_selected { [40.0; 2] } else { [40.0; 2] })
             .image_color(if is_selected {
                 color::WHITE
             } else {
@@ -223,6 +227,9 @@ impl<'a> Widget for Bag<'a> {
             }
             // Item
             if let Some(kind) = item.as_ref().map(|i| ItemKey::from(i)) {
+                let slot_anim: f64 =
+                    ((self.pulse as f64 * 4.0/*speed factor*/).cos() * 0.5 + 0.5) * 2.0; //Animation timer
+                println!("{}", slot_anim);
                 Button::image(match &state.img_id_cache[i] {
                     Some((cached_kind, id)) if cached_kind == &kind => *id,
                     _ => {
@@ -234,7 +241,11 @@ impl<'a> Widget for Bag<'a> {
                         id
                     }
                 })
-                .w_h(30.0, 30.0)
+                .wh(if is_selected {
+                    [30.0 + slot_anim.abs(); 2]
+                } else {
+                    [30.0; 2]
+                })
                 .middle_of(state.ids.inv_slots[i]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
                 //.label("5x") // TODO: Quantity goes here...
                 //.label_font_id(self.fonts.opensans)

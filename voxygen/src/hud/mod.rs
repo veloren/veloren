@@ -280,7 +280,6 @@ pub struct Show {
     esc_menu: bool,
     open_windows: Windows,
     map: bool,
-    inventory_test_button: bool,
     mini_map: bool,
     ingame: bool,
     settings_tab: SettingsTab,
@@ -432,7 +431,6 @@ pub struct Hud {
     fonts: Fonts,
     rot_imgs: ImgsRot,
     new_messages: VecDeque<ClientEvent>,
-    inventory_space: usize,
     show: Show,
     never_show: bool,
     intro: bool,
@@ -475,7 +473,6 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            inventory_space: 8,
             intro: false,
             intro_2: false,
             show: Show {
@@ -491,7 +488,6 @@ impl Hud {
                 quest: false,
                 spell: false,
                 character_window: false,
-                inventory_test_button: false,
                 mini_map: false,
                 settings_tab: SettingsTab::Interface,
                 social_tab: SocialTab::Online,
@@ -1519,26 +1515,6 @@ impl Hud {
             .set(self.ids.debug_info, ui_widgets);
         }
 
-        // Add Bag-Space Button.
-        if self.show.inventory_test_button {
-            if Button::image(self.imgs.button)
-                .w_h(100.0, 100.0)
-                .middle_of(ui_widgets.window)
-                .label("Add 1 Space")
-                .label_font_size(20)
-                .label_color(TEXT_COLOR)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .set(self.ids.bag_space_add, ui_widgets)
-                .was_clicked()
-            {
-                if self.inventory_space < 100 {
-                    self.inventory_space += 1;
-                } else {
-                }
-            };
-        }
-
         // Help Text
         if self.show.help && !self.show.map && !self.show.esc_menu {
             Image::new(self.imgs.help)
@@ -1621,6 +1597,7 @@ impl Hud {
                 &self.fonts,
                 &self.rot_imgs,
                 tooltip_manager,
+                self.pulse,
             )
             .set(self.ids.bag, ui_widgets)
             {
