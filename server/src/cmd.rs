@@ -7,10 +7,8 @@ use chrono::{NaiveTime, Timelike};
 use common::{
     assets, comp,
     event::{EventBus, ServerEvent},
-    hierarchical::ChunkPath,
     msg::{PlayerListUpdate, ServerMsg},
     npc::{get_npc_name, NpcKind},
-    pathfinding::WorldPath,
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
     terrain::{Block, BlockKind, TerrainChunkSize},
@@ -248,13 +246,6 @@ lazy_static! {
             "/debug : Place all debug items into your pack.",
             true,
             handle_debug,
-        ),
-        ChatCommand::new(
-            "pathfind",
-            "{} {d} {d} {d}",
-            "/pathfind : Send a given entity with ID to the coordinates provided",
-            true,
-            handle_pathfind,
         ),
     ];
 }
@@ -524,46 +515,6 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
     }
 }
 
-fn handle_pathfind(server: &mut Server, player: EcsEntity, args: String, action: &ChatCommand) {
-    if let (Some(id), Some(x), Some(y), Some(z)) =
-        scan_fmt_some!(&args, action.arg_fmt, u64, f32, f32, f32)
-    {
-        let entity = server.state.ecs().entity_from_uid(id);
-
-        if let Some(target_entity) = entity {
-            if let Some(start_pos) = server
-                .state
-                .read_component_cloned::<comp::Pos>(target_entity)
-            {
-                let target = start_pos.0 + Vec3::new(x, y, z);
-                let new_path = ChunkPath::new(&*server.state.terrain(), start_pos.0, target)
-                    .get_worldpath(&*server.state.terrain())
-                    .unwrap();
-
-                server.state.write_component(
-                    target_entity,
-                    comp::Agent::Traveler {
-                        path: new_path.clone(),
-                    },
-                );
-
-                if let Some(path_positions) = &new_path.path {
-                    for pos in path_positions {
-                        server
-                            .state
-                            .set_block(*pos, Block::new(BlockKind::Normal, Rgb::new(255, 255, 0)));
-                    }
-                }
-            }
-        } else {
-            server.notify_client(
-                player,
-                ServerMsg::private(format!("Unable to find entity with ID: {:?}", id)),
-            );
-        }
-    }
-}
-
 fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     let ecs = server.state.ecs();
     let players = ecs.read_storage::<comp::Player>();
@@ -629,9 +580,6 @@ fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent>
     match alignment {
         "hostile" => Some(comp::Agent::enemy()),
         "friendly" => Some(comp::Agent::pet(target)),
-        "traveler" => Some(comp::Agent::Traveler {
-            path: WorldPath::default(),
-        }),
         // passive?
         _ => None,
     }

@@ -1,4 +1,4 @@
-use crate::{path::Chaser, pathfinding::WorldPath};
+use crate::path::Chaser;
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IDVStorage;
 use vek::*;
@@ -13,9 +13,6 @@ pub enum Agent {
     Enemy {
         bearing: Vec2<f32>,
         target: Option<EcsEntity>,
-    },
-    Traveler {
-        path: WorldPath,
     },
 }
 
