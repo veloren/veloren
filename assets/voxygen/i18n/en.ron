@@ -317,13 +317,12 @@ Chat commands:
         /// Start character window section
         "character_window.character_name": "Character Name",
         // Charater stats
-        "character_window.character_stats": r#"Stamina
+        "character_window.character_stats": r#"Endurance
 
-Strength
+Fitness
 
-Dexterity
-
-Intelligence"#,
+Willpower
+"#,
 
 
         /// Start character window section
