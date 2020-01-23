@@ -1,7 +1,7 @@
 use crate::comp::{
     Agent, CharacterState, Controller, MountState, MovementState::Glide, Pos, Stats,
 };
-use crate::{hierarchical::ChunkPath, path::Path, pathfinding::WorldPath, terrain::TerrainGrid};
+use crate::terrain::TerrainGrid;
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -61,35 +61,6 @@ impl<'a> System<'a> for Sys {
             let mut inputs = &mut controller.inputs;
 
             match agent {
-                Agent::Traveler { path } => {
-                    let mut new_path: Option<WorldPath> = None;
-                    let is_destination = |cur_pos: Vec3<i32>, dest: Vec3<i32>| {
-                        Vec2::<i32>::from(cur_pos) == Vec2::<i32>::from(dest)
-                    };
-
-                    let found_destination = || {
-                        const MAX_TRAVEL_DIST: f32 = 200.0;
-                        let new_dest = Vec3::new(rand::random::<f32>(), rand::random::<f32>(), 0.0)
-                            * MAX_TRAVEL_DIST;
-                        new_path = Some(
-                            ChunkPath::new(&*terrain, pos.0, pos.0 + new_dest)
-                                .get_worldpath(&*terrain)
-                                .unwrap(),
-                        );
-                    };
-
-                    path.move_along_path(
-                        &*terrain,
-                        pos,
-                        &mut inputs,
-                        is_destination,
-                        found_destination,
-                    );
-
-                    if let Some(new_path) = new_path {
-                        *path = new_path;
-                    }
-                }
                 Agent::Wanderer(bearing) => {
                     *bearing += Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
                         * 0.1
@@ -103,8 +74,9 @@ impl<'a> System<'a> for Sys {
                 Agent::Pet { target, chaser } => {
                     // Run towards target.
                     if let Some(tgt_pos) = positions.get(*target) {
-                        if let Some(bearing) = chaser.chase(&*terrain, tgt_pos.0, pos.0) {
-                            inputs.move_dir = Vec2::from(bearing).normalized();
+                        if let Some(bearing) = chaser.chase(&*terrain, pos.0, tgt_pos.0) {
+                            inputs.move_dir =
+                                Vec2::from(bearing).try_normalized().unwrap_or(Vec2::zero());
                             inputs.jump.set_state(bearing.z > 1.0);
                         }
                     } else {
