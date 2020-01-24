@@ -205,7 +205,12 @@ where
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
-        None => Astar::new(50000, start, heuristic.clone()),
+        None => {
+            let max_iters = ((Vec2::<f32>::from(start).distance(Vec2::from(end)) + 10.0).powf(2.0)
+                as usize)
+                .min(25_000);
+            Astar::new(max_iters, start, heuristic.clone())
+        }
         Some(astar) => astar,
     };
 
