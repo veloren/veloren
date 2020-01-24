@@ -173,7 +173,8 @@ impl<'a> System<'a> for Sys {
                     pos: Pos(npc.pos),
                     stats,
                     body,
-                    agent: comp::Agent::enemy(),
+                    alignment: comp::Alignment::Enemy,
+                    agent: comp::Agent::default(),
                     scale: comp::Scale(scale),
                 })
             }
