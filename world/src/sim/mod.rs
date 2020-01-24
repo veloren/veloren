@@ -17,8 +17,8 @@ pub use self::map::{MapConfig, MapDebug};
 pub use self::settlement::Settlement;
 pub use self::util::{
     cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, neighbors,
-    uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, HybridMulti as HybridMulti_,
-    InverseCdf, ScaleBias, NEIGHBOR_DELTA,
+    uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
+    NEIGHBOR_DELTA,
 };
 
 use crate::{
@@ -88,7 +88,7 @@ pub(crate) struct GenCtx {
     pub turb_x_nz: SuperSimplex,
     pub turb_y_nz: SuperSimplex,
     pub chaos_nz: RidgedMulti,
-    pub alt_nz: HybridMulti_,
+    pub alt_nz: util::HybridMulti,
     pub hill_nz: SuperSimplex,
     pub temp_nz: Fbm,
     // Humidity noise
@@ -313,12 +313,12 @@ impl WorldSim {
                 .set_frequency(RidgedMulti::DEFAULT_FREQUENCY * (5_000.0 / continent_scale))
                 .set_seed(rng.gen()),
             hill_nz: SuperSimplex::new().set_seed(rng.gen()),
-            alt_nz: HybridMulti_::new()
+            alt_nz: util::HybridMulti::new()
                 .set_octaves(8)
                 .set_frequency((10_000.0 / continent_scale) as f64)
                 // persistence = lacunarity^(-(1.0 - fractal increment))
-                .set_lacunarity(HybridMulti_::DEFAULT_LACUNARITY)
-                .set_persistence(HybridMulti_::DEFAULT_LACUNARITY.powf(-(1.0 - 0.0)))
+                .set_lacunarity(util::HybridMulti::DEFAULT_LACUNARITY)
+                .set_persistence(util::HybridMulti::DEFAULT_LACUNARITY.powf(-(1.0 - 0.0)))
                 .set_offset(0.0)
                 .set_seed(rng.gen()),
             temp_nz: Fbm::new()

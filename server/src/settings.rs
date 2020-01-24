@@ -94,11 +94,7 @@ impl ServerSettings {
     }
 
     pub fn singleplayer() -> Self {
-        let mut load = Self::load();
-        if let None = load.map_file {
-            // If loading the default map file, make sure the seed is also default.
-            load.world_seed = DEFAULT_WORLD_SEED;
-        };
+        let load = Self::load();
         Self {
             //BUG: theoretically another process can grab the port between here and server creation, however the timewindow is quite small
             gameserver_address: SocketAddr::from((
@@ -109,12 +105,18 @@ impl ServerSettings {
                 [127, 0, 0, 1],
                 pick_unused_port().expect("Failed to find unused port!"),
             )),
+            // If loading the default map file, make sure the seed is also default.
+            world_seed: if load.map_file.is_some() {
+                load.world_seed
+            } else {
+                DEFAULT_WORLD_SEED
+            },
             server_name: "Singleplayer".to_owned(),
             server_description: "Who needs friends anyway?".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
             admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
-            ..Self::load()                            // Fill in remaining fields from settings.ron.
+            ..load                                    // Fill in remaining fields from settings.ron.
         }
     }
 
