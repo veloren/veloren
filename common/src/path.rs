@@ -135,8 +135,8 @@ impl Chaser {
 fn find_path<V>(
     astar: &mut Option<Astar<Vec3<i32>>>,
     vol: &V,
-    start: Vec3<f32>,
-    end: Vec3<f32>,
+    startf: Vec3<f32>,
+    endf: Vec3<f32>,
 ) -> Path<Vec3<i32>>
 where
     V: BaseVol<Vox = Block> + ReadVol,
@@ -167,8 +167,8 @@ where
     };
 
     let (start, end) = match (
-        get_walkable_z(start.map(|e| e.floor() as i32)),
-        get_walkable_z(end.map(|e| e.floor() as i32)),
+        get_walkable_z(startf.map(|e| e.floor() as i32)),
+        get_walkable_z(endf.map(|e| e.floor() as i32)),
     ) {
         (Some(start), Some(end)) => (start, end),
         _ => return Path::default(),
@@ -206,8 +206,8 @@ where
 
     let mut new_astar = match astar.take() {
         None => {
-            let max_iters = ((Vec2::<f32>::from(start).distance(Vec2::from(end)) + 10.0).powf(2.0)
-                as usize)
+            let max_iters = ((Vec2::<f32>::from(startf).distance(Vec2::from(endf)) * 2.0 + 25.0)
+                .powf(2.0) as usize)
                 .min(25_000);
             Astar::new(max_iters, start, heuristic.clone())
         }
