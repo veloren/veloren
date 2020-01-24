@@ -227,9 +227,6 @@ impl<'a> Widget for Bag<'a> {
             }
             // Item
             if let Some(kind) = item.as_ref().map(|i| ItemKey::from(i)) {
-                let slot_anim: f64 =
-                    ((self.pulse as f64 * 4.0/*speed factor*/).cos() * 0.5 + 0.5) * 2.0; //Animation timer
-                println!("{}", slot_anim);
                 Button::image(match &state.img_id_cache[i] {
                     Some((cached_kind, id)) if cached_kind == &kind => *id,
                     _ => {
@@ -241,11 +238,7 @@ impl<'a> Widget for Bag<'a> {
                         id
                     }
                 })
-                .wh(if is_selected {
-                    [30.0 + slot_anim.abs(); 2]
-                } else {
-                    [30.0; 2]
-                })
+                .wh(if is_selected { [32.0; 2] } else { [30.0; 2] })
                 .middle_of(state.ids.inv_slots[i]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
                 //.label("5x") // TODO: Quantity goes here...
                 //.label_font_id(self.fonts.opensans)
