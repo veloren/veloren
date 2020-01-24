@@ -6,6 +6,7 @@ edition = "2018"
 
 [features]
 worldgen = []
+default = ["worldgen"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
