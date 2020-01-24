@@ -133,6 +133,7 @@ impl Server {
 
         #[cfg(not(feature = "worldgen"))]
         let world = World::generate(settings.world_seed);
+        #[cfg(not(feature = "worldgen"))]
         let map = vec![0];
 
         #[cfg(feature = "worldgen")]
@@ -299,6 +300,7 @@ impl Server {
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
         state.write_component(entity, comp::Gravity(1.0));
         state.write_component(entity, comp::CharacterState::default());
+        state.write_component(entity, comp::Alignment::Npc);
         state.write_component(entity, comp::Inventory::default());
         state.write_component(entity, comp::InventoryUpdate);
         // Make sure physics are accepted.
@@ -834,12 +836,14 @@ impl Server {
                     stats,
                     body,
                     agent,
+                    alignment,
                     scale,
                 } => {
                     state
                         .create_npc(pos, stats, body)
                         .with(agent)
                         .with(scale)
+                        .with(alignment)
                         .build();
                 }
 
@@ -1228,6 +1232,7 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
+            .with(comp::Alignment::Npc)
             .with(comp::Energy::new(500))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())

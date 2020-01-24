@@ -3,6 +3,7 @@ use crate::{
     terrain::Block,
     vol::{BaseVol, ReadVol},
 };
+use rand::{thread_rng, Rng};
 use std::iter::FromIterator;
 use vek::*;
 
@@ -89,13 +90,19 @@ pub struct Chaser {
 }
 
 impl Chaser {
-    pub fn chase<V>(&mut self, vol: &V, pos: Vec3<f32>, tgt: Vec3<f32>) -> Option<Vec3<f32>>
+    pub fn chase<V>(
+        &mut self,
+        vol: &V,
+        pos: Vec3<f32>,
+        tgt: Vec3<f32>,
+        min_dist: f32,
+    ) -> Option<Vec3<f32>>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
         let pos_to_tgt = pos.distance(tgt);
 
-        if pos_to_tgt < 4.0 {
+        if pos_to_tgt < min_dist {
             return None;
         }
 
@@ -104,7 +111,7 @@ impl Chaser {
             if end_to_tgt > pos_to_tgt * 0.3 + 5.0 {
                 None
             } else {
-                if rand::random::<f32>() < 0.005 {
+                if thread_rng().gen::<f32>() < 0.005 {
                     // TODO: Only re-calculate route when we're stuck
                     self.route = Route::default();
                 }
@@ -205,12 +212,7 @@ where
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
-        None => {
-            let max_iters = ((Vec2::<f32>::from(startf).distance(Vec2::from(endf)) * 2.0 + 25.0)
-                .powf(2.0) as usize)
-                .min(25_000);
-            Astar::new(max_iters, start, heuristic.clone())
-        }
+        None => Astar::new(20_000, start, heuristic.clone()),
         Some(astar) => astar,
     };
 
