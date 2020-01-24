@@ -25,19 +25,12 @@ pub struct VolGrid3d<V: RasterableVol> {
 impl<V: RasterableVol> VolGrid3d<V> {
     #[inline(always)]
     pub fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
-        pos.map2(V::SIZE, |e, sz| {
-            // Horrid, but it's faster than a cheetah with a red bull blood transfusion
-            let log2 = (sz - 1).count_ones();
-            ((((i64::from(e) + (1 << 32)) as u64) >> log2) - (1 << (32 - log2))) as i32
-        })
+        pos.map2(V::SIZE, |e, sz: u32| e >> (sz - 1).count_ones())
     }
 
     #[inline(always)]
     pub fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
-        pos.map2(V::SIZE, |e, sz| {
-            // Horrid, but it's even faster than the aforementioned cheetah
-            (((i64::from(e) + (1 << 32)) as u64) & u64::from(sz - 1)) as i32
-        })
+        pos.map2(V::SIZE, |e, sz| e & (sz - 1) as i32)
     }
 }
 
