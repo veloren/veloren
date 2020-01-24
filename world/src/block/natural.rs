@@ -23,13 +23,10 @@ static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 pub fn structure_gen<'a>(
     column_gen: &ColumnGen<'a>,
     column_cache: &mut SmallCache<Option<ColumnSample<'a>>>,
-    idx: usize,
     st_pos: Vec2<i32>,
     st_seed: u32,
-    structure_samples: &[Option<ColumnSample>; 9],
+    st_sample: &ColumnSample,
 ) -> Option<StructureInfo> {
-    let st_sample = &structure_samples[idx].as_ref()?;
-
     // Assuming it's a tree... figure out when it SHOULDN'T spawn
     let random_seed = (st_seed as f64) / (u32::MAX as f64);
     if (st_sample.tree_density as f64) < random_seed
@@ -64,6 +61,7 @@ pub fn structure_gen<'a>(
             ForestKind::Savannah => &ACACIAS,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 7 => &OAK_STUMPS,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 8 == 7 => &FRUIT_TREES,
+            ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 14 == 7 => &BIRCHES,
             ForestKind::Oak => &OAKS,
             ForestKind::Pine => &PINES,
             ForestKind::SnowPine => &SNOW_PINES,
@@ -119,6 +117,7 @@ lazy_static! {
     pub static ref SNOW_PINES: Vec<Arc<Structure>> = load_structures("snow_pines");
     pub static ref ACACIAS: Vec<Arc<Structure>> = load_structures("acacias");
     pub static ref FRUIT_TREES: Vec<Arc<Structure>> = load_structures("fruit_trees");
+    pub static ref BIRCHES: Vec<Arc<Structure>> = load_structures("birch");
     pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = load_structures("mangrove_trees");
     pub static ref QUIRKY: Vec<Arc<Structure>> = load_structures("quirky");
     pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = load_structures("quirky_dry");

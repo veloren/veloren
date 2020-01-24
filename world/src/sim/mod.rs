@@ -1,42 +1,55 @@
+mod diffusion;
 mod erosion;
 mod location;
+mod map;
 mod settlement;
 mod util;
 
 // Reexports
+pub use self::diffusion::diffusion;
+use self::erosion::Compute;
 pub use self::erosion::{
-    do_erosion, fill_sinks, get_drainage, get_lakes, get_rivers, RiverData, RiverKind,
+    do_erosion, fill_sinks, get_drainage, get_lakes, get_multi_drainage, get_multi_rec, get_rivers,
+    mrec_downhill, Alt, RiverData, RiverKind,
 };
 pub use self::location::Location;
+pub use self::map::{MapConfig, MapDebug};
 pub use self::settlement::Settlement;
 pub use self::util::{
     cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, neighbors,
-    uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf,
+    uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
+    NEIGHBOR_DELTA,
 };
 
 use crate::{
     all::ForestKind,
+    block::BlockGen,
     column::ColumnGen,
     generator::TownState,
     util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d},
     CONFIG,
 };
 use common::{
+    assets,
     terrain::{BiomeKind, TerrainChunkSize},
     vol::RectVolSize,
 };
+use hashbrown::HashMap;
 use noise::{
-    BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable,
-    SuperSimplex,
+    BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
+    Seedable, SuperSimplex, Worley,
 };
 use num::{Float, Signed};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
+use serde_derive::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
     f32, f64,
+    fs::File,
+    io::{BufReader, BufWriter},
     ops::{Add, Div, Mul, Neg, Sub},
+    path::PathBuf,
     sync::Arc,
 };
 use vek::*;
@@ -47,7 +60,10 @@ use vek::*;
 // cleanly representable in f32 (that stops around 1024 * 4 * 1024 * 4, for signed floats anyway)
 // but I think that is probably less important since I don't think we actually cast a chunk id to
 // float, just coordinates... could be wrong though!
-pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
+pub const WORLD_SIZE: Vec2<usize> = Vec2 {
+    x: 1024 * 1,
+    y: 1024 * 1,
+};
 
 /// A structure that holds cached noise values and cumulative distribution functions for the input
 /// that led to those values.  See the definition of InverseCdf for a description of how to
@@ -56,13 +72,14 @@ struct GenCdf {
     humid_base: InverseCdf,
     temp_base: InverseCdf,
     chaos: InverseCdf,
-    alt: Box<[f32]>,
+    alt: Box<[Alt]>,
+    basement: Box<[Alt]>,
     water_alt: Box<[f32]>,
     dh: Box<[isize]>,
     /// NOTE: Until we hit 4096 × 4096, this should suffice since integers with an absolute value
     /// under 2^24 can be exactly represented in an f32.
-    flux: Box<[f32]>,
-    pure_flux: InverseCdf,
+    flux: Box<[Compute]>,
+    pure_flux: InverseCdf<Compute>,
     alt_no_water: InverseCdf,
     rivers: Box<[RiverData]>,
 }
@@ -71,9 +88,9 @@ pub(crate) struct GenCtx {
     pub turb_x_nz: SuperSimplex,
     pub turb_y_nz: SuperSimplex,
     pub chaos_nz: RidgedMulti,
-    pub alt_nz: HybridMulti,
+    pub alt_nz: util::HybridMulti,
     pub hill_nz: SuperSimplex,
-    pub temp_nz: SuperSimplex,
+    pub temp_nz: Fbm,
     // Humidity noise
     pub humid_nz: Billow,
     // Small amounts of noise for simulating rough terrain.
@@ -94,6 +111,174 @@ pub(crate) struct GenCtx {
     pub fast_turb_y_nz: FastNoise,
 
     pub town_gen: StructureGen2d,
+    pub river_seed: RandomField,
+    pub rock_strength_nz: Fbm,
+    pub uplift_nz: Worley,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub enum FileOpts {
+    /// If set, generate the world map and do not try to save to or load from file
+    /// (default).
+    Generate,
+    /// If set, generate the world map and save the world file (path is created
+    /// the same way screenshot paths are).
+    Save,
+    /// If set, load the world file from this path in legacy format (errors if
+    /// path not found).  This option may be removed at some point, since it only applies to maps
+    /// generated before map saving was merged into master.
+    LoadLegacy(PathBuf),
+    /// If set, load the world file from this path (errors if path not found).
+    Load(PathBuf),
+    /// If set, look for  the world file at this asset specifier (errors if asset is not found).
+    ///
+    /// NOTE: Could stand to merge this with `Load` and construct an enum that can handle either a
+    /// PathBuf or an asset specifier, at some point.
+    LoadAsset(String),
+}
+
+impl Default for FileOpts {
+    fn default() -> Self {
+        Self::Generate
+    }
+}
+
+pub struct WorldOpts {
+    /// Set to false to disable seeding elements during worldgen.
+    pub seed_elements: bool,
+    pub world_file: FileOpts,
+}
+
+impl Default for WorldOpts {
+    fn default() -> Self {
+        Self {
+            seed_elements: true,
+            world_file: Default::default(),
+        }
+    }
+}
+
+/// LEGACY: Remove when people stop caring.
+#[derive(Serialize, Deserialize)]
+#[repr(C)]
+pub struct WorldFileLegacy {
+    /// Saved altitude height map.
+    pub alt: Box<[Alt]>,
+    /// Saved basement height map.
+    pub basement: Box<[Alt]>,
+}
+
+/// Version of the world map intended for use in Veloren 0.5.0.
+#[derive(Serialize, Deserialize)]
+#[repr(C)]
+pub struct WorldMap_0_5_0 {
+    /// Saved altitude height map.
+    pub alt: Box<[Alt]>,
+    /// Saved basement height map.
+    pub basement: Box<[Alt]>,
+}
+
+/// Errors when converting a map to the most recent type (currently,
+/// shared by the various map types, but at some point we might switch to
+/// version-specific errors if it feels worthwhile).
+#[derive(Debug)]
+pub enum WorldFileError {
+    /// Map size was invalid, and it can't be converted to a valid one.
+    WorldSizeInvalid,
+}
+
+/// WORLD MAP.
+///
+/// A way to store certain components between runs of map generation.  Only intended for
+/// development purposes--no attempt is made to detect map invalidation or make sure that the map
+/// is synchronized with updates to noise-rs, changes to other parameters, etc.
+///
+/// The map is verisoned to enable format detection between versions of Veloren, so that when we
+/// update the map format we don't break existing maps (or at least, we will try hard not to break
+/// maps between versions; if we can't avoid it, we can at least give a reasonable error message).
+///
+/// NOTE: We rely somemwhat heavily on the implementation specifics of bincode to make sure this is
+/// backwards compatible.  When adding new variants here, Be very careful to make sure tha the old
+/// variants are preserved in the correct order and with the correct names and indices, and make
+/// sure to keep the #[repr(u32)]!
+///
+/// All non-legacy versions of world files should (ideally) fit in this format.  Since the format
+/// contains a version and is designed to be extensible backwards-compatibly, the only
+/// reason not to use this forever would be if we decided to move away from BinCode, or
+/// store data across multiple files (or something else weird I guess).
+///
+/// Update this when you add a new map version.
+#[derive(Serialize, Deserialize)]
+#[repr(u32)]
+pub enum WorldFile {
+    Veloren0_5_0(WorldMap_0_5_0) = 0,
+}
+
+/// Data for the most recent map type.  Update this when you add a new map verson.
+pub type ModernMap = WorldMap_0_5_0;
+
+/// The default world map.
+///
+/// TODO: Consider using some naming convention to automatically change this
+/// with changing versions, or at least keep it in a constant somewhere that's
+/// easy to change.
+pub const DEFAULT_WORLD_MAP: &'static str = "world.map.veloren_0_5_0_0";
+
+impl WorldFileLegacy {
+    #[inline]
+    /// Idea: each map type except the latest knows how to transform
+    /// into the the subsequent map version, and each map type including the
+    /// latest exposes an "into_modern()" method that converts this map type
+    /// to the modern map type.  Thus, to migrate a map from an old format to a new
+    /// format, we just need to transform the old format to the subsequent map
+    /// version, and then call .into_modern() on that--this should construct a call chain that
+    /// ultimately ends up with a modern version.
+    pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
+        if self.alt.len() != self.basement.len()
+            || self.alt.len() != WORLD_SIZE.x as usize * WORLD_SIZE.y as usize
+        {
+            return Err(WorldFileError::WorldSizeInvalid);
+        }
+
+        let map = WorldMap_0_5_0 {
+            alt: self.alt,
+            basement: self.basement,
+        };
+
+        map.into_modern()
+    }
+}
+
+impl WorldMap_0_5_0 {
+    #[inline]
+    pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
+        if self.alt.len() != self.basement.len()
+            || self.alt.len() != WORLD_SIZE.x as usize * WORLD_SIZE.y as usize
+        {
+            return Err(WorldFileError::WorldSizeInvalid);
+        }
+
+        Ok(self)
+    }
+}
+
+impl WorldFile {
+    /// Turns map data from the latest version into a versioned WorldFile ready for serialization.
+    /// Whenever a new map is updated, just change the variant we construct here to make sure we're
+    /// using the latest map version.
+
+    pub fn new(map: ModernMap) -> Self {
+        WorldFile::Veloren0_5_0(map)
+    }
+
+    #[inline]
+    /// Turns a WorldFile into the latest version.  Whenever a new map version is added, just add
+    /// it to this match statement.
+    pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
+        match self {
+            WorldFile::Veloren0_5_0(map) => map.into_modern(),
+        }
+    }
 }
 
 pub struct WorldSim {
@@ -106,23 +291,47 @@ pub struct WorldSim {
 }
 
 impl WorldSim {
-    pub fn generate(seed: u32) -> Self {
+    pub fn generate(seed: u32, opts: WorldOpts) -> Self {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+        // NOTE: Change 1.0 to 4.0, while multiplying grid_size by 4, for a 4x
+        // improvement in world detail.  You may also want to set mins_per_sec to 1 / (4.0 * 4.0)
+        // in ./erosion.rs, in order to get a similar rate of river formation.
+        let continent_scale = 1.0/*4.0*/
+            * 5_000.0f64
+                .div(32.0)
+                .mul(TerrainChunkSize::RECT_SIZE.x as f64);
+        let rock_lacunarity = 2.0;
+        let uplift_scale = 128.0;
+        let uplift_turb_scale = uplift_scale / 4.0;
 
+        // NOTE: Changing order will significantly change WorldGen, so try not to!
         let gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
             turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
-            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(rng.gen()),
-            hill_nz: SuperSimplex::new().set_seed(rng.gen()),
-            alt_nz: HybridMulti::new()
-                .set_octaves(8)
-                .set_persistence(0.1)
+            chaos_nz: RidgedMulti::new()
+                .set_octaves(7)
+                .set_frequency(RidgedMulti::DEFAULT_FREQUENCY * (5_000.0 / continent_scale))
                 .set_seed(rng.gen()),
-            temp_nz: SuperSimplex::new().set_seed(rng.gen()),
+            hill_nz: SuperSimplex::new().set_seed(rng.gen()),
+            alt_nz: util::HybridMulti::new()
+                .set_octaves(8)
+                .set_frequency((10_000.0 / continent_scale) as f64)
+                // persistence = lacunarity^(-(1.0 - fractal increment))
+                .set_lacunarity(util::HybridMulti::DEFAULT_LACUNARITY)
+                .set_persistence(util::HybridMulti::DEFAULT_LACUNARITY.powf(-(1.0 - 0.0)))
+                .set_offset(0.0)
+                .set_seed(rng.gen()),
+            temp_nz: Fbm::new()
+                .set_octaves(6)
+                .set_persistence(0.5)
+                .set_frequency(1.0 / (((1 << 6) * 64) as f64))
+                .set_lacunarity(2.0)
+                .set_seed(rng.gen()),
+
             small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
             cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
-            warp_nz: FastNoise::new(rng.gen()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
+            warp_nz: FastNoise::new(rng.gen()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
@@ -134,25 +343,97 @@ impl WorldSim {
             region_gen: StructureGen2d::new(rng.gen(), 400, 96),
             cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
-                .set_octaves(12)
-                .set_persistence(0.125)
-                .set_frequency(1.0)
-                // .set_octaves(6)
-                // .set_persistence(0.5)
+                .set_octaves(9)
+                .set_persistence(0.4)
+                .set_frequency(0.2)
                 .set_seed(rng.gen()),
 
             fast_turb_x_nz: FastNoise::new(rng.gen()),
             fast_turb_y_nz: FastNoise::new(rng.gen()),
 
             town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
+            river_seed: RandomField::new(rng.gen()),
+            rock_strength_nz: Fbm::new()
+                .set_octaves(10)
+                .set_lacunarity(rock_lacunarity)
+                // persistence = lacunarity^(-(1.0 - fractal increment))
+                // NOTE: In paper, fractal increment is roughly 0.25.
+                .set_persistence(rock_lacunarity.powf(-(1.0 - 0.25)))
+                .set_frequency(
+                    1.0 * (5_000.0 / continent_scale)
+                        / (2.0 * TerrainChunkSize::RECT_SIZE.x as f64 * 2.0.powi(10 - 1)),
+                )
+                .set_seed(rng.gen()),
+            uplift_nz: Worley::new()
+                .set_seed(rng.gen())
+                .set_frequency(1.0 / (TerrainChunkSize::RECT_SIZE.x as f64 * uplift_scale))
+                .set_displacement(1.0)
+                .set_range_function(RangeFunction::Euclidean),
         };
 
-        let river_seed = RandomField::new(rng.gen());
-        let rock_strength_nz = Fbm::new()
-            .set_octaves(8)
-            .set_persistence(0.9)
-            .set_seed(rng.gen());
+        let river_seed = &gen_ctx.river_seed;
+        let rock_strength_nz = &gen_ctx.rock_strength_nz;
 
+        // Suppose the old world has grid spacing Δx' = Δy', new Δx = Δy.
+        // We define grid_scale such that Δx = height_scale * Δx' ⇒
+        //  grid_scale = Δx / Δx'.
+        let grid_scale = 1.0f64 / 4.0/*1.0*/;
+
+        // Now, suppose we want to generate a world with "similar" topography, defined in this case
+        // as having roughly equal slopes at steady state, with the simulation taking roughly as
+        // many steps to get to the point the previous world was at when it finished being
+        // simulated.
+        //
+        // Some computations with our coupled SPL/debris flow give us (for slope S constant) the following
+        // suggested scaling parameters to make this work:
+        //   k_fs_scale ≡ (K𝑓 / K𝑓') = grid_scale^(-2m) = grid_scale^(-2θn)
+        let k_fs_scale = |theta, n| grid_scale.powf(-2.0 * (theta * n) as f64);
+
+        //   k_da_scale ≡ (K_da / K_da') = grid_scale^(-2q)
+        let k_da_scale = |q| grid_scale.powf(-2.0 * q);
+        //
+        // Some other estimated parameters are harder to come by and *much* more dubious, not being accurate
+        // for the coupled equation. But for the SPL only one we roughly find, for h the height at steady
+        // state and time τ = time to steady state, with Hack's Law estimated b = 2.0 and various other
+        // simplifying assumptions, the estimate:
+        //   height_scale ≡ (h / h') = grid_scale^(n)
+        let height_scale = |n: f32| grid_scale.powf(n as f64) as Alt;
+        //   time_scale ≡ (τ / τ') = grid_scale^(n)
+        let time_scale = |n: f32| grid_scale.powf(n as f64);
+        //
+        // Based on this estimate, we have:
+        //   delta_t_scale ≡ (Δt / Δt') = time_scale
+        let delta_t_scale = |n: f32| time_scale(n);
+        //   alpha_scale ≡ (α / α') = height_scale^(-1)
+        let alpha_scale = |n: f32| height_scale(n).recip() as f32;
+        //
+        // Slightly more dubiously (need to work out the math better) we find:
+        //   k_d_scale ≡ (K_d / K_d') = grid_scale^2 / (/*height_scale * */ time_scale)
+        let k_d_scale = |n: f32| grid_scale.powi(2) / (/*height_scale(n) * */time_scale(n));
+        //   epsilon_0_scale ≡ (ε₀ / ε₀') = height_scale(n) / time_scale(n)
+        let epsilon_0_scale = |n| (height_scale(n) / time_scale(n) as Alt) as f32;
+
+        // Approximate n for purposes of computation of parameters above over the whole grid (when
+        // a chunk isn't available).
+        let n_approx = 1.0;
+        let max_erosion_per_delta_t = 64.0 * delta_t_scale(n_approx);
+        let n_steps = 100;
+        let n_small_steps = 0;
+        let n_post_load_steps = 0;
+
+        // Logistic regression.  Make sure x ∈ (0, 1).
+        let logit = |x: f64| x.ln() - (-x).ln_1p();
+        // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
+        let logistic_2_base = 3.0f64.sqrt() * f64::consts::FRAC_2_PI;
+        // Assumes μ = 0, σ = 1
+        let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
+
+        let min_epsilon =
+            1.0 / (WORLD_SIZE.x as f64 * WORLD_SIZE.y as f64).max(f64::EPSILON as f64 * 0.5);
+        let max_epsilon = (1.0 - 1.0 / (WORLD_SIZE.x as f64 * WORLD_SIZE.y as f64))
+            .min(1.0 - f64::EPSILON as f64 * 0.5);
+
+        // No NaNs in these uniform vectors, since the original noise value always returns Some.
         let ((alt_base, _), (chaos, _)) = rayon::join(
             || {
                 uniform_noise(|_, wposf| {
@@ -172,25 +453,38 @@ impl WorldSim {
             },
             || {
                 uniform_noise(|_, wposf| {
-                    // From 0 to 1.6, but the distribution before the max is from -1 and 1, so there is
-                    // a 50% chance that hill will end up at 0.
-                    let hill = (0.0
+                    // From 0 to 1.6, but the distribution before the max is from -1 and 1.6, so there is
+                    // a 50% chance that hill will end up at 0.3 or lower, and probably a very high
+                    // change it will be exactly 0.
+                    let hill = (0.0f64
                         + gen_ctx
                             .hill_nz
-                            .get((wposf.div(1_500.0)).into_array())
+                            .get(
+                                (wposf
+                                    .mul(32.0)
+                                    .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                                    .div(1_500.0))
+                                .into_array(),
+                            )
                             .min(1.0)
                             .max(-1.0)
                             .mul(1.0)
                         + gen_ctx
                             .hill_nz
-                            .get((wposf.div(400.0)).into_array())
+                            .get(
+                                (wposf
+                                    .mul(32.0)
+                                    .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                                    .div(400.0))
+                                .into_array(),
+                            )
                             .min(1.0)
                             .max(-1.0)
                             .mul(0.3))
                     .add(0.3)
                     .max(0.0);
 
-                    // chaos produces a value in [0.12, 1.24].  It is a meta-level factor intended to
+                    // chaos produces a value in [0.12, 1.32].  It is a meta-level factor intended to
                     // reflect how "chaotic" the region is--how much weird stuff is going on on this
                     // terrain.
                     Some(
@@ -213,8 +507,8 @@ impl WorldSim {
                             .min(1.0),
                         )
                         // Chaos is always increased by a little when we're on a hill (but remember
-                        // that hill is 0 about 50% of the time).
-                        // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
+                        // that hill is 0.3 or less about 50% of the time).
+                        // [0, 1] + 0.2 * [0, 1.6] = [0, 1.32]
                         .add(0.2 * hill)
                         // We can't have *no* chaos!
                         .max(0.12)) as f32,
@@ -226,7 +520,9 @@ impl WorldSim {
         // We ignore sea level because we actually want to be relative to sea level here and want
         // things in CONFIG.mountain_scale units, but otherwise this is a correct altitude
         // calculation.  Note that this is using the "unadjusted" temperature.
-        let (alt_old, alt_old_inverse) = uniform_noise(|posi, wposf| {
+        //
+        // No NaNs in these uniform vectors, since the original noise value always returns Some.
+        let (alt_old, _) = uniform_noise(|posi, wposf| {
             // This is the extension upwards from the base added to some extra noise from -1 to
             // 1.
             //
@@ -262,7 +558,13 @@ impl WorldSim {
                 (0.0 + alt_main
                     + (gen_ctx
                         .small_nz
-                        .get((wposf.div(300.0)).into_array())
+                        .get(
+                            (wposf
+                                .mul(32.0)
+                                .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                                .div(300.0))
+                            .into_array(),
+                        )
                         .min(1.0)
                         .max(-1.0))
                     .mul(alt_main.powf(0.8).max(/*0.25*/ 0.15))
@@ -273,13 +575,13 @@ impl WorldSim {
             };
 
             // Now we can compute the final altitude using chaos.
-            // We multiply by chaos clamped to [0.1, 1.24] to get a value between [0.03, 2.232]
+            // We multiply by chaos clamped to [0.1, 1.32] to get a value between [0.03, 2.232]
             // for alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea
             // level to get an adjusted value, then multiply the whole thing by map_edge_factor
             // (TODO: compute final bounds).
             //
-            // [-.3675, .3325] + [-0.445, 0.565] * [0.12, 1.24]^1.2
-            // ~ [-.3675, .3325] + [-0.445, 0.565] * [_, 1.30]
+            // [-.3675, .3325] + [-0.445, 0.565] * [0.12, 1.32]^1.2
+            // ~ [-.3675, .3325] + [-0.445, 0.565] * [0.07, 1.40]
             // = [-.3675, .3325] + ([-0.5785, 0.7345])
             // = [-0.946, 1.067]
             Some(
@@ -295,68 +597,478 @@ impl WorldSim {
             )
         });
 
-        // Find the minimum and maximum original altitudes.
-        // NOTE: Will panic if there is no land, and will not work properly if the minimum and
-        // maximum land altitude are identical (will most likely panic later).
-        let (alt_old_min_index, _alt_old_min) = alt_old_inverse
-            .iter()
-            .copied()
-            .find(|&(_, h)| h > 0.0)
-            .unwrap();
-        let &(alt_old_max_index, _alt_old_max) = alt_old_inverse.last().unwrap();
-        let alt_old_min_uniform = alt_old[alt_old_min_index].0;
-        let alt_old_max_uniform = alt_old[alt_old_max_index].0;
-
         // Calculate oceans.
-        let old_height = |posi: usize| alt_old[posi].1;
-        let old_height_uniform = |posi: usize| alt_old[posi].0;
-        let is_ocean = get_oceans(old_height);
+        let is_ocean = get_oceans(|posi: usize| alt_old[posi].1);
+        // NOTE: Uncomment if you want oceans to exclusively be on the border of the map.
+        /* let is_ocean = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        .into_par_iter()
+        .map(|i| map_edge_factor(i) == 0.0)
+        .collect::<Vec<_>>(); */
         let is_ocean_fn = |posi: usize| is_ocean[posi];
+
+        let turb_wposf_div = 8.0;
+        let n_func = |posi| {
+            if is_ocean_fn(posi) {
+                return 1.0;
+            }
+            1.0
+        };
+        let old_height = |posi: usize| {
+            alt_old[posi].1 * CONFIG.mountain_scale * height_scale(n_func(posi)) as f32
+        };
+
+        // NOTE: Needed if you wish to use the distance to the point defining the Worley cell, not
+        // just the value within that cell.
+        // let uplift_nz_dist = gen_ctx.uplift_nz.clone().enable_range(true);
+
+        // Recalculate altitudes without oceans.
+        // NaNs in these uniform vectors wherever is_ocean_fn returns true.
+        let (alt_old_no_ocean, _) = uniform_noise(|posi, _| {
+            if is_ocean_fn(posi) {
+                None
+            } else {
+                Some(old_height(posi))
+            }
+        });
+        let (uplift_uniform, _) = uniform_noise(|posi, _wposf| {
+            if is_ocean_fn(posi) {
+                None
+            } else {
+                let oheight = alt_old_no_ocean[posi].0 as f64 - 0.5;
+                let height = (oheight + 0.5).powf(2.0);
+                Some(height)
+            }
+        });
+
+        let alt_old_min_uniform = 0.0;
+        let alt_old_max_uniform = 1.0;
+
+        let inv_func = |x: f64| x;
+        let alt_exp_min_uniform = inv_func(min_epsilon);
+        let alt_exp_max_uniform = inv_func(max_epsilon);
+
+        let erosion_factor = |x: f64| {
+            ((inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform))
+        };
+        let rock_strength_div_factor = (2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0;
+        let theta_func = |_posi| 0.4;
+        let kf_func = {
+            |posi| {
+                let kf_scale_i = k_fs_scale(theta_func(posi), n_func(posi)) as f64;
+                if is_ocean_fn(posi) {
+                    return 1.0e-4 * kf_scale_i;
+                }
+
+                let kf_i = // kf = 1.5e-4: high-high (plateau [fan sediment])
+                // kf = 1e-4: high (plateau)
+                // kf = 2e-5: normal (dike [unexposed])
+                // kf = 1e-6: normal-low (dike [exposed])
+                // kf = 2e-6: low (mountain)
+                // --
+                // kf = 2.5e-7 to 8e-7: very low (Cordonnier papers on plate tectonics)
+                // ((1.0 - uheight) * (1.5e-4 - 2.0e-6) + 2.0e-6) as f32
+                //
+                // ACTUAL recorded values worldwide: much lower...
+                1.0e-6
+                ;
+                kf_i * kf_scale_i
+            }
+        };
+        let kd_func = {
+            |posi| {
+                let n = n_func(posi);
+                let kd_scale_i = k_d_scale(n);
+                if is_ocean_fn(posi) {
+                    let kd_i = 1.0e-2 / 4.0;
+                    return kd_i * kd_scale_i;
+                }
+                // kd = 1e-1: high (mountain, dike)
+                // kd = 1.5e-2: normal-high (plateau [fan sediment])
+                // kd = 1e-2: normal (plateau)
+                let kd_i = 1.0e-2 / 4.0;
+                kd_i * kd_scale_i
+            }
+        };
+        let g_func = |posi| {
+            if map_edge_factor(posi) == 0.0 {
+                return 0.0;
+            }
+            // G = d* v_s / p_0, where
+            //  v_s is the settling velocity of sediment grains
+            //  p_0 is the mean precipitation rate
+            //  d* is the sediment concentration ratio (between concentration near riverbed
+            //  interface, and average concentration over the water column).
+            //  d* varies with Rouse number which defines relative contribution of bed, suspended,
+            //  and washed loads.
+            //
+            // G is typically on the order of 1 or greater.  However, we are only guaranteed to
+            // converge for G ≤ 1, so we keep it in the chaos range of [0.12, 1.32].
+            1.0
+        };
+        let epsilon_0_func = |posi| {
+            // epsilon_0_scale is roughly [using Hack's Law with b = 2 and SPL without debris flow or
+            // hillslopes] equal to the ratio of the old to new area, to the power of -n_i.
+            let epsilon_0_scale_i = epsilon_0_scale(n_func(posi));
+            if is_ocean_fn(posi) {
+                // marine: ε₀ = 2.078e-3
+                let epsilon_0_i = 2.078e-3 / 4.0;
+                return epsilon_0_i * epsilon_0_scale_i;
+            }
+            let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+                .map(|e| e as f64);
+            let turb_wposf = wposf
+                .mul(5_000.0 / continent_scale)
+                .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                .div(turb_wposf_div);
+            let turb = Vec2::new(
+                gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
+                gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
+            ) * uplift_turb_scale
+                * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+            let turb_wposf = wposf + turb;
+            let uheight = gen_ctx
+                .uplift_nz
+                .get(turb_wposf.into_array())
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            let wposf3 = Vec3::new(
+                wposf.x,
+                wposf.y,
+                uheight * CONFIG.mountain_scale as f64 * rock_strength_div_factor,
+            );
+            let rock_strength = gen_ctx
+                .rock_strength_nz
+                .get(wposf3.into_array())
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            let center = 0.4;
+            let dmin = center - 0.05;
+            let dmax = center + 0.05;
+            let log_odds = |x: f64| logit(x) - logit(center);
+            let ustrength = logistic_cdf(
+                1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
+                    + 1.0 * log_odds(uheight.min(dmax).max(dmin)),
+            );
+            // marine: ε₀ = 2.078e-3
+            // San Gabriel Mountains: ε₀ = 3.18e-4
+            // Oregon Coast Range: ε₀ = 2.68e-4
+            // Frogs Hollow (peak production = 0.25): ε₀ = 1.41e-4
+            // Point Reyes: ε₀ = 8.1e-5
+            // Nunnock River (fractured granite, least weathered?): ε₀ = 5.3e-5
+            let epsilon_0_i = ((1.0 - ustrength) * (2.078e-3 - 5.3e-5) + 5.3e-5) as f32 / 4.0;
+            epsilon_0_i * epsilon_0_scale_i
+        };
+        let alpha_func = |posi| {
+            let alpha_scale_i = alpha_scale(n_func(posi));
+            if is_ocean_fn(posi) {
+                // marine: α = 3.7e-2
+                return 3.7e-2 * alpha_scale_i;
+            }
+            let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+                .map(|e| e as f64);
+            let turb_wposf = wposf
+                .mul(5_000.0 / continent_scale)
+                .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                .div(turb_wposf_div);
+            let turb = Vec2::new(
+                gen_ctx.turb_x_nz.get(turb_wposf.into_array()),
+                gen_ctx.turb_y_nz.get(turb_wposf.into_array()),
+            ) * uplift_turb_scale
+                * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+            let turb_wposf = wposf + turb;
+            let uheight = gen_ctx
+                .uplift_nz
+                .get(turb_wposf.into_array())
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            let wposf3 = Vec3::new(
+                wposf.x,
+                wposf.y,
+                uheight * CONFIG.mountain_scale as f64 * rock_strength_div_factor,
+            );
+            let rock_strength = gen_ctx
+                .rock_strength_nz
+                .get(wposf3.into_array())
+                .min(1.0)
+                .max(-1.0)
+                .mul(0.5)
+                .add(0.5);
+            let center = 0.4;
+            let dmin = center - 0.05;
+            let dmax = center + 0.05;
+            let log_odds = |x: f64| logit(x) - logit(center);
+            let ustrength = logistic_cdf(
+                1.0 * logit(rock_strength.min(1.0f64 - 1e-7).max(1e-7))
+                    + 1.0 * log_odds(uheight.min(dmax).max(dmin)),
+            );
+            // Frog Hollow (peak production = 0.25): α = 4.2e-2
+            // San Gabriel Mountains: α = 3.8e-2
+            // marine: α = 3.7e-2
+            // Oregon Coast Range: α = 3e-2
+            // Nunnock river (fractured granite, least weathered?): α = 2e-3
+            // Point Reyes: α = 1.6e-2
+            // The stronger  the rock, the faster the decline in soil production.
+            let alpha_i = (ustrength * (4.2e-2 - 1.6e-2) + 1.6e-2) as f32;
+            alpha_i * alpha_scale_i
+        };
+        let uplift_fn = |posi| {
+            if is_ocean_fn(posi) {
+                return 0.0;
+            }
+            let height = (uplift_uniform[posi].1 - alt_old_min_uniform) as f64
+                / (alt_old_max_uniform - alt_old_min_uniform) as f64;
+
+            let height = height.mul(max_epsilon - min_epsilon).add(min_epsilon);
+            let height = erosion_factor(height);
+            assert!(height >= 0.0);
+            assert!(height <= 1.0);
+
+            // u = 1e-3: normal-high (dike, mountain)
+            // u = 5e-4: normal (mid example in Yuan, average mountain uplift)
+            // u = 2e-4: low (low example in Yuan; known that lagoons etc. may have u ~ 0.05).
+            // u = 0: low (plateau [fan, altitude = 0.0])
+            let height = height.mul(max_erosion_per_delta_t);
+            height as f64
+        };
+        let alt_func = |posi| {
+            if is_ocean_fn(posi) {
+                old_height(posi)
+            } else {
+                (old_height(posi) as f64 / CONFIG.mountain_scale as f64) as f32 - 0.5
+            }
+        };
+
+        // Parse out the contents of various map formats into the values we need.
+        let parsed_world_file = (|| {
+            let map = match opts.world_file {
+                FileOpts::LoadLegacy(ref path) => {
+                    let file = match File::open(path) {
+                        Ok(file) => file,
+                        Err(err) => {
+                            log::warn!("Couldn't read path for maps: {:?}", err);
+                            return None;
+                        }
+                    };
+
+                    let reader = BufReader::new(file);
+                    let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(err) => {
+                            log::warn!("Couldn't parse legacy map: {:?}).  Maybe you meant to try a regular load?", err);
+                            return None;
+                        }
+                    };
+
+                    map.into_modern()
+                }
+                FileOpts::Load(ref path) => {
+                    let file = match File::open(path) {
+                        Ok(file) => file,
+                        Err(err) => {
+                            log::warn!("Couldn't read path for maps: {:?}", err);
+                            return None;
+                        }
+                    };
+
+                    let reader = BufReader::new(file);
+                    let map: WorldFile = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(err) => {
+                            log::warn!("Couldn't parse modern map: {:?}).  Maybe you meant to try a legacy load?", err);
+                            return None;
+                        }
+                    };
+
+                    map.into_modern()
+                }
+                FileOpts::LoadAsset(ref specifier) => {
+                    let reader = match assets::load_file(specifier, &["bin"]) {
+                        Ok(reader) => reader,
+                        Err(err) => {
+                            log::warn!(
+                                "Couldn't read asset specifier {:?} for maps: {:?}",
+                                specifier,
+                                err
+                            );
+                            return None;
+                        }
+                    };
+
+                    let map: WorldFile = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(err) => {
+                            log::warn!("Couldn't parse modern map: {:?}).  Maybe you meant to try a legacy load?", err);
+                            return None;
+                        }
+                    };
+
+                    map.into_modern()
+                }
+                FileOpts::Generate | FileOpts::Save => return None,
+            };
+
+            match map {
+                Ok(map) => Some(map),
+                Err(e) => {
+                    match e {
+                        WorldFileError::WorldSizeInvalid => {
+                            log::warn!("World size of map is invalid.");
+                        }
+                    }
+                    None
+                }
+            }
+        })();
 
         // Perform some erosion.
-        let max_erosion_per_delta_t = 32.0 / CONFIG.mountain_scale as f64;
 
-        // Logistic regression.  Make sure x ∈ (0, 1).
-        let logit = |x: f64| x.ln() - (-x).ln_1p();
-        // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-        let logistic_2_base = 3.0f64.sqrt() * f64::consts::FRAC_2_PI;
-        // Assumes μ = 0, σ = 1
-        let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
+        let (alt, basement) = if let Some(map) = parsed_world_file {
+            (map.alt, map.basement)
+        } else {
+            let (alt, basement) = do_erosion(
+                max_erosion_per_delta_t as f32,
+                n_steps,
+                &river_seed,
+                // varying conditions
+                &rock_strength_nz,
+                // initial conditions
+                |posi| alt_func(posi),
+                |posi| alt_func(posi) - if is_ocean_fn(posi) { 0.0 } else { 0.0 },
+                is_ocean_fn,
+                // empirical constants
+                uplift_fn,
+                |posi| n_func(posi),
+                |posi| theta_func(posi),
+                |posi| kf_func(posi),
+                |posi| kd_func(posi),
+                |posi| g_func(posi),
+                |posi| epsilon_0_func(posi),
+                |posi| alpha_func(posi),
+                // scaling factors
+                |n| height_scale(n),
+                k_d_scale(n_approx),
+                |q| k_da_scale(q),
+            );
 
-        let erosion_pow = 2.0;
-        let n_steps = 100;
-        let erosion_factor = |x: f64| logistic_cdf(erosion_pow * logit(x));
-        let alt = do_erosion(
-            0.0,
-            max_erosion_per_delta_t as f32,
-            n_steps,
-            &river_seed,
-            &rock_strength_nz,
-            |posi| {
-                if is_ocean_fn(posi) {
-                    old_height(posi)
-                } else {
-                    5.0 / CONFIG.mountain_scale
+            // Quick "small scale" erosion cycle in order to lower extreme angles.
+            do_erosion(
+                1.0f32,
+                n_small_steps,
+                &river_seed,
+                &rock_strength_nz,
+                |posi| alt[posi] as f32,
+                |posi| basement[posi] as f32,
+                is_ocean_fn,
+                |posi| uplift_fn(posi) * (1.0 / max_erosion_per_delta_t),
+                |posi| n_func(posi),
+                |posi| theta_func(posi),
+                |posi| kf_func(posi),
+                |posi| kd_func(posi),
+                |posi| g_func(posi),
+                |posi| epsilon_0_func(posi),
+                |posi| alpha_func(posi),
+                |n| height_scale(n),
+                k_d_scale(n_approx),
+                |q| k_da_scale(q),
+            )
+        };
+
+        // Save map, if necessary.
+        // NOTE: We wll always save a map with latest version.
+        let map = WorldFile::new(ModernMap { alt, basement });
+        (|| {
+            if let FileOpts::Save = opts.world_file {
+                use std::time::SystemTime;
+                // Check if folder exists and create it if it does not
+                let mut path = PathBuf::from("./maps");
+                if !path.exists() {
+                    if let Err(err) = std::fs::create_dir(&path) {
+                        log::warn!("Couldn't create folder for map: {:?}", err);
+                        return;
+                    }
                 }
-            },
-            is_ocean_fn,
-            |posi| {
-                let height = ((old_height_uniform(posi) - alt_old_min_uniform) as f64
-                    / (alt_old_max_uniform - alt_old_min_uniform) as f64)
-                    .max(1e-7 / CONFIG.mountain_scale as f64)
-                    .min(1.0f64 - 1e-7);
-                let height = erosion_factor(height);
-                let height = height
-                    .mul(max_erosion_per_delta_t * 7.0 / 8.0)
-                    .add(max_erosion_per_delta_t / 8.0);
-                height as f32
-            },
-        );
+                path.push(format!(
+                    // TODO: Work out a nice bincode file extension.
+                    "map_{}.bin",
+                    SystemTime::now()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .map(|d| d.as_millis())
+                        .unwrap_or(0)
+                ));
+                let file = match File::create(path) {
+                    Ok(file) => file,
+                    Err(err) => {
+                        log::warn!("Couldn't create file for maps: {:?}", err);
+                        return;
+                    }
+                };
+
+                let writer = BufWriter::new(file);
+                if let Err(err) = bincode::serialize_into(writer, &map) {
+                    log::warn!("Couldn't write map: {:?}", err);
+                }
+            }
+        })();
+
+        // Skip validation--we just performed a no-op conversion for this map, so it had better be
+        // valid!
+        let ModernMap { alt, basement } = map.into_modern().unwrap();
+
+        // Additional small-scale eroson after map load, only used during testing.
+        let (alt, basement) = if n_post_load_steps == 0 {
+            (alt, basement)
+        } else {
+            do_erosion(
+                1.0f32,
+                n_post_load_steps,
+                &river_seed,
+                &rock_strength_nz,
+                |posi| alt[posi] as f32,
+                |posi| basement[posi] as f32,
+                is_ocean_fn,
+                |posi| uplift_fn(posi) * (1.0 / max_erosion_per_delta_t),
+                |posi| n_func(posi),
+                |posi| theta_func(posi),
+                |posi| kf_func(posi),
+                |posi| kd_func(posi),
+                |posi| g_func(posi),
+                |posi| epsilon_0_func(posi),
+                |posi| alpha_func(posi),
+                |n| height_scale(n),
+                k_d_scale(n_approx),
+                |q| k_da_scale(q),
+            )
+        };
+
         let is_ocean = get_oceans(|posi| alt[posi]);
         let is_ocean_fn = |posi: usize| is_ocean[posi];
-        let mut dh = downhill(&alt, /*old_height*/ is_ocean_fn);
-        let (boundary_len, indirection, water_alt_pos) = get_lakes(&/*water_alt*/alt, &mut dh);
-        let flux_old = get_drainage(&water_alt_pos, &dh, boundary_len);
+        let mut dh = downhill(|posi| alt[posi], is_ocean_fn);
+        let (boundary_len, indirection, water_alt_pos, maxh) = get_lakes(|posi| alt[posi], &mut dh);
+        log::debug!("Max height: {:?}", maxh);
+        let (mrec, mstack, mwrec) = {
+            let mut wh = vec![0.0; WORLD_SIZE.x * WORLD_SIZE.y];
+            get_multi_rec(
+                |posi| alt[posi],
+                &dh,
+                &water_alt_pos,
+                &mut wh,
+                WORLD_SIZE.x,
+                WORLD_SIZE.y,
+                TerrainChunkSize::RECT_SIZE.x as Compute,
+                TerrainChunkSize::RECT_SIZE.y as Compute,
+                maxh,
+            )
+        };
+        let flux_old = get_multi_drainage(&mstack, &mrec, &*mwrec, boundary_len);
+        let flux_rivers = get_drainage(&water_alt_pos, &dh, boundary_len);
+        // TODO: Make rivers work with multi-direction flux as well.
+        // let flux_rivers = flux_old.clone();
 
         let water_height_initial = |chunk_idx| {
             let indirection_idx = indirection[chunk_idx];
@@ -366,10 +1078,7 @@ impl WorldSim {
             } else {
                 indirection_idx as usize
             };
-            // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
-            // pushed towards the point identified by pass_idx).
-            let neighbor_pass_idx = dh[lake_idx];
-            let chunk_water_alt = if neighbor_pass_idx < 0 {
+            let chunk_water_alt = if dh[lake_idx] < 0 {
                 // This is either a boundary node (dh[chunk_idx] == -2, i.e. water is at sea level)
                 // or part of a lake that flows directly into the ocean.  In the former case, water
                 // is at sea level so we just return 0.0.  In the latter case, the lake bottom must
@@ -383,12 +1092,15 @@ impl WorldSim {
                 // figure out the initial water height (which fill_sinks will then extend to make
                 // sure it fills the entire basin).
 
-                // Find the height of the pass into which our lake is flowing.
-                let pass_height_j = alt[neighbor_pass_idx as usize];
                 // Find the height of "our" side of the pass (the part of it that drains into this
                 // chunk's lake).
-                let pass_idx = -indirection[lake_idx];
-                let pass_height_i = alt[pass_idx as usize];
+                let pass_idx = -indirection[lake_idx] as usize;
+                let pass_height_i = alt[pass_idx];
+                // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+                // pushed towards the point identified by pass_idx).
+                let neighbor_pass_idx = dh[pass_idx/*lake_idx*/];
+                // Find the height of the pass into which our lake is flowing.
+                let pass_height_j = alt[neighbor_pass_idx as usize];
                 // Find the maximum of these two heights.
                 let pass_height = pass_height_i.max(pass_height_j);
                 // Use the pass height as the initial water altitude.
@@ -399,8 +1111,17 @@ impl WorldSim {
             chunk_alt.max(chunk_water_alt)
         };
 
+        // NOTE: If for for some reason you need to avoid the expensive `fill_sinks` step here, and
+        // we haven't yet replaced it with a faster version, you may comment out this line and
+        // replace it with the commented-out code below; however, there are no guarantees that this
+        // will work correctly.
         let water_alt = fill_sinks(water_height_initial, is_ocean_fn);
-        let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
+        /* let water_alt = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        .into_par_iter()
+        .map(|posi| water_height_initial(posi))
+        .collect::<Vec<_>>(); */
+
+        let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_rivers);
 
         let water_alt = indirection
             .par_iter()
@@ -412,10 +1133,7 @@ impl WorldSim {
                 } else {
                     indirection_idx as usize
                 };
-                // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
-                // pushed towards the point identified by pass_idx).
-                let neighbor_pass_idx = dh[lake_idx];
-                if neighbor_pass_idx < 0 {
+                if dh[lake_idx] < 0 {
                     // This is either a boundary node (dh[chunk_idx] == -2, i.e. water is at sea level)
                     // or part of a lake that flows directly into the ocean.  In the former case, water
                     // is at sea level so we just return 0.0.  In the latter case, the lake bottom must
@@ -425,7 +1143,7 @@ impl WorldSim {
                     0.0
                 } else {
                     // This is not flowing into the ocean, so we can use the existing water_alt.
-                    water_alt[chunk_idx]
+                    water_alt[chunk_idx] as f32
                 }
             })
             .collect::<Vec<_>>()
@@ -440,19 +1158,6 @@ impl WorldSim {
         // Check whether any tiles around this tile are not water (since Lerp will ensure that they
         // are included).
         let pure_water = |posi: usize| {
-            /* let river_data = &rivers[posi];
-            match river_data.river_kind {
-                Some(RiverKind::Lake { .. }) => {
-                    // Lakes are always completely submerged.
-                    return true;
-                },
-                /* Some(RiverKind::River { cross_section }) if cross_section.x >= TerrainChunkSize::RECT_SIZE.x as f32 => {
-                    // Rivers that are wide enough are considered completely submerged (not a
-                    // completely fair approximation).
-                    return true;
-                }, */
-                _ => {}
-            } */
             let pos = uniform_idx_as_vec2(posi);
             for x in pos.x - 1..(pos.x + 1) + 1 {
                 for y in pos.y - 1..(pos.y + 1) + 1 {
@@ -467,25 +1172,31 @@ impl WorldSim {
             true
         };
 
-        let (pure_flux, _) = uniform_noise(|posi, _| {
-            if pure_water(posi) {
-                None
-            } else {
-                Some(flux_old[posi])
-            }
-        });
-
-        let ((alt_no_water, _), ((temp_base, _), (humid_base, _))) = rayon::join(
+        // NaNs in these uniform vectors wherever pure_water() returns true.
+        let (((alt_no_water, _), (pure_flux, _)), ((temp_base, _), (humid_base, _))) = rayon::join(
             || {
-                uniform_noise(|posi, _| {
-                    if pure_water(posi) {
-                        None
-                    } else {
-                        // A version of alt that is uniform over *non-water* (or land-adjacent water)
-                        // chunks.
-                        Some(alt[posi])
-                    }
-                })
+                rayon::join(
+                    || {
+                        uniform_noise(|posi, _| {
+                            if pure_water(posi) {
+                                None
+                            } else {
+                                // A version of alt that is uniform over *non-water* (or land-adjacent water)
+                                // chunks.
+                                Some(alt[posi] as f32)
+                            }
+                        })
+                    },
+                    || {
+                        uniform_noise(|posi, _| {
+                            if pure_water(posi) {
+                                None
+                            } else {
+                                Some(flux_old[posi])
+                            }
+                        })
+                    },
+                )
             },
             || {
                 rayon::join(
@@ -495,7 +1206,7 @@ impl WorldSim {
                                 None
                             } else {
                                 // -1 to 1.
-                                Some(gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32)
+                                Some(gen_ctx.temp_nz.get((wposf).into_array()) as f32)
                             }
                         })
                     },
@@ -523,6 +1234,7 @@ impl WorldSim {
             temp_base,
             chaos,
             alt,
+            basement,
             water_alt,
             dh,
             flux: flux_old,
@@ -544,46 +1256,21 @@ impl WorldSim {
             rng,
         };
 
-        this.seed_elements();
+        if opts.seed_elements {
+            this.seed_elements();
+        }
 
         this
     }
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of u32s.
     pub fn get_map(&self) -> Vec<u32> {
-        (0..WORLD_SIZE.x * WORLD_SIZE.y)
-            .into_par_iter()
-            .map(|chunk_idx| {
-                let pos = uniform_idx_as_vec2(chunk_idx);
-
-                let (alt, water_alt, river_kind) = self
-                    .get(pos)
-                    .map(|sample| (sample.alt, sample.water_alt, sample.river.river_kind))
-                    .unwrap_or((CONFIG.sea_level, CONFIG.sea_level, None));
-                let alt = ((alt - CONFIG.sea_level) / CONFIG.mountain_scale)
-                    .min(1.0)
-                    .max(0.0);
-                let water_alt = ((alt.max(water_alt) - CONFIG.sea_level) / CONFIG.mountain_scale)
-                    .min(1.0)
-                    .max(0.0);
-                match river_kind {
-                    Some(RiverKind::Ocean) => u32::from_le_bytes([64, 32, 0, 255]),
-                    Some(RiverKind::Lake { .. }) => u32::from_le_bytes([
-                        64 + (water_alt * 191.0) as u8,
-                        32 + (water_alt * 95.0) as u8,
-                        0,
-                        255,
-                    ]),
-                    Some(RiverKind::River { .. }) => u32::from_le_bytes([
-                        64 + (alt * 191.0) as u8,
-                        32 + (alt * 95.0) as u8,
-                        0,
-                        255,
-                    ]),
-                    None => u32::from_le_bytes([0, (alt * 255.0) as u8, 0, 255]),
-                }
-            })
-            .collect()
+        let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
+        // TODO: Parallelize again.
+        MapConfig::default().generate(&self, |pos, (r, g, b, a)| {
+            v[pos.y * WORLD_SIZE.x + pos.x] = u32::from_le_bytes([r, g, b, a]);
+        });
+        v
     }
 
     /// Prepare the world for simulation
@@ -598,7 +1285,7 @@ impl WorldSim {
         let mut locations = Vec::new();
 
         // Seed the world with some locations
-        for _ in 0..loc_count {
+        (0..loc_count).for_each(|_| {
             let cell_pos = Vec2::new(
                 self.rng.gen::<usize>() % grid_size.x,
                 self.rng.gen::<usize>() % grid_size.y,
@@ -611,7 +1298,7 @@ impl WorldSim {
             locations.push(Location::generate(wpos, &mut rng));
 
             loc_grid[cell_pos.y * grid_size.x + cell_pos.x] = Some(locations.len() - 1);
-        }
+        });
 
         // Find neighbours
         let mut loc_clone = locations
@@ -619,7 +1306,7 @@ impl WorldSim {
             .map(|l| l.center)
             .enumerate()
             .collect::<Vec<_>>();
-        for i in 0..locations.len() {
+        (0..locations.len()).for_each(|i| {
             let pos = locations[i].center.map(|e| e as i64);
 
             loc_clone.sort_by_key(|(_, l)| l.map(|e| e as i64).distance_squared(pos));
@@ -628,13 +1315,13 @@ impl WorldSim {
                 locations[i].neighbours.insert(*j);
                 locations[*j].neighbours.insert(i);
             });
-        }
+        });
 
         // Simulate invasion!
         let invasion_cycles = 25;
-        for _ in 0..invasion_cycles {
-            for i in 0..grid_size.x {
-                for j in 0..grid_size.y {
+        (0..invasion_cycles).for_each(|_| {
+            (0..grid_size.y).for_each(|j| {
+                (0..grid_size.x).for_each(|i| {
                     if loc_grid[j * grid_size.x + i].is_none() {
                         const R_COORDS: [i32; 5] = [-1, 0, 1, 0, -1];
                         let idx = self.rng.gen::<usize>() % 4;
@@ -646,15 +1333,20 @@ impl WorldSim {
                                 loc_grid.get(loc.y * grid_size.x + loc.x).cloned().flatten();
                         }
                     }
-                }
-            }
-        }
+                });
+            });
+        });
 
         // Place the locations onto the world
         let gen = StructureGen2d::new(self.seed, cell_size as u32, cell_size as u32 / 2);
-        for i in 0..WORLD_SIZE.x {
-            for j in 0..WORLD_SIZE.y {
-                let chunk_pos = Vec2::new(i as i32, j as i32);
+
+        self.chunks
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(ij, chunk)| {
+                let chunk_pos = uniform_idx_as_vec2(ij);
+                let i = chunk_pos.x as usize;
+                let j = chunk_pos.y as usize;
                 let block_pos = Vec2::new(
                     chunk_pos.x * TerrainChunkSize::RECT_SIZE.x as i32,
                     chunk_pos.y * TerrainChunkSize::RECT_SIZE.y as i32,
@@ -680,16 +1372,14 @@ impl WorldSim {
                 let nearest_cell_pos = near[0].chunk_pos;
                 if nearest_cell_pos.x >= 0 && nearest_cell_pos.y >= 0 {
                     let nearest_cell_pos = nearest_cell_pos.map(|e| e as usize) / cell_size;
-                    self.get_mut(chunk_pos).unwrap().location = loc_grid
+                    chunk.location = loc_grid
                         .get(nearest_cell_pos.y * grid_size.x + nearest_cell_pos.x)
                         .cloned()
                         .unwrap_or(None)
                         .map(|loc_idx| LocationInfo { loc_idx, near });
 
                     let town_size = 200;
-                    let in_town = self
-                        .get(chunk_pos)
-                        .unwrap()
+                    let in_town = chunk
                         .location
                         .as_ref()
                         .map(|l| {
@@ -700,46 +1390,61 @@ impl WorldSim {
                                 < town_size * town_size
                         })
                         .unwrap_or(false);
+
                     if in_town {
-                        self.get_mut(chunk_pos).unwrap().spawn_rate = 0.0;
+                        chunk.spawn_rate = 0.0;
                     }
                 }
-            }
-        }
+            });
 
         // Stage 2 - towns!
-        let mut maybe_towns = HashMap::new();
-        for i in 0..WORLD_SIZE.x {
-            for j in 0..WORLD_SIZE.y {
-                let chunk_pos = Vec2::new(i as i32, j as i32);
-                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                    e * sz as i32 + sz as i32 / 2
-                });
+        let chunk_idx_center = |e: Vec2<i32>| {
+            e.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+                e * sz as i32 + sz as i32 / 2
+            })
+        };
+        let maybe_towns = self
+            .gen_ctx
+            .town_gen
+            .par_iter(
+                chunk_idx_center(Vec2::zero()),
+                chunk_idx_center(WORLD_SIZE.map(|e| e as i32)),
+            )
+            .map_init(
+                || Box::new(BlockGen::new(ColumnGen::new(self))),
+                |mut block_gen, (pos, seed)| {
+                    let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+                    // println!("Town: {:?}", town);
+                    TownState::generate(pos, &mut block_gen, &mut rng).map(|t| (pos, Arc::new(t)))
+                },
+            )
+            .filter_map(|x| x)
+            .collect::<HashMap<_, _>>();
 
-                let near_towns = self.gen_ctx.town_gen.get(wpos);
+        let gen_ctx = &self.gen_ctx;
+        self.chunks
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(ij, chunk)| {
+                let chunk_pos = uniform_idx_as_vec2(ij);
+                let wpos = chunk_idx_center(chunk_pos);
+
+                let near_towns = gen_ctx.town_gen.get(wpos);
                 let town = near_towns
                     .iter()
                     .min_by_key(|(pos, _seed)| wpos.distance_squared(*pos));
 
-                if let Some((pos, _)) = town {
-                    let maybe_town = maybe_towns
-                        .entry(*pos)
-                        .or_insert_with(|| {
-                            // println!("Town: {:?}", town);
-                            TownState::generate(*pos, &mut ColumnGen::new(self), &mut rng)
-                                .map(|t| Arc::new(t))
-                        })
-                        .as_mut()
-                        // Only care if we're close to the town
-                        .filter(|town| {
-                            Vec2::from(town.center()).distance_squared(wpos)
-                                < town.radius().add(64).pow(2)
-                        })
-                        .cloned();
-                    self.get_mut(chunk_pos).unwrap().structures.town = maybe_town;
-                }
-            }
-        }
+                let maybe_town = town
+                    .and_then(|(pos, _seed)| maybe_towns.get(pos))
+                    // Only care if we're close to the town
+                    .filter(|town| {
+                        Vec2::from(town.center()).distance_squared(wpos)
+                            < town.radius().add(64).pow(2)
+                    })
+                    .cloned();
+
+                chunk.structures.town = maybe_town;
+            });
 
         self.rng = rng;
         self.locations = locations;
@@ -957,6 +1662,7 @@ impl WorldSim {
 pub struct SimChunk {
     pub chaos: f32,
     pub alt: f32,
+    pub basement: f32,
     pub water_alt: f32,
     pub downhill: Option<Vec2<i32>>,
     pub flux: f32,
@@ -1001,15 +1707,19 @@ impl SimChunk {
 
         let _map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
-        let (humid_uniform, _) = gen_cdf.humid_base[posi];
-        let alt_pre = gen_cdf.alt[posi];
+        let alt_pre = gen_cdf.alt[posi] as f32;
+        let basement_pre = gen_cdf.basement[posi] as f32;
         let water_alt_pre = gen_cdf.water_alt[posi];
         let downhill_pre = gen_cdf.dh[posi];
-        let (flux_uniform, _) = gen_cdf.pure_flux[posi];
-        let flux = gen_cdf.flux[posi];
+        let flux = gen_cdf.flux[posi] as f32;
+        let river = gen_cdf.rivers[posi].clone();
+
+        // Can have NaNs in non-uniform part where pure_water returned true.  We just test one of
+        // the four in order to find out whether this is the case.
+        let (flux_uniform, /*flux_non_uniform*/ _) = gen_cdf.pure_flux[posi];
         let (alt_uniform, _) = gen_cdf.alt_no_water[posi];
         let (temp_uniform, _) = gen_cdf.temp_base[posi];
-        let river = gen_cdf.rivers[posi].clone();
+        let (humid_uniform, _) = gen_cdf.humid_base[posi];
 
         /* // Vertical difference from the equator (NOTE: "uniform" with much lower granularity than
         // other uniform quantities, but hopefully this doesn't matter *too* much--if it does, we
@@ -1021,18 +1731,14 @@ impl SimChunk {
         // Even less granular--if this matters we can make the sign affect the quantiy slightly.
         let abs_lat_uniform = latitude_uniform.abs(); */
 
-        // Take the weighted average of our randomly generated base humidity, the scaled
-        // negative altitude, and the calculated water flux over this point in order to compute
-        // humidity.
-        const HUMID_WEIGHTS: [f32; 3] = [4.0, 1.0, 1.0];
-        let humidity = cdf_irwin_hall(
-            &HUMID_WEIGHTS,
-            [humid_uniform, flux_uniform, 1.0 - alt_uniform],
-        );
+        // Take the weighted average of our randomly generated base humidity, and the calculated
+        // water flux over this point in order to compute humidity.
+        const HUMID_WEIGHTS: [f32; 2] = [2.0, 1.0];
+        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, flux_uniform]);
 
         // We also correlate temperature negatively with altitude and absolute latitude, using
         // different weighting than we use for humidity.
-        const TEMP_WEIGHTS: [f32; 2] = [2.0, 1.0 /*, 1.0*/];
+        const TEMP_WEIGHTS: [f32; 2] = [/*1.5, */ 1.0, 2.0];
         let temp = cdf_irwin_hall(
             &TEMP_WEIGHTS,
             [
@@ -1044,10 +1750,9 @@ impl SimChunk {
         .sub(0.5)
         .mul(2.0);
 
-        let mut alt = CONFIG.sea_level.add(alt_pre.mul(CONFIG.mountain_scale));
-        let water_alt = CONFIG
-            .sea_level
-            .add(water_alt_pre.mul(CONFIG.mountain_scale));
+        let mut alt = CONFIG.sea_level.add(alt_pre);
+        let basement = CONFIG.sea_level.add(basement_pre);
+        let water_alt = CONFIG.sea_level.add(water_alt_pre);
         let downhill = if downhill_pre == -2 {
             None
         } else if downhill_pre < 0 {
@@ -1083,7 +1788,7 @@ impl SimChunk {
                         wposf, river, river_slope
                     ); */
                 }
-                if river_slope.abs() >= 1.0 && cross_section.x >= 1.0 {
+                if river_slope.abs() >= 0.25 && cross_section.x >= 1.0 {
                     log::debug!(
                         "Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}",
                         wposf,
@@ -1104,7 +1809,7 @@ impl SimChunk {
             _ => {}
         }
 
-        // No trees in the ocean or with zero humidity (currently)
+        // No trees in the ocean, with zero humidity (currently), or directly on bedrock.
         let tree_density = if is_underwater {
             0.0
         } else {
@@ -1135,6 +1840,7 @@ impl SimChunk {
             chaos,
             flux,
             alt,
+            basement: basement.min(alt),
             water_alt,
             downhill,
             temp,
@@ -1151,7 +1857,7 @@ impl SimChunk {
             is_cliffs: cliff > 0.5 && !is_underwater,
             near_cliffs: cliff > 0.2,
             tree_density,
-            forest_kind: if temp > 0.0 {
+            forest_kind: if temp > CONFIG.temperate_temp {
                 if temp > CONFIG.desert_temp {
                     if humidity > CONFIG.jungle_hum {
                         // Forests in desert temperatures with extremely high humidity

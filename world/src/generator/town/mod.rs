@@ -3,8 +3,8 @@ mod vol;
 
 use super::{Generator, SpawnRules};
 use crate::{
-    block::block_from_structure,
-    column::{ColumnGen, ColumnSample},
+    block::{block_from_structure, BlockGen},
+    column::ColumnSample,
     util::Sampler,
     CONFIG,
 };
@@ -123,23 +123,27 @@ pub struct TownState {
 }
 
 impl TownState {
-    pub fn generate(center: Vec2<i32>, gen: &mut ColumnGen, rng: &mut impl Rng) -> Option<Self> {
+    pub fn generate(center: Vec2<i32>, gen: &mut BlockGen, rng: &mut impl Rng) -> Option<Self> {
         let radius = rng.gen_range(18, 20) * 9;
         let size = Vec2::broadcast(radius * 2 / 9 - 2);
 
-        if gen.get(center).map(|sample| sample.chaos).unwrap_or(0.0) > 0.35
-            || gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) < CONFIG.sea_level + 10.0
+        let center_col = BlockGen::sample_column(&gen.column_gen, &mut gen.column_cache, center);
+
+        if center_col.map(|sample| sample.chaos).unwrap_or(0.0) > 0.35
+            || center_col.map(|sample| sample.alt).unwrap_or(0.0) < CONFIG.sea_level + 10.0
         {
             return None;
         }
 
-        let alt = gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) as i32;
+        let alt = center_col.map(|sample| sample.alt).unwrap_or(0.0) as i32;
 
         let mut vol = TownVol::generate_from(
             size,
             |pos| {
                 let wpos = center + (pos - size / 2) * CELL_SIZE + CELL_SIZE / 2;
-                let rel_alt = gen.get(wpos).map(|sample| sample.alt).unwrap_or(0.0) as i32
+                let rel_alt = BlockGen::sample_column(&gen.column_gen, &mut gen.column_cache, wpos)
+                    .map(|sample| sample.alt)
+                    .unwrap_or(0.0) as i32
                     + CELL_HEIGHT / 2
                     - alt;
 

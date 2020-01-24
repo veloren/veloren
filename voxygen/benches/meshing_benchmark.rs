@@ -6,7 +6,7 @@ use criterion::{black_box, criterion_group, criterion_main, Benchmark, Criterion
 use std::sync::Arc;
 use vek::*;
 use veloren_voxygen::mesh::Meshable;
-use world::World;
+use world::{sim, World};
 
 const CENTER: Vec2<i32> = Vec2 { x: 512, y: 512 };
 const GEN_SIZE: i32 = 4;
@@ -14,7 +14,17 @@ const GEN_SIZE: i32 = 4;
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Generate chunks here to test
     let mut terrain = TerrainGrid::new().unwrap();
-    let world = World::generate(42);
+    let world = World::generate(
+        42,
+        sim::WorldOpts {
+            // NOTE: If this gets too expensive, we can turn it off.
+            // TODO: Consider an option to turn off all erosion as well, or even provide altitude
+            // directly with a closure.
+            seed_elements: true,
+            world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
+            ..Default::default()
+        },
+    );
     (0..GEN_SIZE)
         .flat_map(|x| (0..GEN_SIZE).map(move |y| Vec2::new(x, y)))
         .map(|offset| offset + CENTER)

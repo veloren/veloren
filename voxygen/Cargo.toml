@@ -59,7 +59,7 @@ treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
 rodio = { git = "https://github.com/RustAudio/rodio", rev = "e5474a2"}
 cpal = "0.10"
 crossbeam = "=0.7.2"
-hashbrown = { version = "0.6.2", features = ["serde", "nightly"] }
+hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
 chrono = "0.4.9"
 rust-argon2 = "0.5"
 bincode = "1.2"

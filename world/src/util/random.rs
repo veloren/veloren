@@ -2,6 +2,7 @@ use super::seed_expan;
 use super::Sampler;
 use vek::*;
 
+#[derive(Clone, Copy)]
 pub struct RandomField {
     seed: u32,
 }
