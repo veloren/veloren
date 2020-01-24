@@ -3,32 +3,38 @@ use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IDVStorage;
 use vek::*;
 
-#[derive(Clone, Debug)]
-pub enum Agent {
-    Wanderer(Vec2<f32>),
-    Pet {
-        target: EcsEntity,
-        chaser: Chaser,
-    },
-    Enemy {
-        bearing: Vec2<f32>,
-        target: Option<EcsEntity>,
-    },
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Alignment {
+    Wild,
+    Enemy,
+    Npc,
+}
+
+impl Alignment {
+    pub fn hostile_towards(self, other: Alignment) -> bool {
+        match (self, other) {
+            (Alignment::Wild, Alignment::Npc) => true,
+            _ => self != other,
+        }
+    }
+}
+
+impl Component for Alignment {
+    type Storage = IDVStorage<Self>;
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct Agent {
+    pub chaser: Chaser,
+    pub target: Option<EcsEntity>,
+    pub owner: Option<EcsEntity>,
+    pub patrol_origin: Option<Vec3<f32>>,
 }
 
 impl Agent {
-    pub fn enemy() -> Self {
-        Agent::Enemy {
-            bearing: Vec2::zero(),
-            target: None,
-        }
-    }
-
-    pub fn pet(target: EcsEntity) -> Self {
-        Agent::Pet {
-            target,
-            chaser: Chaser::default(),
-        }
+    pub fn with_pet(mut self, owner: EcsEntity) -> Self {
+        self.owner = Some(owner);
+        self
     }
 }
 

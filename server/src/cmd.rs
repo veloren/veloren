@@ -458,12 +458,18 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match scan_fmt_some!(&args, action.arg_fmt, String, NpcKind, String) {
         (Some(opt_align), Some(id), opt_amount) => {
-            if let Some(agent) = alignment_to_agent(&opt_align, entity) {
+            if let Some(alignment) = parse_alignment(&opt_align) {
                 let amount = opt_amount
                     .and_then(|a| a.parse().ok())
                     .filter(|x| *x > 0)
                     .unwrap_or(1)
                     .min(10);
+
+                let agent = if let comp::Alignment::Npc = alignment {
+                    comp::Agent::default().with_pet(entity)
+                } else {
+                    comp::Agent::default()
+                };
 
                 match server.state.read_component_cloned::<comp::Pos>(entity) {
                     Some(pos) => {
@@ -486,6 +492,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                                 .with(comp::Vel(vel))
                                 .with(comp::MountState::Unmounted)
                                 .with(agent.clone())
+                                .with(alignment)
                                 .build();
 
                             if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
@@ -576,11 +583,11 @@ fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &
     }
 }
 
-fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent> {
+fn parse_alignment(alignment: &str) -> Option<comp::Alignment> {
     match alignment {
-        "hostile" => Some(comp::Agent::enemy()),
-        "friendly" => Some(comp::Agent::pet(target)),
-        // passive?
+        "wild" => Some(comp::Alignment::Wild),
+        "enemy" => Some(comp::Alignment::Enemy),
+        "npc" => Some(comp::Alignment::Npc),
         _ => None,
     }
 }

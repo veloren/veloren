@@ -102,6 +102,7 @@ pub enum ServerEvent {
         stats: comp::Stats,
         body: comp::Body,
         agent: comp::Agent,
+        alignment: comp::Alignment,
         scale: comp::Scale,
     },
     ClientDisconnect(EcsEntity),
