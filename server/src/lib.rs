@@ -46,7 +46,10 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{sim::WORLD_SIZE, World};
+use world::{
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
+    World,
+};
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
@@ -73,6 +76,7 @@ pub struct Tick(u64);
 pub struct Server {
     state: State,
     world: Arc<World>,
+    map: Vec<u32>,
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
 
@@ -104,7 +108,20 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
-        let world = World::generate(settings.world_seed);
+        let world = World::generate(
+            settings.world_seed,
+            WorldOpts {
+                seed_elements: true,
+                world_file: if let Some(ref opts) = settings.map_file {
+                    opts.clone()
+                } else {
+                    // Load default map from assets.
+                    FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
+                },
+                ..WorldOpts::default()
+            },
+        );
+        let map = world.sim().get_map();
 
         let spawn_point = {
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
@@ -164,6 +181,7 @@ impl Server {
         let this = Self {
             state,
             world: Arc::new(world),
+            map,
 
             postoffice: PostOffice::bind(settings.gameserver_address)?,
 
@@ -1070,7 +1088,7 @@ impl Server {
                             .create_entity_package(entity),
                         server_info: self.server_info.clone(),
                         time_of_day: *self.state.ecs().read_resource(),
-                        // world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
+                        world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                     });
                 log::debug!("Done initial sync with client.");
 

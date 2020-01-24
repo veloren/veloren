@@ -4,39 +4,36 @@ use crate::{
     column::{ColumnGen, ColumnSample},
     generator::{Generator, TownGen},
     util::{RandomField, Sampler, SmallCache},
-    World, CONFIG,
+    CONFIG,
 };
 use common::{
     terrain::{structure::StructureBlock, Block, BlockKind, Structure},
-    util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
 use std::ops::{Add, Div, Mul, Neg};
 use vek::*;
 
 pub struct BlockGen<'a> {
-    world: &'a World,
-    column_cache: SmallCache<Option<ColumnSample<'a>>>,
-    column_gen: ColumnGen<'a>,
+    pub column_cache: SmallCache<Option<ColumnSample<'a>>>,
+    pub column_gen: ColumnGen<'a>,
 }
 
 impl<'a> BlockGen<'a> {
-    pub fn new(world: &'a World, column_gen: ColumnGen<'a>) -> Self {
+    pub fn new(column_gen: ColumnGen<'a>) -> Self {
         Self {
-            world,
             column_cache: SmallCache::default(),
             column_gen,
         }
     }
 
-    fn sample_column(
+    pub fn sample_column<'b>(
         column_gen: &ColumnGen<'a>,
-        cache: &mut SmallCache<Option<ColumnSample<'a>>>,
+        cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
-    ) -> Option<ColumnSample<'a>> {
+    ) -> Option<&'b ColumnSample<'a>> {
         cache
             .get(Vec2::from(wpos), |wpos| column_gen.get(wpos))
-            .clone()
+            .as_ref()
     }
 
     fn get_cliff_height(
@@ -61,9 +58,17 @@ impl<'a> BlockGen<'a> {
                 {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
+                    // Conservative range of height: [15.70, 49.33]
                     let height = (RandomField::new(seed + 1).get(cliff_pos3d) % 64) as f32
+                        // [0, 63] / (1 + 3 * [0.12, 1.32]) + 3 =
+                        // [0, 63] / (1 + [0.36, 3.96]) + 3 =
+                        // [0, 63] / [1.36, 4.96] + 3 =
+                        // [0, 63] / [1.36, 4.96] + 3 =
+                        // (height min) [0, 0] + 3 = [3, 3]
+                        // (height max) [12.70, 46.33] + 3 = [15.70, 49.33]
                         / (1.0 + 3.0 * cliff_sample.chaos)
                         + 3.0;
+                    // Conservative range of radius: [8, 47]
                     let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
                     max_height.max(
@@ -83,7 +88,6 @@ impl<'a> BlockGen<'a> {
 
     pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
         let BlockGen {
-            world: _,
             column_cache,
             column_gen,
         } = self;
@@ -92,40 +96,37 @@ impl<'a> BlockGen<'a> {
         let sample = column_gen.get(wpos)?;
 
         // Tree samples
-        let mut structure_samples = [None, None, None, None, None, None, None, None, None];
-        for i in 0..structure_samples.len() {
-            if let Some(st) = sample.close_structures[i] {
-                let st_sample = Self::sample_column(column_gen, column_cache, Vec2::from(st.pos));
-                structure_samples[i] = st_sample;
-            }
-        }
-
         let mut structures = [None, None, None, None, None, None, None, None, None];
-        for i in 0..structures.len() {
-            if let (Some(st), Some(st_sample)) =
-                (sample.close_structures[i], structure_samples[i].clone())
-            {
-                let st_info = match st.meta {
-                    None => natural::structure_gen(
-                        column_gen,
-                        column_cache,
-                        i,
-                        st.pos,
-                        st.seed,
-                        &structure_samples,
-                    ),
-                    Some(meta) => Some(StructureInfo {
-                        pos: Vec3::from(st.pos) + Vec3::unit_z() * st_sample.alt as i32,
-                        seed: st.seed,
-                        meta,
-                    }),
-                };
-
-                if let Some(st_info) = st_info {
-                    structures[i] = Some((st_info, st_sample));
+        sample
+            .close_structures
+            .iter()
+            .zip(structures.iter_mut())
+            .for_each(|(close_structure, structure)| {
+                if let Some(st) = *close_structure {
+                    let st_sample =
+                        Self::sample_column(column_gen, column_cache, Vec2::from(st.pos));
+                    if let Some(st_sample) = st_sample {
+                        let st_sample = st_sample.clone();
+                        let st_info = match st.meta {
+                            None => natural::structure_gen(
+                                column_gen,
+                                column_cache,
+                                st.pos,
+                                st.seed,
+                                &st_sample,
+                            ),
+                            Some(meta) => Some(StructureInfo {
+                                pos: Vec3::from(st.pos) + Vec3::unit_z() * st_sample.alt as i32,
+                                seed: st.seed,
+                                meta,
+                            }),
+                        };
+                        if let Some(st_info) = st_info {
+                            *structure = Some((st_info, st_sample));
+                        }
+                    }
                 }
-            }
-        }
+            });
 
         Some(ZCache {
             wpos,
@@ -141,14 +142,15 @@ impl<'a> BlockGen<'a> {
         only_structures: bool,
     ) -> Option<Block> {
         let BlockGen {
-            world,
             column_cache,
             column_gen,
         } = self;
+        let world = column_gen.sim;
 
         let sample = &z_cache?.sample;
         let &ColumnSample {
             alt,
+            basement,
             chaos,
             water_level,
             warp_factor,
@@ -168,6 +170,7 @@ impl<'a> BlockGen<'a> {
             temp,
             humidity,
             chunk,
+            stone_col,
             ..
         } = sample;
 
@@ -176,19 +179,18 @@ impl<'a> BlockGen<'a> {
         let wposf = wpos.map(|e| e as f64);
 
         let (block, height) = if !only_structures {
-            let (_definitely_underground, height, on_cliff, water_height) =
+            let (_definitely_underground, height, on_cliff, basement_height, water_height) =
                 if (wposf.z as f32) < alt - 64.0 * chaos {
                     // Shortcut warping
-                    (true, alt, false, water_level)
+                    (true, alt, false, basement, water_level)
                 } else {
                     // Apply warping
                     let warp = world
-                        .sim()
                         .gen_ctx
                         .warp_nz
                         .get(wposf.div(24.0))
-                        .mul((chaos - 0.1).max(0.0).powf(2.0))
-                        .mul(48.0);
+                        .mul((chaos - 0.1).max(0.0).min(1.0).powf(2.0))
+                        .mul(16.0);
                     let warp = Lerp::lerp(0.0, warp, warp_factor);
 
                     let surface_height = alt + warp;
@@ -198,8 +200,8 @@ impl<'a> BlockGen<'a> {
                         (surface_height, false)
                     } else {
                         let turb = Vec2::new(
-                            world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
-                            world.sim().gen_ctx.fast_turb_y_nz.get(wposf.div(25.0)) as f32,
+                            world.gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
+                            world.gen_ctx.fast_turb_y_nz.get(wposf.div(25.0)) as f32,
                         ) * 8.0;
 
                         let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
@@ -222,6 +224,7 @@ impl<'a> BlockGen<'a> {
                         false,
                         height,
                         on_cliff,
+                        basement + height - alt,
                         (if water_level <= alt {
                             water_level + warp
                         } else {
@@ -232,8 +235,7 @@ impl<'a> BlockGen<'a> {
 
             // Sample blocks
 
-            // let stone_col = Rgb::new(240, 230, 220);
-            let stone_col = Rgb::new(195, 187, 201);
+            // let stone_col = Rgb::new(195, 187, 201);
 
             // let dirt_col = Rgb::new(79, 67, 60);
 
@@ -246,13 +248,14 @@ impl<'a> BlockGen<'a> {
 
             let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-            let grass_depth = 1.5 + 2.0 * chaos;
+            let grass_depth = (1.5 + 2.0 * chaos).min(height - basement_height);
             let block = if (wposf.z as f32) < height - grass_depth {
                 let col = Lerp::lerp(
-                    saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
-                    stone_col,
+                    sub_surface_color,
+                    stone_col.map(|e| e as f32 / 255.0),
                     (height - grass_depth - wposf.z as f32) * 0.15,
-                );
+                )
+                .map(|e| (e * 255.0) as u8);
 
                 // Underground
                 if (wposf.z as f32) > alt - 32.0 * chaos {
@@ -271,7 +274,7 @@ impl<'a> BlockGen<'a> {
                 // Surface
                 Some(Block::new(
                     BlockKind::Normal,
-                    saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
+                    col.map(|e| (e * 255.0) as u8),
                 ))
             } else if (wposf.z as f32) < height + 0.9
                 && temp < CONFIG.desert_temp
@@ -337,9 +340,9 @@ impl<'a> BlockGen<'a> {
             .or_else(|| {
                 // Rocks
                 if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
-                    let field0 = RandomField::new(world.sim().seed + 0);
-                    let field1 = RandomField::new(world.sim().seed + 1);
-                    let field2 = RandomField::new(world.sim().seed + 2);
+                    let field0 = RandomField::new(world.seed + 0);
+                    let field1 = RandomField::new(world.seed + 1);
+                    let field2 = RandomField::new(world.seed + 2);
 
                     Some(Block::new(
                         BlockKind::Normal,
@@ -421,7 +424,7 @@ impl<'a> ZCache<'a> {
                 0.0
             };
 
-        let min = self.sample.alt - (self.sample.chaos * 48.0 + cave_depth);
+        let min = self.sample.alt - (self.sample.chaos.min(1.0) * 16.0 + cave_depth);
         let min = min - 4.0;
 
         let cliff = BlockGen::get_cliff_height(
