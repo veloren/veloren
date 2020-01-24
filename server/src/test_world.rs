@@ -7,10 +7,7 @@ use rand::{prelude::*, rngs::SmallRng};
 use std::time::Duration;
 use vek::*;
 
-pub const WORLD_SIZE: Vec2<usize> = Vec2 {
-    x: 1024 * 1,
-    y: 1024 * 1,
-};
+pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1, y: 1 };
 
 pub struct World;
 

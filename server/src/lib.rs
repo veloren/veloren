@@ -133,7 +133,7 @@ impl Server {
 
         #[cfg(not(feature = "worldgen"))]
         let world = World::generate(settings.world_seed);
-        let map = Vec::new();
+        let map = vec![0];
 
         #[cfg(feature = "worldgen")]
         let spawn_point = {
