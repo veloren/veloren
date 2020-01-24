@@ -67,7 +67,7 @@ const SEND_TOK:      Token = Token(3);
 const RECV_TOK:      Token = Token(4);
 const MIDDLEMAN_TOK: Token = Token(5);
 
-const MAX_MSG_BYTES: usize = 1 << 20;
+const MAX_MSG_BYTES: usize = 1 << 28;
 
 enum CtrlMsg {
     Shutdown,

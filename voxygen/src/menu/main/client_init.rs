@@ -51,7 +51,7 @@ impl ClientInit {
 
                     let mut last_err = None;
 
-                    'tries: for _ in 0..60 + 1 {
+                    'tries: for _ in 0..960 + 1 {
                         // 300 Seconds
                         if cancel2.load(Ordering::Relaxed) {
                             break;

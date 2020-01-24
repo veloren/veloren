@@ -1,6 +1,8 @@
+use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use std::{f64, io::Write, path::PathBuf, time::SystemTime};
 use vek::*;
 use veloren_world::{
-    sim::{RiverKind, WORLD_SIZE},
+    sim::{self, MapConfig, MapDebug, WorldOpts, WORLD_SIZE},
     World, CONFIG,
 };
 
@@ -8,77 +10,241 @@ const W: usize = 1024;
 const H: usize = 1024;
 
 fn main() {
-    let world = World::generate(1337);
+    pretty_env_logger::init();
 
-    let sampler = world.sim();
+    // To load a map file of your choice, replace map_file with the name of your map (stored
+    // locally in the map directory of your Veloren root), and swap the sim::FileOpts::Save line
+    // below for the sim::FileOpts::Load one.
+    let map_file =
+        // "map_1575990726223.bin";
+        // "map_1575987666972.bin";
+        "map_1576046079066.bin";
+    let mut _map_file = PathBuf::from("./maps");
+    _map_file.push(map_file);
+
+    let world = World::generate(
+        5284,
+        WorldOpts {
+            seed_elements: false,
+            // world_file: sim::FileOpts::Load(_map_file),
+            world_file: sim::FileOpts::Save,
+            ..WorldOpts::default()
+        },
+    );
 
     let mut win =
         minifb::Window::new("World Viewer", W, H, minifb::WindowOptions::default()).unwrap();
 
-    let mut focus = Vec2::zero();
-    let mut _gain = 1.0;
-    let mut scale = (WORLD_SIZE.x / W) as i32;
+    let sampler = world.sim();
+
+    let mut focus = Vec3::new(0.0, 0.0, CONFIG.sea_level as f64);
+    // Altitude is divided by gain and clamped to [0, 1]; thus, decreasing gain makes
+    // smaller differences in altitude appear larger.
+    let mut gain = CONFIG.mountain_scale;
+    // The Z component during normal calculations is multiplied by gain; thus,
+    let mut lgain = 1.0;
+    let mut scale = WORLD_SIZE.x as f64 / W as f64;
+
+    // Right-handed coordinate system: light is going left, down, and "backwards" (i.e. on the
+    // map, where we translate the y coordinate on the world map to z in the coordinate system,
+    // the light comes from -y on the map and points towards +y on the map).  In a right
+    // handed coordinate system, the "camera" points towards -z, so positive z is backwards
+    // "into" the camera.
+    //
+    // "In world space the x-axis will be pointing east, the y-axis up and the z-axis will be pointing south"
+    let mut light_direction = Vec3::new(-0.8, -1.0, 0.3);
+
+    let mut is_basement = false;
+    let mut is_water = true;
+    let mut is_shaded = true;
+    let mut is_temperature = true;
+    let mut is_humidity = true;
 
     while win.is_open() {
+        let config = MapConfig {
+            dimensions: Vec2::new(W, H),
+            focus,
+            gain,
+            lgain,
+            scale,
+            light_direction,
+
+            is_basement,
+            is_water,
+            is_shaded,
+            is_temperature,
+            is_humidity,
+            is_debug: true,
+        };
+
         let mut buf = vec![0; W * H];
+        let MapDebug {
+            rivers,
+            lakes,
+            oceans,
+            quads,
+        } = config.generate(sampler, |pos, (r, g, b, a)| {
+            let i = pos.x;
+            let j = pos.y;
+            buf[j * W + i] = u32::from_le_bytes([b, g, r, a]);
+        });
 
-        for i in 0..W {
-            for j in 0..H {
-                let pos = focus + Vec2::new(i as i32, j as i32) * scale;
-
-                let (alt, water_alt, river_kind) = sampler
-                    .get(pos)
-                    .map(|sample| (sample.alt, sample.water_alt, sample.river.river_kind))
-                    .unwrap_or((CONFIG.sea_level, CONFIG.sea_level, None));
-                let alt = ((alt - CONFIG.sea_level) / CONFIG.mountain_scale)
-                    .min(1.0)
-                    .max(0.0);
-                let water_alt = ((alt.max(water_alt) - CONFIG.sea_level) / CONFIG.mountain_scale)
-                    .min(1.0)
-                    .max(0.0);
-                buf[j * W + i] = match river_kind {
-                    Some(RiverKind::Ocean) => u32::from_le_bytes([64, 32, 0, 255]),
-                    Some(RiverKind::Lake { .. }) => u32::from_le_bytes([
-                        64 + (water_alt * 191.0) as u8,
-                        32 + (water_alt * 95.0) as u8,
-                        0,
-                        255,
-                    ]),
-                    Some(RiverKind::River { .. }) => u32::from_le_bytes([
-                        64 + (alt * 191.0) as u8,
-                        32 + (alt * 95.0) as u8,
-                        0,
-                        255,
-                    ]),
-                    None => u32::from_le_bytes([0, (alt * 255.0) as u8, 0, 255]),
+        if win.is_key_down(minifb::Key::F4) {
+            if let Some(len) = (W * H)
+                .checked_mul(scale as usize)
+                .and_then(|acc| acc.checked_mul(scale as usize))
+            {
+                let x = (W as f64 * scale) as usize;
+                let y = (H as f64 * scale) as usize;
+                let config = sim::MapConfig {
+                    dimensions: Vec2::new(x, y),
+                    scale: 1.0,
+                    ..config
                 };
+                let mut buf = vec![0u8; 4 * len];
+                config.generate(sampler, |pos, (r, g, b, a)| {
+                    let i = pos.x;
+                    let j = pos.y;
+                    (&mut buf[(j * x + i) * 4..]).write(&[r, g, b, a]).unwrap();
+                });
+                // TODO: Justify fits in u32.
+                let world_map = image::RgbaImage::from_raw(x as u32, y as u32, buf)
+                    .expect("Image dimensions must be valid");
+                let mut path = PathBuf::from("./screenshots");
+                if !path.exists() {
+                    if let Err(err) = std::fs::create_dir(&path) {
+                        log::warn!("Couldn't create folder for screenshot: {:?}", err);
+                    }
+                }
+                path.push(format!(
+                    "worldmap_{}.png",
+                    SystemTime::now()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .map(|d| d.as_millis())
+                        .unwrap_or(0)
+                ));
+                if let Err(err) = world_map.save(&path) {
+                    log::warn!("Couldn't save screenshot: {:?}", err);
+                }
             }
         }
 
-        let spd = 32;
+        let spd = 32.0;
+        let lspd = 0.1;
+        if win.is_key_down(minifb::Key::P) {
+            println!(
+                "\
+                 Gain / Shade gain: {:?} / {:?}\n\
+                 Scale / Focus: {:?} / {:?}\n\
+                 Light: {:?}
+                 Land(adjacent): (X = temp, Y = humidity): {:?}\n\
+                 Rivers: {:?}\n\
+                 Lakes: {:?}\n\
+                 Oceans: {:?}\n\
+                 Total water: {:?}\n\
+                 Total land(adjacent): {:?}",
+                gain,
+                lgain,
+                scale,
+                focus,
+                light_direction,
+                quads,
+                rivers,
+                lakes,
+                oceans,
+                rivers + lakes + oceans,
+                quads.iter().map(|x| x.iter().sum::<u32>()).sum::<u32>()
+            );
+        }
+        if win.get_mouse_down(minifb::MouseButton::Left) {
+            if let Some((mx, my)) = win.get_mouse_pos(minifb::MouseMode::Clamp) {
+                let pos = (Vec2::<f64>::from(focus) + (Vec2::new(mx as f64, my as f64) * scale))
+                    .map(|e| e as i32);
+                println!(
+                    "Chunk position: {:?}",
+                    pos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e * f as i32)
+                );
+            }
+        }
+        let is_camera = win.is_key_down(minifb::Key::C);
+        if win.is_key_down(minifb::Key::B) {
+            is_basement ^= true;
+        }
+        if win.is_key_down(minifb::Key::H) {
+            is_humidity ^= true;
+        }
+        if win.is_key_down(minifb::Key::T) {
+            is_temperature ^= true;
+        }
+        if win.is_key_down(minifb::Key::O) {
+            is_water ^= true;
+        }
+        if win.is_key_down(minifb::Key::L) {
+            is_shaded ^= true;
+        }
         if win.is_key_down(minifb::Key::W) {
-            focus.y -= spd * scale;
+            if is_camera {
+                light_direction.z -= lspd;
+            } else {
+                focus.y -= spd * scale;
+            }
         }
         if win.is_key_down(minifb::Key::A) {
-            focus.x -= spd * scale;
+            if is_camera {
+                light_direction.x -= lspd;
+            } else {
+                focus.x -= spd * scale;
+            }
         }
         if win.is_key_down(minifb::Key::S) {
-            focus.y += spd * scale;
+            if is_camera {
+                light_direction.z += lspd;
+            } else {
+                focus.y += spd * scale;
+            }
         }
         if win.is_key_down(minifb::Key::D) {
-            focus.x += spd * scale;
+            if is_camera {
+                light_direction.x += lspd;
+            } else {
+                focus.x += spd * scale;
+            }
         }
         if win.is_key_down(minifb::Key::Q) {
-            _gain += 10.0;
+            if is_camera {
+                if (lgain * 2.0).is_normal() {
+                    lgain *= 2.0;
+                }
+            } else {
+                gain += 64.0;
+            }
         }
         if win.is_key_down(minifb::Key::E) {
-            _gain -= 10.0;
+            if is_camera {
+                if (lgain / 2.0).is_normal() {
+                    lgain /= 2.0;
+                }
+            } else {
+                gain = (gain - 64.0).max(64.0);
+            }
         }
         if win.is_key_down(minifb::Key::R) {
-            scale += 1;
+            if is_camera {
+                focus.z += spd * scale;
+            } else {
+                if (scale * 2.0).is_normal() {
+                    scale *= 2.0;
+                }
+            }
         }
         if win.is_key_down(minifb::Key::F) {
-            scale = (scale - 1).max(0);
+            if is_camera {
+                focus.z -= spd * scale;
+            } else {
+                if (scale / 2.0).is_normal() {
+                    scale /= 2.0;
+                }
+            }
         }
 
         win.update_with_buffer(&buf).unwrap();

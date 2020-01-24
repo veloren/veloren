@@ -254,7 +254,6 @@ image_ids! {
         help:"voxygen.element.help",
 
         charwindow_gradient:"voxygen.element.misc_bg.charwindow",
-        map_placeholder: "voxygen.background.map",
 
         death_bg: "voxygen.background.death",
         hurt_bg: "voxygen.background.hurt",

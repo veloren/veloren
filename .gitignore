@@ -33,6 +33,7 @@
 *.log
 settings.ron
 run.sh
+maps
 screenshots
 todo.txt
 

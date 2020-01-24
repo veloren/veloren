@@ -37,7 +37,7 @@ pub enum ServerMsg {
         entity_package: sync::EntityPackage<EcsCompPacket>,
         server_info: ServerInfo,
         time_of_day: state::TimeOfDay,
-        // world_map: Vec2<usize>, /*, Vec<u32>)*/
+        world_map: (Vec2<u32>, Vec<u32>),
     },
     PlayerListUpdate(PlayerListUpdate),
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),

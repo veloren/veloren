@@ -425,7 +425,7 @@ impl Show {
 pub struct Hud {
     ui: Ui,
     ids: Ids,
-    world_map: Id,
+    world_map: (Id, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
     fonts: Fonts,
@@ -454,7 +454,10 @@ impl Hud {
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
         // Load world map
-        let world_map = ui.add_graphic(Graphic::Image(client.world_map.clone()));
+        let world_map = (
+            ui.add_graphic(Graphic::Image(client.world_map.0.clone())),
+            client.world_map.1,
+        );
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         // Load rotation images.

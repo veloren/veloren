@@ -21,7 +21,7 @@ serde = "1.0.102"
 serde_derive = "1.0.102"
 rand = "0.7.2"
 chrono = "0.4.9"
-hashbrown = { version = "0.6.2", features = ["serde", "nightly"] }
+hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
 crossbeam = "=0.7.2"
 prometheus = "0.7"
 prometheus-static-metric = "0.2"
