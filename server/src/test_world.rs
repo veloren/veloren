@@ -30,6 +30,15 @@ impl World {
         ]);
         let height = rng.gen::<i32>() % 8;
 
+        let mut supplement = ChunkSupplement::default();
+
+        if chunk_pos.map(|e| e % 3 == 0).reduce_and() {
+            supplement = supplement.with_entity(EntityInfo {
+                pos: Vec3::<f32>::from(chunk_pos.map(|e| e as f32 * 32.0)) + Vec3::unit_z() * 256.0,
+                kind: EntityKind::Waypoint,
+            });
+        }
+
         Ok((
             TerrainChunk::new(
                 256 + if rng.gen::<u8>() < 64 { height } else { 0 },
@@ -37,10 +46,7 @@ impl World {
                 Block::empty(),
                 TerrainChunkMeta::void(),
             ),
-            ChunkSupplement::default().with_entity(EntityInfo {
-                pos: Vec3::<f32>::from(chunk_pos.map(|e| e as f32 * 32.0)) + Vec3::unit_z() * 256.0,
-                kind: EntityKind::Waypoint,
-            }),
+            supplement,
         ))
     }
 }

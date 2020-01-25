@@ -149,7 +149,7 @@ impl World {
 
         const SPAWN_RATE: f32 = 0.1;
         const BOSS_RATE: f32 = 0.03;
-        let supplement = ChunkSupplement {
+        let mut supplement = ChunkSupplement {
             entities: if rand::thread_rng().gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater
@@ -166,6 +166,13 @@ impl World {
                 Vec::new()
             },
         };
+
+        if chunk_pos.map(|e| e % 8 == 0).reduce_and() {
+            supplement = supplement.with_entity(EntityInfo {
+                pos: gen_entity_pos(),
+                kind: EntityKind::Waypoint,
+            });
+        }
 
         Ok((chunk, supplement))
     }
