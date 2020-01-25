@@ -167,7 +167,7 @@ impl World {
             },
         };
 
-        if chunk_pos.map(|e| e % 8 == 0).reduce_and() {
+        if sim_chunk.contains_waypoint {
             supplement = supplement.with_entity(EntityInfo {
                 pos: gen_entity_pos(),
                 kind: EntityKind::Waypoint,

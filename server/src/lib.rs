@@ -971,7 +971,7 @@ impl Server {
             (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
-                &self.state.ecs().read_storage::<comp::Agent>(),
+                !&self.state.ecs().read_storage::<comp::Player>(),
             )
                 .join()
                 .filter(|(_, pos, _)| terrain.get(pos.0.map(|e| e.floor() as i32)).is_err())

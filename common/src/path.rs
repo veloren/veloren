@@ -246,7 +246,7 @@ where
         Some(astar) => astar,
     };
 
-    let path_result = new_astar.poll(30, heuristic, neighbors, transition, satisfied);
+    let path_result = new_astar.poll(20, heuristic, neighbors, transition, satisfied);
 
     *astar = Some(new_astar);
 
