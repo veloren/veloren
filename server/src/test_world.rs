@@ -32,7 +32,7 @@ impl World {
 
         let mut supplement = ChunkSupplement::default();
 
-        if chunk_pos.map(|e| e % 3 == 0).reduce_and() {
+        if chunk_pos.map(|e| e % 8 == 0).reduce_and() {
             supplement = supplement.with_entity(EntityInfo {
                 pos: Vec3::<f32>::from(chunk_pos.map(|e| e as f32 * 32.0)) + Vec3::unit_z() * 256.0,
                 kind: EntityKind::Waypoint,
