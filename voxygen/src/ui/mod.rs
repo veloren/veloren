@@ -9,7 +9,7 @@ pub mod img_ids;
 mod font_ids;
 
 pub use event::Event;
-pub use graphic::{Graphic, Transform};
+pub use graphic::{Graphic, SampleStrat, Transform};
 pub use scale::{Scale, ScaleMode};
 pub use widgets::{
     image_frame::ImageFrame,
