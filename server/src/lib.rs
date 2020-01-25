@@ -847,6 +847,17 @@ impl Server {
                         .build();
                 }
 
+                ServerEvent::CreateWaypoint(pos) => {
+                    self.create_object(comp::Pos(pos), comp::object::Body::CampfireLit)
+                        .with(comp::LightEmitter {
+                            offset: Vec3::unit_z() * 0.5,
+                            col: Rgb::new(1.0, 0.65, 0.2),
+                            strength: 2.0,
+                        })
+                        .with(comp::WaypointArea::default())
+                        .build();
+                }
+
                 ServerEvent::ClientDisconnect(entity) => {
                     // Tell other clients to remove from player list
                     if let (Some(uid), Some(_)) = (
