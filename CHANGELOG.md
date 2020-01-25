@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Significantly reduced the use of warp during world generation.
 - Parallelized and otherwise sped up significant parts of world generation.
 - Various performance improvements to world generation.
+- Nametags now a fixed size and shown in a limited range
 
 ### Removed
 
