@@ -19,7 +19,6 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
-
 const STARTER_HAMMER: &str = "common.items.weapons.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.starter_bow";
 const STARTER_AXE: &str = "common.items.weapons.starter_axe";
@@ -478,20 +477,35 @@ impl CharSelectionUi {
                 }
 
                 // Enter World Button
-                if Button::image(self.imgs.button)
-                    .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
-                    .w_h(250.0, 60.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .label(&localized_strings.get("char_selection.enter_world"))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(26)
-                    .label_font_id(self.fonts.cyri)
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .set(self.ids.enter_world_button, ui_widgets)
-                    .was_clicked()
-                {
-                    events.push(Event::Play);
+                let character_count = global_state.meta.characters.len();
+                if character_count != 0 {
+                    if Button::image(self.imgs.button)
+                        .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
+                        .w_h(250.0, 60.0)
+                        .hover_image(self.imgs.button_hover)
+                        .press_image(self.imgs.button_press)
+                        .label(&localized_strings.get("char_selection.enter_world"))
+                        .label_color(TEXT_COLOR)
+                        .label_font_size(26)
+                        .label_font_id(self.fonts.cyri)
+                        .label_y(conrod_core::position::Relative::Scalar(3.0))
+                        .set(self.ids.enter_world_button, ui_widgets)
+                        .was_clicked()
+                    {
+                        events.push(Event::Play);
+                    }
+                } else {
+                    if Button::image(self.imgs.button)
+                        .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
+                        .w_h(250.0, 60.0)
+                        .label(&localized_strings.get("char_selection.enter_world"))
+                        .label_color(TEXT_COLOR_2)
+                        .label_font_size(26)
+                        .label_font_id(self.fonts.cyri)
+                        .label_y(conrod_core::position::Relative::Scalar(3.0))
+                        .set(self.ids.enter_world_button, ui_widgets)
+                        .was_clicked()
+                    {}
                 }
 
                 // Logout_Button
@@ -511,24 +525,6 @@ impl CharSelectionUi {
                     events.push(Event::Logout);
                 }
 
-                // Create Character Button.
-                /*if Button::image(self.imgs.button)
-                    .mid_bottom_with_margin_on(self.ids.charlist_bg, -60.0)
-                    .w_h(270.0, 50.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .label("Create Character")
-                    .label_font_id(self.fonts.cyri)
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(20)
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .set(self.ids.create_character_button, ui_widgets)
-                    .was_clicked()
-                {
-                    self.character_creation = true;
-                    self.character_tool = Some(STARTER_SWORD);
-                }*/
-
                 // Alpha Version
                 Text::new(&version)
                     .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
@@ -538,7 +534,6 @@ impl CharSelectionUi {
                     .set(self.ids.version, ui_widgets);
 
                 // Resize character selection widgets
-                let character_count = global_state.meta.characters.len();
                 self.ids
                     .character_boxes
                     .resize(character_count, &mut ui_widgets.widget_id_generator());
@@ -634,7 +629,6 @@ impl CharSelectionUi {
                         2.0,
                     )
                 };
-
                 if create_char_button
                     .w_h(386.0, 80.0)
                     .hover_image(self.imgs.selection_hover)
@@ -1136,11 +1130,6 @@ impl CharSelectionUi {
                 {
                     *tool = Some(STARTER_AXE);
                 }
-                // REMOVE THIS AFTER IMPLEMENTATION
-                /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .middle_of(self.ids.axe)
-                .set(self.ids.axe_grey, ui_widgets);*/
-
                 // Sliders
                 let (metamorph, slider_indicator, slider_range) = (
                     self.fonts.cyri,
