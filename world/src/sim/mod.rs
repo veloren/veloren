@@ -1458,21 +1458,25 @@ impl WorldSim {
                         let mut pos = Vec2::new(i as i32, j as i32);
 
                         // Slide the waypoints down hills
-                        loop {
+                        for _ in 0..32 {
                             let last_pos = pos;
-                            let alt = this.get(pos + Vec2::new(1, 0))?.alt;
-                            const MAX_HEIGHT_DIFF: f32 = 5.0;
-                            if this.get(pos + Vec2::new(1, 0))?.alt + MAX_HEIGHT_DIFF < alt {
-                                pos.x += 1;
-                            }
-                            if this.get(pos + Vec2::new(-1, 0))?.alt + MAX_HEIGHT_DIFF < alt {
-                                pos.x -= 1;
-                            }
-                            if this.get(pos + Vec2::new(0, 1))?.alt + MAX_HEIGHT_DIFF < alt {
-                                pos.y += 1;
-                            }
-                            if this.get(pos + Vec2::new(0, -1))?.alt + MAX_HEIGHT_DIFF < alt {
-                                pos.y -= 1;
+                            let chunk = this.get(pos)?;
+
+                            for dir in [
+                                Vec2::new(1, 0),
+                                Vec2::new(-1, 0),
+                                Vec2::new(0, 1),
+                                Vec2::new(0, -1),
+                            ]
+                            .iter()
+                            {
+                                const MAX_HEIGHT_DIFF: f32 = 8.0;
+                                let tgt_chunk = this.get(pos + *dir)?;
+                                if tgt_chunk.alt + MAX_HEIGHT_DIFF < chunk.alt
+                                    && !tgt_chunk.is_underwater
+                                {
+                                    pos += *dir;
+                                }
                             }
 
                             if last_pos == pos {
