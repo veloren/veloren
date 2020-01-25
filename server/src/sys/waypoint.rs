@@ -1,5 +1,5 @@
 use common::comp::{Player, Pos, Waypoint, WaypointArea};
-use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
 /// This system will handle loading generated chunks and unloading uneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid

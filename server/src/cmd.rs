@@ -11,7 +11,7 @@ use common::{
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
-    terrain::{Block, BlockKind, TerrainChunkSize},
+    terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
 use rand::Rng;
