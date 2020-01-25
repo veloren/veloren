@@ -105,6 +105,7 @@ pub enum ServerEvent {
         alignment: comp::Alignment,
         scale: comp::Scale,
     },
+    CreateWaypoint(Vec3<f32>),
     ClientDisconnect(EcsEntity),
     ChunkRequest(EcsEntity, Vec2<i32>),
     ChatCmd(EcsEntity, String),

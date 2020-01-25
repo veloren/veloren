@@ -657,6 +657,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             Ok("pumpkin_4") => comp::object::Body::Pumpkin4,
             Ok("pumpkin_5") => comp::object::Body::Pumpkin5,
             Ok("campfire") => comp::object::Body::Campfire,
+            Ok("campfire_lit") => comp::object::Body::CampfireLit,
             Ok("lantern_ground") => comp::object::Body::LanternGround,
             Ok("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
             Ok("lantern_2") => comp::object::Body::LanternStanding2,

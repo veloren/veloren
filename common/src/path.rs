@@ -9,9 +9,17 @@ use vek::*;
 
 // Path
 
-#[derive(Default, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Path<T> {
     nodes: Vec<T>,
+}
+
+impl<T> Default for Path<T> {
+    fn default() -> Self {
+        Self {
+            nodes: Vec::default(),
+        }
+    }
 }
 
 impl<T> FromIterator<T> for Path<T> {
@@ -134,7 +142,7 @@ impl Chaser {
                 self.route = find_path(&mut self.astar, vol, pos, tgt).into();
             }
 
-            Some(tgt - pos)
+            Some((tgt - pos) * Vec3::new(1.0, 1.0, 0.0))
         }
     }
 }
@@ -225,10 +233,14 @@ where
             *astar = None;
             path
         }
-        PathResult::Pending => Path::default(),
-        _ => {
+        PathResult::None(path) => {
             *astar = None;
-            Path::default()
+            path
         }
+        PathResult::Exhausted(path) => {
+            *astar = None;
+            path
+        }
+        PathResult::Pending => Path::default(),
     }
 }

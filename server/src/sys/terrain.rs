@@ -4,6 +4,7 @@ use common::{
     assets,
     comp::{self, item, Player, Pos},
     event::{EventBus, ServerEvent},
+    generation::EntityKind,
     msg::ServerMsg,
     state::TerrainChanges,
     terrain::TerrainGrid,
@@ -95,88 +96,92 @@ impl<'a> System<'a> for Sys {
             }
 
             // Handle chunk supplement
-            for npc in supplement.npcs {
-                const SPAWN_NPCS: &'static [fn() -> (String, comp::Body, Option<comp::Item>)] = &[
-                    (|| {
-                        (
-                            "Traveler".into(),
-                            comp::Body::Humanoid(comp::humanoid::Body::random()),
-                            Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
-                        )
-                    }) as _,
-                    (|| {
-                        (
-                            "Wolf".into(),
-                            comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
-                            None,
-                        )
-                    }) as _,
-                    (|| {
-                        (
-                            "Duck".into(),
-                            comp::Body::BirdMedium(comp::bird_medium::Body::random()),
-                            None,
-                        )
-                    }) as _,
-                    (|| {
-                        (
-                            "Rat".into(),
-                            comp::Body::Critter(comp::critter::Body::random()),
-                            None,
-                        )
-                    }) as _,
-                    (|| {
-                        (
-                            "Pig".into(),
-                            comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
-                            None,
-                        )
-                    }),
-                ];
-                let (name, mut body, main) = SPAWN_NPCS
-                    .choose(&mut rand::thread_rng())
-                    .expect("SPAWN_NPCS is nonempty")(
-                );
-                let mut stats = comp::Stats::new(name, body, main);
+            for entity in supplement.entities {
+                if let EntityKind::Waypoint = entity.kind {
+                    server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
+                } else {
+                    const SPAWN_NPCS: &'static [fn() -> (String, comp::Body, Option<comp::Item>)] = &[
+                        (|| {
+                            (
+                                "Traveler".into(),
+                                comp::Body::Humanoid(comp::humanoid::Body::random()),
+                                Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                            )
+                        }) as _,
+                        (|| {
+                            (
+                                "Wolf".into(),
+                                comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
+                                None,
+                            )
+                        }) as _,
+                        (|| {
+                            (
+                                "Duck".into(),
+                                comp::Body::BirdMedium(comp::bird_medium::Body::random()),
+                                None,
+                            )
+                        }) as _,
+                        (|| {
+                            (
+                                "Rat".into(),
+                                comp::Body::Critter(comp::critter::Body::random()),
+                                None,
+                            )
+                        }) as _,
+                        (|| {
+                            (
+                                "Pig".into(),
+                                comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
+                                None,
+                            )
+                        }),
+                    ];
+                    let (name, mut body, main) = SPAWN_NPCS
+                        .choose(&mut rand::thread_rng())
+                        .expect("SPAWN_NPCS is nonempty")(
+                    );
+                    let mut stats = comp::Stats::new(name, body, main);
 
-                let mut scale = 1.0;
+                    let mut scale = 1.0;
 
-                // TODO: Remove this and implement scaling or level depending on stuff like species instead
-                stats.level.set_level(rand::thread_rng().gen_range(1, 4));
+                    // TODO: Remove this and implement scaling or level depending on stuff like species instead
+                    stats.level.set_level(rand::thread_rng().gen_range(1, 4));
 
-                if npc.boss {
-                    if rand::random::<f32>() < 0.8 {
-                        let hbody = comp::humanoid::Body::random();
-                        body = comp::Body::Humanoid(hbody);
-                        stats = comp::Stats::new(
-                            "Fearless Wanderer".to_string(),
-                            body,
-                            Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
-                        );
+                    if let EntityKind::Boss = entity.kind {
+                        if rand::random::<f32>() < 0.8 {
+                            let hbody = comp::humanoid::Body::random();
+                            body = comp::Body::Humanoid(hbody);
+                            stats = comp::Stats::new(
+                                "Fearless Wanderer".to_string(),
+                                body,
+                                Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
+                            );
+                        }
+                        stats.level.set_level(rand::thread_rng().gen_range(8, 15));
+                        scale = 2.0 + rand::random::<f32>();
                     }
-                    stats.level.set_level(rand::thread_rng().gen_range(8, 15));
-                    scale = 2.0 + rand::random::<f32>();
-                }
 
-                stats.update_max_hp();
-                stats
-                    .health
-                    .set_to(stats.health.maximum(), comp::HealthSource::Revive);
-                if let Some(item::Item {
-                    kind: item::ItemKind::Tool { power, .. },
-                    ..
-                }) = &mut stats.equipment.main
-                {
-                    *power = stats.level.level() * 3;
+                    stats.update_max_hp();
+                    stats
+                        .health
+                        .set_to(stats.health.maximum(), comp::HealthSource::Revive);
+                    if let Some(item::Item {
+                        kind: item::ItemKind::Tool { power, .. },
+                        ..
+                    }) = &mut stats.equipment.main
+                    {
+                        *power = stats.level.level() * 3;
+                    }
+                    server_emitter.emit(ServerEvent::CreateNpc {
+                        pos: Pos(entity.pos),
+                        stats,
+                        body,
+                        alignment: comp::Alignment::Enemy,
+                        agent: comp::Agent::default().with_patrol_origin(entity.pos),
+                        scale: comp::Scale(scale),
+                    })
                 }
-                server_emitter.emit(ServerEvent::CreateNpc {
-                    pos: Pos(npc.pos),
-                    stats,
-                    body,
-                    alignment: comp::Alignment::Enemy,
-                    agent: comp::Agent::default(),
-                    scale: comp::Scale(scale),
-                })
             }
         }
 

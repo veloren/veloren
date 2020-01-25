@@ -1,5 +1,5 @@
 use common::{
-    generation::{ChunkSupplement, NpcInfo},
+    generation::{ChunkSupplement, EntityInfo, EntityKind},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -37,7 +37,10 @@ impl World {
                 Block::empty(),
                 TerrainChunkMeta::void(),
             ),
-            ChunkSupplement::default(),
+            ChunkSupplement::default().with_entity(EntityInfo {
+                pos: Vec3::<f32>::from(chunk_pos.map(|e| e as f32 * 32.0)) + Vec3::unit_z() * 256.0,
+                kind: EntityKind::Waypoint,
+            }),
         ))
     }
 }
