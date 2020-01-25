@@ -110,7 +110,7 @@ impl Chaser {
     {
         let pos_to_tgt = pos.distance(tgt);
 
-        if pos_to_tgt < min_dist {
+        if ((pos - tgt) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared() < min_dist.powf(2.0) {
             return None;
         }
 
