@@ -80,7 +80,8 @@ impl Route {
             None
         } else {
             let next_tgt = next.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            if next_tgt.distance_squared(pos) < 1.0f32.powf(2.0) {
+            if ((pos - next_tgt) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared() < 1.0f32.powf(2.0)
+            {
                 self.next_idx += 1;
             }
             Some(next_tgt - pos)
@@ -246,7 +247,7 @@ where
         Some(astar) => astar,
     };
 
-    let path_result = new_astar.poll(20, heuristic, neighbors, transition, satisfied);
+    let path_result = new_astar.poll(60, heuristic, neighbors, transition, satisfied);
 
     *astar = Some(new_astar);
 
