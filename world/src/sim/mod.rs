@@ -1446,6 +1446,50 @@ impl WorldSim {
                 chunk.structures.town = maybe_town;
             });
 
+        // Create waypoints
+        const WAYPOINT_EVERY: usize = 8;
+        let this = &self;
+        let waypoints = (0..WORLD_SIZE.x)
+            .step_by(WAYPOINT_EVERY)
+            .map(|i| {
+                (0..WORLD_SIZE.y)
+                    .step_by(WAYPOINT_EVERY)
+                    .filter_map(move |j| {
+                        let mut pos = Vec2::new(i as i32, j as i32);
+
+                        // Slide the waypoints down hills
+                        loop {
+                            let last_pos = pos;
+                            let alt = this.get(pos + Vec2::new(1, 0))?.alt;
+                            const MAX_HEIGHT_DIFF: f32 = 5.0;
+                            if this.get(pos + Vec2::new(1, 0))?.alt + MAX_HEIGHT_DIFF < alt {
+                                pos.x += 1;
+                            }
+                            if this.get(pos + Vec2::new(-1, 0))?.alt + MAX_HEIGHT_DIFF < alt {
+                                pos.x -= 1;
+                            }
+                            if this.get(pos + Vec2::new(0, 1))?.alt + MAX_HEIGHT_DIFF < alt {
+                                pos.y += 1;
+                            }
+                            if this.get(pos + Vec2::new(0, -1))?.alt + MAX_HEIGHT_DIFF < alt {
+                                pos.y -= 1;
+                            }
+
+                            if last_pos == pos {
+                                break;
+                            }
+                        }
+
+                        Some(pos)
+                    })
+            })
+            .flatten()
+            .collect::<Vec<_>>();
+
+        for waypoint in waypoints {
+            self.get_mut(waypoint).map(|sc| sc.contains_waypoint = true);
+        }
+
         self.rng = rng;
         self.locations = locations;
     }
@@ -1679,6 +1723,7 @@ pub struct SimChunk {
     pub is_underwater: bool,
 
     pub structures: Structures,
+    pub contains_waypoint: bool,
 }
 
 #[derive(Copy, Clone)]
@@ -1922,6 +1967,7 @@ impl SimChunk {
             location: None,
             river,
             structures: Structures { town: None },
+            contains_waypoint: false,
         }
     }
 
