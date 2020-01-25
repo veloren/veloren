@@ -58,7 +58,7 @@ struct SpriteConfig {
 fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
     match kind {
         BlockKind::LargeCactus => Some(SpriteConfig {
-            variations: 1,
+            variations: 2,
             wind_sway: 0.0,
         }),
         BlockKind::BarrelCactus => Some(SpriteConfig {
@@ -144,6 +144,31 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 4,
             wind_sway: 0.0,
         }),
+        BlockKind::Welwitch => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.1,
+        }),
+        BlockKind::Pumpkin => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 0.0,
+        }),
+        BlockKind::LingonBerry => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.0,
+        }),
+        BlockKind::LeafyPlant => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.4,
+        }),
+        BlockKind::Fern => Some(SpriteConfig {
+            variations: 12,
+            wind_sway: 0.4,
+        }),
+        BlockKind::DeadBush => Some(SpriteConfig {
+            variations: 4,
+            wind_sway: 0.1,
+        }),
+
         _ => None,
     }
 }
@@ -250,6 +275,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.cacti.large_cactus",
                         Vec3::new(-13.5, -5.5, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LargeCactus, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.cacti.tall",
+                        Vec3::new(-6.0, -6.0, 0.0),
                     ),
                 ),
                 (
@@ -750,6 +782,285 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.chests.chest_vines",
                         Vec3::new(-7.0, -5.0, -0.0),
+                    ),
+                ),
+                //Welwitch
+                (
+                    (BlockKind::Welwitch, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.welwitch.1",
+                        Vec3::new(-15.0, -17.0, -0.0),
+                    ),
+                ),
+                //Pumpkins
+                (
+                    (BlockKind::Pumpkin, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.5",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                //Lingonberries
+                (
+                    (BlockKind::LingonBerry, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.lingonberry.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LingonBerry, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.lingonberry.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LingonBerry, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.lingonberry.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                // Leafy Plants
+                (
+                    (BlockKind::LeafyPlant, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.5",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.6",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.7",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.8",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.9",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 9),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.10",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                // Ferns
+                (
+                    (BlockKind::Fern, 0),
+                    make_model("voxygen.voxel.sprite.ferns.1", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 1),
+                    make_model("voxygen.voxel.sprite.ferns.2", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 2),
+                    make_model("voxygen.voxel.sprite.ferns.3", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 3),
+                    make_model("voxygen.voxel.sprite.ferns.4", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 4),
+                    make_model("voxygen.voxel.sprite.ferns.5", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 5),
+                    make_model("voxygen.voxel.sprite.ferns.6", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 6),
+                    make_model("voxygen.voxel.sprite.ferns.7", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 7),
+                    make_model("voxygen.voxel.sprite.ferns.8", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 8),
+                    make_model("voxygen.voxel.sprite.ferns.9", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 9),
+                    make_model("voxygen.voxel.sprite.ferns.10", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 10),
+                    make_model("voxygen.voxel.sprite.ferns.11", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 11),
+                    make_model("voxygen.voxel.sprite.ferns.12", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                // Dead Bush
+                (
+                    (BlockKind::DeadBush, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.dead_bush.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::DeadBush, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.dead_bush.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::DeadBush, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.dead_bush.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::DeadBush, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.dead_bush.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                // Blueberries
+                (
+                    (BlockKind::Blueberry, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.5",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.6",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.7",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.8",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.9",
+                        Vec3::new(-6.0, -6.0, -0.0),
                     ),
                 ),
             ]
