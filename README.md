@@ -71,3 +71,13 @@ If you want to compile Veloren yourself, take a look at the [How to Compile Guid
 ## Credit
 
 Many thanks to everyone that has contributed to Veloren's development, provided ideas, crafted art, composed music, hunted bugs, created tools and supported the project.
+
+## Sponsorship
+
+<a href="https://www.digitalocean.com?utm_medium=opensource&utm_source=Veloren">
+	<img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/PoweredByDO/DO_Powered_by_Badge_blue.svg" width="201px">
+</a>
+
+We are extremely proud to be sponsored by [Digital Ocean](https://www.digitalocean.com).
+
+Their support allows us to build and reliably power our shared backend services.
