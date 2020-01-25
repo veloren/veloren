@@ -74,7 +74,7 @@ impl<'a> System<'a> for Sys {
             const AVG_FOLLOW_DIST: f32 = 6.0;
             const MAX_FOLLOW_DIST: f32 = 12.0;
             const MAX_CHASE_DIST: f32 = 24.0;
-            const SIGHT_DIST: f32 = 20.0;
+            const SIGHT_DIST: f32 = 30.0;
             const MIN_ATTACK_DIST: f32 = 3.25;
             const PATROL_DIST: f32 = 32.0;
 
@@ -83,9 +83,9 @@ impl<'a> System<'a> for Sys {
             match &mut agent.activity {
                 Activity::Idle(wander_pos, chaser) => {
                     if let Some(patrol_origin) = agent.patrol_origin {
-                        if thread_rng().gen::<f32>() < 0.002 {
+                        if thread_rng().gen::<f32>() < 0.005 {
                             *wander_pos =
-                                if thread_rng().gen::<f32>() < 0.5 {
+                                if thread_rng().gen::<f32>() < 0.7 {
                                     Some(patrol_origin.map(|e| {
                                         e + thread_rng().gen_range(-1.0, 1.0) * PATROL_DIST
                                     }))
@@ -157,7 +157,7 @@ impl<'a> System<'a> for Sys {
                             inputs.look_dir = tgt_pos.0 - pos.0;
                             inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                 .try_normalized()
-                                .unwrap_or(Vec2::zero())
+                                .unwrap_or(Vec2::unit_y())
                                 * 0.01;
                             inputs.primary.set_state(true);
                         } else if dist < MAX_CHASE_DIST {
