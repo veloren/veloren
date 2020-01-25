@@ -43,6 +43,7 @@ impl<'a> System<'a> for Sys {
                 HpFloaterList {
                     floaters: Vec::new(),
                     last_hp,
+                    time_since_last_dmg_by_me: None,
                 },
             );
         }
@@ -53,6 +54,12 @@ impl<'a> System<'a> for Sys {
             .join()
             .map(|(e, s, fl)| (e, s.health, fl))
         {
+            // Increment timer for time since last damaged by me
+            hp_floater_list
+                .time_since_last_dmg_by_me
+                .as_mut()
+                .map(|t| *t += dt.0);
+
             // Check if health has changed (won't work if damaged and then healed with
             // equivalently in the same frame)
             if hp_floater_list.last_hp != health.current() {
@@ -65,7 +72,12 @@ impl<'a> System<'a> for Sys {
                 // health changes could be sent to the client as a list of events)
                 if match health.last_change.1.cause {
                     HealthSource::Attack { by } => {
-                        my_entity.0 == entity || my_uid.map_or(false, |&uid| by == uid)
+                        let by_me = my_uid.map_or(false, |&uid| by == uid);
+                        // If the attack was by me also reset this timer
+                        if by_me {
+                            hp_floater_list.time_since_last_dmg_by_me = Some(0.0);
+                        }
+                        my_entity.0 == entity || by_me
                     }
                     HealthSource::Suicide => my_entity.0 == entity,
                     HealthSource::World => my_entity.0 == entity,
@@ -106,6 +118,7 @@ impl<'a> System<'a> for Sys {
             HpFloaterList {
                 ref mut floaters,
                 ref last_hp,
+                ..
             },
         ) in (&entities, &mut hp_floater_lists).join()
         {

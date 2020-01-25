@@ -14,7 +14,7 @@ pub use scale::{Scale, ScaleMode};
 pub use widgets::{
     image_frame::ImageFrame,
     image_slider::ImageSlider,
-    ingame::{Ingame, IngameAnchor, Ingameable},
+    ingame::{Ingame, Ingameable},
     radio_list::RadioList,
     toggle_button::ToggleButton,
     tooltip::{Tooltip, TooltipManager, Tooltipable},
@@ -257,7 +257,7 @@ impl Ui {
         self.ui.widget_input(id)
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, cam_params: Option<(Mat4<f32>, f32)>) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, view_projection_mat: Option<Mat4<f32>>) {
         // Maintain tooltip manager
         self.tooltip_manager
             .maintain(self.ui.global_input(), self.scale.scale_factor_logical());
@@ -304,13 +304,12 @@ impl Ui {
 
         enum Placement {
             Interface,
-            // Number of primitives left to render ingame and relative scaling/resolution
-            InWorld(usize, Option<(f64, f64)>),
+            // Number of primitives left to render ingame and visibility
+            InWorld(usize, bool),
         };
 
         let mut placement = Placement::Interface;
-        // TODO: maybe mutate an ingame scale factor instead of this, depends on if we want them to scale with other ui scaling or not
-        let mut p_scale_factor = self.scale.scale_factor_physical();
+        let p_scale_factor = self.scale.scale_factor_physical();
 
         // Switches to the `Plain` state and completes the previous `Command` if not already in the
         // `Plain` state.
@@ -377,7 +376,6 @@ impl Ui {
                 // No primitives left to place in the world at the current position, go back to drawing the interface
                 Placement::InWorld(0, _) => {
                     placement = Placement::Interface;
-                    p_scale_factor = self.scale.scale_factor_physical();
                     // Finish current state
                     self.draw_commands.push(match current_state {
                         State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
@@ -388,22 +386,23 @@ impl Ui {
                     self.draw_commands.push(DrawCommand::WorldPos(None));
                 }
                 // Primitives still left to draw ingame
-                Placement::InWorld(num_prims, res) => match kind {
+                Placement::InWorld(num_prims, visible) => match kind {
                     // Other types aren't drawn & shouldn't decrement the number of primitives left to draw ingame
                     PrimitiveKind::Other(_) => {}
                     // Decrement the number of primitives left
-                    _ => placement = Placement::InWorld(num_prims - 1, res),
+                    _ => {
+                        placement = Placement::InWorld(num_prims - 1, visible);
+                        // Behind the camera
+                        if !visible {
+                            continue;
+                        }
+                    }
                 },
                 Placement::Interface => {}
             }
 
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
-            let (ui_win_w, ui_win_h) = match placement {
-                Placement::InWorld(_, Some(res)) => res,
-                // Behind the camera or far away
-                Placement::InWorld(_, None) => continue,
-                Placement::Interface => (self.ui.win_w, self.ui.win_h),
-            };
+            let (ui_win_w, ui_win_h) = (self.ui.win_w, self.ui.win_h);
             let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
             let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
             let gl_aabr = |rect: Rect| {
@@ -615,7 +614,7 @@ impl Ui {
                 PrimitiveKind::Other(container) => {
                     if container.type_id == std::any::TypeId::of::<widgets::ingame::State>() {
                         // Calculate the scale factor to pixels at this 3d point using the camera.
-                        if let Some((view_mat, fov)) = cam_params {
+                        if let Some(view_projection_mat) = view_projection_mat {
                             // Retrieve world position
                             let parameters = container
                                 .state_and_style::<widgets::ingame::State, widgets::ingame::Style>()
@@ -623,16 +622,21 @@ impl Ui {
                                 .state
                                 .parameters;
 
-                            let pos_in_view = view_mat * Vec4::from_point(parameters.pos);
-
-                            let scale_factor = self.ui.win_w as f64
-                                / (-2.0
-                                    * pos_in_view.z as f64
-                                    * (0.5 * fov as f64).tan()
-                                    // TODO: make this have no effect for fixed scale
-                                    * parameters.res as f64);
-                            // Don't process ingame elements behind the camera or very far away
-                            placement = if scale_factor > 0.2 {
+                            let pos_on_screen = (view_projection_mat
+                                * Vec4::from_point(parameters.pos))
+                            .homogenized();
+                            let visible = if pos_on_screen.z > -1.0 && pos_on_screen.z < 1.0 {
+                                let x = pos_on_screen.x;
+                                let y = pos_on_screen.y;
+                                let (w, h) = parameters.dims.into_tuple();
+                                let (half_w, half_h) = (w / ui_win_w as f32, h / ui_win_h as f32);
+                                (x - half_w < 1.0 && x + half_w > -1.0)
+                                    && (y - half_h < 1.0 && y + half_h > -1.0)
+                            } else {
+                                false
+                            };
+                            // Don't process ingame elements outside the frustum
+                            placement = if visible {
                                 // Finish current state
                                 self.draw_commands.push(match current_state {
                                     State::Plain => {
@@ -643,12 +647,9 @@ impl Ui {
                                     }
                                 });
                                 start = mesh.vertices().len();
-                                // Push new position command
-                                let mut world_pos = Vec4::from_point(parameters.pos);
-                                if parameters.fixed_scale {
-                                    world_pos.w = -1.0
-                                };
 
+                                // Push new position command
+                                let world_pos = Vec4::from_point(parameters.pos);
                                 if self.ingame_locals.len() > ingame_local_index {
                                     renderer
                                         .update_consts(
@@ -664,28 +665,9 @@ impl Ui {
                                     .push(DrawCommand::WorldPos(Some(ingame_local_index)));
                                 ingame_local_index += 1;
 
-                                p_scale_factor = if parameters.fixed_scale {
-                                    self.scale.scale_factor_physical()
-                                } else {
-                                    ((scale_factor * 10.0).log2().round().powi(2) / 10.0)
-                                        .min(1.6)
-                                        .max(0.2)
-                                };
-
-                                // Scale down ingame elements that are close to the camera
-                                let res = if parameters.fixed_scale {
-                                    (self.ui.win_w, self.ui.win_h)
-                                } else if scale_factor > 3.2 {
-                                    let res = parameters.res * scale_factor as f32 / 3.2;
-                                    (res as f64, res as f64)
-                                } else {
-                                    let res = parameters.res;
-                                    (res as f64, res as f64)
-                                };
-
-                                Placement::InWorld(parameters.num, Some(res))
+                                Placement::InWorld(parameters.num, true)
                             } else {
-                                Placement::InWorld(parameters.num, None)
+                                Placement::InWorld(parameters.num, false)
                             };
                         }
                     }
