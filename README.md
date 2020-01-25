@@ -47,13 +47,13 @@ If you want to compile Veloren yourself, take a look at the [How to Compile Guid
 
 #### Arch
 
-[AUR Airshipper](https://aur.archlinux.org/packages/airshipper-git): `yay -Sy airshipper-git`
+[AUR Airshipper](https://aur.archlinux.org/packages/airshipper-git): `yay -Syu airshipper-git`
 
-[AUR latest binary release](https://aur.archlinux.org/packages/veloren-bin/): `yay -Sy veloren-bin`
+[AUR latest binary release](https://aur.archlinux.org/packages/veloren-bin/): `yay -Syu veloren-bin`
 
-[AUR latest release](https://aur.archlinux.org/packages/veloren/): `yay -Sy veloren`
+[AUR latest release](https://aur.archlinux.org/packages/veloren/): `yay -Syu veloren`
 
-[AUR latest master](https://aur.archlinux.org/packages/veloren-git): `yay -Sy veloren-git`
+[AUR latest master](https://aur.archlinux.org/packages/veloren-git): `yay -Syu veloren-git`
 
 ## F.A.Q.
 ### **Q:** How is this game licensed?
