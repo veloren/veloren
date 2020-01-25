@@ -76,12 +76,28 @@ impl<'a> System<'a> for Sys {
             const MAX_CHASE_DIST: f32 = 24.0;
             const SIGHT_DIST: f32 = 30.0;
             const MIN_ATTACK_DIST: f32 = 3.25;
-            const PATROL_DIST: f32 = 32.0;
 
             let mut do_idle = false;
 
             match &mut agent.activity {
-                Activity::Idle(wander_pos, chaser) => {
+                Activity::Idle(bearing) => {
+                    *bearing += Vec2::new(
+                        thread_rng().gen::<f32>() - 0.5,
+                        thread_rng().gen::<f32>() - 0.5,
+                    ) * 0.1
+                        - *bearing * 0.01
+                        - if let Some(patrol_origin) = agent.patrol_origin {
+                            Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
+                        } else {
+                            Vec2::zero()
+                        };
+
+                    if bearing.magnitude_squared() > 0.25f32.powf(2.0) {
+                        inputs.move_dir = bearing.normalized() * 0.65;
+                    }
+
+                    /*
+                    // TODO: Improve pathfinding performance so that this is ok to do
                     if let Some(patrol_origin) = agent.patrol_origin {
                         if thread_rng().gen::<f32>() < 0.005 {
                             *wander_pos =
@@ -104,9 +120,10 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                     }
+                    */
 
                     // Sometimes try searching for new targets
-                    if thread_rng().gen::<f32>() < 0.025 {
+                    if thread_rng().gen::<f32>() < 0.1 {
                         // Search for new targets
                         let entities = (&entities, &positions, &stats, alignments.maybe())
                             .join()
@@ -177,7 +194,7 @@ impl<'a> System<'a> for Sys {
             }
 
             if do_idle {
-                agent.activity = Activity::Idle(None, Chaser::default());
+                agent.activity = Activity::Idle(Vec2::zero());
             }
 
             // --- Activity overrides (in reverse order of priority: most important goes last!) ---

@@ -48,7 +48,7 @@ impl Component for Agent {
 
 #[derive(Clone, Debug)]
 pub enum Activity {
-    Idle(Option<Vec3<f32>>, Chaser),
+    Idle(Vec2<f32>),
     Follow(EcsEntity, Chaser),
     Attack(EcsEntity, Chaser, f64),
 }
@@ -71,6 +71,6 @@ impl Activity {
 
 impl Default for Activity {
     fn default() -> Self {
-        Activity::Idle(None, Chaser::default())
+        Activity::Idle(Vec2::zero())
     }
 }

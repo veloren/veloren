@@ -82,7 +82,8 @@ impl<S: Clone + Eq + Hash> Astar<S> {
     where
         I: Iterator<Item = S>,
     {
-        while self.iter < self.max_iters.min(self.iter + iters) {
+        let iter_limit = self.max_iters.min(self.iter + iters);
+        while self.iter < iter_limit {
             if let Some(PathEntry { node, .. }) = self.potential_nodes.pop() {
                 if satisfied(&node) {
                     return PathResult::Path(self.reconstruct_path_to(node));
