@@ -1,11 +1,8 @@
 use crate::terrain::TerrainGrid;
 use crate::{
-    comp::{
-        self, Agent, Alignment, CharacterState, Controller, MountState, MovementState::Glide, Pos,
-        Stats,
-    },
+    comp::{self, Agent, Alignment, CharacterState, Controller, MountState, Pos, Stats},
     state::Time,
-    sync::{Uid, UidAllocator},
+    sync::UidAllocator,
 };
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use specs::{

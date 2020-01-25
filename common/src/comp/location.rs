@@ -24,6 +24,12 @@ impl Component for Waypoint {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct WaypointArea(f32);
 
+impl WaypointArea {
+    pub fn radius(&self) -> f32 {
+        self.0
+    }
+}
+
 impl Component for WaypointArea {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
