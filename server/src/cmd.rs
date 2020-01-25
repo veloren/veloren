@@ -465,14 +465,14 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                     .unwrap_or(1)
                     .min(10);
 
-                let agent = if let comp::Alignment::Npc = alignment {
-                    comp::Agent::default().with_pet(entity)
-                } else {
-                    comp::Agent::default()
-                };
-
                 match server.state.read_component_cloned::<comp::Pos>(entity) {
                     Some(pos) => {
+                        let agent = if let comp::Alignment::Npc = alignment {
+                            comp::Agent::default().with_pet(entity)
+                        } else {
+                            comp::Agent::default().with_patrol_origin(pos.0)
+                        };
+
                         for _ in 0..amount {
                             let vel = Vec3::new(
                                 rand::thread_rng().gen_range(-2.0, 3.0),

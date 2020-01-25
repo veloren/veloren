@@ -25,11 +25,9 @@ impl Component for Alignment {
 
 #[derive(Clone, Debug, Default)]
 pub struct Agent {
-    pub chaser: Chaser,
-    pub target: Option<(EcsEntity, f64)>,
     pub owner: Option<EcsEntity>,
     pub patrol_origin: Option<Vec3<f32>>,
-    pub wander_pos: Option<Vec3<f32>>,
+    pub activity: Activity,
 }
 
 impl Agent {
@@ -46,4 +44,33 @@ impl Agent {
 
 impl Component for Agent {
     type Storage = IDVStorage<Self>;
+}
+
+#[derive(Clone, Debug)]
+pub enum Activity {
+    Idle(Option<Vec3<f32>>, Chaser),
+    Follow(EcsEntity, Chaser),
+    Attack(EcsEntity, Chaser, f64),
+}
+
+impl Activity {
+    pub fn is_follow(&self) -> bool {
+        match self {
+            Activity::Follow(_, _) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_attack(&self) -> bool {
+        match self {
+            Activity::Attack(_, _, _) => true,
+            _ => false,
+        }
+    }
+}
+
+impl Default for Activity {
+    fn default() -> Self {
+        Activity::Idle(None, Chaser::default())
+    }
 }
