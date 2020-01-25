@@ -1,4 +1,4 @@
-use super::{Graphic, Transform};
+use super::{Graphic, SampleStrat, Transform};
 use common::assets::{load, Error};
 use dot_vox::DotVoxData;
 use image::DynamicImage;
@@ -25,9 +25,10 @@ impl<'a> GraphicCreator<'a> for ImageGraphic {
 }
 
 pub enum VoxelGraphic {}
-pub enum VoxelMsGraphic {}
-pub enum VoxelMs4Graphic {}
-pub enum VoxelMs9Graphic {}
+pub enum VoxelSsGraphic {}
+pub enum VoxelSs4Graphic {}
+pub enum VoxelSs9Graphic {}
+pub enum VoxelPixArtGraphic {}
 
 impl<'a> GraphicCreator<'a> for VoxelGraphic {
     type Specifier = &'a str;
@@ -38,11 +39,11 @@ impl<'a> GraphicCreator<'a> for VoxelGraphic {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
             },
-            None,
+            SampleStrat::None,
         ))
     }
 }
-impl<'a> GraphicCreator<'a> for VoxelMsGraphic {
+impl<'a> GraphicCreator<'a> for VoxelSsGraphic {
     type Specifier = (&'a str, u8);
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
@@ -51,11 +52,11 @@ impl<'a> GraphicCreator<'a> for VoxelMsGraphic {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
             },
-            Some(specifier.1),
+            SampleStrat::SuperSampling(specifier.1),
         ))
     }
 }
-impl<'a> GraphicCreator<'a> for VoxelMs4Graphic {
+impl<'a> GraphicCreator<'a> for VoxelSs4Graphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
@@ -64,11 +65,11 @@ impl<'a> GraphicCreator<'a> for VoxelMs4Graphic {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
             },
-            Some(4),
+            SampleStrat::SuperSampling(4),
         ))
     }
 }
-impl<'a> GraphicCreator<'a> for VoxelMs9Graphic {
+impl<'a> GraphicCreator<'a> for VoxelSs9Graphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
@@ -77,7 +78,20 @@ impl<'a> GraphicCreator<'a> for VoxelMs9Graphic {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
             },
-            Some(9),
+            SampleStrat::SuperSampling(9),
+        ))
+    }
+}
+impl<'a> GraphicCreator<'a> for VoxelPixArtGraphic {
+    type Specifier = &'a str;
+    fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
+        Ok(Graphic::Voxel(
+            load::<DotVoxData>(specifier)?,
+            Transform {
+                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ..Default::default()
+            },
+            SampleStrat::PixelCoverage,
         ))
     }
 }

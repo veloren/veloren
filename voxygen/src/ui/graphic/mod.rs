@@ -1,4 +1,7 @@
+mod pixel_art;
 mod renderer;
+
+pub use renderer::{SampleStrat, Transform};
 
 use crate::render::{Renderer, Texture};
 use dot_vox::DotVoxData;
@@ -6,33 +9,14 @@ use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::HashMap;
 use image::{DynamicImage, RgbaImage};
 use log::warn;
+use pixel_art::resize_pixel_art;
 use std::sync::Arc;
 use vek::*;
 
 #[derive(Clone)]
-pub struct Transform {
-    pub ori: Quaternion<f32>,
-    pub offset: Vec3<f32>,
-    pub zoom: f32,
-    pub orth: bool,
-    pub stretch: bool,
-}
-impl Default for Transform {
-    fn default() -> Self {
-        Self {
-            ori: Quaternion::identity(),
-            offset: Vec3::zero(),
-            zoom: 1.0,
-            orth: true,
-            stretch: true,
-        }
-    }
-}
-
-#[derive(Clone)]
 pub enum Graphic {
     Image(Arc<DynamicImage>),
-    Voxel(Arc<DotVoxData>, Transform, Option<u8>),
+    Voxel(Arc<DotVoxData>, Transform, SampleStrat),
     Blank,
 }
 
@@ -280,20 +264,16 @@ fn draw_graphic(graphic_map: &GraphicMap, graphic_id: Id, dims: Vec2<u16>) -> Op
         Some(Graphic::Blank) => None,
         // Render image at requested resolution
         // TODO: Use source aabr.
-        Some(Graphic::Image(ref image)) => Some(
-            image
-                .resize_exact(
-                    u32::from(dims.x),
-                    u32::from(dims.y),
-                    image::FilterType::Nearest,
-                )
-                .to_rgba(),
-        ),
-        Some(Graphic::Voxel(ref vox, trans, min_samples)) => Some(renderer::draw_vox(
+        Some(Graphic::Image(ref image)) => Some(resize_pixel_art(
+            &image.to_rgba(),
+            u32::from(dims.x),
+            u32::from(dims.y),
+        )),
+        Some(Graphic::Voxel(ref vox, trans, sample_strat)) => Some(renderer::draw_vox(
             &vox.as_ref().into(),
             dims,
             trans.clone(),
-            *min_samples,
+            *sample_strat,
         )),
         None => {
             warn!("A graphic was requested via an id which is not in use");
