@@ -282,7 +282,7 @@ impl<'a> BlockGen<'a> {
                 && marble > 0.6
                 && marble_small > 0.55
                 && (marble * 3173.7).fract() < 0.6
-                && humidity > 0.4
+                && humidity > CONFIG.desert_hum
             {
                 let treasures = [BlockKind::Chest, BlockKind::Velorite];
 
@@ -295,8 +295,11 @@ impl<'a> BlockGen<'a> {
                     BlockKind::YellowFlower,
                     BlockKind::Sunflower,
                     BlockKind::Mushroom,
+                    BlockKind::LeafyPlant,
+                    BlockKind::Blueberry,
+                    BlockKind::LingonBerry,
+                    BlockKind::Fern,
                 ];
-
                 let grasses = [
                     BlockKind::LongGrass,
                     BlockKind::MediumGrass,
@@ -317,13 +320,18 @@ impl<'a> BlockGen<'a> {
                 && temp > CONFIG.desert_temp
                 && (marble * 4423.5).fract() < 0.0005
             {
-                let large_cacti = [BlockKind::LargeCactus, BlockKind::MedFlatCactus];
+                let large_cacti = [
+                    BlockKind::LargeCactus,
+                    BlockKind::MedFlatCactus,
+                    BlockKind::Welwitch,
+                ];
 
                 let small_cacti = [
                     BlockKind::BarrelCactus,
                     BlockKind::RoundCactus,
                     BlockKind::ShortCactus,
                     BlockKind::ShortFlatCactus,
+                    BlockKind::DeadBush,
                 ];
 
                 Some(Block::new(
