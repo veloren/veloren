@@ -9,7 +9,7 @@ worldgen = ["server/worldgen"]
 default = ["worldgen"]
 
 [dependencies]
-server = { package = "veloren-server", path = "../server" }
+server = { package = "veloren-server", path = "../server", default-features = false }
 common = { package = "veloren-common", path = "../common" }
 
 log = "0.4.8"

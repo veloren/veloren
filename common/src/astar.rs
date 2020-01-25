@@ -119,8 +119,8 @@ where
 }
 
 pub enum PathResult<T> {
-    None,
-    Exhausted,
+    None(Path<T>),
+    Exhausted(Path<T>),
     Path(Path<T>),
     Pending,
 }
@@ -134,6 +134,7 @@ pub struct Astar<S: Clone + Eq + Hash> {
     cheapest_scores: HashMap<S, f32>,
     final_scores: HashMap<S, f32>,
     visited: HashSet<S>,
+    lowest_cost: Option<S>,
 }
 
 impl<S: Clone + Eq + Hash> Astar<S> {
@@ -150,6 +151,7 @@ impl<S: Clone + Eq + Hash> Astar<S> {
             cheapest_scores: std::iter::once((start.clone(), 0.0)).collect(),
             final_scores: std::iter::once((start.clone(), heuristic(&start))).collect(),
             visited: std::iter::once(start).collect(),
+            lowest_cost: None,
         }
     }
 
@@ -169,6 +171,7 @@ impl<S: Clone + Eq + Hash> Astar<S> {
                 if satisfied(&node) {
                     return PathResult::Path(self.reconstruct_path_to(node));
                 } else {
+                    self.lowest_cost = Some(node.clone());
                     for neighbor in neighbors(&node) {
                         let node_cheapest = self.cheapest_scores.get(&node).unwrap_or(&f32::MAX);
                         let neighbor_cheapest =
@@ -191,14 +194,24 @@ impl<S: Clone + Eq + Hash> Astar<S> {
                     }
                 }
             } else {
-                return PathResult::None;
+                return PathResult::None(
+                    self.lowest_cost
+                        .clone()
+                        .map(|lc| self.reconstruct_path_to(lc))
+                        .unwrap_or_default(),
+                );
             }
 
             self.iter += 1
         }
 
         if self.iter >= self.max_iters {
-            PathResult::Exhausted
+            PathResult::Exhausted(
+                self.lowest_cost
+                    .clone()
+                    .map(|lc| self.reconstruct_path_to(lc))
+                    .unwrap_or_default(),
+            )
         } else {
             PathResult::Pending
         }
