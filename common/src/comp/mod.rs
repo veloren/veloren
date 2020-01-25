@@ -1,5 +1,5 @@
 mod admin;
-mod agent;
+pub mod agent;
 mod body;
 mod character_state;
 mod controller;

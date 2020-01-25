@@ -171,7 +171,7 @@ where
     };
     let get_walkable_z = |pos| {
         let mut z_incr = 0;
-        for i in 0..32 {
+        for _ in 0..32 {
             let test_pos = pos + Vec3::unit_z() * z_incr;
             if is_walkable(&test_pos) {
                 return Some(test_pos);
@@ -192,7 +192,7 @@ where
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
-        const dirs: [Vec3<i32>; 17] = [
+        const DIRS: [Vec3<i32>; 17] = [
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
             Vec3::new(0, 1, 2),   // Forward Upwardx2
@@ -212,9 +212,31 @@ where
             Vec3::new(0, 0, -1),  // Downwards
         ];
 
-        dirs.iter()
+        let walkable = [
+            is_walkable(&(pos + Vec3::new(1, 0, 0))),
+            is_walkable(&(pos + Vec3::new(-1, 0, 0))),
+            is_walkable(&(pos + Vec3::new(0, 1, 0))),
+            is_walkable(&(pos + Vec3::new(0, -1, 0))),
+        ];
+
+        const DIAGONALS: [(Vec3<i32>, [usize; 2]); 4] = [
+            (Vec3::new(1, 1, 0), [0, 2]),
+            (Vec3::new(-1, 1, 0), [1, 2]),
+            (Vec3::new(1, -1, 0), [0, 3]),
+            (Vec3::new(-1, -1, 0), [1, 3]),
+        ];
+
+        DIRS.iter()
             .map(move |dir| pos + dir)
             .filter(move |pos| is_walkable(pos))
+            .chain(
+                DIAGONALS
+                    .iter()
+                    .filter(move |(dir, [a, b])| {
+                        is_walkable(&(pos + *dir)) && walkable[*a] && walkable[*b]
+                    })
+                    .map(move |(dir, _)| pos + *dir),
+            )
     };
     let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
     let satisfied = |pos: &Vec3<i32>| pos == &end;
