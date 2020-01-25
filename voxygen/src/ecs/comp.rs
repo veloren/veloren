@@ -18,6 +18,9 @@ pub struct HpFloaterList {
     // Keep from spawning more floaters from same hp change
     // Note: this can't detect a change if equivalent healing and damage take place simultaneously
     pub last_hp: u32,
+    // The time since you last damaged this entity
+    // Used to display nametags outside normal range if this time is below a certain value
+    pub time_since_last_dmg_by_me: Option<f32>,
 }
 impl Component for HpFloaterList {
     type Storage = IDVStorage<Self>;

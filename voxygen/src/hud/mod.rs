@@ -79,6 +79,13 @@ const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
 
+/// Distance at which nametags are visible
+const NAMETAG_RANGE: f32 = 40.0;
+/// Time nametags stay visible after doing damage even if they are out of range in seconds
+const NAMETAG_DMG_TIME: f32 = 60.0;
+/// Range damaged triggered nametags can be seen
+const NAMETAG_DMG_RANGE: f32 = 120.0;
+
 widget_ids! {
     struct Ids {
         // Crosshair
@@ -545,7 +552,6 @@ impl Hud {
             let scales = ecs.read_storage::<comp::Scale>();
             let entities = ecs.entities();
             let me = client.entity();
-            let view_distance = client.view_distance().unwrap_or(1);
             let own_level = stats
                 .get(client.entity())
                 .map_or(0, |stats| stats.level.level());
@@ -632,21 +638,25 @@ impl Hud {
                 &stats,
                 &energy,
                 scales.maybe(),
-                hp_floater_lists.maybe(), // Potentially move this to its own loop
+                &hp_floater_lists,
             )
                 .join()
                 .filter(|(entity, _, _, stats, _, _, _)| {
                     *entity != me && !stats.is_dead
                     //&& stats.health.current() != stats.health.maximum()
                 })
-                // Don't process health bars outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _, _, _, _)| {
-                    Vec2::from(pos.0 - player_pos)
-                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                            d.abs() as f32 / sz as f32
+                // Don't show outside a certain range
+                .filter(|(_, pos, _, _, _, _, hpfl)| {
+                    pos.0.distance_squared(player_pos)
+                        < (if hpfl
+                            .time_since_last_dmg_by_me
+                            .map_or(false, |t| t < NAMETAG_DMG_TIME)
+                        {
+                            NAMETAG_DMG_RANGE
+                        } else {
+                            NAMETAG_RANGE
                         })
-                        .magnitude()
-                        < view_distance as f32
+                        .powi(2)
                 })
                 .map(|(_, pos, interpolated, stats, energy, scale, f)| {
                     (
@@ -684,7 +694,6 @@ impl Hud {
                 Rectangle::fill_with([82.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
                     .x_y(0.0, -25.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(back_id, ui_widgets);
 
                 // % HP Filling
@@ -699,7 +708,6 @@ impl Hud {
                         HP_COLOR
                     }))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(health_bar_id, ui_widgets);
                 // % Mana Filling
                 Rectangle::fill_with(
@@ -711,7 +719,6 @@ impl Hud {
                 )
                 .x_y(4.5 + (energy_percentage / 100.0 * 36.5) - 36.45, -28.0)
                 .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                .resolution(100.0)
                 .set(mana_bar_id, ui_widgets);
 
                 // Foreground
@@ -720,12 +727,12 @@ impl Hud {
                     .x_y(0.0, -25.0)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(front_id, ui_widgets);
 
                 // Enemy SCT
-                if let Some(HpFloaterList { floaters, .. }) = hp_floater_list
+                if let Some(floaters) = Some(hp_floater_list)
                     .filter(|fl| !fl.floaters.is_empty() && global_state.settings.gameplay.sct)
+                    .map(|l| &l.floaters)
                 {
                     // Colors
                     const WHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.8);
@@ -790,8 +797,6 @@ impl Hud {
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(0.0, y - 3.0)
                             .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
-                            .fixed_scale()
-                            .resolution(100.0)
                             .set(sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", hp_damage.abs()))
                             .font_size(font_size)
@@ -802,8 +807,6 @@ impl Hud {
                                 Color::Rgba(0.1, 1.0, 0.1, fade)
                             })
                             .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
-                            .fixed_scale()
-                            .resolution(100.0)
                             .set(sct_id, ui_widgets);
                     } else {
                         for floater in floaters {
@@ -846,8 +849,6 @@ impl Hud {
                                 .position_ingame(
                                     pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
                                 )
-                                .fixed_scale()
-                                .resolution(100.0)
                                 .set(sct_bg_id, ui_widgets);
                             Text::new(&format!("{}", (floater.hp_change).abs()))
                                 .font_size(font_size)
@@ -860,8 +861,6 @@ impl Hud {
                                 .position_ingame(
                                     pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
                                 )
-                                .fixed_scale()
-                                .resolution(100.0)
                                 .set(sct_id, ui_widgets);
                         }
                     }
@@ -1107,19 +1106,24 @@ impl Hud {
                 &stats,
                 players.maybe(),
                 scales.maybe(),
+                &hp_floater_lists,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _)| *entity != me && !stats.is_dead)
-                // Don't process nametags outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _, _, _)| {
-                    Vec2::from(pos.0 - player_pos)
-                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                            d.abs() as f32 / sz as f32
+                .filter(|(entity, _, _, stats, _, _, _)| *entity != me && !stats.is_dead)
+                // Don't show outside a certain range
+                .filter(|(_, pos, _, _, _, _, hpfl)| {
+                    pos.0.distance_squared(player_pos)
+                        < (if hpfl
+                            .time_since_last_dmg_by_me
+                            .map_or(false, |t| t < NAMETAG_DMG_TIME)
+                        {
+                            NAMETAG_DMG_RANGE
+                        } else {
+                            NAMETAG_RANGE
                         })
-                        .magnitude()
-                        < view_distance as f32
+                        .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, player, scale)| {
+                .map(|(_, pos, interpolated, stats, player, scale, _)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -1156,14 +1160,12 @@ impl Hud {
                     .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                     .x_y(-1.0, -1.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(name_bg_id, ui_widgets);
                 Text::new(&name)
                     .font_size(20)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
                     .x_y(0.0, 0.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(name_id, ui_widgets);
 
                 // Level
@@ -1193,7 +1195,6 @@ impl Hud {
                     })
                     .x_y(-37.0, -24.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(level_id, ui_widgets);
                 if level_comp > 9 {
                     let skull_ani = ((self.pulse * 0.7/*speed factor*/).cos() * 0.5 + 0.5) * 10.0; //Animation timer
@@ -1206,7 +1207,6 @@ impl Hud {
                     .x_y(-39.0, -25.0)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(level_skull_id, ui_widgets);
                 }
             }
@@ -2036,12 +2036,9 @@ impl Hud {
             self.ui.focus_widget(maybe_id);
         }
         let events = self.update_layout(client, global_state, debug_info, dt);
-        let (view_mat, _, _) = camera.compute_dependents(client);
-        let fov = camera.get_fov();
-        self.ui.maintain(
-            &mut global_state.window.renderer_mut(),
-            Some((view_mat, fov)),
-        );
+        let (v_mat, p_mat, _) = camera.compute_dependents(client);
+        self.ui
+            .maintain(&mut global_state.window.renderer_mut(), Some(p_mat * v_mat));
 
         // Check if item images need to be reloaded
         self.item_imgs.reload_if_changed(&mut self.ui);

@@ -1,6 +1,4 @@
-use conrod_core::{
-    builder_methods, position::Dimension, widget, Position, Ui, UiCell, Widget, WidgetCommon,
-};
+use conrod_core::{widget, Position, Sizeable, Ui, UiCell, Widget, WidgetCommon};
 use vek::*;
 
 #[derive(Clone, WidgetCommon)]
@@ -8,7 +6,8 @@ pub struct Ingame<W> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     widget: W,
-    parameters: IngameParameters,
+    prim_num: usize,
+    pos: Vec3<f32>,
 }
 
 pub trait Ingameable: Widget + Sized {
@@ -47,19 +46,14 @@ where
     }
 }
 
+// All ingame widgets are now fixed scale
 #[derive(Copy, Clone, PartialEq)]
 pub struct IngameParameters {
     // Number of primitive widgets to position in the game at the specified position
     // Note this could be more than the number of widgets in the widgets field since widgets can contain widgets
     pub num: usize,
     pub pos: Vec3<f32>,
-    // Number of pixels per 1 unit in world coordinates (ie a voxel)
-    // Used for widgets that are rasterized before being sent to the gpu (text & images)
-    // Potentially make this automatic based on distance to camera?
-    pub res: f32,
-    // Whether the widgets should be scaled based on distance to the camera or if they should be a
-    // fixed size (res is ignored in that case)
-    pub fixed_scale: bool,
+    pub dims: Vec2<f32>,
 }
 
 pub struct State {
@@ -73,21 +67,10 @@ impl<W: Ingameable> Ingame<W> {
     pub fn new(pos: Vec3<f32>, widget: W) -> Self {
         Self {
             common: widget::CommonBuilder::default(),
-            parameters: IngameParameters {
-                num: widget.prim_count(),
-                pos,
-                res: 1.0,
-                fixed_scale: false,
-            },
+            prim_num: widget.prim_count(),
+            pos,
             widget,
         }
-    }
-    pub fn fixed_scale(mut self) -> Self {
-        self.parameters.fixed_scale = true;
-        self
-    }
-    builder_methods! {
-        pub resolution { parameters.res = f32 }
     }
 }
 
@@ -99,7 +82,11 @@ impl<W: Ingameable> Widget for Ingame<W> {
     fn init_state(&self, mut id_gen: widget::id::Generator) -> Self::State {
         State {
             id: Some(id_gen.next()),
-            parameters: self.parameters,
+            parameters: IngameParameters {
+                num: self.prim_num,
+                pos: self.pos,
+                dims: Vec2::zero(),
+            },
         }
     }
 
@@ -110,10 +97,19 @@ impl<W: Ingameable> Widget for Ingame<W> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
         let Ingame {
-            widget, parameters, ..
+            widget,
+            prim_num,
+            pos,
+            ..
         } = self;
 
-        // Update pos if it has changed
+        let parameters = IngameParameters {
+            num: prim_num,
+            pos,
+            dims: Vec2::<f64>::from(widget.get_wh(ui).unwrap_or([1.0, 1.0])).map(|e| e as f32),
+        };
+
+        // Update parameters if it has changed
         if state.parameters != parameters {
             state.update(|s| {
                 s.parameters = parameters;
@@ -128,76 +124,5 @@ impl<W: Ingameable> Widget for Ingame<W> {
     }
     fn default_y_position(&self, _: &Ui) -> Position {
         Position::Absolute(0.0)
-    }
-    fn default_x_dimension(&self, _: &Ui) -> Dimension {
-        Dimension::Absolute(1.0)
-    }
-    fn default_y_dimension(&self, _: &Ui) -> Dimension {
-        Dimension::Absolute(1.0)
-    }
-}
-
-// Use this if you have multiple widgets that you want to place at the same spot in-game
-// but don't want to create a new custom widget to contain them both
-// Note: widgets must be set immediately after settings this
-// Note: remove this if it ends up unused
-#[derive(Clone, WidgetCommon)]
-pub struct IngameAnchor {
-    #[conrod(common_builder)]
-    common: widget::CommonBuilder,
-    parameters: IngameParameters,
-}
-impl IngameAnchor {
-    pub fn new(pos: Vec3<f32>) -> Self {
-        IngameAnchor {
-            common: widget::CommonBuilder::default(),
-            parameters: IngameParameters {
-                num: 0,
-                pos,
-                res: 1.0,
-                fixed_scale: false,
-            },
-        }
-    }
-    pub fn for_widget(mut self, widget: impl Ingameable) -> Self {
-        self.parameters.num += widget.prim_count();
-        self
-    }
-    pub fn for_widgets(mut self, widget: impl Ingameable, n: usize) -> Self {
-        self.parameters.num += n * widget.prim_count();
-        self
-    }
-    pub fn for_prims(mut self, num: usize) -> Self {
-        self.parameters.num += num;
-        self
-    }
-}
-
-impl Widget for IngameAnchor {
-    type State = State;
-    type Style = Style;
-    type Event = ();
-
-    fn init_state(&self, _: widget::id::Generator) -> Self::State {
-        State {
-            id: None,
-            parameters: self.parameters,
-        }
-    }
-
-    fn style(&self) -> Self::Style {
-        ()
-    }
-
-    fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id: _, state, .. } = args;
-        let IngameAnchor { parameters, .. } = self;
-
-        // Update pos if it has changed
-        if state.parameters != parameters {
-            state.update(|s| {
-                s.parameters = parameters;
-            });
-        }
     }
 }
