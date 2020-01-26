@@ -13,7 +13,7 @@ pub enum Alignment {
 impl Alignment {
     pub fn hostile_towards(self, other: Alignment) -> bool {
         match (self, other) {
-            (Alignment::Wild, Alignment::Npc) => true,
+            (Alignment::Wild, Alignment::Npc) => false,
             _ => self != other,
         }
     }
