@@ -66,7 +66,7 @@ float shadow_at(vec3 wpos, vec3 wnorm) {
 
 		vec3 diff = shadow_pos - wpos;
 		if (diff.z >= 0.0) {
-			diff.z = sign(diff.z) * 0.1;
+			diff.z = -sign(diff.z) * diff.z * 0.1;
 		}
 
 		float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.25) / pow(radius * radius * 0.5, 0.25), 0.5);

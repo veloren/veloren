@@ -1446,6 +1446,42 @@ impl WorldSim {
                 chunk.structures.town = maybe_town;
             });
 
+        // Create waypoints
+        const WAYPOINT_EVERY: usize = 16;
+        let this = &self;
+        let waypoints = (0..WORLD_SIZE.x)
+            .step_by(WAYPOINT_EVERY)
+            .map(|i| {
+                (0..WORLD_SIZE.y)
+                    .step_by(WAYPOINT_EVERY)
+                    .map(move |j| (i, j))
+            })
+            .flatten()
+            .collect::<Vec<_>>()
+            .into_par_iter()
+            .filter_map(|(i, j)| {
+                let mut pos = Vec2::new(i as i32, j as i32);
+                // Slide the waypoints down hills
+                const MAX_ITERS: usize = 64;
+                for _ in 0..MAX_ITERS {
+                    match this.get(pos)?.downhill {
+                        Some(downhill) => {
+                            pos = downhill
+                                .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                                    e / (sz as i32)
+                                })
+                        }
+                        None => return Some(pos),
+                    }
+                }
+                Some(pos)
+            })
+            .collect::<Vec<_>>();
+
+        for waypoint in waypoints {
+            self.get_mut(waypoint).map(|sc| sc.contains_waypoint = true);
+        }
+
         self.rng = rng;
         self.locations = locations;
     }
@@ -1679,6 +1715,7 @@ pub struct SimChunk {
     pub is_underwater: bool,
 
     pub structures: Structures,
+    pub contains_waypoint: bool,
 }
 
 #[derive(Copy, Clone)]
@@ -1922,6 +1959,7 @@ impl SimChunk {
             location: None,
             river,
             structures: Structures { town: None },
+            contains_waypoint: false,
         }
     }
 

@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![type_length_limit = "1664759"]
-#![feature(trait_alias, arbitrary_enum_discriminant)]
+#![feature(trait_alias, arbitrary_enum_discriminant, label_break_value)]
 
 #[macro_use]
 extern crate serde_derive;
@@ -14,10 +14,10 @@ pub mod comp;
 pub mod effect;
 pub mod event;
 pub mod figure;
-pub mod hierarchical;
+pub mod generation;
 pub mod msg;
 pub mod npc;
-pub mod pathfinding;
+pub mod path;
 pub mod ray;
 pub mod region;
 pub mod state;

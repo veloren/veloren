@@ -1,4 +1,6 @@
-use common::terrain::TerrainChunk;
+#[cfg(not(feature = "worldgen"))]
+use crate::test_world::World;
+use common::{generation::ChunkSupplement, terrain::TerrainChunk};
 use crossbeam::channel;
 use hashbrown::{hash_map::Entry, HashMap};
 use specs::Entity as EcsEntity;
@@ -7,7 +9,8 @@ use std::sync::{
     Arc,
 };
 use vek::*;
-use world::{ChunkSupplement, World};
+#[cfg(feature = "worldgen")]
+use world::World;
 
 type ChunkGenResult = (
     Vec2<i32>,

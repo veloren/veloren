@@ -54,6 +54,7 @@ pub enum Body {
     CraftingBench = 48,
     BoltFire = 49,
     ArrowSnake = 50,
+    CampfireLit = 51,
 }
 
 impl Body {
@@ -63,7 +64,7 @@ impl Body {
     }
 }
 
-const ALL_OBJECTS: [Body; 50] = [
+const ALL_OBJECTS: [Body; 51] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -82,6 +83,7 @@ const ALL_OBJECTS: [Body; 50] = [
     Body::Pumpkin4,
     Body::Pumpkin5,
     Body::Campfire,
+    Body::CampfireLit,
     Body::LanternGround,
     Body::LanternGroundOpen,
     Body::LanternStanding,

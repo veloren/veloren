@@ -7,13 +7,11 @@ use chrono::{NaiveTime, Timelike};
 use common::{
     assets, comp,
     event::{EventBus, ServerEvent},
-    hierarchical::ChunkPath,
     msg::{PlayerListUpdate, ServerMsg},
     npc::{get_npc_name, NpcKind},
-    pathfinding::WorldPath,
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
-    terrain::{Block, BlockKind, TerrainChunkSize},
+    terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
 use rand::Rng;
@@ -249,13 +247,6 @@ lazy_static! {
             true,
             handle_debug,
         ),
-        ChatCommand::new(
-            "pathfind",
-            "{} {d} {d} {d}",
-            "/pathfind : Send a given entity with ID to the coordinates provided",
-            true,
-            handle_pathfind,
-        ),
     ];
 }
 fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
@@ -467,7 +458,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match scan_fmt_some!(&args, action.arg_fmt, String, NpcKind, String) {
         (Some(opt_align), Some(id), opt_amount) => {
-            if let Some(agent) = alignment_to_agent(&opt_align, entity) {
+            if let Some(alignment) = parse_alignment(&opt_align) {
                 let amount = opt_amount
                     .and_then(|a| a.parse().ok())
                     .filter(|x| *x > 0)
@@ -476,6 +467,12 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
 
                 match server.state.read_component_cloned::<comp::Pos>(entity) {
                     Some(pos) => {
+                        let agent = if let comp::Alignment::Npc = alignment {
+                            comp::Agent::default().with_pet(entity)
+                        } else {
+                            comp::Agent::default().with_patrol_origin(pos.0)
+                        };
+
                         for _ in 0..amount {
                             let vel = Vec3::new(
                                 rand::thread_rng().gen_range(-2.0, 3.0),
@@ -495,6 +492,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                                 .with(comp::Vel(vel))
                                 .with(comp::MountState::Unmounted)
                                 .with(agent.clone())
+                                .with(alignment)
                                 .build();
 
                             if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
@@ -520,45 +518,6 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
         }
         _ => {
             server.notify_client(entity, ServerMsg::private(String::from(action.help_string)));
-        }
-    }
-}
-
-fn handle_pathfind(server: &mut Server, player: EcsEntity, args: String, action: &ChatCommand) {
-    if let (Some(id), Some(x), Some(y), Some(z)) =
-        scan_fmt_some!(&args, action.arg_fmt, u64, f32, f32, f32)
-    {
-        let entity = server.state.ecs().entity_from_uid(id);
-
-        if let Some(target_entity) = entity {
-            if let Some(start_pos) = server
-                .state
-                .read_component_cloned::<comp::Pos>(target_entity)
-            {
-                let target = start_pos.0 + Vec3::new(x, y, z);
-                let new_path = ChunkPath::new(&*server.state.terrain(), start_pos.0, target)
-                    .get_worldpath(&*server.state.terrain());
-
-                server.state.write_component(
-                    target_entity,
-                    comp::Agent::Traveler {
-                        path: new_path.clone(),
-                    },
-                );
-
-                if let Some(path_positions) = &new_path.path {
-                    for pos in path_positions {
-                        server
-                            .state
-                            .set_block(*pos, Block::new(BlockKind::Normal, Rgb::new(255, 255, 0)));
-                    }
-                }
-            }
-        } else {
-            server.notify_client(
-                player,
-                ServerMsg::private(format!("Unable to find entity with ID: {:?}", id)),
-            );
         }
     }
 }
@@ -624,17 +583,11 @@ fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &
     }
 }
 
-fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent> {
+fn parse_alignment(alignment: &str) -> Option<comp::Alignment> {
     match alignment {
-        "hostile" => Some(comp::Agent::enemy()),
-        "friendly" => Some(comp::Agent::Pet {
-            target,
-            offset: Vec2::zero(),
-        }),
-        "traveler" => Some(comp::Agent::Traveler {
-            path: WorldPath::default(),
-        }),
-        // passive?
+        "wild" => Some(comp::Alignment::Wild),
+        "enemy" => Some(comp::Alignment::Enemy),
+        "npc" => Some(comp::Alignment::Npc),
         _ => None,
     }
 }
@@ -704,6 +657,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             Ok("pumpkin_4") => comp::object::Body::Pumpkin4,
             Ok("pumpkin_5") => comp::object::Body::Pumpkin5,
             Ok("campfire") => comp::object::Body::Campfire,
+            Ok("campfire_lit") => comp::object::Body::CampfireLit,
             Ok("lantern_ground") => comp::object::Body::LanternGround,
             Ok("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
             Ok("lantern_2") => comp::object::Body::LanternStanding2,
@@ -981,6 +935,20 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
     }
 }
 
+#[cfg(not(feature = "worldgen"))]
+fn handle_debug_column(
+    server: &mut Server,
+    entity: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    server.notify_client(
+        entity,
+        ServerMsg::private(String::from("Unsupported without worldgen enabled")),
+    );
+}
+
+#[cfg(feature = "worldgen")]
 fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let sim = server.world.sim();
     let sampler = server.world.sample_columns();
@@ -1120,10 +1088,11 @@ fn handle_remove_lights(
     match opt_player_pos {
         Some(player_pos) => {
             let ecs = server.state.ecs();
-            for (entity, pos, _, _) in (
+            for (entity, pos, _, _, _) in (
                 &ecs.entities(),
                 &ecs.read_storage::<comp::Pos>(),
                 &ecs.read_storage::<comp::LightEmitter>(),
+                !&ecs.read_storage::<comp::WaypointArea>(),
                 !&ecs.read_storage::<comp::Player>(),
             )
                 .join()
