@@ -1,5 +1,5 @@
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
-use crate::i18n::VoxygenLocalization;
+use super::{img_ids::Imgs, Show, TEXT_COLOR};
+use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use client::{self, Client};
 use conrod_core::{
     color,
@@ -23,7 +23,7 @@ pub struct Quest<'a> {
     _client: &'a Client,
 
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -34,7 +34,7 @@ impl<'a> Quest<'a> {
         show: &'a Show,
         _client: &'a Client,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
@@ -98,8 +98,8 @@ impl<'a> Widget for Quest<'a> {
         // TODO: Use an actual character name.
         Text::new(&self.localized_strings.get("hud.quests"))
             .mid_top_with_margin_on(state.quest_frame, 6.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .color(TEXT_COLOR)
             .set(state.quest_title, ui);
 

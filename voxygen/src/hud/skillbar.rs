@@ -1,9 +1,10 @@
 use super::{
-    img_ids::Imgs, BarNumbers, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR, HP_COLOR,
-    LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
+    img_ids::Imgs, BarNumbers, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
+    MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
+    ui::fonts::ConrodVoxygenFonts,
     GlobalState,
 };
 use common::{
@@ -108,7 +109,7 @@ pub enum ResourceType {
 pub struct Skillbar<'a> {
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     stats: &'a Stats,
     energy: &'a Energy,
     character_state: &'a CharacterState,
@@ -123,7 +124,7 @@ impl<'a> Skillbar<'a> {
     pub fn new(
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         stats: &'a Stats,
         energy: &'a Energy,
         character_state: &'a CharacterState,
@@ -264,14 +265,14 @@ impl<'a> Widget for Skillbar<'a> {
             .replace("{level_nb}", &self.stats.level.level().to_string());
         Text::new(&level_up_text)
             .middle_of(state.ids.level_align)
-            .font_size(30)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(30))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(Color::Rgba(0.0, 0.0, 0.0, fade_level))
             .set(state.ids.level_message_bg, ui);
         Text::new(&level_up_text)
             .bottom_left_with_margins_on(state.ids.level_message_bg, 2.0, 2.0)
-            .font_size(30)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(30))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(Color::Rgba(1.0, 1.0, 1.0, fade_level))
             .set(state.ids.level_message, ui);
         Image::new(self.imgs.level_up)
@@ -290,8 +291,8 @@ impl<'a> Widget for Skillbar<'a> {
         if self.stats.is_dead {
             Text::new(&localized_strings.get("hud.you_died"))
                 .middle_of(ui.window)
-                .font_size(50)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(50))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_1_bg, ui);
             Text::new(&localized_strings.get("hud.press_key_to_respawn").replace(
@@ -299,14 +300,14 @@ impl<'a> Widget for Skillbar<'a> {
                 &format!("{:?}", self.global_state.settings.controls.respawn),
             ))
             .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
-            .font_size(30)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(30))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.death_message_2_bg, ui);
             Text::new(&localized_strings.get("hud.you_died"))
                 .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
-                .font_size(50)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(50))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
             Text::new(&localized_strings.get("hud.press_key_to_respawn").replace(
@@ -314,7 +315,8 @@ impl<'a> Widget for Skillbar<'a> {
                 &format!("{:?}", self.global_state.settings.controls.respawn),
             ))
             .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
-            .font_size(30)
+            .font_size(self.fonts.cyri.scale(30))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(CRITICAL_HP_COLOR)
             .set(state.ids.death_message_2, ui);
         }
@@ -347,8 +349,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.5 * scale,
                             4.0 * scale,
                         )
-                        .font_size(10)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(10))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                         .set(state.ids.level_text, ui);
                     Text::new(&next_level)
@@ -357,8 +359,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.5 * scale,
                             4.0 * scale,
                         )
-                        .font_size(10)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(10))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                         .set(state.ids.next_level_text, ui);
                 } else if self.stats.level.level() < 100 {
@@ -369,8 +371,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.5 * scale,
                             3.0 * scale,
                         )
-                        .font_size(9)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(9))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                         .set(state.ids.level_text, ui);
                     Text::new(&next_level)
@@ -379,8 +381,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.5 * scale,
                             3.0 * scale,
                         )
-                        .font_size(9)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(9))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                         .set(state.ids.next_level_text, ui);
                 } else {
@@ -391,8 +393,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.5 * scale,
                             2.5 * scale,
                         )
-                        .font_size(8)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(8))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                         .set(state.ids.level_text, ui);
                     Text::new(&next_level)
@@ -401,8 +403,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.5 * scale,
                             2.5 * scale,
                         )
-                        .font_size(8)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(8))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                         .set(state.ids.next_level_text, ui);
                 }
@@ -472,8 +474,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.0 * scale * 1.5,
                             4.0 * scale * 1.5,
                         )
-                        .font_size(17)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(17))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
                         .set(state.ids.level_text, ui);
                     Text::new(&next_level)
@@ -482,8 +484,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.0 * scale * 1.5,
                             4.0 * scale * 1.5,
                         )
-                        .font_size(15)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(15))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
                         .set(state.ids.next_level_text, ui);
                 } else if self.stats.level.level() < 100 {
@@ -494,8 +496,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.0 * scale * 1.5,
                             3.0 * scale * 1.5,
                         )
-                        .font_size(15)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(15))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
                         .set(state.ids.level_text, ui);
                     Text::new(&next_level)
@@ -504,8 +506,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.0 * scale * 1.5,
                             3.0 * scale * 1.5,
                         )
-                        .font_size(15)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(15))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
                         .set(state.ids.next_level_text, ui);
                 } else {
@@ -516,8 +518,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.0 * scale * 1.5,
                             2.75 * scale * 1.5,
                         )
-                        .font_size(12)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(12))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
                         .set(state.ids.level_text, ui);
                     Text::new(&next_level)
@@ -526,8 +528,8 @@ impl<'a> Widget for Skillbar<'a> {
                             3.0 * scale * 1.5,
                             2.75 * scale * 1.5,
                         )
-                        .font_size(12)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(12))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(Color::Rgba(1.0, 1.0, 1.0, fade_xp))
                         .set(state.ids.next_level_text, ui);
                 }
@@ -849,74 +851,74 @@ impl<'a> Widget for Skillbar<'a> {
         if let ShortcutNumbers::On = shortcuts {
             Text::new("1")
                 .top_right_with_margins_on(state.ids.slot1_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot1_text, ui);
             Text::new("2")
                 .top_right_with_margins_on(state.ids.slot2_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot2_text, ui);
             Text::new("3")
                 .top_right_with_margins_on(state.ids.slot3_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot3_text, ui);
             Text::new("4")
                 .top_right_with_margins_on(state.ids.slot4_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot4_text, ui);
             Text::new("5")
                 .top_right_with_margins_on(state.ids.slot5_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot5_text, ui);
             Text::new("M1")
                 .top_left_with_margins_on(state.ids.m1_slot, 5.0, 5.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.m1_text, ui);
             Text::new("M2")
                 .top_right_with_margins_on(state.ids.m2_slot, 5.0, 5.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.m2_text, ui);
             Text::new("6")
                 .top_left_with_margins_on(state.ids.slot6_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot6_text, ui);
             Text::new("7")
                 .top_left_with_margins_on(state.ids.slot7_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot7_text, ui);
             Text::new("8")
                 .top_left_with_margins_on(state.ids.slot8_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot8_text, ui);
             Text::new("9")
                 .top_left_with_margins_on(state.ids.slot9_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slot9_text, ui);
             Text::new("Q")
                 .top_left_with_margins_on(state.ids.slotq_bg, 1.0, 1.0)
-                .font_size(8)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(8))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.slotq_text, ui);
         };
@@ -961,14 +963,14 @@ impl<'a> Widget for Skillbar<'a> {
             );
             Text::new(&hp_text)
                 .mid_top_with_margin_on(state.ids.healthbar_bg, 6.0 * scale)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.health_text_bg, ui);
             Text::new(&hp_text)
                 .bottom_left_with_margins_on(state.ids.health_text_bg, 2.0, 2.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.health_text, ui);
             let energy_text = format!(
@@ -979,14 +981,14 @@ impl<'a> Widget for Skillbar<'a> {
             );
             Text::new(&energy_text)
                 .mid_top_with_margin_on(state.ids.energybar_bg, 6.0 * scale)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.energy_text_bg, ui);
             Text::new(&energy_text)
                 .bottom_left_with_margins_on(state.ids.energy_text_bg, 2.0, 2.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.energy_text, ui);
         }
@@ -995,27 +997,27 @@ impl<'a> Widget for Skillbar<'a> {
             let hp_text = format!("{}%", hp_percentage as u32);
             Text::new(&hp_text)
                 .mid_top_with_margin_on(state.ids.healthbar_bg, 6.0 * scale)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.health_text_bg, ui);
             Text::new(&hp_text)
                 .bottom_left_with_margins_on(state.ids.health_text_bg, 2.0, 2.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.health_text, ui);
             let energy_text = format!("{}%", energy_percentage as u32);
             Text::new(&energy_text)
                 .mid_top_with_margin_on(state.ids.energybar_bg, 6.0 * scale)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.energy_text_bg, ui);
             Text::new(&energy_text)
                 .bottom_left_with_margins_on(state.ids.energy_text_bg, 2.0, 2.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.energy_text, ui);
         }

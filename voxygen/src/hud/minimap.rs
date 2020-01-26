@@ -1,8 +1,8 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Fonts, Show, HP_COLOR, TEXT_COLOR,
+    Show, HP_COLOR, TEXT_COLOR,
 };
-use crate::ui::img_ids;
+use crate::ui::{fonts::ConrodVoxygenFonts, img_ids};
 use client::{self, Client};
 use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
@@ -38,7 +38,7 @@ pub struct MiniMap<'a> {
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
     world_map: &'a (img_ids::Rotations, Vec2<u32>),
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -50,7 +50,7 @@ impl<'a> MiniMap<'a> {
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
     ) -> Self {
         Self {
             show,
@@ -276,20 +276,20 @@ impl<'a> Widget for MiniMap<'a> {
                 // Region Name
                 Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
                     .mid_top_with_margin_on(ui.window, 200.0)
-                    .font_size(70)
-                    .font_id(self.fonts.alkhemi)
+                    .font_size(self.fonts.alkhemi.scale(70))
+                    .font_id(self.fonts.alkhemi.conrod_id)
                     .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                     .set(state.ids.zone_display_bg, ui);
                 Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
                     .top_left_with_margins_on(state.ids.zone_display_bg, -2.5, -2.5)
-                    .font_size(70)
-                    .font_id(self.fonts.alkhemi)
+                    .font_size(self.fonts.alkhemi.scale(70))
+                    .font_id(self.fonts.alkhemi.conrod_id)
                     .color(Color::Rgba(1.0, 1.0, 1.0, fade))
                     .set(state.ids.zone_display, ui);
             },
             None => Text::new(" ")
                 .middle_of(ui.window)
-                .font_size(14)
+                .font_size(self.fonts.alkhemi.scale(14))
                 .color(HP_COLOR)
                 .set(state.ids.zone_display, ui),
         }
@@ -303,13 +303,17 @@ impl<'a> Widget for MiniMap<'a> {
                     state.ids.mmap_frame,
                     if self.show.mini_map { 6.0 } else { 0.0 },
                 )
-                .font_size(if self.show.mini_map { 20 } else { 18 })
-                .font_id(self.fonts.cyri)
+                .font_size(
+                    self.fonts
+                        .cyri
+                        .scale(if self.show.mini_map { 30 } else { 18 }),
+                )
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
             None => Text::new(" ")
                 .mid_top_with_margin_on(state.ids.mmap_frame, 0.0)
-                .font_size(18)
+                .font_size(self.fonts.cyri.scale(18))
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
         }
