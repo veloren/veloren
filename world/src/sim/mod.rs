@@ -1461,17 +1461,25 @@ impl WorldSim {
             .into_par_iter()
             .filter_map(|(i, j)| {
                 let mut pos = Vec2::new(i as i32, j as i32);
+                let mut chunk = this.get(pos)?;
                 // Slide the waypoints down hills
                 const MAX_ITERS: usize = 64;
                 for _ in 0..MAX_ITERS {
-                    match this.get(pos)?.downhill {
-                        Some(downhill) => {
-                            pos = downhill
-                                .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                                    e / (sz as i32)
-                                })
-                        }
+                    let downhill_pos = match chunk.downhill {
+                        Some(downhill) => downhill
+                            .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                                e / (sz as i32)
+                            }),
                         None => return Some(pos),
+                    };
+
+                    let new_chunk = this.get(downhill_pos)?;
+                    const SLIDE_THRESHOLD: f32 = 5.0;
+                    if new_chunk.is_underwater || new_chunk.alt + SLIDE_THRESHOLD < chunk.alt {
+                        break;
+                    } else {
+                        chunk = new_chunk;
+                        pos = downhill_pos;
                     }
                 }
                 Some(pos)
