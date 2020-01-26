@@ -1,5 +1,5 @@
 mod admin;
-mod agent;
+pub mod agent;
 mod body;
 mod character_state;
 mod controller;
@@ -16,7 +16,7 @@ mod visual;
 
 // Reexports
 pub use admin::Admin;
-pub use agent::Agent;
+pub use agent::{Agent, Alignment};
 pub use body::{
     biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, humanoid,
     object, quadruped_medium, quadruped_small, Body,
@@ -30,7 +30,7 @@ pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;
 pub use inventory::{item, Inventory, InventoryUpdate, Item, ItemKind};
 pub use last::Last;
-pub use location::Waypoint;
+pub use location::{Waypoint, WaypointArea};
 pub use phys::{ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::Player;
 pub use projectile::Projectile;

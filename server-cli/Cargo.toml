@@ -4,8 +4,12 @@ version = "0.4.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
+[features]
+worldgen = ["server/worldgen"]
+default = ["worldgen"]
+
 [dependencies]
-server = { package = "veloren-server", path = "../server" }
+server = { package = "veloren-server", path = "../server", default-features = false }
 common = { package = "veloren-common", path = "../common" }
 
 log = "0.4.8"

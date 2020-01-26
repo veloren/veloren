@@ -171,14 +171,16 @@ pub struct CachedVolGrid2d<'a, V: RectRasterableVol> {
     // reference to the `VolGrid2d`
     cache: Option<(Vec2<i32>, Arc<V>)>,
 }
+
 impl<'a, V: RectRasterableVol> CachedVolGrid2d<'a, V> {
-    pub fn new(vol_grid_2d: &'a VolGrid2d<V>) -> Self {
+    fn new(vol_grid_2d: &'a VolGrid2d<V>) -> Self {
         Self {
             vol_grid_2d,
             cache: None,
         }
     }
 }
+
 impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
     #[inline(always)]
     pub fn get(&mut self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid2dError<V>> {

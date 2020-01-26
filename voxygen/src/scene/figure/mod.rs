@@ -112,7 +112,7 @@ impl FigureMgr {
         for (entity, pos, ori, scale, body, character, last_character, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
-            &ecs.read_storage::<Ori>(),
+            ecs.read_storage::<Ori>().maybe(),
             ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<CharacterState>().maybe(),
@@ -121,6 +121,8 @@ impl FigureMgr {
         )
             .join()
         {
+            let ori = ori.copied().unwrap_or(Ori(Vec3::unit_y()));
+
             // Don't process figures outside the vd
             let vd_frac = Vec2::from(pos.0 - player_pos)
                 .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
@@ -1225,7 +1227,7 @@ impl FigureMgr {
         for (entity, _, _, body, stats, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
-            &ecs.read_storage::<Ori>(),
+            ecs.read_storage::<Ori>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Stats>().maybe(),
             ecs.read_storage::<Scale>().maybe(),

@@ -1,22 +1,28 @@
-use crate::comp::{
-    Agent, CharacterState, Controller, MountState, MovementState::Glide, Pos, Stats,
-};
-use crate::hierarchical::ChunkPath;
-use crate::pathfinding::WorldPath;
 use crate::terrain::TerrainGrid;
-use rand::{seq::SliceRandom, thread_rng};
-use specs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage};
+use crate::{
+    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Pos, Stats},
+    path::Chaser,
+    state::Time,
+    sync::UidAllocator,
+};
+use rand::{seq::SliceRandom, thread_rng, Rng};
+use specs::{
+    saveload::{Marker, MarkerAllocator},
+    Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
+};
 use vek::*;
 
 /// This system will allow NPCs to modify their controller
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
+        Read<'a, UidAllocator>,
+        Read<'a, Time>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Stats>,
-        ReadStorage<'a, CharacterState>,
         ReadExpect<'a, TerrainGrid>,
+        ReadStorage<'a, Alignment>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, MountState>,
@@ -25,19 +31,22 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
+            uid_allocator,
+            time,
             entities,
             positions,
             stats,
-            character_states,
             terrain,
+            alignments,
             mut agents,
             mut controllers,
             mount_states,
         ): Self::SystemData,
     ) {
-        for (entity, pos, agent, controller, mount_state) in (
+        for (entity, pos, alignment, agent, controller, mount_state) in (
             &entities,
             &positions,
+            alignments.maybe(),
             &mut agents,
             &mut controllers,
             mount_states.maybe(),
@@ -62,149 +71,175 @@ impl<'a> System<'a> for Sys {
 
             let mut inputs = &mut controller.inputs;
 
-            match agent {
-                Agent::Traveler { path } => {
-                    let mut new_path: Option<WorldPath> = None;
-                    let is_destination = |cur_pos: Vec3<i32>, dest: Vec3<i32>| {
-                        Vec2::<i32>::from(cur_pos) == Vec2::<i32>::from(dest)
-                    };
+            const AVG_FOLLOW_DIST: f32 = 6.0;
+            const MAX_FOLLOW_DIST: f32 = 12.0;
+            const MAX_CHASE_DIST: f32 = 24.0;
+            const SIGHT_DIST: f32 = 30.0;
+            const MIN_ATTACK_DIST: f32 = 3.25;
 
-                    let found_destination = || {
-                        const MAX_TRAVEL_DIST: f32 = 200.0;
-                        let new_dest = Vec3::new(rand::random::<f32>(), rand::random::<f32>(), 0.0)
-                            * MAX_TRAVEL_DIST;
-                        new_path = Some(
-                            ChunkPath::new(&*terrain, pos.0, pos.0 + new_dest)
-                                .get_worldpath(&*terrain),
-                        );
-                    };
+            let mut do_idle = false;
+            let mut choose_target = false;
 
-                    path.move_along_path(
-                        &*terrain,
-                        pos,
-                        &mut inputs,
-                        is_destination,
-                        found_destination,
-                    );
-
-                    if let Some(new_path) = new_path {
-                        *path = new_path;
-                    }
-                }
-                Agent::Wanderer(bearing) => {
-                    *bearing += Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
-                        * 0.1
-                        - *bearing * 0.01
-                        - pos.0 * 0.0002;
-
-                    if bearing.magnitude_squared() > 0.001 {
-                        inputs.move_dir = bearing.normalized();
-                    }
-                }
-                Agent::Pet { target, offset } => {
-                    // Run towards target.
-                    match positions.get(*target) {
-                        Some(tgt_pos) => {
-                            let tgt_pos = tgt_pos.0 + *offset;
-
-                            if tgt_pos.z > pos.0.z + 1.0 {
-                                inputs.jump.set_state(true);
-                            }
-
-                            // Move towards the target.
-                            let dist: f32 = Vec2::from(tgt_pos - pos.0).magnitude();
-                            inputs.move_dir = if dist > 5.0 {
-                                Vec2::from(tgt_pos - pos.0).normalized()
-                            } else if dist < 1.5 && dist > 0.001 {
-                                Vec2::from(pos.0 - tgt_pos).normalized()
+            'activity: {
+                match &mut agent.activity {
+                    Activity::Idle(bearing) => {
+                        *bearing += Vec2::new(
+                            thread_rng().gen::<f32>() - 0.5,
+                            thread_rng().gen::<f32>() - 0.5,
+                        ) * 0.1
+                            - *bearing * 0.01
+                            - if let Some(patrol_origin) = agent.patrol_origin {
+                                Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
                             } else {
                                 Vec2::zero()
                             };
-                        }
-                        _ => inputs.move_dir = Vec2::zero(),
-                    }
 
-                    // Change offset occasionally.
-                    if rand::random::<f32>() < 0.003 {
-                        *offset =
-                            Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
-                                * 10.0;
+                        if bearing.magnitude_squared() > 0.25f32.powf(2.0) {
+                            inputs.move_dir = bearing.normalized() * 0.65;
+                        }
+
+                        // Sometimes try searching for new targets
+                        if thread_rng().gen::<f32>() < 0.1 {
+                            choose_target = true;
+                        }
+                    }
+                    Activity::Follow(target, chaser) => {
+                        if let (Some(tgt_pos), _tgt_stats) =
+                            (positions.get(*target), stats.get(*target))
+                        {
+                            let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                            // Follow, or return to idle
+                            if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
+                                if let Some(bearing) =
+                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, AVG_FOLLOW_DIST)
+                                {
+                                    inputs.move_dir = Vec2::from(bearing)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::zero());
+                                    inputs.jump.set_state(bearing.z > 1.0);
+                                }
+                            } else {
+                                do_idle = true;
+                            }
+                        } else {
+                            do_idle = true;
+                        }
+                    }
+                    Activity::Attack(target, chaser, _) => {
+                        if let (Some(tgt_pos), _tgt_stats, tgt_alignment) = (
+                            positions.get(*target),
+                            stats.get(*target),
+                            alignments.get(*target),
+                        ) {
+                            // Don't attack aligned entities
+                            // TODO: This is a bit of a hack, find a better way to do this
+                            if let (Some(alignment), Some(tgt_alignment)) =
+                                (alignment, tgt_alignment)
+                            {
+                                if !tgt_alignment.hostile_towards(*alignment) {
+                                    do_idle = true;
+                                    break 'activity;
+                                }
+                            }
+
+                            let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                            if dist_sqrd < MIN_ATTACK_DIST.powf(2.0) {
+                                // Close-range attack
+                                inputs.look_dir = tgt_pos.0 - pos.0;
+                                inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
+                                    .try_normalized()
+                                    .unwrap_or(Vec2::unit_y())
+                                    * 0.01;
+                                inputs.primary.set_state(true);
+                            } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                // Long-range chase
+                                if let Some(bearing) =
+                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, 1.25)
+                                {
+                                    inputs.move_dir = Vec2::from(bearing)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::zero());
+                                    inputs.jump.set_state(bearing.z > 1.0);
+                                }
+                            } else {
+                                do_idle = true;
+                            }
+                        } else {
+                            do_idle = true;
+                        }
                     }
                 }
-                Agent::Enemy { bearing, target } => {
-                    const SIGHT_DIST: f32 = 18.0;
-                    const MIN_ATTACK_DIST: f32 = 3.25;
-                    let mut choose_new = false;
+            }
 
-                    if let Some((Some(target_pos), Some(target_stats), Some(target_character))) =
-                        target.map(|target| {
-                            (
-                                positions.get(target),
-                                stats.get(target),
-                                character_states.get(target),
-                            )
-                        })
-                    {
-                        inputs.look_dir = target_pos.0 - pos.0;
+            if do_idle {
+                agent.activity = Activity::Idle(Vec2::zero());
+            }
 
-                        let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
-                        if target_stats.is_dead {
-                            choose_new = true;
-                        } else if dist < 0.001 {
-                            // Probably can only happen when entities are at a different z-level
-                            // since at the same level repulsion would keep them apart.
-                            // Distinct from the first if block since we may want to change the
-                            // behavior for this case.
-                            choose_new = true;
-                        } else if dist < MIN_ATTACK_DIST {
-                            // Fight (and slowly move closer)
-                            inputs.move_dir =
-                                Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.01;
-                            inputs.primary.set_state(true);
-                        } else if dist < SIGHT_DIST {
-                            inputs.move_dir =
-                                Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.96;
+            // Choose a new target to attack: only go out of our way to attack targets we are
+            // hostile toward!
+            if choose_target {
+                // Search for new targets (this looks expensive, but it's only run occasionally)
+                // TODO: Replace this with a better system that doesn't consider *all* entities
+                let entities = (&entities, &positions, &stats, alignments.maybe())
+                    .join()
+                    .filter(|(e, e_pos, e_stats, e_alignment)| {
+                        (e_pos.0 - pos.0).magnitude_squared() < SIGHT_DIST.powf(2.0)
+                            && *e != entity
+                            && !e_stats.is_dead
+                            && alignment
+                                .and_then(|a| e_alignment.map(|b| a.hostile_towards(*b)))
+                                .unwrap_or(false)
+                    })
+                    .map(|(e, _, _, _)| e)
+                    .collect::<Vec<_>>();
 
-                            if rand::random::<f32>() < 0.02 {
-                                inputs.roll.set_state(true);
-                            }
+                if let Some(target) = (&entities).choose(&mut thread_rng()).cloned() {
+                    agent.activity = Activity::Attack(target, Chaser::default(), time.0);
+                }
+            }
 
-                            if target_character.movement == Glide && target_pos.0.z > pos.0.z + 5.0
+            // --- Activity overrides (in reverse order of priority: most important goes last!) ---
+
+            // Attack a target that's attacking us
+            if let Some(stats) = stats.get(entity) {
+                // Only if the attack was recent
+                if stats.health.last_change.0 < 5.0 {
+                    if let comp::HealthSource::Attack { by } = stats.health.last_change.1.cause {
+                        if !agent.activity.is_attack() {
+                            if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
-                                inputs.glide.set_state(true);
-                                inputs.jump.set_state(true);
+                                agent.activity =
+                                    Activity::Attack(attacker, Chaser::default(), time.0);
                             }
-                        } else {
-                            choose_new = true;
                         }
-                    } else {
-                        *bearing +=
-                            Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
-                                * 0.1
-                                - *bearing * 0.005;
+                    }
+                }
+            }
 
-                        inputs.move_dir = if bearing.magnitude_squared() > 0.001 {
-                            bearing.normalized()
-                        } else {
-                            Vec2::zero()
-                        };
-
-                        choose_new = true;
+            // Follow owner if we're too far, or if they're under attack
+            if let Some(owner) = agent.owner {
+                if let Some(owner_pos) = positions.get(owner) {
+                    let dist_sqrd = pos.0.distance_squared(owner_pos.0);
+                    if dist_sqrd > MAX_FOLLOW_DIST.powf(2.0) && !agent.activity.is_follow() {
+                        agent.activity = Activity::Follow(owner, Chaser::default());
                     }
 
-                    if choose_new && rand::random::<f32>() < 0.1 {
-                        let entities = (&entities, &positions, &stats)
-                            .join()
-                            .filter(|(e, e_pos, e_stats)| {
-                                (e_pos.0 - pos.0).magnitude() < SIGHT_DIST
-                                    && *e != entity
-                                    && !e_stats.is_dead
-                            })
-                            .map(|(e, _, _)| e)
-                            .collect::<Vec<_>>();
-
-                        let mut rng = thread_rng();
-                        *target = (&entities).choose(&mut rng).cloned();
+                    // Attack owner's attacker
+                    if let Some(owner_stats) = stats.get(owner) {
+                        if owner_stats.health.last_change.0 < 5.0 {
+                            if let comp::HealthSource::Attack { by } =
+                                owner_stats.health.last_change.1.cause
+                            {
+                                if !agent.activity.is_attack() {
+                                    if let Some(attacker) =
+                                        uid_allocator.retrieve_entity_internal(by.id())
+                                    {
+                                        agent.activity =
+                                            Activity::Attack(attacker, Chaser::default(), time.0);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

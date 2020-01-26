@@ -10,6 +10,8 @@ pub mod input;
 pub mod metrics;
 pub mod settings;
 pub mod sys;
+#[cfg(not(feature = "worldgen"))]
+mod test_world;
 
 // Reexports
 pub use crate::{error::Error, input::Input, settings::ServerSettings};
@@ -44,12 +46,16 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+#[cfg(not(feature = "worldgen"))]
+use test_world::{World, WORLD_SIZE};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
+#[cfg(feature = "worldgen")]
 use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
     World,
 };
+
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
@@ -108,6 +114,7 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
+        #[cfg(feature = "worldgen")]
         let world = World::generate(
             settings.world_seed,
             WorldOpts {
@@ -121,8 +128,15 @@ impl Server {
                 ..WorldOpts::default()
             },
         );
+        #[cfg(feature = "worldgen")]
         let map = world.sim().get_map();
 
+        #[cfg(not(feature = "worldgen"))]
+        let world = World::generate(settings.world_seed);
+        #[cfg(not(feature = "worldgen"))]
+        let map = vec![0];
+
+        #[cfg(feature = "worldgen")]
         let spawn_point = {
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
             // but are needed to be explicit about casting (and to make the compiler stop complaining)
@@ -166,6 +180,9 @@ impl Server {
             // add 0.5, so that the player spawns in the middle of the block
             Vec3::new(spawn_location.x, spawn_location.y, z).map(|e| (e as f32)) + 0.5
         };
+
+        #[cfg(not(feature = "worldgen"))]
+        let spawn_point = Vec3::new(0.0, 0.0, 256.0);
 
         // set the spawn point we calculated above
         state.ecs_mut().insert(SpawnPoint(spawn_point));
@@ -283,6 +300,7 @@ impl Server {
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
         state.write_component(entity, comp::Gravity(1.0));
         state.write_component(entity, comp::CharacterState::default());
+        state.write_component(entity, comp::Alignment::Npc);
         state.write_component(entity, comp::Inventory::default());
         state.write_component(entity, comp::InventoryUpdate);
         // Make sure physics are accepted.
@@ -818,12 +836,25 @@ impl Server {
                     stats,
                     body,
                     agent,
+                    alignment,
                     scale,
                 } => {
                     state
                         .create_npc(pos, stats, body)
                         .with(agent)
                         .with(scale)
+                        .with(alignment)
+                        .build();
+                }
+
+                ServerEvent::CreateWaypoint(pos) => {
+                    self.create_object(comp::Pos(pos), comp::object::Body::CampfireLit)
+                        .with(comp::LightEmitter {
+                            offset: Vec3::unit_z() * 0.5,
+                            col: Rgb::new(1.0, 0.65, 0.2),
+                            strength: 2.0,
+                        })
+                        .with(comp::WaypointArea::default())
                         .build();
                 }
 
@@ -940,7 +971,7 @@ impl Server {
             (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
-                &self.state.ecs().read_storage::<comp::Agent>(),
+                !&self.state.ecs().read_storage::<comp::Player>(),
             )
                 .join()
                 .filter(|(_, pos, _)| terrain.get(pos.0.map(|e| e.floor() as i32)).is_err())
@@ -1212,6 +1243,7 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
+            .with(comp::Alignment::Npc)
             .with(comp::Energy::new(500))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
