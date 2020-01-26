@@ -46,6 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added fullscreen and window size to settings so that they can be persisted
 - Added coverage based scaling for pixel art
 - 28 new mobs
+- Added waypoints
+- Added pathfinding to NPCs
+- Overhauled NPC AI
+- Pets now attack enemies and defend their owners
 
 
 ### Changed
