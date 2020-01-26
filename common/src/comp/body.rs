@@ -1,6 +1,7 @@
 pub mod biped_large;
 pub mod bird_medium;
 pub mod bird_small;
+pub mod critter;
 pub mod dragon;
 pub mod fish_medium;
 pub mod fish_small;
@@ -25,6 +26,7 @@ pub enum Body {
     FishSmall(fish_small::Body) = 7,
     BipedLarge(biped_large::Body) = 8,
     Object(object::Body) = 9,
+    Critter(critter::Body) = 10,
 }
 
 impl Body {
@@ -42,6 +44,7 @@ impl Body {
             Body::Humanoid(_) => 0.5,
             Body::QuadrupedSmall(_) => 0.6,
             Body::QuadrupedMedium(_) => 0.9,
+            Body::Critter(_) => 0.5,
             Body::BirdMedium(_) => 0.5,
             Body::FishMedium(_) => 0.5,
             Body::Dragon(_) => 2.5,

@@ -6,7 +6,7 @@ pub struct Body {
     pub head: Head,
     pub shoulder: Shoulder,
     pub chest: Chest,
-    pub hand: Hand
+    pub hand: Hand,
     pub belt: Belt,
     pub pants: Pants,
     pub foot: Foot,
