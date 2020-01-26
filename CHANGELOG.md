@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added rotating orientation marker to main-map
 - Added daily Mac builds
 - Allow spawning individual pet species, not just generic body kinds.
+- Configurable fonts
+- Tanslation status tracking
 
 ### Changed
 

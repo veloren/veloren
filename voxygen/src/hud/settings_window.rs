@@ -1,11 +1,11 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, Fonts, Intro, ShortcutNumbers, Show, XpBar, MENU_BG,
+    img_ids::Imgs, BarNumbers, CrosshairType, Intro, ShortcutNumbers, Show, XpBar, MENU_BG,
     TEXT_COLOR,
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, FluidMode},
-    ui::{ImageSlider, ScaleMode, ToggleButton},
+    ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
     GlobalState,
 };
 use conrod_core::{
@@ -155,7 +155,7 @@ pub struct SettingsWindow<'a> {
     global_state: &'a GlobalState,
     show: &'a Show,
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -166,7 +166,7 @@ impl<'a> SettingsWindow<'a> {
         global_state: &'a GlobalState,
         show: &'a Show,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
@@ -288,7 +288,8 @@ impl<'a> Widget for SettingsWindow<'a> {
         // Title
         Text::new(&self.localized_strings.get("common.settings"))
             .mid_top_with_margin_on(state.ids.settings_bg, 5.0)
-            .font_size(14)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.settings_title, ui);
 
@@ -311,7 +312,8 @@ impl<'a> Widget for SettingsWindow<'a> {
         })
         .top_left_with_margins_on(state.ids.settings_l, 8.0 * 4.0, 2.0 * 4.0)
         .label(&self.localized_strings.get("common.interface"))
-        .label_font_size(14)
+        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.interface, ui)
         .was_clicked()
@@ -328,8 +330,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&self.localized_strings.get("hud.settings.general"))
                 .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.general_txt, ui);
 
@@ -351,8 +353,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&self.localized_strings.get("hud.settings.help_window"))
                 .right_from(state.ids.button_help, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.button_help)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_help_label, ui);
@@ -375,8 +377,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&self.localized_strings.get("hud.settings.debug_info"))
                 .right_from(state.ids.debug_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.debug_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.debug_button_label, ui);
@@ -402,8 +404,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             };
             Text::new(&self.localized_strings.get("hud.settings.tips_on_startup"))
                 .right_from(state.ids.tips_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.button_help)
                 .color(TEXT_COLOR)
                 .set(state.ids.tips_button_label, ui);
@@ -411,8 +413,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Ui Scale
             Text::new(&self.localized_strings.get("hud.settings.ui_scale"))
                 .down_from(state.ids.tips_button, 20.0)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.ui_scale_label, ui);
 
@@ -445,8 +447,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(self.localized_strings.get("hud.settings.relative_scaling"))
                 .right_from(state.ids.relative_to_win_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.relative_to_win_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.relative_to_win_text, ui);
@@ -480,8 +482,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(self.localized_strings.get("hud.settings.custom_scaling"))
                 .right_from(state.ids.absolute_scale_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.absolute_scale_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.absolute_scale_text, ui);
@@ -507,8 +509,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 // Custom Scaling Text
                 Text::new(&format!("{:.2}", scale))
                     .right_from(state.ids.ui_scale_slider, 10.0)
-                    .font_size(14)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(state.ids.ui_scale_value, ui);
             } else {
@@ -657,14 +659,14 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Crosshair Transparency Text and Slider
             Text::new(&self.localized_strings.get("hud.settings.crosshair"))
                 .down_from(state.ids.absolute_scale_button, 20.0)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.ch_title, ui);
             Text::new(&self.localized_strings.get("hud.settings.transparency"))
                 .right_from(state.ids.ch_3_bg, 20.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.ch_transp_text, ui);
 
@@ -687,17 +689,17 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&format!("{:.2}", crosshair_transp,))
                 .right_from(state.ids.ch_transp_slider, 8.0)
-                .font_size(14)
+                .font_size(self.fonts.cyri.scale(14))
                 .graphics_for(state.ids.ch_transp_slider)
-                .font_id(self.fonts.cyri)
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.ch_transp_value, ui);
 
             // Hotbar text
             Text::new(&self.localized_strings.get("hud.settings.hotbar"))
                 .down_from(state.ids.ch_1_bg, 20.0)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.hotbar_title, ui);
             // Show xp bar
@@ -729,8 +731,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.toggle_bar_experience"),
             )
             .right_from(state.ids.show_xpbar_button, 10.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .graphics_for(state.ids.show_xpbar_button)
             .color(TEXT_COLOR)
             .set(state.ids.show_xpbar_text, ui);
@@ -763,8 +765,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
             Text::new(&self.localized_strings.get("hud.settings.toggle_shortcuts"))
                 .right_from(state.ids.show_shortcuts_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.show_shortcuts_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_shortcuts_text, ui);
@@ -792,8 +794,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.scrolling_combat_text"),
             )
             .top_left_with_margins_on(state.ids.settings_content_r, 5.0, 5.0)
-            .font_size(18)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(18))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.sct_title, ui);
             // Generally toggle the SCT
@@ -817,8 +819,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.scrolling_combat_text"),
             )
             .right_from(state.ids.sct_show_radio, 10.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .graphics_for(state.ids.sct_show_radio)
             .color(TEXT_COLOR)
             .set(state.ids.sct_show_text, ui);
@@ -841,8 +843,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                         .get("hud.settings.single_damage_number"),
                 )
                 .right_from(state.ids.sct_single_dmg_radio, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.sct_single_dmg_radio)
                 .color(TEXT_COLOR)
                 .set(state.ids.sct_single_dmg_text, ui);
@@ -865,8 +867,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 }
                 Text::new(&self.localized_strings.get("hud.settings.cumulated_damage"))
                     .right_from(state.ids.sct_show_batch_radio, 10.0)
-                    .font_size(14)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .graphics_for(state.ids.sct_batched_dmg_radio)
                     .color(TEXT_COLOR)
                     .set(state.ids.sct_show_batch_text, ui);
@@ -884,8 +886,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
                 Text::new(&self.localized_strings.get("hud.settings.incoming_damage"))
                     .right_from(state.ids.sct_inc_dmg_radio, 10.0)
-                    .font_size(14)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .graphics_for(state.ids.sct_inc_dmg_radio)
                     .color(TEXT_COLOR)
                     .set(state.ids.sct_inc_dmg_text, ui);
@@ -912,8 +914,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                         .get("hud.settings.cumulated_incoming_damage"),
                 )
                 .right_from(state.ids.sct_batch_inc_radio, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.sct_batch_inc_radio)
                 .color(TEXT_COLOR)
                 .set(state.ids.sct_batch_inc_text, ui);
@@ -930,8 +932,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     },
                     20.0,
                 )
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.bar_numbers_title, ui);
 
@@ -960,8 +962,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
             Text::new(&self.localized_strings.get("hud.settings.none"))
                 .right_from(state.ids.show_bar_numbers_none_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.show_bar_numbers_none_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_bar_numbers_none_text, ui);
@@ -991,8 +993,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
             Text::new(&self.localized_strings.get("hud.settings.values"))
                 .right_from(state.ids.show_bar_numbers_values_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.show_bar_numbers_values_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_bar_numbers_values_text, ui);
@@ -1022,8 +1024,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
             Text::new(&self.localized_strings.get("hud.settings.percentages"))
                 .right_from(state.ids.show_bar_numbers_percentage_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .graphics_for(state.ids.show_bar_numbers_percentage_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_bar_numbers_percentage_text, ui);
@@ -1031,8 +1033,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Chat Transp
             Text::new(&self.localized_strings.get("hud.settings.chat"))
                 .down_from(state.ids.show_bar_numbers_percentage_button, 20.0)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.chat_transp_title, ui);
             Text::new(
@@ -1041,8 +1043,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.background_transparency"),
             )
             .right_from(state.ids.chat_transp_slider, 20.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.chat_transp_text, ui);
 
@@ -1065,8 +1067,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&self.localized_strings.get("common.languages"))
                 .down_from(state.ids.chat_transp_slider, 20.0)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.language_text, ui);
 
@@ -1085,7 +1087,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .w_h(200.0, 22.0)
                 .color(MENU_BG)
                 .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri)
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .set(state.ids.languages_list, ui)
             {
                 events.push(Event::ChangeLanguage(language_list[clicked].to_owned()));
@@ -1111,7 +1113,8 @@ impl<'a> Widget for SettingsWindow<'a> {
         })
         .right_from(state.ids.interface, 0.0)
         .label(&self.localized_strings.get("common.gameplay"))
-        .label_font_size(14)
+        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.gameplay, ui)
         .was_clicked()
@@ -1127,8 +1130,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Mouse Pan Sensitivity
             Text::new(&self.localized_strings.get("hud.settings.pan_sensitivity"))
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_pan_label, ui);
 
@@ -1151,16 +1154,16 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&format!("{}", display_pan))
                 .right_from(state.ids.mouse_pan_slider, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_pan_value, ui);
 
             // Mouse Zoom Sensitivity
             Text::new(&self.localized_strings.get("hud.settings.zoom_sensitivity"))
                 .down_from(state.ids.mouse_pan_slider, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_label, ui);
 
@@ -1183,8 +1186,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&format!("{}", display_zoom))
                 .right_from(state.ids.mouse_zoom_slider, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_value, ui);
 
@@ -1212,8 +1215,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.invert_scroll_zoom"),
             )
             .right_from(state.ids.mouse_zoom_invert_button, 10.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .graphics_for(state.ids.mouse_zoom_invert_button)
             .color(TEXT_COLOR)
             .set(state.ids.mouse_zoom_invert_label, ui);
@@ -1242,8 +1245,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.invert_mouse_y_axis"),
             )
             .right_from(state.ids.mouse_y_invert_button, 10.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .graphics_for(state.ids.mouse_y_invert_button)
             .color(TEXT_COLOR)
             .set(state.ids.mouse_y_invert_label, ui);
@@ -1268,7 +1271,8 @@ impl<'a> Widget for SettingsWindow<'a> {
         })
         .right_from(state.ids.gameplay, 0.0)
         .label(&self.localized_strings.get("common.controls"))
-        .label_font_size(14)
+        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.controls, ui)
         .was_clicked()
@@ -1282,8 +1286,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             Text::new(&self.localized_strings.get("hud.settings.control_names"))
                 .color(TEXT_COLOR)
                 .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
-                .font_id(self.fonts.cyri)
-                .font_size(18)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(18))
                 .set(state.ids.controls_text, ui);
             // TODO: Replace with buttons that show actual keybinds and allow the user to
             // change them.
@@ -1412,8 +1416,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             ))
             .color(TEXT_COLOR)
             .right_from(state.ids.controls_text, 0.0)
-            .font_id(self.fonts.cyri)
-            .font_size(18)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(18))
             .set(state.ids.controls_controls, ui);
         }
 
@@ -1437,7 +1441,8 @@ impl<'a> Widget for SettingsWindow<'a> {
         .right_from(state.ids.controls, 0.0)
         .label(&self.localized_strings.get("common.video"))
         .parent(state.ids.settings_r)
-        .label_font_size(14)
+        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.video, ui)
         .was_clicked()
@@ -1450,8 +1455,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             // View Distance
             Text::new(&self.localized_strings.get("hud.settings.view_distance"))
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.vd_text, ui);
 
@@ -1477,16 +1482,16 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.global_state.settings.graphics.view_distance
             ))
             .right_from(state.ids.vd_slider, 8.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.vd_value, ui);
 
             // Max FPS
             Text::new(&self.localized_strings.get("hud.settings.maximum_fps"))
                 .down_from(state.ids.vd_slider, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.max_fps_text, ui);
 
@@ -1512,16 +1517,16 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&format!("{}", self.global_state.settings.graphics.max_fps))
                 .right_from(state.ids.max_fps_slider, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.max_fps_value, ui);
 
             // FOV
             Text::new(&self.localized_strings.get("hud.settings.fov"))
                 .down_from(state.ids.max_fps_slider, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.fov_text, ui);
 
@@ -1544,16 +1549,16 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&format!("{}", self.global_state.settings.graphics.fov))
                 .right_from(state.ids.fov_slider, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.fov_value, ui);
 
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
                 .down_from(state.ids.fov_slider, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.aa_mode_text, ui);
 
@@ -1583,7 +1588,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .w_h(400.0, 22.0)
                 .color(MENU_BG)
                 .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri)
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .down_from(state.ids.aa_mode_text, 8.0)
                 .set(state.ids.aa_mode_list, ui)
             {
@@ -1597,8 +1602,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.cloud_rendering_mode"),
             )
             .down_from(state.ids.aa_mode_list, 8.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.cloud_mode_text, ui);
 
@@ -1619,7 +1624,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .w_h(400.0, 22.0)
                 .color(MENU_BG)
                 .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri)
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .down_from(state.ids.cloud_mode_text, 8.0)
                 .set(state.ids.cloud_mode_list, ui)
             {
@@ -1633,8 +1638,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.fluid_rendering_mode"),
             )
             .down_from(state.ids.cloud_mode_list, 8.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.fluid_mode_text, ui);
 
@@ -1657,7 +1662,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .w_h(400.0, 22.0)
                 .color(MENU_BG)
                 .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri)
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .down_from(state.ids.fluid_mode_text, 8.0)
                 .set(state.ids.fluid_mode_list, ui)
             {
@@ -1666,8 +1671,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Fullscreen
             Text::new(&self.localized_strings.get("hud.settings.fullscreen"))
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .down_from(state.ids.fluid_mode_list, 8.0)
                 .color(TEXT_COLOR)
                 .set(state.ids.fullscreen_label, ui);
@@ -1694,9 +1699,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .press_image(self.imgs.settings_button_press)
                 .down_from(state.ids.fullscreen_label, 12.0)
                 .label(&self.localized_strings.get("hud.settings.save_window_size"))
-                .label_font_size(14)
+                .label_font_size(self.fonts.cyri.scale(14))
                 .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri)
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .set(state.ids.save_window_size_button, ui)
                 .was_clicked()
             {
@@ -1730,7 +1735,8 @@ impl<'a> Widget for SettingsWindow<'a> {
         .right_from(state.ids.video, 0.0)
         .parent(state.ids.settings_r)
         .label(&self.localized_strings.get("common.sound"))
-        .label_font_size(14)
+        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_id(self.fonts.cyri.conrod_id)
         .label_color(TEXT_COLOR)
         .set(state.ids.sound, ui)
         .was_clicked()
@@ -1743,8 +1749,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Music Volume -----------------------------------------------------
             Text::new(&self.localized_strings.get("hud.settings.music_volume"))
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.audio_volume_text, ui);
 
@@ -1772,8 +1778,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.sound_effect_volume"),
             )
             .down_from(state.ids.audio_volume_slider, 10.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.sfx_volume_text, ui);
 
@@ -1799,8 +1805,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             let device_list = &self.global_state.audio.device_list;
             Text::new(&self.localized_strings.get("hud.settings.audio_device"))
                 .down_from(state.ids.sfx_volume_slider, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.audio_device_text, ui);
 
@@ -1811,7 +1817,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .w_h(400.0, 22.0)
                 .color(MENU_BG)
                 .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.opensans)
+                .label_font_id(self.fonts.opensans.conrod_id)
                 .down_from(state.ids.audio_device_text, 10.0)
                 .set(state.ids.audio_device_list, ui)
             {
