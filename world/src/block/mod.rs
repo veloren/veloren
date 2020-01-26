@@ -599,11 +599,20 @@ pub fn block_from_structure(
             Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
                 .map(|e| e as u8),
         )),
-        StructureBlock::PalmLeaves => Some(Block::new(
+        StructureBlock::PalmLeavesInner => Some(Block::new(
             BlockKind::Leaves,
             Lerp::lerp(
-                Rgb::new(0.0, 108.0, 113.0),
-                Rgb::new(30.0, 156.0, 10.0),
+                Rgb::new(61.0, 166.0, 43.0),
+                Rgb::new(29.0, 130.0, 32.0),
+                lerp,
+            )
+            .map(|e| e as u8),
+        )),
+        StructureBlock::PalmLeavesOuter => Some(Block::new(
+            BlockKind::Leaves,
+            Lerp::lerp(
+                Rgb::new(62.0, 171.0, 38.0),
+                Rgb::new(45.0, 171.0, 65.0),
                 lerp,
             )
             .map(|e| e as u8),

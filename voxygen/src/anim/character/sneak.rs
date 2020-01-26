@@ -1,6 +1,6 @@
 use super::{
-    super::{Animation, SkeletonAttr},
-    CharacterSkeleton,
+    super::{Animation, },
+    CharacterSkeleton,SkeletonAttr
 };
 use std::f32::consts::PI;
 use std::ops::Mul;
