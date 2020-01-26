@@ -152,7 +152,7 @@ impl World {
         let mut supplement = ChunkSupplement {
             entities: if rand::thread_rng().gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5
-                && !sim_chunk.is_underwater
+                && !sim_chunk.is_underwater()
             {
                 vec![EntityInfo {
                     pos: gen_entity_pos(),
