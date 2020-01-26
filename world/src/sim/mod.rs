@@ -1475,7 +1475,7 @@ impl WorldSim {
 
                     let new_chunk = this.get(downhill_pos)?;
                     const SLIDE_THRESHOLD: f32 = 5.0;
-                    if new_chunk.is_underwater || new_chunk.alt + SLIDE_THRESHOLD < chunk.alt {
+                    if new_chunk.is_underwater() || new_chunk.alt + SLIDE_THRESHOLD < chunk.alt {
                         break;
                     } else {
                         chunk = new_chunk;
@@ -1720,7 +1720,6 @@ pub struct SimChunk {
     pub spawn_rate: f32,
     pub location: Option<LocationInfo>,
     pub river: RiverData,
-    pub is_underwater: bool,
 
     pub structures: Structures,
     pub contains_waypoint: bool,
@@ -1898,7 +1897,6 @@ impl SimChunk {
             } else {
                 0.0
             },
-            is_underwater,
             is_cliffs: cliff > 0.5 && !is_underwater,
             near_cliffs: cliff > 0.2,
             tree_density,
@@ -1969,6 +1967,10 @@ impl SimChunk {
             structures: Structures { town: None },
             contains_waypoint: false,
         }
+    }
+
+    pub fn is_underwater(&self) -> bool {
+        self.river.river_kind.is_some()
     }
 
     pub fn get_base_z(&self) -> f32 {
