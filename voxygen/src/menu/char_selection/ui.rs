@@ -478,34 +478,32 @@ impl CharSelectionUi {
 
                 // Enter World Button
                 let character_count = global_state.meta.characters.len();
-                if character_count != 0 {
-                    if Button::image(self.imgs.button)
-                        .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
-                        .w_h(250.0, 60.0)
+                let enter_world_str = &localized_strings.get("char_selection.enter_world");
+                let enter_button = Button::image(self.imgs.button)
+                    .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
+                    .w_h(250.0, 60.0)
+                    .label(enter_world_str)
+                    .label_font_size(26)
+                    .label_font_id(self.fonts.cyri)
+                    .label_y(conrod_core::position::Relative::Scalar(3.0));
+
+                if match &self.mode {
+                    Mode::Select(opt) => opt.is_some(),
+                    Mode::Create { .. } => true,
+                } {
+                    if enter_button
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
-                        .label(&localized_strings.get("char_selection.enter_world"))
                         .label_color(TEXT_COLOR)
-                        .label_font_size(26)
-                        .label_font_id(self.fonts.cyri)
-                        .label_y(conrod_core::position::Relative::Scalar(3.0))
                         .set(self.ids.enter_world_button, ui_widgets)
                         .was_clicked()
                     {
                         events.push(Event::Play);
                     }
                 } else {
-                    if Button::image(self.imgs.button)
-                        .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
-                        .w_h(250.0, 60.0)
-                        .label(&localized_strings.get("char_selection.enter_world"))
+                    &enter_button
                         .label_color(TEXT_COLOR_2)
-                        .label_font_size(26)
-                        .label_font_id(self.fonts.cyri)
-                        .label_y(conrod_core::position::Relative::Scalar(3.0))
-                        .set(self.ids.enter_world_button, ui_widgets)
-                        .was_clicked()
-                    {}
+                        .set(self.ids.enter_world_button, ui_widgets);
                 }
 
                 // Logout_Button
