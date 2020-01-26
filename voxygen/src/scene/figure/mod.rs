@@ -349,7 +349,6 @@ impl FigureMgr {
                         });
                     }
                 }
-                continue;
             }
 
             // Change in health as color!
