@@ -78,6 +78,7 @@ impl<'a> System<'a> for Sys {
             const MIN_ATTACK_DIST: f32 = 3.25;
 
             let mut do_idle = false;
+            let mut choose_target = false;
 
             match &mut agent.activity {
                 Activity::Idle(bearing) => {
@@ -96,51 +97,9 @@ impl<'a> System<'a> for Sys {
                         inputs.move_dir = bearing.normalized() * 0.65;
                     }
 
-                    /*
-                    // TODO: Improve pathfinding performance so that this is ok to do
-                    if let Some(patrol_origin) = agent.patrol_origin {
-                        if thread_rng().gen::<f32>() < 0.005 {
-                            *wander_pos =
-                                if thread_rng().gen::<f32>() < 0.7 {
-                                    Some(patrol_origin.map(|e| {
-                                        e + thread_rng().gen_range(-1.0, 1.0) * PATROL_DIST
-                                    }))
-                                } else {
-                                    None
-                                };
-                        }
-
-                        if let Some(wp) = wander_pos {
-                            if let Some(bearing) = chaser.chase(&*terrain, pos.0, *wp, 2.0) {
-                                inputs.move_dir =
-                                    Vec2::from(bearing).try_normalized().unwrap_or(Vec2::zero());
-                                inputs.jump.set_state(bearing.z > 1.0);
-                            } else {
-                                *wander_pos = None;
-                            }
-                        }
-                    }
-                    */
-
                     // Sometimes try searching for new targets
                     if thread_rng().gen::<f32>() < 0.1 {
-                        // Search for new targets
-                        let entities = (&entities, &positions, &stats, alignments.maybe())
-                            .join()
-                            .filter(|(e, e_pos, e_stats, e_alignment)| {
-                                (e_pos.0 - pos.0).magnitude() < SIGHT_DIST
-                                    && *e != entity
-                                    && !e_stats.is_dead
-                                    && alignment
-                                        .and_then(|a| e_alignment.map(|b| a.hostile_towards(*b)))
-                                        .unwrap_or(false)
-                            })
-                            .map(|(e, _, _, _)| e)
-                            .collect::<Vec<_>>();
-
-                        if let Some(target) = (&entities).choose(&mut thread_rng()).cloned() {
-                            agent.activity = Activity::Attack(target, Chaser::default(), time.0);
-                        }
+                        choose_target = true;
                     }
                 }
                 Activity::Follow(target, chaser) => {
@@ -165,9 +124,18 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 Activity::Attack(target, chaser, _) => {
-                    if let (Some(tgt_pos), _tgt_stats) =
-                        (positions.get(*target), stats.get(*target))
-                    {
+                    if let (Some(tgt_pos), _tgt_stats, tgt_alignment) = (
+                        positions.get(*target),
+                        stats.get(*target),
+                        alignments.get(*target),
+                    ) {
+                        // Don't attack aligned entities
+                        if let (Some(alignment), Some(tgt_alignment)) = (alignment, tgt_alignment) {
+                            if !tgt_alignment.hostile_towards(*alignment) {
+                                do_idle = true;
+                            }
+                        }
+
                         let dist = pos.0.distance(tgt_pos.0);
                         if dist < MIN_ATTACK_DIST {
                             // Close-range attack
@@ -195,6 +163,26 @@ impl<'a> System<'a> for Sys {
 
             if do_idle {
                 agent.activity = Activity::Idle(Vec2::zero());
+            }
+
+            if choose_target {
+                // Search for new targets
+                let entities = (&entities, &positions, &stats, alignments.maybe())
+                    .join()
+                    .filter(|(e, e_pos, e_stats, e_alignment)| {
+                        (e_pos.0 - pos.0).magnitude() < SIGHT_DIST
+                            && *e != entity
+                            && !e_stats.is_dead
+                            && alignment
+                                .and_then(|a| e_alignment.map(|b| a.hostile_towards(*b)))
+                                .unwrap_or(false)
+                    })
+                    .map(|(e, _, _, _)| e)
+                    .collect::<Vec<_>>();
+
+                if let Some(target) = (&entities).choose(&mut thread_rng()).cloned() {
+                    agent.activity = Activity::Attack(target, Chaser::default(), time.0);
+                }
             }
 
             // --- Activity overrides (in reverse order of priority: most important goes last!) ---
