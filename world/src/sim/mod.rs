@@ -1447,7 +1447,7 @@ impl WorldSim {
             });
 
         // Create waypoints
-        const WAYPOINT_EVERY: usize = 8;
+        const WAYPOINT_EVERY: usize = 16;
         let this = &self;
         let waypoints = (0..WORLD_SIZE.x)
             .step_by(WAYPOINT_EVERY)
