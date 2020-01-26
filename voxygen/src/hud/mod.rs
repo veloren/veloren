@@ -614,6 +614,7 @@ impl Hud {
 
             // Max amount the sct font size increases when "flashing"
             const FLASH_MAX: f32 = 25.0;
+            const BARSIZE: f64 = 2.0;
             // Get player position.
             let player_pos = client
                 .state()
@@ -693,15 +694,21 @@ impl Hud {
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
                 // Background
-                Rectangle::fill_with([82.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
-                    .x_y(0.0, -25.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .set(back_id, ui_widgets);
+                Rectangle::fill_with(
+                    [82.0 * BARSIZE + 1.0, 8.0 * BARSIZE + 1.0],
+                    Color::Rgba(0.1, 0.1, 0.1, 0.9),
+                )
+                .x_y(0.0, -25.0)
+                .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                .set(back_id, ui_widgets);
 
                 // % HP Filling
                 Image::new(self.imgs.enemy_bar)
-                    .w_h(72.9 * (hp_percentage / 100.0), 5.9)
-                    .x_y(4.5 + (hp_percentage / 100.0 * 36.45) - 36.45, -24.0)
+                    .w_h(72.9 * (hp_percentage / 100.0) * BARSIZE, 5.9 * BARSIZE)
+                    .x_y(
+                        (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
+                        -23.0,
+                    )
                     .color(Some(if hp_percentage <= 25.0 {
                         crit_hp_color
                     } else if hp_percentage <= 50.0 {
@@ -714,19 +721,22 @@ impl Hud {
                 // % Mana Filling
                 Rectangle::fill_with(
                     [
-                        73.0 * (energy.current() as f64 / energy.maximum() as f64),
-                        1.5,
+                        73.0 * (energy.current() as f64 / energy.maximum() as f64) * BARSIZE,
+                        1.5 * BARSIZE,
                     ],
                     MANA_COLOR,
                 )
-                .x_y(4.5 + (energy_percentage / 100.0 * 36.5) - 36.45, -28.0)
+                .x_y(
+                    ((4.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
+                    -32.0,
+                )
                 .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                 .set(mana_bar_id, ui_widgets);
 
                 // Foreground
                 Image::new(self.imgs.enemy_health)
-                    .w_h(84.0, 10.0)
-                    .x_y(0.0, -25.0)
+                    .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                    .x_y(0.0, -25.5)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .set(front_id, ui_widgets);
@@ -1158,15 +1168,15 @@ impl Hud {
 
                 // Name
                 Text::new(&name)
-                    .font_size(20)
+                    .font_size(30)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                    .x_y(-1.0, -1.0)
+                    .x_y(-1.0, 16.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .set(name_bg_id, ui_widgets);
                 Text::new(&name)
-                    .font_size(20)
+                    .font_size(30)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
-                    .x_y(0.0, 0.0)
+                    .x_y(0.0, 18.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .set(name_id, ui_widgets);
 
@@ -1184,9 +1194,9 @@ impl Hud {
                 // - 5 levels below player -> low
                 Text::new(if level_comp < 10 { &level_str } else { "?" })
                     .font_size(if op_level > 9 && level_comp < 10 {
-                        7
+                        14
                     } else {
-                        8
+                        15
                     })
                     .color(if level_comp > 4 {
                         HIGH
@@ -1195,7 +1205,7 @@ impl Hud {
                     } else {
                         EQUAL
                     })
-                    .x_y(-37.0, -24.0)
+                    .x_y(-37.0 * BARSIZE, -23.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .set(level_id, ui_widgets);
                 if level_comp > 9 {
@@ -1205,8 +1215,8 @@ impl Hud {
                     } else {
                         self.imgs.skull
                     })
-                    .w_h(18.0, 18.0)
-                    .x_y(-39.0, -25.0)
+                    .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                    .x_y(-39.0 * BARSIZE, -25.0)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .set(level_skull_id, ui_widgets);
