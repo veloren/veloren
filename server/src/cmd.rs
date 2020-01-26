@@ -1088,10 +1088,11 @@ fn handle_remove_lights(
     match opt_player_pos {
         Some(player_pos) => {
             let ecs = server.state.ecs();
-            for (entity, pos, _, _) in (
+            for (entity, pos, _, _, _) in (
                 &ecs.entities(),
                 &ecs.read_storage::<comp::Pos>(),
                 &ecs.read_storage::<comp::LightEmitter>(),
+                !&ecs.read_storage::<comp::WaypointArea>(),
                 !&ecs.read_storage::<comp::Player>(),
             )
                 .join()

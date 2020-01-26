@@ -80,83 +80,93 @@ impl<'a> System<'a> for Sys {
             let mut do_idle = false;
             let mut choose_target = false;
 
-            match &mut agent.activity {
-                Activity::Idle(bearing) => {
-                    *bearing += Vec2::new(
-                        thread_rng().gen::<f32>() - 0.5,
-                        thread_rng().gen::<f32>() - 0.5,
-                    ) * 0.1
-                        - *bearing * 0.01
-                        - if let Some(patrol_origin) = agent.patrol_origin {
-                            Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
-                        } else {
-                            Vec2::zero()
-                        };
+            'activity: {
+                match &mut agent.activity {
+                    Activity::Idle(bearing) => {
+                        *bearing += Vec2::new(
+                            thread_rng().gen::<f32>() - 0.5,
+                            thread_rng().gen::<f32>() - 0.5,
+                        ) * 0.1
+                            - *bearing * 0.01
+                            - if let Some(patrol_origin) = agent.patrol_origin {
+                                Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
+                            } else {
+                                Vec2::zero()
+                            };
 
-                    if bearing.magnitude_squared() > 0.25f32.powf(2.0) {
-                        inputs.move_dir = bearing.normalized() * 0.65;
-                    }
-
-                    // Sometimes try searching for new targets
-                    if thread_rng().gen::<f32>() < 0.1 {
-                        choose_target = true;
-                    }
-                }
-                Activity::Follow(target, chaser) => {
-                    if let (Some(tgt_pos), _tgt_stats) =
-                        (positions.get(*target), stats.get(*target))
-                    {
-                        let dist = pos.0.distance(tgt_pos.0);
-                        // Follow, or return to idle
-                        if dist > AVG_FOLLOW_DIST {
-                            if let Some(bearing) =
-                                chaser.chase(&*terrain, pos.0, tgt_pos.0, AVG_FOLLOW_DIST)
-                            {
-                                inputs.move_dir =
-                                    Vec2::from(bearing).try_normalized().unwrap_or(Vec2::zero());
-                                inputs.jump.set_state(bearing.z > 1.0);
-                            }
-                        } else {
-                            do_idle = true;
+                        if bearing.magnitude_squared() > 0.25f32.powf(2.0) {
+                            inputs.move_dir = bearing.normalized() * 0.65;
                         }
-                    } else {
-                        do_idle = true;
+
+                        // Sometimes try searching for new targets
+                        if thread_rng().gen::<f32>() < 0.1 {
+                            choose_target = true;
+                        }
                     }
-                }
-                Activity::Attack(target, chaser, _) => {
-                    if let (Some(tgt_pos), _tgt_stats, tgt_alignment) = (
-                        positions.get(*target),
-                        stats.get(*target),
-                        alignments.get(*target),
-                    ) {
-                        // Don't attack aligned entities
-                        if let (Some(alignment), Some(tgt_alignment)) = (alignment, tgt_alignment) {
-                            if !tgt_alignment.hostile_towards(*alignment) {
+                    Activity::Follow(target, chaser) => {
+                        if let (Some(tgt_pos), _tgt_stats) =
+                            (positions.get(*target), stats.get(*target))
+                        {
+                            let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                            // Follow, or return to idle
+                            if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
+                                if let Some(bearing) =
+                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, AVG_FOLLOW_DIST)
+                                {
+                                    inputs.move_dir = Vec2::from(bearing)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::zero());
+                                    inputs.jump.set_state(bearing.z > 1.0);
+                                }
+                            } else {
                                 do_idle = true;
                             }
+                        } else {
+                            do_idle = true;
                         }
+                    }
+                    Activity::Attack(target, chaser, _) => {
+                        if let (Some(tgt_pos), _tgt_stats, tgt_alignment) = (
+                            positions.get(*target),
+                            stats.get(*target),
+                            alignments.get(*target),
+                        ) {
+                            // Don't attack aligned entities
+                            // TODO: This is a bit of a hack, find a better way to do this
+                            if let (Some(alignment), Some(tgt_alignment)) =
+                                (alignment, tgt_alignment)
+                            {
+                                if !tgt_alignment.hostile_towards(*alignment) {
+                                    do_idle = true;
+                                    break 'activity;
+                                }
+                            }
 
-                        let dist = pos.0.distance(tgt_pos.0);
-                        if dist < MIN_ATTACK_DIST {
-                            // Close-range attack
-                            inputs.look_dir = tgt_pos.0 - pos.0;
-                            inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
-                                .try_normalized()
-                                .unwrap_or(Vec2::unit_y())
-                                * 0.01;
-                            inputs.primary.set_state(true);
-                        } else if dist < MAX_CHASE_DIST {
-                            // Long-range chase
-                            if let Some(bearing) = chaser.chase(&*terrain, pos.0, tgt_pos.0, 1.25) {
-                                inputs.move_dir =
-                                    Vec2::from(bearing).try_normalized().unwrap_or(Vec2::zero());
-                                inputs.jump.set_state(bearing.z > 1.0);
+                            let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                            if dist_sqrd < MIN_ATTACK_DIST.powf(2.0) {
+                                // Close-range attack
+                                inputs.look_dir = tgt_pos.0 - pos.0;
+                                inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
+                                    .try_normalized()
+                                    .unwrap_or(Vec2::unit_y())
+                                    * 0.01;
+                                inputs.primary.set_state(true);
+                            } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                // Long-range chase
+                                if let Some(bearing) =
+                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, 1.25)
+                                {
+                                    inputs.move_dir = Vec2::from(bearing)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::zero());
+                                    inputs.jump.set_state(bearing.z > 1.0);
+                                }
+                            } else {
+                                do_idle = true;
                             }
                         } else {
                             do_idle = true;
                         }
-                    } else {
-                        do_idle = true;
                     }
                 }
             }
@@ -165,12 +175,15 @@ impl<'a> System<'a> for Sys {
                 agent.activity = Activity::Idle(Vec2::zero());
             }
 
+            // Choose a new target to attack: only go out of our way to attack targets we are
+            // hostile toward!
             if choose_target {
-                // Search for new targets
+                // Search for new targets (this looks expensive, but it's only run occasionally)
+                // TODO: Replace this with a better system that doesn't consider *all* entities
                 let entities = (&entities, &positions, &stats, alignments.maybe())
                     .join()
                     .filter(|(e, e_pos, e_stats, e_alignment)| {
-                        (e_pos.0 - pos.0).magnitude() < SIGHT_DIST
+                        (e_pos.0 - pos.0).magnitude_squared() < SIGHT_DIST.powf(2.0)
                             && *e != entity
                             && !e_stats.is_dead
                             && alignment
@@ -206,8 +219,8 @@ impl<'a> System<'a> for Sys {
             // Follow owner if we're too far, or if they're under attack
             if let Some(owner) = agent.owner {
                 if let Some(owner_pos) = positions.get(owner) {
-                    let dist = pos.0.distance(owner_pos.0);
-                    if dist > MAX_FOLLOW_DIST && !agent.activity.is_follow() {
+                    let dist_sqrd = pos.0.distance_squared(owner_pos.0);
+                    if dist_sqrd > MAX_FOLLOW_DIST.powf(2.0) && !agent.activity.is_follow() {
                         agent.activity = Activity::Follow(owner, Chaser::default());
                     }
 
