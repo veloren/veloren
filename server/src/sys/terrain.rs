@@ -8,7 +8,7 @@ use common::{
     state::TerrainChanges,
     terrain::TerrainGrid,
 };
-use rand::Rng;
+use rand::{seq::SliceRandom, Rng};
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
@@ -96,19 +96,49 @@ impl<'a> System<'a> for Sys {
 
             // Handle chunk supplement
             for npc in supplement.npcs {
-                let (mut stats, mut body) = if rand::random() {
-                    let body = comp::Body::Humanoid(comp::humanoid::Body::random());
-                    let stats = comp::Stats::new(
-                        "Traveler".to_string(),
-                        body,
-                        Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
-                    );
-                    (stats, body)
-                } else {
-                    let body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
-                    let stats = comp::Stats::new("Wolf".to_string(), body, None);
-                    (stats, body)
-                };
+                const SPAWN_NPCS: &'static [fn() -> (String, comp::Body, Option<comp::Item>)] = &[
+                    (|| {
+                        (
+                            "Traveler".into(),
+                            comp::Body::Humanoid(comp::humanoid::Body::random()),
+                            Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                        )
+                    }) as _,
+                    (|| {
+                        (
+                            "Wolf".into(),
+                            comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
+                            None,
+                        )
+                    }) as _,
+                    (|| {
+                        (
+                            "Duck".into(),
+                            comp::Body::BirdMedium(comp::bird_medium::Body::random()),
+                            None,
+                        )
+                    }) as _,
+                    (|| {
+                        (
+                            "Rat".into(),
+                            comp::Body::Critter(comp::critter::Body::random()),
+                            None,
+                        )
+                    }) as _,
+                    (|| {
+                        (
+                            "Pig".into(),
+                            comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
+                            None,
+                        )
+                    }),
+                ];
+                let (name, mut body, main) = SPAWN_NPCS
+                    .choose(&mut rand::thread_rng())
+                    .expect("SPAWN_NPCS is nonempty")(
+                );
+                let mut stats = comp::Stats::new(name, body, main);
+
                 let mut scale = 1.0;
 
                 // TODO: Remove this and implement scaling or level depending on stuff like species instead

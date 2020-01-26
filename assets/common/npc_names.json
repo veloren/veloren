@@ -309,5 +309,14 @@
         "Ziggy",
         "Zoe",
         "Zoinks"
+    ],
+    "duck": [
+        "ducky"
+    ],
+    "giant": [
+        "leroybrown"
+    ],
+    "rat": [
+        "rat"
     ]
 }

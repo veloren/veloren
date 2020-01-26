@@ -9,6 +9,7 @@ pub use self::run::RunAnimation;
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
+use common::comp::{self};
 
 #[derive(Clone)]
 pub struct BipedLargeSkeleton {
@@ -44,6 +45,7 @@ impl BipedLargeSkeleton {
 }
 
 impl Skeleton for BipedLargeSkeleton {
+    type Attr = SkeletonAttr;
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();
@@ -87,5 +89,30 @@ impl Skeleton for BipedLargeSkeleton {
         self.leg_r.interpolate(&target.leg_r, dt);
         self.foot_l.interpolate(&target.foot_l, dt);
         self.foot_r.interpolate(&target.foot_r, dt);
+    }
+}
+
+pub struct SkeletonAttr;
+
+impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+    type Error = ();
+
+    fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {
+        match body {
+            comp::Body::BipedLarge(body) => Ok(SkeletonAttr::from(body)),
+            _ => Err(()),
+        }
+    }
+}
+
+impl Default for SkeletonAttr {
+    fn default() -> Self {
+        Self
+    }
+}
+
+impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
+    fn from(_body: &'a comp::biped_large::Body) -> Self {
+        Self
     }
 }

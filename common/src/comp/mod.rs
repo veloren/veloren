@@ -18,8 +18,8 @@ mod visual;
 pub use admin::Admin;
 pub use agent::Agent;
 pub use body::{
-    biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small, humanoid, object,
-    quadruped_medium, quadruped_small, Body,
+    biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, humanoid,
+    object, quadruped_medium, quadruped_small, Body,
 };
 pub use character_state::{ActionState, CharacterState, MovementState};
 pub use controller::{

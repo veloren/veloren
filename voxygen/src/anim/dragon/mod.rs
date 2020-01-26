@@ -9,6 +9,7 @@ pub use self::run::RunAnimation;
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
+use common::comp::{self};
 
 #[derive(Clone)]
 pub struct DragonSkeleton {
@@ -48,6 +49,8 @@ impl DragonSkeleton {
 }
 
 impl Skeleton for DragonSkeleton {
+    type Attr = SkeletonAttr;
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let chest_front_mat = self.chest_front.compute_base_matrix();
         let wing_in_l_mat = self.wing_in_l.compute_base_matrix();
@@ -88,5 +91,30 @@ impl Skeleton for DragonSkeleton {
         self.foot_fr.interpolate(&target.foot_fr, dt);
         self.foot_bl.interpolate(&target.foot_bl, dt);
         self.foot_br.interpolate(&target.foot_br, dt);
+    }
+}
+
+pub struct SkeletonAttr;
+
+impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+    type Error = ();
+
+    fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {
+        match body {
+            comp::Body::Dragon(body) => Ok(SkeletonAttr::from(body)),
+            _ => Err(()),
+        }
+    }
+}
+
+impl Default for SkeletonAttr {
+    fn default() -> Self {
+        Self
+    }
+}
+
+impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
+    fn from(_body: &'a comp::dragon::Body) -> Self {
+        Self
     }
 }

@@ -9,8 +9,9 @@ pub use self::run::RunAnimation;
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
+use common::comp::{self};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct BirdMediumSkeleton {
     head: Bone,
     torso: Bone,
@@ -23,19 +24,12 @@ pub struct BirdMediumSkeleton {
 
 impl BirdMediumSkeleton {
     pub fn new() -> Self {
-        Self {
-            head: Bone::default(),
-            torso: Bone::default(),
-            tail: Bone::default(),
-            wing_l: Bone::default(),
-            wing_r: Bone::default(),
-            leg_l: Bone::default(),
-            leg_r: Bone::default(),
-        }
+        Self::default()
     }
 }
 
 impl Skeleton for BirdMediumSkeleton {
+    type Attr = SkeletonAttr;
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let torso_mat = self.torso.compute_base_matrix();
 
@@ -67,5 +61,74 @@ impl Skeleton for BirdMediumSkeleton {
         self.wing_r.interpolate(&target.wing_r, dt);
         self.leg_l.interpolate(&target.leg_l, dt);
         self.leg_r.interpolate(&target.leg_r, dt);
+    }
+}
+
+pub struct SkeletonAttr {
+    head: (f32, f32),
+    chest: (f32, f32),
+    tail: (f32, f32),
+    wing: (f32, f32, f32),
+    foot: (f32, f32, f32),
+}
+
+impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+    type Error = ();
+
+    fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {
+        match body {
+            comp::Body::BirdMedium(body) => Ok(SkeletonAttr::from(body)),
+            _ => Err(()),
+        }
+    }
+}
+
+impl Default for SkeletonAttr {
+    fn default() -> Self {
+        Self {
+            head: (0.0, 0.0),
+            chest: (0.0, 0.0),
+            tail: (0.0, 0.0),
+            wing: (0.0, 0.0, 0.0),
+            foot: (0.0, 0.0, 0.0),
+        }
+    }
+}
+
+impl<'a> From<&'a comp::bird_medium::Body> for SkeletonAttr {
+    fn from(body: &'a comp::bird_medium::Body) -> Self {
+        use comp::bird_medium::Species::*;
+        Self {
+            head: match (body.species, body.body_type) {
+                (Duck, _) => (4.0, 4.0),
+                (Chicken, _) => (4.0, 4.0),
+                (Goose, _) => (5.0, 5.0),
+                (Peacock, _) => (5.0, 6.0),
+            },
+            chest: match (body.species, body.body_type) {
+                (Duck, _) => (0.0, 6.0),
+                (Chicken, _) => (0.0, 6.0),
+                (Goose, _) => (0.0, 8.0),
+                (Peacock, _) => (0.0, 9.0),
+            },
+            tail: match (body.species, body.body_type) {
+                (Duck, _) => (-3.5, 3.0),
+                (Chicken, _) => (-3.5, 3.0),
+                (Goose, _) => (-5.0, 3.0),
+                (Peacock, _) => (-5.0, 2.0),
+            },
+            wing: match (body.species, body.body_type) {
+                (Duck, _) => (2.75, 0.0, 0.0),
+                (Chicken, _) => (2.75, 0.0, 0.0),
+                (Goose, _) => (3.75, 0.0, 0.0),
+                (Peacock, _) => (3.0, 0.0, 0.0),
+            },
+            foot: match (body.species, body.body_type) {
+                (Duck, _) => (2.0, 0.0, 4.0),
+                (Chicken, _) => (2.0, 0.0, 4.0),
+                (Goose, _) => (2.0, 0.0, 3.0),
+                (Peacock, _) => (2.0, 0.5, 3.0),
+            },
+        }
     }
 }
