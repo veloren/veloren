@@ -100,12 +100,18 @@ impl<'a> System<'a> for Sys {
                 if let EntityKind::Waypoint = entity.kind {
                     server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
                 } else {
-                    const SPAWN_NPCS: &'static [fn() -> (String, comp::Body, Option<comp::Item>)] = &[
+                    const SPAWN_NPCS: &'static [fn() -> (
+                        String,
+                        comp::Body,
+                        Option<comp::Item>,
+                        comp::Alignment,
+                    )] = &[
                         (|| {
                             (
                                 "Traveler".into(),
                                 comp::Body::Humanoid(comp::humanoid::Body::random()),
                                 Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                                comp::Alignment::Enemy,
                             )
                         }) as _,
                         (|| {
@@ -113,6 +119,7 @@ impl<'a> System<'a> for Sys {
                                 "Wolf".into(),
                                 comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
                                 None,
+                                comp::Alignment::Enemy,
                             )
                         }) as _,
                         (|| {
@@ -120,6 +127,7 @@ impl<'a> System<'a> for Sys {
                                 "Duck".into(),
                                 comp::Body::BirdMedium(comp::bird_medium::Body::random()),
                                 None,
+                                comp::Alignment::Wild,
                             )
                         }) as _,
                         (|| {
@@ -127,6 +135,7 @@ impl<'a> System<'a> for Sys {
                                 "Rat".into(),
                                 comp::Body::Critter(comp::critter::Body::random()),
                                 None,
+                                comp::Alignment::Wild,
                             )
                         }) as _,
                         (|| {
@@ -134,10 +143,11 @@ impl<'a> System<'a> for Sys {
                                 "Pig".into(),
                                 comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
                                 None,
+                                comp::Alignment::Wild,
                             )
                         }),
                     ];
-                    let (name, mut body, main) = SPAWN_NPCS
+                    let (name, mut body, main, alignment) = SPAWN_NPCS
                         .choose(&mut rand::thread_rng())
                         .expect("SPAWN_NPCS is nonempty")(
                     );
@@ -177,7 +187,7 @@ impl<'a> System<'a> for Sys {
                         pos: Pos(entity.pos),
                         stats,
                         body,
-                        alignment: comp::Alignment::Enemy,
+                        alignment,
                         agent: comp::Agent::default().with_patrol_origin(entity.pos),
                         scale: comp::Scale(scale),
                     })
