@@ -3,7 +3,8 @@ use crate::{
     effect::Effect,
     terrain::{Block, BlockKind},
 };
-use rand::prelude::*;
+//use rand::prelude::*;
+use rand::seq::SliceRandom;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::fs::File;
@@ -157,19 +158,22 @@ impl Item {
                 Some(assets::load_expect_cloned("common.items.grasses.medium"))
             }
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
-            BlockKind::Chest => Some(match rand::random::<usize>() % 6 {
-                0 => assets::load_expect_cloned("common.items.apple"),
-                1 => assets::load_expect_cloned("common.items.velorite"),
-                2 => (**assets::load_glob::<Item>("common.items.weapons.*")
-                    .expect("Error getting glob")
-                    .choose(&mut rand::thread_rng())
-                    .expect("Empty glob"))
-                .clone(),
-                3 => assets::load_expect_cloned("common.items.veloritefrag"),
-                4 => assets::load_expect_cloned("common.items.cheese"),
-                5 => assets::load_expect_cloned("common.items.potion_minor"),
-                _ => unreachable!(),
-            }),
+            BlockKind::Chest => Some(assets::load_expect_cloned(
+                [
+                    "common.items.apple",
+                    "common.items.velorite",
+                    "common.items.veloritefrag",
+                    "common.items.cheese",
+                    "common.items.potion_minor",
+                    "common.items.weapons.starter_sword",
+                    "common.items.weapons.starter_axe",
+                    "common.items.weapons.starter_hammer",
+                    "common.items.weapons.starter_bow",
+                    "common.items.weapons.starter_staff",
+                ]
+                .choose(&mut rand::thread_rng())
+                .unwrap(), // Can't fail
+            )),
             _ => None,
         }
     }
