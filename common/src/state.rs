@@ -141,6 +141,8 @@ impl State {
         ecs.register::<comp::Last<comp::Ori>>();
         ecs.register::<comp::Last<comp::CharacterState>>();
         ecs.register::<comp::Agent>();
+        ecs.register::<comp::Alignment>();
+        ecs.register::<comp::WaypointArea>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();
         ecs.register::<comp::Admin>();

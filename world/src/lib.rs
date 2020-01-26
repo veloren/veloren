@@ -19,6 +19,7 @@ use crate::{
     util::Sampler,
 };
 use common::{
+    generation::{ChunkSupplement, EntityInfo, EntityKind},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -148,35 +149,31 @@ impl World {
 
         const SPAWN_RATE: f32 = 0.1;
         const BOSS_RATE: f32 = 0.03;
-        let supplement = ChunkSupplement {
-            npcs: if rand::thread_rng().gen::<f32>() < SPAWN_RATE
+        let mut supplement = ChunkSupplement {
+            entities: if rand::thread_rng().gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater
             {
-                vec![NpcInfo {
+                vec![EntityInfo {
                     pos: gen_entity_pos(),
-                    boss: rand::thread_rng().gen::<f32>() < BOSS_RATE,
+                    kind: if rand::thread_rng().gen::<f32>() < BOSS_RATE {
+                        EntityKind::Boss
+                    } else {
+                        EntityKind::Enemy
+                    },
                 }]
             } else {
                 Vec::new()
             },
         };
 
+        if sim_chunk.contains_waypoint {
+            supplement = supplement.with_entity(EntityInfo {
+                pos: gen_entity_pos(),
+                kind: EntityKind::Waypoint,
+            });
+        }
+
         Ok((chunk, supplement))
-    }
-}
-
-pub struct NpcInfo {
-    pub pos: Vec3<f32>,
-    pub boss: bool,
-}
-
-pub struct ChunkSupplement {
-    pub npcs: Vec<NpcInfo>,
-}
-
-impl Default for ChunkSupplement {
-    fn default() -> Self {
-        Self { npcs: Vec::new() }
     }
 }

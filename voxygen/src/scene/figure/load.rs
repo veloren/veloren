@@ -1713,6 +1713,7 @@ pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
         Body::Pumpkin4 => ("object.pumpkin_4", Vec3::new(-5.0, -4.0, 0.0)),
         Body::Pumpkin5 => ("object.pumpkin_5", Vec3::new(-4.0, -5.0, 0.0)),
         Body::Campfire => ("object.campfire", Vec3::new(-9.0, -10.0, 0.0)),
+        Body::CampfireLit => ("object.campfire_lit", Vec3::new(-9.0, -10.0, 0.0)),
         Body::LanternGround => ("object.lantern_ground", Vec3::new(-3.5, -3.5, 0.0)),
         Body::LanternGroundOpen => ("object.lantern_ground_open", Vec3::new(-3.5, -3.5, 0.0)),
         Body::LanternStanding => ("object.lantern_standing", Vec3::new(-7.5, -3.5, 0.0)),
