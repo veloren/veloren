@@ -8,7 +8,7 @@ use self::{
     terrain::Terrain,
 };
 use crate::{
-    anim::SkeletonAttr,
+    anim::character::SkeletonAttr,
     audio::{sfx::SfxMgr, AudioFrontend},
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,

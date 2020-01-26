@@ -1,7 +1,4 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    DragonSkeleton,
-};
+use super::{super::Animation, DragonSkeleton, SkeletonAttr};
 //use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 

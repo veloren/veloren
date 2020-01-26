@@ -1,7 +1,4 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    CharacterSkeleton,
-};
+use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::Tool;
 use std::f32::consts::PI;
 use std::ops::Mul;
@@ -140,7 +137,7 @@ impl Animation for RunAnimation {
         next.lantern.ori = Quaternion::rotation_y(0.0);
         next.lantern.scale = Vec3::one() * 0.0;
 
-        next.torso.offset = Vec3::new(0.0, 0.3 + wave * -0.08, 0.4) * skeleton_attr.scaler;
+        next.torso.offset = Vec3::new(0.0, -0.3 + wave * -0.08, 0.4) * skeleton_attr.scaler;
         next.torso.ori =
             Quaternion::rotation_x(wave_stop * speed * -0.06 + wave_diff * speed * -0.005)
                 * Quaternion::rotation_y(tilt);
