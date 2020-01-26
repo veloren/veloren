@@ -112,9 +112,7 @@ Levels/Items are not saved yet."#,
         "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toogle debug info",
 
         // Respawn message
-        "hud.press_key_to_respawn": r#"Press {key} to respawn at your Waypoint.
-
-Press Enter, type in /waypoint and confirm to set it here."#,
+        "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
 
         // Welcome message
         "hud.welcome": r#"Welcome to the Veloren Alpha!,
