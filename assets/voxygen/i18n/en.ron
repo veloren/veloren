@@ -281,7 +281,7 @@ Chat commands:
         "hud.social.online": "Online",
         "hud.social.friends": "Friends",
         "hud.social.not_yet_available": "Not yet available",
-        "hud.social.Faction": "Faction",
+        "hud.social.faction": "Faction",
         "hud.social.play_online_fmt": "{nb_player} player(s) online",
 
         "hud.spell": "Spell",
