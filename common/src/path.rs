@@ -89,8 +89,7 @@ impl Route {
     }
 }
 
-// Chaser: A self-contained system that attempts to chase a moving target
-
+/// A self-contained system that attempts to chase a moving target, only performing pathfinding if necessary
 #[derive(Default, Clone, Debug)]
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,

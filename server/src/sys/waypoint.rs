@@ -1,11 +1,8 @@
 use common::comp::{Player, Pos, Waypoint, WaypointArea};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
-/// This system will handle loading generated chunks and unloading uneeded chunks.
-///     1. Inserts newly generated chunks into the TerrainGrid
-///     2. Sends new chunks to neaby clients
-///     3. Handles the chunk's supplement (e.g. npcs)
-///     4. Removes chunks outside the range of players
+/// This system updates player waypoints
+/// TODO: Make this faster by only considering local waypoints
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
