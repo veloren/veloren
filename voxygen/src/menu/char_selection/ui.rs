@@ -3,6 +3,7 @@ use crate::{
     meta::CharacterData,
     render::{Consts, Globals, Renderer},
     ui::{
+        fonts::ConrodVoxygenFonts,
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelSs9Graphic},
         ImageFrame, ImageSlider, Tooltip, Tooltipable, Ui,
     },
@@ -21,6 +22,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
+
 const STARTER_HAMMER: &str = "common.items.weapons.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.starter_bow";
 const STARTER_AXE: &str = "common.items.weapons.starter_axe";
@@ -227,16 +229,6 @@ rotation_image_ids! {
     }
 }
 
-font_ids! {
-    pub struct Fonts {
-        opensans: "voxygen.font.OpenSans-Regular",
-        metamorph: "voxygen.font.Metamorphous-Regular",
-        alkhemi: "voxygen.font.Alkhemikal",
-        cyri:"voxygen.font.haxrcorp_4089_cyrillic_altgr",
-        wizard: "voxygen.font.wizard",
-    }
-}
-
 pub enum Event {
     Logout,
     Play,
@@ -265,10 +257,10 @@ pub struct CharSelectionUi {
     ids: Ids,
     imgs: Imgs,
     rot_imgs: ImgsRot,
-    fonts: Fonts,
+    fonts: ConrodVoxygenFonts,
     //character_creation: bool,
     info_content: InfoContent,
-    selected_language: String,
+    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
     //deletion_confirmation: bool,
     /*
     pub character_name: String,
@@ -290,8 +282,13 @@ impl CharSelectionUi {
         // Load images
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
-        // Load fonts
-        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
+        // Load language
+        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
+        // Load fonts.
+        let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
+            .expect("Impossible to load fonts!");
 
         // TODO: Randomize initial values.
         Self {
@@ -301,7 +298,7 @@ impl CharSelectionUi {
             rot_imgs,
             fonts,
             info_content: InfoContent::None,
-            selected_language: global_state.settings.language.selected_language.clone(),
+            voxygen_i18n,
             //deletion_confirmation: false,
             /*
             character_creation: false,
@@ -334,8 +331,6 @@ impl CharSelectionUi {
             env!("CARGO_PKG_VERSION"),
             common::util::GIT_VERSION.to_string()
         );
-        let localized_strings =
-            load_expect::<VoxygenLocalization>(&i18n_asset_key(&self.selected_language));
 
         // Tooltip
         let tooltip_human = Tooltip::new({
@@ -350,9 +345,9 @@ impl CharSelectionUi {
                 5.0,
             )
         })
-        .title_font_size(15)
-        .desc_font_size(10)
-        .font_id(self.fonts.cyri)
+        .title_font_size(self.fonts.cyri.scale(15))
+        .desc_font_size(self.fonts.cyri.scale(10))
+        .font_id(self.fonts.cyri.conrod_id)
         .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
 
@@ -372,10 +367,10 @@ impl CharSelectionUi {
             match self.info_content {
                 InfoContent::None => unreachable!(),
                 InfoContent::Deletion(character_index) => {
-                    Text::new(&localized_strings.get("char_selection.delete_permanently"))
+                    Text::new(&self.voxygen_i18n.get("char_selection.delete_permanently"))
                         .mid_top_with_margin_on(self.ids.info_frame, 40.0)
-                        .font_size(24)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(24))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(TEXT_COLOR)
                         .set(self.ids.delete_text, ui_widgets);
                     if Button::image(self.imgs.button)
@@ -384,9 +379,9 @@ impl CharSelectionUi {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
-                        .label(&localized_strings.get("common.no"))
-                        .label_font_id(self.fonts.cyri)
-                        .label_font_size(18)
+                        .label(&self.voxygen_i18n.get("common.no"))
+                        .label_font_id(self.fonts.cyri.conrod_id)
+                        .label_font_size(self.fonts.cyri.scale(18))
                         .label_color(TEXT_COLOR)
                         .set(self.ids.info_no, ui_widgets)
                         .was_clicked()
@@ -399,9 +394,9 @@ impl CharSelectionUi {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
-                        .label(&localized_strings.get("common.yes"))
-                        .label_font_id(self.fonts.cyri)
-                        .label_font_size(18)
+                        .label(&self.voxygen_i18n.get("common.yes"))
+                        .label_font_id(self.fonts.cyri.conrod_id)
+                        .label_font_size(self.fonts.cyri.scale(18))
                         .label_color(TEXT_COLOR)
                         .set(self.ids.info_ok, ui_widgets)
                         .was_clicked()
@@ -456,8 +451,8 @@ impl CharSelectionUi {
                 // Server Name
                 Text::new(&client.server_info.name)
                     .mid_top_with_margin_on(self.ids.server_frame_bg, 5.0)
-                    .font_size(26)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(26))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.server_name_text, ui_widgets);
                 //Change Server
@@ -467,10 +462,10 @@ impl CharSelectionUi {
                     .parent(self.ids.charlist_bg)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(&localized_strings.get("char_selection.change_server"))
+                    .label(&self.voxygen_i18n.get("char_selection.change_server"))
                     .label_color(TEXT_COLOR)
-                    .label_font_id(self.fonts.cyri)
-                    .label_font_size(18)
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .label_font_size(self.fonts.cyri.scale(18))
                     .label_y(conrod_core::position::Relative::Scalar(3.0))
                     .set(self.ids.change_server, ui_widgets)
                     .was_clicked()
@@ -480,13 +475,13 @@ impl CharSelectionUi {
 
                 // Enter World Button
                 let character_count = global_state.meta.characters.len();
-                let enter_world_str = &localized_strings.get("char_selection.enter_world");
+                let enter_world_str = &self.voxygen_i18n.get("char_selection.enter_world");
                 let enter_button = Button::image(self.imgs.button)
                     .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
                     .w_h(250.0, 60.0)
                     .label(enter_world_str)
-                    .label_font_size(26)
-                    .label_font_id(self.fonts.cyri)
+                    .label_font_size(self.fonts.cyri.scale(26))
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .label_y(conrod_core::position::Relative::Scalar(3.0));
 
                 if match &self.mode {
@@ -514,10 +509,10 @@ impl CharSelectionUi {
                     .w_h(150.0, 40.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(&localized_strings.get("char_selection.logout"))
-                    .label_font_id(self.fonts.cyri)
+                    .label(&self.voxygen_i18n.get("char_selection.logout"))
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(20)
+                    .label_font_size(self.fonts.cyri.scale(20))
                     .label_y(conrod_core::position::Relative::Scalar(3.0))
                     .set(self.ids.logout_button, ui_widgets)
                     .was_clicked()
@@ -528,8 +523,8 @@ impl CharSelectionUi {
                 // Alpha Version
                 Text::new(&version)
                     .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                    .font_size(14)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.version, ui_widgets);
 
@@ -572,7 +567,7 @@ impl CharSelectionUi {
                         .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
                         .hover_image(self.imgs.selection_hover)
                         .press_image(self.imgs.selection_press)
-                        .label_font_id(self.fonts.cyri)
+                        .label_font_id(self.fonts.cyri.conrod_id)
                         .label_y(conrod_core::position::Relative::Scalar(20.0))
                         .set(self.ids.character_boxes[i], ui_widgets)
                         .was_clicked()
@@ -586,7 +581,7 @@ impl CharSelectionUi {
                         .press_image(self.imgs.delete_button_press)
                         .with_tooltip(
                             tooltip_manager,
-                            &localized_strings.get("char_selection.delete_permanently"),
+                            &self.voxygen_i18n.get("char_selection.delete_permanently"),
                             "",
                             &tooltip_human,
                         )
@@ -597,26 +592,27 @@ impl CharSelectionUi {
                     }
                     Text::new(&character.name)
                         .top_left_with_margins_on(self.ids.character_boxes[i], 6.0, 9.0)
-                        .font_size(19)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(19))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(TEXT_COLOR)
                         .set(self.ids.character_names[i], ui_widgets);
 
                     Text::new(
-                        &localized_strings
+                        &self
+                            .voxygen_i18n
                             .get("char_selection.level_fmt")
                             .replace("{level_nb}", "1"),
                     ) //TODO Insert real level here as soon as they get saved
                     .down_from(self.ids.character_names[i], 4.0)
-                    .font_size(17)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(17))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.character_levels[i], ui_widgets);
 
-                    Text::new(&localized_strings.get("char_selection.uncanny_valley"))
+                    Text::new(&self.voxygen_i18n.get("char_selection.uncanny_valley"))
                         .down_from(self.ids.character_levels[i], 4.0)
-                        .font_size(17)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(17))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(TEXT_COLOR)
                         .set(self.ids.character_locations[i], ui_widgets);
                 }
@@ -637,9 +633,9 @@ impl CharSelectionUi {
                     .w_h(386.0, 80.0)
                     .hover_image(self.imgs.selection_hover)
                     .press_image(self.imgs.selection_press)
-                    .label(&localized_strings.get("char_selection.create_new_charater"))
+                    .label(&self.voxygen_i18n.get("char_selection.create_new_charater"))
                     .label_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
-                    .label_font_id(self.fonts.cyri)
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .image_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
                     .set(self.ids.character_box_2, ui_widgets)
                     .was_clicked()
@@ -661,10 +657,10 @@ impl CharSelectionUi {
                     .w_h(150.0, 40.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(&localized_strings.get("common.back"))
-                    .label_font_id(self.fonts.cyri)
+                    .label(&self.voxygen_i18n.get("common.back"))
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(20)
+                    .label_font_size(self.fonts.cyri.scale(20))
                     .label_y(conrod_core::position::Relative::Scalar(3.0))
                     .set(self.ids.back_button, ui_widgets)
                     .was_clicked()
@@ -677,10 +673,10 @@ impl CharSelectionUi {
                     .w_h(150.0, 40.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(&localized_strings.get("common.create"))
-                    .label_font_id(self.fonts.cyri)
+                    .label(&self.voxygen_i18n.get("common.create"))
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(20)
+                    .label_font_size(self.fonts.cyri.scale(20))
                     .label_y(conrod_core::position::Relative::Scalar(3.0))
                     .set(self.ids.create_button, ui_widgets)
                     .was_clicked()
@@ -705,11 +701,11 @@ impl CharSelectionUi {
                 for event in TextBox::new(name)
                     .w_h(300.0, 60.0)
                     .mid_top_with_margin_on(self.ids.name_input, 2.0)
-                    .font_size(26)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(26))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .center_justify()
                     .text_color(TEXT_COLOR)
-                    .font_id(self.fonts.cyri)
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TRANSPARENT)
                     .border_color(TRANSPARENT)
                     .set(self.ids.name_field, ui_widgets)
@@ -745,10 +741,10 @@ impl CharSelectionUi {
                     .set(self.ids.selection_scrollbar, ui_widgets);
 
                 // Male/Female/Race Icons
-                Text::new(&localized_strings.get("char_selection.character_creation"))
+                Text::new(&self.voxygen_i18n.get("char_selection.character_creation"))
                     .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
-                    .font_size(24)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(24))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.bodyrace_text, ui_widgets);
                 // Alignment
@@ -833,7 +829,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.races.human"),
+                    &self.voxygen_i18n.get("common.races.human"),
                     "",
                     &tooltip_human,
                 )
@@ -866,7 +862,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.races.orc"),
+                    &self.voxygen_i18n.get("common.races.orc"),
                     "",
                     &tooltip_human,
                 )
@@ -891,7 +887,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.races.dwarf"),
+                    &self.voxygen_i18n.get("common.races.dwarf"),
                     "",
                     &tooltip_human,
                 )
@@ -916,7 +912,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.races.elf"),
+                    &self.voxygen_i18n.get("common.races.elf"),
                     "",
                     &tooltip_human,
                 )
@@ -942,7 +938,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.races.undead"),
+                    &self.voxygen_i18n.get("common.races.undead"),
                     "",
                     &tooltip_human,
                 )
@@ -967,7 +963,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.races.danari"),
+                    &self.voxygen_i18n.get("common.races.danari"),
                     "",
                     &tooltip_human,
                 )
@@ -993,7 +989,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.weapons.hammer"),
+                    &self.voxygen_i18n.get("common.weapons.hammer"),
                     "",
                     &tooltip_human,
                 )
@@ -1022,7 +1018,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.weapons.bow"),
+                    &self.voxygen_i18n.get("common.weapons.bow"),
                     "",
                     &tooltip_human,
                 )
@@ -1050,7 +1046,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.weapons.staff"),
+                    &self.voxygen_i18n.get("common.weapons.staff"),
                     "",
                     &tooltip_human,
                 )
@@ -1078,7 +1074,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.weapons.sword"),
+                    &self.voxygen_i18n.get("common.weapons.sword"),
                     "",
                     &tooltip_human,
                 )
@@ -1126,7 +1122,7 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &localized_strings.get("common.weapons.axe"),
+                    &self.voxygen_i18n.get("common.weapons.axe"),
                     "",
                     &tooltip_human,
                 )
@@ -1136,8 +1132,9 @@ impl CharSelectionUi {
                     *tool = Some(STARTER_AXE);
                 }
                 // Sliders
-                let (metamorph, slider_indicator, slider_range) = (
-                    self.fonts.cyri,
+                let (cyri, cyri_size, slider_indicator, slider_range) = (
+                    self.fonts.cyri.conrod_id,
+                    self.fonts.cyri.scale(18),
                     self.imgs.slider_indicator,
                     self.imgs.slider_range,
                 );
@@ -1151,8 +1148,8 @@ impl CharSelectionUi {
                     Text::new(text)
                         .down_from(prev_id, 22.0)
                         .align_middle_x_of(prev_id)
-                        .font_size(18)
-                        .font_id(metamorph)
+                        .font_size(cyri_size)
+                        .font_id(cyri)
                         .color(TEXT_COLOR)
                         .set(text_id, ui_widgets);
                     ImageSlider::discrete(selected_val, 0, max, slider_indicator, slider_range)
@@ -1167,7 +1164,7 @@ impl CharSelectionUi {
                 // Hair Style
                 if let Some(new_val) = char_slider(
                     self.ids.creation_buttons_alignment_2,
-                    localized_strings.get("char_selection.hair_style"),
+                    self.voxygen_i18n.get("char_selection.hair_style"),
                     self.ids.hairstyle_text,
                     body.race.num_hair_styles(body.body_type) as usize - 1,
                     body.hair_style as usize,
@@ -1179,7 +1176,7 @@ impl CharSelectionUi {
                 // Hair Color
                 if let Some(new_val) = char_slider(
                     self.ids.hairstyle_slider,
-                    localized_strings.get("char_selection.hair_color"),
+                    self.voxygen_i18n.get("char_selection.hair_color"),
                     self.ids.haircolor_text,
                     body.race.num_hair_colors() as usize - 1,
                     body.hair_color as usize,
@@ -1191,7 +1188,7 @@ impl CharSelectionUi {
                 // Skin
                 if let Some(new_val) = char_slider(
                     self.ids.haircolor_slider,
-                    localized_strings.get("char_selection.skin"),
+                    self.voxygen_i18n.get("char_selection.skin"),
                     self.ids.skin_text,
                     body.race.num_skin_colors() as usize - 1,
                     body.skin as usize,
@@ -1204,7 +1201,7 @@ impl CharSelectionUi {
                 let current_eyebrows = body.eyebrows;
                 if let Some(new_val) = char_slider(
                     self.ids.skin_slider,
-                    localized_strings.get("char_selection.eyebrows"),
+                    self.voxygen_i18n.get("char_selection.eyebrows"),
                     self.ids.eyebrows_text,
                     humanoid::ALL_EYEBROWS.len() - 1,
                     humanoid::ALL_EYEBROWS
@@ -1219,7 +1216,7 @@ impl CharSelectionUi {
                 // EyeColor
                 if let Some(new_val) = char_slider(
                     self.ids.eyebrows_slider,
-                    localized_strings.get("char_selection.eye_color"),
+                    self.voxygen_i18n.get("char_selection.eye_color"),
                     self.ids.eyecolor_text,
                     body.race.num_eye_colors() as usize - 1,
                     body.eye_color as usize,
@@ -1232,7 +1229,7 @@ impl CharSelectionUi {
                 let _current_accessory = body.accessory;
                 if let Some(new_val) = char_slider(
                     self.ids.eyecolor_slider,
-                    localized_strings.get("char_selection.accessories"),
+                    self.voxygen_i18n.get("char_selection.accessories"),
                     self.ids.accessories_text,
                     body.race.num_accessories(body.body_type) as usize - 1,
                     body.accessory as usize,
@@ -1245,7 +1242,7 @@ impl CharSelectionUi {
                 if body.race.num_beards(body.body_type) > 1 {
                     if let Some(new_val) = char_slider(
                         self.ids.accessories_slider,
-                        localized_strings.get("char_selection.beard"),
+                        self.voxygen_i18n.get("char_selection.beard"),
                         self.ids.beard_text,
                         body.race.num_beards(body.body_type) as usize - 1,
                         body.beard as usize,
@@ -1255,10 +1252,10 @@ impl CharSelectionUi {
                         body.beard = new_val as u8;
                     }
                 } else {
-                    Text::new(&localized_strings.get("char_selection.beard"))
+                    Text::new(&self.voxygen_i18n.get("char_selection.beard"))
                         .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
-                        .font_size(18)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.metamorph.scale(18))
+                        .font_id(self.fonts.metamorph.conrod_id)
                         .color(TEXT_COLOR_2)
                         .set(self.ids.beard_text, ui_widgets);
                     ImageSlider::discrete(5, 0, 10, self.imgs.nothing, self.imgs.slider_range)
@@ -1275,7 +1272,7 @@ impl CharSelectionUi {
                 let current_chest = body.chest;
                 if let Some(new_val) = char_slider(
                     self.ids.beard_slider,
-                    localized_strings.get("char_selection.chest_color"),
+                    self.voxygen_i18n.get("char_selection.chest_color"),
                     self.ids.chest_text,
                     humanoid::ALL_CHESTS.len() - 1,
                     humanoid::ALL_CHESTS
