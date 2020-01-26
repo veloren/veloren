@@ -1465,7 +1465,12 @@ impl WorldSim {
                 const MAX_ITERS: usize = 64;
                 for _ in 0..MAX_ITERS {
                     match this.get(pos)?.downhill {
-                        Some(downhill) => pos = downhill,
+                        Some(downhill) => {
+                            pos = downhill
+                                .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                                    e / (sz as i32)
+                                })
+                        }
                         None => return Some(pos),
                     }
                 }
