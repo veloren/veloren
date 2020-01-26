@@ -1,8 +1,8 @@
 use crate::{
     anim::{
-        character::{CharacterSkeleton, IdleAnimation},
+        character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
         fixture::FixtureSkeleton,
-        Animation, Skeleton, SkeletonAttr,
+        Animation, Skeleton,
     },
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Model,

@@ -1,7 +1,4 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    FishSmallSkeleton,
-};
+use super::{super::Animation, FishSmallSkeleton, SkeletonAttr};
 //use std::f32::consts::PI;
 use vek::*;
 
