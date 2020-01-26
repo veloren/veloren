@@ -644,6 +644,9 @@ fn kind_to_body(kind: NpcKind) -> comp::Body {
         NpcKind::Humanoid => comp::Body::Humanoid(comp::humanoid::Body::random()),
         NpcKind::Pig => comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
         NpcKind::Wolf => comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
+        NpcKind::Duck => comp::Body::BirdMedium(comp::bird_medium::Body::random()),
+        NpcKind::Giant => comp::Body::BipedLarge(comp::biped_large::Body::random()),
+        NpcKind::Rat => comp::Body::Critter(comp::critter::Body::random()),
     }
 }
 

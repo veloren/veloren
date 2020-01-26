@@ -1,7 +1,4 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    QuadrupedSmallSkeleton,
-};
+use super::{super::Animation, QuadrupedSmallSkeleton, SkeletonAttr};
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
@@ -16,7 +13,7 @@ impl Animation for IdleAnimation {
         global_time: Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
-        _skeleton_attr: &SkeletonAttr,
+        skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
@@ -37,28 +34,49 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-        next.head.offset = Vec3::new(0.0, -2.0, -1.5 + wave * 0.2) / 11.0;
+        next.head.offset =
+            Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1 + wave * 0.2) / 11.0;
         next.head.ori = Quaternion::rotation_z(pig_head_look.x)
             * Quaternion::rotation_x(pig_head_look.y + wave_slow_cos * 0.03);
         next.head.scale = Vec3::one() / 10.5;
 
-        next.chest.offset = Vec3::new(wave_slow * 0.05, -9.0, 1.5 + wave_slow_cos * 0.4) / 11.0;
+        next.chest.offset = Vec3::new(
+            wave_slow * 0.05,
+            skeleton_attr.chest.0,
+            skeleton_attr.chest.1 + wave_slow_cos * 0.2,
+        ) / 11.0;
         next.chest.ori = Quaternion::rotation_y(wave_slow * 0.05);
         next.chest.scale = Vec3::one() / 11.0;
 
-        next.leg_lf.offset = Vec3::new(-4.5, 2.0, 1.5) / 11.0;
+        next.leg_lf.offset = Vec3::new(
+            -skeleton_attr.feet_f.0,
+            skeleton_attr.feet_f.1,
+            skeleton_attr.feet_f.2,
+        ) / 11.0;
         next.leg_lf.ori = Quaternion::rotation_x(wave_slow * 0.08);
         next.leg_lf.scale = Vec3::one() / 11.0;
 
-        next.leg_rf.offset = Vec3::new(2.5, 2.0, 1.5) / 11.0;
+        next.leg_rf.offset = Vec3::new(
+            skeleton_attr.feet_f.0,
+            skeleton_attr.feet_f.1,
+            skeleton_attr.feet_f.2,
+        ) / 11.0;
         next.leg_rf.ori = Quaternion::rotation_x(wave_slow_cos * 0.08);
         next.leg_rf.scale = Vec3::one() / 11.0;
 
-        next.leg_lb.offset = Vec3::new(-4.5, -3.0, 1.5) / 11.0;
+        next.leg_lb.offset = Vec3::new(
+            -skeleton_attr.feet_b.0,
+            skeleton_attr.feet_b.1,
+            skeleton_attr.feet_b.2,
+        ) / 11.0;
         next.leg_lb.ori = Quaternion::rotation_x(wave_slow_cos * 0.08);
         next.leg_lb.scale = Vec3::one() / 11.0;
 
-        next.leg_rb.offset = Vec3::new(2.5, -3.0, 1.5) / 11.0;
+        next.leg_rb.offset = Vec3::new(
+            skeleton_attr.feet_b.0,
+            skeleton_attr.feet_b.1,
+            skeleton_attr.feet_b.2,
+        ) / 11.0;
         next.leg_rb.ori = Quaternion::rotation_x(wave_slow * 0.08);
         next.leg_rb.scale = Vec3::one() / 11.0;
 

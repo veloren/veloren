@@ -16,7 +16,8 @@ pub enum StructureBlock {
     PineLeaves,
     Acacia,
     Mangrove,
-    PalmLeaves,
+    PalmLeavesInner,
+    PalmLeavesOuter,
     Water,
     GreenSludge,
     Fruit,
@@ -110,7 +111,6 @@ impl Asset for Structure {
                 let block = match voxel.i {
                     0 => StructureBlock::TemperateLeaves,
                     1 => StructureBlock::PineLeaves,
-                    2 => StructureBlock::PalmLeaves,
                     3 => StructureBlock::Water,
                     4 => StructureBlock::Acacia,
                     5 => StructureBlock::Mangrove,
@@ -118,6 +118,8 @@ impl Asset for Structure {
                     7 => StructureBlock::Fruit,
                     9 => StructureBlock::Liana,
                     10 => StructureBlock::Chest,
+                    13 => StructureBlock::PalmLeavesOuter,
+                    14 => StructureBlock::PalmLeavesInner,
                     15 => StructureBlock::Hollow,
                     index => {
                         let color = palette

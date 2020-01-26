@@ -10,6 +10,9 @@ pub enum NpcKind {
     Humanoid,
     Wolf,
     Pig,
+    Duck,
+    Giant,
+    Rat,
 }
 
 impl NpcKind {
@@ -18,6 +21,9 @@ impl NpcKind {
             NpcKind::Humanoid => "humanoid",
             NpcKind::Wolf => "wolf",
             NpcKind::Pig => "pig",
+            NpcKind::Duck => "duck",
+            NpcKind::Giant => "giant",
+            NpcKind::Rat => "rat",
         }
     }
 }
@@ -30,6 +36,9 @@ impl FromStr for NpcKind {
             "humanoid" => Ok(NpcKind::Humanoid),
             "wolf" => Ok(NpcKind::Wolf),
             "pig" => Ok(NpcKind::Pig),
+            "duck" => Ok(NpcKind::Duck),
+            "giant" => Ok(NpcKind::Giant),
+            "rat" => Ok(NpcKind::Rat),
 
             _ => Err(()),
         }

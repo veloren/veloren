@@ -45,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to the client.
 - Added fullscreen and window size to settings so that they can be persisted
 - Added coverage based scaling for pixel art
+- 28 new mobs
+
 
 ### Changed
 
@@ -84,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Parallelized and otherwise sped up significant parts of world generation.
 - Various performance improvements to world generation.
 - Nametags now a fixed size and shown in a limited range
+- Non-humanoid skeletons now utilize configs for hotloading, and skeletal attributes.
 
 ### Removed
 
