@@ -25,7 +25,7 @@
             central: ("npc.wolf.male.ears"),
         ),
         tail: (
-            offset: (-2.0, -7.5, -5.0),
+            offset: (-2.0, -9.5, -5.0),
             central: ("npc.wolf.male.tail"),
         ),
     ),
@@ -55,7 +55,7 @@
             central: ("npc.wolf.female.ears"),
         ),
         tail: (
-            offset: (-2.0, -7.5, -5.0),
+            offset: (-2.0, -9.5, -5.0),
             central: ("npc.wolf.female.tail"),
         ),
     ),
@@ -146,8 +146,8 @@
             central: ("armor.empty"),
         ),
         tail: (
-            offset: (-1.0, -5.0, -1.5),
-            central: ("armor.empty"),
+            offset: (-1.0, -8.0, -1.5),
+            central: ("npc.viper.male.tail"),
         ),
     ),
     (Viper, Female): (
@@ -177,12 +177,12 @@
         ),
         tail: (
             offset: (-1.0, -5.0, -1.5),
-            central: ("npc.viper.male.tail"),
+            central: ("npc.viper.female.tail"),
         ),
     ),
     (Tuskram, Male): (
         upper: (
-            offset: (-4.0, -6.5, -7.0),
+            offset: (-4.0, -2.5, -7.0),
             central: ("npc.tuskram.female.head_upper"),
         ),
         lower: (
@@ -212,7 +212,7 @@
     ),
     (Tuskram, Female): (
         upper: (
-            offset: (-4.0, -6.5, -7.0),
+            offset: (-4.0, -2.5, -7.0),
             central: ("npc.tuskram.female.head_upper"),
         ),
         lower: (
@@ -266,7 +266,7 @@
             central: ("armor.empty"),
         ),
         tail: (
-            offset: (-2.0, -4.5, -1.5),
+            offset: (-2.0, -7.5, -1.5),
             central: ("npc.alligator.male.tail"),
         ),
     ),
@@ -296,7 +296,7 @@
             central: ("armor.empty"),
         ),
         tail: (
-            offset: (-2.0, -4.5, -1.5),
+            offset: (-2.0, -7.5, -1.5),
             central: ("npc.alligator.male.tail"),
         ),
     ),

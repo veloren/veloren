@@ -109,37 +109,37 @@
     ),
     (Tuskram, Male): (
         left_front: (
-            offset: (-1.5, -1.5, -2.5),
+            offset: (-1.5, -1.5, -4.5),
             lateral: ("npc.tuskram.male.foot_lf"),
         ),
         right_front: (
-            offset: (-1.5, -1.5, -2.5),
+            offset: (-1.5, -1.5, -4.5),
             lateral: ("npc.tuskram.male.foot_rf"),
         ),
         left_back: (
-            offset: (-1.5, -3.0, -3.5),
+            offset: (-1.5, -4.0, -5.5),
             lateral: ("npc.tuskram.male.foot_lb"),
         ),
         right_back: (
-            offset: (-1.5, -3.0, -3.5),
+            offset: (-1.5, -4.0, -5.5),
             lateral: ("npc.tuskram.male.foot_rb"),
         ),
     ),
     (Tuskram, Female): (
         left_front: (
-            offset: (-1.5, -1.5, -2.5),
+            offset: (-1.5, -1.5, -4.5),
             lateral: ("npc.tuskram.female.foot_lf"),
         ),
         right_front: (
-            offset: (-1.5, -1.5, -2.5),
+            offset: (-1.5, -1.5, -4.5),
             lateral: ("npc.tuskram.female.foot_rf"),
         ),
         left_back: (
-            offset: (-1.5, -3.0, -3.5),
+            offset: (-1.5, -4.0, -5.5),
             lateral: ("npc.tuskram.female.foot_lb"),
         ),
         right_back: (
-            offset: (-1.5, -3.0, -3.5),
+            offset: (-1.5, -4.0, -5.5),
             lateral: ("npc.tuskram.female.foot_rb"),
         ),
     ),
