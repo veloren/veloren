@@ -115,7 +115,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 
 	// Add white dots for stars. Note these flicker and jump due to FXAA
 	float star = 0.0;
-	if (with_stars && sun_dir.z > 0.0) {
+	if (with_stars) {
 		star = is_star_at(dir);
 	}
 
