@@ -985,15 +985,20 @@ impl Server {
         // the core developers before making significant changes to this code. Here is the
         // approximate order of things. Please update it as this code changes.
         //
-        // 1) Collect input from the frontend, apply input effects to the state of the game
-        // 2) Go through any events (timer-driven or otherwise) that need handling and apply them
-        //    to the state of the game
-        // 3) Go through all incoming client network communications, apply them to the game state
-        // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
-        // 5) Go through the terrain update queue and apply all changes to the terrain
+        // 1) Collect input from the frontend, apply input effects to the
+        //    state of the game
+        // 2) Go through any events (timer-driven or otherwise) that need handling
+        //    and apply them to the state of the game
+        // 3) Go through all incoming client network communications, apply them to
+        //    the game state
+        // 4) Perform a single LocalState tick (i.e: update the world and entities
+        //    in the world)
+        // 5) Go through the terrain update queue and apply all changes to
+        //    the terrain
         // 6) Send relevant state updates to all clients
         // 7) Update Metrics with current data
-        // 8) Finish the tick, passing control of the main thread back to the frontend
+        // 8) Finish the tick, passing control of the main thread back
+        //    to the frontend
 
         let before_tick_1 = Instant::now();
         // 1) Build up a list of events for this frame, to be passed to the frontend.
