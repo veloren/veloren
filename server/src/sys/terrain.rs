@@ -111,6 +111,14 @@ impl<'a> System<'a> for Sys {
                                 "Traveler".into(),
                                 comp::Body::Humanoid(comp::humanoid::Body::random()),
                                 Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                                comp::Alignment::Npc,
+                            )
+                        }) as _,
+                        (|| {
+                            (
+                                "Bandit".into(),
+                                comp::Body::Humanoid(comp::humanoid::Body::random()),
+                                Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
                                 comp::Alignment::Enemy,
                             )
                         }) as _,
@@ -147,7 +155,7 @@ impl<'a> System<'a> for Sys {
                             )
                         }),
                     ];
-                    let (name, mut body, main, alignment) = SPAWN_NPCS
+                    let (name, mut body, main, mut alignment) = SPAWN_NPCS
                         .choose(&mut rand::thread_rng())
                         .expect("SPAWN_NPCS is nonempty")(
                     );
@@ -159,11 +167,11 @@ impl<'a> System<'a> for Sys {
                     stats.level.set_level(rand::thread_rng().gen_range(1, 4));
 
                     if let EntityKind::Boss = entity.kind {
-                        if rand::random::<f32>() < 0.8 {
-                            let hbody = comp::humanoid::Body::random();
-                            body = comp::Body::Humanoid(hbody);
+                        if rand::random::<f32>() < 0.65 {
+                            body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                            alignment = comp::Alignment::Npc;
                             stats = comp::Stats::new(
-                                "Fearless Wanderer".to_string(),
+                                "Fearless Giant".to_string(),
                                 body,
                                 Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
                             );

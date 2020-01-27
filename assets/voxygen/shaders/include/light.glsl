@@ -48,7 +48,7 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 		// Multiply the vec3 only once
 		vec3 color = srgb_to_linear(L.light_col.rgb) * (strength * L.light_col.a);
 
-		light += color * (max(0, dot(normalize(difference), wnorm) + 0.15) + LIGHT_AMBIENCE);
+		light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIENCE);
 	}
 	return light;
 }
