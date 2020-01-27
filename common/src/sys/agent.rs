@@ -195,13 +195,14 @@ impl<'a> System<'a> for Sys {
                                         .unwrap_or(Vec2::zero());
                                     inputs.jump.set_state(bearing.z > 1.0);
                                 }
+
+                                if dist_sqrd < (MAX_CHASE_DIST * 0.65).powf(2.0)
+                                    && thread_rng().gen::<f32>() < 0.01
+                                {
+                                    inputs.roll.set_state(true);
+                                }
                             } else {
                                 do_idle = true;
-                            }
-
-                            // Sometimes try searching for new targets
-                            if thread_rng().gen::<f32>() < 0.01 {
-                                choose_target = true;
                             }
                         } else {
                             do_idle = true;
