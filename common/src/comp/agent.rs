@@ -8,13 +8,25 @@ pub enum Alignment {
     Wild,
     Enemy,
     Npc,
+    Owned(EcsEntity),
 }
 
 impl Alignment {
+    // Always attacks
     pub fn hostile_towards(self, other: Alignment) -> bool {
         match (self, other) {
-            (Alignment::Wild, Alignment::Npc) => false,
-            _ => self != other,
+            (Alignment::Enemy, Alignment::Enemy) => false,
+            (Alignment::Enemy, _) => true,
+            (_, Alignment::Enemy) => true,
+            _ => false,
+        }
+    }
+
+    // Never attacks
+    pub fn passive_towards(self, other: Alignment) -> bool {
+        match (self, other) {
+            (Alignment::Owned(a), Alignment::Owned(b)) if a == b => true,
+            _ => false,
         }
     }
 }
@@ -25,17 +37,11 @@ impl Component for Alignment {
 
 #[derive(Clone, Debug, Default)]
 pub struct Agent {
-    pub owner: Option<EcsEntity>,
     pub patrol_origin: Option<Vec3<f32>>,
     pub activity: Activity,
 }
 
 impl Agent {
-    pub fn with_pet(mut self, owner: EcsEntity) -> Self {
-        self.owner = Some(owner);
-        self
-    }
-
     pub fn with_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
         self.patrol_origin = Some(origin);
         self
@@ -50,7 +56,12 @@ impl Component for Agent {
 pub enum Activity {
     Idle(Vec2<f32>),
     Follow(EcsEntity, Chaser),
-    Attack(EcsEntity, Chaser, f64),
+    Attack {
+        target: EcsEntity,
+        chaser: Chaser,
+        time: f64,
+        been_close: bool,
+    },
 }
 
 impl Activity {
@@ -63,7 +74,7 @@ impl Activity {
 
     pub fn is_attack(&self) -> bool {
         match self {
-            Activity::Attack(_, _, _) => true,
+            Activity::Attack { .. } => true,
             _ => false,
         }
     }
