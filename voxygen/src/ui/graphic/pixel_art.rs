@@ -13,11 +13,12 @@ const EPSILON: f32 = 0.0001;
 // averaged
 // Say we have two areas that we are combining to form a single pixel
 // A1 and A2 where these are the fraction of the area of the pixel each color contributes to
-// Then if the colors were opaque we would say that the final color ouput color o3 is
+// Then if the colors were opaque we would say that the final color
+// ouput color o3 is
 //     E1: o3 = A1 * o1 + A2 * o2
 // where o1 and o2 are the opaque colors of the two areas
-// now say the areas are actually translucent and these opaque colors are derived by blending with a
-// common backgound color b
+// now say the areas are actually translucent and these opaque colors are
+// derived by blending with a common backgound color b
 //     E2: o1 = c1 * a1 + b * (1 - a1)
 //     E3: o2 = c2 * a2 + b * (1 - a2)
 // we want to find the combined color (c3) and combined alpha (a3) such that

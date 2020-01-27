@@ -15,7 +15,8 @@ use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
 
-/// This system will handle loading generated chunks and unloading uneeded chunks.
+/// This system will handle loading generated chunks and unloading
+/// uneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
 ///     2. Sends new chunks to neaby clients
 ///     3. Handles the chunk's supplement (e.g. npcs)

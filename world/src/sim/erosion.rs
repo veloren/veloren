@@ -368,12 +368,12 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
         // Now, we know we are a river *candidate*.  We still don't know whether we are actually a
         // river, though.  There are two ways for that to happen:
         // (i) We are already a river.
-        // (ii) Using the Gauckler–Manning–Strickler formula for cross-sectional average velocity
-        //      of water, we establish that the river can be "big enough" to appear on the Veloren
-        //      map.
+        // (ii) Using the Gauckler–Manning–Strickler formula for cross-sectional
+        //      average velocity of water, we establish that the river can be
+        //      "big enough" to appear on the Veloren map.
         //
-        // This is very imprecise, of course, and (ii) may (and almost certainly will) change over
-        // time.
+        // This is very imprecise, of course, and (ii) may (and almost certainly will)
+        // change over time.
         //
         // In both cases, we preemptively set our child to be a river, to make sure we have an
         // unbroken stream.  Also in both cases, we go to the effort of computing an effective
@@ -573,24 +573,30 @@ fn get_max_slope(
 ///
 /// This algorithm does this in four steps:
 ///
-/// 1. Sort the nodes in h by height (so the lowest node by altitude is first in the
-///    list, and the highest node by altitude is last).
-/// 2. Iterate through the list in *reverse.*  For each node, we compute its drainage area as
-///    the sum of the drainage areas of its "children" nodes (i.e. the nodes with directed edges to
-///    this node).  To do this efficiently, we start with the "leaves" (the highest nodes), which
-///    have no neighbors higher than them, hence no directed edges to them.  We add their area to
-///    themselves, and then to all neighbors that they flow into (their "ancestors" in the flow
-///    graph); currently, this just means the node immediately downhill of this node.
-///    As we go lower, we know that all our "children" already had their areas computed, which
-///    means that we can repeat the process in order to derive all the final areas.
-/// 3. Now, iterate through the list in *order.*  Whether we used the filling method to compute a
-///    "filled" version of each depression, or used the lake connection algoirthm described in [1],
-///    each node is guaranteed to have zero or one drainage edges out, representing the direction
-///    of water flow for that node.  For nodes i with zero drainage edges out (boundary nodes and
-///    lake bottoms) we set the slope to 0 (so the change in altitude is uplift(i))
-///    For nodes with at least one drainage edge out, we take advantage of the fact that we are
-///    computing new heights in order and rewrite our equation as (letting j = downhill[i], A[i]
-///    be the computed area of point i, p(i) be the x-y position of point i,
+/// 1. Sort the nodes in h by height (so the lowest node by altitude is first
+///    in the list, and the highest node by altitude is last).
+/// 2. Iterate through the list in *reverse.*  For each node, we compute its
+///    drainage area as the sum of the drainage areas of its "children" nodes
+///    (i.e. the nodes with directed edges to this node).  To do this
+///    efficiently, we start with the "leaves" (the highest nodes), which
+///    have no neighbors higher than them, hence no directed edges to them.
+///    We add their area to themselves, and then to all neighbors that they
+///    flow into (their "ancestors" in the flow graph); currently, this just
+///    means the node immediately downhill of this node. As we go lower, we
+///    know that all our "children" already had their areas computed, which
+///    means that we can repeat the process in order to derive all the final
+///    areas.
+/// 3. Now, iterate through the list in *order.*  Whether we used the filling
+///    method to compute a "filled" version of each depression, or used the lake
+///    connection algoirthm described in [1], each node is guaranteed to have
+///    zero or one drainage edges out, representing the direction of water flow
+///    for that node. For nodes i with zero drainage edges out (boundary nodes
+///    and lake bottoms) we set the slope to 0 (so the change in altitude is
+///    uplift(i))
+///    For nodes with at least one drainage edge out, we take advantage of the
+///    fact that we are computing new heights in order and rewrite our equation
+///    as (letting j = downhill[i], A[i] be the computed area of point i,
+///    p(i) be the x-y position of point i,
 ///    flux(i) = k * A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1):
 ///
 ///    h[i](t + dt) = h[i](t) + δt * (uplift[i] + flux(i) * h[j](t + δt)) / (1 + flux(i) * δt).
@@ -614,12 +620,14 @@ fn get_max_slope(
 /// prediction that hillslope diffusion should be nonlinear, which we sort of attempt to
 /// approximate.
 ///
-/// [1] Guillaume Cordonnier, Jean Braun, Marie-Paule Cani, Bedrich Benes, Eric Galin, et al..
+/// [1] Guillaume Cordonnier, Jean Braun, Marie-Paule Cani,
+///     Bedrich Benes, Eric Galin, et al..
 ///     Large Scale Terrain Generation from Tectonic Uplift and Fluvial Erosion.
 ///     Computer Graphics Forum, Wiley, 2016, Proc. EUROGRAPHICS 2016, 35 (2), pp.165-175.
 ///     ⟨10.1111/cgf.12820⟩. ⟨hal-01262376⟩
 ///
-/// [2] William E. Dietrich, Dino G. Bellugi, Leonard S. Sklar, Jonathan D. Stock
+/// [2] William E. Dietrich, Dino G. Bellugi, Leonard S. Sklar,
+///     Jonathan D. Stock
 ///     Geomorphic Transport Laws for Predicting Landscape Form and Dynamics.
 ///     Prediction in Geomorphology, Geophysical Monograph 135.
 ///     Copyright 2003 by the American Geophysical Union
@@ -678,6 +686,7 @@ fn erode(
     let dx = TerrainChunkSize::RECT_SIZE.x as f64;
     let dy = TerrainChunkSize::RECT_SIZE.y as f64;
 
+    #[rustfmt::skip]
     // ε₀ and α are part of the soil production approximate
     // equation:
     //
@@ -860,6 +869,7 @@ fn erode(
                         mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
                             let mwrec_kk = mwrec_i[kk] as f64;
 
+                            #[rustfmt::skip]
                             // Working equation:
                             //   U = uplift per time
                             //   D = sediment deposition per time
@@ -1031,6 +1041,7 @@ fn erode(
             "(Done precomputation, time={:?}ms).",
             start_time.elapsed().as_millis()
         );
+        #[rustfmt::skip]
         // sum the erosion in stack order
         //
         // After:
@@ -1065,6 +1076,7 @@ fn erode(
             "(Done sediment transport computation, time={:?}ms).",
             start_time.elapsed().as_millis()
         );
+        #[rustfmt::skip]
         // do ij=nn,1,-1
         //   ijk=stack(ij)
         //   ijr=rec(ijk)
@@ -1122,11 +1134,14 @@ fn erode(
                         let g_i_ratio = g_i / (p * area_i);
                         // One side of nonlinear equation (23):
                         //
-                        // h_i(t) + U_i * Δt + G / (p̃ * Ã_i) * Σ{j ∈ upstream_i(t)}(h_j(t, FINAL) + U_j * Δt - h_j(t + Δt, k))
+                        // h_i(t) + U_i * Δt + G / (p̃ * Ã_i) * Σ
+                        // {j ∈ upstream_i(t)}(h_j(t, FINAL)
+                        // + U_j * Δt - h_j(t + Δt, k))
                         //
                         // where
                         //
-                        // Ã_i = A_i / (∆x∆y) = N_i, number of cells upstream of cell i.
+                        // Ã_i = A_i / (∆x∆y) = N_i,
+                        // number of cells upstream of cell i.
                         *elev = old_h_after_uplift_i + uphill_silt_i * g_i_ratio;
                     }
                 },
