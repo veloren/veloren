@@ -600,14 +600,18 @@ impl CharSelectionUi {
                         .color(TEXT_COLOR)
                         .set(self.ids.character_names[i], ui_widgets);
 
-                    Text::new("Level 1") //TODO Insert real level here as soon as they get saved
-                        .down_from(self.ids.character_names[i], 4.0)
-                        .font_size(17)
-                        .font_id(self.fonts.cyri)
-                        .color(TEXT_COLOR)
-                        .set(self.ids.character_levels[i], ui_widgets);
+                    Text::new(
+                        &localized_strings
+                            .get("char_selection.level_fmt")
+                            .replace("{level_nb}", "1"),
+                    ) //TODO Insert real level here as soon as they get saved
+                    .down_from(self.ids.character_names[i], 4.0)
+                    .font_size(17)
+                    .font_id(self.fonts.cyri)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.character_levels[i], ui_widgets);
 
-                    Text::new("Uncanny Valley")
+                    Text::new(&localized_strings.get("char_selection.uncanny_valley"))
                         .down_from(self.ids.character_levels[i], 4.0)
                         .font_size(17)
                         .font_id(self.fonts.cyri)

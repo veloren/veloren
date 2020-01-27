@@ -192,6 +192,8 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.fluid_rendering_mode.cheap": "Cheap",
         "hud.settings.fluid_rendering_mode.shiny": "Shiny",
         "hud.settings.cloud_rendering_mode.regular": "Regular",
+        "hud.settings.fullscreen": "Fullscreen",
+        "hud.settings.save_window_size": "Save window size",
 
         "hud.settings.music_volume": "Music Volume",
         "hud.settings.sound_effect_volume": "Sound Effects Volume",

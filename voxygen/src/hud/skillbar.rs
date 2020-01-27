@@ -256,7 +256,9 @@ impl<'a> Widget for Skillbar<'a> {
         Rectangle::fill_with([82.0 * 4.0, 40.0 * 4.0], color::TRANSPARENT)
             .mid_top_with_margin_on(ui.window, 300.0)
             .set(state.ids.level_align, ui);
-        let level_up_text = format!("Level {}", self.stats.level.level() as u32);
+        let level_up_text = &localized_strings
+            .get("char_selection.level_fmt")
+            .replace("{level_nb}", &self.stats.level.level().to_string());
         Text::new(&level_up_text)
             .middle_of(state.ids.level_align)
             .font_size(30)
