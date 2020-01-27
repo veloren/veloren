@@ -16,9 +16,10 @@ impl Animation for RollAnimation {
         skeleton: &Self::Skeleton,
         (_active_tool_kind, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
-        _rate: &mut f32,
+        rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
+        *rate = 1.0;
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 5.5).sin();
