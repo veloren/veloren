@@ -1,7 +1,7 @@
 use crossbeam::channel::{select, unbounded, Receiver, Sender};
 use lazy_static::lazy_static;
 use log::warn;
-use notify::{event::Flag, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
+use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
 use std::{
     collections::HashMap,
     path::PathBuf,
@@ -10,7 +10,6 @@ use std::{
         Arc, Mutex, Weak,
     },
     thread,
-    time::Duration,
 };
 
 type Handler = Box<dyn Fn() + Send>;
@@ -31,8 +30,10 @@ impl Watcher {
         let (event_tx, event_rx) = unbounded();
         Watcher {
             watching: HashMap::new(),
-            watcher: notify::Watcher::new(event_tx, Duration::from_secs(2))
-                .expect("Failed to create notify::Watcher"),
+            watcher: notify::Watcher::new_immediate(move |event| {
+                let _ = event_tx.send(event);
+            })
+            .expect("Failed to create notify::Watcher"),
             event_rx,
         }
     }
@@ -57,9 +58,9 @@ impl Watcher {
     }
     fn handle_event(&mut self, event: Event) {
         // Skip notice events
-        if let Some(Flag::Notice) = event.flag() {
-            return;
-        }
+        //if let Some(Flag::Notice) = event.flag() {
+        //    return;
+        //}
         if let Event {
             kind: EventKind::Modify(_),
             paths,
