@@ -407,24 +407,6 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        CharacterState::Wielding(_) => {
-                            anim::character::WieldAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        }
-                        CharacterState::Wielded(_) => {
-                            anim::character::WieldAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        }
                         /*CharacterState::Block(_) => {
                             anim::character::BlockIdleAnimation::update_skeleton(
                                 &target_base,
