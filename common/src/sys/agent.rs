@@ -4,6 +4,7 @@ use crate::{
     path::Chaser,
     state::Time,
     sync::UidAllocator,
+    vol::ReadVol,
 };
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use specs::{
@@ -93,9 +94,29 @@ impl<'a> System<'a> for Sys {
                             } else {
                                 Vec2::zero()
                             };
+                        // Stop if we're too close to a wall
+                        *bearing *= 0.1
+                            + if terrain
+                                .ray(
+                                    pos.0 + Vec3::unit_z(),
+                                    pos.0
+                                        + Vec3::from(*bearing).normalized() * 1.5
+                                        + Vec3::unit_z(),
+                                )
+                                .until(|block| block.is_solid())
+                                .cast()
+                                .1
+                                .map(|b| b.is_none())
+                                .unwrap_or(true)
+                            {
+                                0.9
+                            } else {
+                                0.0
+                            };
 
                         if bearing.magnitude_squared() > 0.25f32.powf(2.0) {
-                            inputs.move_dir = bearing.normalized() * 0.65;
+                            inputs.move_dir =
+                                bearing.try_normalized().unwrap_or(Vec2::zero()) * 0.65;
                         }
 
                         // Sometimes try searching for new targets
