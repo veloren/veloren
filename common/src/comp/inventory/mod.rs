@@ -59,7 +59,8 @@ impl Inventory {
         }
     }
 
-    /// Add a series of items to an inventory without giving duplicates. (n * m complexity)
+    /// Add a series of items to an inventory without giving duplicates.
+    /// (n * m complexity)
     ///
     /// Error if inventory cannot contain the items (is full), returning the un-added items.
     /// This is a lazy inefficient implementation, as it iterates over the inventory more times

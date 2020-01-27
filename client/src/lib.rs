@@ -36,8 +36,9 @@ use std::{
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
-// The duration of network inactivity until the player is kicked to the main menu
-// @TODO in the future, this should be configurable on the server, and be provided to the client
+// The duration of network inactivity until the player is kicked
+// @TODO: in the future, this should be configurable on the server
+// and be provided to the client
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
 
 // After this duration has elapsed, the user will begin getting kick warnings in their chat window
@@ -330,14 +331,18 @@ impl Client {
         // the core developers before making significant changes to this code. Here is the
         // approximate order of things. Please update it as this code changes.
         //
-        // 1) Collect input from the frontend, apply input effects to the state of the game
+        // 1) Collect input from the frontend, apply input effects to the state
+        //    of the game
         // 2) Handle messages from the server
-        // 3) Go through any events (timer-driven or otherwise) that need handling and apply them
-        //    to the state of the game
-        // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
-        // 5) Go through the terrain update queue and apply all changes to the terrain
+        // 3) Go through any events (timer-driven or otherwise) that need handling
+        //    and apply them to the state of the game
+        // 4) Perform a single LocalState tick (i.e: update the world and entities
+        //    in the world)
+        // 5) Go through the terrain update queue and apply all changes
+        //    to the terrain
         // 6) Sync information to the server
-        // 7) Finish the tick, passing actions of the main thread back to the frontend
+        // 7) Finish the tick, passing actions of the main thread back
+        //    to the frontend
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
@@ -422,7 +427,8 @@ impl Client {
                 // -0.5 for being able to move to the corner of the current chunk
                 // -1 because chunks are not meshed if they don't have all their neighbors
                 //     (notice also that view_distance is decreased by 1)
-                //     (this subtraction on vd is ommitted elsewhere in order to provide a buffer layer of loaded chunks)
+                //     (this subtraction on vd is ommitted elsewhere in order to provide
+                //     a buffer layer of loaded chunks)
                 let top = if 2 * (dist - 2).max(0).pow(2) > (view_distance - 1).pow(2) as i32 {
                     ((view_distance - 1).pow(2) as f32 - (dist - 2).pow(2) as f32)
                         .sqrt()

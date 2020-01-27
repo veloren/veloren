@@ -1288,6 +1288,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_size(18)
                 .set(state.ids.controls_text, ui);
             // TODO: Replace with buttons that show actual keybinds and allow the user to change them.
+            #[rustfmt::skip]
             Text::new(&format!(
                 "{}\n\
                  {}\n\
