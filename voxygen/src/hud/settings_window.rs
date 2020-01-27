@@ -445,7 +445,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::UiScale(ScaleChange::ToRelative));
             }
 
-            Text::new("Relative Scaling")
+            Text::new(self.localized_strings.get("hud.settings.relative_scaling"))
                 .right_from(state.ids.relative_to_win_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -480,7 +480,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::UiScale(ScaleChange::ToAbsolute));
             }
 
-            Text::new("Custom Scaling")
+            Text::new(self.localized_strings.get("hud.settings.custom_scaling"))
                 .right_from(state.ids.absolute_scale_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1518,7 +1518,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.max_fps_value, ui);
 
             // FOV
-            Text::new("Field of View (deg)")
+            Text::new(&self.localized_strings.get("hud.settings.fov"))
                 .down_from(state.ids.max_fps_slider, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.cyri)
@@ -1665,7 +1665,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // Fullscreen
-            Text::new("Fullscreen")
+            Text::new(&self.localized_strings.get("hud.settings.fullscreen"))
                 .font_size(14)
                 .font_id(self.fonts.cyri)
                 .down_from(state.ids.fluid_mode_list, 8.0)
@@ -1693,7 +1693,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .hover_image(self.imgs.settings_button_hover)
                 .press_image(self.imgs.settings_button_press)
                 .down_from(state.ids.fullscreen_label, 12.0)
-                .label("Save window size")
+                .label(&self.localized_strings.get("hud.settings.save_window_size"))
                 .label_font_size(14)
                 .label_color(TEXT_COLOR)
                 .label_font_id(self.fonts.cyri)
