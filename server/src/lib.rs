@@ -300,7 +300,7 @@ impl Server {
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
         state.write_component(entity, comp::Gravity(1.0));
         state.write_component(entity, comp::CharacterState::default());
-        state.write_component(entity, comp::Alignment::Npc);
+        state.write_component(entity, comp::Alignment::Owned(entity));
         state.write_component(entity, comp::Inventory::default());
         state.write_component(entity, comp::InventoryUpdate);
         // Make sure physics are accepted.

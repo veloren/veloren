@@ -219,11 +219,15 @@ where
             is_walkable(&(pos + Vec3::new(0, -1, 0))),
         ];
 
-        const DIAGONALS: [(Vec3<i32>, [usize; 2]); 4] = [
+        const DIAGONALS: [(Vec3<i32>, [usize; 2]); 8] = [
             (Vec3::new(1, 1, 0), [0, 2]),
             (Vec3::new(-1, 1, 0), [1, 2]),
             (Vec3::new(1, -1, 0), [0, 3]),
             (Vec3::new(-1, -1, 0), [1, 3]),
+            (Vec3::new(1, 1, 1), [0, 2]),
+            (Vec3::new(-1, 1, 1), [1, 2]),
+            (Vec3::new(1, -1, 1), [0, 3]),
+            (Vec3::new(-1, -1, 1), [1, 3]),
         ];
 
         DIRS.iter()
