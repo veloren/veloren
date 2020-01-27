@@ -6,7 +6,7 @@ use crate::{
     sync::UidAllocator,
     vol::ReadVol,
 };
-use rand::{seq::SliceRandom, thread_rng, Rng};
+use rand::{thread_rng, Rng};
 use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
@@ -75,7 +75,8 @@ impl<'a> System<'a> for Sys {
             const AVG_FOLLOW_DIST: f32 = 6.0;
             const MAX_FOLLOW_DIST: f32 = 12.0;
             const MAX_CHASE_DIST: f32 = 24.0;
-            const SIGHT_DIST: f32 = 30.0;
+            const SEARCH_DIST: f32 = 30.0;
+            const SIGHT_DIST: f32 = 64.0;
             const MIN_ATTACK_DIST: f32 = 3.25;
 
             let mut do_idle = false;
@@ -146,18 +147,24 @@ impl<'a> System<'a> for Sys {
                             do_idle = true;
                         }
                     }
-                    Activity::Attack(target, chaser, _) => {
+                    Activity::Attack {
+                        target,
+                        chaser,
+                        been_close,
+                        ..
+                    } => {
                         if let (Some(tgt_pos), _tgt_stats, tgt_alignment) = (
                             positions.get(*target),
                             stats.get(*target),
-                            alignments.get(*target),
+                            alignments
+                                .get(*target)
+                                .copied()
+                                .unwrap_or(Alignment::Owned(*target)),
                         ) {
-                            // Don't attack aligned entities
-                            // TODO: This is a bit of a hack, find a better way to do this
-                            if let (Some(alignment), Some(tgt_alignment)) =
-                                (alignment, tgt_alignment)
-                            {
-                                if !tgt_alignment.hostile_towards(*alignment) {
+                            // Don't attack entities we are passive towards
+                            // TODO: This is here, it's a bit of a hack
+                            if let Some(alignment) = alignment {
+                                if (*alignment).passive_towards(tgt_alignment) {
                                     do_idle = true;
                                     break 'activity;
                                 }
@@ -172,7 +179,13 @@ impl<'a> System<'a> for Sys {
                                     .unwrap_or(Vec2::unit_y())
                                     * 0.01;
                                 inputs.primary.set_state(true);
-                            } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                            } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
+                                || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                            {
+                                if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                    *been_close = true;
+                                }
+
                                 // Long-range chase
                                 if let Some(bearing) =
                                     chaser.chase(&*terrain, pos.0, tgt_pos.0, 1.25)
@@ -184,6 +197,11 @@ impl<'a> System<'a> for Sys {
                                 }
                             } else {
                                 do_idle = true;
+                            }
+
+                            // Sometimes try searching for new targets
+                            if thread_rng().gen::<f32>() < 0.01 {
+                                choose_target = true;
                             }
                         } else {
                             do_idle = true;
@@ -201,21 +219,26 @@ impl<'a> System<'a> for Sys {
             if choose_target {
                 // Search for new targets (this looks expensive, but it's only run occasionally)
                 // TODO: Replace this with a better system that doesn't consider *all* entities
-                let entities = (&entities, &positions, &stats, alignments.maybe())
+                let closest_entity = (&entities, &positions, &stats, alignments.maybe())
                     .join()
                     .filter(|(e, e_pos, e_stats, e_alignment)| {
-                        (e_pos.0 - pos.0).magnitude_squared() < SIGHT_DIST.powf(2.0)
+                        e_pos.0.distance_squared(pos.0) < SEARCH_DIST.powf(2.0)
                             && *e != entity
                             && !e_stats.is_dead
                             && alignment
                                 .and_then(|a| e_alignment.map(|b| a.hostile_towards(*b)))
                                 .unwrap_or(false)
                     })
-                    .map(|(e, _, _, _)| e)
-                    .collect::<Vec<_>>();
+                    .min_by_key(|(_, e_pos, _, _)| (e_pos.0.distance_squared(pos.0) * 100.0) as i32)
+                    .map(|(e, _, _, _)| e);
 
-                if let Some(target) = (&entities).choose(&mut thread_rng()).cloned() {
-                    agent.activity = Activity::Attack(target, Chaser::default(), time.0);
+                if let Some(target) = closest_entity {
+                    agent.activity = Activity::Attack {
+                        target,
+                        chaser: Chaser::default(),
+                        time: time.0,
+                        been_close: false,
+                    };
                 }
             }
 
@@ -229,8 +252,12 @@ impl<'a> System<'a> for Sys {
                         if !agent.activity.is_attack() {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
-                                agent.activity =
-                                    Activity::Attack(attacker, Chaser::default(), time.0);
+                                agent.activity = Activity::Attack {
+                                    target: attacker,
+                                    chaser: Chaser::default(),
+                                    time: time.0,
+                                    been_close: false,
+                                };
                             }
                         }
                     }
@@ -238,7 +265,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Follow owner if we're too far, or if they're under attack
-            if let Some(owner) = agent.owner {
+            if let Some(Alignment::Owned(owner)) = alignment.copied() {
                 if let Some(owner_pos) = positions.get(owner) {
                     let dist_sqrd = pos.0.distance_squared(owner_pos.0);
                     if dist_sqrd > MAX_FOLLOW_DIST.powf(2.0) && !agent.activity.is_follow() {
@@ -255,8 +282,12 @@ impl<'a> System<'a> for Sys {
                                     if let Some(attacker) =
                                         uid_allocator.retrieve_entity_internal(by.id())
                                     {
-                                        agent.activity =
-                                            Activity::Attack(attacker, Chaser::default(), time.0);
+                                        agent.activity = Activity::Attack {
+                                            target: attacker,
+                                            chaser: Chaser::default(),
+                                            time: time.0,
+                                            been_close: false,
+                                        };
                                     }
                                 }
                             }
