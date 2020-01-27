@@ -77,10 +77,10 @@ impl Animation for IdleAnimation {
             0.0,
             skeleton_attr.tail.0,
             skeleton_attr.tail.1 + wave_ultra_slow * 0.6,
-        ) / 11.0;
+        );
         next.tail.ori = Quaternion::rotation_z(0.0 + wave_slow * 0.2 + tailmove.x)
             * Quaternion::rotation_x(tailmove.y);
-        next.tail.scale = Vec3::one() / 11.0;
+        next.tail.scale = Vec3::one();
 
         next.torso_back.offset = Vec3::new(
             0.0,
