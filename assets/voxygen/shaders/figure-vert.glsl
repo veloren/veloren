@@ -43,5 +43,5 @@ void main() {
 	).xyz);
 
 	gl_Position = all_mat * vec4(f_pos, 1);
-	gl_Position.z = -100.0 / (gl_Position.z + 500.0);
+	gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
 }
