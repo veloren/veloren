@@ -374,7 +374,8 @@ impl PlayState for SessionState {
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_avg_delta()) {
-                global_state.info_message = Some(localized_strings.get("common.connection_lost"));
+                global_state.info_message =
+                    Some(localized_strings.get("common.connection_lost").to_owned());
                 error!("[session] Failed to tick the scene: {:?}", err);
 
                 return PlayStateResult::Pop;

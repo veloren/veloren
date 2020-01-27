@@ -76,7 +76,8 @@ Before you dive into the fun, please keep a few things in mind:
 
 - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features. 
 - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
-- Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however you wish (provided derived work is also under GPL 3).
+- Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
+ you wish (provided derived work is also under GPL 3).
 - Veloren is a non-profit community project, and everybody working on it is a volunteer.
 If you like what you see, you're welcome to join the development or art teams!
 - 'Voxel RPG' is a genre in its own right. First-person shooters used to be called Doom clones.
@@ -153,6 +154,7 @@ Want to free your cursor to close this window? Press TAB!
 Enjoy your stay in the World of Veloren."#,
 
         "hud.settings.general": "General",
+        "hud.settings.none": "None",
         "hud.settings.help_window": "Help Window",
         "hud.settings.debug_info": "Debug Info",
         "hud.settings.tips_on_startup": "Tips-On-Startup",
@@ -190,6 +192,8 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.fluid_rendering_mode.cheap": "Cheap",
         "hud.settings.fluid_rendering_mode.shiny": "Shiny",
         "hud.settings.cloud_rendering_mode.regular": "Regular",
+        "hud.settings.fullscreen": "Fullscreen",
+        "hud.settings.save_window_size": "Save window size",
 
         "hud.settings.music_volume": "Music Volume",
         "hud.settings.sound_effect_volume": "Sound Effects Volume",
