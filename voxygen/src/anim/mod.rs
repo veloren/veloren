@@ -14,7 +14,7 @@ use crate::render::FigureBoneData;
 use common::comp::{self, ToolKind};
 use vek::*;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Bone {
     pub offset: Vec3<f32>,
     pub ori: Quaternion<f32>,
