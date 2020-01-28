@@ -57,10 +57,6 @@ impl Watcher {
         }
     }
     fn handle_event(&mut self, event: Event) {
-        // Skip notice events
-        //if let Some(Flag::Notice) = event.flag() {
-        //    return;
-        //}
         if let Event {
             kind: EventKind::Modify(_),
             paths,
