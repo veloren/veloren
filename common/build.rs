@@ -36,7 +36,7 @@ fn main() {
         Err(e) => panic!("failed to retrieve current git commit hash: {}", e),
     }
     // Check if git-lfs is working
-    if std::env::var("DISABLE_GIT_LFS_CHECK").is_err() || cfg!(not(feature = "no-assets")) {
+    if std::env::var("DISABLE_GIT_LFS_CHECK").is_err() && cfg!(not(feature = "no-assets")) {
         let asset_path: PathBuf = ["..", "assets", "voxygen", "background", "bg_main.png"]
             .iter()
             .collect();
