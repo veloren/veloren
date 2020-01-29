@@ -2,7 +2,6 @@ use rand::{seq::SliceRandom, thread_rng, Rng};
 use vek::Rgb;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(C)]
 pub struct Body {
     pub race: Race,
     pub body_type: BodyType,
@@ -69,6 +68,35 @@ pub enum Race {
     Orc = 4,
     Undead = 5,
 }
+
+/// Data representing per-species generic data.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AllSpecies<SpeciesMeta> {
+    pub danari: SpeciesMeta,
+    pub dwarf: SpeciesMeta,
+    pub elf: SpeciesMeta,
+    pub human: SpeciesMeta,
+    pub orc: SpeciesMeta,
+    pub undead: SpeciesMeta,
+}
+
+impl<SpeciesMeta> core::ops::Index<Race> for AllSpecies<SpeciesMeta> {
+    type Output = SpeciesMeta;
+
+    fn index(&self, index: Race) -> &Self::Output {
+        match index {
+            Race::Danari => &self.danari,
+            Race::Dwarf => &self.dwarf,
+            Race::Elf => &self.elf,
+            Race::Human => &self.human,
+            Race::Orc => &self.orc,
+            Race::Undead => &self.undead,
+        }
+    }
+}
+
 pub const ALL_RACES: [Race; 6] = [
     Race::Danari,
     Race::Dwarf,
