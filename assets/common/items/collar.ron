@@ -1,0 +1,7 @@
+Item(
+    name: "Collar",
+    description: "Tames wild animals within 5 blocks.",
+    kind: Utility(
+        kind: Collar,
+    ),
+)
