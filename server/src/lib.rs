@@ -575,8 +575,73 @@ impl Server {
                                     comp::ItemKind::Consumable { effect, .. } => {
                                         state.apply_effect(entity, effect);
                                     }
+                                    comp::ItemKind::Utility { kind } => match kind {
+                                        comp::item::Utility::Collar => {
+                                            let reinsert = if let Some(pos) =
+                                                state.read_storage::<comp::Pos>().get(entity)
+                                            {
+                                                if (
+                                                    &state.read_storage::<comp::Alignment>(),
+                                                    &state.read_storage::<comp::Agent>(),
+                                                )
+                                                    .join()
+                                                    .filter(|(alignment, _)| {
+                                                        alignment
+                                                            == &&comp::Alignment::Owned(entity)
+                                                    })
+                                                    .count()
+                                                    >= 3
+                                                {
+                                                    true
+                                                } else if let Some(tameable_entity) = {
+                                                    let nearest_tameable = (
+                                                        &state.ecs().entities(),
+                                                        &state.ecs().read_storage::<comp::Pos>(),
+                                                        &state
+                                                            .ecs()
+                                                            .read_storage::<comp::Alignment>(),
+                                                    )
+                                                        .join()
+                                                        .filter(|(_, wild_pos, _)| {
+                                                            wild_pos.0.distance_squared(pos.0)
+                                                                < 5.0f32.powf(2.0)
+                                                        })
+                                                        .filter(|(_, _, alignment)| {
+                                                            alignment == &&comp::Alignment::Wild
+                                                        })
+                                                        .min_by_key(|(_, wild_pos, _)| {
+                                                            (wild_pos.0.distance_squared(pos.0)
+                                                                * 100.0)
+                                                                as i32
+                                                        })
+                                                        .map(|(entity, _, _)| entity);
+                                                    nearest_tameable
+                                                } {
+                                                    let _ = state
+                                                        .ecs()
+                                                        .write_storage::<comp::Alignment>()
+                                                        .insert(
+                                                            tameable_entity,
+                                                            comp::Alignment::Owned(entity),
+                                                        );
+                                                    false
+                                                } else {
+                                                    true
+                                                }
+                                            } else {
+                                                true
+                                            };
+
+                                            if reinsert {
+                                                let _ = state
+                                                    .ecs()
+                                                    .write_storage::<comp::Inventory>()
+                                                    .get_mut(entity)
+                                                    .map(|inv| inv.insert(slot, item));
+                                            }
+                                        }
+                                    },
                                     _ => {
-                                        // Re-insert it if unused
                                         let _ = state
                                             .ecs()
                                             .write_storage::<comp::Inventory>()
