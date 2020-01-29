@@ -1,7 +1,6 @@
 use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(C)]
 pub struct Body {
     pub species: Species,
     pub body_type: BodyType,
@@ -32,6 +31,47 @@ pub enum Species {
     Dodarock = 10,
     Holladon = 11,
 }
+
+/// Data representing per-species generic data.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AllSpecies<SpeciesMeta> {
+    pub pig: SpeciesMeta,
+    pub fox: SpeciesMeta,
+    pub sheep: SpeciesMeta,
+    pub boar: SpeciesMeta,
+    pub jackalope: SpeciesMeta,
+    pub skunk: SpeciesMeta,
+    pub cat: SpeciesMeta,
+    pub batfox: SpeciesMeta,
+    pub raccoon: SpeciesMeta,
+    pub quokka: SpeciesMeta,
+    pub dodarock: SpeciesMeta,
+    pub holladon: SpeciesMeta,
+}
+
+impl<SpeciesMeta> core::ops::Index<Species> for AllSpecies<SpeciesMeta> {
+    type Output = SpeciesMeta;
+
+    fn index(&self, index: Species) -> &Self::Output {
+        match index {
+            Species::Pig => &self.pig,
+            Species::Fox => &self.fox,
+            Species::Sheep => &self.sheep,
+            Species::Boar => &self.boar,
+            Species::Jackalope => &self.jackalope,
+            Species::Skunk => &self.skunk,
+            Species::Cat => &self.cat,
+            Species::Batfox => &self.batfox,
+            Species::Raccoon => &self.raccoon,
+            Species::Quokka => &self.quokka,
+            Species::Dodarock => &self.dodarock,
+            Species::Holladon => &self.holladon,
+        }
+    }
+}
+
 pub const ALL_SPECIES: [Species; 12] = [
     Species::Pig,
     Species::Fox,

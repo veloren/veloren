@@ -9,6 +9,7 @@ use log::error;
 use serde_json::Value;
 use std::{
     any::Any,
+    fmt,
     fs::{self, File, ReadDir},
     io::{BufReader, Read},
     path::PathBuf,
@@ -18,10 +19,25 @@ use std::{
 /// The error returned by asset loading functions
 #[derive(Debug, Clone)]
 pub enum Error {
+    /// An internal error occurred.
+    Internal(Arc<dyn std::error::Error>),
     /// An asset of a different type has already been loaded with this specifier.
     InvalidType,
     /// Asset does not exist.
     NotFound(String),
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Internal(err) => err.fmt(f),
+            Error::InvalidType => write!(
+                f,
+                "an asset of a different type has already been loaded with this specifier."
+            ),
+            Error::NotFound(s) => write!(f, "{}", s),
+        }
+    }
 }
 
 impl From<Arc<dyn Any + 'static + Sync + Send>> for Error {
@@ -32,7 +48,7 @@ impl From<Arc<dyn Any + 'static + Sync + Send>> for Error {
 
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
-        Error::NotFound(format!("{:?}", err))
+        Error::NotFound(format!("{}", err))
     }
 }
 
@@ -135,7 +151,12 @@ pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Result<A, Err
 /// let my_image = assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
 /// ```
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
-    load(specifier).unwrap_or_else(|_| panic!("Failed loading essential asset: {}", specifier))
+    load(specifier).unwrap_or_else(|err| {
+        panic!(
+            "Failed loading essential asset: {} (error={})",
+            specifier, err
+        )
+    })
 }
 
 /// Function used to load essential assets from the filesystem or the cache and return a clone. It will panic if the asset is not found.
