@@ -617,13 +617,14 @@ impl Server {
                                                         .map(|(entity, _, _)| entity);
                                                     nearest_tameable
                                                 } {
-                                                    let _ = state
-                                                        .ecs()
-                                                        .write_storage::<comp::Alignment>()
-                                                        .insert(
-                                                            tameable_entity,
-                                                            comp::Alignment::Owned(entity),
-                                                        );
+                                                    let _ = state.ecs().write_storage().insert(
+                                                        tameable_entity,
+                                                        comp::Alignment::Owned(entity),
+                                                    );
+                                                    let _ = state.ecs().write_storage().insert(
+                                                        tameable_entity,
+                                                        comp::Agent::default(),
+                                                    );
                                                     false
                                                 } else {
                                                     true
