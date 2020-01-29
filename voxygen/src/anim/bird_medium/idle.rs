@@ -17,8 +17,8 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave_slow = (anim_time as f32 * 3.5).sin();
-        let wave_slow_cos = (anim_time as f32 * 3.5).cos();
+        let wave_slow = (anim_time as f32 * 4.5).sin();
+        let wave_slow_cos = (anim_time as f32 * 4.5).cos();
 
         let duck_head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
@@ -35,7 +35,7 @@ impl Animation for IdleAnimation {
 
         next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) / 11.0;
         next.head.ori = Quaternion::rotation_z(duck_head_look.x)
-            * Quaternion::rotation_x(duck_head_look.y + wave_slow_cos * 0.03);
+            * Quaternion::rotation_x(-duck_head_look.y.abs() + wave_slow_cos * 0.03);
         next.head.scale = Vec3::one();
 
         next.torso.offset = Vec3::new(
