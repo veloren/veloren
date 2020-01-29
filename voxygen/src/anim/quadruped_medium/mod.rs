@@ -151,12 +151,12 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
             },
             tail: match (body.species, body.body_type) {
                 (Wolf, _) => (-6.0, -2.0),
-                (Saber, _) => (-5.0, -2.0),
+                (Saber, _) => (-4.0, -2.0),
                 (Viper, _) => (-6.0, -1.0),
                 (Tuskram, _) => (-6.0, -2.0),
                 (Alligator, _) => (-7.0, -1.0),
                 (Monitor, _) => (-7.0, -1.0),
-                (Lion, _) => (-6.0, -4.0),
+                (Lion, _) => (-8.0, -6.0),
                 (Tarasque, _) => (-7.0, -2.0),
             },
             torso_back: match (body.species, body.body_type) {
@@ -171,12 +171,12 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
             },
             torso_mid: match (body.species, body.body_type) {
                 (Wolf, _) => (-7.0, 10.5),
-                (Saber, _) => (-8.0, 9.5),
+                (Saber, _) => (-7.0, 9.5),
                 (Viper, _) => (-7.0, 7.0),
                 (Tuskram, _) => (-7.0, 9.0),
                 (Alligator, _) => (-7.0, 6.0),
                 (Monitor, _) => (-7.0, 4.0),
-                (Lion, _) => (-7.0, 9.0),
+                (Lion, _) => (-9.0, 9.0),
                 (Tarasque, _) => (-7.0, 8.0),
             },
             ears: match (body.species, body.body_type) {
@@ -190,7 +190,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (1.5, -2.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Wolf, _) => (5.0, 6.0, 3.0),
+                (Wolf, _) => (5.0, 6.0, 2.0),
                 (Saber, _) => (4.0, 6.0, 3.0),
                 (Viper, _) => (4.0, 6.0, 3.0),
                 (Tuskram, _) => (4.0, 6.0, 4.5),
@@ -200,8 +200,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (4.0, 6.0, 3.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Wolf, _) => (5.0, -4.0, 3.5),
-                (Saber, _) => (4.0, -4.0, 3.5),
+                (Wolf, _) => (5.0, -4.0, 3.0),
+                (Saber, _) => (4.0, -6.0, 3.5),
                 (Viper, _) => (4.0, -4.0, 3.5),
                 (Tuskram, _) => (4.0, -8.0, 5.5),
                 (Alligator, _) => (4.0, -4.0, 3.5),

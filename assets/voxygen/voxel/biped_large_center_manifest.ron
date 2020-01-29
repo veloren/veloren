@@ -9,7 +9,7 @@
             center: ("npc.giant.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-5.0, 4.5, 4.5),
+            offset: (-5.0, -4.5, -4.5),
             center: ("npc.giant.male.torso_lower"),
         )
     ),
@@ -23,7 +23,7 @@
             center: ("npc.giant.female.torso_upper"),
         ),
         torso_lower: (
-            offset: (-5.0, 4.5, 4.5),
+            offset: (-5.0, -4.5, -4.5),
             center: ("npc.giant.female.torso_lower"),
         )
     ),
