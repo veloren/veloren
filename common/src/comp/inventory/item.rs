@@ -88,7 +88,6 @@ pub enum Armor {
     Necklace,
 }
 
-//TODO: Do we even need this?
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
     Apple,
@@ -98,6 +97,11 @@ pub enum Consumable {
     Velorite,
     VeloriteFrag,
     PotionMinor,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Utility {
+    Collar,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -111,6 +115,7 @@ pub enum ItemKind {
     Tool { kind: Tool, power: u32 },
     Armor { kind: Armor, power: u32 },
     Consumable { kind: Consumable, effect: Effect },
+    Utility { kind: Utility },
     Ingredient(Ingredient),
 }
 
@@ -165,6 +170,7 @@ impl Item {
                     "common.items.veloritefrag",
                     "common.items.cheese",
                     "common.items.potion_minor",
+                    "common.items.collar",
                     "common.items.weapons.starter_sword",
                     "common.items.weapons.starter_axe",
                     "common.items.weapons.starter_hammer",
