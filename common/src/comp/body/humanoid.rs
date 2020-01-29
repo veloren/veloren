@@ -24,19 +24,24 @@ impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
         let race = *(&ALL_RACES).choose(&mut rng).unwrap();
-        let body_type = *(&ALL_BODY_TYPES).choose(&mut rng).unwrap();
+        Self::random_with(&mut rng, &race)
+    }
+
+    #[inline]
+    pub fn random_with(rng: &mut impl Rng, &race: &Race) -> Self {
+        let body_type = *(&ALL_BODY_TYPES).choose(rng).unwrap();
         Self {
             race,
             body_type,
-            chest: *(&ALL_CHESTS).choose(&mut rng).unwrap(),
-            belt: *(&ALL_BELTS).choose(&mut rng).unwrap(),
-            pants: *(&ALL_PANTS).choose(&mut rng).unwrap(),
-            hand: *(&ALL_HANDS).choose(&mut rng).unwrap(),
-            foot: *(&ALL_FEET).choose(&mut rng).unwrap(),
-            shoulder: *(&ALL_SHOULDERS).choose(&mut rng).unwrap(),
+            chest: *(&ALL_CHESTS).choose(rng).unwrap(),
+            belt: *(&ALL_BELTS).choose(rng).unwrap(),
+            pants: *(&ALL_PANTS).choose(rng).unwrap(),
+            hand: *(&ALL_HANDS).choose(rng).unwrap(),
+            foot: *(&ALL_FEET).choose(rng).unwrap(),
+            shoulder: *(&ALL_SHOULDERS).choose(rng).unwrap(),
             hair_style: rng.gen_range(0, race.num_hair_styles(body_type)),
             beard: rng.gen_range(0, race.num_beards(body_type)),
-            eyebrows: *(&ALL_EYEBROWS).choose(&mut rng).unwrap(),
+            eyebrows: *(&ALL_EYEBROWS).choose(rng).unwrap(),
             accessory: rng.gen_range(0, race.num_accessories(body_type)),
             hair_color: rng.gen_range(0, race.num_hair_colors()) as u8,
             skin: rng.gen_range(0, race.num_skin_colors()) as u8,
@@ -56,6 +61,10 @@ impl Body {
             .accessory
             .min(self.race.num_accessories(self.body_type) - 1);
     }
+}
+
+impl From<Body> for super::Body {
+    fn from(body: Body) -> Self { super::Body::Humanoid(body) }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -82,10 +91,11 @@ pub struct AllSpecies<SpeciesMeta> {
     pub undead: SpeciesMeta,
 }
 
-impl<SpeciesMeta> core::ops::Index<Race> for AllSpecies<SpeciesMeta> {
+impl<'a, SpeciesMeta> core::ops::Index<&'a Race> for AllSpecies<SpeciesMeta> {
     type Output = SpeciesMeta;
 
-    fn index(&self, index: Race) -> &Self::Output {
+    #[inline]
+    fn index(&self, &index: &'a Race) -> &Self::Output {
         match index {
             Race::Danari => &self.danari,
             Race::Dwarf => &self.dwarf,
@@ -105,6 +115,14 @@ pub const ALL_RACES: [Race; 6] = [
     Race::Orc,
     Race::Undead,
 ];
+
+impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
+    type Item = Race;
+
+    type IntoIter = impl Iterator<Item = Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter { ALL_RACES.iter().copied() }
+}
 
 // Hair Colors
 pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 11] = [
