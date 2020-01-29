@@ -6,6 +6,7 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::EntityKind,
     msg::ServerMsg,
+    npc::{self, NPC_NAMES},
     state::TerrainChanges,
     terrain::TerrainGrid,
 };
@@ -100,6 +101,15 @@ impl<'a> System<'a> for Sys {
                 if let EntityKind::Waypoint = entity.kind {
                     server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
                 } else {
+                    fn get_npc_name<
+                        Species,
+                        SpeciesData: core::ops::Index<Species, Output = npc::SpeciesNames>,
+                    >(
+                        body_data: &comp::BodyData<npc::BodyNames, SpeciesData>,
+                        species: Species,
+                    ) -> &str {
+                        &body_data.species[species].generic
+                    }
                     const SPAWN_NPCS: &'static [fn() -> (
                         String,
                         comp::Body,
@@ -107,49 +117,58 @@ impl<'a> System<'a> for Sys {
                         comp::Alignment,
                     )] = &[
                         (|| {
+                            let body = comp::humanoid::Body::random();
                             (
-                                "Traveler".into(),
-                                comp::Body::Humanoid(comp::humanoid::Body::random()),
+                                format!(
+                                    "{} Traveler",
+                                    get_npc_name(&NPC_NAMES.humanoid, body.race)
+                                ),
+                                comp::Body::Humanoid(body),
                                 Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
                                 comp::Alignment::Npc,
                             )
                         }) as _,
                         (|| {
+                            let body = comp::humanoid::Body::random();
                             (
-                                "Bandit".into(),
-                                comp::Body::Humanoid(comp::humanoid::Body::random()),
+                                format!("{} Bandit", get_npc_name(&NPC_NAMES.humanoid, body.race)),
+                                comp::Body::Humanoid(body),
                                 Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
                                 comp::Alignment::Enemy,
                             )
                         }) as _,
                         (|| {
+                            let body = comp::quadruped_medium::Body::random();
                             (
-                                "Wolf".into(),
-                                comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
+                                get_npc_name(&NPC_NAMES.quadruped_medium, body.species).into(),
+                                comp::Body::QuadrupedMedium(body),
                                 None,
                                 comp::Alignment::Enemy,
                             )
                         }) as _,
                         (|| {
+                            let body = comp::bird_medium::Body::random();
                             (
-                                "Duck".into(),
-                                comp::Body::BirdMedium(comp::bird_medium::Body::random()),
+                                get_npc_name(&NPC_NAMES.bird_medium, body.species).into(),
+                                comp::Body::BirdMedium(body),
                                 None,
                                 comp::Alignment::Wild,
                             )
                         }) as _,
                         (|| {
+                            let body = comp::critter::Body::random();
                             (
-                                "Rat".into(),
-                                comp::Body::Critter(comp::critter::Body::random()),
+                                get_npc_name(&NPC_NAMES.critter, body.species).into(),
+                                comp::Body::Critter(body),
                                 None,
                                 comp::Alignment::Wild,
                             )
                         }) as _,
                         (|| {
+                            let body = comp::quadruped_small::Body::random();
                             (
-                                "Pig".into(),
-                                comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
+                                get_npc_name(&NPC_NAMES.quadruped_small, body.species).into(),
+                                comp::Body::QuadrupedSmall(body),
                                 None,
                                 comp::Alignment::Wild,
                             )
@@ -168,10 +187,14 @@ impl<'a> System<'a> for Sys {
 
                     if let EntityKind::Boss = entity.kind {
                         if rand::random::<f32>() < 0.65 {
-                            body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                            let body_new = comp::humanoid::Body::random();
+                            body = comp::Body::Humanoid(body_new);
                             alignment = comp::Alignment::Npc;
                             stats = comp::Stats::new(
-                                "Fearless Giant".to_string(),
+                                format!(
+                                    "Fearless Giant {}",
+                                    get_npc_name(&NPC_NAMES.humanoid, body_new.race)
+                                ),
                                 body,
                                 Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
                             );

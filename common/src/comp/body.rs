@@ -10,8 +10,13 @@ pub mod object;
 pub mod quadruped_medium;
 pub mod quadruped_small;
 
+use crate::{
+    assets::{self, Asset},
+    npc::NpcKind,
+};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
+use std::{fs::File, io::BufReader, sync::Arc};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
@@ -27,6 +32,58 @@ pub enum Body {
     BipedLarge(biped_large::Body) = 8,
     Object(object::Body) = 9,
     Critter(critter::Body) = 10,
+}
+
+/// Data representing data generic to the body together with per-species data.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Deserialize)]
+pub struct BodyData<BodyMeta, SpeciesData> {
+    /// Shared metadata for this whole body type.
+    pub body: BodyMeta,
+    /// All the metadata for species with this body type.
+    pub species: SpeciesData,
+}
+
+/// Metadata intended to be stored per-body, together with data intended to be stored for each
+/// species for each body.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AllBodies<BodyMeta, SpeciesMeta> {
+    pub humanoid: BodyData<BodyMeta, humanoid::AllSpecies<SpeciesMeta>>,
+    pub quadruped_small: BodyData<BodyMeta, quadruped_small::AllSpecies<SpeciesMeta>>,
+    pub quadruped_medium: BodyData<BodyMeta, quadruped_medium::AllSpecies<SpeciesMeta>>,
+    pub bird_medium: BodyData<BodyMeta, bird_medium::AllSpecies<SpeciesMeta>>,
+    pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
+    pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
+}
+
+/// Can only retrieve body metadata by direct index.
+impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, SpeciesMeta> {
+    type Output = BodyMeta;
+
+    fn index(&self, index: NpcKind) -> &Self::Output {
+        match index {
+            NpcKind::Humanoid => &self.humanoid.body,
+            NpcKind::Pig => &self.quadruped_small.body,
+            NpcKind::Wolf => &self.quadruped_medium.body,
+            NpcKind::Duck => &self.bird_medium.body,
+            NpcKind::Giant => &self.biped_large.body,
+            NpcKind::Rat => &self.critter.body,
+        }
+    }
+}
+
+impl<
+        BodyMeta: Send + Sync + for<'de> serde::Deserialize<'de>,
+        SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de>,
+    > Asset for AllBodies<BodyMeta, SpeciesMeta>
+{
+    const ENDINGS: &'static [&'static str] = &["json"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        serde_json::de::from_reader(buf_reader).map_err(|e| assets::Error::Internal(Arc::new(e)))
+    }
 }
 
 impl Body {

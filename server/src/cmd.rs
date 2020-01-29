@@ -487,7 +487,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                                 .state
                                 .create_npc(
                                     pos,
-                                    comp::Stats::new(get_npc_name(id), body, None),
+                                    comp::Stats::new(get_npc_name(id).into(), body, None),
                                     body,
                                 )
                                 .with(comp::Vel(vel))
