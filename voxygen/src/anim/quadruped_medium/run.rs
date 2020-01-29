@@ -17,7 +17,7 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 14; //14.0
+        let lab = 14;
         let vertlf = (anim_time as f32 * lab as f32 + PI * 1.8).sin().max(0.15);
         let vertrfoffset = (anim_time as f32 * lab as f32 + PI * 0.80).sin().max(0.15);
         let vertlboffset = (anim_time as f32 * lab as f32).sin().max(0.15);
