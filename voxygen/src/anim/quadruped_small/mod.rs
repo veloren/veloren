@@ -146,7 +146,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Raccoon, _) => (3.0, -2.0, 3.0),
                 (Quokka, _) => (3.0, -4.0, 3.0),
                 (Dodarock, _) => (4.5, -3.0, 4.0),
-                (Holladon, _) => (4.0, -4.0, 0.0),
+                (Holladon, _) => (4.0, -4.0, 3.0),
             },
         }
     }
