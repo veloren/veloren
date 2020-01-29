@@ -1,7 +1,6 @@
 use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(C)]
 pub struct Body {
     pub species: Species,
     pub body_type: BodyType,
@@ -24,6 +23,31 @@ pub enum Species {
     Goose = 2,
     Peacock = 3,
 }
+
+/// Data representing per-species generic data.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AllSpecies<SpeciesMeta> {
+    pub duck: SpeciesMeta,
+    pub chicken: SpeciesMeta,
+    pub goose: SpeciesMeta,
+    pub peacock: SpeciesMeta,
+}
+
+impl<SpeciesMeta> core::ops::Index<Species> for AllSpecies<SpeciesMeta> {
+    type Output = SpeciesMeta;
+
+    fn index(&self, index: Species) -> &Self::Output {
+        match index {
+            Species::Duck => &self.duck,
+            Species::Chicken => &self.chicken,
+            Species::Goose => &self.goose,
+            Species::Peacock => &self.peacock,
+        }
+    }
+}
+
 pub const ALL_SPECIES: [Species; 4] = [
     Species::Duck,
     Species::Chicken,

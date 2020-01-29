@@ -91,6 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Various performance improvements to world generation.
 - Nametags now a fixed size and shown in a limited range
 - Non-humanoid skeletons now utilize configs for hotloading, and skeletal attributes.
+- Names of NPCs spawned in the wild now include their species.
 
 ### Removed
 
