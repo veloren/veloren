@@ -10,9 +10,18 @@ impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
         let species = *(&ALL_SPECIES).choose(&mut rng).unwrap();
-        let body_type = *(&ALL_BODY_TYPES).choose(&mut rng).unwrap();
+        Self::random_with(&mut rng, &species)
+    }
+
+    #[inline]
+    pub fn random_with(rng: &mut impl rand::Rng, &species: &Species) -> Self {
+        let body_type = *(&ALL_BODY_TYPES).choose(rng).unwrap();
         Self { species, body_type }
     }
+}
+
+impl From<Body> for super::Body {
+    fn from(body: Body) -> Self { super::Body::QuadrupedMedium(body) }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -43,10 +52,11 @@ pub struct AllSpecies<SpeciesMeta> {
     pub tarasque: SpeciesMeta,
 }
 
-impl<SpeciesMeta> core::ops::Index<Species> for AllSpecies<SpeciesMeta> {
+impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
     type Output = SpeciesMeta;
 
-    fn index(&self, index: Species) -> &Self::Output {
+    #[inline]
+    fn index(&self, &index: &'a Species) -> &Self::Output {
         match index {
             Species::Wolf => &self.wolf,
             Species::Saber => &self.saber,
@@ -70,6 +80,14 @@ pub const ALL_SPECIES: [Species; 8] = [
     Species::Lion,
     Species::Tarasque,
 ];
+
+impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
+    type Item = Species;
+
+    type IntoIter = impl Iterator<Item = Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
