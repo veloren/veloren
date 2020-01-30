@@ -798,7 +798,12 @@ impl Server {
                         if clients.get_mut(possesse).is_none() {
                             if let Some(mut client) = clients.remove(possessor) {
                                 client.notify(ServerMsg::SetPlayerEntity(possesse_uid.into()));
-                                let _ = clients.insert(possesse, client);
+                                clients.insert(possesse, client).err().map(|e| {
+                                    error!(
+                                        "Error inserting client component during possession: {:?}",
+                                        e
+                                    )
+                                });
                                 // Create inventory if it doesn't exist
                                 {
                                     let mut inventories = ecs.write_storage::<comp::Inventory>();
@@ -807,37 +812,98 @@ impl Server {
                                             "common.items.debug.possess",
                                         ));
                                     } else {
-                                        let _ = inventories.insert(possesse, comp::Inventory {
-                                            slots: vec![Some(assets::load_expect_cloned(
-                                                "common.items.debug.possess",
-                                            ))],
-                                        });
+                                        inventories
+                                            .insert(possesse, comp::Inventory {
+                                                slots: vec![
+                                                    Some(assets::load_expect_cloned(
+                                                        "common.items.debug.possess",
+                                                    )),
+                                                    None,
+                                                    None,
+                                                    None,
+                                                    None,
+                                                    None,
+                                                    None,
+                                                    None,
+                                                ],
+                                            })
+                                            .err()
+                                            .map(|e| {
+                                                error!(
+                                                    "Error inserting inventory component during \
+                                                     possession: {:?}",
+                                                    e
+                                                )
+                                            });
                                     }
                                 }
-                                let _ = ecs
-                                    .write_storage::<comp::InventoryUpdate>()
-                                    .insert(possesse, comp::InventoryUpdate);
+                                ecs.write_storage::<comp::InventoryUpdate>()
+                                    .insert(possesse, comp::InventoryUpdate)
+                                    .err()
+                                    .map(|e| {
+                                        error!(
+                                            "Error inserting inventory update component during \
+                                             possession: {:?}",
+                                            e
+                                        )
+                                    });
                                 // Move player component
                                 {
                                     let mut players = ecs.write_storage::<comp::Player>();
                                     if let Some(player) = players.remove(possessor) {
-                                        let _ = players.insert(possesse, player);
+                                        players.insert(possesse, player).err().map(|e| {
+                                            error!(
+                                                "Error inserting player component during \
+                                                 possession: {:?}",
+                                                e
+                                            )
+                                        });
+                                    }
+                                }
+                                // Transfer region subscription
+                                {
+                                    let mut subscriptions =
+                                        ecs.write_storage::<RegionSubscription>();
+                                    if let Some(s) = subscriptions.remove(possessor) {
+                                        subscriptions.insert(possesse, s).err().map(|e| {
+                                            error!(
+                                                "Error inserting subscription component during \
+                                                 possession: {:?}",
+                                                e
+                                            )
+                                        });
                                     }
                                 }
                                 // Remove will of the entity
-                                let _ = ecs.write_storage::<comp::Agent>().remove(possesse);
+                                ecs.write_storage::<comp::Agent>().remove(possesse);
+                                // Reset controller of former shell
+                                ecs.write_storage::<comp::Controller>()
+                                    .get_mut(possessor)
+                                    .map(|c| c.reset());
                                 // Transfer admin powers
                                 {
                                     let mut admins = ecs.write_storage::<comp::Admin>();
                                     if let Some(admin) = admins.remove(possessor) {
-                                        let _ = admins.insert(possesse, admin);
+                                        admins.insert(possesse, admin).err().map(|e| {
+                                            error!(
+                                                "Error inserting admin component during \
+                                                 possession: {:?}",
+                                                e
+                                            )
+                                        });
                                     }
                                 }
                                 // Transfer waypoint
                                 {
                                     let mut waypoints = ecs.write_storage::<comp::Waypoint>();
                                     if let Some(waypoint) = waypoints.remove(possessor) {
-                                        let _ = waypoints.insert(possesse, waypoint);
+                                        waypoints.insert(possesse, waypoint).err().map(|e| {
+                                            error!(
+                                                "Error inserting waypoint component during \
+                                                 possession {:?}",
+                                                e
+                                            )
+                                        });
                                     }
                                 }
                             }
