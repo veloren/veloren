@@ -50,6 +50,7 @@ impl Default for ServerSettings {
                 "Nancok",
                 "Qutrin",
                 "Mckol",
+                "Treeco",
             ]
             .iter()
             .map(|n| n.to_string())
