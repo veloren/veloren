@@ -64,7 +64,7 @@ impl<'a> System<'a> for Sys {
                         });
                     }
                     continue 'insert_terrain_chunks;
-                }
+                },
             };
             // Send the chunk to all nearby players.
             for (view_distance, pos, client) in (&players, &positions, &mut clients)
@@ -183,7 +183,8 @@ impl<'a> System<'a> for Sys {
 
                     let mut scale = 1.0;
 
-                    // TODO: Remove this and implement scaling or level depending on stuff like species instead
+                    // TODO: Remove this and implement scaling or level depending on stuff like
+                    // species instead
                     stats.level.set_level(rand::thread_rng().gen_range(1, 4));
 
                     if let EntityKind::Boss = entity.kind {

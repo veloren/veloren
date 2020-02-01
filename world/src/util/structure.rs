@@ -34,14 +34,10 @@ impl StructureGen2d {
     }
 
     #[inline]
-    fn freq_offset(freq: i32) -> i32 {
-        freq / 2
-    }
+    fn freq_offset(freq: i32) -> i32 { freq / 2 }
 
     #[inline]
-    fn spread_mul(spread: u32) -> u32 {
-        spread * 2
-    }
+    fn spread_mul(spread: u32) -> u32 { spread * 2 }
 
     #[inline]
     fn index_to_sample_internal(
@@ -66,8 +62,8 @@ impl StructureGen2d {
         )
     }
 
-    /// Note: Generates all possible closest samples for elements in the range of min to max,
-    /// *exclusive.*
+    /// Note: Generates all possible closest samples for elements in the range
+    /// of min to max, *exclusive.*
     pub fn par_iter(
         &self,
         min: Vec2<i32>,
@@ -93,10 +89,11 @@ impl StructureGen2d {
         let ylen = (max_index.y - min_index.y) as u32;
         // NOTE: Cannot fail, since every product of u32s fits in a u64.
         let len = ylen as u64 * xlen as u64;
-        // NOTE: since iteration is *exclusive* for the initial range, it's fine that we don't go
-        // up to the maximum value.
-        // NOTE: we convert to usize first, and then iterate, because we want to make sure we get
-        // a properly indexed parallel iterator that can deal with the whole range at once.
+        // NOTE: since iteration is *exclusive* for the initial range, it's fine that we
+        // don't go up to the maximum value.
+        // NOTE: we convert to usize first, and then iterate, because we want to make
+        // sure we get a properly indexed parallel iterator that can deal with
+        // the whole range at once.
         let x_field = self.x_field;
         let y_field = self.y_field;
         let seed_field = self.seed_field;

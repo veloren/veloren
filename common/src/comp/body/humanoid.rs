@@ -310,6 +310,7 @@ impl Race {
             Race::Undead => &UNDEAD_HAIR_COLORS,
         }
     }
+
     fn skin_colors(self) -> &'static [Skin] {
         match self {
             Race::Danari => &DANARI_SKIN_COLORS,
@@ -320,6 +321,7 @@ impl Race {
             Race::Undead => &UNDEAD_SKIN_COLORS,
         }
     }
+
     fn eye_colors(self) -> &'static [EyeColor] {
         match self {
             Race::Danari => &DANARI_EYE_COLORS,
@@ -330,6 +332,7 @@ impl Race {
             Race::Undead => &UNDEAD_EYE_COLORS,
         }
     }
+
     pub fn hair_color(self, val: u8) -> Rgb<u8> {
         self.hair_colors()
             .get(val as usize)
@@ -337,27 +340,27 @@ impl Race {
             .unwrap_or((0, 0, 0))
             .into()
     }
-    pub fn num_hair_colors(self) -> u8 {
-        self.hair_colors().len() as u8
-    }
+
+    pub fn num_hair_colors(self) -> u8 { self.hair_colors().len() as u8 }
+
     pub fn skin_color(self, val: u8) -> Skin {
         self.skin_colors()
             .get(val as usize)
             .copied()
             .unwrap_or(Skin::Tanned)
     }
-    pub fn num_skin_colors(self) -> u8 {
-        self.skin_colors().len() as u8
-    }
+
+    pub fn num_skin_colors(self) -> u8 { self.skin_colors().len() as u8 }
+
     pub fn eye_color(self, val: u8) -> EyeColor {
         self.eye_colors()
             .get(val as usize)
             .copied()
             .unwrap_or(EyeColor::NobleBlue)
     }
-    pub fn num_eye_colors(self) -> u8 {
-        self.eye_colors().len() as u8
-    }
+
+    pub fn num_eye_colors(self) -> u8 { self.eye_colors().len() as u8 }
+
     pub fn num_hair_styles(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
             (Race::Danari, BodyType::Female) => 2,
@@ -374,6 +377,7 @@ impl Race {
             (Race::Undead, BodyType::Male) => 3,
         }
     }
+
     pub fn num_accessories(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
             (Race::Danari, BodyType::Female) => 1,
@@ -390,6 +394,7 @@ impl Race {
             (Race::Undead, BodyType::Male) => 1,
         }
     }
+
     pub fn num_beards(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
             (Race::Danari, BodyType::Female) => 1,
@@ -527,6 +532,7 @@ impl EyeColor {
             EyeColor::ExoticPurple => Rgb::new(95, 32, 111),
         }
     }
+
     pub fn dark_rgb(self) -> Rgb<u8> {
         match self {
             EyeColor::VigorousBlack => Rgb::new(32, 32, 32),
@@ -541,9 +547,8 @@ impl EyeColor {
             EyeColor::ExoticPurple => Rgb::new(69, 23, 80),
         }
     }
-    pub fn white_rgb(self) -> Rgb<u8> {
-        Rgb::new(255, 255, 255)
-    }
+
+    pub fn white_rgb(self) -> Rgb<u8> { Rgb::new(255, 255, 255) }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -606,6 +611,7 @@ impl Skin {
         };
         Rgb::from(color)
     }
+
     pub fn light_rgb(self) -> Rgb<u8> {
         let color = match self {
             Self::Pale => (255, 227, 193),
@@ -632,6 +638,7 @@ impl Skin {
         };
         Rgb::from(color)
     }
+
     pub fn dark_rgb(self) -> Rgb<u8> {
         let color = match self {
             Self::Pale => (229, 192, 163),

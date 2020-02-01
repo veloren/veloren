@@ -1,4 +1,3 @@
-use crate::window::{Event as WinEvent, PressState};
 use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
     meta::CharacterData,
@@ -7,11 +6,14 @@ use crate::{
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelSs9Graphic},
         ImageFrame, ImageSlider, Tooltip, Tooltipable, Ui,
     },
+    window::{Event as WinEvent, PressState},
     GlobalState,
 };
 use client::Client;
-use common::assets::load_expect;
-use common::comp::{self, humanoid};
+use common::{
+    assets::load_expect,
+    comp::{self, humanoid},
+};
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -407,7 +409,7 @@ impl CharSelectionUi {
                         self.info_content = InfoContent::None;
                         global_state.meta.delete_character(character_index);
                     };
-                }
+                },
             }
         }
         // Character Selection /////////////////
@@ -648,8 +650,9 @@ impl CharSelectionUi {
                         tool: Some(STARTER_SWORD),
                     };
                 }
-            }
-            // Character_Creation //////////////////////////////////////////////////////////////////////
+            },
+            // Character_Creation
+            // //////////////////////////////////////////////////////////////////////
             Mode::Create { name, body, tool } => {
                 let mut to_select = false;
                 // Back Button
@@ -713,7 +716,7 @@ impl CharSelectionUi {
                 {
                     match event {
                         TextBoxEvent::Update(new_name) => *name = new_name,
-                        TextBoxEvent::Enter => {}
+                        TextBoxEvent::Enter => {},
                     }
                 }
 
@@ -1307,7 +1310,7 @@ impl CharSelectionUi {
                 if to_select {
                     self.mode = Mode::Select(None);
                 }
-            } // Char Creation fin
+            }, // Char Creation fin
         }
 
         events
@@ -1318,7 +1321,7 @@ impl CharSelectionUi {
             WinEvent::Ui(event) => {
                 self.ui.handle_event(event);
                 true
-            }
+            },
             WinEvent::MouseButton(_, PressState::Pressed) => !self.ui.no_widget_capturing_mouse(),
             _ => false,
         }

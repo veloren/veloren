@@ -6,8 +6,9 @@ use vek::*;
 pub struct StandAnimation;
 
 impl Animation for StandAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<Tool>, f64);
+    type Skeleton = CharacterSkeleton;
+
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, global_time): Self::Dependency,

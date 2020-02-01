@@ -1,8 +1,7 @@
 use crate::{
     hud::{BarNumbers, CrosshairType, Intro, ShortcutNumbers, XpBar},
     i18n,
-    render::AaMode,
-    render::{CloudMode, FluidMode},
+    render::{AaMode, CloudMode, FluidMode},
     ui::ScaleMode,
     window::KeyMouse,
 };
@@ -53,10 +52,11 @@ pub struct ControlSettings {
     pub charge: KeyMouse,
 }
 
-/// Since Macbook trackpads lack middle click, on OS X we default to LShift instead
-/// It is an imperfect heuristic, but hopefully it will be a slightly better default, and the
-/// two places we default to middle click currently (roll and wall jump) are both situations where
-/// you cannot glide (the other default mapping for LShift).
+/// Since Macbook trackpads lack middle click, on OS X we default to LShift
+/// instead It is an imperfect heuristic, but hopefully it will be a slightly
+/// better default, and the two places we default to middle click currently
+/// (roll and wall jump) are both situations where you cannot glide (the other
+/// default mapping for LShift).
 #[cfg(target_os = "macos")]
 const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(VirtualKeyCode::LShift);
 #[cfg(not(target_os = "macos"))]
@@ -180,12 +180,11 @@ pub struct Log {
 }
 
 impl Default for Log {
-    fn default() -> Self {
-        Self { log_to_file: true }
-    }
+    fn default() -> Self { Self { log_to_file: true } }
 }
 
-/// `GraphicsSettings` contains settings related to framerate and in-game visuals.
+/// `GraphicsSettings` contains settings related to framerate and in-game
+/// visuals.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GraphicsSettings {
@@ -254,7 +253,8 @@ impl Default for LanguageSettings {
     }
 }
 
-/// `Settings` contains everything that can be configured in the settings.ron file.
+/// `Settings` contains everything that can be configured in the settings.ron
+/// file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
@@ -304,7 +304,7 @@ impl Settings {
                     if let Err(err) = std::fs::rename(path, new_path) {
                         log::warn!("Failed to rename settings file. {}", err);
                     }
-                }
+                },
             }
         }
         // This is reached if either:

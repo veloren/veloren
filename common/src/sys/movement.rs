@@ -147,29 +147,29 @@ impl<'a> System<'a> for Sys {
                                 < (BASE_HUMANOID_SPEED + stats.fitness as f32 * 50.0).powf(2.0) =>
                         {
                             BASE_HUMANOID_ACCEL
-                        }
+                        },
                         (false, Climb)
                             if vel.0.magnitude_squared() < BASE_HUMANOID_SPEED.powf(2.0) =>
                         {
                             BASE_HUMANOID_CLIMB_ACCEL
-                        }
+                        },
                         (false, Glide) if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) => {
                             GLIDE_ACCEL
-                        }
+                        },
                         (false, Fall) | (false, Jump)
                             if vel.0.magnitude_squared()
                                 < (BASE_HUMANOID_AIR_SPEED + stats.fitness as f32 * 10.0)
                                     .powf(2.0) =>
                         {
                             BASE_HUMANOID_AIR_ACCEL
-                        }
+                        },
                         (false, Swim)
                             if vel.0.magnitude_squared()
                                 < (BASE_HUMANOID_WATER_SPEED + stats.fitness as f32 * 30.0)
                                     .powf(2.0) =>
                         {
                             BASE_HUMANOID_WATER_ACCEL + stats.fitness as f32 * 10.0
-                        }
+                        },
                         _ => 0.0,
                     };
             }

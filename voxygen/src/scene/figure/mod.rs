@@ -135,37 +135,37 @@ impl FigureMgr {
                 match body {
                     Body::Humanoid(_) => {
                         self.character_states.remove(&entity);
-                    }
+                    },
                     Body::QuadrupedSmall(_) => {
                         self.quadruped_small_states.remove(&entity);
-                    }
+                    },
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states.remove(&entity);
-                    }
+                    },
                     Body::BirdMedium(_) => {
                         self.bird_medium_states.remove(&entity);
-                    }
+                    },
                     Body::FishMedium(_) => {
                         self.fish_medium_states.remove(&entity);
-                    }
+                    },
                     Body::Critter(_) => {
                         self.critter_states.remove(&entity);
-                    }
+                    },
                     Body::Dragon(_) => {
                         self.dragon_states.remove(&entity);
-                    }
+                    },
                     Body::BirdSmall(_) => {
                         self.bird_small_states.remove(&entity);
-                    }
+                    },
                     Body::FishSmall(_) => {
                         self.fish_small_states.remove(&entity);
-                    }
+                    },
                     Body::BipedLarge(_) => {
                         self.biped_large_states.remove(&entity);
-                    }
+                    },
                     Body::Object(_) => {
                         self.object_states.remove(&entity);
-                    }
+                    },
                 }
                 continue;
             } else if vd_frac > 1.0 {
@@ -174,57 +174,57 @@ impl FigureMgr {
                         self.character_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::QuadrupedSmall(_) => {
                         self.quadruped_small_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::BirdMedium(_) => {
                         self.bird_medium_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::FishMedium(_) => {
                         self.fish_medium_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::Critter(_) => {
                         self.critter_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::Dragon(_) => {
                         self.dragon_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::BirdSmall(_) => {
                         self.bird_small_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::FishSmall(_) => {
                         self.fish_small_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::BipedLarge(_) => {
                         self.biped_large_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                     Body::Object(_) => {
                         self.object_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
-                    }
+                    },
                 }
                 continue;
             }
@@ -257,10 +257,10 @@ impl FigureMgr {
                                 .map(|state| state.lpindex),
                             Body::Critter(_) => {
                                 self.critter_states.get(&entity).map(|state| state.lpindex)
-                            }
+                            },
                             Body::Dragon(_) => {
                                 self.dragon_states.get(&entity).map(|state| state.lpindex)
-                            }
+                            },
                             Body::BirdSmall(_) => self
                                 .bird_small_states
                                 .get(&entity)
@@ -275,7 +275,7 @@ impl FigureMgr {
                                 .map(|state| state.lpindex),
                             Body::Object(_) => {
                                 self.object_states.get(&entity).map(|state| state.lpindex)
-                            }
+                            },
                         }
                         .unwrap_or(0),
                     );
@@ -287,67 +287,67 @@ impl FigureMgr {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::QuadrupedSmall(_) => {
                         self.quadruped_small_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::BirdMedium(_) => {
                         self.bird_medium_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::FishMedium(_) => {
                         self.fish_medium_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::Critter(_) => {
                         self.critter_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::Dragon(_) => {
                         self.dragon_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::BirdSmall(_) => {
                         self.bird_small_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::FishSmall(_) => {
                         self.fish_small_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::BipedLarge(_) => {
                         self.biped_large_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                     Body::Object(_) => {
                         self.object_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
-                    }
+                    },
                 }
             }
 
@@ -478,7 +478,7 @@ impl FigureMgr {
                                 &mut action_animation_rate,
                                 skeleton_attr,
                             )
-                        }
+                        },
                         (_, Attack { .. }) => anim::character::AttackAnimation::update_skeleton(
                             &target_base,
                             (active_tool_kind, time),
@@ -531,7 +531,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::QuadrupedSmall(_) => {
                     let skeleton_attr = &self
                         .quadruped_small_model_cache
@@ -602,7 +602,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::QuadrupedMedium(_) => {
                     let skeleton_attr = &self
                         .quadruped_medium_model_cache
@@ -673,7 +673,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::BirdMedium(_) => {
                     let skeleton_attr = &self
                         .bird_medium_model_cache
@@ -742,7 +742,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::FishMedium(_) => {
                     let skeleton_attr = &self
                         .fish_medium_model_cache
@@ -811,7 +811,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::Dragon(_) => {
                     let skeleton_attr = &self
                         .dragon_model_cache
@@ -880,7 +880,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::Critter(_) => {
                     let skeleton_attr = &self
                         .critter_model_cache
@@ -949,7 +949,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::BirdSmall(_) => {
                     let skeleton_attr = &self
                         .bird_small_model_cache
@@ -1018,7 +1018,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::FishSmall(_) => {
                     let skeleton_attr = &self
                         .fish_small_model_cache
@@ -1087,7 +1087,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::BipedLarge(_) => {
                     let skeleton_attr = &self
                         .biped_large_model_cache
@@ -1156,7 +1156,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -1177,7 +1177,7 @@ impl FigureMgr {
                         lpindex,
                         true,
                     );
-                }
+                },
             }
         }
 
@@ -1597,15 +1597,9 @@ impl<S: Skeleton> FigureState<S> {
             .unwrap();
     }
 
-    pub fn locals(&self) -> &Consts<FigureLocals> {
-        &self.locals
-    }
+    pub fn locals(&self) -> &Consts<FigureLocals> { &self.locals }
 
-    pub fn bone_consts(&self) -> &Consts<FigureBoneData> {
-        &self.bone_consts
-    }
+    pub fn bone_consts(&self) -> &Consts<FigureBoneData> { &self.bone_consts }
 
-    pub fn skeleton_mut(&mut self) -> &mut S {
-        &mut self.skeleton
-    }
+    pub fn skeleton_mut(&mut self) -> &mut S { &mut self.skeleton }
 }

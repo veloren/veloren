@@ -48,7 +48,7 @@ impl AudioFrontend {
             device_list: list_devices(),
             audio_device,
             sound_cache: SoundCache::new(),
-            channels: channels,
+            channels,
             next_channel_id: 1,
             sfx_volume: 1.0,
             music_volume: 1.0,
@@ -174,13 +174,9 @@ impl AudioFrontend {
         }
     }
 
-    pub fn get_sfx_volume(&self) -> f32 {
-        self.sfx_volume
-    }
+    pub fn get_sfx_volume(&self) -> f32 { self.sfx_volume }
 
-    pub fn get_music_volume(&self) -> f32 {
-        self.music_volume
-    }
+    pub fn get_music_volume(&self) -> f32 { self.music_volume }
 
     pub fn set_sfx_volume(&mut self, sfx_volume: f32) {
         self.sfx_volume = sfx_volume;

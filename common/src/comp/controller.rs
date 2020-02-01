@@ -53,15 +53,11 @@ impl Input {
     }
 
     /// Whether input is in `InputState::Pressed` state
-    pub fn is_pressed(&self) -> bool {
-        self.state == InputState::Pressed
-    }
+    pub fn is_pressed(&self) -> bool { self.state == InputState::Pressed }
 
     /// Whether it's the first frame this input has been in
     /// its current state
-    pub fn is_just_pressed(&self) -> bool {
-        (self.just_changed && self.is_pressed())
-    }
+    pub fn is_just_pressed(&self) -> bool { (self.just_changed && self.is_pressed()) }
 
     /// Whether input has been in current state longer than
     /// `DEFAULT_HOLD_DURATION`
@@ -78,14 +74,14 @@ impl Input {
                 self.dirty = true;
                 self.state = InputState::Pressed;
                 self.duration = Duration::default();
-            }
+            },
             (true, false) => {
                 self.just_changed = true;
                 self.dirty = true;
                 self.state = InputState::Unpressed;
                 self.duration = Duration::default();
-            }
-            (_, _) => {}
+            },
+            (_, _) => {},
         };
     }
 
@@ -95,9 +91,7 @@ impl Input {
     }
 
     /// Returns `input::duration`
-    pub fn get_dur(&self) -> Duration {
-        self.duration
-    }
+    pub fn get_dur(&self) -> Duration { self.duration }
 }
 
 impl Default for Input {
@@ -154,6 +148,7 @@ impl ControllerInputs {
         self.toggle_wield.tick(dt);
         self.charge.tick(dt);
     }
+
     /// Updates `inputs.move_dir`.
     pub fn update_move_dir(&mut self) {
         self.move_dir = if self.move_dir.magnitude_squared() > 1.0 {
@@ -163,6 +158,7 @@ impl ControllerInputs {
             self.move_dir
         };
     }
+
     /// Updates `inputs.look_dir`
     pub fn update_look_dir(&mut self) {
         self.look_dir
@@ -173,17 +169,11 @@ impl ControllerInputs {
 
 impl Controller {
     /// Sets all inputs to default
-    pub fn reset(&mut self) {
-        *self = Self::default();
-    }
+    pub fn reset(&mut self) { *self = Self::default(); }
 
-    pub fn clear_events(&mut self) {
-        self.events.clear();
-    }
+    pub fn clear_events(&mut self) { self.events.clear(); }
 
-    pub fn push_event(&mut self, event: ControlEvent) {
-        self.events.push(event);
-    }
+    pub fn push_event(&mut self, event: ControlEvent) { self.events.push(event); }
 }
 
 impl Component for Controller {

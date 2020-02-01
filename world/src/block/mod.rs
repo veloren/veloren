@@ -516,7 +516,7 @@ impl StructureInfo {
                     min: Vec3::new(-base - height, -base - height, -base),
                     max: Vec3::new(base + height, base + height, height),
                 }
-            }
+            },
             StructureMeta::Volume { units, volume } => {
                 let bounds = volume.get_bounds();
 
@@ -527,7 +527,7 @@ impl StructureInfo {
                         + Vec3::unit_z() * bounds.max.z,
                 })
                 .made_valid()
-            }
+            },
         }
     }
 
@@ -544,7 +544,7 @@ impl StructureInfo {
                 } else {
                     None
                 }
-            }
+            },
             StructureMeta::Volume { units, volume } => {
                 let rpos = wpos - self.pos;
                 let block_pos = Vec3::unit_z() * rpos.z
@@ -564,7 +564,7 @@ impl StructureInfo {
                             sample,
                         )
                     })
-            }
+            },
         }
     }
 }
@@ -651,6 +651,6 @@ pub fn block_from_structure(
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Normal(color) => {
             Some(Block::new(default_kind, color)).filter(|block| !block.is_empty())
-        }
+        },
     }
 }

@@ -4,8 +4,8 @@ use vek::*;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Skeleton = QuadrupedSmallSkeleton;
     type Dependency = (f32, f64);
+    type Skeleton = QuadrupedSmallSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

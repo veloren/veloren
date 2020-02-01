@@ -1,5 +1,8 @@
-use crate::comp::{body::humanoid::Race, Body};
-use crate::{comp, sync::Uid};
+use crate::{
+    comp,
+    comp::{body::humanoid::Race, Body},
+    sync::Uid,
+};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
@@ -47,23 +50,16 @@ pub struct Equipment {
 }
 
 impl Health {
-    pub fn current(&self) -> u32 {
-        self.current
-    }
+    pub fn current(&self) -> u32 { self.current }
 
-    pub fn maximum(&self) -> u32 {
-        self.maximum
-    }
+    pub fn maximum(&self) -> u32 { self.maximum }
 
     pub fn set_to(&mut self, amount: u32, cause: HealthSource) {
         let amount = amount.min(self.maximum);
-        self.last_change = (
-            0.0,
-            HealthChange {
-                amount: amount as i32 - self.current as i32,
-                cause,
-            },
-        );
+        self.last_change = (0.0, HealthChange {
+            amount: amount as i32 - self.current as i32,
+            cause,
+        });
         self.current = amount;
     }
 
@@ -83,34 +79,23 @@ pub enum StatChangeError {
     Underflow,
     Overflow,
 }
-use std::error::Error;
-use std::fmt;
+use std::{error::Error, fmt};
 impl fmt::Display for StatChangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Underflow => "insufficient stat quantity",
-                Self::Overflow => "stat quantity would overflow",
-            }
-        )
+        write!(f, "{}", match self {
+            Self::Underflow => "insufficient stat quantity",
+            Self::Overflow => "stat quantity would overflow",
+        })
     }
 }
 impl Error for StatChangeError {}
 
 impl Exp {
-    pub fn current(&self) -> u32 {
-        self.current
-    }
+    pub fn current(&self) -> u32 { self.current }
 
-    pub fn maximum(&self) -> u32 {
-        self.maximum
-    }
+    pub fn maximum(&self) -> u32 { self.maximum }
 
-    pub fn set_current(&mut self, current: u32) {
-        self.current = current;
-    }
+    pub fn set_current(&mut self, current: u32) { self.current = current; }
 
     // TODO: Uncomment when needed
     // pub fn set_maximum(&mut self, maximum: u32) {
@@ -127,17 +112,11 @@ impl Exp {
 }
 
 impl Level {
-    pub fn set_level(&mut self, level: u32) {
-        self.amount = level;
-    }
+    pub fn set_level(&mut self, level: u32) { self.amount = level; }
 
-    pub fn level(&self) -> u32 {
-        self.amount
-    }
+    pub fn level(&self) -> u32 { self.amount }
 
-    pub fn change_by(&mut self, level: u32) {
-        self.amount += level;
-    }
+    pub fn change_by(&mut self, level: u32) { self.amount += level; }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -154,9 +133,8 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub fn should_die(&self) -> bool {
-        self.health.current == 0
-    }
+    pub fn should_die(&self) -> bool { self.health.current == 0 }
+
     pub fn revive(&mut self) {
         self.health
             .set_to(self.health.maximum(), HealthSource::Revive);
@@ -164,9 +142,7 @@ impl Stats {
     }
 
     // TODO: Delete this once stat points will be a thing
-    pub fn update_max_hp(&mut self) {
-        self.health.set_maximum(27 + 15 * self.level.amount);
-    }
+    pub fn update_max_hp(&mut self) { self.health.set_maximum(27 + 15 * self.level.amount); }
 }
 
 impl Stats {
@@ -192,13 +168,10 @@ impl Stats {
             health: Health {
                 current: 0,
                 maximum: 0,
-                last_change: (
-                    0.0,
-                    HealthChange {
-                        amount: 0,
-                        cause: HealthSource::Revive,
-                    },
-                ),
+                last_change: (0.0, HealthChange {
+                    amount: 0,
+                    cause: HealthSource::Revive,
+                }),
             },
             level: Level { amount: 1 },
             exp: Exp {

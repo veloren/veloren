@@ -10,9 +10,9 @@ pub enum Material {
     EyeDark,
     EyeLight,
     EyeWhite,
-    //HairLight,
-    //HairDark,
-    //Clothing,
+    /*HairLight,
+     *HairDark,
+     *Clothing, */
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -23,9 +23,7 @@ pub enum MatCell {
 }
 
 impl Vox for MatCell {
-    fn empty() -> Self {
-        MatCell::None
-    }
+    fn empty() -> Self { MatCell::None }
 
     fn is_empty(&self) -> bool {
         match self {

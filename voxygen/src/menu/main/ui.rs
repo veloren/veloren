@@ -1,11 +1,10 @@
-use crate::i18n::{i18n_asset_key, VoxygenLocalization};
-use crate::ui::Graphic;
 use crate::{
+    i18n::{i18n_asset_key, VoxygenLocalization},
     render::Renderer,
     ui::{
         self,
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
-        ImageFrame, Tooltip, Ui, /*Tooltipable,*/
+        Graphic, ImageFrame, Tooltip, Ui,
     },
     GlobalState,
 };
@@ -315,7 +314,7 @@ impl MainMenuUi {
                 match popup_data.popup_type {
                     PopupType::ConnectionInfo => {
                         events.push(Event::CancelLoginAttempt);
-                    }
+                    },
                     _ => (),
                 };
                 self.popup = None;
@@ -453,10 +452,10 @@ impl MainMenuUi {
                         TextBoxEvent::Update(username) => {
                             // Note: TextBox limits the input string length to what fits in it
                             self.username = username.to_string();
-                        }
+                        },
                         TextBoxEvent::Enter => {
                             login!();
-                        }
+                        },
                     }
                 }
                 // Password
@@ -575,10 +574,10 @@ impl MainMenuUi {
                     match event {
                         TextBoxEvent::Update(server_address) => {
                             self.server_address = server_address.to_string();
-                        }
+                        },
                         TextBoxEvent::Enter => {
                             login!();
-                        }
+                        },
                     }
                 }
                 // Login button
@@ -686,7 +685,7 @@ impl MainMenuUi {
     pub fn show_info(&mut self, msg: String, button_text: String) {
         self.popup = Some(PopupData {
             msg,
-            button_text: button_text,
+            button_text,
             popup_type: PopupType::Error,
         });
         self.connecting = None;
@@ -705,9 +704,7 @@ impl MainMenuUi {
         self.connect = false;
     }
 
-    pub fn handle_event(&mut self, event: ui::Event) {
-        self.ui.handle_event(event);
-    }
+    pub fn handle_event(&mut self, event: ui::Event) { self.ui.handle_event(event); }
 
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let events = self.update_layout(global_state, dt);
@@ -715,7 +712,5 @@ impl MainMenuUi {
         events
     }
 
-    pub fn render(&self, renderer: &mut Renderer) {
-        self.ui.render(renderer, None);
-    }
+    pub fn render(&self, renderer: &mut Renderer) { self.ui.render(renderer, None); }
 }

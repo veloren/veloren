@@ -4,8 +4,7 @@ use client::{self, Client};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, /*, Color*/
-    Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -42,7 +41,7 @@ impl<'a> Quest<'a> {
             _show: show,
             imgs,
             _client,
-            fonts: fonts,
+            fonts,
             localized_strings,
             common: widget::CommonBuilder::default(),
         }
@@ -58,17 +57,13 @@ pub enum Event {
 }
 
 impl<'a> Widget for Quest<'a> {
+    type Event = Option<Event>;
     type State = Ids;
     type Style = ();
-    type Event = Option<Event>;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        Ids::new(id_gen)
-    }
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State { Ids::new(id_gen) }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {

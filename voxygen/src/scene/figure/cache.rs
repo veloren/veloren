@@ -85,7 +85,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                 let (model, last_used) = o.into_mut();
                 *last_used = tick;
                 model
-            }
+            },
             Entry::Vacant(v) => {
                 &v.insert((
                     {
@@ -122,25 +122,25 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                                 body.eyebrows,
                                                 body.accessory,
                                             ))
-                                        }
+                                        },
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(humanoid_armor_chest_spec.mesh_chest(&body))
-                                        }
+                                        },
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(humanoid_armor_belt_spec.mesh_belt(&body))
-                                        }
+                                        },
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(humanoid_armor_pants_spec.mesh_pants(&body))
-                                        }
+                                        },
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode == CameraMode::FirstPerson
@@ -163,13 +163,13 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(humanoid_armor_foot_spec.mesh_left_foot(&body))
-                                        }
+                                        },
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(humanoid_armor_foot_spec.mesh_right_foot(&body))
-                                        }
+                                        },
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode != CameraMode::FirstPerson
@@ -203,7 +203,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     None,
                                     None,
                                 ]
-                            }
+                            },
                             Body::QuadrupedSmall(body) => {
                                 let quadruped_small_central_spec =
                                     QuadrupedSmallCentralSpec::load_watched(
@@ -250,7 +250,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     None,
                                     None,
                                 ]
-                            }
+                            },
                             Body::QuadrupedMedium(body) => {
                                 let quadruped_medium_central_spec =
                                     QuadrupedMediumCentralSpec::load_watched(
@@ -312,7 +312,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     None,
                                     None,
                                 ]
-                            }
+                            },
                             Body::BirdMedium(body) => {
                                 let bird_medium_center_spec = BirdMediumCenterSpec::load_watched(
                                     &mut self.manifest_indicator,
@@ -360,7 +360,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     None,
                                     None,
                                 ]
-                            }
+                            },
                             Body::FishMedium(body) => [
                                 Some(mesh_fish_medium_head(body.head)),
                                 Some(mesh_fish_medium_torso(body.torso)),
@@ -492,7 +492,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     None,
                                     None,
                                 ]
-                            }
+                            },
                             Body::Critter(body) => {
                                 let critter_center_spec =
                                     CritterCenterSpec::load_watched(&mut self.manifest_indicator);
@@ -528,7 +528,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     None,
                                     None,
                                 ]
-                            }
+                            },
                             Body::Object(object) => [
                                 Some(mesh_object(object)),
                                 None,
@@ -568,7 +568,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     tick,
                 ))
                 .0
-            }
+            },
         }
     }
 

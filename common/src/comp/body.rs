@@ -45,8 +45,8 @@ pub struct BodyData<BodyMeta, SpeciesData> {
     pub species: SpeciesData,
 }
 
-/// Metadata intended to be stored per-body, together with data intended to be stored for each
-/// species for each body.
+/// Metadata intended to be stored per-body, together with data intended to be
+/// stored for each species for each body.
 ///
 /// NOTE: Deliberately don't (yet?) implement serialize.
 #[derive(Clone, Debug, Deserialize)]
@@ -76,11 +76,12 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
 }
 
 impl<
-        BodyMeta: Send + Sync + for<'de> serde::Deserialize<'de>,
-        SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de>,
-    > Asset for AllBodies<BodyMeta, SpeciesMeta>
+    BodyMeta: Send + Sync + for<'de> serde::Deserialize<'de>,
+    SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de>,
+> Asset for AllBodies<BodyMeta, SpeciesMeta>
 {
     const ENDINGS: &'static [&'static str] = &["json"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         serde_json::de::from_reader(buf_reader).map_err(|e| assets::Error::Internal(Arc::new(e)))
     }
@@ -93,6 +94,7 @@ impl Body {
             _ => false,
         }
     }
+
     // Note: this might need to be refined to something more complex for realistic
     // behavior with less cylindrical bodies (e.g. wolfs)
     pub fn radius(&self) -> f32 {

@@ -88,11 +88,10 @@ impl Scene {
         }
     }
 
-    pub fn globals(&self) -> &Consts<Globals> {
-        &self.globals
-    }
+    pub fn globals(&self) -> &Consts<Globals> { &self.globals }
 
-    /// Handle an incoming user input event (e.g.: cursor moved, key pressed, window closed).
+    /// Handle an incoming user input event (e.g.: cursor moved, key pressed,
+    /// window closed).
     ///
     /// If the event is handled, return true.
     pub fn handle_input_event(&mut self, event: Event) -> bool {
@@ -101,15 +100,15 @@ impl Scene {
             Event::Resize(dims) => {
                 self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
                 true
-            }
+            },
             Event::MouseButton(_, state) => {
                 self.turning = state == PressState::Pressed;
                 true
-            }
+            },
             Event::CursorMove(delta) if self.turning => {
                 self.char_ori += delta.x * 0.01;
                 true
-            }
+            },
             // All other events are unhandled
             _ => false,
         }
@@ -130,23 +129,20 @@ impl Scene {
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
         const VD: f32 = 115.0; //View Distance
         const TIME: f64 = 43200.0; // hours*3600 seconds
-        if let Err(err) = renderer.update_consts(
-            &mut self.globals,
-            &[Globals::new(
-                view_mat,
-                proj_mat,
-                cam_pos,
-                self.camera.get_focus_pos(),
-                VD,
-                TIME,
-                client.state().get_time(),
-                renderer.get_resolution(),
-                0,
-                0,
-                BlockKind::Air,
-                None,
-            )],
-        ) {
+        if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
+            view_mat,
+            proj_mat,
+            cam_pos,
+            self.camera.get_focus_pos(),
+            VD,
+            TIME,
+            client.state().get_time(),
+            renderer.get_resolution(),
+            0,
+            0,
+            BlockKind::Air,
+            None,
+        )]) {
             error!("Renderer failed to update: {:?}", err);
         }
 

@@ -39,7 +39,6 @@ use crate::{
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
     scene::camera::Camera,
-    //settings::ControlSettings,
     ui::{Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
@@ -81,7 +80,8 @@ const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
 
 /// Distance at which nametags are visible
 const NAMETAG_RANGE: f32 = 40.0;
-/// Time nametags stay visible after doing damage even if they are out of range in seconds
+/// Time nametags stay visible after doing damage even if they are out of range
+/// in seconds
 const NAMETAG_DMG_TIME: f32 = 60.0;
 /// Range damaged triggered nametags can be seen
 const NAMETAG_DMG_RANGE: f32 = 120.0;
@@ -240,7 +240,8 @@ pub enum Event {
 
 // TODO: Are these the possible layouts we want?
 // TODO: Maybe replace this with bitflags.
-// `map` is not here because it currently is displayed over the top of other open windows.
+// `map` is not here because it currently is displayed over the top of other
+// open windows.
 #[derive(PartialEq)]
 pub enum Windows {
     Settings, // Display settings window.
@@ -300,48 +301,47 @@ impl Show {
         self.bag = open;
         self.want_grab = !open;
     }
-    fn toggle_bag(&mut self) {
-        self.bag(!self.bag);
-    }
+
+    fn toggle_bag(&mut self) { self.bag(!self.bag); }
+
     fn map(&mut self, open: bool) {
         self.map = open;
         self.bag = false;
         self.want_grab = !open;
     }
+
     fn character_window(&mut self, open: bool) {
         self.character_window = open;
         self.bag = false;
         self.want_grab = !open;
     }
+
     fn social(&mut self, open: bool) {
         self.social = open;
         self.spell = false;
         self.quest = false;
         self.want_grab = !open;
     }
+
     fn spell(&mut self, open: bool) {
         self.social = false;
         self.spell = open;
         self.quest = false;
         self.want_grab = !open;
     }
+
     fn quest(&mut self, open: bool) {
         self.social = false;
         self.spell = false;
         self.quest = open;
         self.want_grab = !open;
     }
-    fn toggle_map(&mut self) {
-        self.map(!self.map)
-    }
 
-    fn toggle_mini_map(&mut self) {
-        self.mini_map = !self.mini_map;
-    }
+    fn toggle_map(&mut self) { self.map(!self.map) }
 
-    fn toggle_char_window(&mut self) {
-        self.character_window = !self.character_window
-    }
+    fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
+
+    fn toggle_char_window(&mut self) { self.character_window = !self.character_window }
 
     fn settings(&mut self, open: bool) {
         self.open_windows = if open {
@@ -355,6 +355,7 @@ impl Show {
         self.quest = false;
         self.want_grab = !open;
     }
+
     fn toggle_settings(&mut self) {
         match self.open_windows {
             Windows::Settings => self.settings(false),
@@ -362,13 +363,9 @@ impl Show {
         };
     }
 
-    fn toggle_help(&mut self) {
-        self.help = !self.help
-    }
+    fn toggle_help(&mut self) { self.help = !self.help }
 
-    fn toggle_ui(&mut self) {
-        self.ui = !self.ui;
-    }
+    fn toggle_ui(&mut self) { self.ui = !self.ui; }
 
     fn toggle_windows(&mut self) {
         if self.bag
@@ -564,7 +561,7 @@ impl Hud {
                     stats.health.current() as f32 / stats.health.maximum() as f32 * 100.0;
                 if hp_percentage < 10.0 && !stats.is_dead {
                     let hurt_fade =
-                        (self.pulse * (10.0 - hp_percentage as f32) * 0.1/*speed factor*/).sin()
+                        (self.pulse * (10.0 - hp_percentage as f32) * 0.1/* speed factor */).sin()
                             * 0.5
                             + 0.6; //Animation timer
                     Image::new(self.imgs.hurt_bg)
@@ -690,7 +687,7 @@ impl Hud {
                 let hp_percentage =
                     stats.health.current() as f64 / stats.health.maximum() as f64 * 100.0;
                 let energy_percentage = energy.current() as f64 / energy.maximum() as f64 * 100.0;
-                let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 1.0; //Animation timer
+                let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
                 // Background
@@ -1186,7 +1183,8 @@ impl Hud {
                 const EQUAL: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
                 let op_level = level.level();
                 let level_str = format!("{}", op_level);
-                // Change visuals of the level display depending on the player level/opponent level
+                // Change visuals of the level display depending on the player level/opponent
+                // level
                 let level_comp = op_level as i64 - own_level as i64;
                 // + 10 level above player -> skull
                 // + 5-10 levels above player -> high
@@ -1209,7 +1207,7 @@ impl Hud {
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .set(level_id, ui_widgets);
                 if level_comp > 9 {
-                    let skull_ani = ((self.pulse * 0.7/*speed factor*/).cos() * 0.5 + 0.5) * 10.0; //Animation timer
+                    let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
                     Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
                         self.imgs.skull_2
                     } else {
@@ -1306,8 +1304,8 @@ impl Hud {
                             self.intro_2 = false;
                         }
                     };
-                }
-                Intro::Never => {}
+                },
+                Intro::Never => {},
             }
         }
 
@@ -1584,7 +1582,7 @@ impl Hud {
             Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
             Some(buttons::Event::ToggleQuest) => self.show.toggle_quest(),
             Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
-            None => {}
+            None => {},
         }
 
         // MiniMap
@@ -1600,7 +1598,7 @@ impl Hud {
         .set(self.ids.minimap, ui_widgets)
         {
             Some(minimap::Event::Toggle) => self.show.toggle_mini_map(),
-            None => {}
+            None => {},
         }
 
         // Bag contents
@@ -1620,8 +1618,8 @@ impl Hud {
                 Some(bag::Event::Close) => {
                     self.show.bag(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
@@ -1665,11 +1663,11 @@ impl Hud {
         {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
-            }
+            },
             Some(chat::Event::Focus(focus_id)) => {
                 self.to_focus = Some(Some(focus_id));
-            }
-            None => {}
+            },
+            None => {},
         }
 
         self.new_messages = VecDeque::new();
@@ -1677,7 +1675,8 @@ impl Hud {
         // Windows
 
         // Char Window will always appear at the left side. Other Windows default to the
-        // left side, but when the Char Window is opened they will appear to the right of it.
+        // left side, but when the Char Window is opened they will appear to the right
+        // of it.
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
@@ -1693,89 +1692,89 @@ impl Hud {
                 match event {
                     settings_window::Event::Sct(sct) => {
                         events.push(Event::Sct(sct));
-                    }
+                    },
                     settings_window::Event::SctPlayerBatch(sct_player_batch) => {
                         events.push(Event::SctPlayerBatch(sct_player_batch));
-                    }
+                    },
                     settings_window::Event::SctDamageBatch(sct_damage_batch) => {
                         events.push(Event::SctDamageBatch(sct_damage_batch));
-                    }
+                    },
                     settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
                     settings_window::Event::Close => self.show.settings(false),
                     settings_window::Event::AdjustMousePan(sensitivity) => {
                         events.push(Event::AdjustMousePan(sensitivity));
-                    }
+                    },
                     settings_window::Event::AdjustMouseZoom(sensitivity) => {
                         events.push(Event::AdjustMouseZoom(sensitivity));
-                    }
+                    },
                     settings_window::Event::ChatTransp(chat_transp) => {
                         events.push(Event::ChatTransp(chat_transp));
-                    }
+                    },
                     settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
                         events.push(Event::ToggleZoomInvert(zoom_inverted));
-                    }
+                    },
                     settings_window::Event::ToggleMouseYInvert(mouse_y_inverted) => {
                         events.push(Event::ToggleMouseYInvert(mouse_y_inverted));
-                    }
+                    },
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
-                    }
+                    },
                     settings_window::Event::CrosshairTransp(crosshair_transp) => {
                         events.push(Event::CrosshairTransp(crosshair_transp));
-                    }
+                    },
                     settings_window::Event::Intro(intro_show) => {
                         events.push(Event::Intro(intro_show));
-                    }
+                    },
                     settings_window::Event::AdjustMusicVolume(music_volume) => {
                         events.push(Event::AdjustMusicVolume(music_volume));
-                    }
+                    },
                     settings_window::Event::AdjustSfxVolume(sfx_volume) => {
                         events.push(Event::AdjustSfxVolume(sfx_volume));
-                    }
+                    },
                     settings_window::Event::MaximumFPS(max_fps) => {
                         events.push(Event::ChangeMaxFPS(max_fps));
-                    }
+                    },
                     settings_window::Event::ChangeAudioDevice(name) => {
                         events.push(Event::ChangeAudioDevice(name));
-                    }
+                    },
                     settings_window::Event::CrosshairType(crosshair_type) => {
                         events.push(Event::CrosshairType(crosshair_type));
-                    }
+                    },
                     settings_window::Event::ToggleXpBar(xp_bar) => {
                         events.push(Event::ToggleXpBar(xp_bar));
-                    }
+                    },
                     settings_window::Event::ToggleBarNumbers(bar_numbers) => {
                         events.push(Event::ToggleBarNumbers(bar_numbers));
-                    }
+                    },
                     settings_window::Event::ToggleShortcutNumbers(shortcut_numbers) => {
                         events.push(Event::ToggleShortcutNumbers(shortcut_numbers));
-                    }
+                    },
                     settings_window::Event::UiScale(scale_change) => {
                         events.push(Event::UiScale(scale_change));
-                    }
+                    },
                     settings_window::Event::AdjustFOV(new_fov) => {
                         events.push(Event::ChangeFOV(new_fov));
-                    }
+                    },
                     settings_window::Event::ChangeAaMode(new_aa_mode) => {
                         events.push(Event::ChangeAaMode(new_aa_mode));
-                    }
+                    },
                     settings_window::Event::ChangeCloudMode(new_cloud_mode) => {
                         events.push(Event::ChangeCloudMode(new_cloud_mode));
-                    }
+                    },
                     settings_window::Event::ChangeFluidMode(new_fluid_mode) => {
                         events.push(Event::ChangeFluidMode(new_fluid_mode));
-                    }
+                    },
                     settings_window::Event::ChangeLanguage(language) => {
                         events.push(Event::ChangeLanguage(language));
-                    }
+                    },
                     settings_window::Event::ToggleFullscreen => {
                         events.push(Event::ToggleFullscreen);
-                    }
+                    },
                     settings_window::Event::AdjustWindowSize(new_size) => {
                         events.push(Event::AdjustWindowSize(new_size));
-                    }
+                    },
                 }
             }
         }
@@ -1795,7 +1794,7 @@ impl Hud {
                     social::Event::Close => self.show.social(false),
                     social::Event::ChangeSocialTab(social_tab) => {
                         self.show.open_social_tab(social_tab)
-                    }
+                    },
                 }
             }
         }
@@ -1817,8 +1816,8 @@ impl Hud {
                 Some(character_window::Event::Close) => {
                     self.show.character_window(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
@@ -1836,8 +1835,8 @@ impl Hud {
                 Some(spell::Event::Close) => {
                     self.show.spell(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
@@ -1855,8 +1854,8 @@ impl Hud {
                 Some(quest::Event::Close) => {
                     self.show.quest(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
         // Map
@@ -1875,8 +1874,8 @@ impl Hud {
                 Some(map::Event::Close) => {
                     self.show.map(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
@@ -1886,27 +1885,25 @@ impl Hud {
             {
                 Some(esc_menu::Event::OpenSettings(tab)) => {
                     self.show.open_setting_tab(tab);
-                }
+                },
                 Some(esc_menu::Event::Close) => {
                     self.show.esc_menu = false;
                     self.show.want_grab = false;
                     self.force_ungrab = true;
-                }
+                },
                 Some(esc_menu::Event::Logout) => {
                     events.push(Event::Logout);
-                }
+                },
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
                 Some(esc_menu::Event::CharacterSelection) => events.push(Event::CharacterSelection),
-                None => {}
+                None => {},
             }
         }
 
         events
     }
 
-    pub fn new_message(&mut self, msg: ClientEvent) {
-        self.new_messages.push_back(msg);
-    }
+    pub fn new_message(&mut self, msg: ClientEvent) { self.new_messages.push_back(msg); }
 
     pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
         let scale_mode = match scale_change {
@@ -1943,15 +1940,15 @@ impl Hud {
                     self.ui.handle_event(event);
                 }
                 true
-            }
+            },
             WinEvent::InputUpdate(GameInput::ToggleInterface, true) if !self.typing() => {
                 self.show.toggle_ui();
                 true
-            }
+            },
             WinEvent::InputUpdate(GameInput::ToggleCursor, true) if !self.typing() => {
                 self.force_ungrab = !self.force_ungrab;
                 true
-            }
+            },
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
 
@@ -1962,7 +1959,7 @@ impl Hud {
                     Some(self.ids.chat)
                 });
                 true
-            }
+            },
             WinEvent::InputUpdate(GameInput::Escape, true) => {
                 if self.typing() {
                     self.ui.focus_widget(None);
@@ -1971,7 +1968,7 @@ impl Hud {
                     self.show.toggle_windows();
                 }
                 true
-            }
+            },
 
             // Press key while not typing
             WinEvent::InputUpdate(key, true) if !self.typing() => match key {
@@ -1980,48 +1977,48 @@ impl Hud {
                     self.force_chat_cursor = Some(Index { line: 0, char: 1 });
                     self.ui.focus_widget(Some(self.ids.chat));
                     true
-                }
+                },
                 GameInput::Map => {
                     self.show.toggle_map();
                     true
-                }
+                },
                 GameInput::Bag => {
                     self.show.toggle_bag();
                     true
-                }
+                },
                 GameInput::QuestLog => {
                     self.show.toggle_quest();
                     true
-                }
+                },
                 GameInput::CharacterWindow => {
                     self.show.toggle_char_window();
                     true
-                }
+                },
                 GameInput::Social => {
                     self.show.toggle_social();
                     true
-                }
+                },
                 GameInput::Spellbook => {
                     self.show.toggle_spell();
                     true
-                }
+                },
                 GameInput::Settings => {
                     self.show.toggle_settings();
                     true
-                }
+                },
                 GameInput::Help => {
                     self.show.toggle_help();
                     true
-                }
+                },
                 GameInput::ToggleDebug => {
                     global_state.settings.gameplay.toggle_debug =
                         !global_state.settings.gameplay.toggle_debug;
                     true
-                }
+                },
                 GameInput::ToggleIngameUi => {
                     self.show.ingame = !self.show.ingame;
                     true
-                }
+                },
                 _ => false,
             },
             // Else the player is typing in chat
@@ -2030,7 +2027,7 @@ impl Hud {
             WinEvent::Focused(state) => {
                 self.force_ungrab = !state;
                 true
-            }
+            },
 
             _ => false,
         };

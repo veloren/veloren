@@ -56,7 +56,7 @@ impl<'a> MiniMap<'a> {
             client,
             imgs,
             world_map,
-            fonts: fonts,
+            fonts,
             common: widget::CommonBuilder::default(),
             pulse,
             zoom,
@@ -76,9 +76,9 @@ pub enum Event {
 }
 
 impl<'a> Widget for MiniMap<'a> {
+    type Event = Option<Event>;
     type State = State;
     type Style = ();
-    type Event = Option<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -89,9 +89,7 @@ impl<'a> Widget for MiniMap<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -252,7 +250,7 @@ impl<'a> Widget for MiniMap<'a> {
                     .font_id(self.fonts.alkhemi)
                     .color(Color::Rgba(1.0, 1.0, 1.0, fade))
                     .set(state.ids.zone_display, ui);
-            }
+            },
             None => Text::new(" ")
                 .middle_of(ui.window)
                 .font_size(14)

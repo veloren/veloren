@@ -21,7 +21,8 @@ use std::{
 pub enum Error {
     /// An internal error occurred.
     Internal(Arc<dyn std::error::Error>),
-    /// An asset of a different type has already been loaded with this specifier.
+    /// An asset of a different type has already been loaded with this
+    /// specifier.
     InvalidType,
     /// Asset does not exist.
     NotFound(String),
@@ -41,15 +42,11 @@ impl fmt::Display for Error {
 }
 
 impl From<Arc<dyn Any + 'static + Sync + Send>> for Error {
-    fn from(_: Arc<dyn Any + 'static + Sync + Send>) -> Self {
-        Error::InvalidType
-    }
+    fn from(_: Arc<dyn Any + 'static + Sync + Send>) -> Self { Error::InvalidType }
 }
 
 impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self {
-        Error::NotFound(format!("{}", err))
-    }
+    fn from(err: std::io::Error) -> Self { Error::NotFound(format!("{}", err)) }
 }
 
 lazy_static! {
@@ -58,19 +55,20 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
-// TODO: Remove this function. It's only used in world/ in a really ugly way.To do this properly
-// assets should have all their necessary data in one file. A ron file could be used to combine
-// voxel data with positioning data for example.
-/// Function used to load assets from the filesystem or the cache. Permits manipulating the loaded asset with a mapping function.
-/// Example usage:
+// TODO: Remove this function. It's only used in world/ in a really ugly way.To
+// do this properly assets should have all their necessary data in one file. A
+// ron file could be used to combine voxel data with positioning data for
+// example.
+/// Function used to load assets from the filesystem or the cache. Permits
+/// manipulating the loaded asset with a mapping function. Example usage:
 /// ```no_run
-/// use veloren_common::{assets, terrain::Structure};
 /// use vek::*;
+/// use veloren_common::{assets, terrain::Structure};
 ///
-/// let my_tree_structure = assets::load_map(
-///        "world.tree.oak_green.1",
-///        |s: Structure| s.with_center(Vec3::new(15, 18, 14)),
-///    ).unwrap();
+/// let my_tree_structure = assets::load_map("world.tree.oak_green.1", |s: Structure| {
+///     s.with_center(Vec3::new(15, 18, 14))
+/// })
+/// .unwrap();
 /// ```
 pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     specifier: &str,
@@ -84,7 +82,7 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
             let clone = Arc::clone(&asset);
             assets_write.insert(specifier.to_owned(), clone);
             Ok(asset)
-        }
+        },
     }
 }
 
@@ -120,7 +118,7 @@ pub fn load_glob<A: Asset + 'static>(specifier: &str) -> Result<Arc<Vec<Arc<A>>>
             let mut assets_write = ASSETS.write().unwrap();
             assets_write.insert(specifier.to_owned(), clone);
             Ok(assets)
-        }
+        },
         Err(error) => Err(error),
     }
 }
@@ -137,13 +135,14 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     load_map(specifier, |x| x)
 }
 
-/// Function used to load assets from the filesystem or the cache and return a clone.
+/// Function used to load assets from the filesystem or the cache and return a
+/// clone.
 pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Result<A, Error> {
     load::<A>(specifier).map(|asset| (*asset).clone())
 }
 
-/// Function used to load essential assets from the filesystem or the cache. It will panic if the asset is not found.
-/// Example usage:
+/// Function used to load essential assets from the filesystem or the cache. It
+/// will panic if the asset is not found. Example usage:
 /// ```no_run
 /// use image::DynamicImage;
 /// use veloren_common::assets;
@@ -159,12 +158,14 @@ pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     })
 }
 
-/// Function used to load essential assets from the filesystem or the cache and return a clone. It will panic if the asset is not found.
+/// Function used to load essential assets from the filesystem or the cache and
+/// return a clone. It will panic if the asset is not found.
 pub fn load_expect_cloned<A: Asset + Clone + 'static>(specifier: &str) -> A {
     load_expect::<A>(specifier).as_ref().clone()
 }
 
-/// Load an asset while registering it to be watched and reloaded when it changes
+/// Load an asset while registering it to be watched and reloaded when it
+/// changes
 pub fn load_watched<A: Asset + 'static>(
     specifier: &str,
     indicator: &mut watch::ReloadIndicator,
@@ -205,14 +206,14 @@ fn reload<A: Asset + 'static>(specifier: &str) -> Result<(), Error> {
         Some(a) => *a = clone,
         None => {
             assets_write.insert(specifier.to_owned(), clone);
-        }
+        },
     }
 
     Ok(())
 }
 
-/// The Asset trait, which is implemented by all structures that have their data stored in the
-/// filesystem.
+/// The Asset trait, which is implemented by all structures that have their data
+/// stored in the filesystem.
 pub trait Asset: Send + Sync + Sized {
     const ENDINGS: &'static [&'static str];
     /// Parse the input file and return the correct Asset.
@@ -221,6 +222,7 @@ pub trait Asset: Send + Sync + Sized {
 
 impl Asset for DynamicImage {
     const ENDINGS: &'static [&'static str] = &["png", "jpg"];
+
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
@@ -230,6 +232,7 @@ impl Asset for DynamicImage {
 
 impl Asset for DotVoxData {
     const ENDINGS: &'static [&'static str] = &["vox"];
+
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
@@ -240,6 +243,7 @@ impl Asset for DotVoxData {
 // Read a JSON file
 impl Asset for Value {
     const ENDINGS: &'static [&'static str] = &["json"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, Error> {
         Ok(serde_json::from_reader(buf_reader).unwrap())
     }
@@ -247,6 +251,7 @@ impl Asset for Value {
 
 impl Asset for String {
     const ENDINGS: &'static [&'static str] = &["glsl"];
+
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
         let mut string = String::new();
         buf_reader.read_to_string(&mut string)?;
@@ -300,7 +305,8 @@ lazy_static! {
     };
 }
 
-/// Converts a specifier like "core.backgrounds.city" to ".../veloren/assets/core/backgrounds/city".
+/// Converts a specifier like "core.backgrounds.city" to
+/// ".../veloren/assets/core/backgrounds/city".
 fn unpack_specifier(specifier: &str) -> PathBuf {
     let mut path = ASSETS_PATH.clone();
     path.push(specifier.replace(".", "/"));
