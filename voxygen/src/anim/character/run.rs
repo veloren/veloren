@@ -1,14 +1,13 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::Tool;
-use std::f32::consts::PI;
-use std::ops::Mul;
+use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<Tool>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

@@ -15,7 +15,8 @@ use specs::{
 use vek::*;
 
 /// Always watching
-/// This system will monitor specific components for insertion, removal, and modification
+/// This system will monitor specific components for insertion, removal, and
+/// modification
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
@@ -226,12 +227,15 @@ impl DeletedEntities {
             .or_insert(Vec::new())
             .push(uid.into());
     }
+
     pub fn take_deleted_in_region(&mut self, key: Vec2<i32>) -> Option<Vec<u64>> {
         self.map.remove(&key)
     }
+
     pub fn get_deleted_in_region(&mut self, key: Vec2<i32>) -> Option<&Vec<u64>> {
         self.map.get(&key)
     }
+
     pub fn take_remaining_deleted(&mut self) -> Vec<(Vec2<i32>, Vec<u64>)> {
         // TODO: don't allocate
         self.map.drain().collect()

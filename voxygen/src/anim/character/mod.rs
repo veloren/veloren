@@ -15,21 +15,13 @@ pub mod swim;
 pub mod wield;
 
 // Reexports
-pub use self::attack::AttackAnimation;
-pub use self::block::BlockAnimation;
-pub use self::blockidle::BlockIdleAnimation;
-pub use self::charge::ChargeAnimation;
-pub use self::cidle::CidleAnimation;
-pub use self::climb::ClimbAnimation;
-pub use self::gliding::GlidingAnimation;
-pub use self::idle::IdleAnimation;
-pub use self::jump::JumpAnimation;
-pub use self::roll::RollAnimation;
-pub use self::run::RunAnimation;
-pub use self::sit::SitAnimation;
-pub use self::stand::StandAnimation;
-pub use self::swim::SwimAnimation;
-pub use self::wield::WieldAnimation;
+pub use self::{
+    attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
+    charge::ChargeAnimation, cidle::CidleAnimation, climb::ClimbAnimation,
+    gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation,
+    run::RunAnimation, sit::SitAnimation, stand::StandAnimation, swim::SwimAnimation,
+    wield::WieldAnimation,
+};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
@@ -54,13 +46,12 @@ pub struct CharacterSkeleton {
 }
 
 impl CharacterSkeleton {
-    pub fn new() -> Self {
-        Self::default()
-    }
+    pub fn new() -> Self { Self::default() }
 }
 
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let chest_mat = self.chest.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();

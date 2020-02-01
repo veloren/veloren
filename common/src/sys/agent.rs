@@ -1,9 +1,9 @@
-use crate::terrain::TerrainGrid;
 use crate::{
     comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Pos, Stats},
     path::Chaser,
     state::Time,
     sync::UidAllocator,
+    terrain::TerrainGrid,
     vol::ReadVol,
 };
 use rand::{thread_rng, Rng};
@@ -124,7 +124,7 @@ impl<'a> System<'a> for Sys {
                         if thread_rng().gen::<f32>() < 0.1 {
                             choose_target = true;
                         }
-                    }
+                    },
                     Activity::Follow(target, chaser) => {
                         if let (Some(tgt_pos), _tgt_stats) =
                             (positions.get(*target), stats.get(*target))
@@ -146,7 +146,7 @@ impl<'a> System<'a> for Sys {
                         } else {
                             do_idle = true;
                         }
-                    }
+                    },
                     Activity::Attack {
                         target,
                         chaser,
@@ -207,7 +207,7 @@ impl<'a> System<'a> for Sys {
                         } else {
                             do_idle = true;
                         }
-                    }
+                    },
                 }
             }
 
@@ -215,8 +215,8 @@ impl<'a> System<'a> for Sys {
                 agent.activity = Activity::Idle(Vec2::zero());
             }
 
-            // Choose a new target to attack: only go out of our way to attack targets we are
-            // hostile toward!
+            // Choose a new target to attack: only go out of our way to attack targets we
+            // are hostile toward!
             if choose_target {
                 // Search for new targets (this looks expensive, but it's only run occasionally)
                 // TODO: Replace this with a better system that doesn't consider *all* entities
@@ -243,7 +243,8 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            // --- Activity overrides (in reverse order of priority: most important goes last!) ---
+            // --- Activity overrides (in reverse order of priority: most important goes
+            // last!) ---
 
             // Attack a target that's attacking us
             if let Some(stats) = stats.get(entity) {

@@ -89,7 +89,8 @@ impl<'a> System<'a> for Sys {
             let chunk = (Vec2::<f32>::from(pos.0))
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
             // Only update regions when moving to a new chunk
-            // uses a fuzzy border to prevent rapid triggering when moving along chunk boundaries
+            // uses a fuzzy border to prevent rapid triggering when moving along chunk
+            // boundaries
             if chunk != subscription.fuzzy_chunk
                 && (subscription
                     .fuzzy_chunk
@@ -126,13 +127,18 @@ impl<'a> System<'a> for Sys {
                 for key in regions_to_remove.drain(..) {
                     // Remove region from this client's set of subscribed regions
                     subscription.regions.remove(&key);
-                    // Tell the client to delete the entities in that region if it exists in the RegionMap
+                    // Tell the client to delete the entities in that region if it exists in the
+                    // RegionMap
                     if let Some(region) = region_map.get(key) {
-                        // Process entity left events since they won't be processed during entity sync because this region is no longer subscribed to
+                        // Process entity left events since they won't be processed during entity
+                        // sync because this region is no longer subscribed to
                         // TODO: consider changing system ordering??
                         for event in region.events() {
                             match event {
-                                RegionEvent::Entered(_, _) => {} // These don't need to be processed because this region is being thrown out anyway
+                                RegionEvent::Entered(_, _) => {}, /* These don't need to be */
+                                // processed because this
+                                // region is being thrown out
+                                // anyway
                                 RegionEvent::Left(id, maybe_key) => {
                                     // Lookup UID for entity
                                     // Doesn't overlap with entity deletion in sync packages
@@ -148,7 +154,7 @@ impl<'a> System<'a> for Sys {
                                             client.notify(ServerMsg::DeleteEntity(uid.into()));
                                         }
                                     }
-                                }
+                                },
                             }
                         }
                         // Tell client to delete entities in the region
@@ -156,7 +162,8 @@ impl<'a> System<'a> for Sys {
                             client.notify(ServerMsg::DeleteEntity(uid.into()));
                         }
                     }
-                    // Send deleted entities since they won't be processed for this client in entity sync
+                    // Send deleted entities since they won't be processed for this client in entity
+                    // sync
                     for uid in deleted_entities
                         .get_deleted_in_region(key)
                         .iter()
@@ -263,16 +270,16 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
             }
         }
 
-        if let Err(err) = world.write_storage().insert(
-            entity,
-            RegionSubscription {
-                fuzzy_chunk,
-                regions,
-            },
-        ) {
+        if let Err(err) = world.write_storage().insert(entity, RegionSubscription {
+            fuzzy_chunk,
+            regions,
+        }) {
             error!("Failed to insert region subscription component: {:?}", err);
         }
     } else {
-        debug!("Failed to initialize region subcription. Couldn't retrieve all the neccesary components on the provided entity");
+        debug!(
+            "Failed to initialize region subcription. Couldn't retrieve all the neccesary \
+             components on the provided entity"
+        );
     }
 }

@@ -2,8 +2,7 @@ use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, /*, Color*/
-    Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 use client::{self, Client};
@@ -61,17 +60,13 @@ pub enum Event {
 }
 
 impl<'a> Widget for Spell<'a> {
+    type Event = Option<Event>;
     type State = Ids;
     type Style = ();
-    type Event = Option<Event>;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        Ids::new(id_gen)
-    }
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State { Ids::new(id_gen) }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {

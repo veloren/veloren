@@ -9,8 +9,8 @@ pub struct Input {
 pub struct BlockIdleAnimation;
 
 impl Animation for BlockIdleAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<Tool>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
@@ -77,7 +77,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Axe) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -102,7 +102,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Hammer) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
@@ -123,7 +123,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_y(-1.35)
                     * Quaternion::rotation_z(-0.85);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Staff) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -148,7 +148,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Shield) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -173,7 +173,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Bow) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -198,7 +198,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Dagger) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -219,7 +219,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Debug(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
@@ -240,8 +240,8 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_y(-1.35)
                     * Quaternion::rotation_z(-0.85);
                 next.main.scale = Vec3::one();
-            }
-            _ => {}
+            },
+            _ => {},
         }
         next.l_foot.offset = Vec3::new(-3.4, 0.3, 8.0 + wave_ultra_slow_cos * 0.1);
         next.l_foot.ori = Quaternion::rotation_x(-0.3);

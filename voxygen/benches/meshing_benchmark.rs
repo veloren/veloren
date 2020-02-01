@@ -1,7 +1,7 @@
-use common::terrain::Block;
-use common::terrain::TerrainGrid;
-use common::vol::SampleVol;
-use common::vol::Vox;
+use common::{
+    terrain::{Block, TerrainGrid},
+    vol::{SampleVol, Vox},
+};
 use criterion::{black_box, criterion_group, criterion_main, Benchmark, Criterion};
 use std::sync::Arc;
 use vek::*;
@@ -14,17 +14,14 @@ const GEN_SIZE: i32 = 4;
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Generate chunks here to test
     let mut terrain = TerrainGrid::new().unwrap();
-    let world = World::generate(
-        42,
-        sim::WorldOpts {
-            // NOTE: If this gets too expensive, we can turn it off.
-            // TODO: Consider an option to turn off all erosion as well, or even provide altitude
-            // directly with a closure.
-            seed_elements: true,
-            world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
-            ..Default::default()
-        },
-    );
+    let world = World::generate(42, sim::WorldOpts {
+        // NOTE: If this gets too expensive, we can turn it off.
+        // TODO: Consider an option to turn off all erosion as well, or even provide altitude
+        // directly with a closure.
+        seed_elements: true,
+        world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
+        ..Default::default()
+    });
     (0..GEN_SIZE)
         .flat_map(|x| (0..GEN_SIZE).map(move |y| Vec2::new(x, y)))
         .map(|offset| offset + CENTER)
@@ -35,16 +32,17 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     let sample = |chunk_pos: Vec2<i32>| {
         let chunk_pos = chunk_pos + CENTER;
-        // Find the area of the terrain we want. Because meshing needs to compute things like
-        // ambient occlusion and edge elision, we also need the borders of the chunk's
-        // neighbours too (hence the `- 1` and `+ 1`).
+        // Find the area of the terrain we want. Because meshing needs to compute things
+        // like ambient occlusion and edge elision, we also need the borders of
+        // the chunk's neighbours too (hence the `- 1` and `+ 1`).
         let aabr = Aabr {
             min: chunk_pos.map2(TerrainGrid::chunk_size(), |e, sz| e * sz as i32 - 1),
             max: chunk_pos.map2(TerrainGrid::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
         };
 
-        // Copy out the chunk data we need to perform the meshing. We do this by taking a
-        // sample of the terrain that includes both the chunk we want and its neighbours.
+        // Copy out the chunk data we need to perform the meshing. We do this by taking
+        // a sample of the terrain that includes both the chunk we want and its
+        // neighbours.
         let volume = terrain.sample(aabr).unwrap();
 
         // The region to actually mesh

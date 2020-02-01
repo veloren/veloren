@@ -7,9 +7,7 @@ use crate::{
 use rand::seq::SliceRandom;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
-use std::fs::File;
-use std::io::BufReader;
-use std::time::Duration;
+use std::{fs::File, io::BufReader, time::Duration};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Tool {
@@ -37,6 +35,7 @@ impl Tool {
             Tool::Debug(_) => Duration::from_millis(0),
         }
     }
+
     pub fn attack_buildup_duration(&self) -> Duration {
         match self {
             Tool::Sword => Duration::from_millis(100),
@@ -49,6 +48,7 @@ impl Tool {
             Tool::Debug(_) => Duration::from_millis(0),
         }
     }
+
     pub fn attack_recover_duration(&self) -> Duration {
         match self {
             Tool::Sword => Duration::from_millis(500),
@@ -61,6 +61,7 @@ impl Tool {
             Tool::Debug(_) => Duration::from_millis(0),
         }
     }
+
     pub fn attack_duration(&self) -> Duration {
         self.attack_buildup_duration() + self.attack_recover_duration()
     }
@@ -74,7 +75,8 @@ pub enum Debug {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
-    // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also a creepy thing to do.
+    // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also a creepy
+    // thing to do.
     Helmet,
     Shoulders,
     Chestplate,
@@ -128,18 +130,17 @@ pub struct Item {
 
 impl Asset for Item {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).unwrap())
     }
 }
 
 impl Item {
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-    pub fn description(&self) -> &str {
-        &self.description
-    }
+    pub fn name(&self) -> &str { &self.name }
+
+    pub fn description(&self) -> &str { &self.description }
+
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
         match block.kind() {
             BlockKind::Apple => Some(assets::load_expect_cloned("common.items.apple")),
@@ -149,19 +150,19 @@ impl Item {
             BlockKind::PinkFlower => Some(assets::load_expect_cloned("common.items.flowers.pink")),
             BlockKind::PurpleFlower => {
                 Some(assets::load_expect_cloned("common.items.flowers.purple"))
-            }
+            },
             BlockKind::RedFlower => Some(assets::load_expect_cloned("common.items.flowers.red")),
             BlockKind::WhiteFlower => {
                 Some(assets::load_expect_cloned("common.items.flowers.white"))
-            }
+            },
             BlockKind::YellowFlower => {
                 Some(assets::load_expect_cloned("common.items.flowers.yellow"))
-            }
+            },
             BlockKind::Sunflower => Some(assets::load_expect_cloned("common.items.flowers.sun")),
             BlockKind::LongGrass => Some(assets::load_expect_cloned("common.items.grasses.long")),
             BlockKind::MediumGrass => {
                 Some(assets::load_expect_cloned("common.items.grasses.medium"))
-            }
+            },
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
             BlockKind::Chest => Some(assets::load_expect_cloned(
                 [

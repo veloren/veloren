@@ -9,8 +9,8 @@ pub struct Input {
 pub struct ChargeAnimation;
 
 impl Animation for ChargeAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<Tool>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

@@ -5,8 +5,8 @@ use vek::*;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Skeleton = DragonSkeleton;
     type Dependency = (f32, f64);
+    type Skeleton = DragonSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

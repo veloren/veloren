@@ -2,8 +2,8 @@ use crate::ray::Ray;
 use std::fmt::Debug;
 use vek::*;
 
-/// Used to specify a volume's compile-time size. This exists as a substitute until const generics
-/// are implemented.
+/// Used to specify a volume's compile-time size. This exists as a substitute
+/// until const generics are implemented.
 pub trait VolSize: Clone {
     const SIZE: Vec3<u32>;
 }
@@ -17,13 +17,7 @@ pub trait Vox: Sized + Clone + PartialEq {
     fn empty() -> Self;
     fn is_empty(&self) -> bool;
 
-    fn or(self, other: Self) -> Self {
-        if self.is_empty() {
-            other
-        } else {
-            self
-        }
-    }
+    fn or(self, other: Self) -> Self { if self.is_empty() { other } else { self } }
 }
 
 /// A volume that contains voxel data.
@@ -35,8 +29,8 @@ pub trait BaseVol {
 /// Implementing `BaseVol` for any `&'a BaseVol` makes it possible to implement
 /// `IntoVolIterator` for references.
 impl<'a, T: BaseVol> BaseVol for &'a T {
-    type Vox = T::Vox;
     type Error = T::Error;
+    type Vox = T::Vox;
 }
 
 // Utility types
@@ -50,9 +44,7 @@ pub trait SizedVol: BaseVol {
     fn upper_bound(&self) -> Vec3<i32>;
 
     /// Returns the size of the volume.
-    fn size(&self) -> Vec3<u32> {
-        (self.upper_bound() - self.lower_bound()).map(|e| e as u32)
-    }
+    fn size(&self) -> Vec3<u32> { (self.upper_bound() - self.lower_bound()).map(|e| e as u32) }
 }
 
 /// A volume that is compile-time sized and has its lower bound at `(0, 0, 0)`.
@@ -63,13 +55,9 @@ pub trait RasterableVol: BaseVol {
 }
 
 impl<V: RasterableVol> SizedVol for V {
-    fn lower_bound(&self) -> Vec3<i32> {
-        Vec3::zero()
-    }
+    fn lower_bound(&self) -> Vec3<i32> { Vec3::zero() }
 
-    fn upper_bound(&self) -> Vec3<i32> {
-        V::SIZE.map(|e| e as i32)
-    }
+    fn upper_bound(&self) -> Vec3<i32> { V::SIZE.map(|e| e as i32) }
 }
 
 /// A volume whose cross section with the XY-plane is a rectangle.
@@ -92,13 +80,9 @@ pub trait RectRasterableVol: BaseVol {
 }
 
 impl<V: RectRasterableVol> RectSizedVol for V {
-    fn lower_bound_xy(&self) -> Vec2<i32> {
-        Vec2::zero()
-    }
+    fn lower_bound_xy(&self) -> Vec2<i32> { Vec2::zero() }
 
-    fn upper_bound_xy(&self) -> Vec2<i32> {
-        V::RECT_SIZE.map(|e| e as i32)
-    }
+    fn upper_bound_xy(&self) -> Vec2<i32> { V::RECT_SIZE.map(|e| e as i32) }
 }
 
 /// A volume that provides read access to its voxel data.
@@ -118,24 +102,26 @@ pub trait ReadVol: BaseVol {
     }
 }
 
-/// A volume that provides the ability to sample (i.e., clone a section of) its voxel data.
+/// A volume that provides the ability to sample (i.e., clone a section of) its
+/// voxel data.
 ///
 /// TODO (haslersn): Do we still need this now that we have `IntoVolIterator`?
 pub trait SampleVol<I>: BaseVol {
     type Sample: BaseVol + ReadVol;
     /// Take a sample of the volume by cloning voxels within the provided range.
     ///
-    /// Note that value and accessibility of voxels outside the bounds of the sample is
-    /// implementation-defined and should not be used.
+    /// Note that value and accessibility of voxels outside the bounds of the
+    /// sample is implementation-defined and should not be used.
     ///
-    /// Note that the resultant volume has a coordinate space relative to the sample, not the
-    /// original volume.
+    /// Note that the resultant volume has a coordinate space relative to the
+    /// sample, not the original volume.
     fn sample(&self, range: I) -> Result<Self::Sample, Self::Error>;
 }
 
 /// A volume that provides write access to its voxel data.
 pub trait WriteVol: BaseVol {
-    /// Set the voxel at the provided position in the volume to the provided value.
+    /// Set the voxel at the provided position in the volume to the provided
+    /// value.
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error>;
 }
 
@@ -217,7 +203,8 @@ impl DefaultPosIterator {
         let end = if lower_bound.map2(upper_bound, |l, u| l < u).reduce_and() {
             upper_bound
         } else {
-            // Special case because our implementation doesn't handle empty ranges for x or y:
+            // Special case because our implementation doesn't handle empty ranges for x or
+            // y:
             lower_bound
         };
         Self {

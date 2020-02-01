@@ -19,8 +19,8 @@ use vek::*;
 const CHARGE_COST: i32 = 200;
 
 /// # Controller System
-/// #### Responsible for validating controller inputs and setting new Character States
-/// ----
+/// #### Responsible for validating controller inputs and setting new Character
+/// States ----
 ///
 /// **Writes:**
 /// `CharacterState`, `ControllerInputs`
@@ -28,8 +28,8 @@ const CHARGE_COST: i32 = 200;
 /// **Reads:**
 /// `Stats`, `Vel`, `PhysicsState`, `Uid`, `Mounting`
 ///
-/// _TODO: Join ActionStates and MovementStates into one and have a handle() trait / fn?_
-/// _TODO: Move weapon action to trait fn?_
+/// _TODO: Join ActionStates and MovementStates into one and have a handle()
+/// trait / fn?_ _TODO: Move weapon action to trait fn?_
 pub struct Sys;
 
 impl Sys {
@@ -89,14 +89,14 @@ impl Sys {
                             applied: false, // We don't want to do a melee attack
                         }
                         //character.action
-                    }
+                    },
                     item::Tool::Debug(item::Debug::Boost) => {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
                             vel: inputs.look_dir * 7.0,
                         });
                         character.action
-                    }
+                    },
 
                     item::Tool::Debug(item::Debug::Possess)
                         if character.action.is_action_finished() =>
@@ -132,9 +132,9 @@ impl Sys {
                     _ => {
                         // Return the new Wield action
                         character.action
-                    }
+                    },
                 }
-            }
+            },
             // Without a weapon
             None => {
                 // Attack
@@ -146,7 +146,7 @@ impl Sys {
                 } else {
                     character.action
                 }
-            }
+            },
             _ => character.action,
         }
     }
@@ -223,7 +223,7 @@ impl Sys {
                         });
 
                         character.action
-                    }
+                    },
 
                     // All other weapons block
                     _ if character.action.is_action_finished() => Block {
@@ -232,7 +232,7 @@ impl Sys {
 
                     _ => character.action,
                 }
-            }
+            },
 
             _ => character.action,
         }
@@ -256,6 +256,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
     );
+
     fn run(
         &mut self,
         (
@@ -353,15 +354,15 @@ impl<'a> System<'a> for Sys {
                         {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
                         }
-                    }
+                    },
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
                     ControlEvent::InventoryManip(manip) => {
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
-                    } /*ControlEvent::Respawn => {
-                       if state.is_dead {
-                         server_emitter.emit(ServerEvent::Respawn(entity)),
-                       }
-                      }*/
+                    }, /*ControlEvent::Respawn => {
+                        if state.is_dead {
+                          server_emitter.emit(ServerEvent::Respawn(entity)),
+                        }
+                       }*/
                 }
             }
 
@@ -379,7 +380,7 @@ impl<'a> System<'a> for Sys {
                 (_, Jump) => {
                     character.movement = Fall;
                     local_emitter.emit(LocalEvent::Jump(entity));
-                }
+                },
                 // Charging + Any Movement, prioritizes finishing charge
                 // over movement states
                 (Charge { time_left }, _) => {
@@ -404,7 +405,7 @@ impl<'a> System<'a> for Sys {
 
                         character.action = try_wield(stats);
                     }
-                }
+                },
                 // Rolling + Any Movement, prioritizes finishing charge
                 // over movement states
                 (
@@ -428,7 +429,7 @@ impl<'a> System<'a> for Sys {
                             was_wielding,
                         }
                     }
-                }
+                },
                 // Any Action + Falling
                 (action_state, Fall) => {
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
@@ -464,21 +465,21 @@ impl<'a> System<'a> for Sys {
                             if inputs.toggle_wield.is_just_pressed() {
                                 character.action = Idle;
                             }
-                        }
+                        },
                         // Try to wield if any of buttons pressed
                         Idle => {
                             if inputs.primary.is_pressed() || inputs.secondary.is_pressed() {
                                 character.action = try_wield(stats);
                                 continue;
                             }
-                        }
+                        },
                         // Cancel blocks
                         Block { .. } => {
                             character.action = try_wield(stats);
                             continue;
-                        }
+                        },
                         // Don't change action
-                        Charge { .. } | Roll { .. } => {}
+                        Charge { .. } | Roll { .. } => {},
                     }
                     if inputs.primary.is_pressed() {
                         character.action = Self::handle_primary(
@@ -501,7 +502,7 @@ impl<'a> System<'a> for Sys {
                             &mut local_emitter,
                         );
                     }
-                }
+                },
                 // Any Action + Swimming
                 (_action_state, Swim) => {
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
@@ -530,7 +531,7 @@ impl<'a> System<'a> for Sys {
                             &mut local_emitter,
                         );
                     }
-                }
+                },
                 // Blocking, restricted look_dir compared to other states
                 (Block { .. }, Stand) | (Block { .. }, Run) => {
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
@@ -556,7 +557,7 @@ impl<'a> System<'a> for Sys {
                             character.movement = Fall;
                         }
                     }
-                }
+                },
                 // Standing and Running states, typical states :shrug:
                 (action_state, Run) | (action_state, Stand) => {
                     character.movement = get_state_from_move_dir(&inputs.move_dir);
@@ -639,12 +640,12 @@ impl<'a> System<'a> for Sys {
                                     character.action = Idle;
                                 }
                                 continue;
-                            }
+                            },
                             Idle => {
                                 character.action = try_wield(stats);
                                 continue;
-                            }
-                            Charge { .. } | Roll { .. } | Block { .. } => {}
+                            },
+                            Charge { .. } | Roll { .. } | Block { .. } => {},
                         }
                     }
                     if inputs.primary.is_pressed() {
@@ -668,7 +669,7 @@ impl<'a> System<'a> for Sys {
                             &mut local_emitter,
                         );
                     }
-                }
+                },
                 // Sitting
                 (_, Sit) => {
                     character.action = Idle;
@@ -686,7 +687,7 @@ impl<'a> System<'a> for Sys {
                     if !physics.on_ground {
                         character.movement = Fall;
                     }
-                }
+                },
                 // Any Action + Gliding, shouldnt care about action,
                 // because should be Idle
                 (_, Glide) => {
@@ -701,7 +702,7 @@ impl<'a> System<'a> for Sys {
                     if physics.on_ground {
                         character.movement = Stand
                     }
-                }
+                },
                 // Any Action + Climbing, shouldnt care about action,
                 // because should be Idle
                 (_, Climb) => {
@@ -716,21 +717,17 @@ impl<'a> System<'a> for Sys {
                     if physics.on_ground {
                         character.movement = Stand;
                     }
-                } // In case of adding new states
-                  // (_, _) => {
-                  //     println!("UNKNOWN STATE");
-                  //     character.action = Idle;
-                  //     character.movement = Fall;
-                  // }
+                }, /* In case of adding new states
+                    * (_, _) => {
+                    *     println!("UNKNOWN STATE");
+                    *     character.action = Idle;
+                    *     character.movement = Fall;
+                    * } */
             };
         }
     }
 }
 
-fn can_glide(body: &Body) -> bool {
-    body.is_humanoid()
-}
+fn can_glide(body: &Body) -> bool { body.is_humanoid() }
 
-fn can_climb(body: &Body) -> bool {
-    body.is_humanoid()
-}
+fn can_climb(body: &Body) -> bool { body.is_humanoid() }

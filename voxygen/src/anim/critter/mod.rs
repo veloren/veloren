@@ -3,9 +3,7 @@ pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::idle::IdleAnimation;
-pub use self::jump::JumpAnimation;
-pub use self::run::RunAnimation;
+pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
@@ -28,9 +26,7 @@ pub struct CritterAttr {
 }
 
 impl CritterSkeleton {
-    pub fn new() -> Self {
-        Self::default()
-    }
+    pub fn new() -> Self { Self::default() }
 }
 
 impl Skeleton for CritterSkeleton {

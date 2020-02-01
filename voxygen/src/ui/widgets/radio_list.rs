@@ -30,6 +30,16 @@ pub struct State {
 }
 
 impl<'a, T> RadioList<'a, T> {
+    builder_methods! {
+        pub text_color { label_style.color = Some(Color) }
+        pub font_size { label_style.font_size = Some(FontSize) }
+        pub justify { label_style.justify = Some(text::Justify) }
+        pub line_spacing { label_style.line_spacing = Some(f64) }
+        pub label_spacing { label_spacing = f64 }
+        pub button_spacing { button_spacing = [f64; 2] }
+        pub button_dims { button_dims = [f64; 2] }
+    }
+
     pub fn new(
         selected: usize,
         f_image_id: image::Id,
@@ -90,21 +100,12 @@ impl<'a, T> RadioList<'a, T> {
         self.t_image.press_image_id = Some(t_id);
         self
     }
-    builder_methods! {
-        pub text_color { label_style.color = Some(Color) }
-        pub font_size { label_style.font_size = Some(FontSize) }
-        pub justify { label_style.justify = Some(text::Justify) }
-        pub line_spacing { label_style.line_spacing = Some(f64) }
-        pub label_spacing { label_spacing = f64 }
-        pub button_spacing { button_spacing = [f64; 2] }
-        pub button_dims { button_dims = [f64; 2] }
-    }
 }
 
 impl<'a, T> Widget for RadioList<'a, T> {
+    type Event = Option<(usize, &'a T)>;
     type State = State;
     type Style = ();
-    type Event = Option<(usize, &'a T)>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -112,9 +113,7 @@ impl<'a, T> Widget for RadioList<'a, T> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
@@ -150,9 +149,9 @@ impl<'a, T> Widget for RadioList<'a, T> {
         }
 
         // Check if the button was clicked.
-        // (Can't use `.set().was_clicked()` because we are changing the image after setting the
-        // widget, which causes flickering since it takes a frame to change after the mouse button
-        // is lifted).
+        // (Can't use `.set().was_clicked()` because we are changing the image after
+        // setting the widget, which causes flickering since it takes a frame to
+        // change after the mouse button is lifted).
         let current_selection = (0..num_items)
             .find(|i| {
                 ui.widget_input(state.ids.buttons[*i])

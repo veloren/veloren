@@ -37,6 +37,7 @@ impl WorldSyncExt for specs::World {
         // TODO: Consider only having allocator server side for now
         self.insert(UidAllocator::new());
     }
+
     fn register_synced<C: specs::Component + Clone + Send + Sync>(&mut self)
     where
         C::Storage: Default + specs::storage::Tracked,
@@ -44,6 +45,7 @@ impl WorldSyncExt for specs::World {
         self.register::<C>();
         self.register_tracker::<C>();
     }
+
     fn register_tracker<C: specs::Component + Clone + Send + Sync>(&mut self)
     where
         C::Storage: Default + specs::storage::Tracked,
@@ -126,13 +128,13 @@ impl WorldSyncExt for specs::World {
                 match update {
                     CompUpdateKind::Inserted(packet) => {
                         packet.apply_insert(entity, self);
-                    }
+                    },
                     CompUpdateKind::Modified(packet) => {
                         packet.apply_modify(entity, self);
-                    }
+                    },
                     CompUpdateKind::Removed(phantom) => {
                         P::apply_remove(phantom, entity, self);
-                    }
+                    },
                 }
             }
         }
@@ -159,6 +161,6 @@ fn create_entity_with_uid(specs_world: &mut specs::World, entity_uid: u64) -> sp
                 .write_resource::<UidAllocator>()
                 .allocate(entity_builder.entity, Some(entity_uid));
             entity_builder.with(uid).build()
-        }
+        },
     }
 }

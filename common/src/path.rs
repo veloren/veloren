@@ -31,17 +31,11 @@ impl<T> FromIterator<T> for Path<T> {
 }
 
 impl<T> Path<T> {
-    pub fn len(&self) -> usize {
-        self.nodes.len()
-    }
+    pub fn len(&self) -> usize { self.nodes.len() }
 
-    pub fn start(&self) -> Option<&T> {
-        self.nodes.first()
-    }
+    pub fn start(&self) -> Option<&T> { self.nodes.first() }
 
-    pub fn end(&self) -> Option<&T> {
-        self.nodes.last()
-    }
+    pub fn end(&self) -> Option<&T> { self.nodes.last() }
 }
 
 // Route: A path that can be progressed along
@@ -53,23 +47,15 @@ pub struct Route {
 }
 
 impl From<Path<Vec3<i32>>> for Route {
-    fn from(path: Path<Vec3<i32>>) -> Self {
-        Self { path, next_idx: 0 }
-    }
+    fn from(path: Path<Vec3<i32>>) -> Self { Self { path, next_idx: 0 } }
 }
 
 impl Route {
-    pub fn path(&self) -> &Path<Vec3<i32>> {
-        &self.path
-    }
+    pub fn path(&self) -> &Path<Vec3<i32>> { &self.path }
 
-    pub fn next(&self) -> Option<Vec3<i32>> {
-        self.path.nodes.get(self.next_idx).copied()
-    }
+    pub fn next(&self) -> Option<Vec3<i32>> { self.path.nodes.get(self.next_idx).copied() }
 
-    pub fn is_finished(&self) -> bool {
-        self.next().is_none()
-    }
+    pub fn is_finished(&self) -> bool { self.next().is_none() }
 
     pub fn traverse<V>(&mut self, vol: &V, pos: Vec3<f32>) -> Option<Vec3<f32>>
     where
@@ -89,7 +75,8 @@ impl Route {
     }
 }
 
-/// A self-contained system that attempts to chase a moving target, only performing pathfinding if necessary
+/// A self-contained system that attempts to chase a moving target, only
+/// performing pathfinding if necessary
 #[derive(Default, Clone, Debug)]
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
@@ -258,15 +245,15 @@ where
         PathResult::Path(path) => {
             *astar = None;
             path
-        }
+        },
         PathResult::None(path) => {
             *astar = None;
             path
-        }
+        },
         PathResult::Exhausted(path) => {
             *astar = None;
             path
-        }
+        },
         PathResult::Pending => Path::default(),
     }
 }
