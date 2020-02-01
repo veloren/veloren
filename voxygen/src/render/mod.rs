@@ -42,8 +42,9 @@ use gfx;
 /// Used to represent a specific rendering configuration.
 ///
 /// Note that pipelines are tied to the
-/// rendering backend, and as such it is necessary to modify the rendering subsystem when adding
-/// new pipelines - custom pipelines are not currently an objective of the rendering subsystem.
+/// rendering backend, and as such it is necessary to modify the rendering
+/// subsystem when adding new pipelines - custom pipelines are not currently an
+/// objective of the rendering subsystem.
 ///
 /// # Examples
 ///

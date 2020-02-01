@@ -30,19 +30,13 @@ pub enum Center {
     Image(image::Id, Option<Rect>),
 }
 impl From<Color> for Center {
-    fn from(color: Color) -> Self {
-        Center::Plain(color)
-    }
+    fn from(color: Color) -> Self { Center::Plain(color) }
 }
 impl From<image::Id> for Center {
-    fn from(image: image::Id) -> Self {
-        Center::Image(image, None)
-    }
+    fn from(image: image::Id) -> Self { Center::Image(image, None) }
 }
 impl From<(image::Id, Rect)> for Center {
-    fn from((image, src_rect): (image::Id, Rect)) -> Self {
-        Center::Image(image, Some(src_rect))
-    }
+    fn from((image, src_rect): (image::Id, Rect)) -> Self { Center::Image(image, Some(src_rect)) }
 }
 
 #[derive(Clone)]
@@ -104,6 +98,11 @@ pub struct State {
 }
 
 impl ImageFrame {
+    builder_methods! {
+        pub edge_src_rects { edge_src_rects = [Option<Rect>; 4] }
+        pub corner_src_rects { corner_src_rects = [Option<Rect>; 4] }
+    }
+
     pub fn new(
         edges: [image::Id; 4],
         corners: [image::Id; 4],
@@ -121,17 +120,12 @@ impl ImageFrame {
             color: None,
         }
     }
-
-    builder_methods! {
-        pub edge_src_rects { edge_src_rects = [Option<Rect>; 4] }
-        pub corner_src_rects { corner_src_rects = [Option<Rect>; 4] }
-    }
 }
 
 impl Widget for ImageFrame {
+    type Event = ();
     type State = State;
     type Style = ();
-    type Event = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -139,9 +133,7 @@ impl Widget for ImageFrame {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     /// Update the state of the ImageFrame
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
@@ -162,10 +154,10 @@ impl Widget for ImageFrame {
         let inner_width = (frame_w - r_width - l_width).max(0.0);
         let inner_height = (frame_h - t_height - b_height).max(0.0);
 
-        let r_rect = Rect::from_xy_dim(
-            [rect.x() + (inner_width + r_width) / 2.0, rect.y()],
-            [r_width, inner_height],
-        );
+        let r_rect = Rect::from_xy_dim([rect.x() + (inner_width + r_width) / 2.0, rect.y()], [
+            r_width,
+            inner_height,
+        ]);
         let tr_rect = Rect::from_xy_dim(
             [
                 rect.x() + (inner_width + r_width) / 2.0,
@@ -173,10 +165,10 @@ impl Widget for ImageFrame {
             ],
             [r_width, t_height],
         );
-        let t_rect = Rect::from_xy_dim(
-            [rect.x(), rect.y() + (inner_height + t_height) / 2.0],
-            [inner_width, t_height],
-        );
+        let t_rect = Rect::from_xy_dim([rect.x(), rect.y() + (inner_height + t_height) / 2.0], [
+            inner_width,
+            t_height,
+        ]);
         let tl_rect = Rect::from_xy_dim(
             [
                 rect.x() - (inner_width + l_width) / 2.0,
@@ -184,10 +176,10 @@ impl Widget for ImageFrame {
             ],
             [l_width, t_height],
         );
-        let l_rect = Rect::from_xy_dim(
-            [rect.x() - (inner_width + l_width) / 2.0, rect.y()],
-            [l_width, inner_height],
-        );
+        let l_rect = Rect::from_xy_dim([rect.x() - (inner_width + l_width) / 2.0, rect.y()], [
+            l_width,
+            inner_height,
+        ]);
         let bl_rect = Rect::from_xy_dim(
             [
                 rect.x() - (inner_width + l_width) / 2.0,
@@ -195,10 +187,10 @@ impl Widget for ImageFrame {
             ],
             [l_width, b_height],
         );
-        let b_rect = Rect::from_xy_dim(
-            [rect.x(), rect.y() - (inner_height + b_height) / 2.0],
-            [inner_width, b_height],
-        );
+        let b_rect = Rect::from_xy_dim([rect.x(), rect.y() - (inner_height + b_height) / 2.0], [
+            inner_width,
+            b_height,
+        ]);
         let br_rect = Rect::from_xy_dim(
             [
                 rect.x() + (inner_width + r_width) / 2.0,
@@ -297,7 +289,7 @@ impl Widget for ImageFrame {
                         }))
                     })
                     .set(state.ids.center_plain, ui);
-            }
+            },
             Center::Image(image_id, maybe_src_rect) => {
                 set_image(
                     image_id,
@@ -306,7 +298,7 @@ impl Widget for ImageFrame {
                     state.ids.center_image,
                     ui,
                 );
-            }
+            },
         }
     }
 }

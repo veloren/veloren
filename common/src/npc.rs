@@ -1,8 +1,7 @@
 use crate::{assets, comp::AllBodies};
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
-use std::str::FromStr;
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum NpcKind {
@@ -28,12 +27,12 @@ pub const ALL_NPCS: [NpcKind; 6] = [
 /// NOTE: Deliberately don't (yet?) implement serialize.
 #[derive(Clone, Debug, Deserialize)]
 pub struct BodyNames {
-    /// The keyword used to refer to this body type (e.g. via the command console).  Should be
-    /// unique per body type.
+    /// The keyword used to refer to this body type (e.g. via the command
+    /// console).  Should be unique per body type.
     pub keyword: String,
-    /// A list of canonical names for NPCs with this body types (currently used when spawning this
-    /// kind of NPC from the console).  Going forward, these names will likely be split up by
-    /// species.
+    /// A list of canonical names for NPCs with this body types (currently used
+    /// when spawning this kind of NPC from the console).  Going forward,
+    /// these names will likely be split up by species.
     pub names: Vec<String>,
 }
 

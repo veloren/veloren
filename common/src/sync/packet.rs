@@ -8,9 +8,9 @@ use std::{
     marker::PhantomData,
 };
 
-/// Implemented by type that carries component data for insertion and modification
-/// The assocatied `Phantom` type only carries information about which component type is of
-/// interest and is used to transmit deletion events
+/// Implemented by type that carries component data for insertion and
+/// modification The assocatied `Phantom` type only carries information about
+/// which component type is of interest and is used to transmit deletion events
 pub trait CompPacket: Clone + Debug + Send + 'static {
     type Phantom: Clone + Debug + Serialize + DeserializeOwned;
 
@@ -64,9 +64,8 @@ impl<P: CompPacket> Default for StatePackage<P> {
 }
 
 impl<P: CompPacket> StatePackage<P> {
-    pub fn new() -> Self {
-        Self::default()
-    }
+    pub fn new() -> Self { Self::default() }
+
     pub fn with_entities<C: Component + Clone + Send + Sync>(
         mut self,
         mut entities: Vec<EntityPackage<P>>,
@@ -74,6 +73,7 @@ impl<P: CompPacket> StatePackage<P> {
         self.entities.append(&mut entities);
         self
     }
+
     pub fn with_entity(mut self, entry: EntityPackage<P>) -> Self {
         self.entities.push(entry);
         self
@@ -105,6 +105,7 @@ impl<P: CompPacket> SyncPackage<P> {
             deleted_entities,
         }
     }
+
     pub fn with_component<'a, C: Component + Clone + Send + Sync>(
         mut self,
         uids: &ReadStorage<'a, Uid>,

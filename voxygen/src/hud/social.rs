@@ -5,8 +5,7 @@ use client::{self, Client};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, /*, Color*/
-    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -72,21 +71,17 @@ pub enum Event {
 }
 
 impl<'a> Widget for Social<'a> {
+    type Event = Vec<Event>;
     type State = Ids;
     type Style = ();
-    type Event = Vec<Event>;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        Ids::new(id_gen)
-    }
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State { Ids::new(id_gen) }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
-            /*id,*/ state: ids,
+            /* id, */ state: ids,
             ui,
             ..
         } = args;
@@ -180,7 +175,8 @@ impl<'a> Widget for Social<'a> {
             // TODO Needs to be a string sent from the server
 
             // Players list
-            // TODO: this list changes infrequently enough that it should not have to be recreated every frame
+            // TODO: this list changes infrequently enough that it should not have to be
+            // recreated every frame
             let count = self.client.player_list.len();
             if ids.player_names.len() < count {
                 ids.update(|ids| {

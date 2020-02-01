@@ -15,19 +15,20 @@ use rayon::prelude::*;
 ///
 /// dt = length of the time step in years (double precision)
 ///
-/// ibc = boundary conditions for grid.  For now, we assume all four boundaries are fixed height,
-/// so this parameter is ignored.
+/// ibc = boundary conditions for grid.  For now, we assume all four boundaries
+/// are fixed height, so this parameter is ignored.
 ///
 /// h = heights of cells at each cell in the grid.
 ///
 /// b = basement height at each cell in the grid (see https://en.wikipedia.org/wiki/Basement_(geology)).
 ///
-/// kd = bedrock transport coefficient (or diffusivity) for hillslope processes in meter squared per year
-/// (double precision) at each cell in the grid.
+/// kd = bedrock transport coefficient (or diffusivity) for hillslope processes
+/// in meter squared per year (double precision) at each cell in the grid.
 ///
-/// kdsed = sediment transport coefficient (or diffusivity) for hillslope processes in meter squared per year;
-/// (double precision;) note that when kdsed < 0, its value is not used, i.e., kd for sediment and bedrock have
-/// the same value, regardless of sediment thickness
+/// kdsed = sediment transport coefficient (or diffusivity) for hillslope
+/// processes in meter squared per year; (double precision;) note that when
+/// kdsed < 0, its value is not used, i.e., kd for sediment and bedrock have the
+/// same value, regardless of sediment thickness
 /* subroutine Diffusion ()
 
   ! subroutine to solve the diffusion equation by ADI
@@ -299,7 +300,8 @@ pub fn diffusion(
             // reflective boundary
             // TODO: Check whether this j was actually supposed to be a 0 in the original
             // (probably).
-            // factxp = (kdint[aij(i+1, 0)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dx * dx);
+            // factxp = (kdint[aij(i+1, 0)] + kdint[aij(i, j)]) / 2.0 * (dt / 2.0) / (dx *
+            // dx);
             factxp = (kdint[aij(i + 1, 0)] + kdint[aij(i, 0)]) / 2.0 * (dt / 2.0) / (dx * dx);
             factxm = (kdint[aij(i - 1, 0)] + kdint[aij(i, 0)]) / 2.0 * (dt / 2.0) / (dx * dx);
             factyp = (kdint[aij(i, 1)] + kdint[aij(i, 0)]) / 2.0 * (dt / 2.0) / (dy * dy);

@@ -29,28 +29,27 @@ impl Region {
             events: Vec::new(),
         }
     }
+
     /// Checks if the region contains no entities and no events
-    fn removable(&self) -> bool {
-        self.bitset.is_empty() && self.events.is_empty()
-    }
+    fn removable(&self) -> bool { self.bitset.is_empty() && self.events.is_empty() }
+
     fn add(&mut self, id: u32, from: Option<Vec2<i32>>) {
         self.bitset.add(id);
         self.events.push(Event::Entered(id, from));
     }
+
     fn remove(&mut self, id: u32, to: Option<Vec2<i32>>) {
         self.bitset.remove(id);
         self.events.push(Event::Left(id, to));
     }
-    pub fn events(&self) -> &[Event] {
-        &self.events
-    }
-    pub fn entities(&self) -> &BitSet {
-        &self.bitset
-    }
+
+    pub fn events(&self) -> &[Event] { &self.events }
+
+    pub fn entities(&self) -> &BitSet { &self.bitset }
 }
 
-/// How far can an entity roam outside its region before it is switched over to the neighboring one
-/// In units of blocks (i.e. world pos)
+/// How far can an entity roam outside its region before it is switched over to
+/// the neighboring one In units of blocks (i.e. world pos)
 /// Used to prevent rapid switching of entities between regions
 pub const TETHER_LENGTH: u32 = 16;
 /// Bitshift between region and world pos, i.e. log2(REGION_SIZE)
@@ -76,7 +75,8 @@ const NEIGHBOR_OFFSETS: [Vec2<i32>; 8] = [
 pub struct RegionMap {
     // Tree?
     // Sorted Vec? (binary search lookup)
-    // Sort into multiple vecs (say 32) using lower bits of morton code, then binary search via upper bits? <-- sounds very promising to me (might not be super good though?)
+    // Sort into multiple vecs (say 32) using lower bits of morton code, then binary search via
+    // upper bits? <-- sounds very promising to me (might not be super good though?)
     regions: IndexMap<Vec2<i32>, Region, DefaultHashBuilder>,
     // If an entity isn't here it needs to be added to a region
     tracked_entities: BitSet,
@@ -99,6 +99,7 @@ impl RegionMap {
             tick: 0,
         }
     }
+
     // TODO maintain within a system?
     // TODO special case large entities
     pub fn tick(&mut self, pos: ReadStorage<Pos>, vel: ReadStorage<Vel>, entities: Entities) {
@@ -154,13 +155,14 @@ impl RegionMap {
                             // Switch
                             self.entities_to_move.push((i, id, pos));
                         }
-                    }
-                    // Remove any non-existant entities (or just ones that lost their position component)
-                    // TODO: distribute this between ticks
+                    },
+                    // Remove any non-existant entities (or just ones that lost their position
+                    // component) TODO: distribute this between ticks
                     None => {
-                        // TODO: shouldn't there be a way to extract the bitset of entities with positions directly from specs?
+                        // TODO: shouldn't there be a way to extract the bitset of entities with
+                        // positions directly from specs?
                         self.entities_to_remove.push((i, id));
-                    }
+                    },
                 }
             }
 
@@ -173,7 +175,8 @@ impl RegionMap {
         }
 
         // Mutate
-        // Note entity moving is outside the whole loop so that the same entity is not checked twice (this may be fine though...)
+        // Note entity moving is outside the whole loop so that the same entity is not
+        // checked twice (this may be fine though...)
         while let Some((i, id, pos)) = self.entities_to_move.pop() {
             let (prev_key, region) = self.regions.get_index_mut(i).map(|(k, v)| (*k, v)).unwrap();
             region.remove(id, Some(Self::pos_key(pos)));
@@ -191,11 +194,13 @@ impl RegionMap {
         for key in regions_to_remove.into_iter() {
             // Check that the region is still removable
             if self.regions.get(&key).unwrap().removable() {
-                // Note we have to use key's here since the index can change when others are removed
+                // Note we have to use key's here since the index can change when others are
+                // removed
                 self.remove(key);
             }
         }
     }
+
     fn add_entity(&mut self, id: u32, pos: Vec3<i32>, from: Option<Vec2<i32>>) {
         let key = Self::pos_key(pos);
         if let Some(region) = self.regions.get_mut(&key) {
@@ -210,13 +215,13 @@ impl RegionMap {
             .unwrap()
             .add(id, None);
     }
-    fn pos_key<P: Into<Vec2<i32>>>(pos: P) -> Vec2<i32> {
-        pos.into().map(|e| e >> REGION_LOG2)
-    }
-    pub fn key_pos(key: Vec2<i32>) -> Vec2<i32> {
-        key.map(|e| e << REGION_LOG2)
-    }
-    /// Finds the region where a given entity is located using a given position to speed up the search
+
+    fn pos_key<P: Into<Vec2<i32>>>(pos: P) -> Vec2<i32> { pos.into().map(|e| e >> REGION_LOG2) }
+
+    pub fn key_pos(key: Vec2<i32>) -> Vec2<i32> { key.map(|e| e << REGION_LOG2) }
+
+    /// Finds the region where a given entity is located using a given position
+    /// to speed up the search
     pub fn find_region(&self, entity: specs::Entity, pos: Vec3<f32>) -> Option<Vec2<i32>> {
         let id = entity.id();
         // Compute key for most likely region
@@ -257,12 +262,15 @@ impl RegionMap {
 
         None
     }
+
     fn key_index(&self, key: Vec2<i32>) -> Option<usize> {
         self.regions.get_full(&key).map(|(i, _, _)| i)
     }
+
     fn index_key(&self, index: usize) -> Option<Vec2<i32>> {
         self.regions.get_index(index).map(|(k, _)| k).copied()
     }
+
     /// Adds a new region
     /// Returns the index of the region in the index map
     fn insert(&mut self, key: Vec2<i32>) -> usize {
@@ -289,15 +297,18 @@ impl RegionMap {
 
         index
     }
+
     /// Remove a region using its key
     fn remove(&mut self, key: Vec2<i32>) {
         if let Some(index) = self.key_index(key) {
             self.remove_index(index);
         }
     }
+
     /// Add a region using its key
     fn remove_index(&mut self, index: usize) {
-        // Remap neighbor indices for neighbors of the region that will be moved from the end of the index map
+        // Remap neighbor indices for neighbors of the region that will be moved from
+        // the end of the index map
         if index != self.regions.len() - 1 {
             let moved_neighbors = self
                 .regions
@@ -335,10 +346,10 @@ impl RegionMap {
             }
         }
     }
+
     // Returns a region given a key
-    pub fn get(&self, key: Vec2<i32>) -> Option<&Region> {
-        self.regions.get(&key)
-    }
+    pub fn get(&self, key: Vec2<i32>) -> Option<&Region> { self.regions.get(&key) }
+
     // Returns an iterator of (Position, Region)
     pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &Region)> {
         self.regions.iter().map(|(key, r)| (*key, r))
@@ -350,7 +361,8 @@ pub fn region_in_vd(key: Vec2<i32>, pos: Vec3<f32>, vd: f32) -> bool {
     let vd_extended = vd + TETHER_LENGTH as f32 * 2.0f32.sqrt();
 
     let min_region_pos = RegionMap::key_pos(key).map(|e| e as f32);
-    // Should be diff to closest point on the square (which can be in the middle of an edge)
+    // Should be diff to closest point on the square (which can be in the middle of
+    // an edge)
     let diff = (min_region_pos - Vec2::from(pos)).map(|e| {
         if e < 0.0 {
             (e + REGION_SIZE as f32).min(0.0)

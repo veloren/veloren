@@ -18,8 +18,8 @@ pub struct ServerSettings {
     //pub login_server: whatever
     pub start_time: f64,
     pub admins: Vec<String>,
-    /// When set to None, loads the default map file (if available); otherwise, uses the value of
-    /// the file options to decide how to proceed.
+    /// When set to None, loads the default map file (if available); otherwise,
+    /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
 }
 
@@ -69,14 +69,14 @@ impl ServerSettings {
                 Err(e) => {
                     log::warn!("Failed to parse setting file! Fallback to default. {}", e);
                     Self::default()
-                }
+                },
             }
         } else {
             let default_settings = Self::default();
 
             match default_settings.save_to_file() {
                 Err(e) => log::error!("Failed to create default setting file! {}", e),
-                _ => {}
+                _ => {},
             }
             default_settings
         }
@@ -97,7 +97,8 @@ impl ServerSettings {
     pub fn singleplayer() -> Self {
         let load = Self::load();
         Self {
-            //BUG: theoretically another process can grab the port between here and server creation, however the timewindow is quite small
+            //BUG: theoretically another process can grab the port between here and server
+            // creation, however the timewindow is quite small
             gameserver_address: SocketAddr::from((
                 [127, 0, 0, 1],
                 pick_unused_port().expect("Failed to find unused port!"),
@@ -116,12 +117,11 @@ impl ServerSettings {
             server_description: "Who needs friends anyway?".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
-            admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
-            ..load                                    // Fill in remaining fields from settings.ron.
+            admins: vec!["singleplayer".to_string()], /* TODO: Let the player choose if they want
+                                                       * to use admin commands or not */
+            ..load // Fill in remaining fields from settings.ron.
         }
     }
 
-    fn get_settings_path() -> PathBuf {
-        PathBuf::from(r"settings.ron")
-    }
+    fn get_settings_path() -> PathBuf { PathBuf::from(r"settings.ron") }
 }

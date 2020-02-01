@@ -41,7 +41,8 @@ use vek::*;
 // and be provided to the client
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
 
-// After this duration has elapsed, the user will begin getting kick warnings in their chat window
+// After this duration has elapsed, the user will begin getting kick warnings in
+// their chat window
 const SERVER_TIMEOUT_GRACE_PERIOD: Duration = Duration::from_secs(14);
 
 pub enum Event {
@@ -94,7 +95,8 @@ impl Client {
                 // TODO: Display that versions don't match in Voxygen
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
                     log::warn!(
-                        "Server is running {}[{}], you are running {}[{}], versions might be incompatible!",
+                        "Server is running {}[{}], you are running {}[{}], versions might be \
+                         incompatible!",
                         server_info.git_hash,
                         server_info.git_date,
                         common::util::GIT_HASH.to_string(),
@@ -125,10 +127,10 @@ impl Client {
                 log::debug!("Done preparing image...");
 
                 (state, entity, server_info, (world_map, map_size))
-            }
+            },
             Some(ServerMsg::Error(ServerError::TooManyPlayers)) => {
-                return Err(Error::TooManyPlayers)
-            }
+                return Err(Error::TooManyPlayers);
+            },
             _ => return Err(Error::ServerWentMad),
         };
 
@@ -176,10 +178,10 @@ impl Client {
         loop {
             match self.postbox.next_message() {
                 Some(ServerMsg::StateAnswer(Err((RequestStateError::Denied, _)))) => {
-                    break Err(Error::InvalidAuth)
-                }
+                    break Err(Error::InvalidAuth);
+                },
                 Some(ServerMsg::StateAnswer(Ok(ClientState::Registered))) => break Ok(()),
-                _ => {}
+                _ => {},
             }
         }
     }
@@ -197,7 +199,8 @@ impl Client {
         self.client_state = ClientState::Pending;
     }
 
-    /// Request a state transition to `ClientState::Registered` from an ingame state.
+    /// Request a state transition to `ClientState::Registered` from an ingame
+    /// state.
     pub fn request_remove_character(&mut self) {
         self.postbox.send_message(ClientMsg::ExitIngame);
         self.client_state = ClientState::Pending;
@@ -260,13 +263,9 @@ impl Client {
             .send_message(ClientMsg::ControlEvent(ControlEvent::Unmount));
     }
 
-    pub fn view_distance(&self) -> Option<u32> {
-        self.view_distance
-    }
+    pub fn view_distance(&self) -> Option<u32> { self.view_distance }
 
-    pub fn loaded_distance(&self) -> f32 {
-        self.loaded_distance
-    }
+    pub fn loaded_distance(&self) -> f32 { self.loaded_distance }
 
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
         let chunk_pos = Vec2::from(
@@ -283,9 +282,7 @@ impl Client {
         self.state.terrain().get_key_arc(chunk_pos).cloned()
     }
 
-    pub fn inventories(&self) -> ReadStorage<comp::Inventory> {
-        self.state.read_storage()
-    }
+    pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
 
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
@@ -319,17 +316,19 @@ impl Client {
             )));
     }
 
-    /// Execute a single client tick, handle input and update the game state by the given duration.
+    /// Execute a single client tick, handle input and update the game state by
+    /// the given duration.
     pub fn tick(
         &mut self,
         inputs: ControllerInputs,
         dt: Duration,
         add_foreign_systems: impl Fn(&mut DispatcherBuilder),
     ) -> Result<Vec<Event>, Error> {
-        // This tick function is the centre of the Veloren universe. Most client-side things are
-        // managed from here, and as such it's important that it stays organised. Please consult
-        // the core developers before making significant changes to this code. Here is the
-        // approximate order of things. Please update it as this code changes.
+        // This tick function is the centre of the Veloren universe. Most client-side
+        // things are managed from here, and as such it's important that it
+        // stays organised. Please consult the core developers before making
+        // significant changes to this code. Here is the approximate order of
+        // things. Please update it as this code changes.
         //
         // 1) Collect input from the frontend, apply input effects to the state
         //    of the game
@@ -347,13 +346,10 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if let ClientState::Character = self.client_state {
-            self.state.write_component(
-                self.entity,
-                Controller {
-                    inputs: inputs.clone(),
-                    events: Vec::new(),
-                },
-            );
+            self.state.write_component(self.entity, Controller {
+                inputs: inputs.clone(),
+                events: Vec::new(),
+            });
             self.postbox
                 .send_message(ClientMsg::ControllerInputs(inputs));
         }
@@ -528,7 +524,8 @@ impl Client {
         let mut frontend_events = Vec::new();
 
         // Check that we have an valid connection.
-        // Use the last ping time as a 1s rate limiter, we only notify the user once per second
+        // Use the last ping time as a 1s rate limiter, we only notify the user once per
+        // second
         if Instant::now().duration_since(self.last_server_ping) > Duration::from_secs(1) {
             let duration_since_last_pong = Instant::now().duration_since(self.last_server_pong);
 
@@ -558,24 +555,37 @@ impl Client {
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
                         self.player_list = list
-                    }
+                    },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, name)) => {
                         if let Some(old_name) = self.player_list.insert(uid, name.clone()) {
-                            warn!("Received msg to insert {} with uid {} into the player list but there was already an entry for {} with the same uid that was overwritten!", name, uid, old_name);
+                            warn!(
+                                "Received msg to insert {} with uid {} into the player list but \
+                                 there was already an entry for {} with the same uid that was \
+                                 overwritten!",
+                                name, uid, old_name
+                            );
                         }
-                    }
+                    },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
                         if self.player_list.remove(&uid).is_none() {
-                            warn!("Received msg to remove uid {} from the player list by they weren't in the list!", uid);
+                            warn!(
+                                "Received msg to remove uid {} from the player list by they \
+                                 weren't in the list!",
+                                uid
+                            );
                         }
-                    }
+                    },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
                         if let Some(name) = self.player_list.get_mut(&uid) {
                             *name = new_name;
                         } else {
-                            warn!("Received msg to alias player with uid {} to {} but this uid is not in the player list", uid, new_name);
+                            warn!(
+                                "Received msg to alias player with uid {} to {} but this uid is \
+                                 not in the player list",
+                                uid, new_name
+                            );
                         }
-                    }
+                    },
 
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {
@@ -584,26 +594,26 @@ impl Client {
                         self.last_ping_delta = Instant::now()
                             .duration_since(self.last_server_ping)
                             .as_secs_f64();
-                    }
+                    },
                     ServerMsg::ChatMsg { message, chat_type } => {
                         frontend_events.push(Event::Chat { message, chat_type })
-                    }
+                    },
                     ServerMsg::SetPlayerEntity(uid) => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
                             self.entity = entity;
                         } else {
                             return Err(Error::Other("Failed to find entity from uid.".to_owned()));
                         }
-                    }
+                    },
                     ServerMsg::TimeOfDay(time_of_day) => {
                         *self.state.ecs_mut().write_resource() = time_of_day;
-                    }
+                    },
                     ServerMsg::EcsSync(sync_package) => {
                         self.state.ecs_mut().apply_sync_package(sync_package);
-                    }
+                    },
                     ServerMsg::CreateEntity(entity_package) => {
                         self.state.ecs_mut().apply_entity_package(entity_package);
-                    }
+                    },
                     ServerMsg::DeleteEntity(entity) => {
                         if self
                             .state
@@ -615,7 +625,7 @@ impl Client {
                                 .ecs_mut()
                                 .delete_entity_and_clear_from_uid_allocator(entity);
                         }
-                    }
+                    },
                     // Cleanup for when the client goes back to the `Registered` state
                     ServerMsg::ExitIngameCleanup => {
                         // Get client entity Uid
@@ -635,22 +645,22 @@ impl Client {
                             .write_resource::<UidAllocator>()
                             .allocate(entity_builder.entity, Some(client_uid));
                         self.entity = entity_builder.with(uid).build();
-                    }
+                    },
                     ServerMsg::EntityPos { entity, pos } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
                             self.state.write_component(entity, pos);
                         }
-                    }
+                    },
                     ServerMsg::EntityVel { entity, vel } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
                             self.state.write_component(entity, vel);
                         }
-                    }
+                    },
                     ServerMsg::EntityOri { entity, ori } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
                             self.state.write_component(entity, ori);
                         }
-                    }
+                    },
                     ServerMsg::EntityCharacterState {
                         entity,
                         character_state,
@@ -658,24 +668,24 @@ impl Client {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
                             self.state.write_component(entity, character_state);
                         }
-                    }
+                    },
                     ServerMsg::InventoryUpdate(inventory) => {
                         self.state.write_component(self.entity, inventory)
-                    }
+                    },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         if let Ok(chunk) = chunk {
                             self.state.insert_chunk(key, *chunk);
                         }
                         self.pending_chunks.remove(&key);
-                    }
+                    },
                     ServerMsg::TerrainBlockUpdates(mut blocks) => {
                         blocks.drain().for_each(|(pos, block)| {
                             self.state.set_block(pos, block);
                         });
-                    }
+                    },
                     ServerMsg::StateAnswer(Ok(state)) => {
                         self.client_state = state;
-                    }
+                    },
                     ServerMsg::StateAnswer(Err((error, state))) => {
                         if error == RequestStateError::Denied {
                             warn!("Connection denied!");
@@ -685,10 +695,10 @@ impl Client {
                             "StateAnswer: {:?}. Server thinks client is in state {:?}.",
                             error, state
                         );
-                    }
+                    },
                     ServerMsg::Disconnect => {
                         frontend_events.push(Event::Disconnect);
-                    }
+                    },
                 }
             }
         } else if let Some(err) = self.postbox.error() {
@@ -701,40 +711,27 @@ impl Client {
     }
 
     /// Get the player's entity.
-    pub fn entity(&self) -> EcsEntity {
-        self.entity
-    }
+    pub fn entity(&self) -> EcsEntity { self.entity }
 
     /// Get the client state
-    pub fn get_client_state(&self) -> ClientState {
-        self.client_state
-    }
+    pub fn get_client_state(&self) -> ClientState { self.client_state }
 
     /// Get the current tick number.
-    pub fn get_tick(&self) -> u64 {
-        self.tick
-    }
+    pub fn get_tick(&self) -> u64 { self.tick }
 
-    pub fn get_ping_ms(&self) -> f64 {
-        self.last_ping_delta * 1000.0
-    }
+    pub fn get_ping_ms(&self) -> f64 { self.last_ping_delta * 1000.0 }
 
-    /// Get a reference to the client's worker thread pool. This pool should be used for any
-    /// computationally expensive operations that run outside of the main thread (i.e., threads that
-    /// block on I/O operations are exempt).
-    pub fn thread_pool(&self) -> &ThreadPool {
-        &self.thread_pool
-    }
+    /// Get a reference to the client's worker thread pool. This pool should be
+    /// used for any computationally expensive operations that run outside
+    /// of the main thread (i.e., threads that block on I/O operations are
+    /// exempt).
+    pub fn thread_pool(&self) -> &ThreadPool { &self.thread_pool }
 
     /// Get a reference to the client's game state.
-    pub fn state(&self) -> &State {
-        &self.state
-    }
+    pub fn state(&self) -> &State { &self.state }
 
     /// Get a mutable reference to the client's game state.
-    pub fn state_mut(&mut self) -> &mut State {
-        &mut self.state
-    }
+    pub fn state_mut(&mut self) -> &mut State { &mut self.state }
 
     /// Get a vector of all the players on the server
     pub fn get_players(&mut self) -> Vec<comp::Player> {
@@ -749,7 +746,5 @@ impl Client {
 }
 
 impl Drop for Client {
-    fn drop(&mut self) {
-        self.postbox.send_message(ClientMsg::Disconnect);
-    }
+    fn drop(&mut self) { self.postbox.send_message(ClientMsg::Disconnect); }
 }

@@ -3,9 +3,7 @@ pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::idle::IdleAnimation;
-pub use self::jump::JumpAnimation;
-pub use self::run::RunAnimation;
+pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
@@ -27,13 +25,12 @@ pub struct QuadrupedMediumSkeleton {
 }
 
 impl QuadrupedMediumSkeleton {
-    pub fn new() -> Self {
-        Self::default()
-    }
+    pub fn new() -> Self { Self::default() }
 }
 
 impl Skeleton for QuadrupedMediumSkeleton {
     type Attr = SkeletonAttr;
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let ears_mat = self.ears.compute_base_matrix();
         let head_upper_mat = self.head_upper.compute_base_matrix();

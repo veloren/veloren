@@ -5,8 +5,7 @@ use crate::{
     volumes::dyna::{Dyna, DynaError},
 };
 use dot_vox::DotVoxData;
-use std::fs::File;
-use std::io::BufReader;
+use std::{fs::File, io::BufReader};
 use vek::*;
 
 #[derive(Copy, Clone, PartialEq)]
@@ -28,9 +27,7 @@ pub enum StructureBlock {
 }
 
 impl Vox for StructureBlock {
-    fn empty() -> Self {
-        StructureBlock::None
-    }
+    fn empty() -> Self { StructureBlock::None }
 
     fn is_empty(&self) -> bool {
         match self {
@@ -69,14 +66,12 @@ impl Structure {
         }
     }
 
-    pub fn default_kind(&self) -> BlockKind {
-        self.default_kind
-    }
+    pub fn default_kind(&self) -> BlockKind { self.default_kind }
 }
 
 impl BaseVol for Structure {
-    type Vox = StructureBlock;
     type Error = StructureError;
+    type Vox = StructureBlock;
 }
 
 impl ReadVol for Structure {
@@ -91,6 +86,7 @@ impl ReadVol for Structure {
 
 impl Asset for Structure {
     const ENDINGS: &'static [&'static str] = &["vox"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         let dot_vox_data = DotVoxData::parse(buf_reader)?;
 
@@ -127,7 +123,7 @@ impl Asset for Structure {
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
                         StructureBlock::Normal(color)
-                    }
+                    },
                 };
 
                 let _ = vol.set(

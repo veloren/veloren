@@ -1,7 +1,7 @@
-use crate::i18n::{i18n_asset_key, VoxygenLocalization};
 use crate::{
     ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud},
+    i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
     render::Renderer,
     scene::Scene,
@@ -10,8 +10,7 @@ use crate::{
 };
 use client::{self, Client, Event::Chat};
 use common::{
-    assets::load_watched,
-    assets::watch,
+    assets::{load_watched, watch},
     clock::Clock,
     comp,
     comp::{Pos, Vel},
@@ -38,7 +37,8 @@ pub struct SessionState {
 impl SessionState {
     /// Create a new `SessionState`.
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
-        // Create a scene for this session. The scene handles visible elements of the game world.
+        // Create a scene for this session. The scene handles visible elements of the
+        // game world.
         let mut scene = Scene::new(global_state.window.renderer_mut());
         scene
             .camera_mut()
@@ -78,8 +78,8 @@ impl SessionState {
                     message: _,
                 } => {
                     self.hud.new_message(event);
-                }
-                client::Event::Disconnect => {} // TODO
+                },
+                client::Event::Disconnect => {}, // TODO
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
                         0 => String::from("Goodbye!"),
@@ -90,7 +90,7 @@ impl SessionState {
                         chat_type: ChatType::Meta,
                         message,
                     });
-                }
+                },
             }
         }
 
@@ -98,9 +98,7 @@ impl SessionState {
     }
 
     /// Clean up the session (and the client attached to it) after a tick.
-    pub fn cleanup(&mut self) {
-        self.client.borrow_mut().cleanup();
-    }
+    pub fn cleanup(&mut self) { self.client.borrow_mut().cleanup(); }
 
     /// Render the session to the screen.
     ///
@@ -184,7 +182,7 @@ impl PlayState for SessionState {
                 match event {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
-                    }
+                    },
                     Event::InputUpdate(GameInput::Primary, state) => {
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
@@ -202,7 +200,7 @@ impl PlayState for SessionState {
                         } else {
                             self.inputs.primary.set_state(state);
                         }
-                    }
+                    },
 
                     Event::InputUpdate(GameInput::Secondary, state) => {
                         self.inputs.secondary.set_state(false); // To be changed later on
@@ -236,7 +234,7 @@ impl PlayState for SessionState {
                                 client.collect_block(select_pos);
                             }
                         }
-                    }
+                    },
                     Event::InputUpdate(GameInput::Roll, state) => {
                         let client = self.client.borrow();
                         if client
@@ -255,32 +253,32 @@ impl PlayState for SessionState {
                         } else {
                             self.inputs.roll.set_state(state);
                         }
-                    }
+                    },
                     Event::InputUpdate(GameInput::Respawn, state) => {
                         self.inputs.respawn.set_state(state);
-                    }
+                    },
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.inputs.jump.set_state(state);
-                    }
+                    },
                     Event::InputUpdate(GameInput::Sit, state) => {
                         self.inputs.sit.set_state(state);
-                    }
+                    },
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
                     Event::InputUpdate(GameInput::Glide, state) => {
                         self.inputs.glide.set_state(state);
-                    }
+                    },
                     Event::InputUpdate(GameInput::Climb, state) => {
                         self.inputs.climb.set_state(state)
-                    }
+                    },
                     Event::InputUpdate(GameInput::ClimbDown, state) => {
                         self.inputs.climb_down.set_state(state)
-                    }
+                    },
                     Event::InputUpdate(GameInput::WallLeap, state) => {
                         self.inputs.wall_leap.set_state(state)
-                    }
+                    },
                     Event::InputUpdate(GameInput::Mount, true) => {
                         let mut client = self.client.borrow_mut();
                         if client.is_mounted() {
@@ -316,7 +314,7 @@ impl PlayState for SessionState {
                                 }
                             }
                         }
-                    }
+                    },
                     Event::InputUpdate(GameInput::Interact, state) => {
                         let mut client = self.client.borrow_mut();
 
@@ -345,23 +343,23 @@ impl PlayState for SessionState {
                                 client.pick_up(entity);
                             }
                         }
-                    }
+                    },
                     Event::InputUpdate(GameInput::ToggleWield, state) => {
                         self.inputs.toggle_wield.set_state(state)
-                    }
+                    },
                     Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
-                    }
+                    },
 
                     // Pass all other events to the scene
                     event => {
                         self.scene.handle_input_event(event);
-                    } // TODO: Do something if the event wasn't handled?
+                    }, // TODO: Do something if the event wasn't handled?
                 }
             }
 
-            // Calculate the movement input vector of the player from the current key presses
-            // and the camera direction.
+            // Calculate the movement input vector of the player from the current key
+            // presses and the camera direction.
             let ori = self.scene.camera().get_orientation();
             let unit_vecs = (
                 Vec2::new(ori[0].cos(), -ori[0].sin()),
@@ -427,123 +425,123 @@ impl PlayState for SessionState {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
                         self.client.borrow_mut().send_chat(msg);
-                    }
+                    },
                     HudEvent::CharacterSelection => {
                         self.client.borrow_mut().request_remove_character()
-                    }
+                    },
                     HudEvent::Logout => self.client.borrow_mut().request_logout(),
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
-                    }
+                    },
                     HudEvent::AdjustMousePan(sensitivity) => {
                         global_state.window.pan_sensitivity = sensitivity;
                         global_state.settings.gameplay.pan_sensitivity = sensitivity;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::AdjustMouseZoom(sensitivity) => {
                         global_state.window.zoom_sensitivity = sensitivity;
                         global_state.settings.gameplay.zoom_sensitivity = sensitivity;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ToggleZoomInvert(zoom_inverted) => {
                         global_state.window.zoom_inversion = zoom_inverted;
                         global_state.settings.gameplay.zoom_inversion = zoom_inverted;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::Sct(sct) => {
                         global_state.settings.gameplay.sct = sct;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::SctPlayerBatch(sct_player_batch) => {
                         global_state.settings.gameplay.sct_player_batch = sct_player_batch;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::SctDamageBatch(sct_damage_batch) => {
                         global_state.settings.gameplay.sct_damage_batch = sct_damage_batch;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ToggleDebug(toggle_debug) => {
                         global_state.settings.gameplay.toggle_debug = toggle_debug;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ToggleMouseYInvert(mouse_y_inverted) => {
                         global_state.window.mouse_y_inversion = mouse_y_inverted;
                         global_state.settings.gameplay.mouse_y_inversion = mouse_y_inverted;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::AdjustViewDistance(view_distance) => {
                         self.client.borrow_mut().set_view_distance(view_distance);
 
                         global_state.settings.graphics.view_distance = view_distance;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::CrosshairTransp(crosshair_transp) => {
                         global_state.settings.gameplay.crosshair_transp = crosshair_transp;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ChatTransp(chat_transp) => {
                         global_state.settings.gameplay.chat_transp = chat_transp;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::CrosshairType(crosshair_type) => {
                         global_state.settings.gameplay.crosshair_type = crosshair_type;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::Intro(intro_show) => {
                         global_state.settings.gameplay.intro_show = intro_show;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ToggleXpBar(xp_bar) => {
                         global_state.settings.gameplay.xp_bar = xp_bar;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ToggleBarNumbers(bar_numbers) => {
                         global_state.settings.gameplay.bar_numbers = bar_numbers;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ToggleShortcutNumbers(shortcut_numbers) => {
                         global_state.settings.gameplay.shortcut_numbers = shortcut_numbers;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::UiScale(scale_change) => {
                         global_state.settings.gameplay.ui_scale =
                             self.hud.scale_change(scale_change);
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::AdjustMusicVolume(music_volume) => {
                         global_state.audio.set_music_volume(music_volume);
 
                         global_state.settings.audio.music_volume = music_volume;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::AdjustSfxVolume(sfx_volume) => {
                         global_state.audio.set_sfx_volume(sfx_volume);
 
                         global_state.settings.audio.sfx_volume = sfx_volume;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ChangeAudioDevice(name) => {
                         global_state.audio.set_device(name.clone());
 
                         global_state.settings.audio.audio_device = Some(name);
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ChangeMaxFPS(fps) => {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::UseInventorySlot(x) => self.client.borrow_mut().use_inventory_slot(x),
                     HudEvent::SwapInventorySlots(a, b) => {
                         self.client.borrow_mut().swap_inventory_slots(a, b)
-                    }
+                    },
                     HudEvent::DropInventorySlot(x) => {
                         self.client.borrow_mut().drop_inventory_slot(x)
-                    }
+                    },
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();
                         self.scene.camera_mut().set_fov_deg(new_fov);
-                    }
+                    },
                     HudEvent::ChangeAaMode(new_aa_mode) => {
                         // Do this first so if it crashes the setting isn't saved :)
                         global_state
@@ -553,7 +551,7 @@ impl PlayState for SessionState {
                             .unwrap();
                         global_state.settings.graphics.aa_mode = new_aa_mode;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ChangeCloudMode(new_cloud_mode) => {
                         // Do this first so if it crashes the setting isn't saved :)
                         global_state
@@ -563,7 +561,7 @@ impl PlayState for SessionState {
                             .unwrap();
                         global_state.settings.graphics.cloud_mode = new_cloud_mode;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ChangeFluidMode(new_fluid_mode) => {
                         // Do this first so if it crashes the setting isn't saved :)
                         global_state
@@ -573,7 +571,7 @@ impl PlayState for SessionState {
                             .unwrap();
                         global_state.settings.graphics.fluid_mode = new_fluid_mode;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
@@ -583,17 +581,17 @@ impl PlayState for SessionState {
                         )
                         .unwrap();
                         localized_strings.log_missing_entries();
-                    }
+                    },
                     HudEvent::ToggleFullscreen => {
                         global_state
                             .window
                             .toggle_fullscreen(&mut global_state.settings);
-                    }
+                    },
                     HudEvent::AdjustWindowSize(new_size) => {
                         global_state.window.set_size(new_size.into());
                         global_state.settings.graphics.window_size = new_size;
                         global_state.settings.save_to_file_warn();
-                    }
+                    },
                 }
             }
 
@@ -627,7 +625,5 @@ impl PlayState for SessionState {
         PlayStateResult::Pop
     }
 
-    fn name(&self) -> &'static str {
-        "Session"
-    }
+    fn name(&self) -> &'static str { "Session" }
 }

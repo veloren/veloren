@@ -209,17 +209,13 @@ impl Block {
         }
     }
 
-    pub fn kind(&self) -> BlockKind {
-        self.kind
-    }
+    pub fn kind(&self) -> BlockKind { self.kind }
 }
 
 impl Deref for Block {
     type Target = BlockKind;
 
-    fn deref(&self) -> &Self::Target {
-        &self.kind
-    }
+    fn deref(&self) -> &Self::Target { &self.kind }
 }
 
 impl Vox for Block {
@@ -230,9 +226,7 @@ impl Vox for Block {
         }
     }
 
-    fn is_empty(&self) -> bool {
-        self.is_air()
-    }
+    fn is_empty(&self) -> bool { self.is_air() }
 }
 
 #[cfg(test)]

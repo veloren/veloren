@@ -5,9 +5,9 @@ use crate::render::{
     Pipeline,
 };
 
-/// Given volume, position, and cardinal directions, compute each vertex's AO value.
-/// `dirs` should be a slice of length 5 so that the sliding window of size 2 over the slice
-/// yields each vertex' adjacent positions.
+/// Given volume, position, and cardinal directions, compute each vertex's AO
+/// value. `dirs` should be a slice of length 5 so that the sliding window of
+/// size 2 over the slice yields each vertex' adjacent positions.
 #[allow(unsafe_code)]
 fn get_ao_quad(
     shift: Vec3<i32>,
@@ -60,11 +60,7 @@ fn get_ao_quad(
                 } else {
                     let corner = vox_opaque(shift + offs[0] + offs[1]);
                     // Map both 1 and 2 neighbors to 0.5 occlusion.
-                    if s1 || s2 || corner {
-                        0.5
-                    } else {
-                        1.0
-                    }
+                    if s1 || s2 || corner { 0.5 } else { 1.0 }
                 },
             )
         })

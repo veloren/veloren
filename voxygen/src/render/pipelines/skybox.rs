@@ -3,14 +3,8 @@ use super::{
     Globals,
 };
 use gfx::{
-    self,
-    gfx_constant_struct_meta,
-    // Macros
-    gfx_defines,
-    gfx_impl_struct_meta,
-    gfx_pipeline,
-    gfx_pipeline_inner,
-    gfx_vertex_struct_meta,
+    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
+    gfx_pipeline_inner, gfx_vertex_struct_meta,
 };
 
 gfx_defines! {
@@ -36,9 +30,7 @@ gfx_defines! {
 }
 
 impl Locals {
-    pub fn default() -> Self {
-        Self { nul: [0.0; 4] }
-    }
+    pub fn default() -> Self { Self { nul: [0.0; 4] } }
 }
 
 pub struct SkyboxPipeline;

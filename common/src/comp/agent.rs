@@ -81,7 +81,5 @@ impl Activity {
 }
 
 impl Default for Activity {
-    fn default() -> Self {
-        Activity::Idle(Vec2::zero())
-    }
+    fn default() -> Self { Activity::Idle(Vec2::zero()) }
 }

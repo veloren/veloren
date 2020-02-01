@@ -37,8 +37,8 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 }
 
 impl<V: RectRasterableVol + Debug> BaseVol for VolGrid2d<V> {
-    type Vox = V::Vox;
     type Error = VolGrid2dError<V>;
+    type Vox = V::Vox;
 }
 
 impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
@@ -55,14 +55,16 @@ impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
     }
 }
 
-// TODO: This actually breaks the API: samples are supposed to have an offset of zero!
-// TODO: Should this be changed, perhaps?
+// TODO: This actually breaks the API: samples are supposed to have an offset of
+// zero! TODO: Should this be changed, perhaps?
 impl<I: Into<Aabr<i32>>, V: RectRasterableVol + ReadVol + Debug> SampleVol<I> for VolGrid2d<V> {
     type Sample = VolGrid2d<V>;
 
-    /// Take a sample of the terrain by cloning the voxels within the provided range.
+    /// Take a sample of the terrain by cloning the voxels within the provided
+    /// range.
     ///
-    /// Note that the resultant volume does not carry forward metadata from the original chunks.
+    /// Note that the resultant volume does not carry forward metadata from the
+    /// original chunks.
     fn sample(&self, range: I) -> Result<Self::Sample, VolGrid2dError<V>> {
         let range = range.into();
 
@@ -115,9 +117,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         }
     }
 
-    pub fn chunk_size() -> Vec2<u32> {
-        V::RECT_SIZE
-    }
+    pub fn chunk_size() -> Vec2<u32> { V::RECT_SIZE }
 
     pub fn insert(&mut self, key: Vec2<i32>, chunk: Arc<V>) -> Option<Arc<V>> {
         self.chunks.insert(key, chunk)
@@ -130,29 +130,17 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         }
     }
 
-    pub fn get_key_arc(&self, key: Vec2<i32>) -> Option<&Arc<V>> {
-        self.chunks.get(&key)
-    }
+    pub fn get_key_arc(&self, key: Vec2<i32>) -> Option<&Arc<V>> { self.chunks.get(&key) }
 
-    pub fn clear(&mut self) {
-        self.chunks.clear();
-    }
+    pub fn clear(&mut self) { self.chunks.clear(); }
 
-    pub fn drain(&mut self) -> hash_map::Drain<Vec2<i32>, Arc<V>> {
-        self.chunks.drain()
-    }
+    pub fn drain(&mut self) -> hash_map::Drain<Vec2<i32>, Arc<V>> { self.chunks.drain() }
 
-    pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> {
-        self.chunks.remove(&key)
-    }
+    pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> { self.chunks.remove(&key) }
 
-    pub fn key_pos(&self, key: Vec2<i32>) -> Vec2<i32> {
-        key * V::RECT_SIZE.map(|e| e as i32)
-    }
+    pub fn key_pos(&self, key: Vec2<i32>) -> Vec2<i32> { key * V::RECT_SIZE.map(|e| e as i32) }
 
-    pub fn pos_key(&self, pos: Vec3<i32>) -> Vec2<i32> {
-        Self::chunk_key(pos)
-    }
+    pub fn pos_key(&self, pos: Vec3<i32>) -> Vec2<i32> { Self::chunk_key(pos) }
 
     pub fn iter(&self) -> ChunkIter<V> {
         ChunkIter {
@@ -160,9 +148,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         }
     }
 
-    pub fn cached<'a>(&'a self) -> CachedVolGrid2d<'a, V> {
-        CachedVolGrid2d::new(self)
-    }
+    pub fn cached<'a>(&'a self) -> CachedVolGrid2d<'a, V> { CachedVolGrid2d::new(self) }
 }
 
 pub struct CachedVolGrid2d<'a, V: RectRasterableVol> {
@@ -213,9 +199,7 @@ impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
 impl<'a, V: RectRasterableVol> Deref for CachedVolGrid2d<'a, V> {
     type Target = VolGrid2d<V>;
 
-    fn deref(&self) -> &Self::Target {
-        self.vol_grid_2d
-    }
+    fn deref(&self) -> &Self::Target { self.vol_grid_2d }
 }
 
 pub struct ChunkIter<'a, V: RectRasterableVol> {
@@ -225,7 +209,5 @@ pub struct ChunkIter<'a, V: RectRasterableVol> {
 impl<'a, V: RectRasterableVol> Iterator for ChunkIter<'a, V> {
     type Item = (Vec2<i32>, &'a Arc<V>);
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|(k, c)| (*k, c))
-    }
+    fn next(&mut self) -> Option<Self::Item> { self.iter.next().map(|(k, c)| (*k, c)) }
 }

@@ -1,13 +1,7 @@
 use super::super::{Globals, Pipeline, Quad, Tri, WinColorFmt, WinDepthFmt};
 use gfx::{
-    self,
-    gfx_constant_struct_meta,
-    // Macros
-    gfx_defines,
-    gfx_impl_struct_meta,
-    gfx_pipeline,
-    gfx_pipeline_inner,
-    gfx_vertex_struct_meta,
+    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
+    gfx_pipeline_inner, gfx_vertex_struct_meta,
 };
 use vek::*;
 
@@ -52,9 +46,7 @@ impl From<Vec4<f32>> for Locals {
 }
 
 impl Default for Locals {
-    fn default() -> Self {
-        Self { pos: [0.0; 4] }
-    }
+    fn default() -> Self { Self { pos: [0.0; 4] } }
 }
 
 /// Draw text from the text cache texture `tex` in the fragment shader.

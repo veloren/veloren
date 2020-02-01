@@ -32,7 +32,8 @@ impl<'a> System<'a> for Sys {
         }
         stats.set_event_emission(true);
 
-        // Mutates all stats every tick causing the server to resend this component for every entity every tick
+        // Mutates all stats every tick causing the server to resend this component for
+        // every entity every tick
         for (entity, character_state, mut stats, mut energy) in (
             &entities,
             &character_states,
@@ -88,13 +89,13 @@ impl<'a> System<'a> for Sys {
                         );
                         energy.regen_rate += ENERGY_REGEN_ACCEL * dt.0;
                     }
-                }
+                },
                 // All other states do not regen and set the rate back to zero.
                 _ => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
-                }
+                },
             }
         }
     }

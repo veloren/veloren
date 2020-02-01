@@ -73,6 +73,7 @@ impl DrawCommand {
             verts,
         }
     }
+
     fn plain(verts: Range<usize>) -> DrawCommand {
         DrawCommand::Draw {
             kind: DrawKind::Plain,
@@ -84,6 +85,7 @@ impl DrawCommand {
 pub struct Font(text::Font);
 impl assets::Asset for Font {
     const ENDINGS: &'static [&'static str] = &["ttf"];
+
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
@@ -156,9 +158,7 @@ impl Ui {
     }
 
     // Get a copy of Scale
-    pub fn scale(&self) -> Scale {
-        self.scale
-    }
+    pub fn scale(&self) -> Scale { self.scale }
 
     pub fn add_graphic(&mut self, graphic: Graphic) -> image::Id {
         self.image_map
@@ -190,9 +190,7 @@ impl Ui {
         self.ui.fonts.insert(font.as_ref().0.clone())
     }
 
-    pub fn id_generator(&mut self) -> Generator {
-        self.ui.widget_id_generator()
-    }
+    pub fn id_generator(&mut self) -> Generator { self.ui.widget_id_generator() }
 
     pub fn set_widgets(&mut self) -> (UiCell, &mut TooltipManager) {
         (self.ui.set_widgets(), &mut self.tooltip_manager)
@@ -222,14 +220,13 @@ impl Ui {
     }
 
     // Get the widget graph.
-    pub fn widget_graph(&self) -> &Graph {
-        self.ui.widget_graph()
-    }
+    pub fn widget_graph(&self) -> &Graph { self.ui.widget_graph() }
+
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
             Input::Resize(w, h) if w > 1.0 && h > 1.0 => {
                 self.window_resized = Some(Vec2::new(w, h))
-            }
+            },
             Input::Touch(touch) => self.ui.handle_event(Input::Touch(Touch {
                 xy: self.scale.scale_point(touch.xy.into()).into_array(),
                 ..touch
@@ -238,24 +235,22 @@ impl Ui {
                 Motion::MouseCursor { x, y } => {
                     let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
                     Motion::MouseCursor { x, y }
-                }
+                },
                 Motion::MouseRelative { x, y } => {
                     let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
                     Motion::MouseRelative { x, y }
-                }
+                },
                 Motion::Scroll { x, y } => {
                     let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
                     Motion::Scroll { x, y }
-                }
+                },
                 _ => motion,
             })),
             _ => self.ui.handle_event(event.0),
         }
     }
 
-    pub fn widget_input(&self, id: widget::Id) -> Widget {
-        self.ui.widget_input(id)
-    }
+    pub fn widget_input(&self, id: widget::Id) -> Widget { self.ui.widget_input(id) }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, view_projection_mat: Option<Mat4<f32>>) {
         // Maintain tooltip manager
@@ -311,8 +306,8 @@ impl Ui {
         let mut placement = Placement::Interface;
         let p_scale_factor = self.scale.scale_factor_physical();
 
-        // Switches to the `Plain` state and completes the previous `Command` if not already in the
-        // `Plain` state.
+        // Switches to the `Plain` state and completes the previous `Command` if not
+        // already in the `Plain` state.
         macro_rules! switch_to_plain_state {
             () => {
                 if let State::Image(id) = current_state {
@@ -373,7 +368,8 @@ impl Ui {
             }
 
             match placement {
-                // No primitives left to place in the world at the current position, go back to drawing the interface
+                // No primitives left to place in the world at the current position, go back to
+                // drawing the interface
                 Placement::InWorld(0, _) => {
                     placement = Placement::Interface;
                     // Finish current state
@@ -384,11 +380,12 @@ impl Ui {
                     start = mesh.vertices().len();
                     // Push new position command
                     self.draw_commands.push(DrawCommand::WorldPos(None));
-                }
+                },
                 // Primitives still left to draw ingame
                 Placement::InWorld(num_prims, visible) => match kind {
-                    // Other types aren't drawn & shouldn't decrement the number of primitives left to draw ingame
-                    PrimitiveKind::Other(_) => {}
+                    // Other types aren't drawn & shouldn't decrement the number of primitives left
+                    // to draw ingame
+                    PrimitiveKind::Other(_) => {},
                     // Decrement the number of primitives left
                     _ => {
                         placement = Placement::InWorld(num_prims - 1, visible);
@@ -396,12 +393,13 @@ impl Ui {
                         if !visible {
                             continue;
                         }
-                    }
+                    },
                 },
-                Placement::Interface => {}
+                Placement::Interface => {},
             }
 
-            // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
+            // Functions for converting for conrod scalar coords to GL vertex coords (-1.0
+            // to 1.0).
             let (ui_win_w, ui_win_h) = (self.ui.win_w, self.ui.win_h);
             let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
             let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
@@ -432,7 +430,7 @@ impl Ui {
 
                     match graphic_cache.get_graphic(*graphic_id) {
                         Some(Graphic::Blank) | None => continue,
-                        _ => {}
+                        _ => {},
                     }
 
                     let color =
@@ -480,7 +478,7 @@ impl Ui {
                             let min = Vec2::new(aabr.min.x as f32, aabr.max.y as f32) / cache_dims;
                             let max = Vec2::new(aabr.max.x as f32, aabr.min.y as f32) / cache_dims;
                             (Aabr { min, max }, tex_id)
-                        }
+                        },
                         None => continue,
                     };
 
@@ -491,19 +489,19 @@ impl Ui {
                                 .push(DrawCommand::plain(start..mesh.vertices().len()));
                             start = mesh.vertices().len();
                             current_state = State::Image(tex_id);
-                        }
+                        },
                         // If the image is cached in a different texture switch to the new one
                         State::Image(id) if id != tex_id => {
                             self.draw_commands
                                 .push(DrawCommand::image(start..mesh.vertices().len(), id));
                             start = mesh.vertices().len();
                             current_state = State::Image(tex_id);
-                        }
-                        State::Image(_) => {}
+                        },
+                        State::Image(_) => {},
                     }
 
                     mesh.push_quad(create_ui_quad(gl_aabr, uv_aabr, color, UiMode::Image));
-                }
+                },
                 PrimitiveKind::Text {
                     color,
                     text,
@@ -563,7 +561,7 @@ impl Ui {
                             mesh.push_quad(create_ui_quad(rect, uv, color, UiMode::Text));
                         }
                     }
-                }
+                },
                 PrimitiveKind::Rectangle { color } => {
                     let color = srgba_to_linear(color.to_fsa().into());
                     // Don't draw a transparent rectangle.
@@ -582,9 +580,10 @@ impl Ui {
                         color,
                         UiMode::Geometry,
                     ));
-                }
+                },
                 PrimitiveKind::TrianglesSingleColor { color, triangles } => {
-                    // Don't draw transparent triangle or switch state if there are actually no triangles.
+                    // Don't draw transparent triangle or switch state if there are actually no
+                    // triangles.
                     let color = srgba_to_linear(Rgba::from(Into::<[f32; 4]>::into(color)));
                     if triangles.is_empty() || color[3] == 0.0 {
                         continue;
@@ -610,7 +609,7 @@ impl Ui {
                             UiMode::Geometry,
                         ));
                     }
-                }
+                },
                 PrimitiveKind::Other(container) => {
                     if container.type_id == std::any::TypeId::of::<widgets::ingame::State>() {
                         // Calculate the scale factor to pixels at this 3d point using the camera.
@@ -641,10 +640,10 @@ impl Ui {
                                 self.draw_commands.push(match current_state {
                                     State::Plain => {
                                         DrawCommand::plain(start..mesh.vertices().len())
-                                    }
+                                    },
                                     State::Image(id) => {
                                         DrawCommand::image(start..mesh.vertices().len(), id)
-                                    }
+                                    },
                                 });
                                 start = mesh.vertices().len();
 
@@ -671,9 +670,10 @@ impl Ui {
                             };
                         }
                     }
-                }
-                _ => {} // TODO: Add this.
-                        //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
+                },
+                _ => {}, /* TODO: Add this.
+                          *PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind
+                          * multicolor with id {:?}", id);} */
             }
         }
         // Enter the final command.
@@ -701,7 +701,8 @@ impl Ui {
         self.draw_commands
             .push(DrawCommand::plain(start..mesh.vertices().len()));*/
 
-        // Create a larger dynamic model if the mesh is larger than the current model size.
+        // Create a larger dynamic model if the mesh is larger than the current model
+        // size.
         if self.model.vbuf.len() < mesh.vertices().len() {
             self.model = renderer
                 .create_dynamic_model(mesh.vertices().len() * 4 / 3)
@@ -719,7 +720,8 @@ impl Ui {
 
             // Avoid panic in graphic cache when minimizing.
             // Avoid resetting cache if window size didn't change
-            // Somewhat inefficient for elements that won't change size after a window resize
+            // Somewhat inefficient for elements that won't change size after a window
+            // resize
             let res = renderer.get_resolution();
             self.need_cache_resize = res.x > 0 && res.y > 0 && !(old_w == w && old_h == h);
         }
@@ -733,10 +735,10 @@ impl Ui {
             match draw_command {
                 DrawCommand::Scissor(new_scissor) => {
                     scissor = *new_scissor;
-                }
+                },
                 DrawCommand::WorldPos(index) => {
                     locals = index.map_or(&self.interface_locals, |i| &self.ingame_locals[i]);
-                }
+                },
                 DrawCommand::Draw { kind, verts } => {
                     let tex = match kind {
                         DrawKind::Image(tex_id) => self.cache.graphic_cache().get_tex(*tex_id),
@@ -744,7 +746,7 @@ impl Ui {
                     };
                     let model = self.model.submodel(verts.clone());
                     renderer.render_ui_element(&model, tex, scissor, globals, locals);
-                }
+                },
             }
         }
     }

@@ -5,15 +5,11 @@ use crate::{
     util::{RandomPerm, Sampler, SmallCache, UnitChooser},
     CONFIG,
 };
-use common::assets::Asset;
-use common::{assets, terrain::Structure};
+use common::{assets, assets::Asset, terrain::Structure};
 use lazy_static::lazy_static;
 use ron;
 use serde::Deserialize;
-use std::fs::File;
-use std::io::BufReader;
-use std::sync::Arc;
-use std::u32;
+use std::{fs::File, io::BufReader, sync::Arc, u32};
 use vek::*;
 
 static VOLUME_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
@@ -89,6 +85,7 @@ struct StructuresSpec(Vec<StructureSpec>);
 
 impl Asset for StructuresSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing structure specs"))
     }

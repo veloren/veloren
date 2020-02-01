@@ -43,9 +43,7 @@ impl World {
         }
     }
 
-    pub fn sim(&self) -> &sim::WorldSim {
-        &self.sim
-    }
+    pub fn sim(&self) -> &sim::WorldSim { &self.sim }
 
     pub fn tick(&self, _dt: Duration) {
         // TODO
@@ -57,9 +55,7 @@ impl World {
         ColumnGen::new(&self.sim)
     }
 
-    pub fn sample_blocks(&self) -> BlockGen {
-        BlockGen::new(ColumnGen::new(&self.sim))
-    }
+    pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
 
     pub fn generate_chunk(
         &self,
@@ -92,8 +88,8 @@ impl World {
                         TerrainChunkMeta::void(),
                     ),
                     ChunkSupplement::default(),
-                ))
-            }
+                ));
+            },
         };
 
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
