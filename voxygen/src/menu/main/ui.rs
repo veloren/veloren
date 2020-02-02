@@ -364,16 +364,16 @@ impl MainMenuUi {
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
-                    .label("Add")
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .label_font_size(self.fonts.cyri.scale(15))
+                    .label("Add") // TODO: localize
+                    .label_font_id(self.fonts.cyri)
+                    .label_font_size(15)
                     .label_color(TEXT_COLOR)
                     .set(self.ids.button_add_auth_trust, ui_widgets)
                     .was_clicked()
                 {
                     events.push(Event::AuthServerTrust(auth_server.clone(), true));
                     change_popup = Some(Some(PopupData {
-                        msg: "Connecting...".to_string(),
+                        msg: localized_strings.get("main.connecting").into(),
                         popup_type: PopupType::ConnectionInfo,
                     }));
                 }
