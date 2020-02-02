@@ -28,9 +28,7 @@ impl Meta {
         }
     }
 
-    pub fn add_character(&mut self, data: CharacterData) {
-        self.characters.push(data);
-    }
+    pub fn add_character(&mut self, data: CharacterData) { self.characters.push(data); }
 
     pub fn load() -> Self {
         let path = Self::get_meta_path();
@@ -47,7 +45,7 @@ impl Meta {
                     if let Err(err) = std::fs::rename(path, new_path) {
                         log::warn!("Failed to rename meta file. {}", err);
                     }
-                }
+                },
             }
         }
         // This is reached if either:

@@ -9,51 +9,60 @@ use vek::*;
 pub struct MapConfig {
     /// Dimensions of the window being written to.  Defaults to WORLD_SIZE.
     pub dimensions: Vec2<usize>,
-    /// x, y, and z of top left of map (defaults to (0.0, 0.0, CONFIG.sea_level)).
+    /// x, y, and z of top left of map (defaults to (0.0, 0.0,
+    /// CONFIG.sea_level)).
     pub focus: Vec3<f64>,
-    /// Altitude is divided by gain and clamped to [0, 1]; thus, decreasing gain makes
-    /// smaller differences in altitude appear larger.
+    /// Altitude is divided by gain and clamped to [0, 1]; thus, decreasing gain
+    /// makes smaller differences in altitude appear larger.
     ///
     /// Defaults to CONFIG.mountain_scale.
     pub gain: f32,
-    /// lgain is used for shading purposes and refers to how much impact a change in the z
-    /// direction has on the perceived slope relative to the same change in x and y.
+    /// lgain is used for shading purposes and refers to how much impact a
+    /// change in the z direction has on the perceived slope relative to the
+    /// same change in x and y.
     ///
     /// Defaults to TerrainChunkSize::RECT_SIZE.x.
     pub lgain: f64,
     /// Scale is like gain, but for x and y rather than z.
     ///
-    /// Defaults to WORLD_SIZE.x / dimensions.x (NOTE: fractional, not integer, division!).
+    /// Defaults to WORLD_SIZE.x / dimensions.x (NOTE: fractional, not integer,
+    /// division!).
     pub scale: f64,
-    /// Vector that indicates which direction light is coming from, if shading is turned on.
+    /// Vector that indicates which direction light is coming from, if shading
+    /// is turned on.
     ///
-    /// Right-handed coordinate system: light is going left, down, and "backwards" (i.e. on the
-    /// map, where we translate the y coordinate on the world map to z in the coordinate system,
-    /// the light comes from -y on the map and points towards +y on the map).  In a right
-    /// handed coordinate system, the "camera" points towards -z, so positive z is backwards
-    /// "into" the camera.
+    /// Right-handed coordinate system: light is going left, down, and
+    /// "backwards" (i.e. on the map, where we translate the y coordinate on
+    /// the world map to z in the coordinate system, the light comes from -y
+    /// on the map and points towards +y on the map).  In a right
+    /// handed coordinate system, the "camera" points towards -z, so positive z
+    /// is backwards "into" the camera.
     ///
-    /// "In world space the x-axis will be pointing east, the y-axis up and the z-axis will be pointing south"
+    /// "In world space the x-axis will be pointing east, the y-axis up and the
+    /// z-axis will be pointing south"
     ///
     /// Defaults to (-0.8, -1.0, 0.3).
     pub light_direction: Vec3<f64>,
-    /// If true, only the basement (bedrock) is used for altitude; otherwise, the surface is used.
+    /// If true, only the basement (bedrock) is used for altitude; otherwise,
+    /// the surface is used.
     ///
     /// Defaults to false.
     pub is_basement: bool,
-    /// If true, water is rendered; otherwise, the surface without water is rendered, even if it
-    /// is underwater.
+    /// If true, water is rendered; otherwise, the surface without water is
+    /// rendered, even if it is underwater.
     ///
     /// Defaults to true.
     pub is_water: bool,
-    /// If true, 3D lighting and shading are turned on.  Otherwise, a plain altitude map is used.
+    /// If true, 3D lighting and shading are turned on.  Otherwise, a plain
+    /// altitude map is used.
     ///
     /// Defaults to true.
     pub is_shaded: bool,
-    /// If true, the red component of the image is also used for temperature (redder is hotter).
-    /// Defaults to false.
+    /// If true, the red component of the image is also used for temperature
+    /// (redder is hotter). Defaults to false.
     pub is_temperature: bool,
-    /// If true, the blue component of the image is also used for humidity (bluer is wetter).
+    /// If true, the blue component of the image is also used for humidity
+    /// (bluer is wetter).
     ///
     /// Defaults to false.
     pub is_humidity: bool,
@@ -94,10 +103,11 @@ impl Default for MapConfig {
 }
 
 impl MapConfig {
-    /// Generates a map image using the specified settings.  Note that it will write from left to
-    /// write from (0, 0) to dimensions - 1, inclusive, with 4 1-byte color components provided
-    /// as (r, g, b, a).  It is up to the caller to provide a function that translates this
-    /// information into the correct format for a buffer and writes to it.
+    /// Generates a map image using the specified settings.  Note that it will
+    /// write from left to write from (0, 0) to dimensions - 1, inclusive,
+    /// with 4 1-byte color components provided as (r, g, b, a).  It is up
+    /// to the caller to provide a function that translates this information
+    /// into the correct format for a buffer and writes to it.
     pub fn generate(
         &self,
         sampler: &WorldSim,
@@ -196,8 +206,9 @@ impl MapConfig {
                     (cross_alt - alt) as f64 * lgain,
                     (cross_pos.y - pos.y) as f64,
                 );
-                // Then cross points "to the right" (upwards) on a right-handed coordinate system.
-                // (right-handed coordinate system means (0, 0, 1.0) is "forward" into the screen).
+                // Then cross points "to the right" (upwards) on a right-handed coordinate
+                // system. (right-handed coordinate system means (0, 0, 1.0) is
+                // "forward" into the screen).
                 let surface_normal = forward_vec.cross(up_vec).normalized();
                 let light = (surface_normal.dot(light) + 1.0) / 2.0;
                 let light = (light * 0.9) + 0.1;
@@ -217,14 +228,14 @@ impl MapConfig {
                     match river_kind {
                         Some(RiverKind::River { .. }) => {
                             rivers += 1;
-                        }
+                        },
                         Some(RiverKind::Lake { .. }) => {
                             lakes += 1;
-                        }
+                        },
                         Some(RiverKind::Ocean { .. }) => {
                             oceans += 1;
-                        }
-                        None => {}
+                        },
+                        None => {},
                     }
                 }
 
@@ -258,7 +269,7 @@ impl MapConfig {
                             (b * light * 255.0) as u8,
                             255,
                         )
-                    }
+                    },
                     (Some(RiverKind::Ocean), _) => (
                         0,
                         ((32.0 - water_depth * 32.0) * 1.0) as u8,
@@ -267,7 +278,7 @@ impl MapConfig {
                     ),
                     (Some(RiverKind::River { .. }), _) => {
                         (0, 32 + (alt * 95.0) as u8, 64 + (alt * 191.0) as u8, 255)
-                    }
+                    },
                     (None, _) | (Some(RiverKind::Lake { .. }), _) => (
                         0,
                         (((32.0 + water_alt * 95.0) + (-water_depth * 32.0)) * 1.0) as u8,

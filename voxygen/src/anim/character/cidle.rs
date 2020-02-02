@@ -10,8 +10,8 @@ pub struct Input {
 pub struct CidleAnimation;
 
 impl Animation for CidleAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<Tool>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
@@ -86,7 +86,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Axe) => {
                 next.l_hand.offset = Vec3::new(
                     -6.5 + wave_ultra_slow_cos * 1.0,
@@ -113,7 +113,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_y(-0.25)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Hammer) => {
                 next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27 + wave_ultra_slow * -0.1)
@@ -134,7 +134,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_y(-1.27)
                     * Quaternion::rotation_z(wave_ultra_slow * 0.2);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Staff) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -159,7 +159,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Shield) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -184,7 +184,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Bow) => {
                 next.l_hand.offset = Vec3::new(
                     -1.0 + wave_ultra_slow_cos * 1.0,
@@ -213,7 +213,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_y(0.4)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Dagger) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -234,7 +234,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Debug(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27 + wave_ultra_slow * -0.1)
@@ -255,8 +255,8 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_y(-1.27)
                     * Quaternion::rotation_z(wave_ultra_slow * 0.2);
                 next.main.scale = Vec3::one();
-            }
-            _ => {}
+            },
+            _ => {},
         }
         next.l_foot.offset = Vec3::new(-3.4, -1.5, 8.0 + wave_slow * 0.2);
         next.l_foot.ori = Quaternion::rotation_x(wave_ultra_slow_cos * 0.015);

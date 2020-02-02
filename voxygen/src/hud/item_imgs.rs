@@ -71,6 +71,7 @@ impl ImageSpec {
 struct ItemImagesSpec(HashMap<ItemKey, ImageSpec>);
 impl Asset for ItemImagesSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing item images spec"))
     }
@@ -96,6 +97,7 @@ impl ItemImgs {
             indicator,
         }
     }
+
     /// Checks if the manifest has been changed and reloads the images if so
     /// Reuses img ids
     pub fn reload_if_changed(&mut self, ui: &mut Ui) {
@@ -113,11 +115,12 @@ impl ItemImgs {
                     // Otherwise, generate new id and insert it into our Id -> ItemKey map
                     None => {
                         self.map.insert(kind.clone(), ui.add_graphic(graphic));
-                    }
+                    },
                 }
             }
         }
     }
+
     pub fn img_id(&self, item_kind: ItemKey) -> Option<Id> {
         match self.map.get(&item_kind) {
             Some(id) => Some(*id),
@@ -128,7 +131,7 @@ impl ItemImgs {
                     item_kind
                 );
                 None
-            }
+            },
         }
     }
 }
@@ -145,7 +148,7 @@ fn graceful_load_vox(specifier: &str) -> Arc<DotVoxData> {
                 full_specifier
             );
             assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
-        }
+        },
     }
 }
 fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
@@ -158,6 +161,6 @@ fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
                 full_specifier
             );
             assets::load_expect::<DynamicImage>("voxygen.element.not_found")
-        }
+        },
     }
 }

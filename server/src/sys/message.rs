@@ -105,12 +105,12 @@ impl<'a> System<'a> for Sys {
                         // Use ClientMsg::Register instead.
                         ClientState::Connected => {
                             client.error_state(RequestStateError::WrongMessage)
-                        }
+                        },
                         ClientState::Registered => client.error_state(RequestStateError::Already),
                         ClientState::Spectator | ClientState::Character => {
                             server_emitter.emit(ServerEvent::ExitIngame { entity });
-                        }
-                        ClientState::Pending => {}
+                        },
+                        ClientState::Pending => {},
                     },
                     // Request spectator state
                     ClientMsg::Spectate => match client.client_state {
@@ -119,8 +119,8 @@ impl<'a> System<'a> for Sys {
                         ClientState::Spectator => client.error_state(RequestStateError::Already),
                         ClientState::Registered | ClientState::Character => {
                             client.allow_state(ClientState::Spectator)
-                        }
-                        ClientState::Pending => {}
+                        },
+                        ClientState::Pending => {},
                     },
                     // Valid player
                     ClientMsg::Register { player, password } if player.is_valid() => {
@@ -142,12 +142,12 @@ impl<'a> System<'a> for Sys {
                                 )));
                                 // Add to list to notify all clients of the new player
                                 new_players.push(entity);
-                            }
+                            },
                             // Use RequestState instead (No need to send `player` again).
                             _ => client.error_state(RequestStateError::Impossible),
                         }
                         //client.allow_state(ClientState::Registered);
-                    }
+                    },
                     // Invalid player
                     ClientMsg::Register { .. } => client.error_state(RequestStateError::Impossible),
                     ClientMsg::SetViewDistance(view_distance) => match client.client_state {
@@ -155,8 +155,8 @@ impl<'a> System<'a> for Sys {
                             players
                                 .get_mut(entity)
                                 .map(|player| player.view_distance = Some(view_distance));
-                        }
-                        _ => {}
+                        },
+                        _ => {},
                     },
                     ClientMsg::Character { name, body, main } => match client.client_state {
                         // Become Registered first.
@@ -184,35 +184,35 @@ impl<'a> System<'a> for Sys {
                                 body,
                                 main,
                             });
-                        }
+                        },
                         ClientState::Character => client.error_state(RequestStateError::Already),
-                        ClientState::Pending => {}
+                        ClientState::Pending => {},
                     },
                     ClientMsg::ControllerInputs(inputs) => match client.client_state {
                         ClientState::Connected
                         | ClientState::Registered
                         | ClientState::Spectator => {
                             client.error_state(RequestStateError::Impossible)
-                        }
+                        },
                         ClientState::Character => {
                             if let Some(controller) = controllers.get_mut(entity) {
                                 controller.inputs = inputs;
                             }
-                        }
-                        ClientState::Pending => {}
+                        },
+                        ClientState::Pending => {},
                     },
                     ClientMsg::ControlEvent(event) => match client.client_state {
                         ClientState::Connected
                         | ClientState::Registered
                         | ClientState::Spectator => {
                             client.error_state(RequestStateError::Impossible)
-                        }
+                        },
                         ClientState::Character => {
                             if let Some(controller) = controllers.get_mut(entity) {
                                 controller.events.push(event);
                             }
-                        }
-                        ClientState::Pending => {}
+                        },
+                        ClientState::Pending => {},
                     },
                     ClientMsg::ChatMsg { message } => match client.client_state {
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
@@ -226,7 +226,7 @@ impl<'a> System<'a> for Sys {
                                 message.len()
                             ),
                         },
-                        ClientState::Pending => {}
+                        ClientState::Pending => {},
                     },
                     ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
                         ClientState::Character => {
@@ -237,7 +237,7 @@ impl<'a> System<'a> for Sys {
                                 let _ = velocities.insert(entity, vel);
                                 let _ = orientations.insert(entity, ori);
                             }
-                        }
+                        },
                         // Only characters can send positions.
                         _ => client.error_state(RequestStateError::Impossible),
                     },
@@ -245,16 +245,16 @@ impl<'a> System<'a> for Sys {
                         if can_build.get(entity).is_some() {
                             block_changes.set(pos, Block::empty());
                         }
-                    }
+                    },
                     ClientMsg::PlaceBlock(pos, block) => {
                         if can_build.get(entity).is_some() {
                             block_changes.try_set(pos, block);
                         }
-                    }
+                    },
                     ClientMsg::TerrainChunkRequest { key } => match client.client_state {
                         ClientState::Connected | ClientState::Registered => {
                             client.error_state(RequestStateError::Impossible);
-                        }
+                        },
                         ClientState::Spectator | ClientState::Character => {
                             match terrain.get_key(key) {
                                 Some(chunk) => {
@@ -262,18 +262,18 @@ impl<'a> System<'a> for Sys {
                                         key,
                                         chunk: Ok(Box::new(chunk.clone())),
                                     })
-                                }
+                                },
                                 None => server_emitter.emit(ServerEvent::ChunkRequest(entity, key)),
                             }
-                        }
-                        ClientState::Pending => {}
+                        },
+                        ClientState::Pending => {},
                     },
                     // Always possible.
                     ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
-                    ClientMsg::Pong => {}
+                    ClientMsg::Pong => {},
                     ClientMsg::Disconnect => {
                         disconnect = true;
-                    }
+                    },
                 }
             }
 
@@ -324,7 +324,7 @@ impl<'a> System<'a> for Sys {
                                     } else {
                                         format!("[{}] {}", &player.alias, message)
                                     }
-                                }
+                                },
                                 None => format!("[<Unknown>] {}", message),
                             };
                             let msg = ServerMsg::ChatMsg { chat_type, message };
@@ -338,10 +338,10 @@ impl<'a> System<'a> for Sys {
                             client.notify(msg.clone());
                         }
                     }
-                }
+                },
                 _ => {
                     panic!("Invalid message type.");
-                }
+                },
             }
         }
 

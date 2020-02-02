@@ -48,16 +48,14 @@ pub struct GlobalState {
 }
 
 impl GlobalState {
-    /// Called after a change in play state has occurred (usually used to reverse any temporary
-    /// effects a state may have made).
+    /// Called after a change in play state has occurred (usually used to
+    /// reverse any temporary effects a state may have made).
     pub fn on_play_state_changed(&mut self) {
         self.window.grab_cursor(false);
         self.window.needs_refresh_resize();
     }
 
-    pub fn maintain(&mut self, dt: f32) {
-        self.audio.maintain(dt);
-    }
+    pub fn maintain(&mut self, dt: f32) { self.audio.maintain(dt); }
 }
 
 pub enum Direction {
@@ -65,8 +63,8 @@ pub enum Direction {
     Backwards,
 }
 
-/// States can either close (and revert to a previous state), push a new state on top of themselves,
-/// or switch to a totally different state.
+/// States can either close (and revert to a previous state), push a new state
+/// on top of themselves, or switch to a totally different state.
 pub enum PlayStateResult {
     /// Pop all play states in reverse order and shut down the program.
     Shutdown,
@@ -78,11 +76,11 @@ pub enum PlayStateResult {
     Switch(Box<dyn PlayState>),
 }
 
-/// A trait representing a playable game state. This may be a menu, a game session, the title
-/// screen, etc.
+/// A trait representing a playable game state. This may be a menu, a game
+/// session, the title screen, etc.
 pub trait PlayState {
-    /// Play the state until some change of state is required (i.e: a menu is opened or the game
-    /// is closed).
+    /// Play the state until some change of state is required (i.e: a menu is
+    /// opened or the game is closed).
     fn play(&mut self, direction: Direction, global_state: &mut GlobalState) -> PlayStateResult;
 
     /// Get a descriptive name for this state type.
@@ -102,8 +100,9 @@ fn main() {
         .unwrap_or(log::LevelFilter::Debug);
 
     // Load the settings
-    // Note: This won't log anything due to it being called before ``logging::init``.
-    //       The issue is we need to read a setting to decide whether we create a log file or not.
+    // Note: This won't log anything due to it being called before
+    // ``logging::init``.       The issue is we need to read a setting to decide
+    // whether we create a log file or not.
     let settings = Settings::load();
 
     logging::init(&settings, term_log_level, file_log_level);
@@ -144,7 +143,8 @@ fn main() {
     ))
     .unwrap_or_else(|error| {
         log::warn!(
-            "Impossible to load {} language: change to the default language (English) instead. Source error: {:?}",
+            "Impossible to load {} language: change to the default language (English) instead. \
+             Source error: {:?}",
             &global_state.settings.language.selected_language,
             error
         );
@@ -168,7 +168,7 @@ fn main() {
                     Some(st) => st,
                     None => "Payload is not a string",
                 }
-            }
+            },
         };
         let msg = format!(
             "A critical error has occurred and Voxygen has been forced to \
@@ -236,10 +236,11 @@ fn main() {
 
     // What's going on here?
     // ---------------------
-    // The state system used by Voxygen allows for the easy development of stack-based menus.
-    // For example, you may want a "title" state that can push a "main menu" state on top of it,
-    // which can in turn push a "settings" state or a "game session" state on top of it.
-    // The code below manages the state transfer logic automatically so that we don't have to
+    // The state system used by Voxygen allows for the easy development of
+    // stack-based menus. For example, you may want a "title" state that can
+    // push a "main menu" state on top of it, which can in turn push a
+    // "settings" state or a "game session" state on top of it. The code below
+    // manages the state transfer logic automatically so that we don't have to
     // re-engineer it for each menu we decide to add to the game.
     let mut direction = Direction::Forwards;
     while let Some(state_result) = states
@@ -257,20 +258,20 @@ fn main() {
                         global_state.on_play_state_changed();
                     });
                 }
-            }
+            },
             PlayStateResult::Pop => {
                 direction = Direction::Backwards;
                 states.pop().map(|old_state| {
                     debug!("Popped state '{}'.", old_state.name());
                     global_state.on_play_state_changed();
                 });
-            }
+            },
             PlayStateResult::Push(new_state) => {
                 direction = Direction::Forwards;
                 debug!("Pushed state '{}'.", new_state.name());
                 states.push(new_state);
                 global_state.on_play_state_changed();
-            }
+            },
             PlayStateResult::Switch(mut new_state) => {
                 direction = Direction::Forwards;
                 states.last_mut().map(|old_state| {
@@ -282,7 +283,7 @@ fn main() {
                     mem::swap(old_state, &mut new_state);
                     global_state.on_play_state_changed();
                 });
-            }
+            },
         }
     }
 

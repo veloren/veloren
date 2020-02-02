@@ -7,8 +7,8 @@ use vek::*;
 pub struct WieldAnimation;
 
 impl Animation for WieldAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<Tool>, f32, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
@@ -45,7 +45,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Axe) => {
                 next.l_hand.offset = Vec3::new(-6.5, -0.5, 6.0);
                 next.l_hand.ori = Quaternion::rotation_x(0.13) * Quaternion::rotation_z(-0.25);
@@ -64,7 +64,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-0.25)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Hammer) => {
                 next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27 + wave * 0.25)
@@ -85,7 +85,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-1.27)
                     * Quaternion::rotation_z(wave * -0.25);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Staff) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -110,7 +110,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Shield) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
@@ -127,7 +127,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Bow) => {
                 next.l_hand.offset = Vec3::new(
                     -1.0 - wave_ultra_slow_cos * 1.0,
@@ -156,7 +156,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(0.4)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Dagger) => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
@@ -173,7 +173,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(Tool::Debug(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27 + wave * 0.25)
@@ -194,8 +194,8 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-1.27)
                     * Quaternion::rotation_z(wave * -0.25);
                 next.main.scale = Vec3::one();
-            }
-            _ => {}
+            },
+            _ => {},
         }
         next.torso.offset = Vec3::new(0.0, 0.3 + wave * -0.08, 0.4) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(wave_stop * -0.2);

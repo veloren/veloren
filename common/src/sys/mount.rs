@@ -38,7 +38,7 @@ impl<'a> System<'a> for Sys {
         // Mounted entities.
         for (entity, mut mount_states) in (&entities, &mut mount_state.restrict_mut()).join() {
             match mount_states.get_unchecked() {
-                MountState::Unmounted => {}
+                MountState::Unmounted => {},
                 MountState::MountedBy(mounter_uid) => {
                     // Note: currently controller events are not passed through since none of them
                     // are currently relevant to controlling the mounted entity
@@ -68,7 +68,7 @@ impl<'a> System<'a> for Sys {
                     } else {
                         *(mount_states.get_mut_unchecked()) = MountState::Unmounted;
                     }
-                }
+                },
             }
         }
 

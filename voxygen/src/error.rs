@@ -16,13 +16,9 @@ pub enum Error {
 }
 
 impl From<RenderError> for Error {
-    fn from(err: RenderError) -> Self {
-        Error::RenderError(err)
-    }
+    fn from(err: RenderError) -> Self { Error::RenderError(err) }
 }
 
 impl From<client::Error> for Error {
-    fn from(err: client::Error) -> Self {
-        Error::ClientError(err)
-    }
+    fn from(err: client::Error) -> Self { Error::ClientError(err) }
 }

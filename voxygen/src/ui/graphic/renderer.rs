@@ -58,9 +58,9 @@ impl Vert {
 }
 
 impl<'a> Pipeline for Voxel {
+    type Pixel = [u8; 4];
     type Vertex = Vert;
     type VsOut = Rgba<f32>;
-    type Pixel = [u8; 4];
 
     #[inline(always)]
     fn vert(
@@ -77,6 +77,7 @@ impl<'a> Pipeline for Voxel {
         let position = (self.mvp * Vec4::from_point(*pos)).xyz().into_array();
         (position, color)
     }
+
     #[inline(always)]
     fn frag(&self, color: &Self::VsOut) -> Self::Pixel {
         linear_to_srgba(*color)
@@ -102,7 +103,7 @@ pub fn draw_vox(
         SampleStrat::None => output_size,
         SampleStrat::SuperSampling(min_samples) => {
             output_size * (min_samples as f32).sqrt().ceil() as usize
-        }
+        },
         // Assumes
         //  - rotations are multiples of 90 degrees
         //  - the projection is orthographic

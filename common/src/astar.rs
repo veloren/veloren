@@ -1,10 +1,7 @@
 use crate::path::Path;
 use core::cmp::Ordering::Equal;
 use hashbrown::{HashMap, HashSet};
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
-use std::f32;
-use std::hash::Hash;
+use std::{cmp::Ordering, collections::BinaryHeap, f32, hash::Hash};
 
 #[derive(Copy, Clone, Debug)]
 pub struct PathEntry<S> {
@@ -13,9 +10,7 @@ pub struct PathEntry<S> {
 }
 
 impl<S: Eq> PartialEq for PathEntry<S> {
-    fn eq(&self, other: &PathEntry<S>) -> bool {
-        self.node.eq(&other.node)
-    }
+    fn eq(&self, other: &PathEntry<S>) -> bool { self.node.eq(&other.node) }
 }
 
 impl<S: Eq> Eq for PathEntry<S> {}
@@ -29,9 +24,7 @@ impl<S: Eq> Ord for PathEntry<S> {
 }
 
 impl<S: Eq> PartialOrd for PathEntry<S> {
-    fn partial_cmp(&self, other: &PathEntry<S>) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+    fn partial_cmp(&self, other: &PathEntry<S>) -> Option<Ordering> { Some(self.cmp(other)) }
 }
 
 pub enum PathResult<T> {

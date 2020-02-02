@@ -10,7 +10,8 @@ pub enum ScaleMode {
     // Use the dpi factor provided by the windowing system (i.e. use logical size).
     DpiFactor,
     // Scale based on the window's physical size, but maintain aspect ratio of widgets.
-    // Contains width and height of the "default" window size (ie where there should be no scaling).
+    // Contains width and height of the "default" window size (ie where there should be no
+    // scaling).
     RelativeToWindow(Vec2<f64>),
 }
 
@@ -33,44 +34,47 @@ impl Scale {
             window_dims,
         }
     }
+
     // Change the scaling mode.
-    pub fn set_scaling_mode(&mut self, mode: ScaleMode) {
-        self.mode = mode;
-    }
+    pub fn set_scaling_mode(&mut self, mode: ScaleMode) { self.mode = mode; }
+
     // Get scaling mode transformed into absolute scaling
     pub fn scaling_mode_as_absolute(&self) -> ScaleMode {
         ScaleMode::Absolute(self.scale_factor_physical())
     }
-    // Get scaling mode transformed to be relative to the window with the same aspect ratio as the current window
+
+    // Get scaling mode transformed to be relative to the window with the same
+    // aspect ratio as the current window
     pub fn scaling_mode_as_relative(&self) -> ScaleMode {
         let scale = self.scale_factor_logical();
         ScaleMode::RelativeToWindow(self.window_dims.map(|e| e / scale))
     }
-    // Calculate factor to transform between logical coordinates and our scaled coordinates.
+
+    // Calculate factor to transform between logical coordinates and our scaled
+    // coordinates.
     pub fn scale_factor_logical(&self) -> f64 {
         match self.mode {
             ScaleMode::Absolute(scale) => scale / self.dpi_factor,
             ScaleMode::DpiFactor => 1.0,
             ScaleMode::RelativeToWindow(dims) => {
                 (self.window_dims.x / dims.x).min(self.window_dims.y / dims.y)
-            }
+            },
         }
     }
-    // Calculate factor to transform between physical coordinates and our scaled coordinates.
-    pub fn scale_factor_physical(&self) -> f64 {
-        self.scale_factor_logical() * self.dpi_factor
-    }
+
+    // Calculate factor to transform between physical coordinates and our scaled
+    // coordinates.
+    pub fn scale_factor_physical(&self) -> f64 { self.scale_factor_logical() * self.dpi_factor }
+
     // Updates internal window size (and/or dpi_factor).
     pub fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) {
         self.dpi_factor = renderer.get_resolution().x as f64 / new_dims.x;
         self.window_dims = new_dims;
     }
+
     // Get scaled window size.
-    pub fn scaled_window_size(&self) -> Vec2<f64> {
-        self.window_dims / self.scale_factor_logical()
-    }
+    pub fn scaled_window_size(&self) -> Vec2<f64> { self.window_dims / self.scale_factor_logical() }
+
     // Transform point from logical to scaled coordinates.
-    pub fn scale_point(&self, point: Vec2<f64>) -> Vec2<f64> {
-        point / self.scale_factor_logical()
-    }
+    pub fn scale_point(&self, point: Vec2<f64>) -> Vec2<f64> { point / self.scale_factor_logical() }
 }

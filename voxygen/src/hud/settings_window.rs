@@ -225,9 +225,9 @@ pub enum ScaleChange {
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
+    type Event = Vec<Event>;
     type State = State;
     type Style = ();
-    type Event = Vec<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -235,9 +235,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -757,10 +755,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 match self.global_state.settings.gameplay.shortcut_numbers {
                     ShortcutNumbers::On => {
                         events.push(Event::ToggleShortcutNumbers(ShortcutNumbers::Off))
-                    }
+                    },
                     ShortcutNumbers::Off => {
                         events.push(Event::ToggleShortcutNumbers(ShortcutNumbers::On))
-                    }
+                    },
                 }
             }
             Text::new(&self.localized_strings.get("hud.settings.toggle_shortcuts"))
@@ -1287,7 +1285,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.cyri)
                 .font_size(18)
                 .set(state.ids.controls_text, ui);
-            // TODO: Replace with buttons that show actual keybinds and allow the user to change them.
+            // TODO: Replace with buttons that show actual keybinds and allow the user to
+            // change them.
+            #[rustfmt::skip]
             Text::new(&format!(
                 "{}\n\
                  {}\n\

@@ -1,6 +1,5 @@
 mod client_init;
-#[cfg(feature = "singleplayer")]
-mod ui;
+#[cfg(feature = "singleplayer")] mod ui;
 
 use super::char_selection::CharSelectionState;
 use crate::{
@@ -62,9 +61,9 @@ impl PlayState for MainMenuState {
                     // Pass events to ui.
                     Event::Ui(event) => {
                         self.main_menu_ui.handle_event(event);
-                    }
+                    },
                     // Ignore all other events.
-                    _ => {}
+                    _ => {},
                 }
             }
 
@@ -80,7 +79,7 @@ impl PlayState for MainMenuState {
                         global_state,
                         std::rc::Rc::new(std::cell::RefCell::new(client)),
                     )));
-                }
+                },
                 Some(Err(err)) => {
                     client_init = None;
                     global_state.info_message = Some(
@@ -93,8 +92,8 @@ impl PlayState for MainMenuState {
                         }
                         .to_string(),
                     );
-                }
-                None => {}
+                },
+                None => {},
             }
 
             // Maintain global_state
@@ -119,15 +118,15 @@ impl PlayState for MainMenuState {
                             DEFAULT_PORT,
                             &mut client_init,
                         );
-                    }
+                    },
                     MainMenuEvent::CancelLoginAttempt => {
-                        // client_init contains Some(ClientInit), which spawns a thread which contains a TcpStream::connect() call
-                        // This call is blocking
-                        // TODO fix when the network rework happens
+                        // client_init contains Some(ClientInit), which spawns a thread which
+                        // contains a TcpStream::connect() call This call is
+                        // blocking TODO fix when the network rework happens
                         self.singleplayer = None;
                         client_init = None;
                         self.main_menu_ui.cancel_connection();
-                    }
+                    },
                     #[cfg(feature = "singleplayer")]
                     MainMenuEvent::StartSingleplayer => {
                         let (singleplayer, server_settings) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
@@ -142,12 +141,12 @@ impl PlayState for MainMenuState {
                             server_settings.gameserver_address.port(),
                             &mut client_init,
                         );
-                    }
-                    MainMenuEvent::Settings => {} // TODO
+                    },
+                    MainMenuEvent::Settings => {}, // TODO
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                     MainMenuEvent::DisclaimerClosed => {
                         global_state.settings.show_disclaimer = false
-                    }
+                    },
                 }
             }
             let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
@@ -176,9 +175,7 @@ impl PlayState for MainMenuState {
         }
     }
 
-    fn name(&self) -> &'static str {
-        "Title"
-    }
+    fn name(&self) -> &'static str { "Title" }
 }
 
 fn attempt_login(

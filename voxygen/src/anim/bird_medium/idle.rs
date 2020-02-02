@@ -5,8 +5,8 @@ use vek::*;
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Skeleton = BirdMediumSkeleton;
     type Dependency = f64;
+    type Skeleton = BirdMediumSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

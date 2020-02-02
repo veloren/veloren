@@ -10,21 +10,15 @@ use std::{collections::HashMap, fmt, u64};
 pub struct Uid(pub u64);
 
 impl Into<u64> for Uid {
-    fn into(self) -> u64 {
-        self.0
-    }
+    fn into(self) -> u64 { self.0 }
 }
 
 impl From<u64> for Uid {
-    fn from(uid: u64) -> Self {
-        Self(uid)
-    }
+    fn from(uid: u64) -> Self { Self(uid) }
 }
 
 impl fmt::Display for Uid {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
 impl Component for Uid {
@@ -32,12 +26,10 @@ impl Component for Uid {
 }
 
 impl Marker for Uid {
-    type Identifier = u64;
     type Allocator = UidAllocator;
+    type Identifier = u64;
 
-    fn id(&self) -> u64 {
-        self.0
-    }
+    fn id(&self) -> u64 { self.0 }
 
     fn update(&mut self, update: Self) {
         assert_eq!(self.0, update.0);
@@ -56,16 +48,14 @@ impl UidAllocator {
             mapping: HashMap::new(),
         }
     }
-    // Useful for when a single entity is deleted because it doesn't reconstruct the entire hashmap
-    pub fn remove_entity(&mut self, id: u64) -> Option<Entity> {
-        self.mapping.remove(&id)
-    }
+
+    // Useful for when a single entity is deleted because it doesn't reconstruct the
+    // entire hashmap
+    pub fn remove_entity(&mut self, id: u64) -> Option<Entity> { self.mapping.remove(&id) }
 }
 
 impl Default for UidAllocator {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl MarkerAllocator<Uid> for UidAllocator {
@@ -79,9 +69,7 @@ impl MarkerAllocator<Uid> for UidAllocator {
         Uid(id)
     }
 
-    fn retrieve_entity_internal(&self, id: u64) -> Option<Entity> {
-        self.mapping.get(&id).copied()
-    }
+    fn retrieve_entity_internal(&self, id: u64) -> Option<Entity> { self.mapping.get(&id).copied() }
 
     fn maintain(&mut self, entities: &EntitiesRes, storage: &ReadStorage<Uid>) {
         self.mapping = (entities, storage)

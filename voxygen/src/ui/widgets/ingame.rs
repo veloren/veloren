@@ -21,9 +21,7 @@ pub trait Ingameable: Widget + Sized {
             .graphics_for(ui.window)
             .set(id, ui)
     }
-    fn position_ingame(self, pos: Vec3<f32>) -> Ingame<Self> {
-        Ingame::new(pos, self)
-    }
+    fn position_ingame(self, pos: Vec3<f32>) -> Ingame<Self> { Ingame::new(pos, self) }
 }
 
 pub trait PrimitiveMarker {}
@@ -41,16 +39,15 @@ impl<P> Ingameable for P
 where
     P: Widget + PrimitiveMarker,
 {
-    fn prim_count(&self) -> usize {
-        1
-    }
+    fn prim_count(&self) -> usize { 1 }
 }
 
 // All ingame widgets are now fixed scale
 #[derive(Copy, Clone, PartialEq)]
 pub struct IngameParameters {
     // Number of primitive widgets to position in the game at the specified position
-    // Note this could be more than the number of widgets in the widgets field since widgets can contain widgets
+    // Note this could be more than the number of widgets in the widgets field since widgets can
+    // contain widgets
     pub num: usize,
     pub pos: Vec3<f32>,
     pub dims: Vec2<f32>,
@@ -75,9 +72,9 @@ impl<W: Ingameable> Ingame<W> {
 }
 
 impl<W: Ingameable> Widget for Ingame<W> {
+    type Event = W::Event;
     type State = State;
     type Style = Style;
-    type Event = W::Event;
 
     fn init_state(&self, mut id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -90,9 +87,7 @@ impl<W: Ingameable> Widget for Ingame<W> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -119,10 +114,7 @@ impl<W: Ingameable> Widget for Ingame<W> {
         widget.set_ingame(state.id.unwrap(), ui)
     }
 
-    fn default_x_position(&self, _: &Ui) -> Position {
-        Position::Absolute(0.0)
-    }
-    fn default_y_position(&self, _: &Ui) -> Position {
-        Position::Absolute(0.0)
-    }
+    fn default_x_position(&self, _: &Ui) -> Position { Position::Absolute(0.0) }
+
+    fn default_y_position(&self, _: &Ui) -> Position { Position::Absolute(0.0) }
 }
