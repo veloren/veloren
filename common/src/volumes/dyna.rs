@@ -34,8 +34,8 @@ impl<V: Vox, M: Clone, A: Access> Clone for Dyna<V, M, A> {
 }
 
 impl<V: Vox, M, A: Access> Dyna<V, M, A> {
-    /// Used to transform a voxel position in the volume into its corresponding index
-    /// in the voxel array.
+    /// Used to transform a voxel position in the volume into its corresponding
+    /// index in the voxel array.
     #[inline(always)]
     fn idx_for(sz: Vec3<u32>, pos: Vec3<i32>) -> Option<usize> {
         if pos.map(|e| e >= 0).reduce_and() && pos.map2(sz, |e, lim| e < lim as i32).reduce_and() {
@@ -47,20 +47,16 @@ impl<V: Vox, M, A: Access> Dyna<V, M, A> {
 }
 
 impl<V: Vox, M, A: Access> BaseVol for Dyna<V, M, A> {
-    type Vox = V;
     type Error = DynaError;
+    type Vox = V;
 }
 
 impl<V: Vox, M, A: Access> SizedVol for Dyna<V, M, A> {
     #[inline(always)]
-    fn lower_bound(&self) -> Vec3<i32> {
-        Vec3::zero()
-    }
+    fn lower_bound(&self) -> Vec3<i32> { Vec3::zero() }
 
     #[inline(always)]
-    fn upper_bound(&self) -> Vec3<i32> {
-        self.sz.map(|e| e as i32)
-    }
+    fn upper_bound(&self) -> Vec3<i32> { self.sz.map(|e| e as i32) }
 }
 
 impl<V: Vox, M, A: Access> ReadVol for Dyna<V, M, A> {
@@ -99,8 +95,8 @@ impl<'a, V: Vox, M, A: Access> IntoVolIterator<'a> for &'a Dyna<V, M, A> {
 }
 
 impl<V: Vox + Clone, M, A: Access> Dyna<V, M, A> {
-    /// Create a new `Dyna` with the provided dimensions and all voxels filled with duplicates of
-    /// the provided voxel.
+    /// Create a new `Dyna` with the provided dimensions and all voxels filled
+    /// with duplicates of the provided voxel.
     pub fn filled(sz: Vec3<u32>, vox: V, meta: M) -> Self {
         Self {
             vox: vec![vox; sz.product() as usize],
@@ -111,14 +107,10 @@ impl<V: Vox + Clone, M, A: Access> Dyna<V, M, A> {
     }
 
     /// Get a reference to the internal metadata.
-    pub fn metadata(&self) -> &M {
-        &self.meta
-    }
+    pub fn metadata(&self) -> &M { &self.meta }
 
     /// Get a mutable reference to the internal metadata.
-    pub fn metadata_mut(&mut self) -> &mut M {
-        &mut self.meta
-    }
+    pub fn metadata_mut(&mut self) -> &mut M { &mut self.meta }
 }
 
 pub trait Access {

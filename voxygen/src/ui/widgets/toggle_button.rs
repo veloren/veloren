@@ -77,9 +77,9 @@ impl ToggleButton {
 }
 
 impl Widget for ToggleButton {
+    type Event = bool;
     type State = State;
     type Style = ();
-    type Event = bool;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -87,9 +87,7 @@ impl Widget for ToggleButton {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
@@ -106,9 +104,9 @@ impl Widget for ToggleButton {
             ..
         } = self;
         // Check if the button was clicked.
-        // (Can't use `.set().was_clicked()` because we are changing the image after setting the
-        // widget, which causes flickering since it takes a frame to change after the mouse button
-        // is lifted).
+        // (Can't use `.set().was_clicked()` because we are changing the image after
+        // setting the widget, which causes flickering since it takes a frame to
+        // change after the mouse button is lifted).
         if ui.widget_input(state.ids.button).clicks().left().count() % 2 == 1 {
             value = !value;
         }

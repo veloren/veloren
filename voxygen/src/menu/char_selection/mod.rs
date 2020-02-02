@@ -1,10 +1,11 @@
 mod scene;
 mod ui;
 
-use crate::i18n::{i18n_asset_key, VoxygenLocalization};
 use crate::{
-    session::SessionState, window::Event as WinEvent, Direction, GlobalState, PlayState,
-    PlayStateResult,
+    i18n::{i18n_asset_key, VoxygenLocalization},
+    session::SessionState,
+    window::Event as WinEvent,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
 use common::{assets, clock::Clock, comp, msg::ClientState};
@@ -45,11 +46,11 @@ impl PlayState for CharSelectionState {
                 match event {
                     WinEvent::Close => {
                         return PlayStateResult::Shutdown;
-                    }
+                    },
                     // Pass all other events to the scene
                     event => {
                         self.scene.handle_input_event(event);
-                    } // TODO: Do something if the event wasn't handled?
+                    }, // TODO: Do something if the event wasn't handled?
                 }
             }
 
@@ -63,7 +64,7 @@ impl PlayState for CharSelectionState {
                 match event {
                     ui::Event::Logout => {
                         return PlayStateResult::Pop;
-                    }
+                    },
                     ui::Event::Play => {
                         let char_data = self
                             .char_selection_ui
@@ -78,7 +79,7 @@ impl PlayState for CharSelectionState {
                             global_state,
                             self.client.clone(),
                         )));
-                    }
+                    },
                 }
             }
 
@@ -155,7 +156,5 @@ impl PlayState for CharSelectionState {
         PlayStateResult::Pop
     }
 
-    fn name(&self) -> &'static str {
-        "Title"
-    }
+    fn name(&self) -> &'static str { "Title" }
 }

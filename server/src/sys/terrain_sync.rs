@@ -8,7 +8,8 @@ use common::{
 };
 use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 
-/// This system will handle loading generated chunks and unloading uneeded chunks.
+/// This system will handle loading generated chunks and unloading
+/// uneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
 ///     2. Sends new chunks to neaby clients
 ///     3. Handles the chunk's supplement (e.g. npcs)

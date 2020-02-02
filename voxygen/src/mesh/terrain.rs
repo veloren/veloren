@@ -203,8 +203,8 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
     for VolGrid2d<V>
 {
     type Pipeline = TerrainPipeline;
-    type TranslucentPipeline = FluidPipeline;
     type Supplement = Aabb<i32>;
+    type TranslucentPipeline = FluidPipeline;
 
     fn generate_mesh(
         &self,
@@ -377,23 +377,11 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             |pos, norm, col, ao, light| {
                                 let light = (light.min(ao) * 255.0) as u32;
                                 let norm = if norm.x != 0.0 {
-                                    if norm.x < 0.0 {
-                                        0
-                                    } else {
-                                        1
-                                    }
+                                    if norm.x < 0.0 { 0 } else { 1 }
                                 } else if norm.y != 0.0 {
-                                    if norm.y < 0.0 {
-                                        2
-                                    } else {
-                                        3
-                                    }
+                                    if norm.y < 0.0 { 2 } else { 3 }
                                 } else {
-                                    if norm.z < 0.0 {
-                                        4
-                                    } else {
-                                        5
-                                    }
+                                    if norm.z < 0.0 { 4 } else { 5 }
                                 };
                                 TerrainVertex::new(norm, light, pos, col)
                             },

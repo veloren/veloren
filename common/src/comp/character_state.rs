@@ -101,10 +101,12 @@ impl CharacterState {
         // Check if enum item is the same without looking at the inner data
         std::mem::discriminant(&self.movement) == std::mem::discriminant(&other.movement)
     }
+
     pub fn is_same_action(&self, other: &Self) -> bool {
         // Check if enum item is the same without looking at the inner data
         std::mem::discriminant(&self.action) == std::mem::discriminant(&other.action)
     }
+
     pub fn is_same_state(&self, other: &Self) -> bool {
         self.is_same_movement(other) && self.is_same_action(other)
     }

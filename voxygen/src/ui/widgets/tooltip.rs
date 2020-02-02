@@ -44,6 +44,7 @@ impl TooltipManager {
             logical_scale_factor,
         }
     }
+
     pub fn maintain(&mut self, input: &Global, logical_scale_factor: f64) {
         self.logical_scale_factor = logical_scale_factor;
 
@@ -55,25 +56,25 @@ impl TooltipManager {
                 HoverState::Hovering(hover) => {
                     self.state =
                         HoverState::Fading(Instant::now(), hover, Some((Instant::now(), um_id)))
-                }
+                },
                 HoverState::Fading(_, _, Some((_, id)))
-                    if um_id == id || um_id == self.tooltip_id => {}
+                    if um_id == id || um_id == self.tooltip_id => {},
                 HoverState::Fading(start, hover, _) => {
                     self.state = HoverState::Fading(start, hover, Some((Instant::now(), um_id)))
-                }
+                },
                 HoverState::Start(_, id) if um_id == id || um_id == self.tooltip_id => (),
                 HoverState::Start(_, _) | HoverState::None => {
                     self.state = HoverState::Start(Instant::now(), um_id)
-                }
+                },
             }
         } else {
             match self.state {
                 HoverState::Hovering(hover) => {
                     self.state = HoverState::Fading(Instant::now(), hover, None)
-                }
+                },
                 HoverState::Fading(start, hover, Some((_, _))) => {
                     self.state = HoverState::Fading(start, hover, None)
-                }
+                },
                 HoverState::Start(_, _) => self.state = HoverState::None,
                 HoverState::Fading(_, _, None) | HoverState::None => (),
             }
@@ -89,6 +90,7 @@ impl TooltipManager {
             }
         }
     }
+
     fn set_tooltip(
         &mut self,
         tooltip: &Tooltip,
@@ -103,7 +105,8 @@ impl TooltipManager {
         let mp_h = MOUSE_PAD_Y / self.logical_scale_factor;
 
         let tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
-            // Fill in text and the potential image beforehand to get an accurate size for spacing
+            // Fill in text and the potential image beforehand to get an accurate size for
+            // spacing
             let tooltip = tooltip
                 .clone()
                 .title(title_text)
@@ -138,7 +141,7 @@ impl TooltipManager {
                 let xy = ui.global_input().current.mouse.xy;
                 self.state = HoverState::Hovering(Hover(id, xy));
                 tooltip(1.0, xy, ui);
-            }
+            },
             _ => (),
         }
     }
@@ -158,10 +161,12 @@ impl<'a, W: Widget> Tooltipped<'a, W> {
         self.img_id = Some(img_id);
         self
     }
+
     pub fn tooltip_image_dims(mut self, dims: (f64, f64)) -> Self {
         self.image_dims = Some(dims);
         self
     }
+
     pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event {
         let event = self.inner.set(id, ui);
         self.tooltip_manager.set_tooltip(
@@ -257,6 +262,20 @@ pub struct State {
 }
 
 impl<'a> Tooltip<'a> {
+    builder_methods! {
+        pub title_text_color { style.title.color = Some(Color) }
+        pub desc_text_color { style.desc.color = Some(Color) }
+        pub title_font_size { style.title.font_size = Some(FontSize) }
+        pub desc_font_size { style.desc.font_size = Some(FontSize) }
+        pub title_justify { style.title.justify = Some(text::Justify) }
+        pub desc_justify { style.desc.justify = Some(text::Justify) }
+        image { image = Option<image::Id> }
+        title { title_text = &'a str }
+        desc { desc_text = &'a str }
+        image_dims { image_dims = Option<(f64, f64)> }
+        transparency { transparency = f32 }
+    }
+
     pub fn new(image_frame: ImageFrame) -> Self {
         Tooltip {
             common: widget::CommonBuilder::default(),
@@ -314,26 +333,12 @@ impl<'a> Tooltip<'a> {
         self.style.desc.font_id = Some(Some(font_id));
         self
     }
-
-    builder_methods! {
-        pub title_text_color { style.title.color = Some(Color) }
-        pub desc_text_color { style.desc.color = Some(Color) }
-        pub title_font_size { style.title.font_size = Some(FontSize) }
-        pub desc_font_size { style.desc.font_size = Some(FontSize) }
-        pub title_justify { style.title.justify = Some(text::Justify) }
-        pub desc_justify { style.desc.justify = Some(text::Justify) }
-        image { image = Option<image::Id> }
-        title { title_text = &'a str }
-        desc { desc_text = &'a str }
-        image_dims { image_dims = Option<(f64, f64)> }
-        transparency { transparency = f32 }
-    }
 }
 
 impl<'a> Widget for Tooltip<'a> {
+    type Event = ();
     type State = State;
     type Style = Style;
-    type Event = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -341,9 +346,7 @@ impl<'a> Widget for Tooltip<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        self.style.clone()
-    }
+    fn style(&self) -> Self::Style { self.style.clone() }
 
     fn update(self, args: widget::UpdateArgs<Self>) {
         let widget::UpdateArgs {
@@ -427,7 +430,8 @@ impl<'a> Widget for Tooltip<'a> {
         .set(state.ids.desc, ui);
     }
 
-    /// Default width is based on the description font size unless the text is small enough to fit on a single line
+    /// Default width is based on the description font size unless the text is
+    /// small enough to fit on a single line
     fn default_x_dimension(&self, ui: &Ui) -> Dimension {
         let single_line_title_w = widget::Text::new(self.title_text)
             .with_style(self.style.title)

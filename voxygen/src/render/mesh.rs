@@ -8,24 +8,16 @@ pub struct Mesh<P: Pipeline> {
 
 impl<P: Pipeline> Mesh<P> {
     /// Create a new `Mesh`.
-    pub fn new() -> Self {
-        Self { verts: vec![] }
-    }
+    pub fn new() -> Self { Self { verts: vec![] } }
 
     /// Clear vertices, allows reusing allocated memory of the underlying Vec.
-    pub fn clear(&mut self) {
-        self.verts.clear();
-    }
+    pub fn clear(&mut self) { self.verts.clear(); }
 
     /// Get a slice referencing the vertices of this mesh.
-    pub fn vertices(&self) -> &[P::Vertex] {
-        &self.verts
-    }
+    pub fn vertices(&self) -> &[P::Vertex] { &self.verts }
 
     /// Push a new vertex onto the end of this mesh.
-    pub fn push(&mut self, vert: P::Vertex) {
-        self.verts.push(vert);
-    }
+    pub fn push(&mut self, vert: P::Vertex) { self.verts.push(vert); }
 
     /// Push a new polygon onto the end of this mesh.
     pub fn push_tri(&mut self, tri: Tri<P>) {
@@ -36,7 +28,8 @@ impl<P: Pipeline> Mesh<P> {
 
     /// Push a new quad onto the end of this mesh.
     pub fn push_quad(&mut self, quad: Quad<P>) {
-        // A quad is composed of two triangles. The code below converts the former to the latter.
+        // A quad is composed of two triangles. The code below converts the former to
+        // the latter.
 
         // Tri 1
         self.verts.push(quad.a.clone());
@@ -50,14 +43,12 @@ impl<P: Pipeline> Mesh<P> {
     }
 
     /// Push the vertices of another mesh onto the end of this mesh.
-    pub fn push_mesh(&mut self, other: &Mesh<P>) {
-        self.verts.extend_from_slice(other.vertices());
-    }
+    pub fn push_mesh(&mut self, other: &Mesh<P>) { self.verts.extend_from_slice(other.vertices()); }
 
     /// Map and push the vertices of another mesh onto the end of this mesh.
     pub fn push_mesh_map<F: FnMut(P::Vertex) -> P::Vertex>(&mut self, other: &Mesh<P>, mut f: F) {
-        // Reserve enough space in our Vec. This isn't necessary, but it tends to reduce the number
-        // of required (re)allocations.
+        // Reserve enough space in our Vec. This isn't necessary, but it tends to reduce
+        // the number of required (re)allocations.
         self.verts.reserve(other.vertices().len());
 
         for vert in other.vertices() {
@@ -74,9 +65,7 @@ pub struct Tri<P: Pipeline> {
 }
 
 impl<P: Pipeline> Tri<P> {
-    pub fn new(a: P::Vertex, b: P::Vertex, c: P::Vertex) -> Self {
-        Self { a, b, c }
-    }
+    pub fn new(a: P::Vertex, b: P::Vertex, c: P::Vertex) -> Self { Self { a, b, c } }
 }
 
 /// Represents a quad stored on the CPU.

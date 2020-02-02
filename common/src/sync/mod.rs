@@ -1,4 +1,5 @@
-// Note: Currently only one-way sync is supported until a usecase for two-way sync arises
+// Note: Currently only one-way sync is supported until a usecase for two-way
+// sync arises
 mod packet;
 mod sync_ext;
 mod track;

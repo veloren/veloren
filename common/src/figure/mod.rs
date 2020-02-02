@@ -2,8 +2,7 @@ pub mod cell;
 pub mod mat_cell;
 pub use mat_cell::Material;
 
-use self::cell::Cell;
-use self::mat_cell::MatCell;
+use self::{cell::Cell, mat_cell::MatCell};
 use crate::{
     vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::Dyna,
@@ -60,6 +59,7 @@ impl Segment {
 
         self
     }
+
     /// Transform cell colors
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
         self.map(|cell| cell.get_color().map(|rgb| Cell::new(transform(rgb))))
@@ -71,19 +71,20 @@ impl Segment {
 pub struct DynaUnionizer<V: Vox>(Vec<(Dyna<V, ()>, Vec3<i32>)>);
 
 impl<V: Vox + Copy> DynaUnionizer<V> {
-    pub fn new() -> Self {
-        DynaUnionizer(Vec::new())
-    }
+    pub fn new() -> Self { DynaUnionizer(Vec::new()) }
+
     pub fn add(mut self, dyna: Dyna<V, ()>, offset: Vec3<i32>) -> Self {
         self.0.push((dyna, offset));
         self
     }
+
     pub fn maybe_add(self, maybe: Option<(Dyna<V, ()>, Vec3<i32>)>) -> Self {
         match maybe {
             Some((dyna, offset)) => self.add(dyna, offset),
             None => self,
         }
     }
+
     pub fn unify(self) -> (Dyna<V, ()>, Vec3<i32>) {
         if self.0.is_empty() {
             return (Dyna::filled(Vec3::zero(), V::empty(), ()), Vec3::zero());
@@ -129,6 +130,7 @@ impl MatSegment {
         }
         vol
     }
+
     /// Transform cells
     pub fn map(mut self, transform: impl Fn(MatCell) -> Option<MatCell>) -> Self {
         for pos in self.full_pos_iter() {
@@ -139,6 +141,7 @@ impl MatSegment {
 
         self
     }
+
     /// Transform cell colors
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
         self.map(|cell| match cell {
@@ -179,7 +182,7 @@ impl From<&DotVoxData> for MatSegment {
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
                         MatCell::Normal(color)
-                    }
+                    },
                 };
 
                 vol.set(

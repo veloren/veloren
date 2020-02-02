@@ -9,9 +9,7 @@ pub enum Cell {
 }
 
 impl Cell {
-    pub fn new(rgb: Rgb<u8>) -> Self {
-        Cell::Filled(rgb.into_array())
-    }
+    pub fn new(rgb: Rgb<u8>) -> Self { Cell::Filled(rgb.into_array()) }
 
     pub fn get_color(&self) -> Option<Rgb<u8>> {
         match self {
@@ -22,9 +20,7 @@ impl Cell {
 }
 
 impl Vox for Cell {
-    fn empty() -> Self {
-        Cell::Empty
-    }
+    fn empty() -> Self { Cell::Empty }
 
     fn is_empty(&self) -> bool {
         match self {

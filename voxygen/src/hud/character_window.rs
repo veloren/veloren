@@ -107,17 +107,13 @@ pub enum Event {
 }
 
 impl<'a> Widget for CharacterWindow<'a> {
+    type Event = Option<Event>;
     type State = Ids;
     type Style = ();
-    type Event = Option<Event>;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        Ids::new(id_gen)
-    }
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State { Ids::new(id_gen) }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
@@ -406,11 +402,7 @@ impl<'a> Widget for CharacterWindow<'a> {
 
         // TODO: Shows actual stat points.
         Text::new(&format!(
-            "{}\n\
-        \n\
-        {}\n\
-        \n\
-        {}",
+            "{}\n\n{}\n\n{}",
             self.stats.endurance, self.stats.fitness, self.stats.willpower
         ))
         .top_right_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)

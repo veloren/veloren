@@ -3,14 +3,8 @@ use super::{
     Globals, Light, Shadow,
 };
 use gfx::{
-    self,
-    // Macros
-    gfx_defines,
-    gfx_impl_struct_meta,
-    gfx_pipeline,
-    gfx_pipeline_inner,
-    gfx_vertex_struct_meta,
-    state::ColorMask,
+    self, gfx_defines, gfx_impl_struct_meta, gfx_pipeline, gfx_pipeline_inner,
+    gfx_vertex_struct_meta, state::ColorMask,
 };
 use vek::*;
 
@@ -70,9 +64,7 @@ impl Instance {
 }
 
 impl Default for Instance {
-    fn default() -> Self {
-        Self::new(Mat4::identity(), Rgb::broadcast(1.0), 0.0)
-    }
+    fn default() -> Self { Self::new(Mat4::identity(), Rgb::broadcast(1.0), 0.0) }
 }
 
 pub struct SpritePipeline;

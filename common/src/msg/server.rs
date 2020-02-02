@@ -41,8 +41,8 @@ pub enum ServerMsg {
     },
     PlayerListUpdate(PlayerListUpdate),
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
-    /// Trigger cleanup for when the client goes back to the `Registered` state from an ingame
-    /// state
+    /// Trigger cleanup for when the client goes back to the `Registered` state
+    /// from an ingame state
     ExitIngameCleanup,
     Ping,
     Pong,
@@ -96,30 +96,35 @@ impl ServerMsg {
             message,
         }
     }
+
     pub fn tell(message: String) -> ServerMsg {
         ServerMsg::ChatMsg {
             chat_type: ChatType::Tell,
             message,
         }
     }
+
     pub fn game(message: String) -> ServerMsg {
         ServerMsg::ChatMsg {
             chat_type: ChatType::GameUpdate,
             message,
         }
     }
+
     pub fn broadcast(message: String) -> ServerMsg {
         ServerMsg::ChatMsg {
             chat_type: ChatType::Broadcast,
             message,
         }
     }
+
     pub fn private(message: String) -> ServerMsg {
         ServerMsg::ChatMsg {
             chat_type: ChatType::Private,
             message,
         }
     }
+
     pub fn kill(message: String) -> ServerMsg {
         ServerMsg::ChatMsg {
             chat_type: ChatType::Kill,

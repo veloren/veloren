@@ -5,8 +5,8 @@ use vek::*;
 pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
-    type Skeleton = BirdMediumSkeleton;
     type Dependency = (f32, f64);
+    type Skeleton = BirdMediumSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

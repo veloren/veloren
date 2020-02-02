@@ -9,8 +9,7 @@ use std::sync::{
     Arc,
 };
 use vek::*;
-#[cfg(feature = "worldgen")]
-use world::World;
+#[cfg(feature = "worldgen")] use world::World;
 
 type ChunkGenResult = (
     Vec2<i32>,
@@ -31,6 +30,7 @@ impl ChunkGenerator {
             pending_chunks: HashMap::new(),
         }
     }
+
     pub fn generate_chunk(
         &mut self,
         entity: EcsEntity,
@@ -53,6 +53,7 @@ impl ChunkGenerator {
             let _ = chunk_tx.send((key, payload));
         });
     }
+
     pub fn recv_new_chunk(&mut self) -> Option<ChunkGenResult> {
         if let Ok((key, res)) = self.chunk_rx.try_recv() {
             self.pending_chunks.remove(&key);
@@ -62,9 +63,11 @@ impl ChunkGenerator {
             None
         }
     }
+
     pub fn pending_chunks<'a>(&'a self) -> impl Iterator<Item = Vec2<i32>> + 'a {
         self.pending_chunks.keys().copied()
     }
+
     pub fn cancel_if_pending(&mut self, key: Vec2<i32>) {
         if let Some(cancel) = self.pending_chunks.remove(&key) {
             cancel.store(true, Ordering::Relaxed);

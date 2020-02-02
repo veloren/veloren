@@ -2,7 +2,6 @@ use crate::{
     mesh::Meshable,
     render::{FigurePipeline, Mesh},
 };
-use common::comp::humanoid::Body;
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
     comp::{
@@ -12,7 +11,8 @@ use common::{
         critter::{BodyType as CBodyType, Species as CSpecies},
         dragon, fish_medium, fish_small,
         humanoid::{
-            Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder, Skin,
+            Belt, Body, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder,
+            Skin,
         },
         item::Tool,
         object,
@@ -40,7 +40,7 @@ fn graceful_load_vox(mesh_name: &str) -> Arc<DotVoxData> {
         Err(_) => {
             error!("Could not load vox file for figure: {}", full_specifier);
             assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
-        }
+        },
     }
 }
 fn graceful_load_segment(mesh_name: &str) -> Segment {
@@ -91,7 +91,8 @@ fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
     }
 }
 
-// All offsets should be relative to an initial origin that doesn't change when combining segments
+// All offsets should be relative to an initial origin that doesn't change when
+// combining segments
 #[derive(Serialize, Deserialize)]
 struct VoxSpec<T>(String, [T; 3]);
 
@@ -132,6 +133,7 @@ pub struct HumHeadSpec(HashMap<(Race, BodyType), HumHeadSubSpec>);
 
 impl Asset for HumHeadSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid head spec"))
     }
@@ -141,6 +143,7 @@ impl HumHeadSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_head_manifest", indicator).unwrap()
     }
+
     pub fn mesh_head(
         &self,
         race: Race,
@@ -161,7 +164,7 @@ impl HumHeadSpec {
                     race, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
 
         let hair_rgb = race.hair_color(hair_color);
@@ -185,7 +188,7 @@ impl HumHeadSpec {
             None => {
                 warn!("No specification for hair style {}", hair_style);
                 None
-            }
+            },
         };
         let beard = match spec.beard.get(beard as usize) {
             Some(Some(spec)) => Some((
@@ -196,7 +199,7 @@ impl HumHeadSpec {
             None => {
                 warn!("No specification for this beard: {:?}", beard);
                 None
-            }
+            },
         };
         let accessory = match spec.accessory.get(accessory as usize) {
             Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
@@ -204,7 +207,7 @@ impl HumHeadSpec {
             None => {
                 warn!("No specification for this accessory: {:?}", accessory);
                 None
-            }
+            },
         };
 
         let (head, origin_offset) = DynaUnionizer::new()
@@ -243,36 +246,42 @@ pub struct HumArmorFootSpec(HashMap<Foot, ArmorVoxSpec>);
 
 impl Asset for HumArmorShoulderSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor shoulder spec"))
     }
 }
 impl Asset for HumArmorChestSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor chest spec"))
     }
 }
 impl Asset for HumArmorHandSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor hand spec"))
     }
 }
 impl Asset for HumArmorBeltSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor belt spec"))
     }
 }
 impl Asset for HumArmorPantsSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor pants spec"))
     }
 }
 impl Asset for HumArmorFootSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor foot spec"))
     }
@@ -290,7 +299,7 @@ impl HumArmorShoulderSpec {
             None => {
                 error!("No shoulder specification exists for {:?}", body.shoulder);
                 return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1));
-            }
+            },
         };
 
         let shoulder_segment = color_segment(
@@ -309,7 +318,7 @@ impl HumArmorShoulderSpec {
             None => {
                 error!("No shoulder specification exists for {:?}", body.shoulder);
                 return load_mesh("not_found", Vec3::new(-2.0, -3.5, 0.1));
-            }
+            },
         };
 
         let shoulder_segment = color_segment(
@@ -335,7 +344,7 @@ impl HumArmorChestSpec {
             None => {
                 error!("No chest specification exists for {:?}", body.chest);
                 return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0));
-            }
+            },
         };
 
         let color = |mat_segment| {
@@ -378,7 +387,7 @@ impl HumArmorHandSpec {
             None => {
                 error!("No hand specification exists for {:?}", body.hand);
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            }
+            },
         };
 
         let hand_segment = color_segment(
@@ -397,7 +406,7 @@ impl HumArmorHandSpec {
             None => {
                 error!("No hand specification exists for {:?}", body.hand);
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            }
+            },
         };
 
         let hand_segment = color_segment(
@@ -423,7 +432,7 @@ impl HumArmorBeltSpec {
             None => {
                 error!("No belt specification exists for {:?}", body.belt);
                 return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
-            }
+            },
         };
 
         let belt_segment = color_segment(
@@ -449,7 +458,7 @@ impl HumArmorPantsSpec {
             None => {
                 error!("No pants specification exists for {:?}", body.pants);
                 return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
-            }
+            },
         };
 
         let color = |mat_segment| {
@@ -492,7 +501,7 @@ impl HumArmorFootSpec {
             None => {
                 error!("No foot specification exists for {:?}", body.foot);
                 return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
-            }
+            },
         };
 
         let foot_segment = color_segment(
@@ -511,7 +520,7 @@ impl HumArmorFootSpec {
             None => {
                 error!("No foot specification exists for {:?}", body.foot);
                 return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
-            }
+            },
         };
 
         let foot_segment = color_segment(
@@ -587,6 +596,7 @@ struct QuadrupedSmallLateralSubSpec {
 
 impl Asset for QuadrupedSmallCentralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing quad_small central spec"))
     }
@@ -594,6 +604,7 @@ impl Asset for QuadrupedSmallCentralSpec {
 
 impl Asset for QuadrupedSmallLateralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped small lateral spec"))
     }
@@ -604,6 +615,7 @@ impl QuadrupedSmallCentralSpec {
         assets::load_watched::<Self>("voxygen.voxel.quadruped_small_central_manifest", indicator)
             .unwrap()
     }
+
     pub fn mesh_head(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -613,12 +625,13 @@ impl QuadrupedSmallCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.head.central.0);
 
         generate_mesh(&central, Vec3::from(spec.head.offset))
     }
+
     pub fn mesh_chest(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -628,7 +641,7 @@ impl QuadrupedSmallCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.chest.central.0);
 
@@ -651,12 +664,13 @@ impl QuadrupedSmallLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.left_front.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.left_front.offset))
     }
+
     pub fn mesh_foot_rf(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -666,12 +680,13 @@ impl QuadrupedSmallLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.right_front.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.right_front.offset))
     }
+
     pub fn mesh_foot_lb(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -681,12 +696,13 @@ impl QuadrupedSmallLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.left_back.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.left_back.offset))
     }
+
     pub fn mesh_foot_rb(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -696,7 +712,7 @@ impl QuadrupedSmallLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.right_back.lateral.0);
 
@@ -741,6 +757,7 @@ struct QuadrupedMediumLateralSubSpec {
 
 impl Asset for QuadrupedMediumCentralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped medium central spec"))
     }
@@ -748,6 +765,7 @@ impl Asset for QuadrupedMediumCentralSpec {
 
 impl Asset for QuadrupedMediumLateralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped medium lateral spec"))
     }
@@ -772,12 +790,13 @@ impl QuadrupedMediumCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.upper.central.0);
 
         generate_mesh(&central, Vec3::from(spec.upper.offset))
     }
+
     pub fn mesh_head_lower(
         &self,
         species: QMSpecies,
@@ -791,12 +810,13 @@ impl QuadrupedMediumCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.lower.central.0);
 
         generate_mesh(&central, Vec3::from(spec.lower.offset))
     }
+
     pub fn mesh_jaw(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -806,12 +826,13 @@ impl QuadrupedMediumCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.jaw.central.0);
 
         generate_mesh(&central, Vec3::from(spec.jaw.offset))
     }
+
     pub fn mesh_ears(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -821,12 +842,13 @@ impl QuadrupedMediumCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.ears.central.0);
 
         generate_mesh(&central, Vec3::from(spec.ears.offset))
     }
+
     pub fn mesh_torso_f(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -836,12 +858,13 @@ impl QuadrupedMediumCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.torso_f.central.0);
 
         generate_mesh(&central, Vec3::from(spec.torso_f.offset))
     }
+
     pub fn mesh_torso_b(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -851,12 +874,13 @@ impl QuadrupedMediumCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.torso_b.central.0);
 
         generate_mesh(&central, Vec3::from(spec.torso_b.offset))
     }
+
     pub fn mesh_tail(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -866,7 +890,7 @@ impl QuadrupedMediumCentralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let central = graceful_load_segment(&spec.tail.central.0);
 
@@ -889,7 +913,7 @@ impl QuadrupedMediumLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.left_front.lateral.0);
 
@@ -905,12 +929,13 @@ impl QuadrupedMediumLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.right_front.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.right_front.offset))
     }
+
     pub fn mesh_foot_lb(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -920,12 +945,13 @@ impl QuadrupedMediumLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.left_back.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.left_back.offset))
     }
+
     pub fn mesh_foot_rb(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -935,7 +961,7 @@ impl QuadrupedMediumLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.right_back.lateral.0);
 
@@ -977,6 +1003,7 @@ struct BirdMediumLateralSubSpec {
 
 impl Asset for BirdMediumCenterSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing bird medium center spec"))
     }
@@ -984,6 +1011,7 @@ impl Asset for BirdMediumCenterSpec {
 
 impl Asset for BirdMediumLateralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing bird medium lateral spec"))
     }
@@ -1004,12 +1032,13 @@ impl BirdMediumCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.head.center.0);
 
         generate_mesh(&center, Vec3::from(spec.head.offset))
     }
+
     pub fn mesh_torso(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1019,12 +1048,13 @@ impl BirdMediumCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.torso.center.0);
 
         generate_mesh(&center, Vec3::from(spec.torso.offset))
     }
+
     pub fn mesh_tail(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1034,7 +1064,7 @@ impl BirdMediumCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.tail.center.0);
 
@@ -1056,12 +1086,13 @@ impl BirdMediumLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.wing_l.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.wing_l.offset))
     }
+
     pub fn mesh_wing_r(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1071,12 +1102,13 @@ impl BirdMediumLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.wing_r.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.wing_r.offset))
     }
+
     pub fn mesh_foot_l(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1086,12 +1118,13 @@ impl BirdMediumLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.foot_l.offset))
     }
+
     pub fn mesh_foot_r(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1101,7 +1134,7 @@ impl BirdMediumLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
 
@@ -1128,6 +1161,7 @@ struct CritterCenterSubSpec {
 
 impl Asset for CritterCenterSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing critter center spec"))
     }
@@ -1147,12 +1181,13 @@ impl CritterCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.head.center.0);
 
         generate_mesh(&center, Vec3::from(spec.head.offset))
     }
+
     pub fn mesh_chest(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1162,12 +1197,13 @@ impl CritterCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.chest.center.0);
 
         generate_mesh(&center, Vec3::from(spec.chest.offset))
     }
+
     pub fn mesh_feet_f(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1177,12 +1213,13 @@ impl CritterCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.feet_f.center.0);
 
         generate_mesh(&center, Vec3::from(spec.feet_f.offset))
     }
+
     pub fn mesh_feet_b(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1192,12 +1229,13 @@ impl CritterCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.feet_b.center.0);
 
         generate_mesh(&center, Vec3::from(spec.feet_b.offset))
     }
+
     pub fn mesh_tail(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1207,7 +1245,7 @@ impl CritterCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.tail.center.0);
 
@@ -1478,6 +1516,7 @@ struct BipedLargeLateralSubSpec {
 
 impl Asset for BipedLargeCenterSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing biped large center spec"))
     }
@@ -1485,6 +1524,7 @@ impl Asset for BipedLargeCenterSpec {
 
 impl Asset for BipedLargeLateralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing biped large lateral spec"))
     }
@@ -1505,12 +1545,13 @@ impl BipedLargeCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.head.center.0);
 
         generate_mesh(&center, Vec3::from(spec.head.offset))
     }
+
     pub fn mesh_torso_upper(
         &self,
         species: BLSpecies,
@@ -1524,12 +1565,13 @@ impl BipedLargeCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.torso_upper.center.0);
 
         generate_mesh(&center, Vec3::from(spec.torso_upper.offset))
     }
+
     pub fn mesh_torso_lower(
         &self,
         species: BLSpecies,
@@ -1543,7 +1585,7 @@ impl BipedLargeCenterSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let center = graceful_load_segment(&spec.torso_lower.center.0);
 
@@ -1569,7 +1611,7 @@ impl BipedLargeLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.shoulder_l.lateral.0);
 
@@ -1589,7 +1631,7 @@ impl BipedLargeLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.shoulder_r.lateral.0);
 
@@ -1605,7 +1647,7 @@ impl BipedLargeLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
 
@@ -1621,12 +1663,13 @@ impl BipedLargeLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.hand_r.offset))
     }
+
     pub fn mesh_leg_l(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1636,7 +1679,7 @@ impl BipedLargeLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
 
@@ -1652,12 +1695,13 @@ impl BipedLargeLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
 
         generate_mesh(&lateral, Vec3::from(spec.leg_r.offset))
     }
+
     pub fn mesh_foot_l(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1667,7 +1711,7 @@ impl BipedLargeLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
 
@@ -1683,7 +1727,7 @@ impl BipedLargeLateralSpec {
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
         let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
 
