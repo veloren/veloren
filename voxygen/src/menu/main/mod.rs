@@ -6,7 +6,7 @@ use crate::{
     singleplayer::Singleplayer, window::Event, Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
-use common::{clock::Clock, comp};
+use common::{assets::load_expect, clock::Clock, comp};
 use log::{error, warn};
 #[cfg(feature = "singleplayer")]
 use std::time::Duration;
@@ -27,8 +27,6 @@ impl MainMenuState {
 
 const DEFAULT_PORT: u16 = 14004;
 
-static LOGIN_FAILED_MSG: &str = "If you are having issues signing in. Please note that you now need an account to play on auth-enabled servers.\nYou can create an account over at https://account.veloren.net.";
-
 impl PlayState for MainMenuState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock.
@@ -44,6 +42,10 @@ impl PlayState for MainMenuState {
 
         // Reset singleplayer server if it was running already
         global_state.singleplayer = None;
+
+        let localized_strings = load_expect::<crate::i18n::VoxygenLocalization>(
+            &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
+        );
 
         loop {
             // Handle window events.
@@ -77,39 +79,57 @@ impl PlayState for MainMenuState {
                     global_state.info_message = Some({
                         let err = match err {
                             InitError::BadAddress(_) | InitError::NoAddress => {
-                                "Server not found".into()
+                                localized_strings.get("main.login.server_not_found").into()
                             },
                             InitError::ClientError(err) => match err {
-                                client::Error::AuthErr(e) => format!("Auth error on server: {}", e),
-                                client::Error::TooManyPlayers => "Server is full".into(),
-                                client::Error::AuthServerNotTrusted => {
-                                    "Auth server not trusted".into()
+                                client::Error::AuthErr(e) => format!(
+                                    "{}: {}",
+                                    localized_strings.get("main.login.authentication_error"),
+                                    e
+                                ),
+                                client::Error::TooManyPlayers => {
+                                    localized_strings.get("main.login.server_full").into()
                                 },
-                                client::Error::ServerWentMad => "ServerWentMad: Probably versions \
-                                                                 are incompatible, check for \
-                                                                 updates."
+                                client::Error::AuthServerNotTrusted => localized_strings
+                                    .get("main.login.untrusted_auth_server")
                                     .into(),
-                                client::Error::ServerTimeout => "Timeout: Server did not respond \
-                                                                 in time. (Overloaded or network \
-                                                                 issues)."
+                                client::Error::ServerWentMad => localized_strings
+                                    .get("main.login.outdated_client_or_server")
                                     .into(),
-                                client::Error::ServerShutdown => "Server shut down".into(),
+                                client::Error::ServerTimeout => {
+                                    localized_strings.get("main.login.timeout").into()
+                                },
+                                client::Error::ServerShutdown => {
+                                    localized_strings.get("main.login.server_shut_down").into()
+                                },
                                 client::Error::AlreadyLoggedIn => {
-                                    "You are already logged into the server.".into()
+                                    localized_strings.get("main.login.already_logged_in").into()
                                 },
-                                client::Error::Network(e) => format!("Network error: {:?}", e),
-                                client::Error::Other(e) => format!("Error: {}", e),
+                                client::Error::Network(e) => format!(
+                                    "{}: {:?}",
+                                    localized_strings.get("main.login.network_error"),
+                                    e
+                                ),
+                                client::Error::Other(e) => {
+                                    format!("{}: {}", localized_strings.get("common.error"), e)
+                                },
                                 client::Error::AuthClientError(e) => match e {
-                                    client::AuthClientError::JsonError(e) => {
-                                        format!("Fatal error: {}", e)
-                                    },
-                                    client::AuthClientError::RequestError(_) => {
-                                        LOGIN_FAILED_MSG.into()
-                                    },
+                                    client::AuthClientError::JsonError(e) => format!(
+                                        "{}: {}",
+                                        localized_strings.get("common.fatal_error"),
+                                        e
+                                    ),
+                                    client::AuthClientError::RequestError(_) => format!(
+                                        "{}: {}",
+                                        localized_strings.get("main.login.failed_sending_request"),
+                                        e
+                                    ),
                                     client::AuthClientError::ServerError(_, e) => format!("{}", e),
                                 },
                             },
-                            InitError::ClientCrashed => "Client crashed".into(),
+                            InitError::ClientCrashed => {
+                                localized_strings.get("main.login.client_crashed").into()
+                            },
                         };
                         // Log error for possible additional use later or incase that the error
                         // displayed is cut of.
