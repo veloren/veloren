@@ -19,9 +19,7 @@ pub enum CameraMode {
 }
 
 impl Default for CameraMode {
-    fn default() -> Self {
-        Self::ThirdPerson
-    }
+    fn default() -> Self { Self::ThirdPerson }
 }
 
 pub struct Camera {
@@ -54,8 +52,8 @@ impl Camera {
         }
     }
 
-    /// Compute the transformation matrices (view matrix and projection matrix) and position of the
-    /// camera.
+    /// Compute the transformation matrices (view matrix and projection matrix)
+    /// and position of the camera.
     pub fn compute_dependents(&self, client: &Client) -> (Mat4<f32>, Mat4<f32>, Vec3<f32>) {
         let dist = {
             let (start, end) = (
@@ -106,7 +104,8 @@ impl Camera {
         Frustum::from_modelview_projection((proj_mat * view_mat).into_col_arrays())
     }
 
-    /// Rotate the camera about its focus by the given delta, limiting the input accordingly.
+    /// Rotate the camera about its focus by the given delta, limiting the input
+    /// accordingly.
     pub fn rotate_by(&mut self, delta: Vec3<f32>) {
         // Wrap camera yaw
         self.ori.x = (self.ori.x + delta.x) % (2.0 * PI);
@@ -132,8 +131,8 @@ impl Camera {
             CameraMode::ThirdPerson => {
                 // Clamp camera dist to the 2 <= x <= infinity range
                 self.tgt_dist = (self.tgt_dist + delta).max(2.0);
-            }
-            CameraMode::FirstPerson => {}
+            },
+            CameraMode::FirstPerson => {},
         };
     }
 
@@ -148,24 +147,20 @@ impl Camera {
                     } else {
                         self.tgt_dist = t;
                     }
-                }
+                },
                 CameraMode::FirstPerson => {
                     self.set_mode(CameraMode::ThirdPerson);
                     self.tgt_dist = 1_f32;
-                }
+                },
             }
         }
     }
 
     /// Get the distance of the camera from the target
-    pub fn get_distance(&self) -> f32 {
-        self.tgt_dist
-    }
+    pub fn get_distance(&self) -> f32 { self.tgt_dist }
 
     /// Set the distance of the camera from the target (i.e., zoom).
-    pub fn set_distance(&mut self, dist: f32) {
-        self.tgt_dist = dist;
-    }
+    pub fn set_distance(&mut self, dist: f32) { self.tgt_dist = dist; }
 
     pub fn update(&mut self, time: f64) {
         // This is horribly frame time dependent, but so is most of the game
@@ -195,37 +190,27 @@ impl Camera {
     }
 
     /// Get the focus position of the camera.
-    pub fn get_focus_pos(&self) -> Vec3<f32> {
-        self.tgt_focus
-    }
+    pub fn get_focus_pos(&self) -> Vec3<f32> { self.tgt_focus }
+
     /// Set the focus position of the camera.
-    pub fn set_focus_pos(&mut self, focus: Vec3<f32>) {
-        self.tgt_focus = focus;
-    }
+    pub fn set_focus_pos(&mut self, focus: Vec3<f32>) { self.tgt_focus = focus; }
 
     /// Get the aspect ratio of the camera.
-    pub fn get_aspect_ratio(&self) -> f32 {
-        self.aspect
-    }
+    pub fn get_aspect_ratio(&self) -> f32 { self.aspect }
+
     /// Set the aspect ratio of the camera.
     pub fn set_aspect_ratio(&mut self, aspect: f32) {
         self.aspect = if aspect.is_normal() { aspect } else { 1.0 };
     }
 
     /// Get the orientation of the camera.
-    pub fn get_orientation(&self) -> Vec3<f32> {
-        self.ori
-    }
+    pub fn get_orientation(&self) -> Vec3<f32> { self.ori }
 
     /// Get the field of view of the camera in radians.
-    pub fn get_fov(&self) -> f32 {
-        self.fov
-    }
+    pub fn get_fov(&self) -> f32 { self.fov }
 
     /// Set the field of view of the camera in radians.
-    pub fn set_fov(&mut self, fov: f32) {
-        self.fov = fov;
-    }
+    pub fn set_fov(&mut self, fov: f32) { self.fov = fov; }
 
     /// Set the FOV in degrees
     pub fn set_fov_deg(&mut self, fov: u16) {
@@ -240,16 +225,14 @@ impl Camera {
             match self.mode {
                 CameraMode::ThirdPerson => {
                     self.zoom_by(5.0);
-                }
+                },
                 CameraMode::FirstPerson => {
                     self.set_distance(MIN_ZOOM);
-                }
+                },
             }
         }
     }
 
     /// Get the mode of the camera
-    pub fn get_mode(&self) -> CameraMode {
-        self.mode
-    }
+    pub fn get_mode(&self) -> CameraMode { self.mode }
 }

@@ -3,9 +3,7 @@ pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::idle::IdleAnimation;
-pub use self::jump::JumpAnimation;
-pub use self::run::RunAnimation;
+pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
@@ -48,6 +46,7 @@ impl BipedLargeSkeleton {
 
 impl Skeleton for BipedLargeSkeleton {
     type Attr = SkeletonAttr;
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();

@@ -1,7 +1,6 @@
 use crate::audio::fader::Fader;
 use rodio::{Decoder, Device, Sample, Source, SpatialSink};
-use std::fs::File;
-use std::io::BufReader;
+use std::{fs::File, io::BufReader};
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -82,42 +81,26 @@ impl Channel {
         self.sink.append(source);
     }
 
-    pub fn is_done(&self) -> bool {
-        self.sink.empty() || self.state == ChannelState::Stopped
-    }
+    pub fn is_done(&self) -> bool { self.sink.empty() || self.state == ChannelState::Stopped }
 
     pub fn stop(&mut self, fader: Fader) {
         self.state = ChannelState::Stopping;
         self.fader = fader;
     }
 
-    pub fn get_id(&self) -> usize {
-        self.id
-    }
+    pub fn get_id(&self) -> usize { self.id }
 
-    pub fn set_id(&mut self, new_id: usize) {
-        self.id = new_id;
-    }
+    pub fn set_id(&mut self, new_id: usize) { self.id = new_id; }
 
-    pub fn get_audio_type(&self) -> AudioType {
-        self.audio_type
-    }
+    pub fn get_audio_type(&self) -> AudioType { self.audio_type }
 
-    pub fn set_audio_type(&mut self, audio_type: AudioType) {
-        self.audio_type = audio_type;
-    }
+    pub fn set_audio_type(&mut self, audio_type: AudioType) { self.audio_type = audio_type; }
 
-    pub fn set_volume(&mut self, volume: f32) {
-        self.sink.set_volume(volume);
-    }
+    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
 
-    pub fn set_emitter_position(&mut self, pos: [f32; 3]) {
-        self.sink.set_emitter_position(pos);
-    }
+    pub fn set_emitter_position(&mut self, pos: [f32; 3]) { self.sink.set_emitter_position(pos); }
 
-    pub fn set_left_ear_position(&mut self, pos: [f32; 3]) {
-        self.sink.set_left_ear_position(pos);
-    }
+    pub fn set_left_ear_position(&mut self, pos: [f32; 3]) { self.sink.set_left_ear_position(pos); }
 
     pub fn set_right_ear_position(&mut self, pos: [f32; 3]) {
         self.sink.set_right_ear_position(pos);
@@ -126,7 +109,7 @@ impl Channel {
     pub fn update(&mut self, dt: f32) {
         match self.state {
             // ChannelState::Init | ChannelState::ToPlay | ChannelState::Loading => {}
-            ChannelState::Playing => {}
+            ChannelState::Playing => {},
             ChannelState::Stopping => {
                 self.fader.update(dt);
                 self.sink.set_volume(self.fader.get_volume());
@@ -134,8 +117,8 @@ impl Channel {
                 if self.fader.is_finished() {
                     self.state = ChannelState::Stopped;
                 }
-            }
-            ChannelState::Stopped => {}
+            },
+            ChannelState::Stopped => {},
         }
     }
 }

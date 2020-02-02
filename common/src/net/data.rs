@@ -12,7 +12,8 @@ pub enum ClientMsg {
     VersionInfo {},
 }
 
-/// Control message type, used in [PostBox](super::PostBox) and [PostOffice](super::PostOffice) to control threads.
+/// Control message type, used in [PostBox](super::PostBox) and
+/// [PostOffice](super::PostOffice) to control threads.
 pub enum ControlMsg {
     Shutdown,
 }

@@ -2,7 +2,8 @@ use specs::Component;
 use specs_idvs::IDVStorage;
 use vek::*;
 
-// Floats over entity that has had a health change, rising up over time until it vanishes
+// Floats over entity that has had a health change, rising up over time until it
+// vanishes
 #[derive(Copy, Clone, Debug)]
 pub struct HpFloater {
     pub timer: f32,
@@ -26,7 +27,8 @@ impl Component for HpFloaterList {
     type Storage = IDVStorage<Self>;
 }
 
-// Used for smooth interpolation of visual elements that are tied to entity position
+// Used for smooth interpolation of visual elements that are tied to entity
+// position
 #[derive(Copy, Clone, Debug)]
 pub struct Interpolated {
     pub pos: Vec3<f32>,

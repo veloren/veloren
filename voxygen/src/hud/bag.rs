@@ -7,7 +7,7 @@ use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
 use conrod_core::{
     color, image,
-    widget::{self, Button, Image, Rectangle /*, Scrollbar*/},
+    widget::{self, Button, Image, Rectangle},
     widget_ids, Color, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
@@ -80,9 +80,9 @@ pub enum Event {
 }
 
 impl<'a> Widget for Bag<'a> {
+    type Event = Option<Event>;
     type State = State;
     type Style = ();
-    type Event = Option<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -92,9 +92,7 @@ impl<'a> Widget for Bag<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -200,7 +198,10 @@ impl<'a> Widget for Bag<'a> {
                     .with_tooltip(
                         self.tooltip_manager,
                         &item.name(),
-                        &format!("{}", /*item.kind, item.effect(), */ item.description()),
+                        &format!(
+                            "{}",
+                            /* item.kind, item.effect(), */ item.description()
+                        ),
                         &item_tooltip,
                     )
                     .set(state.ids.inv_slots[i], ui)
@@ -219,7 +220,7 @@ impl<'a> Widget for Bag<'a> {
                             event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(a, i)));
                         }
                         None
-                    }
+                    },
                     None if item.is_some() => Some(i),
                     None => None,
                 };

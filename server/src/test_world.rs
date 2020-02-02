@@ -12,9 +12,7 @@ pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1, y: 1 };
 pub struct World;
 
 impl World {
-    pub fn generate(_seed: u32) -> Self {
-        Self
-    }
+    pub fn generate(_seed: u32) -> Self { Self }
 
     pub fn tick(&self, dt: Duration) {}
 

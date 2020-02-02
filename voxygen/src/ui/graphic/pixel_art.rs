@@ -1,23 +1,24 @@
 use common::util::{linear_to_srgba, srgba_to_linear};
 /// Pixel art scaling
-/// Note: The current ui is locked to the pixel grid with little animation, if we want smoothly
-/// moving pixel art this should be done in the shaders
+/// Note: The current ui is locked to the pixel grid with little animation, if
+/// we want smoothly moving pixel art this should be done in the shaders
 /// useful links: https://gitlab.com/veloren/veloren/issues/257
 use image::RgbaImage;
 use vek::*;
 
 const EPSILON: f32 = 0.0001;
 
-// Averaging colors with alpha such that when blending with the background color the same color
-// will be produced as when the individual colors were blended with the background and then
-// averaged
+// Averaging colors with alpha such that when blending with the background color
+// the same color will be produced as when the individual colors were blended
+// with the background and then averaged
 // Say we have two areas that we are combining to form a single pixel
-// A1 and A2 where these are the fraction of the area of the pixel each color contributes to
-// Then if the colors were opaque we would say that the final color ouput color o3 is
+// A1 and A2 where these are the fraction of the area of the pixel each color
+// contributes to Then if the colors were opaque we would say that the final
+// color ouput color o3 is
 //     E1: o3 = A1 * o1 + A2 * o2
 // where o1 and o2 are the opaque colors of the two areas
-// now say the areas are actually translucent and these opaque colors are derived by blending with a
-// common backgound color b
+// now say the areas are actually translucent and these opaque colors are
+// derived by blending with a common backgound color b
 //     E2: o1 = c1 * a1 + b * (1 - a1)
 //     E3: o2 = c2 * a2 + b * (1 - a2)
 // we want to find the combined color (c3) and combined alpha (a3) such that
@@ -37,7 +38,8 @@ pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> R
     let mut new_image = RgbaImage::new(new_width, new_height);
 
     // Ratio of old image dimensions to new dimensions
-    // Also the sampling dimensions within the old image for a single pixel in the new image
+    // Also the sampling dimensions within the old image for a single pixel in the
+    // new image
     let wratio = width as f32 / new_width as f32;
     let hratio = height as f32 / new_height as f32;
 
@@ -116,7 +118,8 @@ pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> R
                 }
             }
             // Divide summed color by area sample covers and convert back to srgb
-            // I wonder if precalulating the inverse of these divs would have a significant effect
+            // I wonder if precalulating the inverse of these divs would have a significant
+            // effect
             linear_color = linear_color / wratio / hratio;
             linear_color =
                 Rgba::from_translucent(linear_color.rgb() / linear_color.a, linear_color.a);

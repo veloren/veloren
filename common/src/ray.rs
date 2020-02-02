@@ -27,9 +27,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach> Ray<'a, V, F, G> {
         }
     }
 
-    pub fn until(self, f: F) -> Ray<'a, V, F, G> {
-        Ray { until: f, ..self }
-    }
+    pub fn until(self, f: F) -> Ray<'a, V, F, G> { Ray { until: f, ..self } }
 
     pub fn for_each<H: RayForEach>(self, f: H) -> Ray<'a, V, F, H> {
         Ray {
@@ -79,7 +77,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach> Ray<'a, V, F, G> {
             match self.vol.get(ipos).map(|vox| (vox, (self.until)(vox))) {
                 Ok((vox, true)) => return (dist, Ok(Some(vox))),
                 Err(err) if !self.ignore_error => return (dist, Err(err)),
-                _ => {}
+                _ => {},
             }
 
             let deltas =

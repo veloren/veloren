@@ -1,11 +1,15 @@
-use common::assets;
-use common::assets::{load_expect, load_glob, Asset};
+use common::{
+    assets,
+    assets::{load_expect, load_glob, Asset},
+};
 use deunicode::deunicode;
 use ron::de::from_reader;
 use serde_derive::*;
-use std::collections::{HashMap, HashSet};
-use std::fs::File;
-use std::io::BufReader;
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io::BufReader,
+};
 
 /// The reference language, aka the more up-to-date localization data.
 /// Also the default language at first startup.
@@ -108,6 +112,4 @@ pub fn list_localizations() -> Vec<LanguageMetadata> {
 }
 
 /// Return the asset associated with the language_id
-pub fn i18n_asset_key(language_id: &str) -> String {
-    "voxygen.i18n.".to_string() + language_id
-}
+pub fn i18n_asset_key(language_id: &str) -> String { "voxygen.i18n.".to_string() + language_id }

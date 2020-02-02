@@ -19,26 +19,28 @@ impl Component for Client {
 }
 
 impl Client {
-    pub fn notify(&mut self, msg: ServerMsg) {
-        self.postbox.send_message(msg);
-    }
+    pub fn notify(&mut self, msg: ServerMsg) { self.postbox.send_message(msg); }
+
     pub fn is_registered(&self) -> bool {
         match self.client_state {
             ClientState::Registered | ClientState::Spectator | ClientState::Character => true,
             _ => false,
         }
     }
+
     pub fn is_ingame(&self) -> bool {
         match self.client_state {
             ClientState::Spectator | ClientState::Character => true,
             _ => false,
         }
     }
+
     pub fn allow_state(&mut self, new_state: ClientState) {
         self.client_state = new_state;
         self.postbox
             .send_message(ServerMsg::StateAnswer(Ok(new_state)));
     }
+
     pub fn error_state(&mut self, error: RequestStateError) {
         self.postbox
             .send_message(ServerMsg::StateAnswer(Err((error, self.client_state))));

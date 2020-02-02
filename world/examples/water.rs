@@ -12,9 +12,9 @@ const H: usize = 1024;
 fn main() {
     pretty_env_logger::init();
 
-    // To load a map file of your choice, replace map_file with the name of your map (stored
-    // locally in the map directory of your Veloren root), and swap the sim::FileOpts::Save line
-    // below for the sim::FileOpts::Load one.
+    // To load a map file of your choice, replace map_file with the name of your map
+    // (stored locally in the map directory of your Veloren root), and swap the
+    // sim::FileOpts::Save line below for the sim::FileOpts::Load one.
     let map_file =
         // "map_1575990726223.bin";
         // "map_1575987666972.bin";
@@ -22,15 +22,12 @@ fn main() {
     let mut _map_file = PathBuf::from("./maps");
     _map_file.push(map_file);
 
-    let world = World::generate(
-        5284,
-        WorldOpts {
-            seed_elements: false,
-            // world_file: sim::FileOpts::Load(_map_file),
-            world_file: sim::FileOpts::Save,
-            ..WorldOpts::default()
-        },
-    );
+    let world = World::generate(5284, WorldOpts {
+        seed_elements: false,
+        // world_file: sim::FileOpts::Load(_map_file),
+        world_file: sim::FileOpts::Save,
+        ..WorldOpts::default()
+    });
 
     let mut win =
         minifb::Window::new("World Viewer", W, H, minifb::WindowOptions::default()).unwrap();
@@ -38,20 +35,21 @@ fn main() {
     let sampler = world.sim();
 
     let mut focus = Vec3::new(0.0, 0.0, CONFIG.sea_level as f64);
-    // Altitude is divided by gain and clamped to [0, 1]; thus, decreasing gain makes
-    // smaller differences in altitude appear larger.
+    // Altitude is divided by gain and clamped to [0, 1]; thus, decreasing gain
+    // makes smaller differences in altitude appear larger.
     let mut gain = CONFIG.mountain_scale;
     // The Z component during normal calculations is multiplied by gain; thus,
     let mut lgain = 1.0;
     let mut scale = WORLD_SIZE.x as f64 / W as f64;
 
-    // Right-handed coordinate system: light is going left, down, and "backwards" (i.e. on the
-    // map, where we translate the y coordinate on the world map to z in the coordinate system,
-    // the light comes from -y on the map and points towards +y on the map).  In a right
-    // handed coordinate system, the "camera" points towards -z, so positive z is backwards
-    // "into" the camera.
+    // Right-handed coordinate system: light is going left, down, and "backwards"
+    // (i.e. on the map, where we translate the y coordinate on the world map to
+    // z in the coordinate system, the light comes from -y on the map and points
+    // towards +y on the map).  In a right handed coordinate system, the
+    // "camera" points towards -z, so positive z is backwards "into" the camera.
     //
-    // "In world space the x-axis will be pointing east, the y-axis up and the z-axis will be pointing south"
+    // "In world space the x-axis will be pointing east, the y-axis up and the
+    // z-axis will be pointing south"
     let mut light_direction = Vec3::new(-0.8, -1.0, 0.3);
 
     let mut is_basement = false;
@@ -134,15 +132,9 @@ fn main() {
         if win.is_key_down(minifb::Key::P) {
             println!(
                 "\
-                 Gain / Shade gain: {:?} / {:?}\n\
-                 Scale / Focus: {:?} / {:?}\n\
-                 Light: {:?}
-                 Land(adjacent): (X = temp, Y = humidity): {:?}\n\
-                 Rivers: {:?}\n\
-                 Lakes: {:?}\n\
-                 Oceans: {:?}\n\
-                 Total water: {:?}\n\
-                 Total land(adjacent): {:?}",
+                 Gain / Shade gain: {:?} / {:?}\nScale / Focus: {:?} / {:?}\nLight: {:?}
+                 Land(adjacent): (X = temp, Y = humidity): {:?}\nRivers: {:?}\nLakes: \
+                 {:?}\nOceans: {:?}\nTotal water: {:?}\nTotal land(adjacent): {:?}",
                 gain,
                 lgain,
                 scale,

@@ -34,13 +34,9 @@ impl Energy {
         }
     }
 
-    pub fn current(&self) -> u32 {
-        self.current
-    }
+    pub fn current(&self) -> u32 { self.current }
 
-    pub fn maximum(&self) -> u32 {
-        self.maximum
-    }
+    pub fn maximum(&self) -> u32 { self.maximum }
 
     pub fn set_to(&mut self, amount: u32, cause: EnergySource) {
         let amount = amount.min(self.maximum);

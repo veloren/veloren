@@ -13,9 +13,7 @@ impl Settlement {
         }
     }
 
-    pub fn get_at(&self, pos: Vec2<f32>) -> Option<&Building> {
-        self.lot.get_at(pos)
-    }
+    pub fn get_at(&self, pos: Vec2<f32>) -> Option<&Building> { self.lot.get_at(pos) }
 }
 
 #[derive(Clone, Debug)]
@@ -73,7 +71,7 @@ impl Lot {
                 } else {
                     None
                 }
-            }
+            },
             Lot::Many { split_x, lots } => {
                 let split_dim = if *split_x { pos.x } else { pos.y };
                 let idx = (split_dim * lots.len() as f32).floor() as usize;
@@ -82,7 +80,7 @@ impl Lot {
                 } else {
                     Vec2::new(pos.x, (pos.y * lots.len() as f32).fract())
                 })
-            }
+            },
         }
     }
 }

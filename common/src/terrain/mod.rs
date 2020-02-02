@@ -32,9 +32,7 @@ pub struct TerrainChunkMeta {
 }
 
 impl TerrainChunkMeta {
-    pub fn new(name: Option<String>, biome: BiomeKind) -> Self {
-        Self { name, biome }
-    }
+    pub fn new(name: Option<String>, biome: BiomeKind) -> Self { Self { name, biome } }
 
     pub fn void() -> Self {
         Self {
@@ -50,9 +48,7 @@ impl TerrainChunkMeta {
             .unwrap_or("Wilderness")
     }
 
-    pub fn biome(&self) -> BiomeKind {
-        self.biome
-    }
+    pub fn biome(&self) -> BiomeKind { self.biome }
 }
 
 // Terrain type aliases

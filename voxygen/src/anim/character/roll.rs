@@ -6,8 +6,8 @@ use vek::*;
 pub struct RollAnimation;
 
 impl Animation for RollAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<Tool>, Vec3<f32>, Vec3<f32>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

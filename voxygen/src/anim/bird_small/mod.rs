@@ -3,9 +3,7 @@ pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::idle::IdleAnimation;
-pub use self::jump::JumpAnimation;
-pub use self::run::RunAnimation;
+pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
@@ -32,6 +30,7 @@ impl BirdSmallSkeleton {
 
 impl Skeleton for BirdSmallSkeleton {
     type Attr = SkeletonAttr;
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let torso_mat = self.torso.compute_base_matrix();
 
@@ -77,13 +76,9 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
 }
 
 impl Default for SkeletonAttr {
-    fn default() -> Self {
-        Self
-    }
+    fn default() -> Self { Self }
 }
 
 impl<'a> From<&'a comp::bird_small::Body> for SkeletonAttr {
-    fn from(_body: &'a comp::bird_small::Body) -> Self {
-        Self
-    }
+    fn from(_body: &'a comp::bird_small::Body) -> Self { Self }
 }

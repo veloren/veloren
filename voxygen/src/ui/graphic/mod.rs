@@ -60,7 +60,8 @@ struct CachedDetails {
     valid: bool,
 }
 
-// Caches graphics, only deallocates when changing screen resolution (completely cleared)
+// Caches graphics, only deallocates when changing screen resolution (completely
+// cleared)
 pub struct GraphicCache {
     graphic_map: GraphicMap,
     // Next id to use when a new graphic is added
@@ -84,6 +85,7 @@ impl GraphicCache {
             cache_map: HashMap::default(),
         }
     }
+
     pub fn add_graphic(&mut self, graphic: Graphic) -> Id {
         let id = self.next_id;
         self.next_id = id.wrapping_add(1);
@@ -93,6 +95,7 @@ impl GraphicCache {
 
         id
     }
+
     pub fn replace_graphic(&mut self, id: Id, graphic: Graphic) {
         self.graphic_map.insert(id, graphic);
 
@@ -111,13 +114,14 @@ impl GraphicCache {
             }
         }
     }
-    pub fn get_graphic(&self, id: Id) -> Option<&Graphic> {
-        self.graphic_map.get(&id)
-    }
+
+    pub fn get_graphic(&self, id: Id) -> Option<&Graphic> { self.graphic_map.get(&id) }
+
     /// Used to aquire textures for rendering
     pub fn get_tex(&self, id: TexId) -> &Texture {
         self.textures.get(id.0).expect("Invalid TexId used")
     }
+
     pub fn clear_cache(&mut self, renderer: &mut Renderer) {
         self.cache_map.clear();
 
@@ -159,18 +163,16 @@ impl GraphicCache {
                     atlas_idx, aabr, ..
                 } => (self.atlases[atlas_idx].1, aabr),
                 CacheLoc::Texture { index } => {
-                    (
-                        index,
-                        Aabr {
-                            min: Vec2::new(0, 0),
-                            // Note texture should always match the cached dimensions
-                            max: dims,
-                        },
-                    )
-                }
+                    (index, Aabr {
+                        min: Vec2::new(0, 0),
+                        // Note texture should always match the cached dimensions
+                        max: dims,
+                    })
+                },
             };
 
-            // Check if the cached version has been invalidated by replacing the underlying graphic
+            // Check if the cached version has been invalidated by replacing the underlying
+            // graphic
             if !details.valid {
                 // Create image
                 let image = draw_graphic(&self.graphic_map, graphic_id, dims)?;
@@ -217,7 +219,7 @@ impl GraphicCache {
                         self.textures.push(texture);
                         self.atlases.push((atlas, tex_idx));
                         CacheLoc::Atlas { atlas_idx, aabr }
-                    }
+                    },
                 }
             } else {
                 // Create a texture just for this
@@ -232,26 +234,20 @@ impl GraphicCache {
                     atlas_idx, aabr, ..
                 } => (self.atlases[atlas_idx].1, aabr),
                 CacheLoc::Texture { index } => {
-                    (
-                        index,
-                        Aabr {
-                            min: Vec2::new(0, 0),
-                            // Note texture should always match the cached dimensions
-                            max: dims,
-                        },
-                    )
-                }
+                    (index, Aabr {
+                        min: Vec2::new(0, 0),
+                        // Note texture should always match the cached dimensions
+                        max: dims,
+                    })
+                },
             };
             // Upload
             upload_image(renderer, aabr, &self.textures[idx], &image);
             // Insert into cached map
-            self.cache_map.insert(
-                key,
-                CachedDetails {
-                    location,
-                    valid: true,
-                },
-            );
+            self.cache_map.insert(key, CachedDetails {
+                location,
+                valid: true,
+            });
 
             Some((rotated_aabr(aabr), TexId(idx)))
         }
@@ -278,7 +274,7 @@ fn draw_graphic(graphic_map: &GraphicMap, graphic_id: Id, dims: Vec2<u16>) -> Op
         None => {
             warn!("A graphic was requested via an id which is not in use");
             None
-        }
+        },
     }
 }
 

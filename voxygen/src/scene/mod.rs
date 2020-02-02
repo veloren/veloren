@@ -95,36 +95,25 @@ impl Scene {
     }
 
     /// Get a reference to the scene's globals.
-    pub fn globals(&self) -> &Consts<Globals> {
-        &self.globals
-    }
+    pub fn globals(&self) -> &Consts<Globals> { &self.globals }
 
     /// Get a reference to the scene's camera.
-    pub fn camera(&self) -> &Camera {
-        &self.camera
-    }
+    pub fn camera(&self) -> &Camera { &self.camera }
 
     /// Get a reference to the scene's terrain.
-    pub fn terrain(&self) -> &Terrain<TerrainChunk> {
-        &self.terrain
-    }
+    pub fn terrain(&self) -> &Terrain<TerrainChunk> { &self.terrain }
 
     /// Get a reference to the scene's figure manager.
-    pub fn figure_mgr(&self) -> &FigureMgr {
-        &self.figure_mgr
-    }
+    pub fn figure_mgr(&self) -> &FigureMgr { &self.figure_mgr }
 
     /// Get a mutable reference to the scene's camera.
-    pub fn camera_mut(&mut self) -> &mut Camera {
-        &mut self.camera
-    }
+    pub fn camera_mut(&mut self) -> &mut Camera { &mut self.camera }
 
     /// Set the block position that the player is interacting with
-    pub fn set_select_pos(&mut self, pos: Option<Vec3<i32>>) {
-        self.select_pos = pos;
-    }
+    pub fn set_select_pos(&mut self, pos: Option<Vec3<i32>>) { self.select_pos = pos; }
 
-    /// Handle an incoming user input event (e.g.: cursor moved, key pressed, window closed).
+    /// Handle an incoming user input event (e.g.: cursor moved, key pressed,
+    /// window closed).
     ///
     /// If the event is handled, return true.
     pub fn handle_input_event(&mut self, event: Event) -> bool {
@@ -133,24 +122,25 @@ impl Scene {
             Event::Resize(dims) => {
                 self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
                 true
-            }
+            },
             // Panning the cursor makes the camera rotate
             Event::CursorPan(delta) => {
                 self.camera.rotate_by(Vec3::from(delta) * CURSOR_PAN_SCALE);
                 true
-            }
+            },
             // Zoom the camera when a zoom event occurs
             Event::Zoom(delta) => {
                 self.camera
                     .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01));
                 true
-            }
+            },
             // All other events are unhandled
             _ => false,
         }
     }
 
-    /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
+    /// Maintain data such as GPU constant buffers, models, etc. To be called
+    /// once per tick.
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -193,7 +183,7 @@ impl Scene {
                 } else {
                     player_scale * 1.6_f32
                 }
-            }
+            },
             CameraMode::ThirdPerson => 1.2,
         };
 
@@ -285,28 +275,25 @@ impl Scene {
 
         // Update global constants.
         renderer
-            .update_consts(
-                &mut self.globals,
-                &[Globals::new(
-                    view_mat,
-                    proj_mat,
-                    cam_pos,
-                    self.camera.get_focus_pos(),
-                    self.loaded_distance,
-                    client.state().get_time_of_day(),
-                    client.state().get_time(),
-                    renderer.get_resolution(),
-                    lights.len(),
-                    shadows.len(),
-                    client
-                        .state()
-                        .terrain()
-                        .get(cam_pos.map(|e| e.floor() as i32))
-                        .map(|b| b.kind())
-                        .unwrap_or(BlockKind::Air),
-                    self.select_pos,
-                )],
-            )
+            .update_consts(&mut self.globals, &[Globals::new(
+                view_mat,
+                proj_mat,
+                cam_pos,
+                self.camera.get_focus_pos(),
+                self.loaded_distance,
+                client.state().get_time_of_day(),
+                client.state().get_time(),
+                renderer.get_resolution(),
+                lights.len(),
+                shadows.len(),
+                client
+                    .state()
+                    .terrain()
+                    .get(cam_pos.map(|e| e.floor() as i32))
+                    .map(|b| b.kind())
+                    .unwrap_or(BlockKind::Air),
+                self.select_pos,
+            )])
             .expect("Failed to update global constants");
 
         // Maintain the terrain.

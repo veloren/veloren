@@ -1,12 +1,17 @@
 use super::{
-    img_ids::Imgs, BarNumbers, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR,
-    /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
+    img_ids::Imgs, BarNumbers, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR, HP_COLOR,
+    LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
-use crate::i18n::{i18n_asset_key, VoxygenLocalization};
-use crate::GlobalState;
-use common::assets::load_expect;
-use common::comp::{
-    item::Debug, item::Tool, ActionState, CharacterState, ControllerInputs, Energy, ItemKind, Stats,
+use crate::{
+    i18n::{i18n_asset_key, VoxygenLocalization},
+    GlobalState,
+};
+use common::{
+    assets::load_expect,
+    comp::{
+        item::{Debug, Tool},
+        ActionState, CharacterState, ControllerInputs, Energy, ItemKind, Stats,
+    },
 };
 use conrod_core::{
     color,
@@ -96,8 +101,8 @@ widget_ids! {
 
 pub enum ResourceType {
     Mana,
-    //Rage,
-    //Focus,
+    /*Rage,
+     *Focus, */
 }
 #[derive(WidgetCommon)]
 pub struct Skillbar<'a> {
@@ -127,7 +132,7 @@ impl<'a> Skillbar<'a> {
     ) -> Self {
         Self {
             imgs,
-            fonts: fonts,
+            fonts,
             stats,
             energy,
             global_state,
@@ -150,9 +155,9 @@ pub struct State {
 }
 
 impl<'a> Widget for Skillbar<'a> {
+    type Event = ();
     type State = State;
     type Style = ();
-    type Event = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -165,9 +170,7 @@ impl<'a> Widget for Skillbar<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -188,7 +191,7 @@ impl<'a> Widget for Skillbar<'a> {
 
         const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
         const BG_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 0.99);
-        let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.8; //Animation timer
+        let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
         let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
@@ -408,9 +411,10 @@ impl<'a> Widget for Skillbar<'a> {
                     .w_h(40.0 * scale, 40.0 * scale)
                     .top_left_with_margins_on(state.ids.xp_bar_mid, -40.0 * scale, 0.0)
                     .set(state.ids.m1_slot, ui);
-            }
+            },
             XpBar::OnGain => {
-                // Displays the Exp Bar at the top of the screen when exp is gained and fades it out afterwards
+                // Displays the Exp Bar at the top of the screen when exp is gained and fades it
+                // out afterwards
                 const FADE_IN_XP: f32 = 1.0;
                 const FADE_HOLD_XP: f32 = 3.0;
                 const FADE_OUT_XP: f32 = 2.0;
@@ -536,7 +540,7 @@ impl<'a> Widget for Skillbar<'a> {
                 match self.character_state.action {
                     ActionState::Attack { .. } => {
                         if self.controller.primary.is_pressed() {
-                            let fade_pulse = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.6; //Animation timer;
+                            let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                             Image::new(self.imgs.skillbar_slot_big)
                                 .w_h(40.0 * scale, 40.0 * scale)
                                 .top_left_with_margins_on(
@@ -561,15 +565,15 @@ impl<'a> Widget for Skillbar<'a> {
                                 )
                                 .set(state.ids.m1_slot, ui);
                         }
-                    }
+                    },
                     _ => {
                         Image::new(self.imgs.skillbar_slot_big)
                             .w_h(40.0 * scale, 40.0 * scale)
                             .top_left_with_margins_on(state.ids.hotbar_align, -40.0 * scale, 0.0)
                             .set(state.ids.m1_slot, ui);
-                    }
+                    },
                 }
-            }
+            },
         }
         // M1 Slot
         Image::new(self.imgs.skillbar_slot_big_bg)
@@ -617,7 +621,7 @@ impl<'a> Widget for Skillbar<'a> {
         // M2 Slot
         match self.character_state.action {
             ActionState::Block { .. } => {
-                let fade_pulse = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.6; //Animation timer;
+                let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                 if self.controller.secondary.is_pressed() {
                     Image::new(self.imgs.skillbar_slot_big)
                         .w_h(40.0 * scale, 40.0 * scale)
@@ -635,9 +639,9 @@ impl<'a> Widget for Skillbar<'a> {
                         .right_from(state.ids.m1_slot, 0.0)
                         .set(state.ids.m2_slot, ui);
                 }
-            }
+            },
             ActionState::Attack { .. } => {
-                let fade_pulse = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.6; //Animation timer;
+                let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                 if self.controller.secondary.is_pressed() {
                     Image::new(self.imgs.skillbar_slot_big)
                         .w_h(40.0 * scale, 40.0 * scale)
@@ -655,13 +659,13 @@ impl<'a> Widget for Skillbar<'a> {
                         .right_from(state.ids.m1_slot, 0.0)
                         .set(state.ids.m2_slot, ui);
                 }
-            }
+            },
             _ => {
                 Image::new(self.imgs.skillbar_slot_big)
                     .w_h(40.0 * scale, 40.0 * scale)
                     .right_from(state.ids.m1_slot, 0.0)
                     .set(state.ids.m2_slot, ui);
-            }
+            },
         }
 
         Image::new(self.imgs.skillbar_slot_big_bg)
@@ -767,13 +771,13 @@ impl<'a> Widget for Skillbar<'a> {
                     )))
                     .floating(true)
                     .set(state.ids.slot1_act, ui);
-            }
+            },
             _ => {
                 Image::new(self.imgs.skillbar_slot_l)
                     .w_h(20.0 * scale, 20.0 * scale)
                     .left_from(state.ids.slot2, 0.0)
                     .set(state.ids.slot1, ui);
-            }
+            },
         }
         Image::new(self.imgs.skillbar_slot_bg)
             .w_h(19.5 * scale, 19.5 * scale)
@@ -943,8 +947,8 @@ impl<'a> Widget for Skillbar<'a> {
             .top_left_with_margins_on(state.ids.energybar_bg, 2.0 * scale, 1.0 * scale)
             .color(Some(match self.current_resource {
                 ResourceType::Mana => MANA_COLOR,
-                //ResourceType::Focus => FOCUS_COLOR,
-                //ResourceType::Rage => RAGE_COLOR,
+                /*ResourceType::Focus => FOCUS_COLOR,
+                 *ResourceType::Rage => RAGE_COLOR, */
             }))
             .set(state.ids.energybar_filling, ui);
         // Bar Text
@@ -969,7 +973,8 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.health_text, ui);
             let energy_text = format!(
                 "{}/{}",
-                self.energy.current() as u32 / 10, //TODO Fix regeneration with smaller energy numbers instead of dividing by 10 here
+                self.energy.current() as u32 / 10, /* TODO Fix regeneration with smaller energy
+                                                    * numbers instead of dividing by 10 here */
                 self.energy.maximum() as u32 / 10
             );
             Text::new(&energy_text)

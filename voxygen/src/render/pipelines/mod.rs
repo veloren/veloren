@@ -8,13 +8,7 @@ pub mod ui;
 
 use super::util::arr_to_mat;
 use common::terrain::BlockKind;
-use gfx::{
-    self,
-    gfx_constant_struct_meta,
-    // Macros
-    gfx_defines,
-    gfx_impl_struct_meta,
-};
+use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
 use vek::*;
 
 gfx_defines! {
@@ -107,15 +101,11 @@ impl Light {
         }
     }
 
-    pub fn get_pos(&self) -> Vec3<f32> {
-        Vec3::new(self.pos[0], self.pos[1], self.pos[2])
-    }
+    pub fn get_pos(&self) -> Vec3<f32> { Vec3::new(self.pos[0], self.pos[1], self.pos[2]) }
 }
 
 impl Default for Light {
-    fn default() -> Self {
-        Self::new(Vec3::zero(), Rgb::zero(), 0.0)
-    }
+    fn default() -> Self { Self::new(Vec3::zero(), Rgb::zero(), 0.0) }
 }
 
 impl Shadow {
@@ -131,7 +121,5 @@ impl Shadow {
 }
 
 impl Default for Shadow {
-    fn default() -> Self {
-        Self::new(Vec3::zero(), 0.0)
-    }
+    fn default() -> Self { Self::new(Vec3::zero(), 0.0) }
 }

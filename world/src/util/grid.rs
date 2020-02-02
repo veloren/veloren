@@ -21,13 +21,9 @@ impl<T: Clone> Grid<T> {
         }
     }
 
-    pub fn size(&self) -> Vec2<i32> {
-        self.size
-    }
+    pub fn size(&self) -> Vec2<i32> { self.size }
 
-    pub fn get(&self, pos: Vec2<i32>) -> Option<&T> {
-        self.cells.get(self.idx(pos)?)
-    }
+    pub fn get(&self, pos: Vec2<i32>) -> Option<&T> { self.cells.get(self.idx(pos)?) }
 
     pub fn get_mut(&mut self, pos: Vec2<i32>) -> Option<&mut T> {
         let idx = self.idx(pos)?;
