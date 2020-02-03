@@ -1,0 +1,46 @@
+(
+    tracks: [
+        (
+            title: "Field Grazing",
+            path: "voxygen.audio.soundtrack.field_grazing",
+            length: 154.0,
+            timing: Some(Day),
+            artist: "Aeronic",
+        ),
+        (
+            title: "Wandering Voices",
+            path: "voxygen.audio.soundtrack.wandering_voices",
+            length: 137.0,
+            timing: Some(Night),
+            artist: "Aeronic",
+        ),
+        (
+            title: "Snowtop Volume",
+            path: "voxygen.audio.soundtrack.snowtop_volume",
+            length: 89.0,
+            timing: Some(Day),
+            artist: "Aeronic",
+        ),
+        (
+            title: "Mineral Deposits",
+            path: "voxygen.audio.soundtrack.mineral_deposits",
+            length: 148.0,
+            timing: Some(Day),
+            artist: "Aeronic",
+        ),
+        (
+            title: "Moonbeams",
+            path: "voxygen.audio.soundtrack.moonbeams",
+            length: 158.0,
+            timing: Some(Night),
+            artist: "Aeronic",
+        ),
+        (
+            title: "Serene Meadows",
+            path: "voxygen.audio.soundtrack.serene_meadows",
+            length: 173.0,
+            timing: Some(Night),
+            artist: "Aeronic",
+        )
+    ]
+)
