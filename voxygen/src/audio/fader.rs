@@ -30,11 +30,11 @@ impl Fader {
         }
     }
 
-    pub fn fade_out(time: f32) -> Self {
+    pub fn fade_out(time: f32, volume_from: f32) -> Self {
         Self {
             length: time,
             running_time: 0.0,
-            volume_from: 1.0,
+            volume_from,
             volume_to: 0.0,
             is_running: true,
         }
