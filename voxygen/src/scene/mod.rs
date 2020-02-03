@@ -5,11 +5,12 @@ pub mod terrain;
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
+    music::MusicMgr,
     terrain::Terrain,
 };
 use crate::{
     anim::character::SkeletonAttr,
-    audio::{sfx::SfxMgr, AudioFrontend},
+    audio::{music, sfx::SfxMgr, AudioFrontend},
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
@@ -58,6 +59,7 @@ pub struct Scene {
 
     figure_mgr: FigureMgr,
     sfx_mgr: SfxMgr,
+    music_mgr: MusicMgr,
 }
 
 impl Scene {
@@ -91,6 +93,7 @@ impl Scene {
 
             figure_mgr: FigureMgr::new(),
             sfx_mgr: SfxMgr::new(),
+            music_mgr: MusicMgr::new(),
         }
     }
 
@@ -312,8 +315,9 @@ impl Scene {
         // Remove unused figures.
         self.figure_mgr.clean(client.get_tick());
 
-        // Maintain sfx
+        // Maintain audio
         self.sfx_mgr.maintain(audio, client);
+        self.music_mgr.maintain(audio, client);
     }
 
     /// Render the scene using the provided `Renderer`.

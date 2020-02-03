@@ -51,6 +51,10 @@ impl SfxMgr {
     }
 
     pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
+        if !audio.sfx_enabled() {
+            return;
+        }
+
         self.event_mapper.maintain(client, &self.triggers);
 
         let ecs = client.state().ecs();
