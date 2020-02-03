@@ -1,9 +1,6 @@
-use super::utils::*;
-use crate::comp::{
-    ActionState::Attack, AttackKind::BasicAttack, EcsStateData, ItemKind::Tool, StateUpdate,
-    ToolData,
-};
+use crate::comp::{CharacterState, EcsStateData, ItemKind::Tool, StateUpdate, ToolData};
 use crate::states::StateHandler;
+use std::collections::VecDeque;
 
 use std::time::Duration;
 
@@ -32,22 +29,22 @@ impl StateHandler for State {
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
             character: *ecs_data.character,
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
         };
 
-        // Check if attack duration has expired
-        if self.remaining_duration == Duration::default() {
-            // If so, go back to wielding or idling
-            update.character.action_state = attempt_wield(ecs_data.stats);
-            return update;
-        }
-
-        // Otherwise, tick down remaining_duration, and keep rolling
-        update.character.action_state = Attack(BasicAttack(Some(State {
+        // Tick down remaining_duration
+        update.character = CharacterState::BasicAttack(Some(State {
             remaining_duration: self
                 .remaining_duration
                 .checked_sub(Duration::from_secs_f32(ecs_data.dt.0))
                 .unwrap_or_default(),
-        })));
+        }));
+
+        // Check if attack duration has expired
+        if self.remaining_duration == Duration::default() {
+            update.character = CharacterState::Wielded(None);
+        }
 
         update
     }

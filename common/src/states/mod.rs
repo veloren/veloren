@@ -1,4 +1,5 @@
 // Module declarations
+pub mod basic_attack;
 pub mod climb;
 pub mod glide;
 pub mod idle;

@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Body, CharacterState, Controller, EcsStateData, Mounting, Ori, PhysicsState, Pos, Stats,
-        Vel,
+        AbilityPool, Body, CharacterState, Controller, EcsStateData, Mounting, Ori, PhysicsState,
+        Pos, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -33,6 +33,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
+        ReadStorage<'a, AbilityPool>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
     );
@@ -53,11 +54,24 @@ impl<'a> System<'a> for Sys {
             stats,
             bodies,
             physics_states,
+            ability_pools,
             uids,
             mountings,
         ): Self::SystemData,
     ) {
-        for (entity, uid, mut character, pos, vel, ori, controller, stats, body, physics) in (
+        for (
+            entity,
+            uid,
+            character,
+            pos,
+            vel,
+            ori,
+            controller,
+            stats,
+            body,
+            physics,
+            ability_pool,
+        ) in (
             &entities,
             &uids,
             &mut character_states,
@@ -68,6 +82,7 @@ impl<'a> System<'a> for Sys {
             &stats,
             &bodies,
             &physics_states,
+            &ability_pools,
         )
             .join()
         {
@@ -91,7 +106,7 @@ impl<'a> System<'a> for Sys {
                 return;
             }
 
-            let state_update = character.update(&EcsStateData {
+            let mut state_update = character.update(&EcsStateData {
                 entity: &entity,
                 uid,
                 character,
@@ -104,14 +119,15 @@ impl<'a> System<'a> for Sys {
                 body,
                 physics,
                 updater: &updater,
-                server_bus: &server_bus,
-                local_bus: &local_bus,
+                ability_pool,
             });
 
             *character = state_update.character;
             *pos = state_update.pos;
             *vel = state_update.vel;
             *ori = state_update.ori;
+            local_bus.emitter().append(&mut state_update.local_events);
+            server_bus.emitter().append(&mut state_update.server_events);
         }
     }
 }

@@ -1,8 +1,8 @@
 use super::SysTimer;
 use common::{
     comp::{
-        Body, CanBuild, Energy, Gravity, Item, LightEmitter, Mass, MountState, Mounting, Player,
-        Scale, Stats, Sticky,
+        AbilityPool, Body, CanBuild, Energy, Gravity, Item, LightEmitter, Mass, MountState,
+        Mounting, Player, Scale, Stats, Sticky,
     },
     msg::EcsCompPacket,
     sync::{EntityPackage, SyncPackage, Uid, UpdateTracker, WorldSyncExt},
@@ -50,6 +50,7 @@ pub struct TrackedComps<'a> {
     pub mass: ReadStorage<'a, Mass>,
     pub sticky: ReadStorage<'a, Sticky>,
     pub gravity: ReadStorage<'a, Gravity>,
+    pub ability_pool: ReadStorage<'a, AbilityPool>,
 }
 impl<'a> TrackedComps<'a> {
     pub fn create_entity_package(&self, entity: EcsEntity) -> EntityPackage<EcsCompPacket> {
@@ -103,6 +104,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .copied()
             .map(|c| comps.push(c.into()));
+        self.ability_pool
+            .get(entity)
+            .copied()
+            .map(|c| comps.push(c.into()));
 
         EntityPackage { uid, comps }
     }
@@ -123,6 +128,7 @@ pub struct ReadTrackers<'a> {
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
+    pub ability_pool: ReadExpect<'a, UpdateTracker<AbilityPool>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_package(
@@ -150,6 +156,7 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
             .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
             .with_component(&comps.uid, &*self.gravity, &comps.gravity, filter)
+            .with_component(&comps.uid, &*self.ability_pool, &comps.ability_pool, filter)
     }
 }
 
@@ -169,6 +176,7 @@ pub struct WriteTrackers<'a> {
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
+    ability_pool: WriteExpect<'a, UpdateTracker<AbilityPool>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -187,6 +195,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.mass.record_changes(&comps.mass);
     trackers.sticky.record_changes(&comps.sticky);
     trackers.gravity.record_changes(&comps.gravity);
+    trackers.ability_pool.record_changes(&comps.ability_pool);
 }
 
 pub fn register_trackers(world: &mut World) {
@@ -204,6 +213,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Mass>();
     world.register_tracker::<Sticky>();
     world.register_tracker::<Gravity>();
+    world.register_tracker::<AbilityPool>();
 }
 
 /// Deleted entities grouped by region

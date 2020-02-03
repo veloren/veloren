@@ -21,12 +21,23 @@ impl Component for AbilityAction {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
-#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct AbilityPool {
     pub primary: Option<comp::CharacterState>,
     pub secondary: Option<comp::CharacterState>,
     pub block: Option<comp::CharacterState>,
     pub dodge: Option<comp::CharacterState>,
+}
+
+impl Default for AbilityPool {
+    fn default() -> Self {
+        Self {
+            primary: Some(comp::CharacterState::BasicAttack(None)),
+            secondary: None,
+            block: None,
+            dodge: Some(comp::CharacterState::Roll(None)),
+        }
+    }
 }
 
 impl Component for AbilityPool {

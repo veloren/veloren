@@ -1,5 +1,6 @@
 use crate::comp::{CharacterState, EcsStateData, StateUpdate};
 use crate::states::StateHandler;
+use std::collections::VecDeque;
 use vek::{Vec2, Vec3};
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
@@ -21,6 +22,8 @@ impl StateHandler for State {
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
             character: *ecs_data.character,
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
         };
 
         // If glide button isn't held or player is on ground, end glide
