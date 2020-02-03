@@ -11,7 +11,7 @@ use {
     vek::*,
 };
 
-pub const GRAVITY: f32 = 9.81 * 4.0;
+pub const GRAVITY: f32 = 9.81 * 7.0;
 const BOUYANCY: f32 = 0.0;
 // Friction values used for linear damping. They are unitless quantities. The
 // value of these quantities must be between zero and one. They represent the

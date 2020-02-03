@@ -27,19 +27,13 @@ impl StateHandler for State {
         };
 
         // If no wall is in front of character ...
-        if let None = ecs_data.physics.on_wall {
+        if ecs_data.physics.on_wall.is_none() || ecs_data.physics.on_ground {
             if ecs_data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
                 //TODO: JUMP EVENT
-            } else {
-                // Just fall off
-                update.character = CharacterState::Idle(None);
             }
-        }
-
-        // Remove climb state on ground, otherwise character will get stuck
-        if ecs_data.physics.on_ground {
             update.character = CharacterState::Idle(None);
+            return update;
         }
 
         // Move player

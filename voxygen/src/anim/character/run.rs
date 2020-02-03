@@ -27,7 +27,7 @@ impl Animation for RunAnimation {
 
         let constant = 1.0;
         let wave = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * constant as f32 * 1.2).sin()).powf(2.0 as f32)))
+            / (1.1 + 3.9 * ((anim_time as f32 * constant as f32 * 4.2).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * constant as f32 * 1.2).sin());
         let wave_cos = (((5.0)
