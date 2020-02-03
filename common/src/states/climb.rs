@@ -1,6 +1,7 @@
 use crate::comp::{CharacterState, EcsStateData, StateUpdate};
 use crate::states::StateHandler;
 use crate::sys::phys::GRAVITY;
+use std::collections::VecDeque;
 use vek::vec::{Vec2, Vec3};
 use vek::Lerp;
 
@@ -21,6 +22,8 @@ impl StateHandler for State {
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
             character: *ecs_data.character,
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
         };
 
         // If no wall is in front of character ...

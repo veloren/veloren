@@ -331,12 +331,6 @@ impl FigureMgr {
 
             let mut state_animation_rate = 1.0;
 
-            let vel = ecs
-                .read_storage::<Vel>()
-                .get(entity)
-                .cloned()
-                .unwrap_or_default();
-
             let active_tool_kind = if let Some(ItemKind::Tool(ToolData { kind, .. })) = stats
                 .and_then(|s| s.equipment.main.as_ref())
                 .map(|i| &i.kind)
@@ -407,6 +401,15 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
+                        CharacterState::BasicAttack(_) => {
+                            anim::character::AttackAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        }
                         /*CharacterState::Block(_) => {
                             anim::character::BlockIdleAnimation::update_skeleton(
                                 &target_base,
@@ -418,15 +421,6 @@ impl FigureMgr {
                         }
                         CharacterState::Charge(_) => {
                             anim::character::ChargeAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        }
-                        CharacterState::BasicAttack(_) => {
-                            anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
                                 state.state_time,

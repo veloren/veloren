@@ -1,6 +1,7 @@
 use super::utils::*;
 use crate::comp::{CharacterState, EcsStateData, ItemKind::Tool, StateUpdate, ToolData};
 use crate::states::StateHandler;
+use std::collections::VecDeque;
 use std::time::Duration;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -30,6 +31,8 @@ impl StateHandler for State {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
         };
 
         handle_move_dir(&ecs_data, &mut update);

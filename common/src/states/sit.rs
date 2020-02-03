@@ -1,6 +1,7 @@
 use super::utils::*;
 use crate::comp::{CharacterState, EcsStateData, StateUpdate};
 use crate::states::StateHandler;
+use std::collections::VecDeque;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct State;
@@ -16,6 +17,8 @@ impl StateHandler for State {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
         };
 
         //handle_jump(ecs_data, &mut update);

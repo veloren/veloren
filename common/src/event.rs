@@ -146,6 +146,9 @@ impl<'a, E> Emitter<'a, E> {
     pub fn emit(&mut self, event: E) {
         self.events.push_front(event);
     }
+    pub fn append(&mut self, other: &mut VecDeque<E>) {
+        self.events.append(other)
+    }
 }
 
 impl<'a, E> Drop for Emitter<'a, E> {
