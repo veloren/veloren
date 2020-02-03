@@ -2,6 +2,7 @@ layout (std140)
 uniform u_globals {
 	mat4 view_mat;
 	mat4 proj_mat;
+	mat4 all_mat;
 	vec4 cam_pos;
 	vec4 focus_pos;
 	vec4 view_distance;

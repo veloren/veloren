@@ -9,6 +9,7 @@ fn calc_idx(v: Vec2<i32>) -> usize {
     (x ^ y) as usize
 }
 
+// NOTE: Use 128 if TerrainChunkSize::RECT_SIZE.x = 128.
 const CACHE_LEN: usize = 32;
 
 pub struct SmallCache<V: Default> {

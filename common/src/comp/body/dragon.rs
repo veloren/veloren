@@ -38,78 +38,91 @@ impl Body {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Head {
     Default,
 }
 const ALL_HEADS: [Head; 1] = [Head::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum ChestFront {
     Default,
 }
 const ALL_CHEST_FRONTS: [ChestFront; 1] = [ChestFront::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum ChestRear {
     Default,
 }
 const ALL_CHEST_REARS: [ChestRear; 1] = [ChestRear::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum TailFront {
     Default,
 }
 const ALL_TAIL_FRONTS: [TailFront; 1] = [TailFront::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum TailRear {
     Default,
 }
 const ALL_TAIL_REARS: [TailRear; 1] = [TailRear::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum WingInL {
     Default,
 }
 const ALL_WING_IN_LS: [WingInL; 1] = [WingInL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum WingInR {
     Default,
 }
 const ALL_WING_IN_RS: [WingInR; 1] = [WingInR::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum WingOutL {
     Default,
 }
 const ALL_WING_OUT_LS: [WingOutL; 1] = [WingOutL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum WingOutR {
     Default,
 }
 const ALL_WING_OUT_RS: [WingOutR; 1] = [WingOutR::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum FootFL {
     Default,
 }
 const ALL_FOOT_FLS: [FootFL; 1] = [FootFL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum FootFR {
     Default,
 }
 const ALL_FOOT_FRS: [FootFR; 1] = [FootFR::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum FootBL {
     Default,
 }
 const ALL_FOOT_BLS: [FootBL; 1] = [FootBL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum FootBR {
     Default,
 }

@@ -24,36 +24,42 @@ impl Body {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Head {
     Default,
 }
 const ALL_HEADS: [Head; 1] = [Head::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Torso {
     Default,
 }
 const ALL_TORSOS: [Torso; 1] = [Torso::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Rear {
     Default,
 }
 const ALL_REARS: [Rear; 1] = [Rear::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum Tail {
     Default,
 }
 const ALL_TAILS: [Tail; 1] = [Tail::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum FinL {
     Default,
 }
 const ALL_FIN_LS: [FinL; 1] = [FinL::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
 pub enum FinR {
     Default,
 }

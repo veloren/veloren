@@ -1,15 +1,13 @@
-use super::seed_expan;
-use super::Sampler;
+use super::{seed_expan, Sampler};
 use vek::*;
 
+#[derive(Clone, Copy)]
 pub struct RandomField {
     seed: u32,
 }
 
 impl RandomField {
-    pub const fn new(seed: u32) -> Self {
-        Self { seed }
-    }
+    pub const fn new(seed: u32) -> Self { Self { seed } }
 }
 
 impl Sampler<'static> for RandomField {
@@ -27,9 +25,7 @@ pub struct RandomPerm {
 }
 
 impl RandomPerm {
-    pub const fn new(seed: u32) -> Self {
-        Self { seed }
-    }
+    pub const fn new(seed: u32) -> Self { Self { seed } }
 }
 
 impl Sampler<'static> for RandomPerm {

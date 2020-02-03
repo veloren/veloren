@@ -3,8 +3,8 @@ mod vol;
 
 use super::{Generator, SpawnRules};
 use crate::{
-    block::block_from_structure,
-    column::{ColumnGen, ColumnSample},
+    block::{block_from_structure, BlockGen},
+    column::ColumnSample,
     util::Sampler,
     CONFIG,
 };
@@ -65,7 +65,7 @@ impl<'a> Sampler<'a> for TownGen {
                     .and_then(|sb| {
                         block_from_structure(*sb, BlockKind::Normal, wpos, wpos.into(), 0, sample)
                     })
-            }
+            },
             _ => match cell.kind {
                 CellKind::Empty => None,
                 CellKind::Park => None,
@@ -86,7 +86,7 @@ impl<'a> Sampler<'a> for TownGen {
                     } else {
                         Some(Block::empty())
                     }
-                }
+                },
                 CellKind::House(idx) => Some(Block::new(BlockKind::Normal, town.houses[idx].color)),
             },
         }
@@ -123,23 +123,27 @@ pub struct TownState {
 }
 
 impl TownState {
-    pub fn generate(center: Vec2<i32>, gen: &mut ColumnGen, rng: &mut impl Rng) -> Option<Self> {
+    pub fn generate(center: Vec2<i32>, gen: &mut BlockGen, rng: &mut impl Rng) -> Option<Self> {
         let radius = rng.gen_range(18, 20) * 9;
         let size = Vec2::broadcast(radius * 2 / 9 - 2);
 
-        if gen.get(center).map(|sample| sample.chaos).unwrap_or(0.0) > 0.35
-            || gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) < CONFIG.sea_level + 10.0
+        let center_col = BlockGen::sample_column(&gen.column_gen, &mut gen.column_cache, center);
+
+        if center_col.map(|sample| sample.chaos).unwrap_or(0.0) > 0.35
+            || center_col.map(|sample| sample.alt).unwrap_or(0.0) < CONFIG.sea_level + 10.0
         {
             return None;
         }
 
-        let alt = gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) as i32;
+        let alt = center_col.map(|sample| sample.alt).unwrap_or(0.0) as i32;
 
         let mut vol = TownVol::generate_from(
             size,
             |pos| {
                 let wpos = center + (pos - size / 2) * CELL_SIZE + CELL_SIZE / 2;
-                let rel_alt = gen.get(wpos).map(|sample| sample.alt).unwrap_or(0.0) as i32
+                let rel_alt = BlockGen::sample_column(&gen.column_gen, &mut gen.column_cache, wpos)
+                    .map(|sample| sample.alt)
+                    .unwrap_or(0.0) as i32
                     + CELL_HEIGHT / 2
                     - alt;
 
@@ -178,13 +182,9 @@ impl TownState {
         })
     }
 
-    pub fn center(&self) -> Vec3<i32> {
-        self.center
-    }
+    pub fn center(&self) -> Vec3<i32> { self.center }
 
-    pub fn radius(&self) -> i32 {
-        self.radius
-    }
+    pub fn radius(&self) -> i32 { self.radius }
 }
 
 impl TownVol {
@@ -211,11 +211,11 @@ impl TownVol {
                                         if limit
                                             <= new_opens.len() + closed.len() + opens.len() =>
                                     {
-                                        break 'search
+                                        break 'search;
                                     }
                                     _ => {
                                         new_opens.insert(pos);
-                                    }
+                                    },
                                 }
                             }
                         }
@@ -247,10 +247,12 @@ impl TownVol {
         for _road in 0..n {
             for _ in 0..ATTEMPTS {
                 let start = *junctions.iter().choose(rng).unwrap();
-                //let start = self.choose_column(rng, |pos, col| pos.map(|e| e % 2 == 0).reduce_and() && col.is_road()).unwrap();
+                //let start = self.choose_column(rng, |pos, col| pos.map(|e| e % 2 ==
+                // 0).reduce_and() && col.is_road()).unwrap();
                 let dir = util::gen_dir(rng);
 
-                // If the direction we want to paint a path in is obstructed, abandon this attempt
+                // If the direction we want to paint a path in is obstructed, abandon this
+                // attempt
                 if self
                     .col(start + dir)
                     .map(|col| !col.is_empty())
@@ -390,14 +392,14 @@ impl TownVol {
                 let ground = col.ground;
 
                 match col.kind {
-                    None => {}
-                    Some(ColumnKind::Internal) => {}
+                    None => {},
+                    Some(ColumnKind::Internal) => {},
                     //Some(ColumnKind::External) => {}
                     Some(ColumnKind::Road) => {
                         for z in -1..2 {
                             let _ = self.set(Vec3::new(i, j, ground + z), CellKind::Road.into());
                         }
-                    }
+                    },
                 }
             }
         }
@@ -601,13 +603,10 @@ impl TownVol {
 
                     if let Some(module) = module {
                         let kind = this_cell.kind.clone();
-                        let _ = self.set(
-                            pos,
-                            TownCell {
-                                kind,
-                                module: Some(module),
-                            },
-                        );
+                        let _ = self.set(pos, TownCell {
+                            kind,
+                            module: Some(module),
+                        });
                     }
                 }
             }
@@ -644,10 +643,9 @@ lazy_static! {
             module("human.floor_ground", [This, This, This, This, This, That]),
             module("human.stair_ground", [This, This, This, This, This, That]),
             module("human.corner_ground", [This, This, That, That, This, That]),
-            module(
-                "human.window_corner_ground",
-                [This, This, That, That, This, That],
-            ),
+            module("human.window_corner_ground", [
+                This, This, That, That, This, That,
+            ]),
             module("human.wall_ground", [This, This, This, That, This, That]),
             module("human.door_ground", [This, This, This, That, This, That]),
             module("human.window_ground", [This, This, This, That, This, That]),
@@ -656,23 +654,19 @@ lazy_static! {
             module("human.chimney_roof", [This, This, That, That, That, This]),
             module("human.wall_roof", [This, This, This, That, That, This]),
             module("human.floor_upstairs", [This, This, This, This, This, This]),
-            module(
-                "human.balcony_upstairs",
-                [This, This, This, This, This, This],
-            ),
-            module(
-                "human.corner_upstairs",
-                [This, This, That, That, This, This],
-            ),
-            module(
-                "human.window_corner_upstairs",
-                [This, This, That, That, This, This],
-            ),
+            module("human.balcony_upstairs", [
+                This, This, This, This, This, This,
+            ]),
+            module("human.corner_upstairs", [
+                This, This, That, That, This, This,
+            ]),
+            module("human.window_corner_upstairs", [
+                This, This, That, That, This, This,
+            ]),
             module("human.wall_upstairs", [This, This, This, That, This, This]),
-            module(
-                "human.window_upstairs",
-                [This, This, This, That, This, This],
-            ),
+            module("human.window_upstairs", [
+                This, This, This, That, This, This,
+            ]),
         ]
     };
     pub static ref WALL_MODULES: Vec<(Arc<Structure>, [ModuleKind; 6])> = {

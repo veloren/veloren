@@ -75,8 +75,8 @@ impl<'a> Chat<'a> {
     }
 
     fn scrolled_to_bottom(state: &State, ui: &UiCell) -> bool {
-        // Might be more efficient to cache result and update it when a scroll event has occurred
-        // instead of every frame.
+        // Might be more efficient to cache result and update it when a scroll event has
+        // occurred instead of every frame.
         if let Some(scroll) = ui
             .widget_graph()
             .widget(state.ids.message_box)
@@ -105,9 +105,9 @@ pub enum Event {
 }
 
 impl<'a> Widget for Chat<'a> {
+    type Event = Option<Event>;
     type State = State;
     type Style = ();
-    type Event = Option<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -119,9 +119,7 @@ impl<'a> Widget for Chat<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
@@ -156,7 +154,7 @@ impl<'a> Widget for Chat<'a> {
                         s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
                     });
                 }
-            }
+            },
             (false, true) => {
                 if state.history_pos > 0 {
                     state.update(|s| {
@@ -168,8 +166,8 @@ impl<'a> Widget for Chat<'a> {
                         }
                     });
                 }
-            }
-            _ => {}
+            },
+            _ => {},
         }
 
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
@@ -264,7 +262,7 @@ impl<'a> Widget for Chat<'a> {
                             _ => 0.0,
                         };
                         Some(text.h(y))
-                    }
+                    },
                     _ => None,
                 }
             } else {
@@ -280,8 +278,8 @@ impl<'a> Widget for Chat<'a> {
             match widget {
                 Some(widget) => {
                     item.set(widget, ui);
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
@@ -300,7 +298,8 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
-        // If the chat widget is focused, return a focus event to pass the focus to the input box.
+        // If the chat widget is focused, return a focus event to pass the focus to the
+        // input box.
         if keyboard_capturer == Some(id) {
             Some(Event::Focus(state.ids.input))
         }

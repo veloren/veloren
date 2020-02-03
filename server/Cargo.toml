@@ -1,8 +1,12 @@
 [package]
 name = "veloren-server"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
+
+[features]
+worldgen = []
+default = ["worldgen"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
@@ -19,9 +23,9 @@ scan_fmt = "0.2.4"
 ron = "0.5.1"
 serde = "1.0.102"
 serde_derive = "1.0.102"
-rand = "0.7.2"
+rand = { version = "0.7.2", features = ["small_rng"] }
 chrono = "0.4.9"
-hashbrown = { version = "0.6.2", features = ["serde", "nightly"] }
+hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
 crossbeam = "=0.7.2"
 prometheus = "0.7"
 prometheus-static-metric = "0.2"

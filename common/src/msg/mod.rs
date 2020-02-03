@@ -3,9 +3,11 @@ pub mod ecs_packet;
 pub mod server;
 
 // Reexports
-pub use self::client::ClientMsg;
-pub use self::ecs_packet::EcsCompPacket;
-pub use self::server::{PlayerListUpdate, RequestStateError, ServerError, ServerInfo, ServerMsg};
+pub use self::{
+    client::ClientMsg,
+    ecs_packet::EcsCompPacket,
+    server::{PlayerListUpdate, RequestStateError, ServerError, ServerInfo, ServerMsg},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ClientState {

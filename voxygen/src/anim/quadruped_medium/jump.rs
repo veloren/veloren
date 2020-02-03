@@ -1,15 +1,12 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    QuadrupedMediumSkeleton,
-};
+use super::{super::Animation, QuadrupedMediumSkeleton, SkeletonAttr};
 use std::f32::consts::PI;
 use vek::*;
 
 pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
-    type Skeleton = QuadrupedMediumSkeleton;
     type Dependency = (f32, f64);
+    type Skeleton = QuadrupedMediumSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
@@ -29,13 +26,13 @@ impl Animation for JumpAnimation {
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_slow * -0.25);
         next.head_upper.scale = Vec3::one() / 10.88;
 
-        next.jaw.offset = Vec3::new(0.0, 4.5, 2.0);
-        next.jaw.ori = Quaternion::rotation_x(0.0);
-        next.jaw.scale = Vec3::one() * 1.01;
-
         next.head_lower.offset = Vec3::new(0.0, 3.1, -4.5);
         next.head_lower.ori = Quaternion::rotation_x(wave_stop * -0.1);
         next.head_lower.scale = Vec3::one() * 0.98;
+
+        next.jaw.offset = Vec3::new(0.0, 4.5, 2.0);
+        next.jaw.ori = Quaternion::rotation_x(0.0);
+        next.jaw.scale = Vec3::one() * 1.01;
 
         next.tail.offset = Vec3::new(0.0, -12.0, 8.0) / 11.0;
         next.tail.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_slow * -0.25);

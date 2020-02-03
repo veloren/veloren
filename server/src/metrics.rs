@@ -1,9 +1,9 @@
 use log::info;
 use prometheus::{Encoder, Gauge, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder};
 use rouille::{router, Server};
-use std::error::Error;
 use std::{
     convert::TryInto,
+    error::Error,
     net::SocketAddr,
     sync::{
         atomic::{AtomicBool, Ordering},

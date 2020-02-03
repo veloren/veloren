@@ -1,15 +1,13 @@
-use {
-    crate::{
-        comp::{Body, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
-        event::{EventBus, ServerEvent},
-        state::DeltaTime,
-        sync::Uid,
-        terrain::{Block, TerrainGrid},
-        vol::ReadVol,
-    },
-    specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
-    vek::*,
+use crate::{
+    comp::{Body, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
+    event::{EventBus, ServerEvent},
+    state::DeltaTime,
+    sync::Uid,
+    terrain::{Block, TerrainGrid},
+    vol::ReadVol,
 };
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use vek::*;
 
 pub const GRAVITY: f32 = 9.81 * 7.0;
 const BOUYANCY: f32 = 0.0;
@@ -18,7 +16,7 @@ const BOUYANCY: f32 = 0.0;
 // amount an object will slow down within 1/60th of a second. Eg. if the frction
 // is 0.01, and the speed is 1.0, then after 1/60th of a second the speed will
 // be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^ 60.
-const FRIC_GROUND: f32 = 0.08;
+const FRIC_GROUND: f32 = 0.15;
 const FRIC_AIR: f32 = 0.0125;
 const FRIC_FLUID: f32 = 0.2;
 
@@ -33,7 +31,7 @@ fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f3
     // must be interpolated accordingly
     let linear_damp = (1.0 - damp.min(1.0)).powf(dt * 60.0);
 
-    lv.z = (lv.z - grav * dt).max(-50.0);
+    lv.z = (lv.z - grav * dt).max(-80.0);
     lv * linear_damp
 }
 
@@ -150,7 +148,8 @@ impl<'a> System<'a> for Sys {
                 Vec3::zero()
             };
 
-            // Function for determining whether the player at a specific position collides with the ground
+            // Function for determining whether the player at a specific position collides
+            // with the ground
             let collision_with = |pos: Vec3<f32>, hit: fn(&Block) -> bool, near_iter| {
                 for (i, j, k) in near_iter {
                     let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
@@ -199,7 +198,8 @@ impl<'a> System<'a> for Sys {
                         max: pos.0 + Vec3::new(player_rad, player_rad, player_height),
                     };
 
-                    // Determine the block that we are colliding with most (based on minimum collision axis)
+                    // Determine the block that we are colliding with most (based on minimum
+                    // collision axis)
                     let (_block_pos, block_aabb) = near_iter
                         .clone()
                         // Calculate the block's position in world space
@@ -235,7 +235,8 @@ impl<'a> System<'a> for Sys {
                     // Find the intrusion vector of the collision
                     let dir = player_aabb.collision_vector_with_aabb(block_aabb);
 
-                    // Determine an appropriate resolution vector (i.e: the minimum distance needed to push out of the block)
+                    // Determine an appropriate resolution vector (i.e: the minimum distance needed
+                    // to push out of the block)
                     let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
                     let resolve_dir = -dir.map(|e| {
                         if e.abs().to_bits() == max_axis.to_bits() {
@@ -254,8 +255,8 @@ impl<'a> System<'a> for Sys {
                         }
                     }
 
-                    // When the resolution direction is non-vertical, we must be colliding with a wall
-                    // If the space above is free...
+                    // When the resolution direction is non-vertical, we must be colliding with a
+                    // wall If the space above is free...
                     if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), |vox| vox.is_solid(), near_iter.clone())
                         // ...and we're being pushed out horizontally...
                         && resolve_dir.z == 0.0
@@ -275,6 +276,7 @@ impl<'a> System<'a> for Sys {
                     {
                         // ...block-hop!
                         pos.0.z = (pos.0.z + 0.1).ceil();
+                        vel.0.z = 0.0;
                         on_ground = true;
                         break;
                     } else {

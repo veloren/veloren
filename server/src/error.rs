@@ -7,7 +7,5 @@ pub enum Error {
 }
 
 impl From<PostError> for Error {
-    fn from(err: PostError) -> Self {
-        Error::Network(err)
-    }
+    fn from(err: PostError) -> Self { Error::Network(err) }
 }

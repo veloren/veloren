@@ -2,67 +2,63 @@ use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Body {
-    pub head: Head,
-    pub torso: Torso,
-    pub tail: Tail,
-    pub wing_l: WingL,
-    pub wing_r: WingR,
-    pub leg_l: LegL,
-    pub leg_r: LegR,
+    pub species: Species,
+    pub body_type: BodyType,
 }
+
 impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
-        Self {
-            head: *(&ALL_HEADS).choose(&mut rng).unwrap(),
-            torso: *(&ALL_TORSOS).choose(&mut rng).unwrap(),
-            tail: *(&ALL_TAILS).choose(&mut rng).unwrap(),
-            wing_l: *(&ALL_WING_LS).choose(&mut rng).unwrap(),
-            wing_r: *(&ALL_WING_RS).choose(&mut rng).unwrap(),
-            leg_l: *(&ALL_LEG_LS).choose(&mut rng).unwrap(),
-            leg_r: *(&ALL_LEG_RS).choose(&mut rng).unwrap(),
-        }
+        let species = *(&ALL_SPECIES).choose(&mut rng).unwrap();
+        let body_type = *(&ALL_BODY_TYPES).choose(&mut rng).unwrap();
+        Self { species, body_type }
     }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Head {
-    Default,
+#[repr(u32)]
+pub enum Species {
+    Duck = 0,
+    Chicken = 1,
+    Goose = 2,
+    Peacock = 3,
 }
-const ALL_HEADS: [Head; 1] = [Head::Default];
+
+/// Data representing per-species generic data.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AllSpecies<SpeciesMeta> {
+    pub duck: SpeciesMeta,
+    pub chicken: SpeciesMeta,
+    pub goose: SpeciesMeta,
+    pub peacock: SpeciesMeta,
+}
+
+impl<SpeciesMeta> core::ops::Index<Species> for AllSpecies<SpeciesMeta> {
+    type Output = SpeciesMeta;
+
+    fn index(&self, index: Species) -> &Self::Output {
+        match index {
+            Species::Duck => &self.duck,
+            Species::Chicken => &self.chicken,
+            Species::Goose => &self.goose,
+            Species::Peacock => &self.peacock,
+        }
+    }
+}
+
+pub const ALL_SPECIES: [Species; 4] = [
+    Species::Duck,
+    Species::Chicken,
+    Species::Goose,
+    Species::Peacock,
+];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Torso {
-    Default,
+#[repr(u32)]
+pub enum BodyType {
+    Female = 0,
+    Male = 1,
 }
-const ALL_TORSOS: [Torso; 1] = [Torso::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Tail {
-    Default,
-}
-const ALL_TAILS: [Tail; 1] = [Tail::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum WingL {
-    Default,
-}
-const ALL_WING_LS: [WingL; 1] = [WingL::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum WingR {
-    Default,
-}
-const ALL_WING_RS: [WingR; 1] = [WingR::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum LegL {
-    Default,
-}
-const ALL_LEG_LS: [LegL; 1] = [LegL::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum LegR {
-    Default,
-}
-const ALL_LEG_RS: [LegR; 1] = [LegR::Default];
+pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];

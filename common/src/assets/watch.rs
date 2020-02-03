@@ -1,7 +1,7 @@
 use crossbeam::channel::{select, unbounded, Receiver, Sender};
 use lazy_static::lazy_static;
 use log::warn;
-use notify::{event::Flag, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
+use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
 use std::{
     collections::HashMap,
     path::PathBuf,
@@ -10,7 +10,6 @@ use std::{
         Arc, Mutex, Weak,
     },
     thread,
-    time::Duration,
 };
 
 type Handler = Box<dyn Fn() + Send>;
@@ -20,7 +19,8 @@ lazy_static! {
         Mutex::new(Watcher::new().run());
 }
 
-// This will need to be adjusted when specifier mapping to asset location becomes more dynamic
+// This will need to be adjusted when specifier mapping to asset location
+// becomes more dynamic
 struct Watcher {
     watching: HashMap<PathBuf, (Handler, Vec<Weak<AtomicBool>>)>,
     watcher: RecommendedWatcher,
@@ -31,11 +31,14 @@ impl Watcher {
         let (event_tx, event_rx) = unbounded();
         Watcher {
             watching: HashMap::new(),
-            watcher: notify::Watcher::new(event_tx, Duration::from_secs(2))
-                .expect("Failed to create notify::Watcher"),
+            watcher: notify::Watcher::new_immediate(move |event| {
+                let _ = event_tx.send(event);
+            })
+            .expect("Failed to create notify::Watcher"),
             event_rx,
         }
     }
+
     fn watch(&mut self, path: PathBuf, handler: Handler, signal: Weak<AtomicBool>) {
         match self.watching.get_mut(&path) {
             Some((_, ref mut v)) => {
@@ -45,21 +48,18 @@ impl Watcher {
                 }) {
                     v.push(signal);
                 }
-            }
+            },
             None => {
                 if let Err(err) = self.watcher.watch(path.clone(), RecursiveMode::Recursive) {
                     warn!("Could not start watching {:#?} due to: {}", &path, err);
                     return;
                 }
                 self.watching.insert(path, (handler, vec![signal]));
-            }
+            },
         }
     }
+
     fn handle_event(&mut self, event: Event) {
-        // Skip notice events
-        if let Some(Flag::Notice) = event.flag() {
-            return;
-        }
         if let Event {
             kind: EventKind::Modify(_),
             paths,
@@ -77,7 +77,7 @@ impl Watcher {
                                 Some(signal) => {
                                     signal.store(true, Ordering::Release);
                                     true
-                                }
+                                },
                                 None => false,
                             });
                         }
@@ -88,17 +88,22 @@ impl Watcher {
                             }
                             self.watching.remove(&path);
                         }
-                    }
+                    },
                     None => {
-                        warn!("Watching {:#?} but there are no signals for this path. The path will be unwatched.", path);
+                        warn!(
+                            "Watching {:#?} but there are no signals for this path. The path will \
+                             be unwatched.",
+                            path
+                        );
                         if let Err(err) = self.watcher.unwatch(&path) {
                             warn!("Error unwatching: {}", err);
                         }
-                    }
+                    },
                 }
             }
         }
     }
+
     fn run(mut self) -> Sender<(PathBuf, Handler, Weak<AtomicBool>)> {
         let (watch_tx, watch_rx) = unbounded();
 
@@ -137,6 +142,7 @@ impl ReloadIndicator {
             paths: Vec::new(),
         }
     }
+
     pub fn add<F>(&mut self, path: PathBuf, reloader: F)
     where
         F: 'static + Fn() + Send,
@@ -158,8 +164,7 @@ impl ReloadIndicator {
             error!("Could not add. Asset watcher channel disconnected.");
         }
     }
+
     // Returns true if the watched file was changed
-    pub fn reloaded(&self) -> bool {
-        self.reloaded.swap(false, Ordering::Acquire)
-    }
+    pub fn reloaded(&self) -> bool { self.reloaded.swap(false, Ordering::Acquire) }
 }

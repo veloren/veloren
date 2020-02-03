@@ -1,4 +1,3 @@
-use super::Transform;
 use common::{
     figure::Segment,
     util::{linear_to_srgba, srgba_to_linear},
@@ -7,6 +6,33 @@ use common::{
 use euc::{buffer::Buffer2d, rasterizer, Pipeline};
 use image::{DynamicImage, RgbaImage};
 use vek::*;
+
+#[derive(Copy, Clone)]
+pub enum SampleStrat {
+    None,
+    SuperSampling(u8),
+    PixelCoverage,
+}
+
+#[derive(Clone)]
+pub struct Transform {
+    pub ori: Quaternion<f32>,
+    pub offset: Vec3<f32>,
+    pub zoom: f32,
+    pub orth: bool,
+    pub stretch: bool,
+}
+impl Default for Transform {
+    fn default() -> Self {
+        Self {
+            ori: Quaternion::identity(),
+            offset: Vec3::zero(),
+            zoom: 1.0,
+            orth: true,
+            stretch: true,
+        }
+    }
+}
 
 struct Voxel {
     mvp: Mat4<f32>,
@@ -32,9 +58,9 @@ impl Vert {
 }
 
 impl<'a> Pipeline for Voxel {
+    type Pixel = [u8; 4];
     type Vertex = Vert;
     type VsOut = Rgba<f32>;
-    type Pixel = [u8; 4];
 
     #[inline(always)]
     fn vert(
@@ -48,9 +74,10 @@ impl<'a> Pipeline for Voxel {
     ) -> ([f32; 3], Self::VsOut) {
         let light = Rgba::from_opaque(Rgb::from(*ao_level as f32 / 4.0 + 0.25));
         let color = light * srgba_to_linear(Rgba::from_opaque(*col));
-        let position = Vec3::from(self.mvp * Vec4::from_point(*pos)).into_array();
+        let position = (self.mvp * Vec4::from_point(*pos)).xyz().into_array();
         (position, color)
     }
+
     #[inline(always)]
     fn frag(&self, color: &Self::VsOut) -> Self::Pixel {
         linear_to_srgba(*color)
@@ -63,10 +90,33 @@ pub fn draw_vox(
     segment: &Segment,
     output_size: Vec2<u16>,
     transform: Transform,
-    min_samples: Option<u8>,
+    sample_strat: SampleStrat,
 ) -> RgbaImage {
-    let scale = min_samples.map_or(1.0, |s| s as f32).sqrt().ceil() as usize;
-    let dims = output_size.map(|e| e as usize * scale).into_array();
+    let output_size = output_size.map(|e| e as usize);
+
+    let ori_mat = Mat4::from(transform.ori);
+    let rotated_segment_dims = (ori_mat * Vec4::from_direction(segment.size().map(|e| e as f32)))
+        .xyz()
+        .map(|e| e.abs());
+
+    let dims = match sample_strat {
+        SampleStrat::None => output_size,
+        SampleStrat::SuperSampling(min_samples) => {
+            output_size * (min_samples as f32).sqrt().ceil() as usize
+        },
+        // Assumes
+        //  - rotations are multiples of 90 degrees
+        //  - the projection is orthographic
+        //  - no translation or zooming is performed
+        //  - stretch is enabled
+        SampleStrat::PixelCoverage => Vec2::new(
+            rotated_segment_dims.x.round() as usize,
+            rotated_segment_dims.y.round() as usize,
+        ),
+    }
+    .into_array();
+
+    // Rendering buffers
     let mut color = Buffer2d::new(dims, [0; 4]);
     let mut depth = Buffer2d::new(dims, 1.0);
 
@@ -92,13 +142,13 @@ pub fn draw_vox(
     } * Mat4::scaling_3d(
         // TODO replace with camera-like parameters?
         if transform.stretch {
-            Vec3::new(2.0 / w, 2.0 / d, 2.0 / h) // Only works with flipped models :(
+            rotated_segment_dims.map(|e| 2.0 / e)
         } else {
             let s = w.max(h).max(d);
-            Vec3::new(2.0 / s, 2.0 / s, 2.0 / s)
+            Vec3::from(2.0 / s)
         } * transform.zoom,
     ) * Mat4::translation_3d(transform.offset)
-        * Mat4::from(transform.ori)
+        * ori_mat
         * Mat4::translation_3d([-w / 2.0, -h / 2.0, -d / 2.0]);
 
     Voxel { mvp }.draw::<rasterizer::Triangles<_>, _>(
@@ -107,29 +157,33 @@ pub fn draw_vox(
         &mut depth,
     );
 
-    let image = DynamicImage::ImageRgba8(
-        RgbaImage::from_vec(
-            dims[0] as u32,
-            dims[1] as u32,
-            color
-                .as_ref()
-                .iter()
-                .flatten()
-                .cloned()
-                .collect::<Vec<u8>>(),
-        )
-        .unwrap(),
-    );
-    if scale > 1 {
-        image.resize_exact(
+    let rgba_img = RgbaImage::from_vec(
+        dims[0] as u32,
+        dims[1] as u32,
+        color
+            .as_ref()
+            .iter()
+            .flatten()
+            .copied()
+            .collect::<Vec<u8>>(),
+    )
+    .unwrap();
+
+    match sample_strat {
+        SampleStrat::None => rgba_img,
+        SampleStrat::SuperSampling(_) => DynamicImage::ImageRgba8(rgba_img)
+            .resize_exact(
+                output_size.x as u32,
+                output_size.y as u32,
+                image::FilterType::Triangle,
+            )
+            .to_rgba(),
+        SampleStrat::PixelCoverage => super::pixel_art::resize_pixel_art(
+            &rgba_img,
             output_size.x as u32,
             output_size.y as u32,
-            image::FilterType::Triangle,
-        )
-    } else {
-        image
+        ),
     }
-    .to_rgba()
 }
 
 fn ao_level(side1: bool, corner: bool, side2: bool) -> u8 {

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added music system
+
+### Changed
+
+### Removed
+
+## [0.5.0] - 2019-01-31
+
+### Added
+
 - Added new debug item
 - Bows give experience by projectiles having an owner
 - Allow cancelling chunk generation
@@ -28,10 +38,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Scrolling Combat Text (SCT) & Settings for it
 - Added a Death Screen and Hurt Screen
 - Added randomly selected Loading Screen background images
-
+- Added options to disable clouds and to use cheaper water rendering
+- Added client-side character saving
+- Added a localization system to provide multi-language support
+  to voxygen
+- Added French language for Voxygen
+- Added rivers and lakes which follow realistic physical paths.
+- Added a sophisticated erosion system for world generation which
+  dramatically changes the world layout.
+- Added tracking of sediment vs. bedrock, which is visually reflected in the
+  world.
+- Added map saving and loading for altitude and bedrock, with built in
+  versioning for forwards compatibility.
+- Added a default map, which is used to speed up starting single player.
+- Added a 3D renderered map, which is also used by the server to send the map
+  to the client.
+- Added fullscreen and window size to settings so that they can be persisted
+- Added coverage based scaling for pixel art
+- 28 new mobs
+- Added waypoints
+- Added pathfinding to NPCs
+- Overhauled NPC AI
+- Pets now attack enemies and defend their owners
+- Added collars to tame wild animals
 
 ### Changed
 
+- Controls pane in settings window now shows actual configured keys
+- Fixed scroll wheel and roll keys on OS X
 - Fixed near and far view planes
 - Improvements to armor names
 - Animation fixes to line up with true positions
@@ -55,6 +89,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed not being able to unmount
 - Fixed non-humanoids being able to climb and glide
 - Made shadows and lights use interpolated positions
+- Changed "Create Character" button position
+- Made clouds bigger, more performant and prettier
+- Terrain meshing optimized further
+- Tree leaves no longer color blended
+- Actual character stats displayed in character window
+- Made significant changes to the noise functions used for world generation.
+- Improved colors during world generation.
+- Significantly reduced the use of warp during world generation.
+- Parallelized and otherwise sped up significant parts of world generation.
+- Various performance improvements to world generation.
+- Nametags now a fixed size and shown in a limited range
+- Non-humanoid skeletons now utilize configs for hotloading, and skeletal attributes.
+- Names of NPCs spawned in the wild now include their species.
 
 ### Removed
 
@@ -132,7 +179,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _0.1.0 was part of the legacy engine_
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.4.0&to=master
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.5.0&to=master
+[0.0.5]: https://gitlab.com/veloren/veloren/compare?from=v0.4.0&to=v0.5.0
 [0.0.4]: https://gitlab.com/veloren/veloren/compare?from=v0.3.0&to=v0.4.0
 [0.0.3]: https://gitlab.com/veloren/veloren/compare?from=v0.2.0&to=v0.3.0
 [0.0.2]: https://gitlab.com/veloren/veloren/compare?from=7d17f8b67a2a6d5aa00730f028cedc430fd5075a&to=v0.2.0

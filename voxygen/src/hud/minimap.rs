@@ -1,6 +1,6 @@
 use super::{img_ids::Imgs, Fonts, Show, HP_COLOR, TEXT_COLOR};
 use client::{self, Client};
-use common::comp;
+use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
     color,
     image::Id,
@@ -33,7 +33,7 @@ pub struct MiniMap<'a> {
     client: &'a Client,
 
     imgs: &'a Imgs,
-    _world_map: Id,
+    world_map: (Id, Vec2<u32>),
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -46,7 +46,7 @@ impl<'a> MiniMap<'a> {
         show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
-        world_map: Id,
+        world_map: (Id, Vec2<u32>),
         fonts: &'a Fonts,
         pulse: f32,
         zoom: f32,
@@ -55,8 +55,8 @@ impl<'a> MiniMap<'a> {
             show,
             client,
             imgs,
-            _world_map: world_map,
-            fonts: fonts,
+            world_map,
+            fonts,
             common: widget::CommonBuilder::default(),
             pulse,
             zoom,
@@ -76,9 +76,9 @@ pub enum Event {
 }
 
 impl<'a> Widget for MiniMap<'a> {
+    type Event = Option<Event>;
     type State = State;
     type Style = ();
-    type Event = Option<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -89,9 +89,7 @@ impl<'a> Widget for MiniMap<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -135,7 +133,9 @@ impl<'a> Widget for MiniMap<'a> {
                 }
             }*/
             // Map Image
-            Image::new(/*self.world_map*/ self.imgs.map_placeholder)
+            let (world_map, worldsize) = self.world_map;
+            let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
+            Image::new(world_map)
                 .middle_of(state.ids.mmap_frame_bg)
                 .w_h(92.0 * 4.0 * zoom, 82.0 * 4.0 * zoom)
                 .parent(state.ids.mmap_frame_bg)
@@ -149,9 +149,8 @@ impl<'a> Widget for MiniMap<'a> {
                 .get(self.client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
 
-            let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
-            let x = player_pos.x as f64 / worldsize * 92.0 * 4.0;
-            let y = (/*1.0X-*/player_pos.y as f64 / worldsize) * 82.0 * 4.0;
+            let x = player_pos.x as f64 / worldsize.x * 92.0 * 4.0;
+            let y = player_pos.y as f64 / worldsize.y * 82.0 * 4.0;
             let indic_ani = (self.pulse * 6.0).cos() * 0.5 + 0.5; //Animation timer
             let indic_scale = 0.8;
             // Indicator
@@ -251,7 +250,7 @@ impl<'a> Widget for MiniMap<'a> {
                     .font_id(self.fonts.alkhemi)
                     .color(Color::Rgba(1.0, 1.0, 1.0, fade))
                     .set(state.ids.zone_display, ui);
-            }
+            },
             None => Text::new(" ")
                 .middle_of(ui.window)
                 .font_size(14)

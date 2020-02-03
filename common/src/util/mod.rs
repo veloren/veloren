@@ -136,7 +136,8 @@ pub fn saturate_srgb(col: Rgb<f32>, value: f32) -> Rgb<f32> {
     linear_to_srgb(hsv_to_rgb(hsv).map(|e| e.min(1.0).max(0.0)))
 }
 
-/// Preserves the luma of one color while changing its chromaticty to match the other
+/// Preserves the luma of one color while changing its chromaticty to match the
+/// other
 #[inline(always)]
 pub fn chromify_srgb(luma: Rgb<f32>, chroma: Rgb<f32>) -> Rgb<f32> {
     let l = rgb_to_xyy(srgb_to_linear(luma)).z;

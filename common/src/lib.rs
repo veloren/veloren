@@ -1,11 +1,9 @@
 #![deny(unsafe_code)]
 #![type_length_limit = "1664759"]
-#![feature(trait_alias)]
+#![feature(trait_alias, arbitrary_enum_discriminant, label_break_value)]
 
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate log;
+#[macro_use] extern crate serde_derive;
+#[macro_use] extern crate log;
 
 pub mod assets;
 pub mod astar;
@@ -14,10 +12,10 @@ pub mod comp;
 pub mod effect;
 pub mod event;
 pub mod figure;
-pub mod hierarchical;
+pub mod generation;
 pub mod msg;
 pub mod npc;
-pub mod pathfinding;
+pub mod path;
 pub mod ray;
 pub mod region;
 pub mod state;
@@ -29,11 +27,12 @@ pub mod util;
 pub mod vol;
 pub mod volumes;
 
-/// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client.
-/// # Examples
+/// The networking module containing high-level wrappers of `TcpListener` and
+/// `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by
+/// both the server and client. # Examples
 /// ```
 /// use std::net::SocketAddr;
-/// use veloren_common::net::{PostOffice, PostBox};
+/// use veloren_common::net::{PostBox, PostOffice};
 ///
 /// let listen_addr = SocketAddr::from(([0, 0, 0, 0], 12345u16));
 /// let conn_addr = SocketAddr::from(([127, 0, 0, 1], 12345u16));

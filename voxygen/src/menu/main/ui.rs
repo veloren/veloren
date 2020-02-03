@@ -1,10 +1,10 @@
-use crate::ui::Graphic;
 use crate::{
+    i18n::{i18n_asset_key, VoxygenLocalization},
     render::Renderer,
     ui::{
         self,
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
-        ImageFrame, Tooltip, Ui, /*Tooltipable,*/
+        Graphic, ImageFrame, Tooltip, Ui,
     },
     GlobalState,
 };
@@ -219,12 +219,11 @@ impl MainMenuUi {
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
         //const INACTIVE: Color = Color::Rgba(0.47, 0.47, 0.47, 0.47);
-        let intro_text: &'static str = "Information on the Login Process:\n\
-                                        \n\
-                                        The name you put in will be your character name ingame.\n\
-                                        \n\
-                                        As of now you can't save your characters.\n\
-                                        Changing their appearance is possible though.";
+
+        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
+        let intro_text = &localized_strings.get("main.login_process");
 
         // Tooltip
         let _tooltip = Tooltip::new({
@@ -315,7 +314,7 @@ impl MainMenuUi {
                 match popup_data.popup_type {
                     PopupType::ConnectionInfo => {
                         events.push(Event::CancelLoginAttempt);
-                    }
+                    },
                     _ => (),
                 };
                 self.popup = None;
@@ -348,39 +347,18 @@ impl MainMenuUi {
                     .scroll_kids_vertically()
                     .set(self.ids.disc_window, ui_widgets);
 
-                Text::new("Disclaimer")
+                Text::new(&localized_strings.get("common.disclaimer"))
                     .top_left_with_margins_on(self.ids.disc_window, 30.0, 40.0)
                     .font_size(35)
                     .font_id(self.fonts.alkhemi)
                     .color(TEXT_COLOR)
                     .set(self.ids.disc_text_1, ui_widgets);
-                Text::new(
-        "Welcome to the alpha version of Veloren!\n\
-        \n\
-        \n\
-        Before you dive into the fun, please keep a few things in mind:\n\
-        \n\
-        - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features. \n\
-        \n\
-        -If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.\n\
-        \n\
-        - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however you wish \n\
-        (provided derived work is also under GPL 3).
-        \n\
-        - Veloren is a non-profit community project, and everybody working on it is a volunteer.\n\
-        If you like what you see, you're welcome to join the development or art teams!
-        \n\
-        - 'Voxel RPG' is a genre in its own right. First-person shooters used to be called Doom clones.\n\
-        Like them, we're trying to build a niche. This game is not a clone, and its development will diverge from existing games in the future.\n\
-        \n\
-        Thanks for taking the time to read this notice, we hope you enjoy the game!\n\
-        \n\
-        ~ The Veloren Devs")
-        .top_left_with_margins_on(self.ids.disc_window, 110.0, 40.0)
-        .font_size(26)
-        .font_id(self.fonts.cyri)
-        .color(TEXT_COLOR)
-        .set(self.ids.disc_text_2, ui_widgets);
+                Text::new(&localized_strings.get("main.notice"))
+                    .top_left_with_margins_on(self.ids.disc_window, 110.0, 40.0)
+                    .font_size(26)
+                    .font_id(self.fonts.cyri)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.disc_text_2, ui_widgets);
                 if Button::image(self.imgs.button)
                     .w_h(300.0, 50.0)
                     .mid_bottom_with_margin_on(self.ids.disc_window, 30.0)
@@ -406,8 +384,8 @@ impl MainMenuUi {
                         self.connect = true;
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
-                            msg: "Connecting...".to_string(),
-                            button_text: "Cancel".to_string(),
+                            msg: [localized_strings.get("main.connecting"), "..."].concat(),
+                            button_text: localized_strings.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
 
@@ -444,8 +422,8 @@ impl MainMenuUi {
                         self.connect = true;
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
-                            msg: "Creating World...".to_string(),
-                            button_text: "Cancel".to_string(),
+                            msg: [localized_strings.get("main.creating_world"), "..."].concat(),
+                            button_text: localized_strings.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
                     };
@@ -474,10 +452,10 @@ impl MainMenuUi {
                         TextBoxEvent::Update(username) => {
                             // Note: TextBox limits the input string length to what fits in it
                             self.username = username.to_string();
-                        }
+                        },
                         TextBoxEvent::Enter => {
                             login!();
-                        }
+                        },
                     }
                 }
                 // Password
@@ -564,7 +542,7 @@ impl MainMenuUi {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
-                        .label("Close")
+                        .label(&localized_strings.get("common.close"))
                         .label_font_size(20)
                         .label_font_id(self.fonts.cyri)
                         .label_color(TEXT_COLOR)
@@ -596,10 +574,10 @@ impl MainMenuUi {
                     match event {
                         TextBoxEvent::Update(server_address) => {
                             self.server_address = server_address.to_string();
-                        }
+                        },
                         TextBoxEvent::Enter => {
                             login!();
-                        }
+                        },
                     }
                 }
                 // Login button
@@ -609,7 +587,7 @@ impl MainMenuUi {
                     .w_h(258.0, 55.0)
                     .down_from(self.ids.address_bg, 20.0)
                     .align_middle_x_of(self.ids.address_bg)
-                    .label("Multiplayer")
+                    .label(&localized_strings.get("common.multiplayer"))
                     .label_font_id(self.fonts.cyri)
                     .label_color(TEXT_COLOR)
                     .label_font_size(22)
@@ -636,7 +614,7 @@ impl MainMenuUi {
                         .w_h(258.0, 55.0)
                         .down_from(self.ids.login_button, 20.0)
                         .align_middle_x_of(self.ids.address_bg)
-                        .label("Singleplayer")
+                        .label(&localized_strings.get("common.singleplayer"))
                         .label_font_id(self.fonts.cyri)
                         .label_color(TEXT_COLOR)
                         .label_font_size(22)
@@ -654,7 +632,7 @@ impl MainMenuUi {
                     .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label("Quit")
+                    .label(&localized_strings.get("common.quit"))
                     .label_font_id(self.fonts.cyri)
                     .label_color(TEXT_COLOR)
                     .label_font_size(20)
@@ -671,7 +649,7 @@ impl MainMenuUi {
                     .up_from(self.ids.quit_button, 8.0)
                     //.hover_image(self.imgs.button_hover)
                     //.press_image(self.imgs.button_press)
-                    .label("Settings")
+                    .label(&localized_strings.get("common.settings"))
                     .label_font_id(self.fonts.cyri)
                     .label_color(TEXT_COLOR_2)
                     .label_font_size(20)
@@ -688,7 +666,7 @@ impl MainMenuUi {
                     .up_from(self.ids.settings_button, 8.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label("Servers")
+                    .label(&localized_strings.get("common.servers"))
                     .label_font_id(self.fonts.cyri)
                     .label_color(TEXT_COLOR)
                     .label_font_size(20)
@@ -704,10 +682,10 @@ impl MainMenuUi {
         events
     }
 
-    pub fn show_info(&mut self, msg: String) {
+    pub fn show_info(&mut self, msg: String, button_text: String) {
         self.popup = Some(PopupData {
             msg,
-            button_text: "Okay".to_string(),
+            button_text,
             popup_type: PopupType::Error,
         });
         self.connecting = None;
@@ -726,9 +704,7 @@ impl MainMenuUi {
         self.connect = false;
     }
 
-    pub fn handle_event(&mut self, event: ui::Event) {
-        self.ui.handle_event(event);
-    }
+    pub fn handle_event(&mut self, event: ui::Event) { self.ui.handle_event(event); }
 
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let events = self.update_layout(global_state, dt);
@@ -736,7 +712,5 @@ impl MainMenuUi {
         events
     }
 
-    pub fn render(&self, renderer: &mut Renderer) {
-        self.ui.render(renderer, None);
-    }
+    pub fn render(&self, renderer: &mut Renderer) { self.ui.render(renderer, None); }
 }

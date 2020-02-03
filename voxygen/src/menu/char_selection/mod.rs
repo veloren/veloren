@@ -2,8 +2,10 @@ mod scene;
 mod ui;
 
 use crate::{
-    session::SessionState, window::Event as WinEvent, Direction, GlobalState, PlayState,
-    PlayStateResult,
+    i18n::{i18n_asset_key, VoxygenLocalization},
+    session::SessionState,
+    window::Event as WinEvent,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
 use common::{assets, clock::Clock, comp, msg::ClientState};
@@ -37,18 +39,18 @@ impl PlayState for CharSelectionState {
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Registered = current_client_state {
             // Handle window events
-            for event in global_state.window.fetch_events() {
+            for event in global_state.window.fetch_events(&mut global_state.settings) {
                 if self.char_selection_ui.handle_event(event.clone()) {
                     continue;
                 }
                 match event {
                     WinEvent::Close => {
                         return PlayStateResult::Shutdown;
-                    }
+                    },
                     // Pass all other events to the scene
                     event => {
                         self.scene.handle_input_event(event);
-                    } // TODO: Do something if the event wasn't handled?
+                    }, // TODO: Do something if the event wasn't handled?
                 }
             }
 
@@ -57,48 +59,59 @@ impl PlayState for CharSelectionState {
             // Maintain the UI.
             let events = self
                 .char_selection_ui
-                .maintain(global_state.window.renderer_mut(), &self.client.borrow());
+                .maintain(global_state, &self.client.borrow());
             for event in events {
                 match event {
                     ui::Event::Logout => {
                         return PlayStateResult::Pop;
-                    }
+                    },
                     ui::Event::Play => {
+                        let char_data = self
+                            .char_selection_ui
+                            .get_character_data()
+                            .expect("Character data is required to play");
                         self.client.borrow_mut().request_character(
-                            self.char_selection_ui.character_name.clone(),
-                            comp::Body::Humanoid(self.char_selection_ui.character_body),
-                            self.char_selection_ui
-                                .character_tool
-                                .map(|specifier| specifier.to_owned()),
+                            char_data.name,
+                            char_data.body,
+                            char_data.tool,
                         );
                         return PlayStateResult::Push(Box::new(SessionState::new(
                             global_state,
                             self.client.clone(),
                         )));
-                    }
+                    },
                 }
             }
 
             // Maintain global state.
             global_state.maintain(clock.get_last_delta().as_secs_f32());
 
+            let humanoid_body = self
+                .char_selection_ui
+                .get_character_data()
+                .and_then(|data| match data.body {
+                    comp::Body::Humanoid(body) => Some(body),
+                    _ => None,
+                });
+
             // Maintain the scene.
             self.scene.maintain(
                 global_state.window.renderer_mut(),
                 &self.client.borrow(),
-                self.char_selection_ui.character_body,
+                humanoid_body.clone(),
             );
 
             // Render the scene.
             self.scene.render(
                 global_state.window.renderer_mut(),
                 &self.client.borrow(),
-                self.char_selection_ui.character_body,
+                humanoid_body.clone(),
                 &comp::Equipment {
                     main: self
                         .char_selection_ui
-                        .character_tool
-                        .and_then(|specifier| assets::load_cloned(&specifier).ok()),
+                        .get_character_data()
+                        .and_then(|data| data.tool)
+                        .and_then(|tool| assets::load_cloned(&tool).ok()),
                     alt: None,
                 },
             );
@@ -108,15 +121,16 @@ impl PlayState for CharSelectionState {
                 .render(global_state.window.renderer_mut(), self.scene.globals());
 
             // Tick the client (currently only to keep the connection alive).
+            let localized_strings = assets::load_expect::<VoxygenLocalization>(&i18n_asset_key(
+                &global_state.settings.language.selected_language,
+            ));
             if let Err(err) = self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),
                 clock.get_last_delta(),
                 |_| {},
             ) {
-                global_state.info_message = Some(
-                    "Connection lost!\nDid the server restart?\nIs the client up to date?"
-                        .to_owned(),
-                );
+                global_state.info_message =
+                    Some(localized_strings.get("common.connection_lost").to_owned());
                 error!("[session] Failed to tick the scene: {:?}", err);
 
                 return PlayStateResult::Pop;
@@ -142,7 +156,5 @@ impl PlayState for CharSelectionState {
         PlayStateResult::Pop
     }
 
-    fn name(&self) -> &'static str {
-        "Title"
-    }
+    fn name(&self) -> &'static str { "Title" }
 }

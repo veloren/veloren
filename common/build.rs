@@ -1,10 +1,10 @@
-use std::env;
-use std::fs::File;
-use std::io::Read;
-use std::io::Write;
-use std::path::Path;
-use std::path::PathBuf;
-use std::process::Command;
+use std::{
+    env,
+    fs::File,
+    io::{Read, Write},
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 fn main() {
     // Get the current githash
@@ -30,13 +30,13 @@ fn main() {
                 target
                     .write_all(hash.trim().as_bytes())
                     .expect("failed to write to file!");
-            }
+            },
             Err(e) => panic!("failed to convert git output to UTF-8: {}", e),
         },
         Err(e) => panic!("failed to retrieve current git commit hash: {}", e),
     }
     // Check if git-lfs is working
-    if std::env::var("DISABLE_GIT_LFS_CHECK").is_err() {
+    if std::env::var("DISABLE_GIT_LFS_CHECK").is_err() && cfg!(not(feature = "no-assets")) {
         let asset_path: PathBuf = ["..", "assets", "voxygen", "background", "bg_main.png"]
             .iter()
             .collect();

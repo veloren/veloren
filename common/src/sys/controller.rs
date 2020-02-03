@@ -1,6 +1,9 @@
 use crate::{
-    comp::{ControlEvent, Controller},
-    event::{EventBus, LocalEvent, ServerEvent},
+    comp::{
+        item, projectile, Body, ControlEvent, Controller, ControllerInputs, Energy, EnergySource,
+        HealthChange, HealthSource, ItemKind, Mounting, PhysicsState, Projectile, Stats, Vel,
+    },
+    event::{Emitter, EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
     sync::{Uid, UidAllocator},
 };
@@ -9,8 +12,8 @@ use specs::{
     Entities, Join, Read, ReadStorage, System, WriteStorage,
 };
 
-/// # Controller System
-/// #### Responsible for validating and updating controller inputs
+const CHARGE_COST: i32 = 200;
+
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
@@ -23,6 +26,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Uid>,
     );
+
     fn run(
         &mut self,
         (entities, uid_allocator, server_bus, _local_bus, _dt, mut controllers, uids): Self::SystemData,
@@ -54,11 +58,12 @@ impl<'a> System<'a> for Sys {
                         {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
                         }
-                    }
+                    },
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
                     ControlEvent::InventoryManip(manip) => {
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
-                    } //ControlEvent::Respawn => server_emitter.emit(ServerEvent::Unmount(entity)),
+                    }, /*ControlEvent::Respawn =>
+                        * server_emitter.emit(ServerEvent::Unmount(entity)), */
                 }
             }
         }

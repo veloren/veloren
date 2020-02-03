@@ -1,14 +1,16 @@
 mod client_init;
-#[cfg(feature = "singleplayer")]
-mod ui;
+#[cfg(feature = "singleplayer")] mod ui;
 
 use super::char_selection::CharSelectionState;
 use crate::{
-    singleplayer::Singleplayer, window::Event, Direction, GlobalState, PlayState, PlayStateResult,
+    i18n::{i18n_asset_key, VoxygenLocalization},
+    singleplayer::Singleplayer,
+    window::Event,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use argon2::{self, Config};
 use client_init::{ClientInit, Error as InitError};
-use common::{clock::Clock, comp};
+use common::{assets::load_expect, clock::Clock, comp};
 use log::warn;
 #[cfg(feature = "singleplayer")]
 use std::time::Duration;
@@ -42,10 +44,11 @@ impl PlayState for MainMenuState {
         let mut client_init: Option<ClientInit> = None;
 
         // Kick off title music
-        if self.title_music_channel.is_none() && global_state.settings.audio.audio_on {
-            self.title_music_channel = global_state
-                .audio
-                .play_music("voxygen.audio.soundtrack.veloren_title_tune");
+        if self.title_music_channel.is_none()
+            && global_state.settings.audio.audio_on
+            && global_state.audio.music_enabled()
+        {
+            self.title_music_channel = global_state.audio.play_title_music();
         }
 
         // Reset singleplayer server if it was running already
@@ -53,15 +56,15 @@ impl PlayState for MainMenuState {
 
         loop {
             // Handle window events.
-            for event in global_state.window.fetch_events() {
+            for event in global_state.window.fetch_events(&mut global_state.settings) {
                 match event {
                     Event::Close => return PlayStateResult::Shutdown,
                     // Pass events to ui.
                     Event::Ui(event) => {
                         self.main_menu_ui.handle_event(event);
-                    }
+                    },
                     // Ignore all other events.
-                    _ => {}
+                    _ => {},
                 }
             }
 
@@ -77,7 +80,7 @@ impl PlayState for MainMenuState {
                         global_state,
                         std::rc::Rc::new(std::cell::RefCell::new(client)),
                     )));
-                }
+                },
                 Some(Err(err)) => {
                     client_init = None;
                     global_state.info_message = Some(
@@ -90,8 +93,8 @@ impl PlayState for MainMenuState {
                         }
                         .to_string(),
                     );
-                }
-                None => {}
+                },
+                None => {},
             }
 
             // Maintain global_state
@@ -116,15 +119,15 @@ impl PlayState for MainMenuState {
                             DEFAULT_PORT,
                             &mut client_init,
                         );
-                    }
+                    },
                     MainMenuEvent::CancelLoginAttempt => {
-                        // client_init contains Some(ClientInit), which spawns a thread which contains a TcpStream::connect() call
-                        // This call is blocking
-                        // TODO fix when the network rework happens
+                        // client_init contains Some(ClientInit), which spawns a thread which
+                        // contains a TcpStream::connect() call This call is
+                        // blocking TODO fix when the network rework happens
                         self.singleplayer = None;
                         client_init = None;
                         self.main_menu_ui.cancel_connection();
-                    }
+                    },
                     #[cfg(feature = "singleplayer")]
                     MainMenuEvent::StartSingleplayer => {
                         let (singleplayer, server_settings) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
@@ -139,17 +142,21 @@ impl PlayState for MainMenuState {
                             server_settings.gameserver_address.port(),
                             &mut client_init,
                         );
-                    }
-                    MainMenuEvent::Settings => {} // TODO
+                    },
+                    MainMenuEvent::Settings => {}, // TODO
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                     MainMenuEvent::DisclaimerClosed => {
                         global_state.settings.show_disclaimer = false
-                    }
+                    },
                 }
             }
+            let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+                &global_state.settings.language.selected_language,
+            ));
 
             if let Some(info) = global_state.info_message.take() {
-                self.main_menu_ui.show_info(info);
+                self.main_menu_ui
+                    .show_info(info, localized_strings.get("common.okay").to_owned());
             }
 
             // Draw the UI to the screen.
@@ -169,9 +176,7 @@ impl PlayState for MainMenuState {
         }
     }
 
-    fn name(&self) -> &'static str {
-        "Title"
-    }
+    fn name(&self) -> &'static str { "Title" }
 }
 
 fn attempt_login(

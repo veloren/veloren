@@ -55,9 +55,11 @@ fn main() {
         .unwrap();
 
     let (tx, rx) = mpsc::channel();
-    thread::spawn(move || loop {
-        let msg = read_input();
-        tx.send(msg).unwrap();
+    thread::spawn(move || {
+        loop {
+            let msg = read_input();
+            tx.send(msg).unwrap();
+        }
     });
 
     loop {
@@ -74,13 +76,13 @@ fn main() {
             Err(err) => {
                 error!("Error: {:?}", err);
                 break;
-            }
+            },
         };
 
         for event in events {
             match event {
                 Event::Chat { message, .. } => println!("{}", message),
-                Event::Disconnect => {} // TODO
+                Event::Disconnect => {}, // TODO
                 Event::DisconnectionNotification(time) => {
                     let message = match time {
                         0 => String::from("Goodbye!"),
@@ -88,7 +90,7 @@ fn main() {
                     };
 
                     println!("{}", message)
-                }
+                },
             }
         }
 

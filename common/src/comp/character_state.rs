@@ -1,14 +1,12 @@
-use crate::states::*;
 use crate::{
     comp::{AbilityPool, Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, Vel},
     event::{LocalEvent, ServerEvent},
     state::DeltaTime,
+    states::*,
     sync::Uid,
 };
-use serde::Deserialize;
-use serde::Serialize;
-use specs::LazyUpdate;
-use specs::{Component, Entity, FlaggedStorage, HashMapStorage};
+use serde::{Deserialize, Serialize};
+use specs::{Component, Entity, FlaggedStorage, HashMapStorage, LazyUpdate};
 use std::collections::VecDeque;
 
 pub struct EcsStateData<'a> {
@@ -116,16 +114,14 @@ impl CharacterState {
             CharacterState::Glide(opt_state) => opt_state
                 .unwrap_or_else(|| glide::State::new(ecs_data))
                 .handle(ecs_data),
-            // All states should be explicitly handled
-            // DO NOT use default match: _ => {},
+            /* All states should be explicitly handled
+             * DO NOT use default match: _ => {}, */
         }
     }
 }
 
 impl Default for CharacterState {
-    fn default() -> Self {
-        Self::Idle(None)
-    }
+    fn default() -> Self { Self::Idle(None) }
 }
 
 impl Component for CharacterState {

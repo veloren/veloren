@@ -1,12 +1,15 @@
 use std::ops::{Add, Mul, Sub};
 use vek::*;
-use veloren_world::{util::Sampler, World};
+use veloren_world::{sim::WorldOpts, util::Sampler, World};
 
 const W: usize = 640;
 const H: usize = 480;
 
 fn main() {
-    let world = World::generate(0);
+    let world = World::generate(0, WorldOpts {
+        seed_elements: true,
+        ..WorldOpts::default()
+    });
 
     let sampler = world.sample_columns();
 

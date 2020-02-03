@@ -2,8 +2,17 @@ use super::{
     img_ids::Imgs, BarNumbers, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR, HP_COLOR,
     LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
-use crate::GlobalState;
-use common::comp::{item::Debug, item::ToolData, item::ToolKind, Energy, ItemKind, Stats};
+use crate::{
+    i18n::{i18n_asset_key, VoxygenLocalization},
+    GlobalState,
+};
+use common::{
+    assets::load_expect,
+    comp::{
+        item::{Debug, ToolData, ToolKind},
+        CharacterState, ControllerInputs, Energy, ItemKind, Stats,
+    },
+};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -32,14 +41,18 @@ widget_ids! {
         m1_slot,
         m1_slot_bg,
         m1_text,
+        m1_slot_act,
         m1_content,
         m2_slot,
         m2_slot_bg,
         m2_text,
+        m2_slot_act,
         m2_content,
         slot1,
         slot1_bg,
         slot1_text,
+        slot1_icon,
+        slot1_act,
         slot2,
         slot2_bg,
         slot2_text,
@@ -88,8 +101,8 @@ widget_ids! {
 
 pub enum ResourceType {
     Mana,
-    //Rage,
-    //Focus,
+    /*Rage,
+     *Focus, */
 }
 #[derive(WidgetCommon)]
 pub struct Skillbar<'a> {
@@ -98,6 +111,8 @@ pub struct Skillbar<'a> {
     fonts: &'a Fonts,
     stats: &'a Stats,
     energy: &'a Energy,
+    character_state: &'a CharacterState,
+    controller: &'a ControllerInputs,
     pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -111,7 +126,9 @@ impl<'a> Skillbar<'a> {
         fonts: &'a Fonts,
         stats: &'a Stats,
         energy: &'a Energy,
+        character_state: &'a CharacterState,
         pulse: f32,
+        controller: &'a ControllerInputs,
     ) -> Self {
         Self {
             global_state,
@@ -121,7 +138,9 @@ impl<'a> Skillbar<'a> {
             energy,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
+            character_state,
             pulse,
+            controller,
         }
     }
 }
@@ -136,9 +155,9 @@ pub struct State {
 }
 
 impl<'a> Widget for Skillbar<'a> {
+    type Event = ();
     type State = State;
     type Style = ();
-    type Event = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -151,9 +170,7 @@ impl<'a> Widget for Skillbar<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -174,8 +191,12 @@ impl<'a> Widget for Skillbar<'a> {
 
         const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
         const BG_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 0.99);
-        let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 0.8; //Animation timer
+        let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
+
+        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &self.global_state.settings.language.selected_language,
+        ));
 
         // Stamina Wheel
         /*
@@ -238,7 +259,9 @@ impl<'a> Widget for Skillbar<'a> {
         Rectangle::fill_with([82.0 * 4.0, 40.0 * 4.0], color::TRANSPARENT)
             .mid_top_with_margin_on(ui.window, 300.0)
             .set(state.ids.level_align, ui);
-        let level_up_text = format!("Level {}", self.stats.level.level() as u32);
+        let level_up_text = &localized_strings
+            .get("char_selection.level_fmt")
+            .replace("{level_nb}", &self.stats.level.level().to_string());
         Text::new(&level_up_text)
             .middle_of(state.ids.level_align)
             .font_size(30)
@@ -265,34 +288,30 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.level_down, ui);
         // Death message
         if self.stats.is_dead {
-            Text::new("You Died")
+            Text::new(&localized_strings.get("hud.you_died"))
                 .middle_of(ui.window)
                 .font_size(50)
                 .font_id(self.fonts.cyri)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.death_message_1_bg, ui);
-            Text::new(&format!(
-                "Press {:?} to respawn at your Waypoint.\n\
-                 \n\
-                 Press Enter, type in /waypoint and confirm to set it here.",
-                self.global_state.settings.controls.respawn
+            Text::new(&localized_strings.get("hud.press_key_to_respawn").replace(
+                "{key}",
+                &format!("{:?}", self.global_state.settings.controls.respawn),
             ))
             .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
             .font_size(30)
             .font_id(self.fonts.cyri)
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.death_message_2_bg, ui);
-            Text::new("You Died")
+            Text::new(&localized_strings.get("hud.you_died"))
                 .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
                 .font_size(50)
                 .font_id(self.fonts.cyri)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
-            Text::new(&format!(
-                "Press {:?} to respawn at your Waypoint.\n\
-                 \n\
-                 Press Enter, type in /waypoint and confirm to set it here.",
-                self.global_state.settings.controls.respawn
+            Text::new(&localized_strings.get("hud.press_key_to_respawn").replace(
+                "{key}",
+                &format!("{:?}", self.global_state.settings.controls.respawn),
             ))
             .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
             .font_size(30)
@@ -392,9 +411,10 @@ impl<'a> Widget for Skillbar<'a> {
                     .w_h(40.0 * scale, 40.0 * scale)
                     .top_left_with_margins_on(state.ids.xp_bar_mid, -40.0 * scale, 0.0)
                     .set(state.ids.m1_slot, ui);
-            }
+            },
             XpBar::OnGain => {
-                // Displays the Exp Bar at the top of the screen when exp is gained and fades it out afterwards
+                // Displays the Exp Bar at the top of the screen when exp is gained and fades it
+                // out afterwards
                 const FADE_IN_XP: f32 = 1.0;
                 const FADE_HOLD_XP: f32 = 3.0;
                 const FADE_OUT_XP: f32 = 2.0;
@@ -516,15 +536,48 @@ impl<'a> Widget for Skillbar<'a> {
                     .mid_bottom_with_margin_on(ui.window, 9.0)
                     .set(state.ids.hotbar_align, ui);
                 // M1 Slot
-                Image::new(self.imgs.skillbar_slot_big)
-                    .w_h(40.0 * scale, 40.0 * scale)
-                    .top_left_with_margins_on(state.ids.hotbar_align, -40.0 * scale, 0.0)
-                    .set(state.ids.m1_slot, ui);
-            }
+
+                match self.character_state {
+                    CharacterState::BasicAttack { .. } => {
+                        if self.controller.primary.is_pressed() {
+                            let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
+                            Image::new(self.imgs.skillbar_slot_big)
+                                .w_h(40.0 * scale, 40.0 * scale)
+                                .top_left_with_margins_on(
+                                    state.ids.hotbar_align,
+                                    -40.0 * scale,
+                                    0.0,
+                                )
+                                .set(state.ids.m1_slot, ui);
+                            Image::new(self.imgs.skillbar_slot_big_act)
+                                .w_h(40.0 * scale, 40.0 * scale)
+                                .middle_of(state.ids.m1_slot)
+                                .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_pulse)))
+                                .floating(true)
+                                .set(state.ids.m1_slot_act, ui);
+                        } else {
+                            Image::new(self.imgs.skillbar_slot_big)
+                                .w_h(40.0 * scale, 40.0 * scale)
+                                .top_left_with_margins_on(
+                                    state.ids.hotbar_align,
+                                    -40.0 * scale,
+                                    0.0,
+                                )
+                                .set(state.ids.m1_slot, ui);
+                        }
+                    },
+                    _ => {
+                        Image::new(self.imgs.skillbar_slot_big)
+                            .w_h(40.0 * scale, 40.0 * scale)
+                            .top_left_with_margins_on(state.ids.hotbar_align, -40.0 * scale, 0.0)
+                            .set(state.ids.m1_slot, ui);
+                    },
+                }
+            },
         }
         // M1 Slot
         Image::new(self.imgs.skillbar_slot_big_bg)
-            .w_h(36.0 * scale, 36.0 * scale)
+            .w_h(38.0 * scale, 38.0 * scale)
             .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
                     ToolKind::Bow => Some(BG_COLOR_2),
@@ -550,7 +603,7 @@ impl<'a> Widget for Skillbar<'a> {
         .w(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
             Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
                 ToolKind::Bow => 30.0 * scale,
-                ToolKind::Staff => 30.0 * scale,
+                ToolKind::Staff => 32.0 * scale,
                 _ => 38.0 * scale,
             },
             _ => 38.0 * scale,
@@ -558,7 +611,7 @@ impl<'a> Widget for Skillbar<'a> {
         .h(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
             Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
                 ToolKind::Bow => 30.0 * scale,
-                ToolKind::Staff => 36.0 * scale,
+                ToolKind::Staff => 32.0 * scale,
                 _ => 38.0 * scale,
             },
             _ => 38.0 * scale,
@@ -566,12 +619,58 @@ impl<'a> Widget for Skillbar<'a> {
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
         // M2 Slot
-        Image::new(self.imgs.skillbar_slot_big)
-            .w_h(40.0 * scale, 40.0 * scale)
-            .right_from(state.ids.m1_slot, 0.0)
-            .set(state.ids.m2_slot, ui);
+        match self.character_state {
+            /*
+            CharacterState::BasicBlock { .. } => {
+                let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
+                if self.controller.secondary.is_pressed() {
+                    Image::new(self.imgs.skillbar_slot_big)
+                        .w_h(40.0 * scale, 40.0 * scale)
+                        .right_from(state.ids.m1_slot, 0.0)
+                        .set(state.ids.m2_slot, ui);
+                    Image::new(self.imgs.skillbar_slot_big_act)
+                        .w_h(40.0 * scale, 40.0 * scale)
+                        .middle_of(state.ids.m2_slot)
+                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_pulse)))
+                        .floating(true)
+                        .set(state.ids.m2_slot_act, ui);
+                } else {
+                    Image::new(self.imgs.skillbar_slot_big)
+                        .w_h(40.0 * scale, 40.0 * scale)
+                        .right_from(state.ids.m1_slot, 0.0)
+                        .set(state.ids.m2_slot, ui);
+                }
+            },*/
+            CharacterState::BasicAttack { .. } => {
+                let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
+                if self.controller.secondary.is_pressed() {
+                    Image::new(self.imgs.skillbar_slot_big)
+                        .w_h(40.0 * scale, 40.0 * scale)
+                        .right_from(state.ids.m1_slot, 0.0)
+                        .set(state.ids.m2_slot, ui);
+                    Image::new(self.imgs.skillbar_slot_big_act)
+                        .w_h(40.0 * scale, 40.0 * scale)
+                        .middle_of(state.ids.m2_slot)
+                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_pulse)))
+                        .floating(true)
+                        .set(state.ids.m2_slot_act, ui);
+                } else {
+                    Image::new(self.imgs.skillbar_slot_big)
+                        .w_h(40.0 * scale, 40.0 * scale)
+                        .right_from(state.ids.m1_slot, 0.0)
+                        .set(state.ids.m2_slot, ui);
+                }
+            },
+            _ => {
+                Image::new(self.imgs.skillbar_slot_big)
+                    .w_h(40.0 * scale, 40.0 * scale)
+                    .right_from(state.ids.m1_slot, 0.0)
+                    .set(state.ids.m2_slot, ui);
+            },
+        }
+
         Image::new(self.imgs.skillbar_slot_big_bg)
-            .w_h(36.0 * scale, 36.0 * scale)
+            .w_h(38.0 * scale, 38.0 * scale)
             .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
                     ToolKind::Bow => Some(BG_COLOR_2),
@@ -653,15 +752,50 @@ impl<'a> Widget for Skillbar<'a> {
             .middle_of(state.ids.slot2)
             .set(state.ids.slot2_bg, ui);
         // Slot 1
-        Image::new(self.imgs.skillbar_slot_l)
-            .w_h(20.0 * scale, 20.0 * scale)
-            .left_from(state.ids.slot2, 0.0)
-            .set(state.ids.slot1, ui);
+        // TODO: Don't hardcode this to one Skill...
+        // Frame flashes whenever the active skill inside this slot is activated
+        match self.character_state {
+            /*
+            CharacterState::Charge { time_left } => {
+                let fade = time_left.as_secs_f32() * 10.0;
+                Image::new(self.imgs.skillbar_slot_l)
+                    .w_h(20.0 * scale, 20.0 * scale)
+                    .left_from(state.ids.slot2, 0.0)
+                    .set(state.ids.slot1, ui);
+                Image::new(self.imgs.skillbar_slot_l_act)
+                    .w_h(20.0 * scale, 20.0 * scale)
+                    .middle_of(state.ids.slot1)
+                    .color(Some(Color::Rgba(
+                        1.0,
+                        1.0,
+                        1.0,
+                        if fade > 0.6 { 0.6 } else { fade },
+                    )))
+                    .floating(true)
+                    .set(state.ids.slot1_act, ui);
+            },*/
+            _ => {
+                Image::new(self.imgs.skillbar_slot_l)
+                    .w_h(20.0 * scale, 20.0 * scale)
+                    .left_from(state.ids.slot2, 0.0)
+                    .set(state.ids.slot1, ui);
+            },
+        }
         Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
+            .w_h(19.5 * scale, 19.5 * scale)
             .color(Some(BG_COLOR))
             .middle_of(state.ids.slot1)
             .set(state.ids.slot1_bg, ui);
+        // TODO: Changeable slot image
+        Image::new(self.imgs.charge)
+            .w_h(18.0 * scale, 18.0 * scale)
+            .color(if self.energy.current() as f64 >= 200.0 {
+                Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+            } else {
+                Some(Color::Rgba(0.4, 0.4, 0.4, 1.0))
+            })
+            .middle_of(state.ids.slot1_bg)
+            .set(state.ids.slot1_icon, ui);
         // Slot 6
         Image::new(self.imgs.skillbar_slot)
             .w_h(20.0 * scale, 20.0 * scale)
@@ -815,8 +949,8 @@ impl<'a> Widget for Skillbar<'a> {
             .top_left_with_margins_on(state.ids.energybar_bg, 2.0 * scale, 1.0 * scale)
             .color(Some(match self.current_resource {
                 ResourceType::Mana => MANA_COLOR,
-                //ResourceType::Focus => FOCUS_COLOR,
-                //ResourceType::Rage => RAGE_COLOR,
+                /*ResourceType::Focus => FOCUS_COLOR,
+                 *ResourceType::Rage => RAGE_COLOR, */
             }))
             .set(state.ids.energybar_filling, ui);
         // Bar Text
@@ -841,8 +975,9 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.health_text, ui);
             let energy_text = format!(
                 "{}/{}",
-                self.energy.current() as u32,
-                self.energy.maximum() as u32
+                self.energy.current() as u32 / 10, /* TODO Fix regeneration with smaller energy
+                                                    * numbers instead of dividing by 10 here */
+                self.energy.maximum() as u32 / 10
             );
             Text::new(&energy_text)
                 .mid_top_with_margin_on(state.ids.energybar_bg, 6.0 * scale)

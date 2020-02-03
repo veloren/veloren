@@ -36,15 +36,15 @@ use spell::Spell;
 
 use crate::{
     ecs::comp as vcomp,
-    render::{AaMode, Consts, Globals, Renderer},
+    i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
+    render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
     scene::camera::Camera,
-    //settings::ControlSettings,
     ui::{Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
 use client::{Client, Event as ClientEvent};
-use common::{comp, terrain::TerrainChunk, vol::RectRasterableVol};
+use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     image::Id,
     text::cursor::Index,
@@ -65,7 +65,7 @@ const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
 const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
-const MANA_COLOR: Color = Color::Rgba(0.47, 0.55, 1.0, 0.9);
+const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 const META_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
@@ -77,6 +77,14 @@ const SAY_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
+
+/// Distance at which nametags are visible
+const NAMETAG_RANGE: f32 = 40.0;
+/// Time nametags stay visible after doing damage even if they are out of range
+/// in seconds
+const NAMETAG_DMG_TIME: f32 = 60.0;
+/// Range damaged triggered nametags can be seen
+const NAMETAG_DMG_RANGE: f32 = 120.0;
 
 widget_ids! {
     struct Ids {
@@ -204,7 +212,11 @@ pub enum Event {
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
+    AdjustWindowSize([u16; 2]),
+    ToggleFullscreen,
     ChangeAaMode(AaMode),
+    ChangeCloudMode(CloudMode),
+    ChangeFluidMode(FluidMode),
     CrosshairTransp(f32),
     ChatTransp(f32),
     CrosshairType(CrosshairType),
@@ -223,11 +235,13 @@ pub enum Event {
     DropInventorySlot(usize),
     Logout,
     Quit,
+    ChangeLanguage(LanguageMetadata),
 }
 
 // TODO: Are these the possible layouts we want?
 // TODO: Maybe replace this with bitflags.
-// `map` is not here because it currently is displayed over the top of other open windows.
+// `map` is not here because it currently is displayed over the top of other
+// open windows.
 #[derive(PartialEq)]
 pub enum Windows {
     Settings, // Display settings window.
@@ -276,7 +290,6 @@ pub struct Show {
     esc_menu: bool,
     open_windows: Windows,
     map: bool,
-    inventory_test_button: bool,
     mini_map: bool,
     ingame: bool,
     settings_tab: SettingsTab,
@@ -288,48 +301,47 @@ impl Show {
         self.bag = open;
         self.want_grab = !open;
     }
-    fn toggle_bag(&mut self) {
-        self.bag(!self.bag);
-    }
+
+    fn toggle_bag(&mut self) { self.bag(!self.bag); }
+
     fn map(&mut self, open: bool) {
         self.map = open;
         self.bag = false;
         self.want_grab = !open;
     }
+
     fn character_window(&mut self, open: bool) {
         self.character_window = open;
         self.bag = false;
         self.want_grab = !open;
     }
+
     fn social(&mut self, open: bool) {
         self.social = open;
         self.spell = false;
         self.quest = false;
         self.want_grab = !open;
     }
+
     fn spell(&mut self, open: bool) {
         self.social = false;
         self.spell = open;
         self.quest = false;
         self.want_grab = !open;
     }
+
     fn quest(&mut self, open: bool) {
         self.social = false;
         self.spell = false;
         self.quest = open;
         self.want_grab = !open;
     }
-    fn toggle_map(&mut self) {
-        self.map(!self.map)
-    }
 
-    fn toggle_mini_map(&mut self) {
-        self.mini_map = !self.mini_map;
-    }
+    fn toggle_map(&mut self) { self.map(!self.map) }
 
-    fn toggle_char_window(&mut self) {
-        self.character_window = !self.character_window
-    }
+    fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
+
+    fn toggle_char_window(&mut self) { self.character_window = !self.character_window }
 
     fn settings(&mut self, open: bool) {
         self.open_windows = if open {
@@ -343,6 +355,7 @@ impl Show {
         self.quest = false;
         self.want_grab = !open;
     }
+
     fn toggle_settings(&mut self) {
         match self.open_windows {
             Windows::Settings => self.settings(false),
@@ -350,13 +363,9 @@ impl Show {
         };
     }
 
-    fn toggle_help(&mut self) {
-        self.help = !self.help
-    }
+    fn toggle_help(&mut self) { self.help = !self.help }
 
-    fn toggle_ui(&mut self) {
-        self.ui = !self.ui;
-    }
+    fn toggle_ui(&mut self) { self.ui = !self.ui; }
 
     fn toggle_windows(&mut self) {
         if self.bag
@@ -422,13 +431,12 @@ impl Show {
 pub struct Hud {
     ui: Ui,
     ids: Ids,
-    world_map: Id,
+    world_map: (Id, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
     fonts: Fonts,
     rot_imgs: ImgsRot,
     new_messages: VecDeque<ClientEvent>,
-    inventory_space: usize,
     show: Show,
     never_show: bool,
     intro: bool,
@@ -452,7 +460,10 @@ impl Hud {
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
         // Load world map
-        let world_map = ui.add_graphic(Graphic::Image(client.world_map.clone()));
+        let world_map = (
+            ui.add_graphic(Graphic::Image(client.world_map.0.clone())),
+            client.world_map.1,
+        );
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         // Load rotation images.
@@ -471,7 +482,6 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            inventory_space: 8,
             intro: false,
             intro_2: false,
             show: Show {
@@ -487,7 +497,6 @@ impl Hud {
                 quest: false,
                 spell: false,
                 character_window: false,
-                inventory_test_button: false,
                 mini_map: false,
                 settings_tab: SettingsTab::Interface,
                 social_tab: SocialTab::Online,
@@ -527,6 +536,10 @@ impl Hud {
             common::util::GIT_VERSION.to_string()
         );
 
+        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
+
         if self.show.ingame {
             let ecs = client.state().ecs();
             let pos = ecs.read_storage::<comp::Pos>();
@@ -538,18 +551,17 @@ impl Hud {
             let scales = ecs.read_storage::<comp::Scale>();
             let entities = ecs.entities();
             let me = client.entity();
-            let view_distance = client.view_distance().unwrap_or(1);
             let own_level = stats
                 .get(client.entity())
                 .map_or(0, |stats| stats.level.level());
-
+            //self.input = client.read_storage::<comp::ControllerInputs>();
             if let Some(stats) = stats.get(me) {
                 // Hurt Frame
                 let hp_percentage =
                     stats.health.current() as f32 / stats.health.maximum() as f32 * 100.0;
                 if hp_percentage < 10.0 && !stats.is_dead {
                     let hurt_fade =
-                        (self.pulse * (10.0 - hp_percentage as f32) * 0.1/*speed factor*/).sin()
+                        (self.pulse * (10.0 - hp_percentage as f32) * 0.1/* speed factor */).sin()
                             * 0.5
                             + 0.6; //Animation timer
                     Image::new(self.imgs.hurt_bg)
@@ -599,6 +611,7 @@ impl Hud {
 
             // Max amount the sct font size increases when "flashing"
             const FLASH_MAX: f32 = 25.0;
+            const BARSIZE: f64 = 2.0;
             // Get player position.
             let player_pos = client
                 .state()
@@ -625,21 +638,25 @@ impl Hud {
                 &stats,
                 &energy,
                 scales.maybe(),
-                hp_floater_lists.maybe(), // Potentially move this to its own loop
+                &hp_floater_lists,
             )
                 .join()
                 .filter(|(entity, _, _, stats, _, _, _)| {
                     *entity != me && !stats.is_dead
                     //&& stats.health.current() != stats.health.maximum()
                 })
-                // Don't process health bars outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _, _, _, _)| {
-                    Vec2::from(pos.0 - player_pos)
-                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                            d.abs() as f32 / sz as f32
+                // Don't show outside a certain range
+                .filter(|(_, pos, _, _, _, _, hpfl)| {
+                    pos.0.distance_squared(player_pos)
+                        < (if hpfl
+                            .time_since_last_dmg_by_me
+                            .map_or(false, |t| t < NAMETAG_DMG_TIME)
+                        {
+                            NAMETAG_DMG_RANGE
+                        } else {
+                            NAMETAG_RANGE
                         })
-                        .magnitude()
-                        < view_distance as f32
+                        .powi(2)
                 })
                 .map(|(_, pos, interpolated, stats, energy, scale, f)| {
                     (
@@ -670,20 +687,25 @@ impl Hud {
                 let hp_percentage =
                     stats.health.current() as f64 / stats.health.maximum() as f64 * 100.0;
                 let energy_percentage = energy.current() as f64 / energy.maximum() as f64 * 100.0;
-                let hp_ani = (self.pulse * 4.0/*speed factor*/).cos() * 0.5 + 1.0; //Animation timer
+                let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
                 // Background
-                Rectangle::fill_with([82.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
-                    .x_y(0.0, -25.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
-                    .set(back_id, ui_widgets);
+                Rectangle::fill_with(
+                    [82.0 * BARSIZE + 1.0, 8.0 * BARSIZE + 1.0],
+                    Color::Rgba(0.1, 0.1, 0.1, 0.9),
+                )
+                .x_y(0.0, -25.0)
+                .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                .set(back_id, ui_widgets);
 
                 // % HP Filling
                 Image::new(self.imgs.enemy_bar)
-                    .w_h(72.9 * (hp_percentage / 100.0), 5.9)
-                    .x_y(4.5 + (hp_percentage / 100.0 * 36.45) - 36.45, -24.0)
+                    .w_h(72.9 * (hp_percentage / 100.0) * BARSIZE, 5.9 * BARSIZE)
+                    .x_y(
+                        (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
+                        -23.0,
+                    )
                     .color(Some(if hp_percentage <= 25.0 {
                         crit_hp_color
                     } else if hp_percentage <= 50.0 {
@@ -692,33 +714,34 @@ impl Hud {
                         HP_COLOR
                     }))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(health_bar_id, ui_widgets);
                 // % Mana Filling
                 Rectangle::fill_with(
                     [
-                        73.0 * (energy.current() as f64 / energy.maximum() as f64),
-                        1.5,
+                        73.0 * (energy.current() as f64 / energy.maximum() as f64) * BARSIZE,
+                        1.5 * BARSIZE,
                     ],
                     MANA_COLOR,
                 )
-                .x_y(4.5 + (energy_percentage / 100.0 * 36.5) - 36.45, -28.0)
+                .x_y(
+                    ((4.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
+                    -32.0,
+                )
                 .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                .resolution(100.0)
                 .set(mana_bar_id, ui_widgets);
 
                 // Foreground
                 Image::new(self.imgs.enemy_health)
-                    .w_h(84.0, 10.0)
-                    .x_y(0.0, -25.0)
+                    .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                    .x_y(0.0, -25.5)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(front_id, ui_widgets);
 
                 // Enemy SCT
-                if let Some(HpFloaterList { floaters, .. }) = hp_floater_list
+                if let Some(floaters) = Some(hp_floater_list)
                     .filter(|fl| !fl.floaters.is_empty() && global_state.settings.gameplay.sct)
+                    .map(|l| &l.floaters)
                 {
                     // Colors
                     const WHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.8);
@@ -783,8 +806,6 @@ impl Hud {
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(0.0, y - 3.0)
                             .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
-                            .fixed_scale()
-                            .resolution(100.0)
                             .set(sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", hp_damage.abs()))
                             .font_size(font_size)
@@ -795,8 +816,6 @@ impl Hud {
                                 Color::Rgba(0.1, 1.0, 0.1, fade)
                             })
                             .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
-                            .fixed_scale()
-                            .resolution(100.0)
                             .set(sct_id, ui_widgets);
                     } else {
                         for floater in floaters {
@@ -839,8 +858,6 @@ impl Hud {
                                 .position_ingame(
                                     pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
                                 )
-                                .fixed_scale()
-                                .resolution(100.0)
                                 .set(sct_bg_id, ui_widgets);
                             Text::new(&format!("{}", (floater.hp_change).abs()))
                                 .font_size(font_size)
@@ -853,8 +870,6 @@ impl Hud {
                                 .position_ingame(
                                     pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
                                 )
-                                .fixed_scale()
-                                .resolution(100.0)
                                 .set(sct_id, ui_widgets);
                         }
                     }
@@ -1100,19 +1115,24 @@ impl Hud {
                 &stats,
                 players.maybe(),
                 scales.maybe(),
+                &hp_floater_lists,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _)| *entity != me && !stats.is_dead)
-                // Don't process nametags outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _, _, _)| {
-                    Vec2::from(pos.0 - player_pos)
-                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                            d.abs() as f32 / sz as f32
+                .filter(|(entity, _, _, stats, _, _, _)| *entity != me && !stats.is_dead)
+                // Don't show outside a certain range
+                .filter(|(_, pos, _, _, _, _, hpfl)| {
+                    pos.0.distance_squared(player_pos)
+                        < (if hpfl
+                            .time_since_last_dmg_by_me
+                            .map_or(false, |t| t < NAMETAG_DMG_TIME)
+                        {
+                            NAMETAG_DMG_RANGE
+                        } else {
+                            NAMETAG_RANGE
                         })
-                        .magnitude()
-                        < view_distance as f32
+                        .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, player, scale)| {
+                .map(|(_, pos, interpolated, stats, player, scale, _)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -1145,18 +1165,16 @@ impl Hud {
 
                 // Name
                 Text::new(&name)
-                    .font_size(20)
+                    .font_size(30)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                    .x_y(-1.0, -1.0)
+                    .x_y(-1.0, 16.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(name_bg_id, ui_widgets);
                 Text::new(&name)
-                    .font_size(20)
+                    .font_size(30)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
-                    .x_y(0.0, 0.0)
+                    .x_y(0.0, 18.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(name_id, ui_widgets);
 
                 // Level
@@ -1165,7 +1183,8 @@ impl Hud {
                 const EQUAL: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
                 let op_level = level.level();
                 let level_str = format!("{}", op_level);
-                // Change visuals of the level display depending on the player level/opponent level
+                // Change visuals of the level display depending on the player level/opponent
+                // level
                 let level_comp = op_level as i64 - own_level as i64;
                 // + 10 level above player -> skull
                 // + 5-10 levels above player -> high
@@ -1173,9 +1192,9 @@ impl Hud {
                 // - 5 levels below player -> low
                 Text::new(if level_comp < 10 { &level_str } else { "?" })
                     .font_size(if op_level > 9 && level_comp < 10 {
-                        7
+                        14
                     } else {
-                        8
+                        15
                     })
                     .color(if level_comp > 4 {
                         HIGH
@@ -1184,65 +1203,27 @@ impl Hud {
                     } else {
                         EQUAL
                     })
-                    .x_y(-37.0, -24.0)
+                    .x_y(-37.0 * BARSIZE, -23.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(level_id, ui_widgets);
                 if level_comp > 9 {
-                    let skull_ani = ((self.pulse * 0.7/*speed factor*/).cos() * 0.5 + 0.5) * 10.0; //Animation timer
+                    let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
                     Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
                         self.imgs.skull_2
                     } else {
                         self.imgs.skull
                     })
-                    .w_h(18.0, 18.0)
-                    .x_y(-39.0, -25.0)
+                    .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                    .x_y(-39.0 * BARSIZE, -25.0)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                    .resolution(100.0)
                     .set(level_skull_id, ui_widgets);
                 }
             }
         }
 
         // Introduction Text
-        let intro_text: &'static str =
-            "Welcome to the Veloren Alpha!\n\
-             \n\
-             \n\
-             Some tips before you start:\n\
-             \n\
-             \n\
-             MOST IMPORTANTLY: To set your respawn point type /waypoint into the chat.\n\
-             \n\
-             This can also be done when you are already dead!\n\
-             \n\
-             \n\
-             Press F1 to see the available key commands.\n\
-             \n\
-             Type /help into the chat to see chat commands\n\
-             \n\
-             \n\
-             There are chests and other objects randomly spawning in the World!\n\
-             \n\
-             Right-Click to collect them.\n\
-             \n\
-             To actually use whatever you loot from those chests open your inventory with 'B'.\n\
-             \n\
-             Double click the items in your bag to use or equip them.\n\
-             \n\
-             Throw them away by clicking them once and clicking outside of the bag\n\
-             \n\
-             \n\
-             Nights can get pretty dark in Veloren.\n\
-             \n\
-             Light your lantern by typing /lantern into the chat\n\
-             \n\
-             \n\
-             Want to free your cursor to close this window? Press TAB!\n\
-             \n\
-             \n\
-             Enjoy your stay in the World of Veloren.";
+        let intro_text = &localized_strings.get("hud.welcome");
         if self.show.intro && !self.show.esc_menu && !self.intro_2 {
             match global_state.settings.gameplay.intro_show {
                 Intro::Show => {
@@ -1259,7 +1240,7 @@ impl Hud {
                     if Button::image(self.imgs.button)
                         .w_h(100.0, 50.0)
                         .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                        .label("Close")
+                        .label(&localized_strings.get("common.close"))
                         .label_font_size(20)
                         .label_color(TEXT_COLOR)
                         .hover_image(self.imgs.button_hover)
@@ -1296,7 +1277,7 @@ impl Hud {
                     {
                         self.never_show = !self.never_show
                     };
-                    Text::new("Don't show this on Startup")
+                    Text::new(&localized_strings.get("hud.do_not_show_on_startup"))
                         .right_from(self.ids.intro_check, 10.0)
                         .font_size(10)
                         .font_id(self.fonts.cyri)
@@ -1323,8 +1304,8 @@ impl Hud {
                             self.intro_2 = false;
                         }
                     };
-                }
-                Intro::Never => {}
+                },
+                Intro::Never => {},
             }
         }
 
@@ -1342,7 +1323,7 @@ impl Hud {
             if Button::image(self.imgs.button)
                 .w_h(100.0, 50.0)
                 .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                .label("Close")
+                .label(&localized_strings.get("common.close"))
                 .label_font_size(20)
                 .label_color(TEXT_COLOR)
                 .hover_image(self.imgs.button_hover)
@@ -1431,8 +1412,9 @@ impl Hud {
                 .set(self.ids.velocity, ui_widgets);
             // Loaded distance
             Text::new(&format!(
-                "View distance: {} chunks",
-                client.loaded_distance().unwrap_or(0)
+                "View distance: {:.2} blocks ({:.2} chunks)",
+                client.loaded_distance(),
+                client.loaded_distance() / TerrainChunk::RECT_SIZE.x as f32,
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.velocity, 5.0)
@@ -1488,20 +1470,28 @@ impl Hud {
             .set(self.ids.num_figures, ui_widgets);
 
             // Help Window
-            Text::new(&format!(
-                "Press {:?} to show keybindings",
-                global_state.settings.controls.help
-            ))
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_toggle_keybindings_fmt")
+                    .replace(
+                        "{key}",
+                        &format!("{:?}", global_state.settings.controls.help),
+                    ),
+            )
             .color(TEXT_COLOR)
             .down_from(self.ids.num_figures, 5.0)
             .font_id(self.fonts.cyri)
             .font_size(14)
             .set(self.ids.help_info, ui_widgets);
             // Info about Debug Shortcut
-            Text::new(&format!(
-                "Press {:?} to toggle debug info",
-                global_state.settings.controls.toggle_debug
-            ))
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_toggle_debug_info_fmt")
+                    .replace(
+                        "{key}",
+                        &format!("{:?}", global_state.settings.controls.toggle_debug),
+                    ),
+            )
             .color(TEXT_COLOR)
             .down_from(self.ids.help_info, 5.0)
             .font_id(self.fonts.cyri)
@@ -1509,45 +1499,33 @@ impl Hud {
             .set(self.ids.debug_info, ui_widgets);
         } else {
             // Help Window
-            Text::new(&format!(
-                "Press {:?} to show keybindings",
-                global_state.settings.controls.help
-            ))
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_show_keybindings_fmt")
+                    .replace(
+                        "{key}",
+                        &format!("{:?}", global_state.settings.controls.help),
+                    ),
+            )
             .color(TEXT_COLOR)
             .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .font_id(self.fonts.cyri)
             .font_size(16)
             .set(self.ids.help_info, ui_widgets);
             // Info about Debug Shortcut
-            Text::new(&format!(
-                "Press {:?} to toggle debug info",
-                global_state.settings.controls.toggle_debug
-            ))
+            Text::new(
+                &localized_strings
+                    .get("hud.press_key_to_show_debug_info_fmt")
+                    .replace(
+                        "{key}",
+                        &format!("{:?}", global_state.settings.controls.toggle_debug),
+                    ),
+            )
             .color(TEXT_COLOR)
             .down_from(self.ids.help_info, 5.0)
             .font_id(self.fonts.cyri)
             .font_size(12)
             .set(self.ids.debug_info, ui_widgets);
-        }
-
-        // Add Bag-Space Button.
-        if self.show.inventory_test_button {
-            if Button::image(self.imgs.button)
-                .w_h(100.0, 100.0)
-                .middle_of(ui_widgets.window)
-                .label("Add 1 Space")
-                .label_font_size(20)
-                .label_color(TEXT_COLOR)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .set(self.ids.bag_space_add, ui_widgets)
-                .was_clicked()
-            {
-                if self.inventory_space < 100 {
-                    self.inventory_space += 1;
-                } else {
-                }
-            };
         }
 
         // Help Text
@@ -1561,7 +1539,7 @@ impl Hud {
                 .w_h(120.0, 50.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label("Show Tips")
+                .label(&localized_strings.get("hud.show_tips"))
                 .label_font_size(20)
                 .label_color(TEXT_COLOR)
                 .mid_bottom_with_margin_on(self.ids.help, 20.0)
@@ -1604,7 +1582,7 @@ impl Hud {
             Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
             Some(buttons::Event::ToggleQuest) => self.show.toggle_quest(),
             Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
-            None => {}
+            None => {},
         }
 
         // MiniMap
@@ -1620,7 +1598,7 @@ impl Hud {
         .set(self.ids.minimap, ui_widgets)
         {
             Some(minimap::Event::Toggle) => self.show.toggle_mini_map(),
-            None => {}
+            None => {},
         }
 
         // Bag contents
@@ -1632,6 +1610,7 @@ impl Hud {
                 &self.fonts,
                 &self.rot_imgs,
                 tooltip_manager,
+                self.pulse,
             )
             .set(self.ids.bag, ui_widgets)
             {
@@ -1639,8 +1618,8 @@ impl Hud {
                 Some(bag::Event::Close) => {
                     self.show.bag(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
@@ -1649,15 +1628,24 @@ impl Hud {
         let ecs = client.state().ecs();
         let stats = ecs.read_storage::<comp::Stats>();
         let energy = ecs.read_storage::<comp::Energy>();
+        let character_state = ecs.read_storage::<comp::CharacterState>();
         let entity = client.entity();
-        if let (Some(stats), Some(energy)) = (stats.get(entity), energy.get(entity)) {
+        let controller = ecs.read_storage::<comp::Controller>();
+        if let (Some(stats), Some(energy), Some(character_state), Some(controller)) = (
+            stats.get(entity),
+            energy.get(entity),
+            character_state.get(entity),
+            controller.get(entity).map(|c| &c.inputs),
+        ) {
             Skillbar::new(
                 global_state,
                 &self.imgs,
                 &self.fonts,
                 &stats,
                 &energy,
+                &character_state,
                 self.pulse,
+                &controller,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -1675,11 +1663,11 @@ impl Hud {
         {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
-            }
+            },
             Some(chat::Event::Focus(focus_id)) => {
                 self.to_focus = Some(Some(focus_id));
-            }
-            None => {}
+            },
+            None => {},
         }
 
         self.new_messages = VecDeque::new();
@@ -1687,84 +1675,106 @@ impl Hud {
         // Windows
 
         // Char Window will always appear at the left side. Other Windows default to the
-        // left side, but when the Char Window is opened they will appear to the right of it.
+        // left side, but when the Char Window is opened they will appear to the right
+        // of it.
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            for event in SettingsWindow::new(&global_state, &self.show, &self.imgs, &self.fonts)
-                .set(self.ids.settings_window, ui_widgets)
+            for event in SettingsWindow::new(
+                &global_state,
+                &self.show,
+                &self.imgs,
+                &self.fonts,
+                &localized_strings,
+            )
+            .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
                     settings_window::Event::Sct(sct) => {
                         events.push(Event::Sct(sct));
-                    }
+                    },
                     settings_window::Event::SctPlayerBatch(sct_player_batch) => {
                         events.push(Event::SctPlayerBatch(sct_player_batch));
-                    }
+                    },
                     settings_window::Event::SctDamageBatch(sct_damage_batch) => {
                         events.push(Event::SctDamageBatch(sct_damage_batch));
-                    }
+                    },
                     settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
                     settings_window::Event::Close => self.show.settings(false),
                     settings_window::Event::AdjustMousePan(sensitivity) => {
                         events.push(Event::AdjustMousePan(sensitivity));
-                    }
+                    },
                     settings_window::Event::AdjustMouseZoom(sensitivity) => {
                         events.push(Event::AdjustMouseZoom(sensitivity));
-                    }
+                    },
                     settings_window::Event::ChatTransp(chat_transp) => {
                         events.push(Event::ChatTransp(chat_transp));
-                    }
+                    },
                     settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
                         events.push(Event::ToggleZoomInvert(zoom_inverted));
-                    }
+                    },
                     settings_window::Event::ToggleMouseYInvert(mouse_y_inverted) => {
                         events.push(Event::ToggleMouseYInvert(mouse_y_inverted));
-                    }
+                    },
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
-                    }
+                    },
                     settings_window::Event::CrosshairTransp(crosshair_transp) => {
                         events.push(Event::CrosshairTransp(crosshair_transp));
-                    }
+                    },
                     settings_window::Event::Intro(intro_show) => {
                         events.push(Event::Intro(intro_show));
-                    }
+                    },
                     settings_window::Event::AdjustMusicVolume(music_volume) => {
                         events.push(Event::AdjustMusicVolume(music_volume));
-                    }
+                    },
                     settings_window::Event::AdjustSfxVolume(sfx_volume) => {
                         events.push(Event::AdjustSfxVolume(sfx_volume));
-                    }
+                    },
                     settings_window::Event::MaximumFPS(max_fps) => {
                         events.push(Event::ChangeMaxFPS(max_fps));
-                    }
+                    },
                     settings_window::Event::ChangeAudioDevice(name) => {
                         events.push(Event::ChangeAudioDevice(name));
-                    }
+                    },
                     settings_window::Event::CrosshairType(crosshair_type) => {
                         events.push(Event::CrosshairType(crosshair_type));
-                    }
+                    },
                     settings_window::Event::ToggleXpBar(xp_bar) => {
                         events.push(Event::ToggleXpBar(xp_bar));
-                    }
+                    },
                     settings_window::Event::ToggleBarNumbers(bar_numbers) => {
                         events.push(Event::ToggleBarNumbers(bar_numbers));
-                    }
+                    },
                     settings_window::Event::ToggleShortcutNumbers(shortcut_numbers) => {
                         events.push(Event::ToggleShortcutNumbers(shortcut_numbers));
-                    }
+                    },
                     settings_window::Event::UiScale(scale_change) => {
                         events.push(Event::UiScale(scale_change));
-                    }
+                    },
                     settings_window::Event::AdjustFOV(new_fov) => {
                         events.push(Event::ChangeFOV(new_fov));
-                    }
+                    },
                     settings_window::Event::ChangeAaMode(new_aa_mode) => {
                         events.push(Event::ChangeAaMode(new_aa_mode));
-                    }
+                    },
+                    settings_window::Event::ChangeCloudMode(new_cloud_mode) => {
+                        events.push(Event::ChangeCloudMode(new_cloud_mode));
+                    },
+                    settings_window::Event::ChangeFluidMode(new_fluid_mode) => {
+                        events.push(Event::ChangeFluidMode(new_fluid_mode));
+                    },
+                    settings_window::Event::ChangeLanguage(language) => {
+                        events.push(Event::ChangeLanguage(language));
+                    },
+                    settings_window::Event::ToggleFullscreen => {
+                        events.push(Event::ToggleFullscreen);
+                    },
+                    settings_window::Event::AdjustWindowSize(new_size) => {
+                        events.push(Event::AdjustWindowSize(new_size));
+                    },
                 }
             }
         }
@@ -1772,10 +1782,11 @@ impl Hud {
         // Social Window
         if self.show.social {
             for event in Social::new(
-                /*&global_state,*/ &self.show,
+                &self.show,
                 client,
                 &self.imgs,
                 &self.fonts,
+                &localized_strings,
             )
             .set(self.ids.social_window, ui_widgets)
             {
@@ -1783,7 +1794,7 @@ impl Hud {
                     social::Event::Close => self.show.social(false),
                     social::Event::ChangeSocialTab(social_tab) => {
                         self.show.open_social_tab(social_tab)
-                    }
+                    },
                 }
             }
         }
@@ -1793,40 +1804,58 @@ impl Hud {
             let ecs = client.state().ecs();
             let stats = ecs.read_storage::<comp::Stats>();
             let player_stats = stats.get(client.entity()).unwrap();
-            match CharacterWindow::new(&self.show, &player_stats, &self.imgs, &self.fonts)
-                .set(self.ids.character_window, ui_widgets)
+            match CharacterWindow::new(
+                &self.show,
+                &player_stats,
+                &self.imgs,
+                &self.fonts,
+                &localized_strings,
+            )
+            .set(self.ids.character_window, ui_widgets)
             {
                 Some(character_window::Event::Close) => {
                     self.show.character_window(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
         // Spellbook
         if self.show.spell {
-            match Spell::new(&self.show, client, &self.imgs, &self.fonts)
-                .set(self.ids.spell, ui_widgets)
+            match Spell::new(
+                &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+                &localized_strings,
+            )
+            .set(self.ids.spell, ui_widgets)
             {
                 Some(spell::Event::Close) => {
                     self.show.spell(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
         // Quest Log
         if self.show.quest {
-            match Quest::new(&self.show, client, &self.imgs, &self.fonts)
-                .set(self.ids.quest, ui_widgets)
+            match Quest::new(
+                &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+                &localized_strings,
+            )
+            .set(self.ids.quest, ui_widgets)
             {
                 Some(quest::Event::Close) => {
                     self.show.quest(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
         // Map
@@ -1845,36 +1874,36 @@ impl Hud {
                 Some(map::Event::Close) => {
                     self.show.map(false);
                     self.force_ungrab = true;
-                }
-                None => {}
+                },
+                None => {},
             }
         }
 
         if self.show.esc_menu {
-            match EscMenu::new(&self.imgs, &self.fonts).set(self.ids.esc_menu, ui_widgets) {
+            match EscMenu::new(&self.imgs, &self.fonts, &localized_strings)
+                .set(self.ids.esc_menu, ui_widgets)
+            {
                 Some(esc_menu::Event::OpenSettings(tab)) => {
                     self.show.open_setting_tab(tab);
-                }
+                },
                 Some(esc_menu::Event::Close) => {
                     self.show.esc_menu = false;
                     self.show.want_grab = false;
                     self.force_ungrab = true;
-                }
+                },
                 Some(esc_menu::Event::Logout) => {
                     events.push(Event::Logout);
-                }
+                },
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
                 Some(esc_menu::Event::CharacterSelection) => events.push(Event::CharacterSelection),
-                None => {}
+                None => {},
             }
         }
 
         events
     }
 
-    pub fn new_message(&mut self, msg: ClientEvent) {
-        self.new_messages.push_back(msg);
-    }
+    pub fn new_message(&mut self, msg: ClientEvent) { self.new_messages.push_back(msg); }
 
     pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
         let scale_mode = match scale_change {
@@ -1911,15 +1940,15 @@ impl Hud {
                     self.ui.handle_event(event);
                 }
                 true
-            }
+            },
             WinEvent::InputUpdate(GameInput::ToggleInterface, true) if !self.typing() => {
                 self.show.toggle_ui();
                 true
-            }
+            },
             WinEvent::InputUpdate(GameInput::ToggleCursor, true) if !self.typing() => {
                 self.force_ungrab = !self.force_ungrab;
                 true
-            }
+            },
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
 
@@ -1930,7 +1959,7 @@ impl Hud {
                     Some(self.ids.chat)
                 });
                 true
-            }
+            },
             WinEvent::InputUpdate(GameInput::Escape, true) => {
                 if self.typing() {
                     self.ui.focus_widget(None);
@@ -1939,7 +1968,7 @@ impl Hud {
                     self.show.toggle_windows();
                 }
                 true
-            }
+            },
 
             // Press key while not typing
             WinEvent::InputUpdate(key, true) if !self.typing() => match key {
@@ -1948,48 +1977,48 @@ impl Hud {
                     self.force_chat_cursor = Some(Index { line: 0, char: 1 });
                     self.ui.focus_widget(Some(self.ids.chat));
                     true
-                }
+                },
                 GameInput::Map => {
                     self.show.toggle_map();
                     true
-                }
+                },
                 GameInput::Bag => {
                     self.show.toggle_bag();
                     true
-                }
+                },
                 GameInput::QuestLog => {
                     self.show.toggle_quest();
                     true
-                }
+                },
                 GameInput::CharacterWindow => {
                     self.show.toggle_char_window();
                     true
-                }
+                },
                 GameInput::Social => {
                     self.show.toggle_social();
                     true
-                }
+                },
                 GameInput::Spellbook => {
                     self.show.toggle_spell();
                     true
-                }
+                },
                 GameInput::Settings => {
                     self.show.toggle_settings();
                     true
-                }
+                },
                 GameInput::Help => {
                     self.show.toggle_help();
                     true
-                }
+                },
                 GameInput::ToggleDebug => {
                     global_state.settings.gameplay.toggle_debug =
                         !global_state.settings.gameplay.toggle_debug;
                     true
-                }
+                },
                 GameInput::ToggleIngameUi => {
                     self.show.ingame = !self.show.ingame;
                     true
-                }
+                },
                 _ => false,
             },
             // Else the player is typing in chat
@@ -1998,7 +2027,7 @@ impl Hud {
             WinEvent::Focused(state) => {
                 self.force_ungrab = !state;
                 true
-            }
+            },
 
             _ => false,
         };
@@ -2022,12 +2051,9 @@ impl Hud {
             self.ui.focus_widget(maybe_id);
         }
         let events = self.update_layout(client, global_state, debug_info, dt);
-        let (view_mat, _, _) = camera.compute_dependents(client);
-        let fov = camera.get_fov();
-        self.ui.maintain(
-            &mut global_state.window.renderer_mut(),
-            Some((view_mat, fov)),
-        );
+        let (v_mat, p_mat, _) = camera.compute_dependents(client);
+        self.ui
+            .maintain(&mut global_state.window.renderer_mut(), Some(p_mat * v_mat));
 
         // Check if item images need to be reloaded
         self.item_imgs.reload_if_changed(&mut self.ui);
