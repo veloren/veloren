@@ -31,6 +31,10 @@
         "voxel.weapon.shield.wood-0",
         (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
+    Utility(Collar): VoxTrans(
+        "element.icons.collar",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 10.0), 1.3,
+    ),
     // Consumables
     Consumable(Apple): VoxTrans(
         "element.icons.item_apple",
@@ -41,7 +45,7 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Consumable(Cheese): Png(
-        "element.icons.item_cheese",        
+        "element.icons.item_cheese",
     ),
     Consumable(Potion): VoxTrans(
         "voxel.object.potion_red",

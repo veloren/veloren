@@ -25,25 +25,18 @@ pub struct VolGrid3d<V: RasterableVol> {
 impl<V: RasterableVol> VolGrid3d<V> {
     #[inline(always)]
     pub fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
-        pos.map2(V::SIZE, |e, sz| {
-            // Horrid, but it's faster than a cheetah with a red bull blood transfusion
-            let log2 = (sz - 1).count_ones();
-            ((((i64::from(e) + (1 << 32)) as u64) >> log2) - (1 << (32 - log2))) as i32
-        })
+        pos.map2(V::SIZE, |e, sz: u32| e >> (sz - 1).count_ones())
     }
 
     #[inline(always)]
     pub fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
-        pos.map2(V::SIZE, |e, sz| {
-            // Horrid, but it's even faster than the aforementioned cheetah
-            (((i64::from(e) + (1 << 32)) as u64) & u64::from(sz - 1)) as i32
-        })
+        pos.map2(V::SIZE, |e, sz| e & (sz - 1) as i32)
     }
 }
 
 impl<V: RasterableVol + Debug> BaseVol for VolGrid3d<V> {
-    type Vox = V::Vox;
     type Error = VolGrid3dError<V>;
+    type Vox = V::Vox;
 }
 
 impl<V: RasterableVol + ReadVol + Debug> ReadVol for VolGrid3d<V> {
@@ -60,14 +53,16 @@ impl<V: RasterableVol + ReadVol + Debug> ReadVol for VolGrid3d<V> {
     }
 }
 
-// TODO: This actually breaks the API: samples are supposed to have an offset of zero!
-// TODO: Should this be changed, perhaps?
+// TODO: This actually breaks the API: samples are supposed to have an offset of
+// zero! TODO: Should this be changed, perhaps?
 impl<I: Into<Aabb<i32>>, V: RasterableVol + ReadVol + Debug> SampleVol<I> for VolGrid3d<V> {
     type Sample = VolGrid3d<V>;
 
-    /// Take a sample of the terrain by cloning the voxels within the provided range.
+    /// Take a sample of the terrain by cloning the voxels within the provided
+    /// range.
     ///
-    /// Note that the resultant volume does not carry forward metadata from the original chunks.
+    /// Note that the resultant volume does not carry forward metadata from the
+    /// original chunks.
     fn sample(&self, range: I) -> Result<Self::Sample, VolGrid3dError<V>> {
         let range = range.into();
         let mut sample = VolGrid3d::new()?;
@@ -121,9 +116,7 @@ impl<V: RasterableVol> VolGrid3d<V> {
         }
     }
 
-    pub fn chunk_size() -> Vec3<u32> {
-        V::SIZE
-    }
+    pub fn chunk_size() -> Vec3<u32> { V::SIZE }
 
     pub fn insert(&mut self, key: Vec3<i32>, chunk: Arc<V>) -> Option<Arc<V>> {
         self.chunks.insert(key, chunk)
@@ -136,21 +129,13 @@ impl<V: RasterableVol> VolGrid3d<V> {
         }
     }
 
-    pub fn get_key_arc(&self, key: Vec3<i32>) -> Option<&Arc<V>> {
-        self.chunks.get(&key)
-    }
+    pub fn get_key_arc(&self, key: Vec3<i32>) -> Option<&Arc<V>> { self.chunks.get(&key) }
 
-    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Arc<V>> {
-        self.chunks.remove(&key)
-    }
+    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Arc<V>> { self.chunks.remove(&key) }
 
-    pub fn key_pos(&self, key: Vec3<i32>) -> Vec3<i32> {
-        key * V::SIZE.map(|e| e as i32)
-    }
+    pub fn key_pos(&self, key: Vec3<i32>) -> Vec3<i32> { key * V::SIZE.map(|e| e as i32) }
 
-    pub fn pos_key(&self, pos: Vec3<i32>) -> Vec3<i32> {
-        Self::chunk_key(pos)
-    }
+    pub fn pos_key(&self, pos: Vec3<i32>) -> Vec3<i32> { Self::chunk_key(pos) }
 
     pub fn iter(&self) -> ChunkIter<V> {
         ChunkIter {
@@ -166,7 +151,5 @@ pub struct ChunkIter<'a, V: RasterableVol> {
 impl<'a, V: RasterableVol> Iterator for ChunkIter<'a, V> {
     type Item = (Vec3<i32>, &'a Arc<V>);
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|(k, c)| (*k, c))
-    }
+    fn next(&mut self) -> Option<Self::Item> { self.iter.next().map(|(k, c)| (*k, c)) }
 }

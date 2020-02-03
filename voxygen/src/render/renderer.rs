@@ -6,7 +6,7 @@ use super::{
     model::{DynamicModel, Model},
     pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light, Shadow},
     texture::Texture,
-    AaMode, Pipeline, RenderError,
+    AaMode, CloudMode, FluidMode, Pipeline, RenderError,
 };
 use common::assets::{self, watch::ReloadIndicator};
 use gfx::{
@@ -44,9 +44,10 @@ pub type TgtColorRes = gfx::handle::ShaderResourceView<
     <TgtColorFmt as gfx::format::Formatted>::View,
 >;
 
-/// A type that encapsulates rendering state. `Renderer` is central to Voxygen's rendering
-/// subsystem and contains any state necessary to interact with the GPU, along with pipeline state
-/// objects (PSOs) needed to renderer different kinds of models to the screen.
+/// A type that encapsulates rendering state. `Renderer` is central to Voxygen's
+/// rendering subsystem and contains any state necessary to interact with the
+/// GPU, along with pipeline state objects (PSOs) needed to renderer different
+/// kinds of models to the screen.
 pub struct Renderer {
     device: gfx_backend::Device,
     encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
@@ -75,16 +76,21 @@ pub struct Renderer {
     noise_tex: Texture<(gfx::format::R8, gfx::format::Unorm)>,
 
     aa_mode: AaMode,
+    cloud_mode: CloudMode,
+    fluid_mode: FluidMode,
 }
 
 impl Renderer {
-    /// Create a new `Renderer` from a variety of backend-specific components and the window targets.
+    /// Create a new `Renderer` from a variety of backend-specific components
+    /// and the window targets.
     pub fn new(
         device: gfx_backend::Device,
         mut factory: gfx_backend::Factory,
         win_color_view: WinColorView,
         win_depth_view: WinDepthView,
         aa_mode: AaMode,
+        cloud_mode: CloudMode,
+        fluid_mode: FluidMode,
     ) -> Result<Self, RenderError> {
         let mut shader_reload_indicator = ReloadIndicator::new();
 
@@ -96,7 +102,13 @@ impl Renderer {
             sprite_pipeline,
             ui_pipeline,
             postprocess_pipeline,
-        ) = create_pipelines(&mut factory, aa_mode, &mut shader_reload_indicator)?;
+        ) = create_pipelines(
+            &mut factory,
+            aa_mode,
+            cloud_mode,
+            fluid_mode,
+            &mut shader_reload_indicator,
+        )?;
 
         let dims = win_color_view.get_dimensions();
         let (tgt_color_view, tgt_depth_view, tgt_color_res) =
@@ -138,28 +150,34 @@ impl Renderer {
             noise_tex,
 
             aa_mode,
+            cloud_mode,
+            fluid_mode,
         })
     }
 
-    /// Get references to the internal render target views that get rendered to before post-processing.
+    /// Get references to the internal render target views that get rendered to
+    /// before post-processing.
     #[allow(dead_code)]
     pub fn tgt_views(&self) -> (&TgtColorView, &TgtDepthView) {
         (&self.tgt_color_view, &self.tgt_depth_view)
     }
 
-    /// Get references to the internal render target views that get displayed directly by the window.
+    /// Get references to the internal render target views that get displayed
+    /// directly by the window.
     #[allow(dead_code)]
     pub fn win_views(&self) -> (&WinColorView, &WinDepthView) {
         (&self.win_color_view, &self.win_depth_view)
     }
 
-    /// Get mutable references to the internal render target views that get rendered to before post-processing.
+    /// Get mutable references to the internal render target views that get
+    /// rendered to before post-processing.
     #[allow(dead_code)]
     pub fn tgt_views_mut(&mut self) -> (&mut TgtColorView, &mut TgtDepthView) {
         (&mut self.tgt_color_view, &mut self.tgt_depth_view)
     }
 
-    /// Get mutable references to the internal render target views that get displayed directly by the window.
+    /// Get mutable references to the internal render target views that get
+    /// displayed directly by the window.
     #[allow(dead_code)]
     pub fn win_views_mut(&mut self) -> (&mut WinColorView, &mut WinDepthView) {
         (&mut self.win_color_view, &mut self.win_depth_view)
@@ -173,6 +191,32 @@ impl Renderer {
         self.on_resize()?;
 
         // Recreate pipelines with the new AA mode
+        self.recreate_pipelines();
+
+        Ok(())
+    }
+
+    /// Change the cloud rendering mode
+    pub fn set_cloud_mode(&mut self, cloud_mode: CloudMode) -> Result<(), RenderError> {
+        self.cloud_mode = cloud_mode;
+
+        // Recreate render target
+        self.on_resize()?;
+
+        // Recreate pipelines with the new cloud mode
+        self.recreate_pipelines();
+
+        Ok(())
+    }
+
+    /// Change the fluid rendering mode
+    pub fn set_fluid_mode(&mut self, fluid_mode: FluidMode) -> Result<(), RenderError> {
+        self.fluid_mode = fluid_mode;
+
+        // Recreate render target
+        self.on_resize()?;
+
+        // Recreate pipelines with the new fluid mode
         self.recreate_pipelines();
 
         Ok(())
@@ -202,20 +246,20 @@ impl Renderer {
         let kind = match aa_mode {
             AaMode::None | AaMode::Fxaa => {
                 gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Single)
-            }
+            },
             // TODO: Ensure sampling in the shader is exactly between the 4 texels
             AaMode::SsaaX4 => {
                 gfx::texture::Kind::D2(size.0 * 2, size.1 * 2, gfx::texture::AaMode::Single)
-            }
+            },
             AaMode::MsaaX4 => {
                 gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(4))
-            }
+            },
             AaMode::MsaaX8 => {
                 gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(8))
-            }
+            },
             AaMode::MsaaX16 => {
                 gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(16))
-            }
+            },
         };
         let levels = 1;
 
@@ -256,13 +300,15 @@ impl Renderer {
         )
     }
 
-    /// Queue the clearing of the depth target ready for a new frame to be rendered.
+    /// Queue the clearing of the depth target ready for a new frame to be
+    /// rendered.
     pub fn clear(&mut self) {
         self.encoder.clear_depth(&self.tgt_depth_view, 1.0);
         self.encoder.clear_depth(&self.win_depth_view, 1.0);
     }
 
-    /// Perform all queued draw calls for this frame and clean up discarded items.
+    /// Perform all queued draw calls for this frame and clean up discarded
+    /// items.
     pub fn flush(&mut self) {
         self.encoder.flush(&mut self.device);
         self.device.cleanup();
@@ -278,6 +324,8 @@ impl Renderer {
         match create_pipelines(
             &mut self.factory,
             self.aa_mode,
+            self.cloud_mode,
+            self.fluid_mode,
             &mut self.shader_reload_indicator,
         ) {
             Ok((
@@ -296,7 +344,7 @@ impl Renderer {
                 self.sprite_pipeline = sprite_pipeline;
                 self.ui_pipeline = ui_pipeline;
                 self.postprocess_pipeline = postprocess_pipeline;
-            }
+            },
             Err(e) => error!(
                 "Could not recreate shaders from assets due to an error: {:#?}",
                 e
@@ -357,9 +405,7 @@ impl Renderer {
     }
 
     /// Return the maximum supported texture size.
-    pub fn max_texture_size(&self) -> usize {
-        self.factory.get_capabilities().max_texture_size
-    }
+    pub fn max_texture_size(&self) -> usize { self.factory.get_capabilities().max_texture_size }
 
     /// Create a new texture from the provided image.
     pub fn create_texture(
@@ -371,7 +417,8 @@ impl Renderer {
         Texture::new(&mut self.factory, image, filter_method, wrap_mode)
     }
 
-    /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the specified dimensions.
+    /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the
+    /// specified dimensions.
     pub fn create_dynamic_texture(&mut self, dims: Vec2<u16>) -> Result<Texture, RenderError> {
         Texture::new_dynamic(&mut self.factory, dims.x, dims.y)
     }
@@ -387,7 +434,8 @@ impl Renderer {
         texture.update(&mut self.encoder, offset, size, data)
     }
 
-    /// Creates a download buffer, downloads the win_color_view, and converts to a image::DynamicImage.
+    /// Creates a download buffer, downloads the win_color_view, and converts to
+    /// a image::DynamicImage.
     pub fn create_screenshot(&mut self) -> Result<image::DynamicImage, RenderError> {
         let (width, height) = self.get_resolution().into_tuple();
         use gfx::{
@@ -492,7 +540,8 @@ impl Renderer {
         );
     }
 
-    /// Queue the rendering of the provided terrain chunk model in the upcoming frame.
+    /// Queue the rendering of the provided terrain chunk model in the upcoming
+    /// frame.
     pub fn render_terrain_chunk(
         &mut self,
         model: &Model<terrain::TerrainPipeline>,
@@ -523,7 +572,8 @@ impl Renderer {
         );
     }
 
-    /// Queue the rendering of the provided terrain chunk model in the upcoming frame.
+    /// Queue the rendering of the provided terrain chunk model in the upcoming
+    /// frame.
     pub fn render_fluid_chunk(
         &mut self,
         model: &Model<fluid::FluidPipeline>,
@@ -556,7 +606,8 @@ impl Renderer {
         );
     }
 
-    /// Queue the rendering of the provided terrain chunk model in the upcoming frame.
+    /// Queue the rendering of the provided terrain chunk model in the upcoming
+    /// frame.
     pub fn render_sprites(
         &mut self,
         model: &Model<sprite::SpritePipeline>,
@@ -658,6 +709,8 @@ struct GfxPipeline<P: gfx::pso::PipelineInit> {
 fn create_pipelines(
     factory: &mut gfx_backend::Factory,
     aa_mode: AaMode,
+    cloud_mode: CloudMode,
+    fluid_mode: FluidMode,
     shader_reload_indicator: &mut ReloadIndicator,
 ) -> Result<
     (
@@ -688,16 +741,23 @@ fn create_pipelines(
             .unwrap();
 
     let anti_alias = assets::load_watched::<String>(
-        &[
-            "voxygen.shaders.antialias.",
-            match aa_mode {
-                AaMode::None | AaMode::SsaaX4 => "none",
-                AaMode::Fxaa => "fxaa",
-                AaMode::MsaaX4 => "msaa-x4",
-                AaMode::MsaaX8 => "msaa-x8",
-                AaMode::MsaaX16 => "msaa-x16",
-            },
-        ]
+        &["voxygen.shaders.antialias.", match aa_mode {
+            AaMode::None | AaMode::SsaaX4 => "none",
+            AaMode::Fxaa => "fxaa",
+            AaMode::MsaaX4 => "msaa-x4",
+            AaMode::MsaaX8 => "msaa-x8",
+            AaMode::MsaaX16 => "msaa-x16",
+        }]
+        .concat(),
+        shader_reload_indicator,
+    )
+    .unwrap();
+
+    let cloud = assets::load_watched::<String>(
+        &["voxygen.shaders.include.cloud.", match cloud_mode {
+            CloudMode::None => "none",
+            CloudMode::Regular => "regular",
+        }]
         .concat(),
         shader_reload_indicator,
     )
@@ -710,6 +770,7 @@ fn create_pipelines(
     include_ctx.include("srgb.glsl", &srgb);
     include_ctx.include("random.glsl", &random);
     include_ctx.include("anti-aliasing.glsl", &anti_alias);
+    include_ctx.include("cloud.glsl", &cloud);
 
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = create_pipeline(
@@ -753,8 +814,15 @@ fn create_pipelines(
         fluid::pipe::new(),
         &assets::load_watched::<String>("voxygen.shaders.fluid-vert", shader_reload_indicator)
             .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.fluid-frag", shader_reload_indicator)
-            .unwrap(),
+        &assets::load_watched::<String>(
+            &["voxygen.shaders.fluid-frag.", match fluid_mode {
+                FluidMode::Cheap => "cheap",
+                FluidMode::Shiny => "shiny",
+            }]
+            .concat(),
+            shader_reload_indicator,
+        )
+        .unwrap(),
         &include_ctx,
         gfx::state::CullFace::Nothing,
     )?;

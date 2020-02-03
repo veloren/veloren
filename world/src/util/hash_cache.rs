@@ -8,9 +8,7 @@ pub struct HashCache<K: Hash + Eq + Clone, V> {
 }
 
 impl<K: Hash + Eq + Clone, V> Default for HashCache<K, V> {
-    fn default() -> Self {
-        Self::with_capacity(1024)
-    }
+    fn default() -> Self { Self::with_capacity(1024) }
 }
 
 impl<K: Hash + Eq + Clone, V> HashCache<K, V> {

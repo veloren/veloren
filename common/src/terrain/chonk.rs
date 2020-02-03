@@ -26,6 +26,7 @@ impl<ChonkSize: RectVolSize> VolSize for SubChunkSize<ChonkSize> {
     const SIZE: Vec3<u32> = Vec3 {
         x: ChonkSize::RECT_SIZE.x,
         y: ChonkSize::RECT_SIZE.x,
+        // NOTE: Currently, use 32 instead of 2 for RECT_SIZE.x = 128.
         z: ChonkSize::RECT_SIZE.x / 2,
     };
 }
@@ -54,21 +55,15 @@ impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
         }
     }
 
-    pub fn meta(&self) -> &M {
-        &self.meta
-    }
+    pub fn meta(&self) -> &M { &self.meta }
 
-    pub fn get_min_z(&self) -> i32 {
-        self.z_offset
-    }
+    pub fn get_min_z(&self) -> i32 { self.z_offset }
 
     pub fn get_max_z(&self) -> i32 {
         self.z_offset + (self.sub_chunks.len() as u32 * SubChunkSize::<S>::SIZE.z) as i32
     }
 
-    pub fn sub_chunks_len(&self) -> usize {
-        self.sub_chunks.len()
-    }
+    pub fn sub_chunks_len(&self) -> usize { self.sub_chunks.len() }
 
     // Returns the index (in self.sub_chunks) of the SubChunk that contains
     // layer z; note that this index changes when more SubChunks are prepended
@@ -84,14 +79,12 @@ impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
     }
 
     // Returns the z offset of the sub_chunk that contains layer z
-    fn sub_chunk_min_z(&self, z: i32) -> i32 {
-        z - self.sub_chunk_z(z)
-    }
+    fn sub_chunk_min_z(&self, z: i32) -> i32 { z - self.sub_chunk_z(z) }
 }
 
 impl<V: Vox, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
-    type Vox = V;
     type Error = ChonkError;
+    type Vox = V;
 }
 
 impl<V: Vox, S: RectVolSize, M: Clone> RectRasterableVol for Chonk<V, S, M> {
@@ -195,7 +188,7 @@ impl<V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkPosIter<V, S, M> {
                 None => return None,
                 Some((sub_chunk_min_z, lb, ub)) => {
                     self.opt_inner = Some((sub_chunk_min_z, SubChunk::<V, S, M>::pos_iter(lb, ub)))
-                }
+                },
             }
         }
     }
@@ -249,7 +242,7 @@ impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkVolIter<'a, V, S, M
                         )
                     };
                     self.opt_inner = Some((sub_chunk_min_z, inner));
-                }
+                },
             }
         }
     }

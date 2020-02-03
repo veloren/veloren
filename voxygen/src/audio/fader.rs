@@ -7,9 +7,7 @@ pub struct Fader {
     is_running: bool,
 }
 
-fn lerp(t: f32, a: f32, b: f32) -> f32 {
-    (1.0 - t) * a + t * b
-}
+fn lerp(t: f32, a: f32, b: f32) -> f32 { (1.0 - t) * a + t * b }
 
 impl Fader {
     pub fn fade(time: f32, volume_from: f32, volume_to: f32) -> Self {
@@ -32,11 +30,11 @@ impl Fader {
         }
     }
 
-    pub fn fade_out(time: f32) -> Self {
+    pub fn fade_out(time: f32, volume_from: f32) -> Self {
         Self {
             length: time,
             running_time: 0.0,
-            volume_from: 1.0,
+            volume_from,
             volume_to: 0.0,
             is_running: true,
         }
@@ -60,7 +58,5 @@ impl Fader {
         )
     }
 
-    pub fn is_finished(&self) -> bool {
-        self.running_time >= self.length || !self.is_running
-    }
+    pub fn is_finished(&self) -> bool { self.running_time >= self.length || !self.is_running }
 }

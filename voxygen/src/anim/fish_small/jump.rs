@@ -1,15 +1,12 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    FishSmallSkeleton,
-};
+use super::{super::Animation, FishSmallSkeleton, SkeletonAttr};
 //use std::f32::consts::PI;
 use vek::*;
 
 pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
-    type Skeleton = FishSmallSkeleton;
     type Dependency = (f32, f64);
+    type Skeleton = FishSmallSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

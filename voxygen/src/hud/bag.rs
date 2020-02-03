@@ -7,7 +7,7 @@ use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
 use conrod_core::{
     color, image,
-    widget::{self, Button, Image, Rectangle /*, Scrollbar*/},
+    widget::{self, Button, Image, Rectangle},
     widget_ids, Color, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
@@ -40,6 +40,7 @@ pub struct Bag<'a> {
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    pulse: f32,
 }
 
 impl<'a> Bag<'a> {
@@ -50,6 +51,7 @@ impl<'a> Bag<'a> {
         fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        pulse: f32,
     ) -> Self {
         Self {
             client,
@@ -59,6 +61,7 @@ impl<'a> Bag<'a> {
             common: widget::CommonBuilder::default(),
             rot_imgs,
             tooltip_manager,
+            pulse,
         }
     }
 }
@@ -77,9 +80,9 @@ pub enum Event {
 }
 
 impl<'a> Widget for Bag<'a> {
+    type Event = Option<Event>;
     type State = State;
     type Style = ();
-    type Event = Option<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -89,9 +92,7 @@ impl<'a> Widget for Bag<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -103,6 +104,7 @@ impl<'a> Widget for Bag<'a> {
             Some(inv) => inv,
             None => return None,
         };
+
         // Tooltips
         let item_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -173,6 +175,7 @@ impl<'a> Widget for Bag<'a> {
             let is_selected = Some(i) == state.selected_slot;
 
             // Slot
+
             let slot_widget = Button::image(if !is_selected {
                 self.imgs.inv_slot
             } else {
@@ -182,9 +185,8 @@ impl<'a> Widget for Bag<'a> {
                 state.ids.inv_alignment,
                 0.0 + y as f64 * (40.0 + 2.0),
                 0.0 + x as f64 * (40.0 + 2.0),
-            ) // conrod uses a (y,x) format for placing...
-            // (the margin placement functions do this because that is the same order as "top left")
-            .w_h(40.0, 40.0)
+            )
+            .wh(if is_selected { [40.0; 2] } else { [40.0; 2] })
             .image_color(if is_selected {
                 color::WHITE
             } else {
@@ -196,7 +198,10 @@ impl<'a> Widget for Bag<'a> {
                     .with_tooltip(
                         self.tooltip_manager,
                         &item.name(),
-                        &format!("{}", /*item.kind, item.effect(), */ item.description()),
+                        &format!(
+                            "{}",
+                            /* item.kind, item.effect(), */ item.description()
+                        ),
                         &item_tooltip,
                     )
                     .set(state.ids.inv_slots[i], ui)
@@ -215,7 +220,7 @@ impl<'a> Widget for Bag<'a> {
                             event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(a, i)));
                         }
                         None
-                    }
+                    },
                     None if item.is_some() => Some(i),
                     None => None,
                 };
@@ -234,7 +239,7 @@ impl<'a> Widget for Bag<'a> {
                         id
                     }
                 })
-                .w_h(30.0, 30.0)
+                .wh(if is_selected { [32.0; 2] } else { [30.0; 2] })
                 .middle_of(state.ids.inv_slots[i]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
                 //.label("5x") // TODO: Quantity goes here...
                 //.label_font_id(self.fonts.opensans)

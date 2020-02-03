@@ -24,6 +24,7 @@ void main() {
     	float((v_pos_norm >>  8) & 0x00FFu),
     	float((v_pos_norm >> 16) & 0x1FFFu)
     ) + model_offs;
+	f_pos.z *= min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0);
 	f_pos.z -= 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0);
 
     f_col = vec3(
@@ -37,8 +38,7 @@ void main() {
 	f_pos_norm = v_pos_norm;
 
     gl_Position =
-		proj_mat *
-		view_mat *
+		all_mat *
 		vec4(f_pos, 1);
-	gl_Position.z = 1.0 / (1.0 - gl_Position.z - 10.0);
+	gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
 }

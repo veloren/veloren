@@ -2,8 +2,7 @@ use crate::vol::{
     BaseVol, IntoPosIterator, IntoVolIterator, RasterableVol, ReadVol, VolSize, Vox, WriteVol,
 };
 use serde_derive::{Deserialize, Serialize};
-use std::iter::Iterator;
-use std::marker::PhantomData;
+use std::{iter::Iterator, marker::PhantomData};
 use vek::*;
 
 #[derive(Debug)]
@@ -27,9 +26,9 @@ pub enum ChunkError {
 /// `self.indices : [u8; 256]`. It contains for each group
 ///
 /// * (a) the order in which it has been inserted into `self.vox`, if the group
-///     is contained in `self.vox` or
+///   is contained in `self.vox` or
 /// * (b) 255, otherwise. That case represents that the whole group consists
-///     only of `self.default` voxels.
+///   only of `self.default` voxels.
 ///
 /// (Note that 255 is a valid insertion order for case (a) only if `self.vox` is
 /// full and then no other group has the index 255. Therefore there's no
@@ -40,15 +39,16 @@ pub enum ChunkError {
 /// The index buffer should be small because:
 ///
 /// * Small size increases the probability that it will always be in cache.
-/// * The index buffer is allocated for every `Chunk` and an almost empty `Chunk`
-///     shall not consume too much memory.
+/// * The index buffer is allocated for every `Chunk` and an almost empty
+///   `Chunk` shall not consume too much memory.
 ///
-/// The number of 256 groups is particularly nice because it means that the index
-/// buffer can consist of `u8`s. This keeps the space requirement for the index
-/// buffer as low as 4 cache lines.
+/// The number of 256 groups is particularly nice because it means that the
+/// index buffer can consist of `u8`s. This keeps the space requirement for the
+/// index buffer as low as 4 cache lines.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Chunk<V: Vox, S: VolSize, M> {
-    indices: Vec<u8>, // TODO (haslersn): Box<[u8; S::SIZE.x * S::SIZE.y * S::SIZE.z]>, this is however not possible in Rust yet
+    indices: Vec<u8>, /* TODO (haslersn): Box<[u8; S::SIZE.x * S::SIZE.y * S::SIZE.z]>, this is
+                       * however not possible in Rust yet */
     vox: Vec<V>,
     default: V,
     meta: M,
@@ -56,8 +56,11 @@ pub struct Chunk<V: Vox, S: VolSize, M> {
 }
 
 impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
-    const VOLUME: u32 = (S::SIZE.x * S::SIZE.y * S::SIZE.z) as u32;
-    const GROUP_VOLUME: u32 = [Self::VOLUME / 256, 1][(Self::VOLUME < 256) as usize];
+    const GROUP_COUNT: Vec3<u32> = Vec3::new(
+        S::SIZE.x / Self::GROUP_SIZE.x,
+        S::SIZE.y / Self::GROUP_SIZE.y,
+        S::SIZE.z / Self::GROUP_SIZE.z,
+    );
     /// `GROUP_COUNT_TOTAL` is always `256`, except if `VOLUME < 256`
     const GROUP_COUNT_TOTAL: u32 = Self::VOLUME / Self::GROUP_VOLUME;
     const GROUP_LONG_SIDE_LEN: u32 = 1 << ((Self::GROUP_VOLUME * 4 - 1).count_ones() / 3);
@@ -66,11 +69,8 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
         Self::GROUP_LONG_SIDE_LEN,
         Self::GROUP_VOLUME / (Self::GROUP_LONG_SIDE_LEN * Self::GROUP_LONG_SIDE_LEN),
     );
-    const GROUP_COUNT: Vec3<u32> = Vec3::new(
-        S::SIZE.x / Self::GROUP_SIZE.x,
-        S::SIZE.y / Self::GROUP_SIZE.y,
-        S::SIZE.z / Self::GROUP_SIZE.z,
-    );
+    const GROUP_VOLUME: u32 = [Self::VOLUME / 256, 1][(Self::VOLUME < 256) as usize];
+    const VOLUME: u32 = (S::SIZE.x * S::SIZE.y * S::SIZE.z) as u32;
 
     /// Creates a new `Chunk` with the provided dimensions and all voxels filled
     /// with duplicates of the provided voxel.
@@ -116,14 +116,10 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
     }
 
     /// Get a reference to the internal metadata.
-    pub fn metadata(&self) -> &M {
-        &self.meta
-    }
+    pub fn metadata(&self) -> &M { &self.meta }
 
     /// Get a mutable reference to the internal metadata.
-    pub fn metadata_mut(&mut self) -> &mut M {
-        &mut self.meta
-    }
+    pub fn metadata_mut(&mut self) -> &mut M { &mut self.meta }
 
     #[inline(always)]
     fn grp_idx(pos: Vec3<i32>) -> u32 {
@@ -188,8 +184,8 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
 }
 
 impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
-    type Vox = V;
     type Error = ChunkError;
+    type Vox = V;
 }
 
 impl<V: Vox, S: VolSize, M> RasterableVol for Chunk<V, S, M> {

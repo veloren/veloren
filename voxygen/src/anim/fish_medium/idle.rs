@@ -1,15 +1,12 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    FishMediumSkeleton,
-};
+use super::{super::Animation, FishMediumSkeleton, SkeletonAttr};
 //use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Skeleton = FishMediumSkeleton;
     type Dependency = f64;
+    type Skeleton = FishMediumSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

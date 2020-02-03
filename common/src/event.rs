@@ -11,13 +11,9 @@ pub struct SfxEventItem {
 }
 
 impl SfxEventItem {
-    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>) -> Self {
-        Self { sfx, pos }
-    }
+    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>) -> Self { Self { sfx, pos } }
 
-    pub fn at_player_position(sfx: SfxEvent) -> Self {
-        Self { sfx, pos: None }
-    }
+    pub fn at_player_position(sfx: SfxEvent) -> Self { Self { sfx, pos: None } }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -101,8 +97,10 @@ pub enum ServerEvent {
         stats: comp::Stats,
         body: comp::Body,
         agent: comp::Agent,
+        alignment: comp::Alignment,
         scale: comp::Scale,
     },
+    CreateWaypoint(Vec3<f32>),
     ClientDisconnect(EcsEntity),
     ChunkRequest(EcsEntity, Vec2<i32>),
     ChatCmd(EcsEntity, String),
@@ -128,9 +126,7 @@ impl<E> EventBus<E> {
         }
     }
 
-    pub fn emit(&self, event: E) {
-        self.queue.lock().push_front(event);
-    }
+    pub fn emit(&self, event: E) { self.queue.lock().push_front(event); }
 
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = E> {
         std::mem::replace(self.queue.lock().deref_mut(), VecDeque::new()).into_iter()
@@ -143,16 +139,11 @@ pub struct Emitter<'a, E> {
 }
 
 impl<'a, E> Emitter<'a, E> {
-    pub fn emit(&mut self, event: E) {
-        self.events.push_front(event);
-    }
-    pub fn append(&mut self, other: &mut VecDeque<E>) {
-        self.events.append(other)
-    }
+    pub fn emit(&mut self, event: E) { self.events.push_front(event); }
+
+    pub fn append(&mut self, other: &mut VecDeque<E>) { self.events.append(other) }
 }
 
 impl<'a, E> Drop for Emitter<'a, E> {
-    fn drop(&mut self) {
-        self.bus.queue.lock().append(&mut self.events);
-    }
+    fn drop(&mut self) { self.bus.queue.lock().append(&mut self.events); }
 }

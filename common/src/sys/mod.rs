@@ -17,7 +17,6 @@ pub const MOUNT_SYS: &str = "mount_sys";
 pub const PHYS_SYS: &str = "phys_sys";
 pub const PROJECTILE_SYS: &str = "projectile_sys";
 pub const STATS_SYS: &str = "stats_sys";
-pub const CLEANUP_SYS: &str = "cleanup_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);

@@ -3,7 +3,5 @@ pub struct Input {
 }
 
 impl Default for Input {
-    fn default() -> Self {
-        Input {}
-    }
+    fn default() -> Self { Input {} }
 }

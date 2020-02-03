@@ -1,17 +1,13 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    CharacterSkeleton,
-};
+use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
-use std::f32::consts::PI;
-use std::ops::Mul;
+use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
@@ -140,7 +136,7 @@ impl Animation for RunAnimation {
         next.lantern.ori = Quaternion::rotation_y(0.0);
         next.lantern.scale = Vec3::one() * 0.0;
 
-        next.torso.offset = Vec3::new(0.0, 0.3 + wave * -0.08, 0.4) * skeleton_attr.scaler;
+        next.torso.offset = Vec3::new(0.0, -0.3 + wave * -0.08, 0.4) * skeleton_attr.scaler;
         next.torso.ori =
             Quaternion::rotation_x(wave_stop * speed * -0.06 + wave_diff * speed * -0.005)
                 * Quaternion::rotation_y(tilt);

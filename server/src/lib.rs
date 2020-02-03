@@ -10,6 +10,7 @@ pub mod input;
 pub mod metrics;
 pub mod settings;
 pub mod sys;
+#[cfg(not(feature = "worldgen"))] mod test_world;
 
 // Reexports
 pub use crate::{error::Error, input::Input, settings::ServerSettings};
@@ -32,7 +33,7 @@ use common::{
     terrain::{block::Block, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
-use log::{debug, error};
+use log::{debug, error, warn};
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{
@@ -44,9 +45,16 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+#[cfg(not(feature = "worldgen"))]
+use test_world::{World, WORLD_SIZE};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{sim::WORLD_SIZE, World};
+#[cfg(feature = "worldgen")]
+use world::{
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
+    World,
+};
+
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
@@ -73,6 +81,7 @@ pub struct Tick(u64);
 pub struct Server {
     state: State,
     world: Arc<World>,
+    map: Vec<u32>,
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
 
@@ -104,16 +113,36 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
 
-        let world = World::generate(settings.world_seed);
+        #[cfg(feature = "worldgen")]
+        let world = World::generate(settings.world_seed, WorldOpts {
+            seed_elements: true,
+            world_file: if let Some(ref opts) = settings.map_file {
+                opts.clone()
+            } else {
+                // Load default map from assets.
+                FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
+            },
+            ..WorldOpts::default()
+        });
+        #[cfg(feature = "worldgen")]
+        let map = world.sim().get_map();
 
+        #[cfg(not(feature = "worldgen"))]
+        let world = World::generate(settings.world_seed);
+        #[cfg(not(feature = "worldgen"))]
+        let map = vec![0];
+
+        #[cfg(feature = "worldgen")]
         let spawn_point = {
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
-            // but are needed to be explicit about casting (and to make the compiler stop complaining)
+            // but are needed to be explicit about casting (and to make the compiler stop
+            // complaining)
 
             // spawn in the chunk, that is in the middle of the world
             let spawn_chunk: Vec2<i32> = WORLD_SIZE.map(|e| e as i32) / 2;
             // calculate the absolute position of the chunk in the world
-            // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the midde of the chunk)
+            // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the midde of
+            // the chunk)
             let spawn_location = spawn_chunk * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
             // get a z cache for the collumn in which we want to spawn
@@ -150,6 +179,9 @@ impl Server {
             Vec3::new(spawn_location.x, spawn_location.y, z).map(|e| (e as f32)) + 0.5
         };
 
+        #[cfg(not(feature = "worldgen"))]
+        let spawn_point = Vec3::new(0.0, 0.0, 256.0);
+
         // set the spawn point we calculated above
         state.ecs_mut().insert(SpawnPoint(spawn_point));
 
@@ -164,6 +196,7 @@ impl Server {
         let this = Self {
             state,
             world: Arc::new(world),
+            map,
 
             postoffice: PostOffice::bind(settings.gameserver_address)?,
 
@@ -192,18 +225,13 @@ impl Server {
     }
 
     /// Get a reference to the server's game state.
-    pub fn state(&self) -> &State {
-        &self.state
-    }
+    pub fn state(&self) -> &State { &self.state }
+
     /// Get a mutable reference to the server's game state.
-    pub fn state_mut(&mut self) -> &mut State {
-        &mut self.state
-    }
+    pub fn state_mut(&mut self) -> &mut State { &mut self.state }
 
     /// Get a reference to the server's world.
-    pub fn world(&self) -> &World {
-        &self.world
-    }
+    pub fn world(&self) -> &World { &self.world }
 
     /// Build a static object entity
     pub fn create_object(
@@ -257,14 +285,15 @@ impl Server {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
         state.write_component(entity, body);
-        state.write_component(entity, comp::Stats::new(name, main));
-        state.write_component(entity, comp::Energy::new(200));
+        state.write_component(entity, comp::Stats::new(name, body, main));
+        state.write_component(entity, comp::Energy::new(1000));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
         state.write_component(entity, comp::Gravity(1.0));
         state.write_component(entity, comp::CharacterState::default());
+        state.write_component(entity, comp::Alignment::Owned(entity));
         state.write_component(entity, comp::Inventory::default());
         state.write_component(entity, comp::InventoryUpdate);
         state.write_component(entity, comp::AbilityPool::default());
@@ -328,7 +357,7 @@ impl Server {
                             .for_each(|pos| block_change.set(pos, Block::empty()))
                             .cast();
                     }
-                }
+                },
 
                 ServerEvent::Shoot {
                     entity,
@@ -363,7 +392,7 @@ impl Server {
                     }
 
                     builder.build();
-                }
+                },
 
                 ServerEvent::Damage { uid, change } => {
                     let ecs = state.ecs();
@@ -372,7 +401,7 @@ impl Server {
                             stats.health.change_by(change);
                         }
                     }
-                }
+                },
 
                 ServerEvent::Destroy { entity, cause } => {
                     // Chat message
@@ -405,7 +434,8 @@ impl Server {
                             if let comp::HealthSource::Attack { by } = cause {
                                 state.ecs().entity_from_uid(by.into()).map(|attacker| {
                                     if let Some(attacker_stats) = stats.get_mut(attacker) {
-                                        // TODO: Discuss whether we should give EXP by Player Killing or not.
+                                        // TODO: Discuss whether we should give EXP by Player
+                                        // Killing or not.
                                         attacker_stats
                                             .exp
                                             .change_by((entity_stats.level.level() * 10) as i64);
@@ -435,13 +465,24 @@ impl Server {
                             .map(|err| {
                                 error!("Failed to insert ForceUpdate on dead client: {:?}", err)
                             });
+                        state
+                            .ecs()
+                            .write_storage::<comp::Energy>()
+                            .get_mut(entity)
+                            .map(|energy| {
+                                energy.set_to(energy.maximum(), comp::EnergySource::Revive)
+                            });
+                        let _ = state
+                            .ecs()
+                            .write_storage::<comp::CharacterState>()
+                            .insert(entity, comp::CharacterState::default());
                     } else {
                         // If not a player delete the entity
                         if let Err(err) = state.delete_entity_recorded(entity) {
                             error!("Failed to delete destroyed entity: {:?}", err);
                         }
                     }
-                }
+                },
 
                 ServerEvent::InventoryManip(entity, manip) => {
                     match manip {
@@ -479,7 +520,7 @@ impl Server {
                             }
 
                             state.write_component(entity, comp::InventoryUpdate);
-                        }
+                        },
 
                         comp::InventoryManip::Collect(pos) => {
                             let block = state.terrain().get(pos).ok().copied();
@@ -491,14 +532,13 @@ impl Server {
                                         .get(entity)
                                         .map(|inv| !inv.is_full())
                                         .unwrap_or(false)
+                                    && state.try_set_block(pos, Block::empty()).is_some()
                                 {
-                                    if state.try_set_block(pos, Block::empty()).is_some() {
-                                        comp::Item::try_reclaim_from_block(block)
-                                            .map(|item| state.give_item(entity, item));
-                                    }
+                                    comp::Item::try_reclaim_from_block(block)
+                                        .map(|item| state.give_item(entity, item));
                                 }
                             }
-                        }
+                        },
 
                         comp::InventoryManip::Use(slot) => {
                             let item_opt = state
@@ -507,8 +547,8 @@ impl Server {
                                 .get_mut(entity)
                                 .and_then(|inv| inv.remove(slot));
 
-                            match item_opt {
-                                Some(item) => match item.kind {
+                            if let Some(item) = item_opt {
+                                match item.kind {
                                     comp::ItemKind::Tool { .. } => {
                                         if let Some(stats) = state
                                             .ecs()
@@ -526,24 +566,89 @@ impl Server {
 
                                             stats.equipment.main = Some(item);
                                         }
-                                    }
+                                    },
                                     comp::ItemKind::Consumable { effect, .. } => {
                                         state.apply_effect(entity, effect);
-                                    }
+                                    },
+                                    comp::ItemKind::Utility { kind } => match kind {
+                                        comp::item::Utility::Collar => {
+                                            let reinsert = if let Some(pos) =
+                                                state.read_storage::<comp::Pos>().get(entity)
+                                            {
+                                                if (
+                                                    &state.read_storage::<comp::Alignment>(),
+                                                    &state.read_storage::<comp::Agent>(),
+                                                )
+                                                    .join()
+                                                    .filter(|(alignment, _)| {
+                                                        alignment
+                                                            == &&comp::Alignment::Owned(entity)
+                                                    })
+                                                    .count()
+                                                    >= 3
+                                                {
+                                                    true
+                                                } else if let Some(tameable_entity) = {
+                                                    let nearest_tameable = (
+                                                        &state.ecs().entities(),
+                                                        &state.ecs().read_storage::<comp::Pos>(),
+                                                        &state
+                                                            .ecs()
+                                                            .read_storage::<comp::Alignment>(),
+                                                    )
+                                                        .join()
+                                                        .filter(|(_, wild_pos, _)| {
+                                                            wild_pos.0.distance_squared(pos.0)
+                                                                < 5.0f32.powf(2.0)
+                                                        })
+                                                        .filter(|(_, _, alignment)| {
+                                                            alignment == &&comp::Alignment::Wild
+                                                        })
+                                                        .min_by_key(|(_, wild_pos, _)| {
+                                                            (wild_pos.0.distance_squared(pos.0)
+                                                                * 100.0)
+                                                                as i32
+                                                        })
+                                                        .map(|(entity, _, _)| entity);
+                                                    nearest_tameable
+                                                } {
+                                                    let _ = state.ecs().write_storage().insert(
+                                                        tameable_entity,
+                                                        comp::Alignment::Owned(entity),
+                                                    );
+                                                    let _ = state.ecs().write_storage().insert(
+                                                        tameable_entity,
+                                                        comp::Agent::default(),
+                                                    );
+                                                    false
+                                                } else {
+                                                    true
+                                                }
+                                            } else {
+                                                true
+                                            };
+
+                                            if reinsert {
+                                                let _ = state
+                                                    .ecs()
+                                                    .write_storage::<comp::Inventory>()
+                                                    .get_mut(entity)
+                                                    .map(|inv| inv.insert(slot, item));
+                                            }
+                                        },
+                                    },
                                     _ => {
-                                        // Re-insert it if unused
                                         let _ = state
                                             .ecs()
                                             .write_storage::<comp::Inventory>()
                                             .get_mut(entity)
                                             .map(|inv| inv.insert(slot, item));
-                                    }
-                                },
-                                _ => {}
+                                    },
+                                }
                             }
 
                             state.write_component(entity, comp::InventoryUpdate);
-                        }
+                        },
 
                         comp::InventoryManip::Swap(a, b) => {
                             state
@@ -552,7 +657,7 @@ impl Server {
                                 .get_mut(entity)
                                 .map(|inv| inv.swap_slots(a, b));
                             state.write_component(entity, comp::InventoryUpdate);
-                        }
+                        },
 
                         comp::InventoryManip::Drop(slot) => {
                             let item = state
@@ -576,9 +681,9 @@ impl Server {
                                 ));
                             }
                             state.write_component(entity, comp::InventoryUpdate);
-                        }
+                        },
                     }
-                }
+                },
 
                 ServerEvent::Respawn(entity) => {
                     // Only clients can respawn
@@ -607,18 +712,23 @@ impl Server {
                             .ecs()
                             .write_storage()
                             .insert(entity, comp::ForceUpdate)
-                            .err().map(|err|
-                            error!("Error inserting ForceUpdate component when respawning client: {:?}", err)
-                            );
+                            .err()
+                            .map(|err| {
+                                error!(
+                                    "Error inserting ForceUpdate component when respawning \
+                                     client: {:?}",
+                                    err
+                                )
+                            });
                     }
-                }
+                },
 
                 ServerEvent::LandOnGround { entity, vel } => {
-                    if vel.z <= -25.0 {
+                    if vel.z <= -37.0 {
                         if let Some(stats) =
                             state.ecs().write_storage::<comp::Stats>().get_mut(entity)
                         {
-                            let falldmg = (vel.z / 5.0) as i32;
+                            let falldmg = (vel.z / 2.5) as i32;
                             if falldmg < 0 {
                                 stats.health.change_by(comp::HealthChange {
                                     amount: falldmg,
@@ -627,7 +737,7 @@ impl Server {
                             }
                         }
                     }
-                }
+                },
 
                 ServerEvent::Mount(mounter, mountee) => {
                     if state
@@ -660,7 +770,7 @@ impl Server {
                             }
                         }
                     }
-                }
+                },
 
                 ServerEvent::Unmount(mounter) => {
                     let mountee_entity = state
@@ -676,7 +786,7 @@ impl Server {
                             .map(|ms| *ms = comp::MountState::Unmounted);
                     }
                     state.delete_component::<comp::Mounting>(mounter);
-                }
+                },
 
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
                     let ecs = state.ecs();
@@ -698,14 +808,11 @@ impl Server {
                                             "common.items.debug.possess",
                                         ));
                                     } else {
-                                        let _ = inventories.insert(
-                                            possesse,
-                                            comp::Inventory {
-                                                slots: vec![Some(assets::load_expect_cloned(
-                                                    "common.items.debug.possess",
-                                                ))],
-                                            },
-                                        );
+                                        let _ = inventories.insert(possesse, comp::Inventory {
+                                            slots: vec![Some(assets::load_expect_cloned(
+                                                "common.items.debug.possess",
+                                            ))],
+                                        });
                                     }
                                 }
                                 let _ = ecs
@@ -737,7 +844,7 @@ impl Server {
                             }
                         }
                     }
-                }
+                },
 
                 ServerEvent::CreateCharacter {
                     entity,
@@ -754,7 +861,7 @@ impl Server {
                         &server_settings,
                     );
                     sys::subscription::initialize_region_subscription(state.ecs(), entity);
-                }
+                },
 
                 ServerEvent::ExitIngame { entity } => {
                     // Create new entity with just `Client`, `Uid`, and `Player` components
@@ -785,21 +892,34 @@ impl Server {
                     if let Err(err) = state.delete_entity_recorded(entity) {
                         error!("Failed to delete entity when removing character: {:?}", err);
                     }
-                }
+                },
 
                 ServerEvent::CreateNpc {
                     pos,
                     stats,
                     body,
                     agent,
+                    alignment,
                     scale,
                 } => {
                     state
                         .create_npc(pos, stats, body)
                         .with(agent)
                         .with(scale)
+                        .with(alignment)
                         .build();
-                }
+                },
+
+                ServerEvent::CreateWaypoint(pos) => {
+                    self.create_object(comp::Pos(pos), comp::object::Body::CampfireLit)
+                        .with(comp::LightEmitter {
+                            offset: Vec3::unit_z() * 0.5,
+                            col: Rgb::new(1.0, 0.65, 0.2),
+                            strength: 2.0,
+                        })
+                        .with(comp::WaypointArea::default())
+                        .build();
+                },
 
                 ServerEvent::ClientDisconnect(entity) => {
                     // Tell other clients to remove from player list
@@ -818,15 +938,15 @@ impl Server {
                     }
 
                     frontend_events.push(Event::ClientDisconnected { entity });
-                }
+                },
 
                 ServerEvent::ChunkRequest(entity, key) => {
                     requested_chunks.push((entity, key));
-                }
+                },
 
                 ServerEvent::ChatCmd(entity, cmd) => {
                     chat_commands.push((entity, cmd));
-                }
+                },
             }
         }
 
@@ -854,23 +974,30 @@ impl Server {
         frontend_events
     }
 
-    /// Execute a single server tick, handle input and update the game state by the given duration.
+    /// Execute a single server tick, handle input and update the game state by
+    /// the given duration.
     pub fn tick(&mut self, _input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         self.state.ecs().write_resource::<Tick>().0 += 1;
-        // This tick function is the centre of the Veloren universe. Most server-side things are
-        // managed from here, and as such it's important that it stays organised. Please consult
-        // the core developers before making significant changes to this code. Here is the
-        // approximate order of things. Please update it as this code changes.
+        // This tick function is the centre of the Veloren universe. Most server-side
+        // things are managed from here, and as such it's important that it
+        // stays organised. Please consult the core developers before making
+        // significant changes to this code. Here is the approximate order of
+        // things. Please update it as this code changes.
         //
-        // 1) Collect input from the frontend, apply input effects to the state of the game
-        // 2) Go through any events (timer-driven or otherwise) that need handling and apply them
-        //    to the state of the game
-        // 3) Go through all incoming client network communications, apply them to the game state
-        // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
-        // 5) Go through the terrain update queue and apply all changes to the terrain
+        // 1) Collect input from the frontend, apply input effects to the
+        //    state of the game
+        // 2) Go through any events (timer-driven or otherwise) that need handling
+        //    and apply them to the state of the game
+        // 3) Go through all incoming client network communications, apply them to
+        //    the game state
+        // 4) Perform a single LocalState tick (i.e: update the world and entities
+        //    in the world)
+        // 5) Go through the terrain update queue and apply all changes to
+        //    the terrain
         // 6) Send relevant state updates to all clients
         // 7) Update Metrics with current data
-        // 8) Finish the tick, passing control of the main thread back to the frontend
+        // 8) Finish the tick, passing control of the main thread back
+        //    to the frontend
 
         let before_tick_1 = Instant::now();
         // 1) Build up a list of events for this frame, to be passed to the frontend.
@@ -886,7 +1013,8 @@ impl Server {
         // 3) Handle inputs from clients
         frontend_events.append(&mut self.handle_new_connections()?);
 
-        // Run message recieving sys before the systems in common for decreased latency (e.g. run before controller system)
+        // Run message recieving sys before the systems in common for decreased latency
+        // (e.g. run before controller system)
         sys::message::Sys.run_now(&self.state.ecs());
 
         let before_tick_4 = Instant::now();
@@ -914,7 +1042,7 @@ impl Server {
             (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
-                &self.state.ecs().read_storage::<comp::Agent>(),
+                !&self.state.ecs().read_storage::<comp::Player>(),
             )
                 .join()
                 .filter(|(_, pos, _)| terrain.get(pos.0.map(|e| e.floor() as i32)).is_err())
@@ -1048,8 +1176,8 @@ impl Server {
                     .create_entity_synced()
                     .with(client)
                     .build();
-                // Send client all the tracked components currently attached to its entity as well
-                // as synced resources (currently only `TimeOfDay`)
+                // Send client all the tracked components currently attached to its entity as
+                // well as synced resources (currently only `TimeOfDay`)
                 log::debug!("Starting initial sync with client.");
                 self.state
                     .ecs()
@@ -1062,7 +1190,7 @@ impl Server {
                             .create_entity_package(entity),
                         server_info: self.server_info.clone(),
                         time_of_day: *self.state.ecs().read_resource(),
-                        // world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
+                        world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                     });
                 log::debug!("Done initial sync with client.");
 
@@ -1106,7 +1234,7 @@ impl Server {
                         kwd
                     )));
                 }
-            }
+            },
         }
     }
 
@@ -1119,9 +1247,7 @@ impl Server {
 }
 
 impl Drop for Server {
-    fn drop(&mut self) {
-        self.state.notify_registered_clients(ServerMsg::Shutdown);
-    }
+    fn drop(&mut self) { self.state.notify_registered_clients(ServerMsg::Shutdown); }
 }
 
 trait StateExt {
@@ -1161,13 +1287,13 @@ impl StateExt for State {
                     .write_storage::<comp::Stats>()
                     .get_mut(entity)
                     .map(|stats| stats.health.change_by(change));
-            }
+            },
             Effect::Xp(xp) => {
                 self.ecs()
                     .write_storage::<comp::Stats>()
                     .get_mut(entity)
                     .map(|stats| stats.exp.change_by(xp));
-            }
+            },
         }
     }
 
@@ -1186,7 +1312,8 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
-            .with(comp::Energy::new(100))
+            .with(comp::Alignment::Npc)
+            .with(comp::Energy::new(500))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(comp::AbilityPool::default())
@@ -1212,14 +1339,24 @@ impl StateExt for State {
         let res = self.ecs_mut().delete_entity(entity);
         if res.is_ok() {
             if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
-                let region_key = self
+                if let Some(region_key) = self
                     .ecs()
                     .read_resource::<common::region::RegionMap>()
                     .find_region(entity, pos.0)
-                    .expect("Failed to find region containing entity during entity deletion");
-                self.ecs()
-                    .write_resource::<DeletedEntities>()
-                    .record_deleted_entity(uid, region_key);
+                {
+                    self.ecs()
+                        .write_resource::<DeletedEntities>()
+                        .record_deleted_entity(uid, region_key);
+                } else {
+                    // Don't panic if the entity wasn't found in a region maybe it was just created
+                    // and then deleted before the region manager had a chance to assign it a
+                    // region
+                    warn!(
+                        "Failed to find region containing entity during entity deletion, assuming \
+                         it wasn't sent to any clients and so deletion doesn't need to be \
+                         recorded for sync purposes"
+                    );
+                }
             }
         }
         res

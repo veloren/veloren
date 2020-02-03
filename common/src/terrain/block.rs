@@ -32,6 +32,14 @@ pub enum BlockKind {
     Velorite,
     VeloriteFrag,
     Chest,
+    Leaves,
+    Pumpkin,
+    Welwitch,
+    LingonBerry,
+    LeafyPlant,
+    Fern,
+    DeadBush,
+    Blueberry,
 }
 
 impl BlockKind {
@@ -67,6 +75,12 @@ impl BlockKind {
             BlockKind::Velorite => true,
             BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
+            BlockKind::Welwitch => true,
+            BlockKind::LingonBerry => true,
+            BlockKind::LeafyPlant => true,
+            BlockKind::Fern => true,
+            BlockKind::DeadBush => true,
+            BlockKind::Blueberry => true,
             _ => false,
         }
     }
@@ -104,6 +118,12 @@ impl BlockKind {
             BlockKind::Velorite => false,
             BlockKind::VeloriteFrag => false,
             BlockKind::Chest => false,
+            BlockKind::Welwitch => false,
+            BlockKind::LingonBerry => false,
+            BlockKind::LeafyPlant => false,
+            BlockKind::Fern => false,
+            BlockKind::DeadBush => false,
+            BlockKind::Blueberry => false,
             _ => true,
         }
     }
@@ -132,6 +152,13 @@ impl BlockKind {
             BlockKind::Mushroom => false,
             BlockKind::Liana => false,
             BlockKind::Chest => true,
+            BlockKind::Pumpkin => true,
+            BlockKind::Welwitch => false,
+            BlockKind::LingonBerry => false,
+            BlockKind::LeafyPlant => false,
+            BlockKind::Fern => false,
+            BlockKind::DeadBush => false,
+            BlockKind::Blueberry => false,
             _ => true,
         }
     }
@@ -153,6 +180,7 @@ impl BlockKind {
             BlockKind::Velorite => true,
             BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
+            BlockKind::Pumpkin => true,
             _ => false,
         }
     }
@@ -181,17 +209,13 @@ impl Block {
         }
     }
 
-    pub fn kind(&self) -> BlockKind {
-        self.kind
-    }
+    pub fn kind(&self) -> BlockKind { self.kind }
 }
 
 impl Deref for Block {
     type Target = BlockKind;
 
-    fn deref(&self) -> &Self::Target {
-        &self.kind
-    }
+    fn deref(&self) -> &Self::Target { &self.kind }
 }
 
 impl Vox for Block {
@@ -202,9 +226,7 @@ impl Vox for Block {
         }
     }
 
-    fn is_empty(&self) -> bool {
-        self.is_air()
-    }
+    fn is_empty(&self) -> bool { self.is_air() }
 }
 
 #[cfg(test)]

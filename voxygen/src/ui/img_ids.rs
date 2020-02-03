@@ -1,4 +1,4 @@
-use super::{Graphic, Transform};
+use super::{Graphic, SampleStrat, Transform};
 use common::assets::{load, Error};
 use dot_vox::DotVoxData;
 use image::DynamicImage;
@@ -13,24 +13,26 @@ pub trait GraphicCreator<'a> {
 }
 impl<'a> GraphicCreator<'a> for BlankGraphic {
     type Specifier = ();
-    fn new_graphic(_: ()) -> Result<Graphic, Error> {
-        Ok(Graphic::Blank)
-    }
+
+    fn new_graphic(_: ()) -> Result<Graphic, Error> { Ok(Graphic::Blank) }
 }
 impl<'a> GraphicCreator<'a> for ImageGraphic {
     type Specifier = &'a str;
+
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Image(load::<DynamicImage>(specifier)?))
     }
 }
 
 pub enum VoxelGraphic {}
-pub enum VoxelMsGraphic {}
-pub enum VoxelMs4Graphic {}
-pub enum VoxelMs9Graphic {}
+pub enum VoxelSsGraphic {}
+pub enum VoxelSs4Graphic {}
+pub enum VoxelSs9Graphic {}
+pub enum VoxelPixArtGraphic {}
 
 impl<'a> GraphicCreator<'a> for VoxelGraphic {
     type Specifier = &'a str;
+
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
             load::<DotVoxData>(specifier)?,
@@ -38,12 +40,13 @@ impl<'a> GraphicCreator<'a> for VoxelGraphic {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
             },
-            None,
+            SampleStrat::None,
         ))
     }
 }
-impl<'a> GraphicCreator<'a> for VoxelMsGraphic {
+impl<'a> GraphicCreator<'a> for VoxelSsGraphic {
     type Specifier = (&'a str, u8);
+
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
             load::<DotVoxData>(specifier.0)?,
@@ -51,12 +54,13 @@ impl<'a> GraphicCreator<'a> for VoxelMsGraphic {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
             },
-            Some(specifier.1),
+            SampleStrat::SuperSampling(specifier.1),
         ))
     }
 }
-impl<'a> GraphicCreator<'a> for VoxelMs4Graphic {
+impl<'a> GraphicCreator<'a> for VoxelSs4Graphic {
     type Specifier = &'a str;
+
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
             load::<DotVoxData>(specifier)?,
@@ -64,12 +68,13 @@ impl<'a> GraphicCreator<'a> for VoxelMs4Graphic {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
             },
-            Some(4),
+            SampleStrat::SuperSampling(4),
         ))
     }
 }
-impl<'a> GraphicCreator<'a> for VoxelMs9Graphic {
+impl<'a> GraphicCreator<'a> for VoxelSs9Graphic {
     type Specifier = &'a str;
+
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
             load::<DotVoxData>(specifier)?,
@@ -77,7 +82,21 @@ impl<'a> GraphicCreator<'a> for VoxelMs9Graphic {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
             },
-            Some(9),
+            SampleStrat::SuperSampling(9),
+        ))
+    }
+}
+impl<'a> GraphicCreator<'a> for VoxelPixArtGraphic {
+    type Specifier = &'a str;
+
+    fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
+        Ok(Graphic::Voxel(
+            load::<DotVoxData>(specifier)?,
+            Transform {
+                ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
+                ..Default::default()
+            },
+            SampleStrat::PixelCoverage,
         ))
     }
 }
@@ -89,8 +108,8 @@ pub struct Rotations {
     pub cw270: conrod_core::image::Id,
 }
 
-/// This macro will automatically load all specified assets, get the corresponding ImgIds and
-/// create a struct with all of them.
+/// This macro will automatically load all specified assets, get the
+/// corresponding ImgIds and create a struct with all of them.
 ///
 /// Example usage:
 /// ```
@@ -128,7 +147,8 @@ macro_rules! image_ids {
     };
 }
 
-// TODO: combine with the img_ids macro above using a marker for specific fields that should be `Rotations` instead of `widget::Id`
+// TODO: combine with the img_ids macro above using a marker for specific fields
+// that should be `Rotations` instead of `widget::Id`
 #[macro_export]
 macro_rules! rotation_image_ids {
     ($($v:vis struct $Ids:ident { $( <$T:ty> $( $name:ident: $specifier:expr ),* $(,)? )* })*) => {

@@ -16,6 +16,8 @@ before_script:
     - free -h
     - cargo --version
     - export DISABLE_GIT_LFS_CHECK=true
+    - export VELOREN_ASSETS="$(pwd)/assets"
+    - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
     - rm -r target || echo "target doesnt exist, which is fine"
     - ln -s /dockercache/veloren/target target
 
@@ -32,7 +34,7 @@ before_script:
 optional-release:linux:
     <<: *optional-release
     script:
-        - VELOREN_ASSETS=assets cargo build --verbose --release
+        - cargo build --verbose --release
         - cp target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp target/release/veloren-voxygen $CI_PROJECT_DIR
         - strip --strip-all veloren-server-cli
@@ -48,7 +50,7 @@ optional-release:linux:
 optional-release:windows:
     <<: *optional-release
     script:
-        - VELOREN_ASSETS=assets cargo build --verbose --target=x86_64-pc-windows-gnu --release
+        - cargo build --verbose --target=x86_64-pc-windows-gnu --release
         - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
     artifacts:
@@ -107,8 +109,6 @@ coverage:
     tags:
         - veloren-docker
     script:
-        - sed -i '/cargo-features/d' Cargo.toml
-        - sed -i '/profile.dev.overrides/,+1d' Cargo.toml
         - cargo tarpaulin -v
     allow_failure: true
 
@@ -119,6 +119,7 @@ benchmarks:
     tags:
         - veloren-docker
     script:
+        - unset DISABLE_GIT_LFS_CHECK
         - cargo bench
     allow_failure: true
 
@@ -134,7 +135,7 @@ linux:
     tags:
         - veloren-docker
     script:
-        - VELOREN_ASSETS=assets cargo build --release
+        - cargo build --release
         - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
         - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
         - strip --strip-all veloren-server-cli
@@ -159,7 +160,7 @@ windows:
     tags:
         - veloren-docker
     script:
-        - VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --release
+        - cargo build --target=x86_64-pc-windows-gnu --release
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
         - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
     artifacts:

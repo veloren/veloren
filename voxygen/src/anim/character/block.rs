@@ -1,7 +1,4 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    CharacterSkeleton,
-};
+use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
@@ -12,8 +9,8 @@ pub struct Input {
 pub struct BlockAnimation;
 
 impl Animation for BlockAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<ToolKind>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
@@ -81,7 +78,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(ToolKind::Axe) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -106,7 +103,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(ToolKind::Hammer) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
@@ -127,7 +124,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_y(-1.35)
                     * Quaternion::rotation_z(-0.85);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(ToolKind::Staff) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -152,7 +149,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(ToolKind::Shield) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -177,7 +174,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(ToolKind::Bow) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -202,7 +199,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(ToolKind::Dagger) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
@@ -223,7 +220,7 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
-            }
+            },
             Some(ToolKind::Debug(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
@@ -244,8 +241,8 @@ impl Animation for BlockAnimation {
                     * Quaternion::rotation_y(-1.35)
                     * Quaternion::rotation_z(-0.85);
                 next.main.scale = Vec3::one();
-            }
-            _ => {}
+            },
+            _ => {},
         }
         //next.l_foot.offset = Vec3::new(-3.4, 0.3, 8.0 + wave_ultra_slow_cos * 0.1);
         //next.l_foot.ori = Quaternion::rotation_x(-0.3);

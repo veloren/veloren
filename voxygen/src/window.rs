@@ -6,6 +6,7 @@ use crate::{
 use hashbrown::HashMap;
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
+use std::fmt;
 use vek::*;
 
 /// Represents a key that the game recognises after keyboard mapping.
@@ -86,6 +87,181 @@ pub enum KeyMouse {
     Mouse(glutin::MouseButton),
 }
 
+impl fmt::Display for KeyMouse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use self::KeyMouse::*;
+        use glutin::{MouseButton, VirtualKeyCode::*};
+        write!(f, "{}", match self {
+            Key(Key1) => "1",
+            Key(Key2) => "2",
+            Key(Key3) => "3",
+            Key(Key4) => "4",
+            Key(Key5) => "5",
+            Key(Key6) => "6",
+            Key(Key7) => "7",
+            Key(Key8) => "8",
+            Key(Key9) => "9",
+            Key(Key0) => "0",
+            Key(A) => "A",
+            Key(B) => "B",
+            Key(C) => "C",
+            Key(D) => "D",
+            Key(E) => "E",
+            Key(F) => "F",
+            Key(G) => "G",
+            Key(H) => "H",
+            Key(I) => "I",
+            Key(J) => "J",
+            Key(K) => "K",
+            Key(L) => "L",
+            Key(M) => "M",
+            Key(N) => "N",
+            Key(O) => "O",
+            Key(P) => "P",
+            Key(Q) => "Q",
+            Key(R) => "R",
+            Key(S) => "S",
+            Key(T) => "T",
+            Key(U) => "U",
+            Key(V) => "V",
+            Key(W) => "W",
+            Key(X) => "X",
+            Key(Y) => "Y",
+            Key(Z) => "Z",
+            Key(Escape) => "ESC",
+            Key(F1) => "F1",
+            Key(F2) => "F2",
+            Key(F3) => "F3",
+            Key(F4) => "F4",
+            Key(F5) => "F5",
+            Key(F6) => "F6",
+            Key(F7) => "F7",
+            Key(F8) => "F8",
+            Key(F9) => "F9",
+            Key(F10) => "F10",
+            Key(F11) => "F11",
+            Key(F12) => "F12",
+            Key(F13) => "F13",
+            Key(F14) => "F14",
+            Key(F15) => "F15",
+            Key(F16) => "F16",
+            Key(F17) => "F17",
+            Key(F18) => "F18",
+            Key(F19) => "F19",
+            Key(F20) => "F20",
+            Key(F21) => "F21",
+            Key(F22) => "F22",
+            Key(F23) => "F23",
+            Key(F24) => "F24",
+            Key(Snapshot) => "Print Screen",
+            Key(Scroll) => "Scroll Lock",
+            Key(Pause) => "Pause/Break",
+            Key(Insert) => "Insert",
+            Key(Home) => "Home",
+            Key(Delete) => "Delete",
+            Key(End) => "End",
+            Key(PageDown) => "PageDown",
+            Key(PageUp) => "PageUp",
+            Key(Left) => "Left Arrow",
+            Key(Up) => "Up Arrow",
+            Key(Right) => "Right Arrow",
+            Key(Down) => "Down Arrow",
+            Key(Back) => "Backspace",
+            Key(Return) => "Enter",
+            Key(Space) => "Space",
+            Key(Compose) => "Compose",
+            Key(Caret) => "^",
+            Key(Numlock) => "Numlock",
+            Key(Numpad0) => "Numpad 0",
+            Key(Numpad1) => "Numpad 1",
+            Key(Numpad2) => "Numpad 2",
+            Key(Numpad3) => "Numpad 3",
+            Key(Numpad4) => "Numpad 4",
+            Key(Numpad5) => "Numpad 5",
+            Key(Numpad6) => "Numpad 6",
+            Key(Numpad7) => "Numpad 7",
+            Key(Numpad8) => "Numpad 8",
+            Key(Numpad9) => "Numpad 9",
+            Key(AbntC1) => "Abnt C1",
+            Key(AbntC2) => "Abnt C2",
+            Key(Add) => "Numpad +",
+            Key(Apostrophe) => "'",
+            Key(Apps) => "Context Menu",
+            Key(At) => "@",
+            Key(Ax) => "Ax",
+            Key(Backslash) => "\\",
+            Key(Calculator) => "Calculator",
+            Key(Capital) => "Caps Lock",
+            Key(Colon) => ":",
+            Key(Comma) => ",",
+            Key(Convert) => "Convert",
+            Key(Decimal) => "Numpad .",
+            Key(Divide) => "Numpad /",
+            Key(Equals) => "=",
+            Key(Grave) => "`",
+            Key(Kana) => "Kana",
+            Key(Kanji) => "Kanji",
+            Key(LAlt) => "LAlt",
+            Key(LBracket) => "[",
+            Key(LControl) => "LControl",
+            Key(LShift) => "LShift",
+            Key(LWin) => "LWin",
+            Key(Mail) => "Mail",
+            Key(MediaSelect) => "MediaSelect",
+            Key(MediaStop) => "MediaStop",
+            Key(Minus) => "-",
+            Key(Multiply) => "Numpad *",
+            Key(Mute) => "Mute",
+            Key(MyComputer) => "My Computer",
+            Key(NavigateForward) => "Navigate Forward",
+            Key(NavigateBackward) => "Navigate Backward",
+            Key(NextTrack) => "Next Track",
+            Key(NoConvert) => "Non Convert",
+            Key(NumpadComma) => "Numpad ,",
+            Key(NumpadEnter) => "Numpad Enter",
+            Key(NumpadEquals) => "Numpad =",
+            Key(OEM102) => "OEM 102",
+            Key(Period) => ".",
+            Key(PlayPause) => "Play / Pause",
+            Key(Power) => "Power",
+            Key(PrevTrack) => "Prev Track",
+            Key(RAlt) => "RAlt",
+            Key(RBracket) => "]",
+            Key(RControl) => "RControl",
+            Key(RShift) => "RShift",
+            Key(RWin) => "RWin",
+            Key(Semicolon) => ";",
+            Key(Slash) => "/",
+            Key(Sleep) => "Sleep",
+            Key(Stop) => "Media Stop",
+            Key(Subtract) => "Numpad -",
+            Key(Sysrq) => "Sysrq",
+            Key(Tab) => "Tab",
+            Key(Underline) => "_",
+            Key(Unlabeled) => "No Name",
+            Key(VolumeDown) => "Volume Down",
+            Key(VolumeUp) => "Volume Up",
+            Key(Wake) => "Wake",
+            Key(WebBack) => "Browser Back",
+            Key(WebFavorites) => "Browser Favorites",
+            Key(WebForward) => "Browser Forward",
+            Key(WebHome) => "Browser Home",
+            Key(WebRefresh) => "Browser Refresh",
+            Key(WebSearch) => "Browser Search",
+            Key(WebStop) => "Browser Stop",
+            Key(Yen) => "Yen",
+            Key(Copy) => "Copy",
+            Key(Paste) => "Paste",
+            Key(Cut) => "Cut",
+            Mouse(MouseButton::Left) => "Mouse L-Click",
+            Mouse(MouseButton::Right) => "Mouse R-Click",
+            Mouse(MouseButton::Middle) => "Mouse Middle-Click",
+            Mouse(MouseButton::Other(button)) =>
+                return write!(f, "Unknown Mouse Button: {:?}", button),
+        })
+    }
+}
+
 pub struct Window {
     events_loop: glutin::EventsLoop,
     renderer: Renderer,
@@ -107,9 +283,14 @@ impl Window {
     pub fn new(settings: &Settings) -> Result<Window, Error> {
         let events_loop = glutin::EventsLoop::new();
 
+        let size = settings.graphics.window_size;
+
         let win_builder = glutin::WindowBuilder::new()
             .with_title("Veloren")
-            .with_dimensions(glutin::dpi::LogicalSize::new(1920.0, 1080.0))
+            .with_dimensions(glutin::dpi::LogicalSize::new(
+                size[0] as f64,
+                size[1] as f64,
+            ))
             .with_maximized(true);
 
         let ctx_builder = glutin::ContextBuilder::new()
@@ -233,7 +414,7 @@ impl Window {
 
         let keypress_map = HashMap::new();
 
-        Ok(Self {
+        let mut this = Self {
             events_loop,
             renderer: Renderer::new(
                 device,
@@ -241,6 +422,8 @@ impl Window {
                 win_color_view,
                 win_depth_view,
                 settings.graphics.aa_mode,
+                settings.graphics.cloud_mode,
+                settings.graphics.fluid_mode,
             )?,
             window,
             cursor_grabbed: false,
@@ -254,17 +437,18 @@ impl Window {
             keypress_map,
             supplement_events: vec![],
             focused: true,
-        })
+        };
+
+        this.fullscreen(settings.graphics.fullscreen);
+
+        Ok(this)
     }
 
-    pub fn renderer(&self) -> &Renderer {
-        &self.renderer
-    }
-    pub fn renderer_mut(&mut self) -> &mut Renderer {
-        &mut self.renderer
-    }
+    pub fn renderer(&self) -> &Renderer { &self.renderer }
 
-    pub fn fetch_events(&mut self) -> Vec<Event> {
+    pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
+
+    pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         let mut events = vec![];
         events.append(&mut self.supplement_events);
         // Refresh ui size (used when changing playstates)
@@ -308,7 +492,7 @@ impl Window {
                         gfx_window_glutin::update_views(window, &mut color_view, &mut depth_view);
                         renderer.on_resize().unwrap();
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
-                    }
+                    },
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. } => {
                         if let (true, Some(game_inputs)) =
@@ -322,7 +506,7 @@ impl Window {
                             }
                         }
                         events.push(Event::MouseButton(button, state));
-                    }
+                    },
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
                     {
                         Some(key) => {
@@ -344,7 +528,7 @@ impl Window {
                                                 GameInput::Fullscreen,
                                                 input.state,
                                             );
-                                        }
+                                        },
                                         GameInput::Screenshot => {
                                             take_screenshot = input.state
                                                 == glutin::ElementState::Pressed
@@ -357,7 +541,7 @@ impl Window {
                                                 GameInput::Screenshot,
                                                 input.state,
                                             );
-                                        }
+                                        },
                                         _ => events.push(Event::InputUpdate(
                                             *game_input,
                                             input.state == glutin::ElementState::Pressed,
@@ -365,14 +549,14 @@ impl Window {
                                     }
                                 }
                             }
-                        }
-                        _ => {}
+                        },
+                        _ => {},
                     },
                     glutin::WindowEvent::Focused(state) => {
                         *focused = state;
                         events.push(Event::Focused(state));
-                    }
-                    _ => {}
+                    },
+                    _ => {},
                 },
                 glutin::Event::DeviceEvent { event, .. } => match event {
                     glutin::DeviceEvent::MouseMotion {
@@ -388,16 +572,24 @@ impl Window {
                         } else {
                             events.push(Event::CursorMove(delta));
                         }
-                    }
-                    glutin::DeviceEvent::MouseWheel {
-                        delta: glutin::MouseScrollDelta::LineDelta(_x, y),
-                        ..
-                    } if cursor_grabbed && *focused => events.push(Event::Zoom(
-                        y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion,
-                    )),
-                    _ => {}
+                    },
+                    glutin::DeviceEvent::MouseWheel { delta, .. } if cursor_grabbed && *focused => {
+                        events.push(Event::Zoom({
+                            let y = match delta {
+                                glutin::MouseScrollDelta::LineDelta(_x, y) => y,
+                                // TODO: Check to see if there is a better way to find the "line
+                                // height" than just hardcoding 16.0 pixels.  Alternately we could
+                                // get rid of this and have the user set zoom sensitivity, since
+                                // it's unlikely people would expect a configuration file to work
+                                // across operating systems.
+                                glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
+                            };
+                            y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion
+                        }))
+                    },
+                    _ => {},
                 },
-                _ => {}
+                _ => {},
             }
         });
 
@@ -406,7 +598,7 @@ impl Window {
         }
 
         if toggle_fullscreen {
-            self.fullscreen(!self.is_fullscreen());
+            self.toggle_fullscreen(settings);
         }
 
         events
@@ -418,9 +610,7 @@ impl Window {
             .map_err(|err| Error::BackendError(Box::new(err)))
     }
 
-    pub fn is_cursor_grabbed(&self) -> bool {
-        self.cursor_grabbed
-    }
+    pub fn is_cursor_grabbed(&self) -> bool { self.cursor_grabbed }
 
     pub fn grab_cursor(&mut self, grab: bool) {
         self.cursor_grabbed = grab;
@@ -428,9 +618,13 @@ impl Window {
         let _ = self.window.window().grab_cursor(grab);
     }
 
-    pub fn is_fullscreen(&self) -> bool {
-        self.fullscreen
+    pub fn toggle_fullscreen(&mut self, settings: &mut Settings) {
+        self.fullscreen(!self.is_fullscreen());
+        settings.graphics.fullscreen = self.is_fullscreen();
+        settings.save_to_file_warn();
     }
+
+    pub fn is_fullscreen(&self) -> bool { self.fullscreen }
 
     pub fn fullscreen(&mut self, fullscreen: bool) {
         let window = self.window.window();
@@ -442,9 +636,7 @@ impl Window {
         }
     }
 
-    pub fn needs_refresh_resize(&mut self) {
-        self.needs_refresh_resize = true;
-    }
+    pub fn needs_refresh_resize(&mut self) { self.needs_refresh_resize = true; }
 
     pub fn logical_size(&self) -> Vec2<f64> {
         let (w, h) = self
@@ -456,9 +648,16 @@ impl Window {
         Vec2::new(w, h)
     }
 
-    pub fn send_supplement_event(&mut self, event: Event) {
-        self.supplement_events.push(event)
+    pub fn set_size(&mut self, new_size: Vec2<u16>) {
+        self.window
+            .window()
+            .set_inner_size(glutin::dpi::LogicalSize::new(
+                new_size.x as f64,
+                new_size.y as f64,
+            ));
     }
+
+    pub fn send_supplement_event(&mut self, event: Event) { self.supplement_events.push(event) }
 
     pub fn take_screenshot(&mut self) {
         match self.renderer.create_screenshot() {
@@ -483,7 +682,7 @@ impl Window {
                         warn!("Couldn't save screenshot: {:?}", err);
                     }
                 });
-            }
+            },
             Err(err) => error!(
                 "Couldn't create screenshot due to renderer error: {:?}",
                 err

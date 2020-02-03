@@ -42,8 +42,9 @@ use gfx;
 /// Used to represent a specific rendering configuration.
 ///
 /// Note that pipelines are tied to the
-/// rendering backend, and as such it is necessary to modify the rendering subsystem when adding
-/// new pipelines - custom pipelines are not currently an objective of the rendering subsystem.
+/// rendering backend, and as such it is necessary to modify the rendering
+/// subsystem when adding new pipelines - custom pipelines are not currently an
+/// objective of the rendering subsystem.
 ///
 /// # Examples
 ///
@@ -63,4 +64,18 @@ pub enum AaMode {
     MsaaX8,
     MsaaX16,
     SsaaX4,
+}
+
+/// Cloud modes
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum CloudMode {
+    None,
+    Regular,
+}
+
+/// Fluid modes
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum FluidMode {
+    Cheap,
+    Shiny,
 }

@@ -38,13 +38,11 @@ impl<'a> System<'a> for Sys {
             .map(|(e, s, _, _)| (e, s.health.current()))
             .collect::<Vec<_>>()
         {
-            let _ = hp_floater_lists.insert(
-                entity,
-                HpFloaterList {
-                    floaters: Vec::new(),
-                    last_hp,
-                },
-            );
+            let _ = hp_floater_lists.insert(entity, HpFloaterList {
+                floaters: Vec::new(),
+                last_hp,
+                time_since_last_dmg_by_me: None,
+            });
         }
 
         // Add hp floaters to all entities that have been damaged
@@ -53,20 +51,33 @@ impl<'a> System<'a> for Sys {
             .join()
             .map(|(e, s, fl)| (e, s.health, fl))
         {
+            // Increment timer for time since last damaged by me
+            hp_floater_list
+                .time_since_last_dmg_by_me
+                .as_mut()
+                .map(|t| *t += dt.0);
+
             // Check if health has changed (won't work if damaged and then healed with
             // equivalently in the same frame)
             if hp_floater_list.last_hp != health.current() {
                 hp_floater_list.last_hp = health.current();
                 // TODO: What if multiple health changes occured since last check here
-                // Also, If we make stats store a vec of the last_changes (from say the last frame),
-                // what if the client recieves the stats component from two different server ticks at
-                // once, then one will be lost (tbf this is probably a rare occurance and the results
-                // would just be a transient glitch in the display of these damage numbers) (maybe
-                // health changes could be sent to the client as a list of events)
+                // Also, If we make stats store a vec of the last_changes (from say the last
+                // frame), what if the client recieves the stats component from
+                // two different server ticks at once, then one will be lost
+                // (tbf this is probably a rare occurance and the results
+                // would just be a transient glitch in the display of these damage numbers)
+                // (maybe health changes could be sent to the client as a list
+                // of events)
                 if match health.last_change.1.cause {
                     HealthSource::Attack { by } => {
-                        my_entity.0 == entity || my_uid.map_or(false, |&uid| by == uid)
-                    }
+                        let by_me = my_uid.map_or(false, |&uid| by == uid);
+                        // If the attack was by me also reset this timer
+                        if by_me {
+                            hp_floater_list.time_since_last_dmg_by_me = Some(0.0);
+                        }
+                        my_entity.0 == entity || by_me
+                    },
                     HealthSource::Suicide => my_entity.0 == entity,
                     HealthSource::World => my_entity.0 == entity,
                     HealthSource::Revive => false,
@@ -106,6 +117,7 @@ impl<'a> System<'a> for Sys {
             HpFloaterList {
                 ref mut floaters,
                 ref last_hp,
+                ..
             },
         ) in (&entities, &mut hp_floater_lists).join()
         {
@@ -131,7 +143,8 @@ impl<'a> System<'a> for Sys {
         if let Some(stats) = stats.get(my_entity.0) {
             let mut fl = my_exp_floater_list;
             // Add a floater if exp changed
-            // TODO: can't handle if you level up more than once (maybe store total exp in stats)
+            // TODO: can't handle if you level up more than once (maybe store total exp in
+            // stats)
             let exp_change = if stats.level.level() != fl.last_level {
                 if stats.level.level() > fl.last_level {
                     stats.exp.current() as i32 + fl.last_exp_max as i32 - fl.last_exp as i32

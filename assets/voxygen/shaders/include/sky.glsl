@@ -1,6 +1,6 @@
 #include <random.glsl>
+#include <cloud.glsl>
 
-uniform sampler2D t_noise;
 
 const float PI = 3.141592;
 
@@ -81,110 +81,31 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 
 	light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 	diffuse_light =
-		sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.6 + 0.4, 0.0), diffusion) +
-		moon_chroma * mix(1.0, pow(max(dot(-norm, moon_dir) * 2.0, 0.0), 2.0), diffusion) +
+		sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.5 + 0.5, 0.0), diffusion) +
+		moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
 		PERSISTENT_AMBIANCE;
 	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light);
 }
 
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
-	float star_scale = 30.0;
+	float star_scale = 80.0;
 
-	for (int i = 0; i < 2; i ++) {
-		for (int j = 0; j < 2; j ++) {
-			for (int k = 0; k < 2; k ++) {
-				// Star positions
-				vec3 pos = (floor(dir * star_scale) + vec3(i, j, k) - vec3(0.5)) / star_scale;
+	// Star positions
+	vec3 pos = (floor(dir * star_scale) - 0.5) / star_scale;
 
-				// Noisy offsets
-				pos += (3.0 / star_scale) * rand_perm_3(pos);
+	// Noisy offsets
+	pos += (3.0 / star_scale) * rand_perm_3(pos);
 
-				// Find distance to fragment
-				float dist = length(normalize(pos) - dir);
+	// Find distance to fragment
+	float dist = length(normalize(pos) - dir);
 
-				// Star threshold
-				if (dist < 0.0015) {
-					return 1.0;
-				}
-			}
-		}
+	// Star threshold
+	if (dist < 0.0015) {
+		return 1.0;
 	}
 
 	return 0.0;
-}
-
-const float CLOUD_AVG_HEIGHT = 1025.0;
-const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 35.0;
-const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 35.0;
-const float CLOUD_THRESHOLD = 0.3;
-const float CLOUD_SCALE = 1.0;
-const float CLOUD_DENSITY = 100.0;
-
-float vsum(vec3 v) {
-	return v.x + v.y + v.z;
-}
-
-vec2 cloud_at(vec3 pos) {
-	float tick_offs = 0.0
-		+ texture(t_noise, pos.xy * 0.0001 + tick.x * 0.001).x * 1.0
-		+ texture(t_noise, pos.xy * 0.000003).x * 5.0;
-
-	float value = (
-		0.0
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0003 + tick_offs).x
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0009 - tick_offs).x * 0.5
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.0025 - tick.x * 0.01).x * 0.25
-		+ texture(t_noise, pos.xy / CLOUD_SCALE * 0.008 + tick.x * 0.02).x * 0.1
-	) / 3.0;
-
-	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 500.0, 0.0) * CLOUD_DENSITY;
-
-	float shade = ((pos.z - CLOUD_AVG_HEIGHT) / (CLOUD_AVG_HEIGHT - CLOUD_HEIGHT_MIN) + 0.5);
-
-	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 5000));
-}
-
-vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, float quality) {
-
-	const float INCR = 0.06;
-
-	float mind = (CLOUD_HEIGHT_MIN - origin.z) / dir.z;
-	float maxd = (CLOUD_HEIGHT_MAX - origin.z) / dir.z;
-
-	float start = max(min(mind, maxd), 0.0);
-	float delta = min(abs(mind - maxd), max_dist);
-
-	bool do_cast = true;
-	if (mind < 0.0 && maxd < 0.0) {
-		do_cast = false;
-	}
-
-	float incr = INCR;
-
-	float fuzz = sin(texture(t_noise, dir.xz * 100000.0).x * 100.0) * incr * delta;
-
-	float cloud_shade = 1.0;
-	float passthrough = 1.0;
-	if (do_cast) {
-		for (float d = 0.0; d < 1.0; d += incr) {
-			float dist = start + d * delta;
-			dist += fuzz * min(pow(dist * 0.005, 2.0), 1.0);
-
-			vec3 pos = origin + dir * min(dist, max_dist);
-			vec2 sample = cloud_at(pos);
-
-			float integral = sample.y * incr;
-			passthrough *= max(1.0 - integral, 0.0);
-			cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
-		}
-	}
-
-	float total_density = 1.0 - passthrough / (1.0 + delta * 0.0001);
-
-	total_density = max(total_density - 1.0 / pow(max_dist, 0.25), 0.0); // Hack
-
-	return vec4(vec3(cloud_shade), total_density);
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars, out vec4 clouds) {
@@ -195,7 +116,8 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 	// Add white dots for stars. Note these flicker and jump due to FXAA
 	float star = 0.0;
 	if (with_stars) {
-		star = is_star_at(dir);
+		vec3 star_dir = normalize(sun_dir * dir.z + cross(sun_dir, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
+		star = is_star_at(star_dir);
 	}
 
 	// Sun

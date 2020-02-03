@@ -1,10 +1,11 @@
-/// event_mapper::movement watches all local entities movements and determines which
-/// sfx to emit, and the position at which the sound should be emitted from
+/// event_mapper::movement watches all local entities movements and determines
+/// which sfx to emit, and the position at which the sound should be emitted
+/// from
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
 use common::{
-    comp::{Body, CharacterState, Pos},
+    comp::{Body, CharacterState, Pos, Vel},
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
@@ -38,9 +39,10 @@ impl MovementEventMapper {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, body, character) in (
+        for (entity, pos, vel, body, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
@@ -63,7 +65,7 @@ impl MovementEventMapper {
                     Body::QuadrupedMedium(_) => {
                         // TODO: Quadriped running sfx
                         SfxEvent::Idle
-                    }
+                    },
                     _ => SfxEvent::Idle,
                 };
 
@@ -77,7 +79,8 @@ impl MovementEventMapper {
                     state.event = mapped_event;
                     state.time = Instant::now();
                 } else {
-                    // Keep the last event, it may not have an SFX trigger but it helps us determine the next one
+                    // Keep the last event, it may not have an SFX trigger but it helps us determine
+                    // the next one
                     state.event = mapped_event;
                 }
             }
@@ -86,9 +89,11 @@ impl MovementEventMapper {
         self.cleanup(client.entity());
     }
 
-    /// As the player explores the world, we track the last event of the nearby entities to determine the correct
-    /// SFX item to play next based on their activity. `cleanup` will remove entities from event tracking if they
-    /// have not triggered an event for > n seconds. This prevents stale records from bloating the Map size.
+    /// As the player explores the world, we track the last event of the nearby
+    /// entities to determine the correct SFX item to play next based on
+    /// their activity. `cleanup` will remove entities from event tracking if
+    /// they have not triggered an event for > n seconds. This prevents
+    /// stale records from bloating the Map size.
     fn cleanup(&mut self, player: EcsEntity) {
         const TRACKING_TIMEOUT: u64 = 15;
 
@@ -99,10 +104,11 @@ impl MovementEventMapper {
         });
     }
 
-    /// When specific entity movements are detected, the associated sound (if any) needs to satisfy two conditions to
-    /// be allowed to play:
-    /// 1. An sfx.ron entry exists for the movement (we need to know which sound file(s) to play)
-    /// 2. The sfx has not been played since it's timeout threshold has elapsed, which prevents firing every tick
+    /// When specific entity movements are detected, the associated sound (if
+    /// any) needs to satisfy two conditions to be allowed to play:
+    /// 1. An sfx.ron entry exists for the movement (we need to know which sound
+    /// file(s) to play) 2. The sfx has not been played since it's timeout
+    /// threshold has elapsed, which prevents firing every tick
     fn should_emit(
         last_play_entry: &LastSfxEvent,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
@@ -118,10 +124,12 @@ impl MovementEventMapper {
         }
     }
 
-    /// Voxygen has an existing list of character states via `MoveState::*` and `ActionState::*`
-    /// however that list does not provide enough resolution to target specific entity events, such
-    /// as opening or closing the glider. These methods translate those entity states with some additional
-    /// data into more specific `SfxEvent`'s which we attach sounds to
+    /// Voxygen has an existing list of character states via `MoveState::*` and
+    /// `ActionState::*` however that list does not provide enough
+    /// resolution to target specific entity events, such as opening or
+    /// closing the glider. These methods translate those entity states with
+    /// some additional data into more specific `SfxEvent`'s which we attach
+    /// sounds to
     fn map_movement_event(current_event: &CharacterState, previous_event: SfxEvent) -> SfxEvent {
         match (current_event, previous_event) {
             (CharacterState::Roll(_), _) => SfxEvent::Roll,
@@ -136,7 +144,7 @@ impl MovementEventMapper {
                 } else {
                     SfxEvent::Glide
                 }
-            }
+            },
             (CharacterState::Idle(_), SfxEvent::Glide) => SfxEvent::GliderClose,
             _ => SfxEvent::Idle,
         }

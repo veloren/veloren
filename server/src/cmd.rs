@@ -1,19 +1,17 @@
 //! # Implementing new commands.
-//! To implement a new command, add an instance of `ChatCommand` to `CHAT_COMMANDS`
-//! and provide a handler function.
+//! To implement a new command, add an instance of `ChatCommand` to
+//! `CHAT_COMMANDS` and provide a handler function.
 
 use crate::{Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
     assets, comp,
     event::{EventBus, ServerEvent},
-    hierarchical::ChunkPath,
     msg::{PlayerListUpdate, ServerMsg},
     npc::{get_npc_name, NpcKind},
-    pathfinding::WorldPath,
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
-    terrain::{Block, BlockKind, TerrainChunkSize},
+    terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
 use rand::Rng;
@@ -33,15 +31,19 @@ pub struct ChatCommand {
     arg_fmt: &'static str,
     /// A message that explains how the command is used.
     help_string: &'static str,
-    /// A boolean that is used to check whether the command requires administrator permissions or not.
+    /// A boolean that is used to check whether the command requires
+    /// administrator permissions or not.
     needs_admin: bool,
     /// Handler function called when the command is executed.
     /// # Arguments
     /// * `&mut Server` - the `Server` instance executing the command.
-    /// * `EcsEntity` - an `Entity` corresponding to the player that invoked the command.
-    /// * `String` - a `String` containing the part of the command after the keyword.
+    /// * `EcsEntity` - an `Entity` corresponding to the player that invoked the
+    ///   command.
+    /// * `String` - a `String` containing the part of the command after the
+    ///   keyword.
     /// * `&ChatCommand` - the command to execute with the above arguments.
-    /// Handler functions must parse arguments from the the given `String` (`scan_fmt!` is included for this purpose).
+    /// Handler functions must parse arguments from the the given `String`
+    /// (`scan_fmt!` is included for this purpose).
     handler: fn(&mut Server, EcsEntity, String, &ChatCommand),
 }
 
@@ -62,7 +64,9 @@ impl ChatCommand {
             handler,
         }
     }
-    /// Calls the contained handler function, passing `&self` as the last argument.
+
+    /// Calls the contained handler function, passing `&self` as the last
+    /// argument.
     pub fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
         if self.needs_admin {
             if !server.entity_is_admin(entity) {
@@ -249,13 +253,6 @@ lazy_static! {
             true,
             handle_debug,
         ),
-        ChatCommand::new(
-            "pathfind",
-            "{} {d} {d} {d}",
-            "/pathfind : Send a given entity with ID to the coordinates provided",
-            true,
-            handle_pathfind,
-        ),
     ];
 }
 fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
@@ -284,7 +281,7 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                     .state
                     .write_component(entity, comp::Pos(current_pos.0 + Vec3::new(x, y, z)));
                 server.state.write_component(entity, comp::ForceUpdate);
-            }
+            },
             None => server.notify_client(
                 entity,
                 ServerMsg::private(String::from("You have no position.")),
@@ -344,7 +341,7 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                         ServerMsg::private(format!("'{}' is not a valid time.", n)),
                     );
                     return;
-                }
+                },
             },
         },
         None => {
@@ -361,7 +358,7 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             };
             server.notify_client(entity, ServerMsg::private(msg));
             return;
-        }
+        },
     };
 
     server.state.ecs_mut().write_resource::<TimeOfDay>().0 =
@@ -438,7 +435,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                     Some(pos) => {
                         server.state.write_component(entity, pos);
                         server.state.write_component(entity, comp::ForceUpdate);
-                    }
+                    },
                     None => server.notify_client(
                         entity,
                         ServerMsg::private(format!("Unable to teleport to player '{}'!", alias)),
@@ -453,11 +450,11 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                         entity,
                         ServerMsg::private(String::from(action.help_string)),
                     );
-                }
+                },
             },
             None => {
                 server.notify_client(entity, ServerMsg::private(format!("You have no position!")));
-            }
+            },
         }
     } else {
         server.notify_client(entity, ServerMsg::private(String::from(action.help_string)));
@@ -467,7 +464,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match scan_fmt_some!(&args, action.arg_fmt, String, NpcKind, String) {
         (Some(opt_align), Some(id), opt_amount) => {
-            if let Some(agent) = alignment_to_agent(&opt_align, entity) {
+            if let Some(alignment) = parse_alignment(entity, &opt_align) {
                 let amount = opt_amount
                     .and_then(|a| a.parse().ok())
                     .filter(|x| *x > 0)
@@ -476,6 +473,13 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
 
                 match server.state.read_component_cloned::<comp::Pos>(entity) {
                     Some(pos) => {
+                        let agent =
+                            if let comp::Alignment::Owned(_) | comp::Alignment::Npc = alignment {
+                                comp::Agent::default()
+                            } else {
+                                comp::Agent::default().with_patrol_origin(pos.0)
+                            };
+
                         for _ in 0..amount {
                             let vel = Vec3::new(
                                 rand::thread_rng().gen_range(-2.0, 3.0),
@@ -484,12 +488,18 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                             );
 
                             let body = kind_to_body(id);
+
                             let new_entity = server
                                 .state
-                                .create_npc(pos, comp::Stats::new(get_npc_name(id), None), body)
+                                .create_npc(
+                                    pos,
+                                    comp::Stats::new(get_npc_name(id).into(), body, None),
+                                    body,
+                                )
                                 .with(comp::Vel(vel))
                                 .with(comp::MountState::Unmounted)
                                 .with(agent.clone())
+                                .with(alignment)
                                 .build();
 
                             if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
@@ -505,56 +515,17 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                             entity,
                             ServerMsg::private(format!("Spawned {} entities", amount).to_owned()),
                         );
-                    }
+                    },
                     None => server.notify_client(
                         entity,
                         ServerMsg::private("You have no position!".to_owned()),
                     ),
                 }
             }
-        }
+        },
         _ => {
             server.notify_client(entity, ServerMsg::private(String::from(action.help_string)));
-        }
-    }
-}
-
-fn handle_pathfind(server: &mut Server, player: EcsEntity, args: String, action: &ChatCommand) {
-    if let (Some(id), Some(x), Some(y), Some(z)) =
-        scan_fmt_some!(&args, action.arg_fmt, u64, f32, f32, f32)
-    {
-        let entity = server.state.ecs().entity_from_uid(id);
-
-        if let Some(target_entity) = entity {
-            if let Some(start_pos) = server
-                .state
-                .read_component_cloned::<comp::Pos>(target_entity)
-            {
-                let target = start_pos.0 + Vec3::new(x, y, z);
-                let new_path = ChunkPath::new(&*server.state.terrain(), start_pos.0, target)
-                    .get_worldpath(&*server.state.terrain());
-
-                server.state.write_component(
-                    target_entity,
-                    comp::Agent::Traveler {
-                        path: new_path.clone(),
-                    },
-                );
-
-                if let Some(path_positions) = &new_path.path {
-                    for pos in path_positions {
-                        server
-                            .state
-                            .set_block(*pos, Block::new(BlockKind::Normal, Rgb::new(255, 255, 0)));
-                    }
-                }
-            }
-        } else {
-            server.notify_client(
-                player,
-                ServerMsg::private(format!("Unable to find entity with ID: {:?}", id)),
-            );
-        }
+        },
     }
 }
 
@@ -619,17 +590,12 @@ fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &
     }
 }
 
-fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent> {
+fn parse_alignment(owner: EcsEntity, alignment: &str) -> Option<comp::Alignment> {
     match alignment {
-        "hostile" => Some(comp::Agent::enemy()),
-        "friendly" => Some(comp::Agent::Pet {
-            target,
-            offset: Vec2::zero(),
-        }),
-        "traveler" => Some(comp::Agent::Traveler {
-            path: WorldPath::default(),
-        }),
-        // passive?
+        "wild" => Some(comp::Alignment::Wild),
+        "enemy" => Some(comp::Alignment::Enemy),
+        "npc" => Some(comp::Alignment::Npc),
+        "pet" => Some(comp::Alignment::Owned(owner)),
         _ => None,
     }
 }
@@ -639,6 +605,9 @@ fn kind_to_body(kind: NpcKind) -> comp::Body {
         NpcKind::Humanoid => comp::Body::Humanoid(comp::humanoid::Body::random()),
         NpcKind::Pig => comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
         NpcKind::Wolf => comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
+        NpcKind::Duck => comp::Body::BirdMedium(comp::bird_medium::Body::random()),
+        NpcKind::Giant => comp::Body::BipedLarge(comp::biped_large::Body::random()),
+        NpcKind::Rat => comp::Body::Critter(comp::critter::Body::random()),
     }
 }
 
@@ -696,6 +665,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             Ok("pumpkin_4") => comp::object::Body::Pumpkin4,
             Ok("pumpkin_5") => comp::object::Body::Pumpkin5,
             Ok("campfire") => comp::object::Body::Campfire,
+            Ok("campfire_lit") => comp::object::Body::CampfireLit,
             Ok("lantern_ground") => comp::object::Body::LanternGround,
             Ok("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
             Ok("lantern_2") => comp::object::Body::LanternStanding2,
@@ -732,12 +702,13 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
                     entity,
                     ServerMsg::private(String::from("Object not found!")),
                 );
-            }
+            },
         };
         server
             .create_object(pos, obj_type)
             .with(comp::Ori(
-                // converts player orientation into a 90° rotation for the object by using the axis with the highest value
+                // converts player orientation into a 90° rotation for the object by using the axis
+                // with the highest value
                 ori.0
                     .map(|e| {
                         if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
@@ -838,18 +809,15 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
             .state
             .ecs()
             .write_storage::<comp::LightEmitter>()
-            .insert(
-                entity,
-                comp::LightEmitter {
-                    offset: Vec3::new(0.5, 0.2, 0.8),
-                    col: Rgb::new(1.0, 0.75, 0.3),
-                    strength: if let Some(s) = opt_s {
-                        s.max(0.0).min(10.0)
-                    } else {
-                        3.0
-                    },
+            .insert(entity, comp::LightEmitter {
+                offset: Vec3::new(0.5, 0.2, 0.8),
+                col: Rgb::new(1.0, 0.75, 0.3),
+                strength: if let Some(s) = opt_s {
+                    s.max(0.0).min(10.0)
+                } else {
+                    3.0
                 },
-            );
+            });
 
         server.notify_client(
             entity,
@@ -883,7 +851,7 @@ fn handle_waypoint(server: &mut Server, entity: EcsEntity, _args: String, _actio
                 .write_storage::<comp::Waypoint>()
                 .insert(entity, comp::Waypoint::new(pos.0));
             server.notify_client(entity, ServerMsg::private(String::from("Waypoint set!")));
-        }
+        },
         None => server.notify_client(
             entity,
             ServerMsg::private(String::from("You have no position!")),
@@ -902,10 +870,10 @@ fn handle_adminify(server: &mut Server, entity: EcsEntity, args: String, action:
             Some(player) => match server.state.read_component_cloned::<comp::Admin>(player) {
                 Some(_admin) => {
                     ecs.write_storage::<comp::Admin>().remove(player);
-                }
+                },
                 None => {
                     server.state.write_component(player, comp::Admin);
-                }
+                },
             },
             None => {
                 server.notify_client(
@@ -913,7 +881,7 @@ fn handle_adminify(server: &mut Server, entity: EcsEntity, args: String, action:
                     ServerMsg::private(format!("Player '{}' not found!", alias)),
                 );
                 server.notify_client(entity, ServerMsg::private(String::from(action.help_string)));
-            }
+            },
         }
     } else {
         server.notify_client(entity, ServerMsg::private(String::from(action.help_string)));
@@ -973,6 +941,20 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
     }
 }
 
+#[cfg(not(feature = "worldgen"))]
+fn handle_debug_column(
+    server: &mut Server,
+    entity: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    server.notify_client(
+        entity,
+        ServerMsg::private(String::from("Unsupported without worldgen enabled")),
+    );
+}
+
+#[cfg(feature = "worldgen")]
 fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let sim = server.world.sim();
     let sampler = server.world.sample_columns();
@@ -985,6 +967,7 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
         let foo = || {
             // let sim_chunk = sim.get(chunk_pos)?;
             let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
+            let basement = sim.get_interpolated(wpos, |chunk| chunk.basement)?;
             let water_alt = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;
             let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
             let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
@@ -1003,6 +986,7 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
                 r#"wpos: {:?}
 alt {:?} ({:?})
 water_alt {:?} ({:?})
+basement {:?}
 river {:?}
 downhill {:?}
 chaos {:?}
@@ -1017,6 +1001,7 @@ spawn_rate {:?} "#,
                 col.alt,
                 water_alt,
                 col.water_level,
+                basement,
                 river,
                 downhill,
                 chaos,
@@ -1059,10 +1044,10 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                 } else {
                     error_msg = Some(ServerMsg::private(String::from("Player has no stats!")));
                 }
-            }
+            },
             _ => {
                 error_msg = Some(ServerMsg::private(format!("Player '{}' not found!", alias)));
-            }
+            },
         }
 
         if let Some(msg) = error_msg {
@@ -1109,10 +1094,11 @@ fn handle_remove_lights(
     match opt_player_pos {
         Some(player_pos) => {
             let ecs = server.state.ecs();
-            for (entity, pos, _, _) in (
+            for (entity, pos, _, _, _) in (
                 &ecs.entities(),
                 &ecs.read_storage::<comp::Pos>(),
                 &ecs.read_storage::<comp::LightEmitter>(),
+                !&ecs.read_storage::<comp::WaypointArea>(),
                 !&ecs.read_storage::<comp::Player>(),
             )
                 .join()
@@ -1124,7 +1110,7 @@ fn handle_remove_lights(
                     to_delete.push(entity);
                 }
             }
-        }
+        },
         None => server.notify_client(
             entity,
             ServerMsg::private(String::from("You have no position.")),

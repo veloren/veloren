@@ -8,9 +8,7 @@ lazy_static! {
 }
 /// The `Default` inventory should contain two items
 #[test]
-fn create_default_count() {
-    assert_eq!(Inventory::default().count(), 2)
-}
+fn create_default_count() { assert_eq!(Inventory::default().count(), 2) }
 
 /// Attempting to push into a full inventory should return the same item.
 #[test]
@@ -36,7 +34,8 @@ fn push_all_full() {
     assert_eq!(leftovers, TEST_ITEMS.clone())
 }
 
-/// Attempting to push uniquely into an inventory containing all the items should work fine.
+/// Attempting to push uniquely into an inventory containing all the items
+/// should work fine.
 #[test]
 fn push_unique_all_full() {
     let mut inv = Inventory {
@@ -46,7 +45,8 @@ fn push_unique_all_full() {
         .expect("Pushing unique items into an inventory that already contains them didn't work!");
 }
 
-/// Attempting to push uniquely into an inventory containing all the items should work fine.
+/// Attempting to push uniquely into an inventory containing all the items
+/// should work fine.
 #[test]
 fn push_all_empty() {
     let mut inv = Inventory {
@@ -56,7 +56,8 @@ fn push_all_empty() {
         .expect("Pushing items into an empty inventory didn't work!");
 }
 
-/// Attempting to push uniquely into an inventory containing all the items should work fine.
+/// Attempting to push uniquely into an inventory containing all the items
+/// should work fine.
 #[test]
 fn push_all_unique_empty() {
     let mut inv = Inventory {

@@ -17,7 +17,8 @@ const ATTACK_RANGE: f32 = 3.5;
 const ATTACK_ANGLE: f32 = 45.0;
 const BLOCK_ANGLE: f32 = 180.0;
 
-/// This system is responsible for handling accepted inputs like moving or attacking
+/// This system is responsible for handling accepted inputs like moving or
+/// attacking
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
@@ -74,7 +75,7 @@ impl<'a> System<'a> for Sys {
             {
                 kind.attack_recover_duration()
             } else {
-                Duration::from_secs(1)
+                Duration::from_millis(250)
             };
 
         //     let (deal_damage, should_end) = if let Some(Attack { time_left, applied }) =

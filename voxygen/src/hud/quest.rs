@@ -1,12 +1,11 @@
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
+use crate::i18n::VoxygenLocalization;
+use client::{self, Client};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, /*, Color*/
-    Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
-use client::{self, Client};
 
 widget_ids! {
     pub struct Ids {
@@ -25,17 +24,25 @@ pub struct Quest<'a> {
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> Quest<'a> {
-    pub fn new(show: &'a Show, _client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        show: &'a Show,
+        _client: &'a Client,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    ) -> Self {
         Self {
             _show: show,
             imgs,
             _client,
-            fonts: fonts,
+            fonts,
+            localized_strings,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -50,17 +57,13 @@ pub enum Event {
 }
 
 impl<'a> Widget for Quest<'a> {
+    type Event = Option<Event>;
     type State = Ids;
     type Style = ();
-    type Event = Option<Event>;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        Ids::new(id_gen)
-    }
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State { Ids::new(id_gen) }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
@@ -93,7 +96,7 @@ impl<'a> Widget for Quest<'a> {
 
         // Title
         // TODO: Use an actual character name.
-        Text::new("Quest")
+        Text::new(&self.localized_strings.get("hud.quests"))
             .mid_top_with_margin_on(state.quest_frame, 6.0)
             .font_id(self.fonts.cyri)
             .font_size(14)

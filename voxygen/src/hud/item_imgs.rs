@@ -1,7 +1,7 @@
-use crate::ui::{Graphic, Transform, Ui};
+use crate::ui::{Graphic, SampleStrat, Transform, Ui};
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
-    comp::item::{Armor, Consumable, Ingredient, Item, ItemKind, ToolData, ToolKind},
+    comp::item::{Armor, Consumable, Ingredient, Item, ItemKind, ToolData, ToolKind, Utility},
 };
 use conrod_core::image::Id;
 use dot_vox::DotVoxData;
@@ -16,6 +16,7 @@ use vek::*;
 pub enum ItemKey {
     Tool(ToolKind),
     Armor(Armor),
+    Utility(Utility),
     Consumable(Consumable),
     Ingredient(Ingredient),
 }
@@ -24,6 +25,7 @@ impl From<&Item> for ItemKey {
         match &item.kind {
             ItemKind::Tool(ToolData { kind, .. }) => ItemKey::Tool(kind.clone()),
             ItemKind::Armor { kind, .. } => ItemKey::Armor(kind.clone()),
+            ItemKind::Utility { kind } => ItemKey::Utility(kind.clone()),
             ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
             ItemKind::Ingredient(kind) => ItemKey::Ingredient(kind.clone()),
         }
@@ -47,7 +49,7 @@ impl ImageSpec {
                     stretch: false,
                     ..Default::default()
                 },
-                None,
+                SampleStrat::None,
             ),
             ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom) => Graphic::Voxel(
                 graceful_load_vox(&specifier),
@@ -60,7 +62,7 @@ impl ImageSpec {
                     orth: true, // TODO: Is this what we want here? @Pfau
                     stretch: false,
                 },
-                None,
+                SampleStrat::None,
             ),
         }
     }
@@ -69,6 +71,7 @@ impl ImageSpec {
 struct ItemImagesSpec(HashMap<ItemKey, ImageSpec>);
 impl Asset for ItemImagesSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing item images spec"))
     }
@@ -94,6 +97,7 @@ impl ItemImgs {
             indicator,
         }
     }
+
     /// Checks if the manifest has been changed and reloads the images if so
     /// Reuses img ids
     pub fn reload_if_changed(&mut self, ui: &mut Ui) {
@@ -111,11 +115,12 @@ impl ItemImgs {
                     // Otherwise, generate new id and insert it into our Id -> ItemKey map
                     None => {
                         self.map.insert(kind.clone(), ui.add_graphic(graphic));
-                    }
+                    },
                 }
             }
         }
     }
+
     pub fn img_id(&self, item_kind: ItemKey) -> Option<Id> {
         match self.map.get(&item_kind) {
             Some(id) => Some(*id),
@@ -126,7 +131,7 @@ impl ItemImgs {
                     item_kind
                 );
                 None
-            }
+            },
         }
     }
 }
@@ -143,7 +148,7 @@ fn graceful_load_vox(specifier: &str) -> Arc<DotVoxData> {
                 full_specifier
             );
             assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
-        }
+        },
     }
 }
 fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
@@ -156,6 +161,6 @@ fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
                 full_specifier
             );
             assets::load_expect::<DynamicImage>("voxygen.element.not_found")
-        }
+        },
     }
 }

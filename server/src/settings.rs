@@ -1,6 +1,9 @@
 use portpicker::pick_unused_port;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf};
+use world::sim::FileOpts;
+
+const DEFAULT_WORLD_SEED: u32 = 5284;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
@@ -15,6 +18,9 @@ pub struct ServerSettings {
     //pub login_server: whatever
     pub start_time: f64,
     pub admins: Vec<String>,
+    /// When set to None, loads the default map file (if available); otherwise,
+    /// uses the value of the file options to decide how to proceed.
+    pub map_file: Option<FileOpts>,
 }
 
 impl Default for ServerSettings {
@@ -22,11 +28,12 @@ impl Default for ServerSettings {
         Self {
             gameserver_address: SocketAddr::from(([0; 4], 14004)),
             metrics_address: SocketAddr::from(([0; 4], 14005)),
-            world_seed: 5284,
+            world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".to_owned(),
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
+            map_file: None,
             admins: [
                 "Pfau",
                 "zesterer",
@@ -43,6 +50,7 @@ impl Default for ServerSettings {
                 "Nancok",
                 "Qutrin",
                 "Mckol",
+                "Treeco",
             ]
             .iter()
             .map(|n| n.to_string())
@@ -61,14 +69,14 @@ impl ServerSettings {
                 Err(e) => {
                     log::warn!("Failed to parse setting file! Fallback to default. {}", e);
                     Self::default()
-                }
+                },
             }
         } else {
             let default_settings = Self::default();
 
             match default_settings.save_to_file() {
                 Err(e) => log::error!("Failed to create default setting file! {}", e),
-                _ => {}
+                _ => {},
             }
             default_settings
         }
@@ -87,8 +95,10 @@ impl ServerSettings {
     }
 
     pub fn singleplayer() -> Self {
+        let load = Self::load();
         Self {
-            //BUG: theoretically another process can grab the port between here and server creation, however the timewindow is quite small
+            //BUG: theoretically another process can grab the port between here and server
+            // creation, however the timewindow is quite small
             gameserver_address: SocketAddr::from((
                 [127, 0, 0, 1],
                 pick_unused_port().expect("Failed to find unused port!"),
@@ -97,16 +107,21 @@ impl ServerSettings {
                 [127, 0, 0, 1],
                 pick_unused_port().expect("Failed to find unused port!"),
             )),
-            world_seed: 1337,
+            // If loading the default map file, make sure the seed is also default.
+            world_seed: if load.map_file.is_some() {
+                load.world_seed
+            } else {
+                DEFAULT_WORLD_SEED
+            },
             server_name: "Singleplayer".to_owned(),
             server_description: "Who needs friends anyway?".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
-            admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
+            admins: vec!["singleplayer".to_string()], /* TODO: Let the player choose if they want
+                                                       * to use admin commands or not */
+            ..load // Fill in remaining fields from settings.ron.
         }
     }
 
-    fn get_settings_path() -> PathBuf {
-        PathBuf::from(r"settings.ron")
-    }
+    fn get_settings_path() -> PathBuf { PathBuf::from(r"settings.ron") }
 }
