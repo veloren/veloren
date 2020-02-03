@@ -4,7 +4,8 @@ version = "Two"
 format_code_in_doc_comments = true
 format_strings = true
 wrap_comments = true
-normalize_doc_attributes = true
+#temporary disabled because of bug #461 
+#normalize_doc_attributes = true
 
 use_try_shorthand = true
 reorder_impl_items = true
