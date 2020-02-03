@@ -6,23 +6,24 @@ use vek::vec::{Vec2, Vec3};
 
 pub fn handle_move_dir(ecs_data: &EcsStateData, update: &mut StateUpdate) {
     let (accel, speed): (f32, f32) = if ecs_data.physics.on_ground {
-        let accel = 50.0;
-        let speed = 120.0;
+        let accel = 100.0;
+        let speed = 8.0;
         (accel, speed)
     } else {
-        let accel = 10.0;
-        let speed = 100.0;
+        let accel = 100.0;
+        let speed = 8.0;
         (accel, speed)
     };
 
     // Move player according to move_dir
-    update.vel.0 += Vec2::broadcast(ecs_data.dt.0)
-        * ecs_data.inputs.move_dir
-        * if update.vel.0.magnitude_squared() < speed.powf(2.0) {
-            accel
-        } else {
-            0.0
-        };
+    if update.vel.0.magnitude_squared() < speed.powf(2.0) {
+        update.vel.0 =
+            update.vel.0 + Vec2::broadcast(ecs_data.dt.0) * ecs_data.inputs.move_dir * accel;
+        let mag2 = update.vel.0.magnitude_squared();
+        if mag2 > speed.powf(2.0) {
+            update.vel.0 = update.vel.0.normalized() * speed;
+        }
+    }
 
     // Set direction based on move direction
     let ori_dir = if update.character.is_attack() || update.character.is_block() {
@@ -56,8 +57,10 @@ pub fn handle_sit(ecs_data: &EcsStateData, update: &mut StateUpdate) {
 }
 
 pub fn handle_climb(ecs_data: &EcsStateData, update: &mut StateUpdate) {
-    if (ecs_data.inputs.climb.is_pressed() || ecs_data.inputs.climb_down.is_pressed())
+    if (ecs_data.inputs.climb.is_just_pressed() || ecs_data.inputs.climb_down.is_pressed())
         && ecs_data.physics.on_wall.is_some()
+        && !ecs_data.physics.on_ground
+        //&& update.vel.0.z < 0.0
         && ecs_data.body.is_humanoid()
     {
         update.character = CharacterState::Climb(None);
