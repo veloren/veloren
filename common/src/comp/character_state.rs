@@ -1,7 +1,7 @@
 use crate::states::*;
 use crate::{
-    comp::{Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, Vel},
-    event::{EventBus, LocalEvent, ServerEvent},
+    comp::{AbilityPool, Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, Vel},
+    event::{LocalEvent, ServerEvent},
     state::DeltaTime,
     sync::Uid,
 };
@@ -9,6 +9,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use specs::LazyUpdate;
 use specs::{Component, Entity, FlaggedStorage, HashMapStorage};
+use std::collections::VecDeque;
 
 pub struct EcsStateData<'a> {
     pub entity: &'a Entity,
@@ -22,9 +23,8 @@ pub struct EcsStateData<'a> {
     pub stats: &'a Stats,
     pub body: &'a Body,
     pub physics: &'a PhysicsState,
+    pub ability_pool: &'a AbilityPool,
     pub updater: &'a LazyUpdate,
-    pub server_bus: &'a EventBus<ServerEvent>,
-    pub local_bus: &'a EventBus<LocalEvent>,
 }
 
 pub struct StateUpdate {
@@ -32,6 +32,8 @@ pub struct StateUpdate {
     pub pos: Pos,
     pub vel: Vel,
     pub ori: Ori,
+    pub local_events: VecDeque<LocalEvent>,
+    pub server_events: VecDeque<ServerEvent>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -41,17 +43,17 @@ pub enum CharacterState {
     Sit(Option<sit::State>),
     Wielding(Option<wielding::State>),
     Wielded(Option<wielded::State>),
-    //BasicAttack(Option<basic_attack::State>),
+    Glide(Option<glide::State>),
+    BasicAttack(Option<basic_attack::State>),
     //BasicBlock(Option<basic_block::State>),
     //Charge(Option<charge_attack::State>),
     Roll(Option<roll::State>),
-    Glide(Option<glide::State>),
 }
 
 impl CharacterState {
     pub fn is_attack(&self) -> bool {
         match self {
-            //CharacterState::BasicAttack(_) => true,
+            CharacterState::BasicAttack(_) => true,
             _ => false,
         }
     }
@@ -83,7 +85,9 @@ impl CharacterState {
     pub fn update(&self, ecs_data: &EcsStateData) -> StateUpdate {
         match self {
             CharacterState::Idle(opt_state) => opt_state
+                // If data hasn't been initialized, initialize a new one
                 .unwrap_or_else(|| idle::State::new(ecs_data))
+                // Call handler
                 .handle(ecs_data),
             CharacterState::Climb(opt_state) => opt_state
                 .unwrap_or_else(|| climb::State::new(ecs_data))
@@ -97,12 +101,10 @@ impl CharacterState {
             CharacterState::Wielded(opt_state) => opt_state
                 .unwrap_or_else(|| wielded::State::new(ecs_data))
                 .handle(ecs_data),
-            /*CharacterState::BasicAttack(opt_state) => opt_state
-                // If data hasn't been initialized, initialize a new one
+            CharacterState::BasicAttack(opt_state) => opt_state
                 .unwrap_or_else(|| basic_attack::State::new(ecs_data))
-                // Call handler
                 .handle(ecs_data),
-            CharacterState::Charge(opt_state) => opt_state
+            /*CharacterState::Charge(opt_state) => opt_state
                 .unwrap_or_else(|| charge_attack::State::new(ecs_data))
                 .handle(ecs_data),
             CharacterState::BasicBlock(opt_state) => opt_state
@@ -115,7 +117,7 @@ impl CharacterState {
                 .unwrap_or_else(|| glide::State::new(ecs_data))
                 .handle(ecs_data),
             // All states should be explicitly handled
-            // Do not use default match: _ => {},
+            // DO NOT use default match: _ => {},
         }
     }
 }

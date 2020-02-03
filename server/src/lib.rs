@@ -267,6 +267,7 @@ impl Server {
         state.write_component(entity, comp::CharacterState::default());
         state.write_component(entity, comp::Inventory::default());
         state.write_component(entity, comp::InventoryUpdate);
+        state.write_component(entity, comp::AbilityPool::default());
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 
@@ -1188,6 +1189,7 @@ impl StateExt for State {
             .with(comp::Energy::new(100))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
+            .with(comp::AbilityPool::default())
     }
 
     fn notify_registered_clients(&self, msg: ServerMsg) {
