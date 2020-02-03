@@ -1,6 +1,5 @@
 use crate::audio::fader::Fader;
-use rodio::{Decoder, Device, Sample, Source, SpatialSink};
-use std::{fs::File, io::BufReader};
+use rodio::{Device, Sample, Source, SpatialSink};
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -20,12 +19,19 @@ enum ChannelState {
     Stopped,
 }
 
+#[derive(PartialEq, Clone, Copy)]
+pub enum ChannelTag {
+    TitleMusic,
+    Soundtrack,
+}
+
 pub struct Channel {
     id: usize,
     sink: SpatialSink,
     audio_type: AudioType,
     state: ChannelState,
     fader: Fader,
+    tag: Option<ChannelTag>,
     pub pos: Vec3<f32>,
 }
 
@@ -35,38 +41,12 @@ impl Channel {
     pub fn new(device: &Device) -> Self {
         Self {
             id: 0,
-            sink: SpatialSink::new(device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]),
+            sink: SpatialSink::new(device, [0.0; 3], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]),
             audio_type: AudioType::None,
             state: ChannelState::Stopped,
             fader: Fader::fade_in(0.0),
+            tag: None,
             pos: Vec3::zero(),
-        }
-    }
-
-    pub fn music(id: usize, device: &Device, bufr: BufReader<File>) -> Self {
-        let sink = SpatialSink::new(device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
-        let sound = Decoder::new(bufr).unwrap();
-
-        sink.append(sound);
-
-        Self {
-            id,
-            sink,
-            audio_type: AudioType::Music,
-            state: ChannelState::Playing,
-            fader: Fader::fade_in(0.0),
-            pos: Vec3::zero(),
-        }
-    }
-
-    pub fn sfx(id: usize, sink: SpatialSink, pos: Vec3<f32>) -> Self {
-        Self {
-            id,
-            sink,
-            audio_type: AudioType::Sfx,
-            state: ChannelState::Playing,
-            fader: Fader::fade_in(0.0),
-            pos,
         }
     }
 
@@ -82,6 +62,10 @@ impl Channel {
     }
 
     pub fn is_done(&self) -> bool { self.sink.empty() || self.state == ChannelState::Stopped }
+
+    pub fn set_tag(&mut self, tag: Option<ChannelTag>) { self.tag = tag; }
+
+    pub fn get_tag(&self) -> Option<ChannelTag> { self.tag }
 
     pub fn stop(&mut self, fader: Fader) {
         self.state = ChannelState::Stopping;
