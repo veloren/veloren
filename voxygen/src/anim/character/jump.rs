@@ -1,7 +1,4 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    CharacterSkeleton,
-};
+use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
 use std::f32::consts::PI;
 use vek::*;
@@ -9,8 +6,8 @@ use vek::*;
 pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<ToolKind>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

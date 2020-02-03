@@ -1,7 +1,4 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    CharacterSkeleton,
-};
+use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
@@ -9,8 +6,9 @@ use vek::*;
 pub struct StandAnimation;
 
 impl Animation for StandAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<ToolKind>, f64);
+    type Skeleton = CharacterSkeleton;
+
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, global_time): Self::Dependency,

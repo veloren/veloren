@@ -14,8 +14,8 @@ type SpriteVertex = <SpritePipeline as render::Pipeline>::Vertex;
 
 impl Meshable<FigurePipeline, FigurePipeline> for Segment {
     type Pipeline = FigurePipeline;
-    type TranslucentPipeline = FigurePipeline;
     type Supplement = Vec3<f32>;
+    type TranslucentPipeline = FigurePipeline;
 
     fn generate_mesh(
         &self,
@@ -67,8 +67,8 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
 
 impl Meshable<SpritePipeline, SpritePipeline> for Segment {
     type Pipeline = SpritePipeline;
-    type TranslucentPipeline = SpritePipeline;
     type Supplement = Vec3<f32>;
+    type TranslucentPipeline = SpritePipeline;
 
     fn generate_mesh(
         &self,

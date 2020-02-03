@@ -2,16 +2,23 @@ use crate::{
     mesh::Meshable,
     render::{FigurePipeline, Mesh},
 };
-use common::comp::humanoid::Body;
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
     comp::{
-        biped_large, bird_medium, bird_small, dragon, fish_medium, fish_small,
+        biped_large::{BodyType as BLBodyType, Species as BLSpecies},
+        bird_medium::{BodyType as BMBodyType, Species as BMSpecies},
+        bird_small,
+        critter::{BodyType as CBodyType, Species as CSpecies},
+        dragon, fish_medium, fish_small,
         humanoid::{
-            Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder, Skin,
+            Belt, Body, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder,
+            Skin,
         },
         item::{ToolData, ToolKind},
-        object, quadruped_medium, quadruped_small, Item, ItemKind,
+        object,
+        quadruped_medium::{BodyType as QMBodyType, Species as QMSpecies},
+        quadruped_small::{BodyType as QSBodyType, Species as QSSpecies},
+        Item, ItemKind,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
 };
@@ -33,7 +40,7 @@ fn graceful_load_vox(mesh_name: &str) -> Arc<DotVoxData> {
         Err(_) => {
             error!("Could not load vox file for figure: {}", full_specifier);
             assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
-        }
+        },
     }
 }
 fn graceful_load_segment(mesh_name: &str) -> Segment {
@@ -84,11 +91,14 @@ fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
     }
 }
 
-// All offsets should be relative to an initial origin that doesn't change when combining segments
+// All offsets should be relative to an initial origin that doesn't change when
+// combining segments
 #[derive(Serialize, Deserialize)]
 struct VoxSpec<T>(String, [T; 3]);
 
-// Armor can have the color modified.
+#[derive(Serialize, Deserialize)]
+struct VoxSimple(String);
+
 #[derive(Serialize, Deserialize)]
 struct ArmorVoxSpec {
     vox_spec: VoxSpec<f32>,
@@ -98,6 +108,12 @@ struct ArmorVoxSpec {
 // For use by armor with a left and right component
 #[derive(Serialize, Deserialize)]
 struct SidedArmorVoxSpec {
+    left: ArmorVoxSpec,
+    right: ArmorVoxSpec,
+}
+
+#[derive(Serialize, Deserialize)]
+struct MobSidedVoxSpec {
     left: ArmorVoxSpec,
     right: ArmorVoxSpec,
 }
@@ -117,6 +133,7 @@ pub struct HumHeadSpec(HashMap<(Race, BodyType), HumHeadSubSpec>);
 
 impl Asset for HumHeadSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid head spec"))
     }
@@ -126,6 +143,7 @@ impl HumHeadSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_head_manifest", indicator).unwrap()
     }
+
     pub fn mesh_head(
         &self,
         race: Race,
@@ -146,7 +164,7 @@ impl HumHeadSpec {
                     race, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            }
+            },
         };
 
         let hair_rgb = race.hair_color(hair_color);
@@ -170,7 +188,7 @@ impl HumHeadSpec {
             None => {
                 warn!("No specification for hair style {}", hair_style);
                 None
-            }
+            },
         };
         let beard = match spec.beard.get(beard as usize) {
             Some(Some(spec)) => Some((
@@ -181,7 +199,7 @@ impl HumHeadSpec {
             None => {
                 warn!("No specification for this beard: {:?}", beard);
                 None
-            }
+            },
         };
         let accessory = match spec.accessory.get(accessory as usize) {
             Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
@@ -189,7 +207,7 @@ impl HumHeadSpec {
             None => {
                 warn!("No specification for this accessory: {:?}", accessory);
                 None
-            }
+            },
         };
 
         let (head, origin_offset) = DynaUnionizer::new()
@@ -228,36 +246,42 @@ pub struct HumArmorFootSpec(HashMap<Foot, ArmorVoxSpec>);
 
 impl Asset for HumArmorShoulderSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor shoulder spec"))
     }
 }
 impl Asset for HumArmorChestSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor chest spec"))
     }
 }
 impl Asset for HumArmorHandSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor hand spec"))
     }
 }
 impl Asset for HumArmorBeltSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor belt spec"))
     }
 }
 impl Asset for HumArmorPantsSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor pants spec"))
     }
 }
 impl Asset for HumArmorFootSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
+
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor foot spec"))
     }
@@ -275,7 +299,7 @@ impl HumArmorShoulderSpec {
             None => {
                 error!("No shoulder specification exists for {:?}", body.shoulder);
                 return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1));
-            }
+            },
         };
 
         let shoulder_segment = color_segment(
@@ -294,7 +318,7 @@ impl HumArmorShoulderSpec {
             None => {
                 error!("No shoulder specification exists for {:?}", body.shoulder);
                 return load_mesh("not_found", Vec3::new(-2.0, -3.5, 0.1));
-            }
+            },
         };
 
         let shoulder_segment = color_segment(
@@ -320,7 +344,7 @@ impl HumArmorChestSpec {
             None => {
                 error!("No chest specification exists for {:?}", body.chest);
                 return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0));
-            }
+            },
         };
 
         let color = |mat_segment| {
@@ -363,7 +387,7 @@ impl HumArmorHandSpec {
             None => {
                 error!("No hand specification exists for {:?}", body.hand);
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            }
+            },
         };
 
         let hand_segment = color_segment(
@@ -382,7 +406,7 @@ impl HumArmorHandSpec {
             None => {
                 error!("No hand specification exists for {:?}", body.hand);
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            }
+            },
         };
 
         let hand_segment = color_segment(
@@ -408,7 +432,7 @@ impl HumArmorBeltSpec {
             None => {
                 error!("No belt specification exists for {:?}", body.belt);
                 return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
-            }
+            },
         };
 
         let belt_segment = color_segment(
@@ -434,7 +458,7 @@ impl HumArmorPantsSpec {
             None => {
                 error!("No pants specification exists for {:?}", body.pants);
                 return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
-            }
+            },
         };
 
         let color = |mat_segment| {
@@ -477,7 +501,7 @@ impl HumArmorFootSpec {
             None => {
                 error!("No foot specification exists for {:?}", body.foot);
                 return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
-            }
+            },
         };
 
         let foot_segment = color_segment(
@@ -496,7 +520,7 @@ impl HumArmorFootSpec {
             None => {
                 error!("No foot specification exists for {:?}", body.foot);
                 return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
-            }
+            },
         };
 
         let foot_segment = color_segment(
@@ -540,228 +564,693 @@ pub fn mesh_lantern() -> Mesh<FigurePipeline> {
 }
 
 /////////
-pub fn mesh_quadruped_small_head(head: quadruped_small::Head) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match head {
-            quadruped_small::Head::Default => "npc.pig_purple.head",
-        },
-        Vec3::new(-6.0, 4.5, 3.0),
-    )
+#[derive(Serialize, Deserialize)]
+pub struct QuadrupedSmallCentralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSCentralVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedQSCentralVoxSpec {
+    head: QuadrupedSmallCentralSubSpec,
+    chest: QuadrupedSmallCentralSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct QuadrupedSmallCentralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    central: VoxSimple,
 }
 
-pub fn mesh_quadruped_small_chest(chest: quadruped_small::Chest) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match chest {
-            quadruped_small::Chest::Default => "npc.pig_purple.chest",
-        },
-        Vec3::new(-5.0, 4.5, 0.0),
-    )
+#[derive(Serialize, Deserialize)]
+pub struct QuadrupedSmallLateralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSLateralVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedQSLateralVoxSpec {
+    left_front: QuadrupedSmallLateralSubSpec,
+    right_front: QuadrupedSmallLateralSubSpec,
+    left_back: QuadrupedSmallLateralSubSpec,
+    right_back: QuadrupedSmallLateralSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct QuadrupedSmallLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
 }
 
-pub fn mesh_quadruped_small_leg_lf(leg_l: quadruped_small::LegL) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match leg_l {
-            quadruped_small::LegL::Default => "npc.pig_purple.leg_l",
-        },
-        Vec3::new(0.0, -1.0, -1.5),
-    )
+impl Asset for QuadrupedSmallCentralSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing quad_small central spec"))
+    }
 }
 
-pub fn mesh_quadruped_small_leg_rf(leg_r: quadruped_small::LegR) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match leg_r {
-            quadruped_small::LegR::Default => "npc.pig_purple.leg_r",
-        },
-        Vec3::new(0.0, -1.0, -1.5),
-    )
+impl Asset for QuadrupedSmallLateralSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped small lateral spec"))
+    }
 }
 
-pub fn mesh_quadruped_small_leg_lb(leg_l: quadruped_small::LegL) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match leg_l {
-            quadruped_small::LegL::Default => "npc.pig_purple.leg_l",
-        },
-        Vec3::new(0.0, -1.0, -1.5),
-    )
+impl QuadrupedSmallCentralSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.quadruped_small_central_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_head(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.head.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.head.offset))
+    }
+
+    pub fn mesh_chest(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No chest specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.chest.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.chest.offset))
+    }
 }
 
-pub fn mesh_quadruped_small_leg_rb(leg_r: quadruped_small::LegR) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match leg_r {
-            quadruped_small::LegR::Default => "npc.pig_purple.leg_r",
-        },
-        Vec3::new(0.0, -1.0, -1.5),
-    )
+impl QuadrupedSmallLateralSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.quadruped_small_lateral_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_foot_lf(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.left_front.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.left_front.offset))
+    }
+
+    pub fn mesh_foot_rf(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.right_front.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.right_front.offset))
+    }
+
+    pub fn mesh_foot_lb(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.left_back.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.left_back.offset))
+    }
+
+    pub fn mesh_foot_rb(&self, species: QSSpecies, body_type: QSBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.right_back.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.right_back.offset))
+    }
 }
+
 //////
-pub fn mesh_quadruped_medium_head_upper(
-    upper_head: quadruped_medium::HeadUpper,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match upper_head {
-            quadruped_medium::HeadUpper::Default => "npc.wolf.head_upper",
-        },
-        Vec3::new(-7.0, -6.0, -5.5),
-    )
+#[derive(Serialize, Deserialize)]
+pub struct QuadrupedMediumCentralSpec(HashMap<(QMSpecies, QMBodyType), SidedQMCentralVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedQMCentralVoxSpec {
+    upper: QuadrupedMediumCentralSubSpec,
+    lower: QuadrupedMediumCentralSubSpec,
+    jaw: QuadrupedMediumCentralSubSpec,
+    ears: QuadrupedMediumCentralSubSpec,
+    torso_f: QuadrupedMediumCentralSubSpec,
+    torso_b: QuadrupedMediumCentralSubSpec,
+    tail: QuadrupedMediumCentralSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct QuadrupedMediumCentralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    central: VoxSimple,
 }
 
-pub fn mesh_quadruped_medium_jaw(jaw: quadruped_medium::Jaw) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match jaw {
-            quadruped_medium::Jaw::Default => "npc.wolf.jaw",
-        },
-        Vec3::new(-3.0, -3.0, -2.5),
-    )
+#[derive(Serialize, Deserialize)]
+pub struct QuadrupedMediumLateralSpec(HashMap<(QMSpecies, QMBodyType), SidedQMLateralVoxSpec>);
+#[derive(Serialize, Deserialize)]
+struct SidedQMLateralVoxSpec {
+    left_front: QuadrupedMediumLateralSubSpec,
+    right_front: QuadrupedMediumLateralSubSpec,
+    left_back: QuadrupedMediumLateralSubSpec,
+    right_back: QuadrupedMediumLateralSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct QuadrupedMediumLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
 }
 
-pub fn mesh_quadruped_medium_head_lower(
-    head_lower: quadruped_medium::HeadLower,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match head_lower {
-            quadruped_medium::HeadLower::Default => "npc.wolf.head_lower",
-        },
-        Vec3::new(-7.0, -6.0, -5.5),
-    )
+impl Asset for QuadrupedMediumCentralSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped medium central spec"))
+    }
 }
 
-pub fn mesh_quadruped_medium_tail(tail: quadruped_medium::Tail) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match tail {
-            quadruped_medium::Tail::Default => "npc.wolf.tail",
-        },
-        Vec3::new(-2.0, -12.0, -5.0),
-    )
+impl Asset for QuadrupedMediumLateralSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped medium lateral spec"))
+    }
 }
 
-pub fn mesh_quadruped_medium_torso_back(
-    torso_back: quadruped_medium::TorsoBack,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match torso_back {
-            quadruped_medium::TorsoBack::Default => "npc.wolf.torso_back",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+impl QuadrupedMediumCentralSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.quadruped_medium_central_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_head_upper(
+        &self,
+        species: QMSpecies,
+        body_type: QMBodyType,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No upper head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.upper.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.upper.offset))
+    }
+
+    pub fn mesh_head_lower(
+        &self,
+        species: QMSpecies,
+        body_type: QMBodyType,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No lower head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.lower.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.lower.offset))
+    }
+
+    pub fn mesh_jaw(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No jaw specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.jaw.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.jaw.offset))
+    }
+
+    pub fn mesh_ears(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No ears specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.ears.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.ears.offset))
+    }
+
+    pub fn mesh_torso_f(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No torso specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.torso_f.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.torso_f.offset))
+    }
+
+    pub fn mesh_torso_b(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No torso specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.torso_b.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.torso_b.offset))
+    }
+
+    pub fn mesh_tail(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.tail.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.tail.offset))
+    }
 }
 
-pub fn mesh_quadruped_medium_torso_mid(
-    torso_mid: quadruped_medium::TorsoMid,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match torso_mid {
-            quadruped_medium::TorsoMid::Default => "npc.wolf.torso_mid",
-        },
-        Vec3::new(-8.0, -5.5, -6.0),
-    )
+impl QuadrupedMediumLateralSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.quadruped_medium_lateral_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_foot_lf(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.left_front.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.left_front.offset))
+    }
+
+    pub fn mesh_foot_rf(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.right_front.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.right_front.offset))
+    }
+
+    pub fn mesh_foot_lb(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.left_back.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.left_back.offset))
+    }
+
+    pub fn mesh_foot_rb(&self, species: QMSpecies, body_type: QMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.right_back.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.right_back.offset))
+    }
 }
 
-pub fn mesh_quadruped_medium_ears(ears: quadruped_medium::Ears) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match ears {
-            quadruped_medium::Ears::Default => "npc.wolf.ears",
-        },
-        Vec3::new(-4.0, -1.0, -1.0),
-    )
+////
+#[derive(Serialize, Deserialize)]
+pub struct BirdMediumCenterSpec(HashMap<(BMSpecies, BMBodyType), SidedBMCenterVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedBMCenterVoxSpec {
+    head: BirdMediumCenterSubSpec,
+    torso: BirdMediumCenterSubSpec,
+    tail: BirdMediumCenterSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct BirdMediumCenterSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    center: VoxSimple,
 }
 
-pub fn mesh_quadruped_medium_foot_lf(foot_lf: quadruped_medium::FootLF) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_lf {
-            quadruped_medium::FootLF::Default => "npc.wolf.foot_lf",
-        },
-        Vec3::new(-2.5, -4.0, -2.5),
-    )
+#[derive(Serialize, Deserialize)]
+pub struct BirdMediumLateralSpec(HashMap<(BMSpecies, BMBodyType), SidedBMLateralVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedBMLateralVoxSpec {
+    wing_l: BirdMediumLateralSubSpec,
+    wing_r: BirdMediumLateralSubSpec,
+    foot_l: BirdMediumLateralSubSpec,
+    foot_r: BirdMediumLateralSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct BirdMediumLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
 }
 
-pub fn mesh_quadruped_medium_foot_rf(foot_rf: quadruped_medium::FootRF) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_rf {
-            quadruped_medium::FootRF::Default => "npc.wolf.foot_rf",
-        },
-        Vec3::new(-2.5, -4.0, -2.5),
-    )
+impl Asset for BirdMediumCenterSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing bird medium center spec"))
+    }
 }
 
-pub fn mesh_quadruped_medium_foot_lb(foot_lb: quadruped_medium::FootLB) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_lb {
-            quadruped_medium::FootLB::Default => "npc.wolf.foot_lb",
-        },
-        Vec3::new(-2.5, -4.0, -2.5),
-    )
+impl Asset for BirdMediumLateralSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing bird medium lateral spec"))
+    }
 }
 
-pub fn mesh_quadruped_medium_foot_rb(foot_rb: quadruped_medium::FootRB) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_rb {
-            quadruped_medium::FootRB::Default => "npc.wolf.foot_rb",
-        },
-        Vec3::new(-2.5, -4.0, -2.5),
-    )
+impl BirdMediumCenterSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.bird_medium_center_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_head(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.head.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.head.offset))
+    }
+
+    pub fn mesh_torso(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No torso specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.torso.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.torso.offset))
+    }
+
+    pub fn mesh_tail(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.tail.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.tail.offset))
+    }
+}
+impl BirdMediumLateralSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.bird_medium_lateral_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_wing_l(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.wing_l.offset))
+    }
+
+    pub fn mesh_wing_r(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.wing_r.offset))
+    }
+
+    pub fn mesh_foot_l(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_l.offset))
+    }
+
+    pub fn mesh_foot_r(&self, species: BMSpecies, body_type: BMBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_r.offset))
+    }
 }
 ////
-pub fn mesh_bird_medium_head(head: bird_medium::Head) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match head {
-            bird_medium::Head::Default => "npc.duck_m.head",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+#[derive(Serialize, Deserialize)]
+pub struct CritterCenterSpec(HashMap<(CSpecies, CBodyType), SidedCCenterVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedCCenterVoxSpec {
+    head: CritterCenterSubSpec,
+    chest: CritterCenterSubSpec,
+    feet_f: CritterCenterSubSpec,
+    feet_b: CritterCenterSubSpec,
+    tail: CritterCenterSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct CritterCenterSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    center: VoxSimple,
 }
 
-pub fn mesh_bird_medium_torso(torso: bird_medium::Torso) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match torso {
-            bird_medium::Torso::Default => "npc.duck_m.body",
-        },
-        Vec3::new(-8.0, -5.5, -6.0),
-    )
+impl Asset for CritterCenterSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing critter center spec"))
+    }
 }
 
-pub fn mesh_bird_medium_tail(tail: bird_medium::Tail) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match tail {
-            bird_medium::Tail::Default => "npc.duck_m.tail",
-        },
-        Vec3::new(-4.0, -1.0, -1.0),
-    )
-}
+impl CritterCenterSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.critter_center_manifest", indicator).unwrap()
+    }
 
-pub fn mesh_bird_medium_wing_l(wing_l: bird_medium::WingL) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match wing_l {
-            bird_medium::WingL::Default => "npc.duck_m.wing",
-        },
-        Vec3::new(-2.5, -4.0, -2.5),
-    )
-}
+    pub fn mesh_head(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.head.center.0);
 
-pub fn mesh_bird_medium_wing_r(wing_r: bird_medium::WingR) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match wing_r {
-            bird_medium::WingR::Default => "npc.duck_m.wing",
-        },
-        Vec3::new(-2.5, -4.0, -2.5),
-    )
-}
+        generate_mesh(&center, Vec3::from(spec.head.offset))
+    }
 
-pub fn mesh_bird_medium_leg_l(leg_l: bird_medium::LegL) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match leg_l {
-            bird_medium::LegL::Default => "npc.duck_m.leg_l",
-        },
-        Vec3::new(-2.5, -4.0, -2.5),
-    )
-}
+    pub fn mesh_chest(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No chest specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.chest.center.0);
 
-pub fn mesh_bird_medium_leg_r(leg_r: bird_medium::LegR) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match leg_r {
-            bird_medium::LegR::Default => "npc.duck_m.leg_r",
-        },
-        Vec3::new(-2.5, -4.0, -2.5),
-    )
+        generate_mesh(&center, Vec3::from(spec.chest.offset))
+    }
+
+    pub fn mesh_feet_f(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No feet specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.feet_f.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.feet_f.offset))
+    }
+
+    pub fn mesh_feet_b(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No feet specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.feet_b.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.feet_b.offset))
+    }
+
+    pub fn mesh_tail(&self, species: CSpecies, body_type: CBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.tail.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.tail.offset))
+    }
 }
 ////
 pub fn mesh_fish_medium_head(head: fish_medium::Head) -> Mesh<FigurePipeline> {
@@ -817,7 +1306,7 @@ pub fn mesh_fish_medium_fin_r(fin_r: fish_medium::FinR) -> Mesh<FigurePipeline> 
         Vec3::new(-7.0, -6.0, -6.0),
     )
 }
-////
+
 pub fn mesh_dragon_head(head: dragon::Head) -> Mesh<FigurePipeline> {
     load_mesh(
         match head {
@@ -990,105 +1479,261 @@ pub fn mesh_fish_small_tail(tail: fish_small::Tail) -> Mesh<FigurePipeline> {
     )
 }
 ////
-pub fn mesh_biped_large_head(head: biped_large::Head) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match head {
-            biped_large::Head::Default => "npc.knight.head",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+#[derive(Serialize, Deserialize)]
+pub struct BipedLargeCenterSpec(HashMap<(BLSpecies, BLBodyType), SidedBLCenterVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedBLCenterVoxSpec {
+    head: BipedLargeCenterSubSpec,
+    torso_upper: BipedLargeCenterSubSpec,
+    torso_lower: BipedLargeCenterSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct BipedLargeCenterSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    center: VoxSimple,
 }
 
-pub fn mesh_biped_large_upper_torso(upper_torso: biped_large::UpperTorso) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match upper_torso {
-            biped_large::UpperTorso::Default => "npc.knight.upper_torso",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+#[derive(Serialize, Deserialize)]
+pub struct BipedLargeLateralSpec(HashMap<(BLSpecies, BLBodyType), SidedBLLateralVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedBLLateralVoxSpec {
+    shoulder_l: BipedLargeLateralSubSpec,
+    shoulder_r: BipedLargeLateralSubSpec,
+    hand_l: BipedLargeLateralSubSpec,
+    hand_r: BipedLargeLateralSubSpec,
+    leg_l: BipedLargeLateralSubSpec,
+    leg_r: BipedLargeLateralSubSpec,
+    foot_l: BipedLargeLateralSubSpec,
+    foot_r: BipedLargeLateralSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct BipedLargeLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
 }
 
-pub fn mesh_biped_large_lower_torso(lower_torso: biped_large::LowerTorso) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match lower_torso {
-            biped_large::LowerTorso::Default => "npc.knight.lower_torso",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+impl Asset for BipedLargeCenterSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing biped large center spec"))
+    }
 }
 
-pub fn mesh_biped_large_shoulder_l(shoulder_l: biped_large::ShoulderL) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match shoulder_l {
-            biped_large::ShoulderL::Default => "npc.knight.shoulder_l",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+impl Asset for BipedLargeLateralSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing biped large lateral spec"))
+    }
 }
 
-pub fn mesh_biped_large_shoulder_r(shoulder_r: biped_large::ShoulderR) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match shoulder_r {
-            biped_large::ShoulderR::Default => "npc.knight.shoulder_r",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+impl BipedLargeCenterSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.biped_large_center_manifest", indicator)
+            .unwrap()
+    }
 
-pub fn mesh_biped_large_hand_l(hand_l: biped_large::HandL) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match hand_l {
-            biped_large::HandL::Default => "npc.knight.hand_l",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+    pub fn mesh_head(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.head.center.0);
 
-pub fn mesh_biped_large_hand_r(hand_r: biped_large::HandR) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match hand_r {
-            biped_large::HandR::Default => "npc.knight.hand_r",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+        generate_mesh(&center, Vec3::from(spec.head.offset))
+    }
 
-pub fn mesh_biped_large_leg_l(leg_l: biped_large::LegL) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match leg_l {
-            biped_large::LegL::Default => "npc.knight.leg_l",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+    pub fn mesh_torso_upper(
+        &self,
+        species: BLSpecies,
+        body_type: BLBodyType,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No torso upper specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.torso_upper.center.0);
 
-pub fn mesh_biped_large_leg_r(leg_r: biped_large::LegR) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match leg_r {
-            biped_large::LegR::Default => "npc.knight.leg_r",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+        generate_mesh(&center, Vec3::from(spec.torso_upper.offset))
+    }
 
-pub fn mesh_biped_large_foot_l(foot_l: biped_large::FootL) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_l {
-            biped_large::FootL::Default => "npc.knight.foot_l",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+    pub fn mesh_torso_lower(
+        &self,
+        species: BLSpecies,
+        body_type: BLBodyType,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No torso lower specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let center = graceful_load_segment(&spec.torso_lower.center.0);
 
-pub fn mesh_biped_large_foot_r(foot_r: biped_large::FootR) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_r {
-            biped_large::FootR::Default => "npc.knight.foot_r",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+        generate_mesh(&center, Vec3::from(spec.torso_lower.offset))
+    }
 }
+impl BipedLargeLateralSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.biped_large_lateral_manifest", indicator)
+            .unwrap()
+    }
 
+    pub fn mesh_shoulder_l(
+        &self,
+        species: BLSpecies,
+        body_type: BLBodyType,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No shoulder specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.shoulder_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.shoulder_l.offset))
+    }
+
+    pub fn mesh_shoulder_r(
+        &self,
+        species: BLSpecies,
+        body_type: BLBodyType,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No shoulder specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.shoulder_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.shoulder_r.offset))
+    }
+
+    pub fn mesh_hand_l(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No hand specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.hand_l.offset))
+    }
+
+    pub fn mesh_hand_r(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No hand specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.hand_r.offset))
+    }
+
+    pub fn mesh_leg_l(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.leg_l.offset))
+    }
+
+    pub fn mesh_leg_r(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.leg_r.offset))
+    }
+
+    pub fn mesh_foot_l(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_l.offset))
+    }
+
+    pub fn mesh_foot_r(&self, species: BLSpecies, body_type: BLBodyType) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_r.offset))
+    }
+}
 ////
 pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
     use object::Body;
@@ -1112,6 +1757,7 @@ pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
         Body::Pumpkin4 => ("object.pumpkin_4", Vec3::new(-5.0, -4.0, 0.0)),
         Body::Pumpkin5 => ("object.pumpkin_5", Vec3::new(-4.0, -5.0, 0.0)),
         Body::Campfire => ("object.campfire", Vec3::new(-9.0, -10.0, 0.0)),
+        Body::CampfireLit => ("object.campfire_lit", Vec3::new(-9.0, -10.0, 0.0)),
         Body::LanternGround => ("object.lantern_ground", Vec3::new(-3.5, -3.5, 0.0)),
         Body::LanternGroundOpen => ("object.lantern_ground_open", Vec3::new(-3.5, -3.5, 0.0)),
         Body::LanternStanding => ("object.lantern_standing", Vec3::new(-7.5, -3.5, 0.0)),

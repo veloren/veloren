@@ -17,11 +17,11 @@ pub trait ValueFromPercent<T> {
 
 /// Linear value selection.
 ///
-/// If the slider's width is greater than its height, it will automatically become a horizontal
-/// slider, otherwise it will be a vertical slider.
+/// If the slider's width is greater than its height, it will automatically
+/// become a horizontal slider, otherwise it will be a vertical slider.
 ///
-/// Its reaction is triggered if the value is updated or if the mouse button is released while
-/// the cursor is above the rectangle.
+/// Its reaction is triggered if the value is updated or if the mouse button is
+/// released while the cursor is above the rectangle.
 #[derive(WidgetCommon)]
 pub struct ImageSlider<T, K> {
     #[conrod(common_builder)]
@@ -73,6 +73,19 @@ pub struct State {
 }
 
 impl<T, K> ImageSlider<T, K> {
+    builder_methods! {
+        pub skew { skew = f32 }
+        pub pad_track { track.padding = (f32, f32) }
+        pub hover_image { slider.hover_image_id = Some(image::Id) }
+        pub press_image { slider.press_image_id = Some(image::Id) }
+        pub track_breadth { track.breadth = Some(f32) }
+        pub slider_length { slider.length = Some(f32) }
+        pub track_color { track.color = Some(Color) }
+        pub slider_color { slider.color = Some(Color) }
+        pub track_src_rect { track.src_rect = Some(Rect) }
+        pub slider_src_rect { slider.src_rect = Some(Rect) }
+    }
+
     fn new(
         value: T,
         min: T,
@@ -103,19 +116,6 @@ impl<T, K> ImageSlider<T, K> {
             },
             kind: std::marker::PhantomData,
         }
-    }
-
-    builder_methods! {
-        pub skew { skew = f32 }
-        pub pad_track { track.padding = (f32, f32) }
-        pub hover_image { slider.hover_image_id = Some(image::Id) }
-        pub press_image { slider.press_image_id = Some(image::Id) }
-        pub track_breadth { track.breadth = Some(f32) }
-        pub slider_length { slider.length = Some(f32) }
-        pub track_color { track.color = Some(Color) }
-        pub slider_color { slider.color = Some(Color) }
-        pub track_src_rect { track.src_rect = Some(Rect) }
-        pub slider_src_rect { slider.src_rect = Some(Rect) }
     }
 }
 
@@ -168,9 +168,9 @@ where
     T: NumCast + Num + Copy + PartialOrd,
     K: ValueFromPercent<T>,
 {
+    type Event = Option<T>;
     type State = State;
     type Style = ();
-    type Event = Option<T>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -178,9 +178,7 @@ where
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     /// Update the state of the Slider.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {

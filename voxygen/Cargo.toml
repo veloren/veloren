@@ -1,9 +1,12 @@
 [package]
 name = "veloren-voxygen"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Imbris <imbrisf@gmail.com>"]
 edition = "2018"
 default-run = "veloren-voxygen"
+# Cargo thinks it should build the voxygen binary even when a specific bench is specified for building
+# Uncomment below and comment out default-run if you want to avoid this
+# autobins = false
 
 [features]
 gl = ["gfx_device_gl"]
@@ -56,12 +59,22 @@ treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
 rodio = { git = "https://github.com/RustAudio/rodio", rev = "e5474a2"}
 cpal = "0.10"
 crossbeam = "=0.7.2"
-hashbrown = { version = "0.6.2", features = ["serde", "nightly"] }
+hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
 chrono = "0.4.9"
 rust-argon2 = "0.5"
+bincode = "1.2"
+deunicode = "1.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-dispatch = "0.1.4" 
+dispatch = "0.1.4"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
+
+[dev-dependencies]
+criterion = "0.3"
+world = { package = "veloren-world", path = "../world" }
+
+[[bench]]
+name = "meshing_benchmark"
+harness = false

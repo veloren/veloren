@@ -1,9 +1,10 @@
 pub mod channel;
 pub mod fader;
+pub mod music;
 pub mod sfx;
 pub mod soundcache;
 
-use channel::{AudioType, Channel};
+use channel::{AudioType, Channel, ChannelTag};
 use fader::Fader;
 use soundcache::SoundCache;
 
@@ -48,7 +49,7 @@ impl AudioFrontend {
             device_list: list_devices(),
             audio_device,
             sound_cache: SoundCache::new(),
-            channels: channels,
+            channels,
             next_channel_id: 1,
             sfx_volume: 1.0,
             music_volume: 1.0,
@@ -84,7 +85,11 @@ impl AudioFrontend {
         }
     }
 
-    pub fn get_channel(&mut self, audio_type: AudioType) -> Option<&mut Channel> {
+    pub fn get_channel(
+        &mut self,
+        audio_type: AudioType,
+        channel_tag: Option<ChannelTag>,
+    ) -> Option<&mut Channel> {
         if let Some(channel) = self.channels.iter_mut().find(|c| c.is_done()) {
             let id = self.next_channel_id;
             self.next_channel_id += 1;
@@ -95,6 +100,7 @@ impl AudioFrontend {
             };
 
             channel.set_id(id);
+            channel.set_tag(channel_tag);
             channel.set_audio_type(audio_type);
             channel.set_volume(volume);
 
@@ -114,7 +120,7 @@ impl AudioFrontend {
             let left_ear = self.listener_ear_left.into_array();
             let right_ear = self.listener_ear_right.into_array();
 
-            if let Some(channel) = self.get_channel(AudioType::Sfx) {
+            if let Some(channel) = self.get_channel(AudioType::Sfx, None) {
                 channel.set_emitter_position(calc_pos);
                 channel.set_left_ear_position(left_ear);
                 channel.set_right_ear_position(right_ear);
@@ -127,12 +133,13 @@ impl AudioFrontend {
         None
     }
 
-    pub fn play_music(&mut self, sound: &str) -> Option<usize> {
+    pub fn play_music(&mut self, sound: &str, channel_tag: Option<ChannelTag>) -> Option<usize> {
         if self.audio_device.is_some() {
-            if let Some(channel) = self.get_channel(AudioType::Music) {
+            if let Some(channel) = self.get_channel(AudioType::Music, channel_tag) {
                 let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
                 let sound = Decoder::new(file).expect("Failed to decode sound");
 
+                channel.set_emitter_position([0.0; 3]);
                 channel.play(sound);
 
                 return Some(channel.get_id());
@@ -167,20 +174,42 @@ impl AudioFrontend {
         }
     }
 
+    pub fn play_title_music(&mut self) -> Option<usize> {
+        if self.music_enabled() {
+            self.play_music(
+                "voxygen.audio.soundtrack.veloren_title_tune",
+                Some(ChannelTag::TitleMusic),
+            )
+        } else {
+            None
+        }
+    }
+
+    pub fn stop_title_music(&mut self) {
+        let index = self.channels.iter().position(|c| {
+            !c.is_done() && c.get_tag().is_some() && c.get_tag().unwrap() == ChannelTag::TitleMusic
+        });
+
+        if let Some(index) = index {
+            self.channels[index].stop(Fader::fade_out(1.5, self.music_volume));
+        }
+    }
+
     pub fn stop_channel(&mut self, channel_id: usize, fader: Fader) {
         let index = self.channels.iter().position(|c| c.get_id() == channel_id);
+
         if let Some(index) = index {
             self.channels[index].stop(fader);
         }
     }
 
-    pub fn get_sfx_volume(&self) -> f32 {
-        self.sfx_volume
-    }
+    pub fn get_sfx_volume(&self) -> f32 { self.sfx_volume }
 
-    pub fn get_music_volume(&self) -> f32 {
-        self.music_volume
-    }
+    pub fn get_music_volume(&self) -> f32 { self.music_volume }
+
+    pub fn sfx_enabled(&self) -> bool { self.sfx_volume > 0.0 }
+
+    pub fn music_enabled(&self) -> bool { self.music_volume > 0.0 }
 
     pub fn set_sfx_volume(&mut self, sfx_volume: f32) {
         self.sfx_volume = sfx_volume;
@@ -197,7 +226,11 @@ impl AudioFrontend {
 
         for channel in self.channels.iter_mut() {
             if channel.get_audio_type() == AudioType::Music {
-                channel.set_volume(music_volume);
+                if music_volume > 0.0 {
+                    channel.set_volume(music_volume);
+                } else {
+                    channel.stop(Fader::fade_out(0.0, 0.0));
+                }
             }
         }
     }
@@ -209,12 +242,6 @@ impl AudioFrontend {
     }
 }
 
-pub fn select_random_music() -> String {
-    let soundtracks = load_soundtracks();
-    let index = rand::random::<usize>() % soundtracks.len();
-    soundtracks[index].clone()
-}
-
 /// Returns the default audio device.
 /// Does not return rodio Device struct in case our audio backend changes.
 pub fn get_default_device() -> String {
@@ -222,21 +249,6 @@ pub fn get_default_device() -> String {
         .expect("No audio output devices detected.")
         .name()
         .expect("Unable to get device name")
-}
-
-/// Load the audio file directory selected by genre.
-pub fn load_soundtracks() -> Vec<String> {
-    let assets = assets::read_dir("voxygen.audio.soundtrack.regional").unwrap();
-    let soundtracks = assets
-        .filter_map(|entry| {
-            entry.ok().map(|f| {
-                let path = f.path();
-                path.to_string_lossy().into_owned()
-            })
-        })
-        .collect::<Vec<String>>();
-
-    soundtracks
 }
 
 /// Returns a vec of the audio devices available.

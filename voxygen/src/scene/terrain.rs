@@ -16,7 +16,7 @@ use common::{
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
-use hashbrown::{hash_map::Entry, HashMap};
+use hashbrown::HashMap;
 use std::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
 use treeculler::{BVol, Frustum, AABB};
 use vek::*;
@@ -40,7 +40,8 @@ struct ChunkMeshState {
     active_worker: Option<u64>,
 }
 
-/// A type produced by mesh worker threads corresponding to the position and mesh of a chunk.
+/// A type produced by mesh worker threads corresponding to the position and
+/// mesh of a chunk.
 struct MeshWorkerResponse {
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
@@ -58,7 +59,7 @@ struct SpriteConfig {
 fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
     match kind {
         BlockKind::LargeCactus => Some(SpriteConfig {
-            variations: 1,
+            variations: 2,
             wind_sway: 0.0,
         }),
         BlockKind::BarrelCactus => Some(SpriteConfig {
@@ -144,6 +145,31 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 4,
             wind_sway: 0.0,
         }),
+        BlockKind::Welwitch => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.1,
+        }),
+        BlockKind::Pumpkin => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 0.0,
+        }),
+        BlockKind::LingonBerry => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.0,
+        }),
+        BlockKind::LeafyPlant => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.4,
+        }),
+        BlockKind::Fern => Some(SpriteConfig {
+            variations: 12,
+            wind_sway: 0.4,
+        }),
+        BlockKind::DeadBush => Some(SpriteConfig {
+            variations: 4,
+            wind_sway: 0.1,
+        }),
+
         _ => None,
     }
 }
@@ -175,7 +201,9 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                         let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
 
                         if let Some(cfg) = sprite_config_for(kind) {
-                            let seed = wpos.x * 3 + wpos.y * 7 + wpos.x * wpos.y; // Awful PRNG
+                            let seed = wpos.x as u64 * 3
+                                + wpos.y as u64 * 7
+                                + wpos.x as u64 * wpos.y as u64; // Awful PRNG
 
                             let instance = SpriteInstance::new(
                                 Mat4::identity()
@@ -206,7 +234,8 @@ pub struct Terrain<V: RectRasterableVol> {
     chunks: HashMap<Vec2<i32>, TerrainChunkData>,
 
     // The mpsc sender and receiver used for talking to meshing worker threads.
-    // We keep the sender component for no reason other than to clone it and send it to new workers.
+    // We keep the sender component for no reason other than to clone it and send it to new
+    // workers.
     mesh_send_tmp: channel::Sender<MeshWorkerResponse>,
     mesh_recv: channel::Receiver<MeshWorkerResponse>,
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
@@ -220,8 +249,8 @@ pub struct Terrain<V: RectRasterableVol> {
 
 impl<V: RectRasterableVol> Terrain<V> {
     pub fn new(renderer: &mut Renderer) -> Self {
-        // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating with
-        // worker threads that are meshing chunks.
+        // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating
+        // with worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
 
         let mut make_model = |s, offset| {
@@ -248,6 +277,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.cacti.large_cactus",
                         Vec3::new(-13.5, -5.5, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LargeCactus, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.cacti.tall",
+                        Vec3::new(-6.0, -6.0, 0.0),
                     ),
                 ),
                 (
@@ -750,6 +786,285 @@ impl<V: RectRasterableVol> Terrain<V> {
                         Vec3::new(-7.0, -5.0, -0.0),
                     ),
                 ),
+                //Welwitch
+                (
+                    (BlockKind::Welwitch, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.welwitch.1",
+                        Vec3::new(-15.0, -17.0, -0.0),
+                    ),
+                ),
+                //Pumpkins
+                (
+                    (BlockKind::Pumpkin, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.5",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                //Lingonberries
+                (
+                    (BlockKind::LingonBerry, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.lingonberry.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LingonBerry, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.lingonberry.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LingonBerry, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.lingonberry.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                // Leafy Plants
+                (
+                    (BlockKind::LeafyPlant, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.5",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.6",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.7",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.8",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.9",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LeafyPlant, 9),
+                    make_model(
+                        "voxygen.voxel.sprite.leafy_plant.10",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                // Ferns
+                (
+                    (BlockKind::Fern, 0),
+                    make_model("voxygen.voxel.sprite.ferns.1", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 1),
+                    make_model("voxygen.voxel.sprite.ferns.2", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 2),
+                    make_model("voxygen.voxel.sprite.ferns.3", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 3),
+                    make_model("voxygen.voxel.sprite.ferns.4", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 4),
+                    make_model("voxygen.voxel.sprite.ferns.5", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 5),
+                    make_model("voxygen.voxel.sprite.ferns.6", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 6),
+                    make_model("voxygen.voxel.sprite.ferns.7", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 7),
+                    make_model("voxygen.voxel.sprite.ferns.8", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 8),
+                    make_model("voxygen.voxel.sprite.ferns.9", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 9),
+                    make_model("voxygen.voxel.sprite.ferns.10", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 10),
+                    make_model("voxygen.voxel.sprite.ferns.11", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                (
+                    (BlockKind::Fern, 11),
+                    make_model("voxygen.voxel.sprite.ferns.12", Vec3::new(-6.0, -6.0, -0.0)),
+                ),
+                // Dead Bush
+                (
+                    (BlockKind::DeadBush, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.dead_bush.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::DeadBush, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.dead_bush.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::DeadBush, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.dead_bush.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::DeadBush, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.dead_bush.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                // Blueberries
+                (
+                    (BlockKind::Blueberry, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.5",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.6",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.7",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.8",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Blueberry, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.blueberry.9",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
             ]
             .into_iter()
             .collect(),
@@ -777,7 +1092,8 @@ impl<V: RectRasterableVol> Terrain<V> {
         let current_tick = client.get_tick();
         let current_time = client.state().get_time();
 
-        // Add any recently created or changed chunks to the list of chunks to be meshed.
+        // Add any recently created or changed chunks to the list of chunks to be
+        // meshed.
         for (modified, pos) in client
             .state()
             .terrain_changes()
@@ -794,9 +1110,9 @@ impl<V: RectRasterableVol> Terrain<V> {
             )
         {
             // TODO: ANOTHER PROBLEM HERE!
-            // What happens if the block on the edge of a chunk gets modified? We need to spawn
-            // a mesh worker to remesh its neighbour(s) too since their ambient occlusion and face
-            // elision information changes too!
+            // What happens if the block on the edge of a chunk gets modified? We need to
+            // spawn a mesh worker to remesh its neighbour(s) too since their
+            // ambient occlusion and face elision information changes too!
             for i in -1..2 {
                 for j in -1..2 {
                     let pos = pos + Vec2::new(i, j);
@@ -814,21 +1130,19 @@ impl<V: RectRasterableVol> Terrain<V> {
                         }
 
                         if neighbours {
-                            self.mesh_todo.insert(
+                            self.mesh_todo.insert(pos, ChunkMeshState {
                                 pos,
-                                ChunkMeshState {
-                                    pos,
-                                    started_tick: current_tick,
-                                    active_worker: None,
-                                },
-                            );
+                                started_tick: current_tick,
+                                active_worker: None,
+                            });
                         }
                     }
                 }
             }
         }
 
-        // Add the chunks belonging to recently changed blocks to the list of chunks to be meshed
+        // Add the chunks belonging to recently changed blocks to the list of chunks to
+        // be meshed
         for pos in client
             .state()
             .terrain_changes()
@@ -837,60 +1151,55 @@ impl<V: RectRasterableVol> Terrain<V> {
             .map(|(p, _)| *p)
         {
             let chunk_pos = client.state().terrain().pos_key(pos);
-            let new_mesh_state = ChunkMeshState {
-                pos: chunk_pos,
-                started_tick: current_tick,
-                active_worker: None,
-            };
             // Only mesh if this chunk has all its neighbors
-            // If it does have all its neighbors either it should have already been meshed or is in
-            // mesh_todo
-            match self.mesh_todo.entry(chunk_pos) {
-                Entry::Occupied(mut entry) => {
-                    entry.insert(new_mesh_state);
+            let mut neighbours = true;
+            for i in -1..2 {
+                for j in -1..2 {
+                    neighbours &= client
+                        .state()
+                        .terrain()
+                        .get_key(chunk_pos + Vec2::new(i, j))
+                        .is_some();
                 }
-                Entry::Vacant(entry) => {
-                    if self.chunks.contains_key(&chunk_pos) {
-                        entry.insert(new_mesh_state);
-                    }
-                }
+            }
+            if neighbours {
+                self.mesh_todo.insert(chunk_pos, ChunkMeshState {
+                    pos: chunk_pos,
+                    started_tick: current_tick,
+                    active_worker: None,
+                });
             }
 
             // Handle block changes on chunk borders
+            // Remesh all neighbours because we have complex lighting now
+            // TODO: if lighting is on the server this can be updated to only remesh when
+            // lighting changes in that neighbouring chunk or if the block
+            // change was on the border
             for x in -1..2 {
                 for y in -1..2 {
                     let neighbour_pos = pos + Vec3::new(x, y, 0);
                     let neighbour_chunk_pos = client.state().terrain().pos_key(neighbour_pos);
 
                     if neighbour_chunk_pos != chunk_pos {
-                        let new_mesh_state = ChunkMeshState {
-                            pos: neighbour_chunk_pos,
-                            started_tick: current_tick,
-                            active_worker: None,
-                        };
-                        // Only mesh if this chunk has all its neighbors
-                        match self.mesh_todo.entry(neighbour_chunk_pos) {
-                            Entry::Occupied(mut entry) => {
-                                entry.insert(new_mesh_state);
-                            }
-                            Entry::Vacant(entry) => {
-                                if self.chunks.contains_key(&neighbour_chunk_pos) {
-                                    entry.insert(new_mesh_state);
-                                }
+                        // Only remesh if this chunk has all its neighbors
+                        let mut neighbours = true;
+                        for i in -1..2 {
+                            for j in -1..2 {
+                                neighbours &= client
+                                    .state()
+                                    .terrain()
+                                    .get_key(neighbour_chunk_pos + Vec2::new(i, j))
+                                    .is_some();
                             }
                         }
+                        if neighbours {
+                            self.mesh_todo.insert(neighbour_chunk_pos, ChunkMeshState {
+                                pos: neighbour_chunk_pos,
+                                started_tick: current_tick,
+                                active_worker: None,
+                            });
+                        }
                     }
-
-                    // TODO: Remesh all neighbours because we have complex lighting now
-                    /*self.mesh_todo.insert(
-                        neighbour_chunk_pos,
-                        ChunkMeshState {
-                            pos: chunk_pos + Vec2::new(x, y),
-                            started_tick: current_tick,
-                            active_worker: None,
-                        },
-                    );
-                    */
                 }
             }
         }
@@ -915,9 +1224,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                 break;
             }
 
-            // Find the area of the terrain we want. Because meshing needs to compute things like
-            // ambient occlusion and edge elision, we also need the borders of the chunk's
-            // neighbours too (hence the `- 1` and `+ 1`).
+            // Find the area of the terrain we want. Because meshing needs to compute things
+            // like ambient occlusion and edge elision, we also need the borders
+            // of the chunk's neighbours too (hence the `- 1` and `+ 1`).
             let aabr = Aabr {
                 min: todo
                     .pos
@@ -927,8 +1236,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                 }),
             };
 
-            // Copy out the chunk data we need to perform the meshing. We do this by taking a
-            // sample of the terrain that includes both the chunk we want and its neighbours.
+            // Copy out the chunk data we need to perform the meshing. We do this by taking
+            // a sample of the terrain that includes both the chunk we want and
+            // its neighbours.
             let volume = match client.state().terrain().sample(aabr) {
                 Ok(sample) => sample,
                 // Either this chunk or its neighbours doesn't yet exist, so we keep it in the
@@ -946,8 +1256,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                 .fold(i32::MIN, |max, (_, chunk)| chunk.get_max_z().max(max));
 
             let aabb = Aabb {
-                min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 1),
-                max: Vec3::from(aabr.max) + Vec3::unit_z() * (max_z + 1),
+                min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 2),
+                max: Vec3::from(aabr.max) + Vec3::unit_z() * (max_z + 2),
             };
 
             // Clone various things so that they can be moved into the thread.
@@ -968,9 +1278,10 @@ impl<V: RectRasterableVol> Terrain<V> {
             todo.active_worker = Some(todo.started_tick);
         }
 
-        // Receive a chunk mesh from a worker thread and upload it to the GPU, then store it.
-        // Only pull out one chunk per frame to avoid an unacceptable amount of blocking lag due
-        // to the GPU upload. That still gives us a 60 chunks / second budget to play with.
+        // Receive a chunk mesh from a worker thread and upload it to the GPU, then
+        // store it. Only pull out one chunk per frame to avoid an unacceptable
+        // amount of blocking lag due to the GPU upload. That still gives us a
+        // 60 chunks / second budget to play with.
         if let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
             match self.mesh_todo.get(&response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
@@ -981,58 +1292,55 @@ impl<V: RectRasterableVol> Terrain<V> {
                         .get(&response.pos)
                         .map(|chunk| chunk.load_time)
                         .unwrap_or(current_time as f32);
-                    self.chunks.insert(
-                        response.pos,
-                        TerrainChunkData {
-                            load_time,
-                            opaque_model: renderer
-                                .create_model(&response.opaque_mesh)
-                                .expect("Failed to upload chunk mesh to the GPU!"),
-                            fluid_model: if response.fluid_mesh.vertices().len() > 0 {
-                                Some(
-                                    renderer
-                                        .create_model(&response.fluid_mesh)
-                                        .expect("Failed to upload chunk mesh to the GPU!"),
-                                )
-                            } else {
-                                None
-                            },
-                            sprite_instances: response
-                                .sprite_instances
-                                .into_iter()
-                                .map(|(kind, instances)| {
-                                    (
-                                        kind,
-                                        renderer.create_instances(&instances).expect(
-                                            "Failed to upload chunk sprite instances to the GPU!",
-                                        ),
-                                    )
-                                })
-                                .collect(),
-                            locals: renderer
-                                .create_consts(&[TerrainLocals {
-                                    model_offs: Vec3::from(
-                                        response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
-                                            e as f32 * sz as f32
-                                        }),
-                                    )
-                                    .into_array(),
-                                    load_time,
-                                }])
-                                .expect("Failed to upload chunk locals to the GPU!"),
-                            visible: false,
-                            z_bounds: response.z_bounds,
-                            frustum_last_plane_index: 0,
+                    self.chunks.insert(response.pos, TerrainChunkData {
+                        load_time,
+                        opaque_model: renderer
+                            .create_model(&response.opaque_mesh)
+                            .expect("Failed to upload chunk mesh to the GPU!"),
+                        fluid_model: if response.fluid_mesh.vertices().len() > 0 {
+                            Some(
+                                renderer
+                                    .create_model(&response.fluid_mesh)
+                                    .expect("Failed to upload chunk mesh to the GPU!"),
+                            )
+                        } else {
+                            None
                         },
-                    );
+                        sprite_instances: response
+                            .sprite_instances
+                            .into_iter()
+                            .map(|(kind, instances)| {
+                                (
+                                    kind,
+                                    renderer.create_instances(&instances).expect(
+                                        "Failed to upload chunk sprite instances to the GPU!",
+                                    ),
+                                )
+                            })
+                            .collect(),
+                        locals: renderer
+                            .create_consts(&[TerrainLocals {
+                                model_offs: Vec3::from(
+                                    response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
+                                        e as f32 * sz as f32
+                                    }),
+                                )
+                                .into_array(),
+                                load_time,
+                            }])
+                            .expect("Failed to upload chunk locals to the GPU!"),
+                        visible: false,
+                        z_bounds: response.z_bounds,
+                        frustum_last_plane_index: 0,
+                    });
 
                     if response.started_tick == todo.started_tick {
                         self.mesh_todo.remove(&response.pos);
                     }
-                }
+                },
                 // Chunk must have been removed, or it was spawned on an old tick. Drop the mesh
                 // since it's either out of date or no longer needed.
-                _ => {}
+                _ => {},
             }
         }
 
@@ -1044,7 +1352,8 @@ impl<V: RectRasterableVol> Terrain<V> {
         for (pos, chunk) in &mut self.chunks {
             let chunk_pos = pos.map(|e| e as f32 * chunk_sz);
 
-            // Limit focus_pos to chunk bounds and ensure the chunk is within the fog boundary
+            // Limit focus_pos to chunk bounds and ensure the chunk is within the fog
+            // boundary
             let nearest_in_chunk = Vec2::from(focus_pos).clamped(chunk_pos, chunk_pos + chunk_sz);
             let in_range = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk)
                 < loaded_distance.powf(2.0);
@@ -1070,9 +1379,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         }
     }
 
-    pub fn chunk_count(&self) -> usize {
-        self.chunks.len()
-    }
+    pub fn chunk_count(&self) -> usize { self.chunks.len() }
 
     pub fn visible_chunk_count(&self) -> usize {
         self.chunks.iter().filter(|(_, c)| c.visible).count()
@@ -1188,9 +1495,7 @@ struct Spiral2d {
 }
 
 impl Spiral2d {
-    pub fn new() -> Self {
-        Self { layer: 0, i: 0 }
-    }
+    pub fn new() -> Self { Self { layer: 0, i: 0 } }
 }
 
 impl Iterator for Spiral2d {

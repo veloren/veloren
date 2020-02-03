@@ -50,8 +50,7 @@ void main() {
 	f_light = 1.0;
 
 	gl_Position =
-		proj_mat *
-		view_mat *
+		all_mat *
 		vec4(f_pos, 1);
-	gl_Position.z = 1.0 / (1.0 - gl_Position.z - 10.0);
+	gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
 }

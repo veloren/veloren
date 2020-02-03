@@ -1,5 +1,6 @@
 /// The Sfx Manager manages individual sfx event system, listens for
-/// SFX events and plays the sound at the requested position, or the current player position
+/// SFX events and plays the sound at the requested position, or the current
+/// player position
 mod event_mapper;
 
 use crate::audio::AudioFrontend;
@@ -25,15 +26,11 @@ pub struct SfxTriggerItem {
 pub struct SfxTriggers(HashMap<SfxEvent, SfxTriggerItem>);
 
 impl Default for SfxTriggers {
-    fn default() -> Self {
-        Self(HashMap::new())
-    }
+    fn default() -> Self { Self(HashMap::new()) }
 }
 
 impl SfxTriggers {
-    pub fn get_trigger(&self, trigger: &SfxEvent) -> Option<&SfxTriggerItem> {
-        self.0.get(trigger)
-    }
+    pub fn get_trigger(&self, trigger: &SfxEvent) -> Option<&SfxTriggerItem> { self.0.get(trigger) }
 
     pub fn get_key_value(&self, trigger: &SfxEvent) -> Option<(&SfxEvent, &SfxTriggerItem)> {
         self.0.get_key_value(trigger)
@@ -54,6 +51,10 @@ impl SfxMgr {
     }
 
     pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
+        if !audio.sfx_enabled() {
+            return;
+        }
+
         self.event_mapper.maintain(client, &self.triggers);
 
         let ecs = client.state().ecs();
@@ -87,7 +88,7 @@ impl SfxMgr {
                     _ => {
                         let rand_step = rand::random::<usize>() % item.files.len();
                         &item.files[rand_step]
-                    }
+                    },
                 };
 
                 audio.play_sound(sfx_file, position);
@@ -108,7 +109,7 @@ impl SfxMgr {
                 );
 
                 SfxTriggers::default()
-            }
+            },
         }
     }
 }

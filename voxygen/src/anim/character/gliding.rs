@@ -1,7 +1,4 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    CharacterSkeleton,
-};
+use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
@@ -9,8 +6,8 @@ use vek::*;
 pub struct GlidingAnimation;
 
 impl Animation for GlidingAnimation {
-    type Skeleton = CharacterSkeleton;
     type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

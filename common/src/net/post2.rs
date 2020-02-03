@@ -24,26 +24,20 @@ pub enum Error {
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::Io(Arc::new(err))
-    }
+    fn from(err: io::Error) -> Self { Error::Io(Arc::new(err)) }
 }
 
 impl From<bincode::Error> for Error {
-    fn from(err: bincode::Error) -> Self {
-        Error::Bincode(Arc::new(err))
-    }
+    fn from(err: bincode::Error) -> Self { Error::Bincode(Arc::new(err)) }
 }
 
 impl From<channel::TryRecvError> for Error {
-    fn from(_error: channel::TryRecvError) -> Self {
-        Error::ChannelFailure
-    }
+    fn from(_error: channel::TryRecvError) -> Self { Error::ChannelFailure }
 }
 
 pub trait PostMsg = Serialize + DeserializeOwned + 'static + Send;
 
-const MAX_MSG_SIZE: usize = 1 << 20;
+const MAX_MSG_SIZE: usize = 1 << 28;
 
 pub struct PostOffice<S: PostMsg, R: PostMsg> {
     listener: TcpListener,
@@ -63,9 +57,7 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
         })
     }
 
-    pub fn error(&self) -> Option<Error> {
-        self.error.clone()
-    }
+    pub fn error(&self) -> Option<Error> { self.error.clone() }
 
     pub fn new_postboxes(&mut self) -> impl ExactSizeIterator<Item = PostBox<S, R>> {
         let mut new = Vec::new();
@@ -78,11 +70,11 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
             match self.listener.accept() {
                 Ok((stream, _sock)) => new.push(PostBox::from_stream(stream).unwrap()),
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => {},
                 Err(e) => {
                     self.error = Some(e.into());
                     break;
-                }
+                },
             }
         }
 
@@ -123,13 +115,9 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
         })
     }
 
-    pub fn error(&self) -> Option<Error> {
-        self.error.clone()
-    }
+    pub fn error(&self) -> Option<Error> { self.error.clone() }
 
-    pub fn send_message(&mut self, msg: S) {
-        let _ = self.send_tx.send(msg);
-    }
+    pub fn send_message(&mut self, msg: S) { let _ = self.send_tx.send(msg); }
 
     pub fn next_message(&mut self) -> Option<R> {
         if self.error.is_some() {
@@ -141,7 +129,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             Err(e) => {
                 self.error = Some(e);
                 None
-            }
+            },
         }
     }
 
@@ -159,11 +147,11 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 Err(e) => {
                     self.error = Some(e.into());
                     break;
-                }
+                },
                 Ok(Err(e)) => {
                     self.error = Some(e);
                     break;
-                }
+                },
             }
         }
 
@@ -186,8 +174,8 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                     Ok(Some(e)) | Err(e) => {
                         recv_tx.send(Err(e.into())).unwrap();
                         break 'work;
-                    }
-                    Ok(None) => {}
+                    },
+                    Ok(None) => {},
                 }
 
                 // Try getting messages from the send channel.
@@ -215,13 +203,13 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                                 .chunks(4096)
                                 .map(|chunk| chunk.to_vec())
                                 .for_each(|chunk| outgoing_chunks.push_back(chunk))
-                        }
+                        },
                         Err(channel::TryRecvError::Empty) => break,
                         // Worker error
                         Err(e) => {
                             let _ = recv_tx.send(Err(e.into()));
                             break 'work;
-                        }
+                        },
                     }
                 }
 
@@ -229,21 +217,21 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 for _ in 0..1000 {
                     match outgoing_chunks.pop_front() {
                         Some(mut chunk) => match stream.write(&chunk) {
-                            Ok(n) if n == chunk.len() => {}
+                            Ok(n) if n == chunk.len() => {},
                             Ok(n) => {
                                 outgoing_chunks.push_front(chunk.split_off(n));
                                 break;
-                            }
+                            },
                             Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                                 // Return chunk to the queue to try again later.
                                 outgoing_chunks.push_front(chunk);
                                 break;
-                            }
+                            },
                             // Worker error
                             Err(e) => {
                                 recv_tx.send(Err(e.into())).unwrap();
                                 break 'work;
-                            }
+                            },
                         },
                         None => break,
                     }
@@ -256,12 +244,12 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                     match stream.read(&mut buf) {
                         Ok(n) => incoming_buf.extend_from_slice(&buf[0..n]),
                         Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                        Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+                        Err(e) if e.kind() == io::ErrorKind::Interrupted => {},
                         // Worker error
                         Err(e) => {
                             recv_tx.send(Err(e.into())).unwrap();
                             break 'work;
-                        }
+                        },
                     }
                 }
 
@@ -294,14 +282,14 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                                     Err(err) => {
                                         println!("BINCODE ERROR: {:?}", err);
                                         recv_tx.send(Err(err.into())).unwrap()
-                                    }
+                                    },
                                 }
 
                                 incoming_buf = incoming_buf.split_off(len + 9);
                             } else {
                                 break;
                             }
-                        }
+                        },
                         None => break,
                     }
                 }

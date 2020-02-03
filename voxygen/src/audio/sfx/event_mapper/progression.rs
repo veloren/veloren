@@ -16,9 +16,7 @@ struct ProgressionState {
 }
 
 impl Default for ProgressionState {
-    fn default() -> Self {
-        Self { level: 1, exp: 0 }
-    }
+    fn default() -> Self { Self { level: 1, exp: 0 } }
 }
 
 pub struct ProgressionEventMapper {

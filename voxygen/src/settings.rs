@@ -1,6 +1,7 @@
 use crate::{
     hud::{BarNumbers, CrosshairType, Intro, ShortcutNumbers, XpBar},
-    render::AaMode,
+    i18n,
+    render::{AaMode, CloudMode, FluidMode},
     ui::ScaleMode,
     window::KeyMouse,
 };
@@ -51,6 +52,16 @@ pub struct ControlSettings {
     pub charge: KeyMouse,
 }
 
+/// Since Macbook trackpads lack middle click, on OS X we default to LShift
+/// instead It is an imperfect heuristic, but hopefully it will be a slightly
+/// better default, and the two places we default to middle click currently
+/// (roll and wall jump) are both situations where you cannot glide (the other
+/// default mapping for LShift).
+#[cfg(target_os = "macos")]
+const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(VirtualKeyCode::LShift);
+#[cfg(not(target_os = "macos"))]
+const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Mouse(MouseButton::Middle);
+
 impl Default for ControlSettings {
     fn default() -> Self {
         Self {
@@ -69,7 +80,7 @@ impl Default for ControlSettings {
             glide: KeyMouse::Key(VirtualKeyCode::LShift),
             climb: KeyMouse::Key(VirtualKeyCode::Space),
             climb_down: KeyMouse::Key(VirtualKeyCode::LControl),
-            wall_leap: KeyMouse::Mouse(MouseButton::Middle),
+            wall_leap: MIDDLE_CLICK_KEY,
             mount: KeyMouse::Key(VirtualKeyCode::F),
             map: KeyMouse::Key(VirtualKeyCode::M),
             bag: KeyMouse::Key(VirtualKeyCode::B),
@@ -84,11 +95,11 @@ impl Default for ControlSettings {
             fullscreen: KeyMouse::Key(VirtualKeyCode::F11),
             screenshot: KeyMouse::Key(VirtualKeyCode::F4),
             toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
-            roll: KeyMouse::Mouse(MouseButton::Middle),
+            roll: MIDDLE_CLICK_KEY,
             respawn: KeyMouse::Key(VirtualKeyCode::Space),
             interact: KeyMouse::Mouse(MouseButton::Right),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
-            charge: KeyMouse::Key(VirtualKeyCode::V),
+            charge: KeyMouse::Key(VirtualKeyCode::Key1),
         }
     }
 }
@@ -169,12 +180,11 @@ pub struct Log {
 }
 
 impl Default for Log {
-    fn default() -> Self {
-        Self { log_to_file: true }
-    }
+    fn default() -> Self { Self { log_to_file: true } }
 }
 
-/// `GraphicsSettings` contains settings related to framerate and in-game visuals.
+/// `GraphicsSettings` contains settings related to framerate and in-game
+/// visuals.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GraphicsSettings {
@@ -182,6 +192,10 @@ pub struct GraphicsSettings {
     pub max_fps: u32,
     pub fov: u16,
     pub aa_mode: AaMode,
+    pub cloud_mode: CloudMode,
+    pub fluid_mode: FluidMode,
+    pub window_size: [u16; 2],
+    pub fullscreen: bool,
 }
 
 impl Default for GraphicsSettings {
@@ -191,6 +205,10 @@ impl Default for GraphicsSettings {
             max_fps: 60,
             fov: 50,
             aa_mode: AaMode::Fxaa,
+            cloud_mode: CloudMode::Regular,
+            fluid_mode: FluidMode::Shiny,
+            window_size: [1920, 1080],
+            fullscreen: false,
         }
     }
 }
@@ -221,7 +239,22 @@ impl Default for AudioSettings {
     }
 }
 
-/// `Settings` contains everything that can be configured in the settings.ron file.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct LanguageSettings {
+    pub selected_language: String,
+}
+
+impl Default for LanguageSettings {
+    fn default() -> Self {
+        Self {
+            selected_language: i18n::REFERENCE_LANG.to_string(),
+        }
+    }
+}
+
+/// `Settings` contains everything that can be configured in the settings.ron
+/// file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
@@ -235,6 +268,7 @@ pub struct Settings {
     pub send_logon_commands: bool,
     // TODO: Remove at a later date, for dev testing
     pub logon_commands: Vec<String>,
+    pub language: LanguageSettings,
 }
 
 impl Default for Settings {
@@ -249,6 +283,7 @@ impl Default for Settings {
             show_disclaimer: true,
             send_logon_commands: false,
             logon_commands: Vec::new(),
+            language: LanguageSettings::default(),
         }
     }
 }
@@ -269,7 +304,7 @@ impl Settings {
                     if let Err(err) = std::fs::rename(path, new_path) {
                         log::warn!("Failed to rename settings file. {}", err);
                     }
-                }
+                },
             }
         }
         // This is reached if either:

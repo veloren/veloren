@@ -38,28 +38,30 @@ impl Cache {
             graphic_cache: GraphicCache::new(renderer),
         })
     }
-    pub fn glyph_cache_tex(&self) -> &Texture {
-        &self.glyph_cache_tex
-    }
+
+    pub fn glyph_cache_tex(&self) -> &Texture { &self.glyph_cache_tex }
+
     pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture) {
         (&mut self.glyph_cache, &self.glyph_cache_tex)
     }
-    pub fn graphic_cache(&self) -> &GraphicCache {
-        &self.graphic_cache
-    }
-    pub fn graphic_cache_mut(&mut self) -> &mut GraphicCache {
-        &mut self.graphic_cache
-    }
+
+    pub fn graphic_cache(&self) -> &GraphicCache { &self.graphic_cache }
+
+    pub fn graphic_cache_mut(&mut self) -> &mut GraphicCache { &mut self.graphic_cache }
+
     pub fn add_graphic(&mut self, graphic: Graphic) -> GraphicId {
         self.graphic_cache.add_graphic(graphic)
     }
+
     pub fn replace_graphic(&mut self, id: GraphicId, graphic: Graphic) {
         self.graphic_cache.replace_graphic(id, graphic)
     }
+
     // Resizes and clears the GraphicCache
     pub fn resize_graphic_cache(&mut self, renderer: &mut Renderer) {
         self.graphic_cache.clear_cache(renderer);
     }
+
     // Resizes and clears the GlyphCache
     pub fn resize_glyph_cache(&mut self, renderer: &mut Renderer) -> Result<(), Error> {
         let max_texture_size = renderer.max_texture_size();

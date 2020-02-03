@@ -1,4 +1,5 @@
-/// Used to represent one of many possible errors that may be omitted by the rendering subsystem.
+/// Used to represent one of many possible errors that may be omitted by the
+/// rendering subsystem.
 #[derive(Debug)]
 pub enum RenderError {
     PipelineError(gfx::PipelineStateError<String>),
@@ -12,9 +13,7 @@ pub enum RenderError {
 }
 
 impl From<gfx::PipelineStateError<String>> for RenderError {
-    fn from(err: gfx::PipelineStateError<String>) -> Self {
-        Self::PipelineError(err)
-    }
+    fn from(err: gfx::PipelineStateError<String>) -> Self { Self::PipelineError(err) }
 }
 
 impl From<gfx::PipelineStateError<&str>> for RenderError {
@@ -22,7 +21,7 @@ impl From<gfx::PipelineStateError<&str>> for RenderError {
         match err {
             gfx::PipelineStateError::DescriptorInit(err) => {
                 gfx::PipelineStateError::DescriptorInit(err.into())
-            }
+            },
             err => err,
         }
         .into()
@@ -34,61 +33,41 @@ impl From<gfx::shade::ProgramError> for RenderError {
     }
 }
 impl From<gfx::UpdateError<usize>> for RenderError {
-    fn from(err: gfx::UpdateError<usize>) -> Self {
-        Self::UpdateError(err)
-    }
+    fn from(err: gfx::UpdateError<usize>) -> Self { Self::UpdateError(err) }
 }
 
 impl From<gfx::UpdateError<[u16; 3]>> for RenderError {
-    fn from(err: gfx::UpdateError<[u16; 3]>) -> Self {
-        Self::TexUpdateError(err)
-    }
+    fn from(err: gfx::UpdateError<[u16; 3]>) -> Self { Self::TexUpdateError(err) }
 }
 
 impl From<gfx::CombinedError> for RenderError {
-    fn from(err: gfx::CombinedError) -> Self {
-        Self::CombinedError(err)
-    }
+    fn from(err: gfx::CombinedError) -> Self { Self::CombinedError(err) }
 }
 
 impl From<gfx::TargetViewError> for RenderError {
-    fn from(err: gfx::TargetViewError) -> Self {
-        Self::CombinedError(err.into())
-    }
+    fn from(err: gfx::TargetViewError) -> Self { Self::CombinedError(err.into()) }
 }
 
 impl From<gfx::ResourceViewError> for RenderError {
-    fn from(err: gfx::ResourceViewError) -> Self {
-        Self::CombinedError(err.into())
-    }
+    fn from(err: gfx::ResourceViewError) -> Self { Self::CombinedError(err.into()) }
 }
 
 impl From<gfx::texture::CreationError> for RenderError {
-    fn from(err: gfx::texture::CreationError) -> Self {
-        Self::CombinedError(err.into())
-    }
+    fn from(err: gfx::texture::CreationError) -> Self { Self::CombinedError(err.into()) }
 }
 
 impl From<gfx::buffer::CreationError> for RenderError {
-    fn from(err: gfx::buffer::CreationError) -> Self {
-        Self::BufferCreationError(err)
-    }
+    fn from(err: gfx::buffer::CreationError) -> Self { Self::BufferCreationError(err) }
 }
 
 impl From<glsl_include::Error> for RenderError {
-    fn from(err: glsl_include::Error) -> Self {
-        Self::IncludeError(err)
-    }
+    fn from(err: glsl_include::Error) -> Self { Self::IncludeError(err) }
 }
 
 impl From<gfx::mapping::Error> for RenderError {
-    fn from(err: gfx::mapping::Error) -> Self {
-        Self::MappingError(err)
-    }
+    fn from(err: gfx::mapping::Error) -> Self { Self::MappingError(err) }
 }
 
 impl From<gfx::CopyError<[u16; 3], usize>> for RenderError {
-    fn from(err: gfx::CopyError<[u16; 3], usize>) -> Self {
-        Self::CopyError(err)
-    }
+    fn from(err: gfx::CopyError<[u16; 3], usize>) -> Self { Self::CopyError(err) }
 }

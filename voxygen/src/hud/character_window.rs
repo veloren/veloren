@@ -1,4 +1,5 @@
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR, XP_COLOR};
+use crate::i18n::VoxygenLocalization;
 use common::comp::Stats;
 use conrod_core::{
     color,
@@ -72,18 +73,26 @@ pub struct CharacterWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     stats: &'a Stats,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> CharacterWindow<'a> {
-    pub fn new(_show: &'a Show, stats: &'a Stats, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        _show: &'a Show,
+        stats: &'a Stats,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    ) -> Self {
         Self {
             _show,
             imgs,
             fonts,
             stats,
+            localized_strings,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -98,17 +107,13 @@ pub enum Event {
 }
 
 impl<'a> Widget for CharacterWindow<'a> {
+    type Event = Option<Event>;
     type State = Ids;
     type Style = ();
-    type Event = Option<Event>;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        Ids::new(id_gen)
-    }
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State { Ids::new(id_gen) }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
@@ -144,12 +149,16 @@ impl<'a> Widget for CharacterWindow<'a> {
 
         // Title
         // TODO: Use an actual character name.
-        Text::new("Character Name")
-            .mid_top_with_margin_on(state.charwindow_frame, 6.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
-            .color(TEXT_COLOR)
-            .set(state.charwindow_title, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get("character_window.character_name"),
+        )
+        .mid_top_with_margin_on(state.charwindow_frame, 6.0)
+        .font_id(self.fonts.cyri)
+        .font_size(14)
+        .color(TEXT_COLOR)
+        .set(state.charwindow_title, ui);
 
         // Content Alignment
         Rectangle::fill_with([95.0 * 4.0, 108.0 * 4.0], color::TRANSPARENT)
@@ -381,13 +390,9 @@ impl<'a> Widget for CharacterWindow<'a> {
 
         // Stats
         Text::new(
-            "Stamina\n\
-             \n\
-             Strength\n\
-             \n\
-             Dexterity\n\
-             \n\
-             Intelligence",
+            &self
+                .localized_strings
+                .get("character_window.character_stats"),
         )
         .top_left_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
         .font_id(self.fonts.cyri)
@@ -396,15 +401,10 @@ impl<'a> Widget for CharacterWindow<'a> {
         .set(state.charwindow_tab1_statnames, ui);
 
         // TODO: Shows actual stat points.
-        Text::new(
-            "1234\n\
-             \n\
-             12312\n\
-             \n\
-             12414\n\
-             \n\
-             124124",
-        )
+        Text::new(&format!(
+            "{}\n\n{}\n\n{}",
+            self.stats.endurance, self.stats.fitness, self.stats.willpower
+        ))
         .top_right_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
         .font_id(self.fonts.cyri)
         .font_size(16)

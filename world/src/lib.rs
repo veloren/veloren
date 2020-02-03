@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
-#![feature(const_generics, label_break_value)]
+#![feature(arbitrary_enum_discriminant, const_generics, label_break_value)]
 
 mod all;
 mod block;
@@ -19,6 +19,7 @@ use crate::{
     util::Sampler,
 };
 use common::{
+    generation::{ChunkSupplement, EntityInfo, EntityKind},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -36,15 +37,13 @@ pub struct World {
 }
 
 impl World {
-    pub fn generate(seed: u32) -> Self {
+    pub fn generate(seed: u32, opts: sim::WorldOpts) -> Self {
         Self {
-            sim: sim::WorldSim::generate(seed),
+            sim: sim::WorldSim::generate(seed, opts),
         }
     }
 
-    pub fn sim(&self) -> &sim::WorldSim {
-        &self.sim
-    }
+    pub fn sim(&self) -> &sim::WorldSim { &self.sim }
 
     pub fn tick(&self, _dt: Duration) {
         // TODO
@@ -56,13 +55,12 @@ impl World {
         ColumnGen::new(&self.sim)
     }
 
-    pub fn sample_blocks(&self) -> BlockGen {
-        BlockGen::new(self, ColumnGen::new(&self.sim))
-    }
+    pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
 
     pub fn generate_chunk(
         &self,
         chunk_pos: Vec2<i32>,
+        // TODO: misleading name
         mut should_continue: impl FnMut() -> bool,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let air = Block::empty();
@@ -90,8 +88,8 @@ impl World {
                         TerrainChunkMeta::void(),
                     ),
                     ChunkSupplement::default(),
-                ))
-            }
+                ));
+            },
         };
 
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
@@ -100,8 +98,8 @@ impl World {
         let chunk_block_pos = Vec3::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
-        for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
-            for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
+        for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
+            for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
                 if should_continue() {
                     return Err(());
                 };
@@ -115,11 +113,11 @@ impl World {
 
                 let (min_z, only_structures_min_z, max_z) = z_cache.get_z_limits(&mut sampler);
 
-                for z in base_z..min_z as i32 {
+                (base_z..min_z as i32).for_each(|z| {
                     let _ = chunk.set(Vec3::new(x, y, z), stone);
-                }
+                });
 
-                for z in min_z as i32..max_z as i32 {
+                (min_z as i32..max_z as i32).for_each(|z| {
                     let lpos = Vec3::new(x, y, z);
                     let wpos = chunk_block_pos + lpos;
                     let only_structures = lpos.z >= only_structures_min_z as i32;
@@ -129,7 +127,7 @@ impl World {
                     {
                         let _ = chunk.set(lpos, block);
                     }
-                }
+                });
             }
         }
 
@@ -147,35 +145,31 @@ impl World {
 
         const SPAWN_RATE: f32 = 0.1;
         const BOSS_RATE: f32 = 0.03;
-        let supplement = ChunkSupplement {
-            npcs: if rand::thread_rng().gen::<f32>() < SPAWN_RATE
+        let mut supplement = ChunkSupplement {
+            entities: if rand::thread_rng().gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5
-                && !sim_chunk.is_underwater
+                && !sim_chunk.is_underwater()
             {
-                vec![NpcInfo {
+                vec![EntityInfo {
                     pos: gen_entity_pos(),
-                    boss: rand::thread_rng().gen::<f32>() < BOSS_RATE,
+                    kind: if rand::thread_rng().gen::<f32>() < BOSS_RATE {
+                        EntityKind::Boss
+                    } else {
+                        EntityKind::Enemy
+                    },
                 }]
             } else {
                 Vec::new()
             },
         };
 
+        if sim_chunk.contains_waypoint {
+            supplement = supplement.with_entity(EntityInfo {
+                pos: gen_entity_pos(),
+                kind: EntityKind::Waypoint,
+            });
+        }
+
         Ok((chunk, supplement))
-    }
-}
-
-pub struct NpcInfo {
-    pub pos: Vec3<f32>,
-    pub boss: bool,
-}
-
-pub struct ChunkSupplement {
-    pub npcs: Vec<NpcInfo>,
-}
-
-impl Default for ChunkSupplement {
-    fn default() -> Self {
-        Self { npcs: Vec::new() }
     }
 }

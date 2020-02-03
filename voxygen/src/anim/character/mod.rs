@@ -15,26 +15,19 @@ pub mod swim;
 pub mod wield;
 
 // Reexports
-pub use self::attack::AttackAnimation;
-pub use self::block::BlockAnimation;
-pub use self::blockidle::BlockIdleAnimation;
-pub use self::charge::ChargeAnimation;
-pub use self::cidle::CidleAnimation;
-pub use self::climb::ClimbAnimation;
-pub use self::gliding::GlidingAnimation;
-pub use self::idle::IdleAnimation;
-pub use self::jump::JumpAnimation;
-pub use self::roll::RollAnimation;
-pub use self::run::RunAnimation;
-pub use self::sit::SitAnimation;
-pub use self::stand::StandAnimation;
-pub use self::swim::SwimAnimation;
-pub use self::wield::WieldAnimation;
+pub use self::{
+    attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
+    charge::ChargeAnimation, cidle::CidleAnimation, climb::ClimbAnimation,
+    gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation,
+    run::RunAnimation, sit::SitAnimation, stand::StandAnimation, swim::SwimAnimation,
+    wield::WieldAnimation,
+};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
+use common::comp::{self, item::ToolKind};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct CharacterSkeleton {
     head: Bone,
     chest: Bone,
@@ -53,27 +46,12 @@ pub struct CharacterSkeleton {
 }
 
 impl CharacterSkeleton {
-    pub fn new() -> Self {
-        Self {
-            head: Bone::default(),
-            chest: Bone::default(),
-            belt: Bone::default(),
-            shorts: Bone::default(),
-            l_hand: Bone::default(),
-            r_hand: Bone::default(),
-            l_foot: Bone::default(),
-            r_foot: Bone::default(),
-            main: Bone::default(),
-            l_shoulder: Bone::default(),
-            r_shoulder: Bone::default(),
-            glider: Bone::default(),
-            lantern: Bone::default(),
-            torso: Bone::default(),
-        }
-    }
+    pub fn new() -> Self { Self::default() }
 }
 
 impl Skeleton for CharacterSkeleton {
+    type Attr = SkeletonAttr;
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let chest_mat = self.chest.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
@@ -116,5 +94,144 @@ impl Skeleton for CharacterSkeleton {
         self.glider.interpolate(&target.glider, dt);
         self.lantern.interpolate(&target.lantern, dt);
         self.torso.interpolate(&target.torso, dt);
+    }
+}
+
+pub struct SkeletonAttr {
+    scaler: f32,
+    head_scale: f32,
+    neck_height: f32,
+    neck_forward: f32,
+    neck_right: f32,
+    weapon_x: f32,
+    weapon_y: f32,
+}
+impl SkeletonAttr {
+    pub fn calculate_scale(body: &comp::humanoid::Body) -> f32 {
+        use comp::humanoid::{BodyType::*, Race::*};
+        match (body.race, body.body_type) {
+            (Orc, Male) => 0.95,
+            (Orc, Female) => 0.8,
+            (Human, Male) => 0.8,
+            (Human, Female) => 0.75,
+            (Elf, Male) => 0.85,
+            (Elf, Female) => 0.8,
+            (Dwarf, Male) => 0.7,
+            (Dwarf, Female) => 0.65,
+            (Undead, Male) => 0.8,
+            (Undead, Female) => 0.75,
+            (Danari, Male) => 0.58,
+            (Danari, Female) => 0.58,
+        }
+    }
+}
+
+impl Default for SkeletonAttr {
+    fn default() -> Self {
+        Self {
+            scaler: 1.0,
+            head_scale: 1.0,
+            neck_height: 1.0,
+            neck_forward: 1.0,
+            neck_right: 1.0,
+            weapon_x: 1.0,
+            weapon_y: 1.0,
+        }
+    }
+}
+
+impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+    type Error = ();
+
+    fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {
+        match body {
+            comp::Body::Humanoid(body) => Ok(SkeletonAttr::from(body)),
+            _ => Err(()),
+        }
+    }
+}
+
+impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
+    fn from(body: &'a comp::humanoid::Body) -> Self {
+        use comp::humanoid::{BodyType::*, Race::*};
+        Self {
+            scaler: SkeletonAttr::calculate_scale(body),
+            head_scale: match (body.race, body.body_type) {
+                (Orc, Male) => 0.9,
+                (Orc, Female) => 1.0,
+                (Human, Male) => 1.0,
+                (Human, Female) => 1.0,
+                (Elf, Male) => 0.95,
+                (Elf, Female) => 1.0,
+                (Dwarf, Male) => 1.0,
+                (Dwarf, Female) => 1.0,
+                (Undead, Male) => 1.0,
+                (Undead, Female) => 1.0,
+                (Danari, Male) => 1.15,
+                (Danari, Female) => 1.15,
+            },
+            neck_height: match (body.race, body.body_type) {
+                (Orc, Male) => 0.0,
+                (Orc, Female) => 0.0,
+                (Human, Male) => 0.0,
+                (Human, Female) => 0.0,
+                (Elf, Male) => 0.0,
+                (Elf, Female) => 0.0,
+                (Dwarf, Male) => 0.0,
+                (Dwarf, Female) => 0.0,
+                (Undead, Male) => 0.5,
+                (Undead, Female) => 0.5,
+                (Danari, Male) => 0.5,
+                (Danari, Female) => 0.5,
+            },
+            neck_forward: match (body.race, body.body_type) {
+                (Orc, Male) => 0.0,
+                (Orc, Female) => 0.0,
+                (Human, Male) => 0.5,
+                (Human, Female) => 0.0,
+                (Elf, Male) => 0.5,
+                (Elf, Female) => 0.5,
+                (Dwarf, Male) => 0.5,
+                (Dwarf, Female) => 0.0,
+                (Undead, Male) => 0.5,
+                (Undead, Female) => 0.5,
+                (Danari, Male) => 0.0,
+                (Danari, Female) => 0.0,
+            },
+            neck_right: match (body.race, body.body_type) {
+                (Orc, Male) => 0.0,
+                (Orc, Female) => 0.0,
+                (Human, Male) => 0.0,
+                (Human, Female) => 0.0,
+                (Elf, Male) => 0.0,
+                (Elf, Female) => 0.0,
+                (Dwarf, Male) => 0.0,
+                (Dwarf, Female) => 0.0,
+                (Undead, Male) => 0.0,
+                (Undead, Female) => 0.0,
+                (Danari, Male) => 0.0,
+                (Danari, Female) => 0.0,
+            },
+            weapon_x: match ToolKind::Hammer {
+                ToolKind::Sword(_) => 0.0,
+                ToolKind::Axe => 3.0,
+                ToolKind::Hammer => 0.0,
+                ToolKind::Shield => 3.0,
+                ToolKind::Staff => 3.0,
+                ToolKind::Bow => 0.0,
+                ToolKind::Dagger => 0.0,
+                ToolKind::Debug(_) => 0.0,
+            },
+            weapon_y: match ToolKind::Hammer {
+                ToolKind::Sword(_) => -1.25,
+                ToolKind::Axe => 0.0,
+                ToolKind::Hammer => -2.0,
+                ToolKind::Shield => 0.0,
+                ToolKind::Staff => 0.0,
+                ToolKind::Bow => -2.0,
+                ToolKind::Dagger => -2.0,
+                ToolKind::Debug(_) => 0.0,
+            },
+        }
     }
 }

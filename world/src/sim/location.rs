@@ -1,7 +1,6 @@
 use super::Settlement;
 use hashbrown::HashSet;
-use rand::seq::SliceRandom;
-use rand::Rng;
+use rand::{seq::SliceRandom, Rng};
 use vek::*;
 
 #[derive(Clone, Debug)]
@@ -24,13 +23,9 @@ impl Location {
         }
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
-    }
+    pub fn name(&self) -> &str { &self.name }
 
-    pub fn kingdom(&self) -> Option<&Kingdom> {
-        self.kingdom.as_ref()
-    }
+    pub fn kingdom(&self) -> Option<&Kingdom> { self.kingdom.as_ref() }
 }
 
 #[derive(Clone, Debug)]
@@ -47,12 +42,12 @@ fn generate_name(rng: &mut impl Rng) -> String {
     ];
     let mid = ["ka", "se", "au", "da", "di"];
     let tails = [
-        /*"mill",*/ "ben", "sel", "dori", "theas", "dar", "bur", "to", "vis", "ten", "stone",
-        "tiva", "id", "and", "or", "el", "ond", "ia", "eld", "ald", "aft", "ift", "ity", "well",
-        "oll", "ill", "all", "wyn", "light", " Hill", "lin", "mont", "mor", "cliff", "rok", "den",
-        "mi", "rock", "glenn", "rovi", "lea", "gate", "view", "ley", "wood", "ovia", "cliff",
-        "marsh", "kor", "ice", /*"river",*/ "acre", "venn", "crest", "field", "vale",
-        "spring", " Vale", "grasp", "fel", "fall", "grove", "wyn", "edge",
+        /* "mill", */ "ben", "sel", "dori", "theas", "dar", "bur", "to", "vis", "ten",
+        "stone", "tiva", "id", "and", "or", "el", "ond", "ia", "eld", "ald", "aft", "ift", "ity",
+        "well", "oll", "ill", "all", "wyn", "light", " Hill", "lin", "mont", "mor", "cliff", "rok",
+        "den", "mi", "rock", "glenn", "rovi", "lea", "gate", "view", "ley", "wood", "ovia",
+        "cliff", "marsh", "kor", "ice", /* "river", */ "acre", "venn", "crest", "field",
+        "vale", "spring", " Vale", "grasp", "fel", "fall", "grove", "wyn", "edge",
     ];
 
     let mut name = String::new();

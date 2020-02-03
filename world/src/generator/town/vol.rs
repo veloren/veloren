@@ -19,9 +19,7 @@ pub struct TownColumn {
 }
 
 impl TownColumn {
-    pub fn is_empty(&self) -> bool {
-        self.kind.is_none()
-    }
+    pub fn is_empty(&self) -> bool { self.kind.is_none() }
 
     pub fn is_road(&self) -> bool {
         self.kind
@@ -92,9 +90,7 @@ impl Vox for TownCell {
 }
 
 impl From<CellKind> for TownCell {
-    fn from(kind: CellKind) -> Self {
-        Self { kind, module: None }
-    }
+    fn from(kind: CellKind) -> Self { Self { kind, module: None } }
 }
 
 #[derive(Debug)]
@@ -139,9 +135,7 @@ impl TownVol {
         this
     }
 
-    pub fn size(&self) -> Vec2<i32> {
-        self.grid.size()
-    }
+    pub fn size(&self) -> Vec2<i32> { self.grid.size() }
 
     pub fn set_col_kind(&mut self, pos: Vec2<i32>, kind: Option<ColumnKind>) {
         self.grid.get_mut(pos).map(|col| col.1.kind = kind);
@@ -193,8 +187,8 @@ impl TownVol {
 }
 
 impl BaseVol for TownVol {
-    type Vox = TownCell;
     type Error = TownError;
+    type Vox = TownCell;
 }
 
 impl ReadVol for TownVol {

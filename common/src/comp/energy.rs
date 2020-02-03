@@ -5,6 +5,7 @@ use specs_idvs::IDVStorage;
 pub struct Energy {
     current: u32,
     maximum: u32,
+    pub regen_rate: f32,
     pub last_change: Option<(i32, f64, EnergySource)>,
 }
 
@@ -12,7 +13,15 @@ pub struct Energy {
 pub enum EnergySource {
     CastSpell,
     LevelUp,
+    Regen,
+    Revive,
     Unknown,
+}
+
+#[derive(Debug)]
+pub enum StatChangeError {
+    Underflow,
+    Overflow,
 }
 
 impl Energy {
@@ -20,17 +29,14 @@ impl Energy {
         Energy {
             current: amount,
             maximum: amount,
+            regen_rate: 0.0,
             last_change: None,
         }
     }
 
-    pub fn current(&self) -> u32 {
-        self.current
-    }
+    pub fn current(&self) -> u32 { self.current }
 
-    pub fn maximum(&self) -> u32 {
-        self.maximum
-    }
+    pub fn maximum(&self) -> u32 { self.maximum }
 
     pub fn set_to(&mut self, amount: u32, cause: EnergySource) {
         let amount = amount.min(self.maximum);
@@ -41,6 +47,21 @@ impl Energy {
     pub fn change_by(&mut self, amount: i32, cause: EnergySource) {
         self.current = ((self.current as i32 + amount).max(0) as u32).min(self.maximum);
         self.last_change = Some((amount, 0.0, cause));
+    }
+
+    pub fn try_change_by(
+        &mut self,
+        amount: i32,
+        cause: EnergySource,
+    ) -> Result<(), StatChangeError> {
+        if self.current as i32 + amount < 0 {
+            Err(StatChangeError::Underflow)
+        } else if self.current as i32 + amount > self.maximum as i32 {
+            Err(StatChangeError::Overflow)
+        } else {
+            self.change_by(amount, cause);
+            Ok(())
+        }
     }
 
     pub fn set_maximum(&mut self, amount: u32) {

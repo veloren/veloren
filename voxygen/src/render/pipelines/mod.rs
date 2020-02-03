@@ -8,19 +8,14 @@ pub mod ui;
 
 use super::util::arr_to_mat;
 use common::terrain::BlockKind;
-use gfx::{
-    self,
-    gfx_constant_struct_meta,
-    // Macros
-    gfx_defines,
-    gfx_impl_struct_meta,
-};
+use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
 use vek::*;
 
 gfx_defines! {
     constant Globals {
         view_mat: [[f32; 4]; 4] = "view_mat",
         proj_mat: [[f32; 4]; 4] = "proj_mat",
+        all_mat: [[f32; 4]; 4] = "all_mat",
         cam_pos: [f32; 4] = "cam_pos",
         focus_pos: [f32; 4] = "focus_pos",
         // TODO: Fix whatever alignment issue requires these uniforms to be aligned.
@@ -62,6 +57,7 @@ impl Globals {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
             proj_mat: arr_to_mat(proj_mat.into_col_array()),
+            all_mat: arr_to_mat((proj_mat * view_mat).into_col_array()),
             cam_pos: Vec4::from(cam_pos).into_array(),
             focus_pos: Vec4::from(focus_pos).into_array(),
             view_distance: [view_distance; 4],
@@ -105,15 +101,11 @@ impl Light {
         }
     }
 
-    pub fn get_pos(&self) -> Vec3<f32> {
-        Vec3::new(self.pos[0], self.pos[1], self.pos[2])
-    }
+    pub fn get_pos(&self) -> Vec3<f32> { Vec3::new(self.pos[0], self.pos[1], self.pos[2]) }
 }
 
 impl Default for Light {
-    fn default() -> Self {
-        Self::new(Vec3::zero(), Rgb::zero(), 0.0)
-    }
+    fn default() -> Self { Self::new(Vec3::zero(), Rgb::zero(), 0.0) }
 }
 
 impl Shadow {
@@ -129,7 +121,5 @@ impl Shadow {
 }
 
 impl Default for Shadow {
-    fn default() -> Self {
-        Self::new(Vec3::zero(), 0.0)
-    }
+    fn default() -> Self { Self::new(Vec3::zero(), 0.0) }
 }

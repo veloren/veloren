@@ -78,10 +78,16 @@ impl<'a> System<'a> for Sys {
         // To send entity updates
         // 1. Iterate through regions
         // 2. Iterate through region subscribers (ie clients)
-        //     - Collect a list of entity ids for clients who are subscribed to this region (hash calc to check each)
+        //     - Collect a list of entity ids for clients who are subscribed to this
+        //       region (hash calc to check each)
         // 3. Iterate through events from that region
-        //     - For each entity entered event, iterate through the client list and check if they are subscribed to the source (hash calc per subscribed client per entity event), if not subscribed to the source send a entity creation message to that client
-        //     - For each entity left event, iterate through the client list and check if they are subscribed to the destination (hash calc per subscribed client per entity event)
+        //     - For each entity entered event, iterate through the client list and
+        //       check if they are subscribed to the source (hash calc per subscribed
+        //       client per entity event), if not subscribed to the source send a entity
+        //       creation message to that client
+        //     - For each entity left event, iterate through the client list and check
+        //       if they are subscribed to the destination (hash calc per subscribed
+        //       client per entity event)
         // 4. Iterate through entities in that region
         // 5. Inform clients of the component changes for that entity
         //     - Throttle update rate base on distance to each client
@@ -89,8 +95,8 @@ impl<'a> System<'a> for Sys {
         // Sync physics
         // via iterating through regions
         for (key, region) in region_map.iter() {
-            // Assemble subscriber list for this region by iterating through clients and checking
-            // if they are subscribed to this region
+            // Assemble subscriber list for this region by iterating through clients and
+            // checking if they are subscribed to this region
             let mut subscribers = (&mut clients, &entities, &subscriptions, &positions)
                 .join()
                 .filter_map(|(client, entity, subscription, pos)| {
@@ -146,7 +152,7 @@ impl<'a> System<'a> for Sys {
                                 }
                             }
                         }
-                    }
+                    },
                     RegionEvent::Left(id, maybe_key) => {
                         // Lookup UID for entity
                         if let Some(&uid) = uids.get(entities.entity(*id)) {
@@ -160,7 +166,7 @@ impl<'a> System<'a> for Sys {
                                 }
                             }
                         }
-                    }
+                    },
                 }
             }
 
@@ -229,8 +235,8 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
             {
-                // TODO: An entity that stoppped moving on a tick that it wasn't sent to the player
-                // will never have it's position updated
+                // TODO: An entity that stoppped moving on a tick that it wasn't sent to the
+                // player will never have it's position updated
                 if last_pos.get(entity).map(|&l| l.0 != pos).unwrap_or(true) {
                     let _ = last_pos.insert(entity, Last(pos));
                     send_msg(
@@ -299,7 +305,8 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        // Handle entity deletion in regions that don't exist in RegionMap (theoretically none)
+        // Handle entity deletion in regions that don't exist in RegionMap
+        // (theoretically none)
         for (region_key, deleted) in deleted_entities.take_remaining_deleted() {
             for client in
                 (&mut clients, &subscriptions)
@@ -330,7 +337,8 @@ impl<'a> System<'a> for Sys {
         inventory_updates.clear();
 
         // Sync resources
-        // TODO: doesn't really belong in this system (rename system or create another system?)
+        // TODO: doesn't really belong in this system (rename system or create another
+        // system?)
         let tof_msg = ServerMsg::TimeOfDay(*time_of_day);
         for client in (&mut clients).join() {
             client.notify(tof_msg.clone());

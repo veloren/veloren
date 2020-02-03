@@ -1,5 +1,5 @@
 use crate::{
-    comp::{projectile, /*HealthChange,*/ HealthSource, Ori, PhysicsState, Projectile, Vel},
+    comp::{projectile, HealthSource, Ori, PhysicsState, Projectile, Vel},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
@@ -50,7 +50,7 @@ impl<'a> System<'a> for Sys {
                             entity,
                             cause: HealthSource::World,
                         }),
-                        _ => {}
+                        _ => {},
                     }
                 }
             }
@@ -62,7 +62,7 @@ impl<'a> System<'a> for Sys {
                             entity,
                             cause: HealthSource::World,
                         }),
-                        _ => {}
+                        _ => {},
                     }
                 }
             }
@@ -72,14 +72,14 @@ impl<'a> System<'a> for Sys {
                     match effect {
                         projectile::Effect::Damage(change) => {
                             server_emitter.emit(ServerEvent::Damage { uid: other, change })
-                        }
+                        },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
                         }),
                         projectile::Effect::Possess => server_emitter
                             .emit(ServerEvent::Possess(projectile.owner.into(), other)),
-                        _ => {}
+                        _ => {},
                     }
                 }
             } else {

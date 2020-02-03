@@ -28,15 +28,13 @@ where
             phantom: PhantomData,
         }
     }
-    pub fn inserted(&self) -> &BitSet {
-        &self.inserted
-    }
-    pub fn modified(&self) -> &BitSet {
-        &self.modified
-    }
-    pub fn removed(&self) -> &BitSet {
-        &self.removed
-    }
+
+    pub fn inserted(&self) -> &BitSet { &self.inserted }
+
+    pub fn modified(&self) -> &BitSet { &self.modified }
+
+    pub fn removed(&self) -> &BitSet { &self.removed }
+
     pub fn record_changes<'a>(&mut self, storage: &specs::ReadStorage<'a, C>) {
         self.inserted.clear();
         self.modified.clear();
@@ -49,20 +47,21 @@ where
                     self.removed.remove(*id);
                     self.modified.remove(*id);
                     self.inserted.add(*id);
-                }
+                },
                 specs::storage::ComponentEvent::Modified(id) => {
                     // We don't care about modification if the component was just added
                     if !self.inserted.contains(*id) {
                         debug_assert!(!self.removed.contains(*id)); // Theoretically impossible
                         self.modified.add(*id);
                     }
-                }
+                },
                 specs::storage::ComponentEvent::Removed(id) => {
-                    // Don't need to know that it was inserted/modified if it was subsequently removed
+                    // Don't need to know that it was inserted/modified if it was subsequently
+                    // removed
                     self.inserted.remove(*id);
                     self.modified.remove(*id);
                     self.removed.add(*id);
-                }
+                },
             };
         }
     }

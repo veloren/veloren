@@ -1,15 +1,12 @@
-use super::{
-    super::{Animation, SkeletonAttr},
-    QuadrupedSmallSkeleton,
-};
+use super::{super::Animation, QuadrupedSmallSkeleton, SkeletonAttr};
 use std::f32::consts::PI;
 use vek::*;
 
 pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
-    type Skeleton = QuadrupedSmallSkeleton;
     type Dependency = (f32, f64);
+    type Skeleton = QuadrupedSmallSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,

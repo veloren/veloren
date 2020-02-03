@@ -61,9 +61,7 @@ lazy_static! {
 }
 
 impl<'a> ColumnGen<'a> {
-    pub fn new(sim: &'a WorldSim) -> Self {
-        Self { sim }
-    }
+    pub fn new(sim: &'a WorldSim) -> Self { Self { sim } }
 
     fn get_local_structure(&self, wpos: Vec2<i32>) -> Option<StructureData> {
         let (pos, seed) = self
@@ -131,8 +129,8 @@ fn river_spline_coeffs(
     downhill_pos: Vec2<f64>,
 ) -> Vec3<Vec2<f64>> {
     let dxy = downhill_pos - chunk_pos;
-    // Since all splines have been precomputed, we don't have to do that much work to evaluate the
-    // spline.  The spline is just ax^2 + bx + c = 0, where
+    // Since all splines have been precomputed, we don't have to do that much work
+    // to evaluate the spline.  The spline is just ax^2 + bx + c = 0, where
     //
     // a = dxy - chunk.river.spline_derivative
     // b = chunk.river.spline_derivative
@@ -141,11 +139,12 @@ fn river_spline_coeffs(
     Vec3::new(dxy - spline_derivative, spline_derivative, chunk_pos)
 }
 
-/// Find the nearest point from a quadratic spline to this point (in terms of t, the "distance along the curve"
-/// by which our spline is parameterized).  Note that if t < 0.0 or t >= 1.0, we probably shouldn't
-/// be considered "on the curve"... hopefully this works out okay and gives us what we want (a
-/// river that extends outwards tangent to a quadratic curve, with width configured by distance
-/// along the line).
+/// Find the nearest point from a quadratic spline to this point (in terms of t,
+/// the "distance along the curve" by which our spline is parameterized).  Note
+/// that if t < 0.0 or t >= 1.0, we probably shouldn't be considered "on the
+/// curve"... hopefully this works out okay and gives us what we want (a
+/// river that extends outwards tangent to a quadratic curve, with width
+/// configured by distance along the line).
 fn quadratic_nearest_point(
     spline: &Vec3<Vec2<f64>>,
     point: Vec2<f64>,
@@ -158,7 +157,8 @@ fn quadratic_nearest_point(
     let f = spline.y.y;
     let g = spline.x.y;
     let h = point.y;
-    // This is equivalent to solving the following cubic equation (derivation is a bit annoying):
+    // This is equivalent to solving the following cubic equation (derivation is a
+    // bit annoying):
     //
     // A = 2(c^2 + g^2)
     // B = 3(b * c + g * f)
@@ -167,9 +167,10 @@ fn quadratic_nearest_point(
     //
     // Ax³ + Bx² + Cx + D = 0
     //
-    // Once solved, this yield up to three possible values for t (reflecting minimal and maximal
-    // values).  We should choose the minimal such real value with t between 0.0 and 1.0.  If we
-    // fall outside those bounds, then we are outside the spline and return None.
+    // Once solved, this yield up to three possible values for t (reflecting minimal
+    // and maximal values).  We should choose the minimal such real value with t
+    // between 0.0 and 1.0.  If we fall outside those bounds, then we are
+    // outside the spline and return None.
     let a_ = (c * c + g * g) * 2.0;
     let b_ = (b * c + g * f) * 3.0;
     let a_d = a - d;
@@ -233,7 +234,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
-
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
         let my_chunk_idx = vec2_as_uniform_idx(chunk_pos);
@@ -248,7 +248,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 Some(kind) => kind,
                 None => {
                     return (posj, chunkj, river, None);
-                }
+                },
             };
             let downhill_pos = if let Some(pos) = chunkj.downhill {
                 pos
@@ -257,10 +257,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     RiverKind::River { .. } => {
                         log::error!("What? River: {:?}, Pos: {:?}", river, posj);
                         panic!("How can a river have no downhill?");
-                    }
+                    },
                     RiverKind::Lake { .. } => {
                         return (posj, chunkj, river, None);
-                    }
+                    },
                     RiverKind::Ocean => posj,
                 }
             };
@@ -298,7 +298,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             closest_dist.sqrt(),
                         )
                     }
-                }
+                },
                 RiverKind::Lake { neighbor_pass_pos } => {
                     let pass_dist = neighbor_pass_pos
                         .map2(
@@ -355,7 +355,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             closest_dist.sqrt(),
                         )
                     }
-                }
+                },
                 RiverKind::Ocean => {
                     let ndist = wposf.distance_squared(neighbor_pos);
                     let (closest_pos, closest_dist, closest_t) = (neighbor_pos, ndist, 0.0);
@@ -370,7 +370,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         closest_pos,
                         closest_dist.sqrt(),
                     )
-                }
+                },
             };
             let river_width_max =
                 if let Some(RiverKind::River { cross_section }) = downhill_chunk.river.river_kind {
@@ -390,10 +390,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             );
 
             let river_width = river_width * (1.0 + river_width_noise * 0.3);
-            // To find the distance, we just evaluate the quadratic equation at river_t and see
-            // if it's within width (but we should be able to use it for a lot more, and this
-            // probably isn't the very best approach anyway since it will bleed out).
-            // let river_pos = coeffs.x * river_t * river_t + coeffs.y * river_t + coeffs.z;
+            // To find the distance, we just evaluate the quadratic equation at river_t and
+            // see if it's within width (but we should be able to use it for a
+            // lot more, and this probably isn't the very best approach anyway
+            // since it will bleed out). let river_pos = coeffs.x * river_t *
+            // river_t + coeffs.y * river_t + coeffs.z;
             let res = Vec2::new(0.0, (river_dist - (river_width * 0.5).max(1.0)).max(0.0));
             (
                 posj,
@@ -416,35 +417,38 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let mut max_river = None;
         let mut max_key = None;
         // IDEA:
-        // For every "nearby" chunk, check whether it is a river.  If so, find the closest point on
-        // the river segment to wposf (if two point are equidistant, choose the earlier one),
-        // calling this point river_pos and the length (from 0 to 1) along the river segment for
-        // the nearby chunk river_t.  Let river_dist be the distance from river_pos to wposf.
+        // For every "nearby" chunk, check whether it is a river.  If so, find the
+        // closest point on the river segment to wposf (if two point are
+        // equidistant, choose the earlier one), calling this point river_pos
+        // and the length (from 0 to 1) along the river segment for the nearby
+        // chunk river_t.  Let river_dist be the distance from river_pos to wposf.
         //
         // Let river_alt be the interpolated river height at this point
-        // (from the alt/water altitude at the river, to the alt/water_altitude of the downhill
-        // river, increasing with river_t).
+        // (from the alt/water altitude at the river, to the alt/water_altitude of the
+        // downhill river, increasing with river_t).
         //
-        // Now, if river_dist is <= river_width * 0.5, then we don't care what altitude we use, and
-        // mark that we are on a river (we decide what river to use using a heuristic, and set the
-        // solely according to the computed river_alt for that point).
+        // Now, if river_dist is <= river_width * 0.5, then we don't care what altitude
+        // we use, and mark that we are on a river (we decide what river to use
+        // using a heuristic, and set the solely according to the computed
+        // river_alt for that point).
         //
         // Otherwise, we let dist = river_dist - river_width * 0.5.
         //
-        // If dist >= TerrainChunkSize::RECT_SIZE.x, we don't include this river in the calculation
-        // of the correct altitude for this point.
+        // If dist >= TerrainChunkSize::RECT_SIZE.x, we don't include this river in the
+        // calculation of the correct altitude for this point.
         //
-        // Otherwise (i.e. dist < TerrainChunkSize::RECT_SIZE.x), we want to bias the altitude of
-        // this point towards the altitude of the river.  Specifically, as the dist goes from
-        // TerrainChunkSize::RECT_SIZE.x to 0, the weighted altitude of this point should go from
+        // Otherwise (i.e. dist < TerrainChunkSize::RECT_SIZE.x), we want to bias the
+        // altitude of this point towards the altitude of the river.
+        // Specifically, as the dist goes from TerrainChunkSize::RECT_SIZE.x to
+        // 0, the weighted altitude of this point should go from
         // alt to river_alt.
-        for (river_chunk_idx, river_chunk, river, dist) in neighbor_river_data {
+        neighbor_river_data.for_each(|(river_chunk_idx, river_chunk, river, dist)| {
             match river.river_kind {
                 Some(kind) => {
                     if kind.is_river() && !dist.is_some() {
                         // Ostensibly near a river segment, but not "usefully" so (there is no
                         // closest point between t = 0.0 and t = 1.0).
-                        continue;
+                        return;
                     } else {
                         let river_dist = dist.map(|(_, dist, _, (river_t, _, downhill_river))| {
                             let downhill_height = if kind.is_river() {
@@ -499,7 +503,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         let river_dist = dist.y;
 
                         if !(dist.x == 0.0 && river_dist < scale_factor) {
-                            continue;
+                            return;
                         }
                         // We basically want to project outwards from river_pos, along the current
                         // tangent line, to chunks <= river_width * 1.0 away from this
@@ -526,7 +530,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 }
                 None => {}
             }
-        }
+        });
+
         let river_scale_factor = if river_count == 0.0 {
             1.0
         } else {
@@ -553,23 +558,23 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .gen_ctx
             .small_nz
             .get((wposf_turb.div(128.0)).into_array()) as f32)
-            .mul(24.0);
+            .mul(4.0);
 
-        let riverless_alt_delta = (sim
-            .gen_ctx
-            .small_nz
-            .get((wposf_turb.div(200.0)).into_array()) as f32)
+        let riverless_alt_delta = (sim.gen_ctx.small_nz.get(
+            (wposf_turb.div(200.0 * (32.0 / TerrainChunkSize::RECT_SIZE.x as f64))).into_array(),
+        ) as f32)
+            .min(1.0)
+            .max(-1.0)
             .abs()
-            .mul(chaos.max(0.05))
-            .mul(27.0)
-            + (sim
-                .gen_ctx
-                .small_nz
-                .get((wposf_turb.div(400.0)).into_array()) as f32)
+            .mul(3.0)
+            + (sim.gen_ctx.small_nz.get(
+                (wposf_turb.div(400.0 * (32.0 / TerrainChunkSize::RECT_SIZE.x as f64)))
+                    .into_array(),
+            ) as f32)
+                .min(1.0)
+                .max(-1.0)
                 .abs()
-                .mul((1.0 - chaos).max(0.3))
-                .mul(1.0 - humidity)
-                .mul(32.0);
+                .mul(3.0);
 
         let downhill = sim_chunk.downhill;
         let downhill_pos = downhill.and_then(|downhill_pos| sim.get(downhill_pos));
@@ -597,7 +602,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         {
             // This is flowing into a lake, or a lake, or is at least a non-ocean tile.
             //
-            // If we are <= water_alt, we are in the lake; otherwise, we are flowing into it.
+            // If we are <= water_alt, we are in the lake; otherwise, we are flowing into
+            // it.
             let (in_water, new_alt, new_water_alt, warp_factor) = max_border_river
                 .river_kind
                 .and_then(|river_kind| {
@@ -679,7 +685,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         downhill_water_alt,
                                         river_scale_factor as f32,
                                     ))
-                                }
+                                },
                                 RiverKind::Lake { .. } => {
                                     let lake_dist = (max_border_river_pos.map(|e| e as f64)
                                         * neighbor_coef)
@@ -750,7 +756,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             lake_dist <= TerrainChunkSize::RECT_SIZE.x as f64 * 0.5;
                                         if gouge_factor == 1.0 {
                                             return Some((
-                                                alt_for_river < lake_water_alt || in_bounds,
+                                                true,
                                                 alt.min(lake_water_alt - 1.0 - river_gouge),
                                                 downhill_water_alt.max(lake_water_alt)
                                                     - river_gouge,
@@ -758,7 +764,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             ));
                                         } else {
                                             return Some((
-                                                alt_for_river < lake_water_alt || in_bounds,
+                                                true,
                                                 alt_for_river,
                                                 if in_bounds_ {
                                                     downhill_water_alt.max(lake_water_alt)
@@ -776,7 +782,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         downhill_water_alt,
                                         river_scale_factor as f32,
                                     ))
-                                }
+                                },
                                 RiverKind::River { .. } => {
                                     // FIXME: Make water altitude accurate.
                                     Some((
@@ -785,7 +791,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         downhill_water_alt,
                                         river_scale_factor as f32,
                                     ))
-                                }
+                                },
                             }
                         })
                         .unwrap_or((
@@ -799,9 +805,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             (false, alt_for_river, downhill_water_alt, 1.0)
         };
+        // NOTE: To disable warp, uncomment this line.
+        // let warp_factor = 0.0;
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt_ + riverless_alt_delta;
+        let basement =
+            alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)
@@ -825,20 +835,19 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .mul(0.5)
             .add(marble_small.sub(0.5).mul(0.25));
 
-        let temp = temp.add((marble - 0.5) * 0.25);
-        let humidity = humidity.add((marble - 0.5) * 0.25);
-
         // Colours
         let cold_grass = Rgb::new(0.0, 0.5, 0.25);
         let warm_grass = Rgb::new(0.4, 0.8, 0.0);
         let dark_grass = Rgb::new(0.15, 0.4, 0.1);
         let wet_grass = Rgb::new(0.1, 0.8, 0.2);
         let cold_stone = Rgb::new(0.57, 0.67, 0.8);
+        let hot_stone = Rgb::new(0.07, 0.07, 0.06);
         let warm_stone = Rgb::new(0.77, 0.77, 0.64);
         let beach_sand = Rgb::new(0.9, 0.82, 0.6);
         let desert_sand = Rgb::new(0.95, 0.75, 0.5);
         let snow = Rgb::new(0.8, 0.85, 1.0);
 
+        let stone_col = Rgb::new(195, 187, 201);
         let dirt = Lerp::lerp(
             Rgb::new(0.075, 0.07, 0.3),
             Rgb::new(0.75, 0.55, 0.1),
@@ -846,7 +855,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         );
         let tundra = Lerp::lerp(snow, Rgb::new(0.01, 0.3, 0.0), 0.4 + marble * 0.6);
         let dead_tundra = Lerp::lerp(warm_stone, Rgb::new(0.3, 0.12, 0.2), marble);
-        let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
+        let cliff = Rgb::lerp(cold_stone, hot_stone, marble);
 
         let grass = Rgb::lerp(
             cold_grass,
@@ -872,22 +881,27 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             marble.powf(1.5).sub(0.5).mul(4.0),
         );
 
-        // For below desert humidity, we are always sand or rock, depending on altitude and
-        // temperature.
-        let ground = Rgb::lerp(
-            Rgb::lerp(
+        // For below desert humidity, we are always sand or rock, depending on altitude
+        // and temperature.
+        let ground = Lerp::lerp(
+            Lerp::lerp(
                 dead_tundra,
                 sand,
                 temp.sub(CONFIG.snow_temp)
                     .div(CONFIG.desert_temp.sub(CONFIG.snow_temp))
                     .mul(0.5),
             ),
-            cliff,
-            alt.sub(CONFIG.mountain_scale * 0.25)
-                .div(CONFIG.mountain_scale * 0.125),
+            dirt,
+            humidity
+                .sub(CONFIG.desert_hum)
+                .div(CONFIG.forest_hum.sub(CONFIG.desert_hum))
+                .mul(1.0),
         );
-        // From desert to forest humidity, we go from tundra to dirt to grass to moss to sand,
-        // depending on temperature.
+
+        let sub_surface_color = Lerp::lerp(cliff, ground, alt.sub(basement).mul(0.25));
+
+        // From desert to forest humidity, we go from tundra to dirt to grass to moss to
+        // sand, depending on temperature.
         let ground = Rgb::lerp(
             ground,
             Rgb::lerp(
@@ -895,17 +909,19 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     Rgb::lerp(
                         Rgb::lerp(
                             tundra,
-                            // snow_temp to 0
+                            // snow_temp to temperate_temp
                             dirt,
                             temp.sub(CONFIG.snow_temp)
-                                .div(CONFIG.snow_temp.neg())
+                                .div(CONFIG.temperate_temp.sub(CONFIG.snow_temp))
                                 /*.sub((marble - 0.5) * 0.05)
                                 .mul(256.0)*/
                                 .mul(1.0),
                         ),
-                        // 0 to tropical_temp
+                        // temperate_temp to tropical_temp
                         grass,
-                        temp.div(CONFIG.tropical_temp).mul(4.0),
+                        temp.sub(CONFIG.temperate_temp)
+                            .div(CONFIG.tropical_temp.sub(CONFIG.temperate_temp))
+                            .mul(4.0),
                     ),
                     // tropical_temp to desert_temp
                     moss,
@@ -924,17 +940,19 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .div(CONFIG.forest_hum.sub(CONFIG.desert_hum))
                 .mul(1.0),
         );
-        // From forest to jungle humidity, we go from snow to dark grass to grass to tropics to sand
-        // depending on temperature.
+        // From forest to jungle humidity, we go from snow to dark grass to grass to
+        // tropics to sand depending on temperature.
         let ground = Rgb::lerp(
             ground,
             Rgb::lerp(
                 Rgb::lerp(
                     Rgb::lerp(
                         snow_moss,
-                        // 0 to tropical_temp
+                        // temperate_temp to tropical_temp
                         grass,
-                        temp.div(CONFIG.tropical_temp).mul(4.0),
+                        temp.sub(CONFIG.temperate_temp)
+                            .div(CONFIG.tropical_temp.sub(CONFIG.temperate_temp))
+                            .mul(4.0),
                     ),
                     // tropical_temp to desert_temp
                     tropical,
@@ -953,16 +971,19 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .div(CONFIG.jungle_hum.sub(CONFIG.forest_hum))
                 .mul(1.0),
         );
-        // From jungle humidity upwards, we go from snow to grass to rainforest to tropics to sand.
+        // From jungle humidity upwards, we go from snow to grass to rainforest to
+        // tropics to sand.
         let ground = Rgb::lerp(
             ground,
             Rgb::lerp(
                 Rgb::lerp(
                     Rgb::lerp(
                         snow_moss,
-                        // 0 to tropical_temp
+                        // temperate_temp to tropical_temp
                         rainforest,
-                        temp.div(CONFIG.tropical_temp).mul(4.0),
+                        temp.sub(CONFIG.temperate_temp)
+                            .div(CONFIG.tropical_temp.sub(CONFIG.temperate_temp))
+                            .mul(4.0),
                     ),
                     // tropical_temp to desert_temp
                     tropical,
@@ -980,14 +1001,21 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         );
 
         // Snow covering
-        let ground = Rgb::lerp(
-            snow,
-            ground,
-            temp.sub(CONFIG.snow_temp)
-                .max(-humidity.sub(CONFIG.desert_hum))
-                .mul(16.0)
-                .add((marble_small - 0.5) * 0.5),
-        );
+        let snow_cover = temp
+            .sub(CONFIG.snow_temp)
+            .max(-humidity.sub(CONFIG.desert_hum))
+            .mul(16.0)
+            .add((marble_small - 0.5) * 0.5);
+        let (alt, ground, sub_surface_color) = if snow_cover <= 0.5 && alt > water_level {
+            // Allow snow cover.
+            (
+                alt + 1.0 - snow_cover.max(0.0),
+                Rgb::lerp(snow, ground, snow_cover),
+                Lerp::lerp(sub_surface_color, ground, alt.sub(basement).mul(0.15)),
+            )
+        } else {
+            (alt, ground, sub_surface_color)
+        };
 
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
@@ -999,7 +1027,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .powf(2.0)
                 .neg()
                 .add(1.0)
-                .mul((1.15 - chaos).min(1.0))
+                .mul((1.32 - chaos).min(1.0))
         };
         let cave_xy = cave_at(wposf);
         let cave_alt = alt - 24.0
@@ -1035,18 +1063,20 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         Some(ColumnSample {
             alt,
+            basement,
             chaos,
             water_level,
             warp_factor,
             surface_color: Rgb::lerp(
-                sand,
+                Rgb::lerp(cliff, sand, alt.sub(basement).mul(0.25)),
                 // Land
                 ground,
                 // Beach
                 ((ocean_level - 1.0) / 2.0).max(0.0),
             ),
-            sub_surface_color: dirt,
-            tree_density,
+            sub_surface_color,
+            // No growing directly on bedrock.
+            tree_density: Lerp::lerp(0.0, tree_density, alt.sub(2.0).sub(basement).mul(0.5)),
             forest_kind: sim_chunk.forest_kind,
             close_structures: self.gen_close_structures(wpos),
             cave_xy,
@@ -1062,6 +1092,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             humidity,
             spawn_rate,
             location: sim_chunk.location.as_ref(),
+            stone_col,
 
             chunk: sim_chunk,
             spawn_rules: sim_chunk
@@ -1081,6 +1112,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 #[derive(Clone)]
 pub struct ColumnSample<'a> {
     pub alt: f32,
+    pub basement: f32,
     pub chaos: f32,
     pub water_level: f32,
     pub warp_factor: f32,
@@ -1102,6 +1134,7 @@ pub struct ColumnSample<'a> {
     pub humidity: f32,
     pub spawn_rate: f32,
     pub location: Option<&'a LocationInfo>,
+    pub stone_col: Rgb<u8>,
 
     pub chunk: &'a SimChunk,
     pub spawn_rules: SpawnRules,

@@ -1,5 +1,5 @@
-/// This macro will automatically load all specified assets, get the corresponding FontIds and
-/// create a struct with all of them.
+/// This macro will automatically load all specified assets, get the
+/// corresponding FontIds and create a struct with all of them.
 ///
 /// Example usage:
 /// ```

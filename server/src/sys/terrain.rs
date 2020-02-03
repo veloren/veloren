@@ -2,18 +2,21 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, Player, Pos},
+    comp::{self, item, Player, Pos},
     event::{EventBus, ServerEvent},
+    generation::EntityKind,
     msg::ServerMsg,
+    npc::{self, NPC_NAMES},
     state::TerrainChanges,
     terrain::TerrainGrid,
 };
-use rand::Rng;
+use rand::{seq::SliceRandom, Rng};
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
 
-/// This system will handle loading generated chunks and unloading uneeded chunks.
+/// This system will handle loading generated chunks and unloading
+/// uneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
 ///     2. Sends new chunks to neaby clients
 ///     3. Handles the chunk's supplement (e.g. npcs)
@@ -61,7 +64,7 @@ impl<'a> System<'a> for Sys {
                         });
                     }
                     continue 'insert_terrain_chunks;
-                }
+                },
             };
             // Send the chunk to all nearby players.
             for (view_distance, pos, client) in (&players, &positions, &mut clients)
@@ -95,47 +98,133 @@ impl<'a> System<'a> for Sys {
             }
 
             // Handle chunk supplement
-            for npc in supplement.npcs {
-                let (mut stats, mut body) = if rand::random() {
-                    let stats = comp::Stats::new(
-                        "Traveler".to_string(),
-                        Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
-                    );
-                    let body = comp::Body::Humanoid(comp::humanoid::Body::random());
-                    (stats, body)
+            for entity in supplement.entities {
+                if let EntityKind::Waypoint = entity.kind {
+                    server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
                 } else {
-                    let stats = comp::Stats::new("Wolf".to_string(), None);
-                    let body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
-                    (stats, body)
-                };
-                let mut scale = 1.0;
-
-                // TODO: Remove this and implement scaling or level depending on stuff like species instead
-                stats.level.set_level(rand::thread_rng().gen_range(1, 10));
-
-                if npc.boss {
-                    if rand::random::<f32>() < 0.8 {
-                        stats = comp::Stats::new(
-                            "Fearless Wanderer".to_string(),
-                            Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
-                        );
-                        body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                    fn get_npc_name<
+                        Species,
+                        SpeciesData: core::ops::Index<Species, Output = npc::SpeciesNames>,
+                    >(
+                        body_data: &comp::BodyData<npc::BodyNames, SpeciesData>,
+                        species: Species,
+                    ) -> &str {
+                        &body_data.species[species].generic
                     }
-                    stats.level.set_level(rand::thread_rng().gen_range(20, 50));
-                    scale = 2.0 + rand::random::<f32>();
-                }
+                    const SPAWN_NPCS: &'static [fn() -> (
+                        String,
+                        comp::Body,
+                        Option<comp::Item>,
+                        comp::Alignment,
+                    )] = &[
+                        (|| {
+                            let body = comp::humanoid::Body::random();
+                            (
+                                format!(
+                                    "{} Traveler",
+                                    get_npc_name(&NPC_NAMES.humanoid, body.race)
+                                ),
+                                comp::Body::Humanoid(body),
+                                Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                                comp::Alignment::Npc,
+                            )
+                        }) as _,
+                        (|| {
+                            let body = comp::humanoid::Body::random();
+                            (
+                                format!("{} Bandit", get_npc_name(&NPC_NAMES.humanoid, body.race)),
+                                comp::Body::Humanoid(body),
+                                Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                                comp::Alignment::Enemy,
+                            )
+                        }) as _,
+                        (|| {
+                            let body = comp::quadruped_medium::Body::random();
+                            (
+                                get_npc_name(&NPC_NAMES.quadruped_medium, body.species).into(),
+                                comp::Body::QuadrupedMedium(body),
+                                None,
+                                comp::Alignment::Enemy,
+                            )
+                        }) as _,
+                        (|| {
+                            let body = comp::bird_medium::Body::random();
+                            (
+                                get_npc_name(&NPC_NAMES.bird_medium, body.species).into(),
+                                comp::Body::BirdMedium(body),
+                                None,
+                                comp::Alignment::Wild,
+                            )
+                        }) as _,
+                        (|| {
+                            let body = comp::critter::Body::random();
+                            (
+                                get_npc_name(&NPC_NAMES.critter, body.species).into(),
+                                comp::Body::Critter(body),
+                                None,
+                                comp::Alignment::Wild,
+                            )
+                        }) as _,
+                        (|| {
+                            let body = comp::quadruped_small::Body::random();
+                            (
+                                get_npc_name(&NPC_NAMES.quadruped_small, body.species).into(),
+                                comp::Body::QuadrupedSmall(body),
+                                None,
+                                comp::Alignment::Wild,
+                            )
+                        }),
+                    ];
+                    let (name, mut body, main, mut alignment) = SPAWN_NPCS
+                        .choose(&mut rand::thread_rng())
+                        .expect("SPAWN_NPCS is nonempty")(
+                    );
+                    let mut stats = comp::Stats::new(name, body, main);
 
-                stats.update_max_hp();
-                stats
-                    .health
-                    .set_to(stats.health.maximum(), comp::HealthSource::Revive);
-                server_emitter.emit(ServerEvent::CreateNpc {
-                    pos: Pos(npc.pos),
-                    stats,
-                    body,
-                    agent: comp::Agent::enemy(),
-                    scale: comp::Scale(scale),
-                })
+                    let mut scale = 1.0;
+
+                    // TODO: Remove this and implement scaling or level depending on stuff like
+                    // species instead
+                    stats.level.set_level(rand::thread_rng().gen_range(1, 4));
+
+                    if let EntityKind::Boss = entity.kind {
+                        if rand::random::<f32>() < 0.65 {
+                            let body_new = comp::humanoid::Body::random();
+                            body = comp::Body::Humanoid(body_new);
+                            alignment = comp::Alignment::Npc;
+                            stats = comp::Stats::new(
+                                format!(
+                                    "Fearless Giant {}",
+                                    get_npc_name(&NPC_NAMES.humanoid, body_new.race)
+                                ),
+                                body,
+                                Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
+                            );
+                        }
+                        stats.level.set_level(rand::thread_rng().gen_range(8, 15));
+                        scale = 2.0 + rand::random::<f32>();
+                    }
+
+                    stats.update_max_hp();
+                    stats
+                        .health
+                        .set_to(stats.health.maximum(), comp::HealthSource::Revive);
+                    if let Some(item::Item {
+                        kind: item::ItemKind::Tool(item::ToolData { base_damage, .. }),
+                        ..
+                    }) = &mut stats.equipment.main
+                    {
+                        *base_damage = stats.level.level() as u64 * 3;
+                    }
+                    server_emitter.emit(ServerEvent::CreateNpc {
+                        pos: Pos(entity.pos),
+                        stats,
+                        body,
+                        alignment,
+                        agent: comp::Agent::default().with_patrol_origin(entity.pos),
+                        scale: comp::Scale(scale),
+                    })
+                }
             }
         }
 
