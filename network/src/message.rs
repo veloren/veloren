@@ -1,37 +1,48 @@
 use bincode;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 //use std::collections::VecDeque;
+use crate::worker::types::{Mid, Sid};
 use std::sync::Arc;
-pub trait Message<'a> = Serialize + Deserialize<'a>;
+use tracing::*;
 
 #[derive(Debug)]
 pub(crate) struct MessageBuffer {
     // use VecDeque for msg storage, because it allows to quickly remove data from front.
     //however VecDeque needs custom bincode code, but it's possible
-    data: Vec<u8>,
+    pub data: Vec<u8>,
 }
 
 #[derive(Debug)]
 pub(crate) struct OutGoingMessage {
-    buffer: Arc<MessageBuffer>,
-    cursor: u64,
+    pub buffer: Arc<MessageBuffer>,
+    pub cursor: u64,
+    pub mid: Option<Mid>,
+    pub sid: Sid,
 }
 
 #[derive(Debug)]
 pub(crate) struct InCommingMessage {
-    buffer: MessageBuffer,
-    cursor: u64,
+    pub buffer: MessageBuffer,
+    pub length: u64,
+    pub mid: Mid,
+    pub sid: Sid,
 }
 
-pub(crate) fn serialize<'a, M: Message<'a>>(message: &M) -> MessageBuffer {
+pub(crate) fn serialize<M: Serialize>(message: &M) -> MessageBuffer {
     let mut writer = {
         let actual_size = bincode::serialized_size(message).unwrap();
         Vec::<u8>::with_capacity(actual_size as usize)
     };
     if let Err(e) = bincode::serialize_into(&mut writer, message) {
-        println!("Oh nooo {}", e);
+        error!("Oh nooo {}", e);
     };
     MessageBuffer { data: writer }
+}
+
+pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> M {
+    let span = buffer.data;
+    let decoded: M = bincode::deserialize(span.as_slice()).unwrap();
+    decoded
 }
 
 #[cfg(test)]
