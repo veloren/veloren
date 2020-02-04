@@ -4653,6 +4653,7 @@ name = "tlid"
 version = "0.2.2"
 dependencies = [
  "num-traits 0.2.11",
+ "serde",
 ]
 
 [[package]]

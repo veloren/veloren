@@ -2,18 +2,18 @@
 mod api;
 mod internal;
 mod message;
-mod mio_worker;
-mod tcp_channel;
+mod worker;
 
 #[cfg(test)]
 pub mod tests {
     use crate::api::*;
     use std::{net::SocketAddr, sync::Arc};
+    use tracing::*;
     use uuid::Uuid;
     use uvth::ThreadPoolBuilder;
 
     struct N {
-        id: u8,
+        _id: u8,
     }
 
     impl Events for N {
@@ -53,10 +53,8 @@ pub mod tests {
         test_tracing();
         let n1 = Network::<N>::new(Uuid::new_v4(), thread_pool.clone());
         let n2 = Network::<N>::new(Uuid::new_v4(), thread_pool.clone());
-        let a1 = Address::Tcp(SocketAddr::from(([10, 52, 0, 101], 52000)));
-        let a2 = Address::Tcp(SocketAddr::from(([10, 52, 0, 101], 52001)));
-        //let a1 = Address::Tcp(SocketAddr::from(([10, 42, 2, 2], 52000)));
-        //let a2 = Address::Tcp(SocketAddr::from(([10, 42, 2, 2], 52001)));
+        let a1 = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], 52000)));
+        let a2 = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], 52001)));
         n1.listen(&a1); //await
         n2.listen(&a2); // only requiered here, but doesnt hurt on n1
         std::thread::sleep(std::time::Duration::from_millis(20));
@@ -69,8 +67,15 @@ pub mod tests {
         std::thread::sleep(std::time::Duration::from_millis(20));
         //n2.OnRemoteStreamOpen triggered
 
-        n1.send("", &s1);
+        n1.send("Hello World", &s1);
+        std::thread::sleep(std::time::Duration::from_millis(20));
         // receive on n2 now
+
+        let s: Option<String> = n2.recv(&s1);
+        for _ in 1..4 {
+            error!("{:?}", s);
+        }
+        assert_eq!(s, Some("Hello World".to_string()));
 
         n1.close(s1);
         //n2.OnRemoteStreamClose triggered
