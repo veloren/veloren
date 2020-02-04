@@ -70,10 +70,7 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 	float sun_light = get_sun_brightness(sun_dir);
 	float moon_light = get_moon_brightness(moon_dir);
 
-	// clamp() changed to max() as sun_dir.z is produced from a cos() function and therefore never greater than 1
-
 	vec3 sun_color = get_sun_color(sun_dir);
-
 	vec3 moon_color = get_moon_color(moon_dir);
 
 	vec3 sun_chroma = sun_color * sun_light;
@@ -139,7 +136,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 
 	vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * MOON_HALO_COLOR;
 	vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
-	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(clamp(dir.z * 3.0, 0, 1)));
+	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(max(dir.z * 3.0, 0)));
 
 	// Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
 
@@ -188,7 +185,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 
 	// Clouds
 	clouds = get_cloud_color(dir, origin, time_of_day, f_dist, quality);
-	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 2.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 80.0 + get_moon_color(moon_dir));
+	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 1.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 80.0 + get_moon_color(moon_dir));
 
 	if (f_dist > 5000.0) {
 		sky_color += sun_light + moon_light;
