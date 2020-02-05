@@ -101,9 +101,9 @@ impl Body {
         // TODO: Improve these values (some might be reliant on more info in inner type)
         match self {
             Body::Humanoid(_) => 0.5,
-            Body::QuadrupedSmall(_) => 0.6,
+            Body::QuadrupedSmall(_) => 0.3,
             Body::QuadrupedMedium(_) => 0.9,
-            Body::Critter(_) => 0.5,
+            Body::Critter(_) => 0.2,
             Body::BirdMedium(_) => 0.5,
             Body::FishMedium(_) => 0.5,
             Body::Dragon(_) => 2.5,
@@ -113,6 +113,9 @@ impl Body {
             Body::Object(_) => 0.3,
         }
     }
+
+    // Note: currently assumes sphericality
+    pub fn height(&self) -> f32 { self.radius() * 2.0 }
 }
 
 impl Component for Body {
