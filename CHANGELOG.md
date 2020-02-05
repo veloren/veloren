@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Brighter / higher contrast main-map
+- Removed highlighting of non-collectible sprites
 
 ### Removed
 
