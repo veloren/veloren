@@ -33,6 +33,8 @@ impl<T> FromIterator<T> for Path<T> {
 impl<T> Path<T> {
     pub fn len(&self) -> usize { self.nodes.len() }
 
+    pub fn iter(&self) -> impl Iterator<Item = &T> { self.nodes.iter() }
+
     pub fn start(&self) -> Option<&T> { self.nodes.first() }
 
     pub fn end(&self) -> Option<&T> { self.nodes.last() }

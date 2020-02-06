@@ -1,3 +1,4 @@
+pub mod settlement;
 mod town;
 
 // Reexports
