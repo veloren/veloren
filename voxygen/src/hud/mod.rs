@@ -13,7 +13,7 @@ mod skillbar;
 mod social;
 mod spell;
 
-use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot};
+use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot, ui::img_ids::Rotations};
 pub use settings_window::ScaleChange;
 use std::time::Duration;
 
@@ -46,7 +46,6 @@ use crate::{
 use client::{Client, Event as ClientEvent};
 use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
-    image::Id,
     text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
@@ -307,7 +306,7 @@ impl Show {
     fn map(&mut self, open: bool) {
         self.map = open;
         self.bag = false;
-        self.want_grab = !open;
+        self.want_grab = true;
     }
 
     fn character_window(&mut self, open: bool) {
@@ -431,7 +430,7 @@ impl Show {
 pub struct Hud {
     ui: Ui,
     ids: Ids,
-    world_map: (Id, Vec2<u32>),
+    world_map: (/* Id */ Rotations, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
     fonts: Fonts,
@@ -446,7 +445,6 @@ pub struct Hud {
     force_chat_input: Option<String>,
     force_chat_cursor: Option<Index>,
     pulse: f32,
-    zoom: f32,
     velocity: f32,
 }
 
@@ -461,7 +459,7 @@ impl Hud {
         let ids = Ids::new(ui.id_generator());
         // Load world map
         let world_map = (
-            ui.add_graphic(Graphic::Image(client.world_map.0.clone())),
+            ui.add_graphic_with_rotations(Graphic::Image(client.world_map.0.clone())),
             client.world_map.1,
         );
         // Load images.
@@ -497,7 +495,7 @@ impl Hud {
                 quest: false,
                 spell: false,
                 character_window: false,
-                mini_map: false,
+                mini_map: true,
                 settings_tab: SettingsTab::Interface,
                 social_tab: SocialTab::Online,
                 want_grab: true,
@@ -509,7 +507,6 @@ impl Hud {
             force_chat_input: None,
             force_chat_cursor: None,
             pulse: 0.0,
-            zoom: 1.0,
             velocity: 0.0,
         }
     }
@@ -1590,10 +1587,9 @@ impl Hud {
             &self.show,
             client,
             &self.imgs,
-            self.world_map,
+            &self.rot_imgs,
+            &self.world_map,
             &self.fonts,
-            self.pulse,
-            self.zoom,
         )
         .set(self.ids.minimap, ui_widgets)
         {
@@ -1864,7 +1860,8 @@ impl Hud {
                 &self.show,
                 client,
                 &self.imgs,
-                self.world_map,
+                &self.rot_imgs,
+                &self.world_map,
                 &self.fonts,
                 self.pulse,
                 self.velocity,
