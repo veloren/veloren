@@ -579,9 +579,8 @@ pub fn block_from_structure(
 ) -> Option<Block> {
     let field = RandomField::new(structure_seed + 0);
 
-    let lerp = 0.5
-        + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.85
-        + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
+    let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.85
+        + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.15;
 
     match sblock {
         StructureBlock::None => None,
