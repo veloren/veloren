@@ -239,6 +239,9 @@ impl MapConfig {
                     }
                 }
 
+                let water_color_factor = 2.0;
+                let g_water = 32.0 * water_color_factor;
+                let b_water = 64.0 * water_color_factor;
                 let rgba = match (river_kind, (is_water, true_alt >= true_sea_level)) {
                     (_, (false, _)) | (None, (_, true)) => {
                         let (r, g, b) = (
@@ -251,7 +254,7 @@ impl MapConfig {
                                     0.0
                                 })
                             .sqrt(),
-                            if is_shaded { 0.2 + (alt * 0.8) } else { alt },
+                            if is_shaded { 0.4 + (alt * 0.6) } else { alt },
                             (if is_shaded { alt } else { alt }
                                 * if is_humidity {
                                     humidity as f64
@@ -272,17 +275,22 @@ impl MapConfig {
                     },
                     (Some(RiverKind::Ocean), _) => (
                         0,
-                        ((32.0 - water_depth * 32.0) * 1.0) as u8,
-                        ((64.0 - water_depth * 64.0) * 1.0) as u8,
+                        ((g_water - water_depth * g_water) * 1.0) as u8,
+                        ((b_water - water_depth * b_water) * 1.0) as u8,
                         255,
                     ),
-                    (Some(RiverKind::River { .. }), _) => {
-                        (0, 32 + (alt * 95.0) as u8, 64 + (alt * 191.0) as u8, 255)
-                    },
+                    (Some(RiverKind::River { .. }), _) => (
+                        0,
+                        g_water as u8 + (alt * (127.0 - g_water)) as u8,
+                        b_water as u8 + (alt * (255.0 - b_water)) as u8,
+                        255,
+                    ),
                     (None, _) | (Some(RiverKind::Lake { .. }), _) => (
                         0,
-                        (((32.0 + water_alt * 95.0) + (-water_depth * 32.0)) * 1.0) as u8,
-                        (((64.0 + water_alt * 191.0) + (-water_depth * 64.0)) * 1.0) as u8,
+                        (((g_water + water_alt * (127.0 - 32.0)) + (-water_depth * g_water)) * 1.0)
+                            as u8,
+                        (((b_water + water_alt * (255.0 - b_water)) + (-water_depth * b_water))
+                            * 1.0) as u8,
                         255,
                     ),
                 };
