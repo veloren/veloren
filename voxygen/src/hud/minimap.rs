@@ -1,9 +1,12 @@
-use super::{img_ids::Imgs, Fonts, Show, HP_COLOR, TEXT_COLOR};
+use super::{
+    img_ids::{Imgs, ImgsRot},
+    Fonts, Show, HP_COLOR, TEXT_COLOR,
+};
+use crate::ui::img_ids;
 use client::{self, Client};
 use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
-    color,
-    image::Id,
+    color, position,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -33,12 +36,11 @@ pub struct MiniMap<'a> {
     client: &'a Client,
 
     imgs: &'a Imgs,
-    world_map: (Id, Vec2<u32>),
+    rot_imgs: &'a ImgsRot,
+    world_map: &'a (img_ids::Rotations, Vec2<u32>),
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    pulse: f32,
-    zoom: f32,
 }
 
 impl<'a> MiniMap<'a> {
@@ -46,20 +48,18 @@ impl<'a> MiniMap<'a> {
         show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
-        world_map: (Id, Vec2<u32>),
+        rot_imgs: &'a ImgsRot,
+        world_map: &'a (img_ids::Rotations, Vec2<u32>),
         fonts: &'a Fonts,
-        pulse: f32,
-        zoom: f32,
     ) -> Self {
         Self {
             show,
             client,
             imgs,
+            rot_imgs,
             world_map,
             fonts,
             common: widget::CommonBuilder::default(),
-            pulse,
-            zoom,
         }
     }
 }
@@ -69,6 +69,7 @@ pub struct State {
 
     last_region_name: Option<String>,
     last_update: Instant,
+    zoom: f64,
 }
 
 pub enum Event {
@@ -86,6 +87,14 @@ impl<'a> Widget for MiniMap<'a> {
 
             last_region_name: None,
             last_update: Instant::now(),
+            zoom: {
+                let min_world_dim = self.world_map.1.reduce_partial_min() as f64;
+                min_world_dim.min(
+                    min_world_dim
+                        * (TerrainChunkSize::RECT_SIZE.reduce_partial_max() as f64 / 32.0)
+                        * (16.0 / 1024.0),
+                )
+            },
         }
     }
 
@@ -93,53 +102,74 @@ impl<'a> Widget for MiniMap<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-        let zoom = self.zoom as f64;
+        let zoom = state.zoom;
         if self.show.mini_map {
             Image::new(self.imgs.mmap_frame)
-                .w_h(100.0 * 4.0 * zoom, 100.0 * 4.0 * zoom)
+                .w_h(100.0 * 3.0, 100.0 * 3.0)
                 .top_right_with_margins_on(ui.window, 5.0, 5.0)
                 .set(state.ids.mmap_frame, ui);
 
-            Rectangle::fill_with([92.0 * 4.0, 82.0 * 4.0], color::TRANSPARENT)
-                .mid_top_with_margin_on(state.ids.mmap_frame, 13.0 * 4.0 + 4.0 * zoom)
+            Rectangle::fill_with([92.0 * 3.0, 82.0 * 3.0], color::TRANSPARENT)
+                .mid_top_with_margin_on(state.ids.mmap_frame, 13.0 * 3.0 + 3.0)
                 .set(state.ids.mmap_frame_bg, ui);
-            // Zoom Buttons
-            // TODO: Add zoomable minimap
 
-            /*if Button::image(self.imgs.mmap_plus)
-                .w_h(100.0 * 0.2 * zoom, 100.0 * 0.2 * zoom)
-                .hover_image(self.imgs.mmap_plus_hover)
-                .press_image(self.imgs.mmap_plus_press)
-                .top_left_with_margins_on(state.ids.mmap_frame, 0.0, 0.0)
-                .set(state.ids.mmap_plus, ui)
-                .was_clicked()
-            {
-                if zoom > 0.0 {
-                    zoom = zoom + 1.0
-                } else if zoom == 5.0 {
-                }
-            }
-            if Button::image(self.imgs.mmap_minus)
-                .w_h(100.0 * 0.2 * zoom, 100.0 * 0.2 * zoom)
-                .hover_image(self.imgs.mmap_minus_hover)
-                .press_image(self.imgs.mmap_minus_press)
-                .down_from(state.ids.mmap_plus, 0.0)
-                .set(state.ids.mmap_minus, ui)
-                .was_clicked()
-            {
-                if zoom < 6.0 {
-                    zoom = zoom - 1.0
-                } else if zoom == 0.0 {
-                }
-            }*/
-            // Map Image
+            // Map size
             let (world_map, worldsize) = self.world_map;
             let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
-            Image::new(world_map)
-                .middle_of(state.ids.mmap_frame_bg)
-                .w_h(92.0 * 4.0 * zoom, 82.0 * 4.0 * zoom)
-                .parent(state.ids.mmap_frame_bg)
-                .set(state.ids.grid, ui);
+
+            // Zoom Buttons
+
+            // Pressing + multiplies, and - divides, zoom by ZOOM_FACTOR.
+            const ZOOM_FACTOR: f64 = 2.0;
+
+            // TODO: Either prevent zooming all the way in, *or* see if we can interpolate
+            // somehow if you zoom in too far.  Or both.
+            let min_zoom = 1.0;
+            let max_zoom = (worldsize / TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+                .reduce_partial_min()/*.min(f64::MAX)*/;
+
+            // NOTE: Not sure if a button can be clicked while disabled, but we still double
+            // check for both kinds of zoom to make sure that not only was the
+            // button clicked, it is also okay to perform the zoom action.
+            // Note that since `Button::image` has side effects, we must perform
+            // the `can_zoom_in` and `can_zoom_out` checks after the `&&` to avoid
+            // undesired early termination.
+            let can_zoom_in = zoom < max_zoom;
+            let can_zoom_out = zoom > min_zoom;
+
+            if Button::image(self.imgs.mmap_minus)
+                .w_h(100.0 * 0.30, 100.0 * 0.30)
+                .hover_image(self.imgs.mmap_minus_hover)
+                .press_image(self.imgs.mmap_minus_press)
+                .top_left_with_margins_on(state.ids.mmap_frame, 0.0, 0.0)
+                .enabled(can_zoom_out)
+                .set(state.ids.mmap_minus, ui)
+                .was_clicked()
+                && can_zoom_out
+            {
+                // Set the image dimensions here, rather than recomputing each time.
+                let zoom = min_zoom.max(zoom / ZOOM_FACTOR);
+                state.update(|s| s.zoom = zoom);
+                // set_image_dims(zoom);
+            }
+            if Button::image(self.imgs.mmap_plus)
+                .w_h(100.0 * 0.30, 100.0 * 0.30)
+                .hover_image(self.imgs.mmap_plus_hover)
+                .press_image(self.imgs.mmap_plus_press)
+                .right_from(state.ids.mmap_minus, 6.0)
+                .enabled(can_zoom_in)
+                .set(state.ids.mmap_plus, ui)
+                .was_clicked()
+                && can_zoom_in
+            {
+                let zoom = max_zoom.min(zoom * ZOOM_FACTOR);
+                state.update(|s| s.zoom = zoom);
+                // set_image_dims(zoom);
+            }
+
+            // Reload zoom in case it changed.
+            let zoom = state.zoom;
+
             // Coordinates
             let player_pos = self
                 .client
@@ -149,30 +179,36 @@ impl<'a> Widget for MiniMap<'a> {
                 .get(self.client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
 
-            let x = player_pos.x as f64 / worldsize.x * 92.0 * 4.0;
-            let y = player_pos.y as f64 / worldsize.y * 82.0 * 4.0;
-            let indic_ani = (self.pulse * 6.0).cos() * 0.5 + 0.5; //Animation timer
-            let indic_scale = 0.8;
+            // Get map image source rectangle dimensons.
+            let w_src = worldsize.x / TerrainChunkSize::RECT_SIZE.x as f64 / zoom;
+            let h_src = worldsize.y / TerrainChunkSize::RECT_SIZE.y as f64 / zoom;
+
+            // Set map image to be centered around player coordinates.
+            let rect_src = position::Rect::from_xy_dim(
+                [
+                    player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64,
+                    (worldsize.y - player_pos.y as f64) / TerrainChunkSize::RECT_SIZE.y as f64,
+                ],
+                [w_src, h_src],
+            );
+
+            // Map Image
+            Image::new(world_map.source_north)
+                .middle_of(state.ids.mmap_frame_bg)
+                .w_h(92.0 * 3.0, 82.0 * 3.0)
+                .parent(state.ids.mmap_frame_bg)
+                .source_rectangle(rect_src)
+                .set(state.ids.grid, ui);
+
             // Indicator
-            Image::new(if indic_ani <= 0.5 {
-                self.imgs.indicator_mmap
-            } else {
-                self.imgs.indicator_mmap_2
-            })
-            .bottom_left_with_margins_on(state.ids.grid, y, x - 5.0)
-            .w_h(
-                // Animation frames depening on timer value from 0.0 to 1.0
-                22.0 * 0.8,
-                if indic_ani <= 0.5 {
-                    18.0 * indic_scale
-                } else {
-                    23.0 * indic_scale
-                },
-            )
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-            .floating(true)
-            .parent(ui.window)
-            .set(state.ids.indicator, ui);
+            let ind_scale = 0.4;
+            Image::new(self.rot_imgs.indicator_mmap_small.none)
+                .middle_of(state.ids.grid)
+                .w_h(32.0 * ind_scale, 37.0 * ind_scale)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                .floating(true)
+                .parent(ui.window)
+                .set(state.ids.indicator, ui);
         } else {
             Image::new(self.imgs.mmap_frame_closed)
                 .w_h(100.0 * 2.0, 11.0 * 2.0)
@@ -186,9 +222,9 @@ impl<'a> Widget for MiniMap<'a> {
             self.imgs.mmap_closed
         })
         .wh(if self.show.mini_map {
-            [100.0 * 0.4; 2]
+            [100.0 * 0.3; 2]
         } else {
-            [100.0 * 0.2 * zoom; 2]
+            [100.0 * 0.2; 2]
         })
         .hover_image(if self.show.mini_map {
             self.imgs.mmap_open_hover
@@ -267,7 +303,7 @@ impl<'a> Widget for MiniMap<'a> {
                     state.ids.mmap_frame,
                     if self.show.mini_map { 6.0 } else { 0.0 },
                 )
-                .font_size(if self.show.mini_map { 30 } else { 18 })
+                .font_size(if self.show.mini_map { 20 } else { 18 })
                 .font_id(self.fonts.cyri)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
