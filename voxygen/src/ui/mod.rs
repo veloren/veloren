@@ -28,6 +28,7 @@ use crate::{
     window::Window,
     Error,
 };
+use ::image::GenericImageView;
 use cache::Cache;
 use common::{assets, util::srgba_to_linear};
 use conrod_core::{
@@ -43,6 +44,7 @@ use conrod_core::{
 use graphic::{Rotation, TexId};
 use log::{error, warn};
 use std::{
+    f32, f64,
     fs::File,
     io::{BufReader, Read},
     ops::Range,
@@ -172,6 +174,16 @@ impl Ui {
             cw90: self.image_map.insert((graphic_id, Rotation::Cw90)),
             cw180: self.image_map.insert((graphic_id, Rotation::Cw180)),
             cw270: self.image_map.insert((graphic_id, Rotation::Cw270)),
+            // Hacky way to make sure a source rectangle always faces north regardless of player
+            // orientation.
+            // This is an easy way to get around Conrod's lack of rotation data for images (for this
+            // specific use case).
+            source_north: self.image_map.insert((graphic_id, Rotation::SourceNorth)),
+            // Hacky way to make sure a target rectangle always faces north regardless of player
+            // orientation.
+            // This is an easy way to get around Conrod's lack of rotation data for images (for this
+            // specific use case).
+            target_north: self.image_map.insert((graphic_id, Rotation::TargetNorth)),
         }
     }
 
@@ -420,46 +432,88 @@ impl Ui {
                 PrimitiveKind::Image {
                     image_id,
                     color,
-                    source_rect: _, // TODO: <-- use this
+                    source_rect,
                 } => {
                     let (graphic_id, rotation) = self
                         .image_map
                         .get(&image_id)
                         .expect("Image does not exist in image map");
                     let graphic_cache = self.cache.graphic_cache_mut();
-
-                    match graphic_cache.get_graphic(*graphic_id) {
-                        Some(Graphic::Blank) | None => continue,
-                        _ => {},
-                    }
+                    let gl_aabr = gl_aabr(rect);
+                    let (source_aabr, gl_size) = {
+                        // Transform the source rectangle into uv coordinate.
+                        // TODO: Make sure this is right.  Especially the conversions.
+                        let ((uv_l, uv_r, uv_b, uv_t), gl_size) =
+                            match graphic_cache.get_graphic(*graphic_id) {
+                                Some(Graphic::Blank) | None => continue,
+                                Some(Graphic::Image(image)) => {
+                                    source_rect.and_then(|src_rect| {
+                                        let (image_w, image_h) = image.dimensions();
+                                        let (source_w, source_h) = src_rect.w_h();
+                                        let gl_size = gl_aabr.size();
+                                        if image_w == 0
+                                            || image_h == 0
+                                            || source_w < 1.0
+                                            || source_h < 1.0
+                                            || gl_size.reduce_partial_max() < f32::EPSILON
+                                        {
+                                            None
+                                        } else {
+                                            // Multiply drawn image size by ratio of original image
+                                            // size to
+                                            // source rectangle size (since as the proportion of the
+                                            // image gets
+                                            // smaller, the drawn size should get bigger), up to the
+                                            // actual
+                                            // size of the original image.
+                                            let ratio_x = (image_w as f64 / source_w).min(
+                                                (image_w as f64 / (gl_size.w * half_res.x) as f64)
+                                                    .max(1.0),
+                                            );
+                                            let ratio_y = (image_h as f64 / source_h).min(
+                                                (image_h as f64 / (gl_size.h * half_res.y) as f64)
+                                                    .max(1.0),
+                                            );
+                                            let (l, r, b, t) = src_rect.l_r_b_t();
+                                            Some((
+                                                (
+                                                    l / image_w as f64, /* * ratio_x*/
+                                                    r / image_w as f64, /* * ratio_x*/
+                                                    b / image_h as f64, /* * ratio_y*/
+                                                    t / image_h as f64, /* * ratio_y*/
+                                                ),
+                                                Extent2::new(
+                                                    (gl_size.w as f64 * ratio_x) as f32,
+                                                    (gl_size.h as f64 * ratio_y) as f32,
+                                                ),
+                                            ))
+                                            /* ((l / image_w as f64),
+                                            (r / image_w as f64),
+                                            (b / image_h as f64),
+                                            (t / image_h as f64)) */
+                                        }
+                                    })
+                                },
+                                // No easy way to interpret source_rect for voxels...
+                                Some(Graphic::Voxel(..)) => None,
+                            }
+                            .unwrap_or_else(|| ((0.0, 1.0, 0.0, 1.0), gl_aabr.size()));
+                        (
+                            Aabr {
+                                min: Vec2::new(uv_l, uv_b),
+                                max: Vec2::new(uv_r, uv_t),
+                            },
+                            gl_size,
+                        )
+                    };
 
                     let color =
                         srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
 
-                    let gl_aabr = gl_aabr(rect);
                     let resolution = Vec2::new(
-                        (gl_aabr.size().w * half_res.x).round() as u16,
-                        (gl_aabr.size().h * half_res.y).round() as u16,
+                        (gl_size.w * half_res.x).round() as u16,
+                        (gl_size.h * half_res.y).round() as u16,
                     );
-                    // Transform the source rectangle into uv coordinate.
-                    // TODO: Make sure this is right.
-                    let source_aabr = {
-                        let (uv_l, uv_r, uv_b, uv_t) = (0.0, 1.0, 0.0, 1.0);
-                        /*match source_rect {
-                            Some(src_rect) => {
-                                let (l, r, b, t) = src_rect.l_r_b_t();
-                                ((l / image_w) as f32,
-                                (r / image_w) as f32,
-                                (b / image_h) as f32,
-                                (t / image_h) as f32)
-                            }
-                            None => (0.0, 1.0, 0.0, 1.0),
-                        };*/
-                        Aabr {
-                            min: Vec2::new(uv_l, uv_b),
-                            max: Vec2::new(uv_r, uv_t),
-                        }
-                    };
 
                     // Cache graphic at particular resolution.
                     let (uv_aabr, tex_id) = match graphic_cache.cache_res(
@@ -500,7 +554,13 @@ impl Ui {
                         State::Image(_) => {},
                     }
 
-                    mesh.push_quad(create_ui_quad(gl_aabr, uv_aabr, color, UiMode::Image));
+                    mesh.push_quad(create_ui_quad(gl_aabr, uv_aabr, color, match *rotation {
+                        Rotation::None | Rotation::Cw90 | Rotation::Cw180 | Rotation::Cw270 => {
+                            UiMode::Image
+                        },
+                        Rotation::SourceNorth => UiMode::ImageSourceNorth,
+                        Rotation::TargetNorth => UiMode::ImageTargetNorth,
+                    }));
                 },
                 PrimitiveKind::Text {
                     color,
