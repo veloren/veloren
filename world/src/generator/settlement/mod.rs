@@ -106,20 +106,29 @@ impl Settlement {
         let river_dir = Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5).normalized();
         let radius = 500.0 + rng.gen::<f32>().powf(2.0) * 1000.0;
         let river = self.land.new_plot(Plot::Water);
+        let river_offs = Vec2::new(rng.gen_range(-3, 4), rng.gen_range(-3, 4));
 
-        for theta in (0..500).map(|x| (x as f32) * f32::consts::PI / 250.0) {
-            let pos = river_dir * radius + Vec2::new(theta.sin(), theta.cos()) * radius;
+        for x in (0..100).map(|e| e as f32 / 100.0) {
+            let theta0 = x as f32 * f32::consts::PI * 2.0;
+            let theta1 = (x + 0.01) as f32 * f32::consts::PI * 2.0;
 
-            if pos.magnitude() > 300.0 {
+            let pos0 = (river_dir * radius + Vec2::new(theta0.sin(), theta0.cos()) * radius)
+                .map(|e| e.floor() as i32)
+                .map(to_tile)
+                + river_offs;
+            let pos1 = (river_dir * radius + Vec2::new(theta1.sin(), theta1.cos()) * radius)
+                .map(|e| e.floor() as i32)
+                .map(to_tile)
+                + river_offs;
+
+            if pos0.magnitude_squared() > 15i32.pow(2) {
                 continue;
             }
 
-            for dir in CARDINALS.iter() {
-                self.land.set(
-                    pos.map2(*dir, |e, d| e.floor() as i32 + d * 12)
-                        .map(to_tile),
-                    river,
-                );
+            if let Some(path) = self.land.find_path(pos0, pos1, |_, _| 1.0) {
+                for pos in path.iter().copied() {
+                    self.land.set(pos, river);
+                }
             }
         }
     }
@@ -165,7 +174,7 @@ impl Settlement {
         let mut origin = Vec2::new(rng.gen_range(-2, 3), rng.gen_range(-2, 3));
 
         let town = self.land.new_plot(Plot::Town);
-        for i in 0..4 {
+        for i in 0..6 {
             if let Some(base_tile) = self.land.find_tile_near(origin, |plot| match plot {
                 Some(Plot::Field { .. }) => true,
                 Some(Plot::Dirt) => true,
@@ -174,9 +183,11 @@ impl Settlement {
                 self.land.set(base_tile, town);
 
                 if i == 0 {
+                    /*
                     for dir in CARDINALS.iter() {
                         self.land.set(base_tile + *dir, town);
                     }
+                    */
 
                     self.town = Some(Town { base_tile });
                     origin = base_tile;
@@ -394,6 +405,7 @@ impl Land {
             .min_by_key(|(center, _)| center.distance_squared(pos))
             .unwrap()
             .0;
+        //let locals = self.sampler_warp.get(closest);
 
         let map = [1, 5, 7, 3];
         for (i, dir) in CARDINALS.iter().enumerate() {
