@@ -546,6 +546,7 @@ impl Hud {
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
+            let bodies = ecs.read_storage::<comp::Body>();
             let entities = ecs.entities();
             let me = client.entity();
             let own_level = stats
@@ -609,6 +610,8 @@ impl Hud {
             // Max amount the sct font size increases when "flashing"
             const FLASH_MAX: f32 = 25.0;
             const BARSIZE: f64 = 2.0;
+            const MANA_BAR_HEIGHT: f64 = BARSIZE * 1.5;
+            const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
             // Get player position.
             let player_pos = client
                 .state()
@@ -628,22 +631,23 @@ impl Hud {
             let mut sct_id_walker = self.ids.scts.walk();
 
             // Render Health Bars
-            for (pos, stats, energy, scale, hp_floater_list) in (
+            for (pos, stats, energy, height_offset, hp_floater_list) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
                 &energy,
                 scales.maybe(),
+                &bodies,
                 &hp_floater_lists,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _, _)| {
+                .filter(|(entity, _, _, stats, _, _, _, _)| {
                     *entity != me && !stats.is_dead
                     //&& stats.health.current() != stats.health.maximum()
                 })
                 // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, hpfl)| {
+                .filter(|(_, pos, _, _, _, _, _, hpfl)| {
                     pos.0.distance_squared(player_pos)
                         < (if hpfl
                             .time_since_last_dmg_by_me
@@ -655,12 +659,13 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, energy, scale, f)| {
+                .map(|(_, pos, interpolated, stats, energy, scale, body, f)| {
                     (
                         interpolated.map_or(pos.0, |i| i.pos),
                         stats,
                         energy,
-                        scale.map_or(1.0, |s| s.0),
+                        // TODO: when body.height() is more accurate remove the 2.0
+                        body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
                         f,
                     )
                 })
@@ -687,13 +692,15 @@ impl Hud {
                 let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
+                let ingame_pos = pos + Vec3::unit_z() * height_offset;
+
                 // Background
                 Rectangle::fill_with(
-                    [82.0 * BARSIZE + 1.0, 8.0 * BARSIZE + 1.0],
+                    [82.0 * BARSIZE + 1.0, 8.0],
                     Color::Rgba(0.1, 0.1, 0.1, 0.9),
                 )
-                .x_y(0.0, -25.0)
-                .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                .x_y(0.0, MANA_BAR_Y + 7.0) //-25.0)
+                .position_ingame(ingame_pos)
                 .set(back_id, ui_widgets);
 
                 // % HP Filling
@@ -701,7 +708,7 @@ impl Hud {
                     .w_h(72.9 * (hp_percentage / 100.0) * BARSIZE, 5.9 * BARSIZE)
                     .x_y(
                         (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
-                        -23.0,
+                        MANA_BAR_Y + 9.0,
                     )
                     .color(Some(if hp_percentage <= 25.0 {
                         crit_hp_color
@@ -710,29 +717,29 @@ impl Hud {
                     } else {
                         HP_COLOR
                     }))
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(ingame_pos)
                     .set(health_bar_id, ui_widgets);
                 // % Mana Filling
                 Rectangle::fill_with(
                     [
                         73.0 * (energy.current() as f64 / energy.maximum() as f64) * BARSIZE,
-                        1.5 * BARSIZE,
+                        MANA_BAR_HEIGHT,
                     ],
                     MANA_COLOR,
                 )
                 .x_y(
                     ((4.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
-                    -32.0,
+                    MANA_BAR_Y, //-32.0,
                 )
-                .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                .position_ingame(ingame_pos)
                 .set(mana_bar_id, ui_widgets);
 
                 // Foreground
                 Image::new(self.imgs.enemy_health)
                     .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
-                    .x_y(0.0, -25.5)
+                    .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(ingame_pos)
                     .set(front_id, ui_widgets);
 
                 // Enemy SCT
@@ -794,7 +801,7 @@ impl Hud {
                         // Timer sets the widget offset
                         let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
                             * number_speed)
-                            + 30.0;
+                            + 100.0;
                         // Timer sets text transparency
                         let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
 
@@ -802,7 +809,7 @@ impl Hud {
                             .font_size(font_size)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(0.0, y - 3.0)
-                            .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
+                            .position_ingame(ingame_pos)
                             .set(sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", hp_damage.abs()))
                             .font_size(font_size)
@@ -812,7 +819,7 @@ impl Hud {
                             } else {
                                 Color::Rgba(0.1, 1.0, 0.1, fade)
                             })
-                            .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
+                            .position_ingame(ingame_pos)
                             .set(sct_id, ui_widgets);
                     } else {
                         for floater in floaters {
@@ -838,7 +845,7 @@ impl Hud {
                             let y = (floater.timer as f64
                                 / crate::ecs::sys::floater::HP_SHOWTIME as f64
                                 * number_speed)
-                                + 30.0;
+                                + 100.0;
                             // Timer sets text transparency
                             let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer)
                                 * 0.25)
@@ -852,9 +859,7 @@ impl Hud {
                                     Color::Rgba(0.1, 1.0, 0.1, 0.0)
                                 })
                                 .x_y(0.0, y - 3.0)
-                                .position_ingame(
-                                    pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
-                                )
+                                .position_ingame(ingame_pos)
                                 .set(sct_bg_id, ui_widgets);
                             Text::new(&format!("{}", (floater.hp_change).abs()))
                                 .font_size(font_size)
@@ -864,9 +869,7 @@ impl Hud {
                                 } else {
                                     Color::Rgba(0.1, 1.0, 0.1, 0.0)
                                 })
-                                .position_ingame(
-                                    pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
-                                )
+                                .position_ingame(ingame_pos)
                                 .set(sct_id, ui_widgets);
                         }
                     }
@@ -1105,19 +1108,20 @@ impl Hud {
             }
 
             // Render Name Tags
-            for (pos, name, level, scale) in (
+            for (pos, name, level, height_offset) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
                 players.maybe(),
                 scales.maybe(),
+                &bodies,
                 &hp_floater_lists,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _, _)| *entity != me && !stats.is_dead)
+                .filter(|(entity, _, _, stats, _, _, _, _)| *entity != me && !stats.is_dead)
                 // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, hpfl)| {
+                .filter(|(_, pos, _, _, _, _, _, hpfl)| {
                     pos.0.distance_squared(player_pos)
                         < (if hpfl
                             .time_since_last_dmg_by_me
@@ -1129,7 +1133,7 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, player, scale, _)| {
+                .map(|(_, pos, interpolated, stats, player, scale, body, _)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -1141,7 +1145,7 @@ impl Hud {
                         interpolated.map_or(pos.0, |i| i.pos),
                         format!("{}", name),
                         stats.level,
-                        scale.map_or(1.0, |s| s.0),
+                        body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
                     )
                 })
             {
@@ -1160,18 +1164,20 @@ impl Hud {
                     &mut ui_widgets.widget_id_generator(),
                 );
 
+                let ingame_pos = pos + Vec3::unit_z() * height_offset;
+
                 // Name
                 Text::new(&name)
                     .font_size(30)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                    .x_y(-1.0, 16.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .x_y(-1.0, MANA_BAR_Y + 48.0)
+                    .position_ingame(ingame_pos)
                     .set(name_bg_id, ui_widgets);
                 Text::new(&name)
                     .font_size(30)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
-                    .x_y(0.0, 18.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .x_y(0.0, MANA_BAR_Y + 50.0)
+                    .position_ingame(ingame_pos)
                     .set(name_id, ui_widgets);
 
                 // Level
@@ -1200,8 +1206,8 @@ impl Hud {
                     } else {
                         EQUAL
                     })
-                    .x_y(-37.0 * BARSIZE, -23.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 9.0)
+                    .position_ingame(ingame_pos)
                     .set(level_id, ui_widgets);
                 if level_comp > 9 {
                     let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
@@ -1211,9 +1217,9 @@ impl Hud {
                         self.imgs.skull
                     })
                     .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                    .x_y(-39.0 * BARSIZE, -25.0)
+                    .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(ingame_pos)
                     .set(level_skull_id, ui_widgets);
                 }
             }
