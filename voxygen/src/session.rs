@@ -173,7 +173,16 @@ impl PlayState for SessionState {
                     (None, None)
                 }
             };
-            self.scene.set_select_pos(select_pos);
+            // Only highlight collectables
+            self.scene.set_select_pos(select_pos.filter(|sp| {
+                self.client
+                    .borrow()
+                    .state()
+                    .terrain()
+                    .get(*sp)
+                    .map(|b| b.is_collectible())
+                    .unwrap_or(false)
+            }));
 
             // Handle window events.
             for event in global_state.window.fetch_events(&mut global_state.settings) {
