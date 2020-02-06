@@ -34,6 +34,15 @@ pub enum PathResult<T> {
     Pending,
 }
 
+impl<T> PathResult<T> {
+    pub fn into_path(self) -> Option<Path<T>> {
+        match self {
+            PathResult::Path(path) => Some(path),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Astar<S: Clone + Eq + Hash> {
     iter: usize,
