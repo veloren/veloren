@@ -10,6 +10,7 @@ gfx_defines! {
         pos: [f32; 2] = "v_pos",
         uv: [f32; 2] = "v_uv",
         color: [f32; 4] = "v_color",
+        center: [f32; 2] = "v_center",
         mode: u32 = "v_mode",
     }
 
@@ -55,11 +56,23 @@ pub const MODE_TEXT: u32 = 0;
 pub const MODE_IMAGE: u32 = 1;
 /// Ignore `tex` and draw simple, colored 2D geometry.
 pub const MODE_GEOMETRY: u32 = 2;
+/// Draw an image from the texture at `tex` in the fragment shader, with the
+/// source rectangle rotated to face north.
+///
+/// FIXME: Make more principled.
+pub const MODE_IMAGE_SOURCE_NORTH: u32 = 3;
+/// Draw an image from the texture at `tex` in the fragment shader, with the
+/// target rectangle rotated to face north.
+///
+/// FIXME: Make more principled.
+pub const MODE_IMAGE_TARGET_NORTH: u32 = 5;
 
 pub enum Mode {
     Text,
     Image,
     Geometry,
+    ImageSourceNorth,
+    ImageTargetNorth,
 }
 
 impl Mode {
@@ -68,6 +81,8 @@ impl Mode {
             Mode::Text => MODE_TEXT,
             Mode::Image => MODE_IMAGE,
             Mode::Geometry => MODE_GEOMETRY,
+            Mode::ImageSourceNorth => MODE_IMAGE_SOURCE_NORTH,
+            Mode::ImageTargetNorth => MODE_IMAGE_TARGET_NORTH,
         }
     }
 }
@@ -78,10 +93,16 @@ pub fn create_quad(
     color: Rgba<f32>,
     mode: Mode,
 ) -> Quad<UiPipeline> {
+    let center = if let Mode::ImageSourceNorth = mode {
+        uv_rect.center().into_array()
+    } else {
+        rect.center().into_array()
+    };
     let mode_val = mode.value();
     let v = |pos, uv| Vertex {
         pos,
         uv,
+        center,
         color: color.into_array(),
         mode: mode_val,
     };
@@ -118,10 +139,12 @@ pub fn create_tri(
     color: Rgba<f32>,
     mode: Mode,
 ) -> Tri<UiPipeline> {
+    let center = [0.0, 0.0];
     let mode_val = mode.value();
     let v = |pos, uv| Vertex {
         pos,
         uv,
+        center,
         color: color.into_array(),
         mode: mode_val,
     };

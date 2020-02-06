@@ -8,6 +8,13 @@ rotation_image_ids! {
         // Tooltip Test
         tt_side: "voxygen/element/frames/tt_test_edge",
         tt_corner: "voxygen/element/frames/tt_test_corner_tr",
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        <VoxelPixArtGraphic>
+
+        // Minimap
+        indicator_mmap_small: "voxygen.element.buttons.indicator_mmap_small",
     }
 }
 
@@ -131,7 +138,6 @@ image_ids! {
         skull_2: "voxygen.element.icons.skull_2",
 
         // Map
-        map_indicator: "voxygen.element.buttons.map_indicator",
         indicator_mmap: "voxygen.element.buttons.indicator_mmap",
         indicator_mmap_2: "voxygen.element.buttons.indicator_mmap_2",
         indicator_mmap_3: "voxygen.element.buttons.indicator_mmap_3",
@@ -169,7 +175,7 @@ image_ids! {
         mmap_open_press: "voxygen.element.buttons.button_mmap_open_press",
         mmap_plus: "voxygen.element.buttons.min_plus.mmap_button-plus",
         mmap_plus_hover: "voxygen.element.buttons.min_plus.mmap_button-plus_hover",
-        mmap_plus_press: "voxygen.element.buttons.min_plus.mmap_button-plus_hover",
+        mmap_plus_press: "voxygen.element.buttons.min_plus.mmap_button-plus_press",
         mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
         mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
         mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
