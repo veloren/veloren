@@ -85,7 +85,7 @@ fn get_col_quad(dirs: &[Vec3<i32>], cols: &[[[Rgba<u8>; 3]; 3]; 3]) -> Vec4<Rgb<
                     if col.a > 0 {
                         let col = Rgb::new(col.r, col.g, col.b).map(|e| e as f32);
                         if Vec3::<f32>::from(primary_col).distance_squared(Vec3::from(col))
-                            < (0.25f32 * 256.0).powf(2.0)
+                            < (0.00000001f32 * 256.0).powf(2.0)
                         {
                             color += col;
                             total += 256.0;
