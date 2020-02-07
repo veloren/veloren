@@ -56,7 +56,7 @@ pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
     Vec2::new(x, y)
 }
 
-const AREA_SIZE: u32 = 32;
+const AREA_SIZE: u32 = 48;
 
 fn to_tile(e: i32) -> i32 { ((e as f32).div_euclid(AREA_SIZE as f32)).floor() as i32 }
 
@@ -195,7 +195,7 @@ impl Settlement {
             }
         }
 
-        // Border wall
+        // Boundary wall
         let spokes = CARDINALS
             .iter()
             .filter_map(|dir| {
@@ -217,21 +217,23 @@ impl Settlement {
                 .map(|path| wall_path.extend(path.iter().copied()));
         }
         let grass = self.land.new_plot(Plot::Grass);
+        let buildable = |plot: &Plot| match plot {
+            Plot::Water => false,
+            _ => true,
+        };
         for pos in wall_path.iter() {
             if self.land.tile_at(*pos).is_none() {
                 self.land.set(*pos, grass);
             }
+            if self.land.plot_at(*pos).copied().filter(buildable).is_some() {
+                self.land
+                    .tile_at_mut(*pos)
+                    .map(|tile| tile.tower = Some(Tower::Wall));
+            }
         }
         wall_path.push(wall_path[0]);
-        self.land.write_path(
-            &wall_path,
-            WayKind::Wall,
-            |plot| match plot {
-                Plot::Water => false,
-                _ => true,
-            },
-            true,
-        );
+        self.land
+            .write_path(&wall_path, WayKind::Wall, buildable, true);
     }
 
     pub fn place_farms(&mut self, rng: &mut impl Rng) {
@@ -312,6 +314,7 @@ impl Settlement {
             Sample::Way(WayKind::Path) => Rgb::new(130, 100, 0),
             Sample::Way(WayKind::Hedge) => Rgb::new(0, 150, 0),
             Sample::Way(WayKind::Wall) => Rgb::new(60, 60, 60),
+            Sample::Tower(Tower::Wall) => Rgb::new(50, 50, 50),
             Sample::Plot(Plot::Dirt) => Rgb::new(130, 100, 0),
             Sample::Plot(Plot::Grass) => Rgb::new(100, 200, 0),
             Sample::Plot(Plot::Water) => Rgb::new(100, 150, 250),
@@ -368,9 +371,25 @@ pub enum WayKind {
     Wall,
 }
 
+impl WayKind {
+    pub fn width(&self) -> f32 {
+        match self {
+            WayKind::Path => 2.5,
+            WayKind::Hedge => 1.5,
+            WayKind::Wall => 2.5,
+        }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum Tower {
+    Wall,
+}
+
 pub struct Tile {
     plot: Id<Plot>,
     ways: [Option<WayKind>; 4],
+    tower: Option<Tower>,
 }
 
 impl Tile {
@@ -381,6 +400,7 @@ pub enum Sample<'a> {
     Wilderness,
     Plot(&'a Plot),
     Way(&'a WayKind),
+    Tower(&'a Tower),
 }
 
 pub struct Land {
@@ -394,7 +414,7 @@ impl Land {
         Self {
             tiles: HashMap::new(),
             plots: Store::default(),
-            sampler_warp: StructureGen2d::new(rng.gen(), AREA_SIZE, 12),
+            sampler_warp: StructureGen2d::new(rng.gen(), AREA_SIZE, 16),
         }
     }
 
@@ -405,19 +425,23 @@ impl Land {
             .min_by_key(|(center, _)| center.distance_squared(pos))
             .unwrap()
             .0;
-        //let locals = self.sampler_warp.get(closest);
 
-        let map = [1, 5, 7, 3];
+        let center_tile = self.tile_at(neighbors[4].0.map(to_tile));
+
+        if neighbors[4].0.distance_squared(pos) < 6i32.pow(2) {
+            if let Some(tower) = center_tile.and_then(|tile| tile.tower.as_ref()) {
+                return Sample::Tower(tower);
+            }
+        }
+
         for (i, dir) in CARDINALS.iter().enumerate() {
+            let map = [1, 5, 7, 3];
             let line = [
                 neighbors[4].0.map(|e| e as f32),
                 neighbors[map[i]].0.map(|e| e as f32),
             ];
-            if dist_to_line(line, pos.map(|e| e as f32)) < 1.5 {
-                if let Some(way) = self
-                    .tile_at(neighbors[4].0.map(to_tile))
-                    .and_then(|tile| tile.ways[i].as_ref())
-                {
+            if let Some(way) = center_tile.and_then(|tile| tile.ways[i].as_ref()) {
+                if dist_to_line(line, pos.map(|e| e as f32)) < way.width() {
                     return Sample::Way(way);
                 }
             }
@@ -450,6 +474,7 @@ impl Land {
         self.tiles.insert(pos, Tile {
             plot,
             ways: [None; 4],
+            tower: None,
         });
     }
 
