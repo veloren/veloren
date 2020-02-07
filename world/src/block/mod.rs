@@ -398,12 +398,14 @@ impl<'a> BlockGen<'a> {
         };
 
         // Structures (like towns)
+        /*
         let block = chunk
             .structures
             .town
             .as_ref()
             .and_then(|town| TownGen.get((town, wpos, sample, height)))
             .or(block);
+        */
 
         let block = structures
             .iter()
@@ -472,6 +474,7 @@ impl<'a> ZCache<'a> {
         let max = (ground_max + structure_max).max(self.sample.water_level + 2.0);
 
         // Structures
+        /*
         let (min, max) = self
             .sample
             .chunk
@@ -483,6 +486,7 @@ impl<'a> ZCache<'a> {
                 (town_min.min(min), town_max.max(max))
             })
             .unwrap_or((min, max));
+        */
 
         let structures_only_min_z = ground_max.max(self.sample.water_level + 2.0);
 

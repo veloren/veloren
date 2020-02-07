@@ -16,7 +16,7 @@ pub use crate::config::CONFIG;
 use crate::{
     block::BlockGen,
     column::{ColumnGen, ColumnSample},
-    util::Sampler,
+    util::{Grid, Sampler},
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo, EntityKind},
@@ -95,7 +95,11 @@ impl World {
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
         let mut sampler = self.sample_blocks();
 
-        let chunk_block_pos = Vec3::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+        let chunk_wpos2d = Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+        let zcache_grid =
+            Grid::populate_from(TerrainChunkSize::RECT_SIZE.map(|e| e as i32), |offs| {
+                sampler.get_z_cache(chunk_wpos2d + offs)
+            });
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
         for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
@@ -103,12 +107,13 @@ impl World {
                 if should_continue() {
                     return Err(());
                 };
-                let wpos2d = Vec2::new(x, y)
-                    + Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
-                let z_cache = match sampler.get_z_cache(wpos2d) {
-                    Some(z_cache) => z_cache,
-                    None => continue,
+                let offs = Vec2::new(x, y);
+                let wpos2d = chunk_wpos2d + offs;
+
+                let z_cache = match zcache_grid.get(offs) {
+                    Some(Some(z_cache)) => z_cache,
+                    _ => continue,
                 };
 
                 let (min_z, only_structures_min_z, max_z) = z_cache.get_z_limits(&mut sampler);
@@ -119,7 +124,7 @@ impl World {
 
                 (min_z as i32..max_z as i32).for_each(|z| {
                     let lpos = Vec3::new(x, y, z);
-                    let wpos = chunk_block_pos + lpos;
+                    let wpos = Vec3::from(chunk_wpos2d) + lpos;
                     let only_structures = lpos.z >= only_structures_min_z as i32;
 
                     if let Some(block) =
@@ -140,7 +145,7 @@ impl World {
                 lpos.z += 1;
             }
 
-            (chunk_block_pos + lpos).map(|e| e as f32) + 0.5
+            (Vec3::from(chunk_wpos2d) + lpos).map(|e: i32| e as f32) + 0.5
         };
 
         const SPAWN_RATE: f32 = 0.1;

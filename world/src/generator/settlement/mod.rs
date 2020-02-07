@@ -1,5 +1,10 @@
 use crate::util::{Sampler, StructureGen2d};
-use common::{astar::Astar, path::Path, spiral::Spiral2d};
+use common::{
+    astar::Astar,
+    path::Path,
+    spiral::Spiral2d,
+    terrain::{Block, BlockKind},
+};
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use std::{collections::VecDeque, f32, marker::PhantomData};
@@ -56,7 +61,7 @@ pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
     Vec2::new(x, y)
 }
 
-const AREA_SIZE: u32 = 48;
+const AREA_SIZE: u32 = 64;
 
 fn to_tile(e: i32) -> i32 { ((e as f32).div_euclid(AREA_SIZE as f32)).floor() as i32 }
 
@@ -70,6 +75,7 @@ pub struct Structure {
 }
 
 pub struct Settlement {
+    origin: Vec2<i32>,
     land: Land,
     farms: Store<Farm>,
     structures: Vec<Structure>,
@@ -85,15 +91,16 @@ pub struct Farm {
 }
 
 impl Settlement {
-    pub fn generate(rng: &mut impl Rng) -> Self {
+    pub fn generate(wpos: Vec2<i32>, rng: &mut impl Rng) -> Self {
         let mut this = Self {
+            origin: wpos,
             land: Land::new(rng),
             farms: Store::default(),
             structures: Vec::new(),
             town: None,
         };
 
-        this.place_river(rng);
+        //this.place_river(rng);
 
         this.place_farms(rng);
         this.place_town(rng);
@@ -296,7 +303,12 @@ impl Settlement {
         }
     }
 
-    pub fn get_color(&self, pos: Vec2<f32>) -> Rgb<u8> {
+    pub fn get_surface(&self, wpos: Vec2<i32>) -> Option<Block> {
+        self.get_color((wpos - self.origin).map(|e| e as f32))
+            .map(|col| Block::new(BlockKind::Normal, col))
+    }
+
+    pub fn get_color(&self, pos: Vec2<f32>) -> Option<Rgb<u8>> {
         let pos = pos.map(|e| e.floor() as i32);
 
         if let Some(structure) = self
@@ -304,13 +316,13 @@ impl Settlement {
             .iter()
             .find(|s| s.bounds.contains_point(pos))
         {
-            return match structure.kind {
+            return Some(match structure.kind {
                 StructureKind::House => Rgb::new(200, 80, 50),
-            };
+            });
         }
 
-        match self.land.get_at_block(pos) {
-            Sample::Wilderness => Rgb::zero(),
+        Some(match self.land.get_at_block(pos) {
+            Sample::Wilderness => return None,
             Sample::Way(WayKind::Path) => Rgb::new(130, 100, 0),
             Sample::Way(WayKind::Hedge) => Rgb::new(0, 150, 0),
             Sample::Way(WayKind::Wall) => Rgb::new(60, 60, 60),
@@ -336,7 +348,7 @@ impl Settlement {
                 let furrow = (pos * furrow_dir).sum().rem_euclid(4) < 2;
                 Rgb::new(
                     if furrow {
-                        150
+                        120
                     } else {
                         48 + seed.to_le_bytes()[0] % 64
                     },
@@ -344,7 +356,7 @@ impl Settlement {
                     16 + seed.to_le_bytes()[2] % 32,
                 )
             },
-        }
+        })
     }
 }
 
@@ -374,9 +386,9 @@ pub enum WayKind {
 impl WayKind {
     pub fn width(&self) -> f32 {
         match self {
-            WayKind::Path => 2.5,
+            WayKind::Path => 4.0,
             WayKind::Hedge => 1.5,
-            WayKind::Wall => 2.5,
+            WayKind::Wall => 3.5,
         }
     }
 }
@@ -384,6 +396,14 @@ impl WayKind {
 #[derive(Copy, Clone, PartialEq)]
 pub enum Tower {
     Wall,
+}
+
+impl Tower {
+    pub fn radius(&self) -> f32 {
+        match self {
+            Tower::Wall => 8.0,
+        }
+    }
 }
 
 pub struct Tile {
@@ -414,7 +434,7 @@ impl Land {
         Self {
             tiles: HashMap::new(),
             plots: Store::default(),
-            sampler_warp: StructureGen2d::new(rng.gen(), AREA_SIZE, 16),
+            sampler_warp: StructureGen2d::new(rng.gen(), AREA_SIZE, AREA_SIZE * 2 / 5),
         }
     }
 
@@ -428,8 +448,8 @@ impl Land {
 
         let center_tile = self.tile_at(neighbors[4].0.map(to_tile));
 
-        if neighbors[4].0.distance_squared(pos) < 6i32.pow(2) {
-            if let Some(tower) = center_tile.and_then(|tile| tile.tower.as_ref()) {
+        if let Some(tower) = center_tile.and_then(|tile| tile.tower.as_ref()) {
+            if (neighbors[4].0.distance_squared(pos) as f32) < tower.radius().powf(2.0) {
                 return Sample::Tower(tower);
             }
         }

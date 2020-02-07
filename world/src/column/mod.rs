@@ -1000,6 +1000,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             humidity.sub(CONFIG.jungle_hum).mul(1.0),
         );
 
+        let ground = sim_chunk.sites.iter().fold(ground, |ground, site| {
+            site.get_surface(wpos)
+                .and_then(|block| block.get_color())
+                .map(|col| col.map(|e| e as f32 / 255.0))
+                .unwrap_or(ground)
+        });
+
         // Snow covering
         let snow_cover = temp
             .sub(CONFIG.snow_temp)
@@ -1095,6 +1102,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             stone_col,
 
             chunk: sim_chunk,
+            /*
             spawn_rules: sim_chunk
                 .structures
                 .town
@@ -1105,6 +1113,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     cliffs: !in_water,
                     trees: true,
                 }),
+            */
+            spawn_rules: SpawnRules {
+                cliffs: !in_water,
+                trees: true,
+            },
         })
     }
 }
