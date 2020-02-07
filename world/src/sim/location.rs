@@ -1,4 +1,3 @@
-use super::Settlement;
 use hashbrown::HashSet;
 use rand::{seq::SliceRandom, Rng};
 use vek::*;
@@ -9,7 +8,6 @@ pub struct Location {
     pub(crate) center: Vec2<i32>,
     pub(crate) kingdom: Option<Kingdom>,
     pub(crate) neighbours: HashSet<usize>,
-    pub(crate) settlement: Settlement,
 }
 
 impl Location {
@@ -19,7 +17,6 @@ impl Location {
             center,
             kingdom: None,
             neighbours: HashSet::default(),
-            settlement: Settlement::generate(rng),
         }
     }
 
