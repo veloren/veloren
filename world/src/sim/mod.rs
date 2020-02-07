@@ -15,7 +15,6 @@ pub use self::{
     },
     location::Location,
     map::{MapConfig, MapDebug},
-    settlement::Settlement,
     util::{
         cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, neighbors,
         uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
@@ -27,7 +26,7 @@ use crate::{
     all::ForestKind,
     block::BlockGen,
     column::ColumnGen,
-    generator::TownState,
+    generator::{Settlement, Site},
     util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d},
     CONFIG,
 };
@@ -1450,7 +1449,7 @@ impl WorldSim {
                 e * sz as i32 + sz as i32 / 2
             })
         };
-        let maybe_towns = self
+        let sites = self
             .gen_ctx
             .town_gen
             .par_iter(
@@ -1462,11 +1461,12 @@ impl WorldSim {
                 |mut block_gen, (pos, seed)| {
                     let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
                     // println!("Town: {:?}", town);
-                    TownState::generate(pos, &mut block_gen, &mut rng).map(|t| (pos, Arc::new(t)))
+                    //TownState::generate(pos, &mut block_gen, &mut rng).map(|t| (pos,
+                    // Arc::new(t)))
+                    (pos, Site::from(Settlement::generate(pos, &mut rng)))
                 },
             )
-            .filter_map(|x| x)
-            .collect::<HashMap<_, _>>();
+            .collect::<Vec<_>>();
 
         let gen_ctx = &self.gen_ctx;
         self.chunks
@@ -1476,21 +1476,13 @@ impl WorldSim {
                 let chunk_pos = uniform_idx_as_vec2(ij);
                 let wpos = chunk_idx_center(chunk_pos);
 
-                let near_towns = gen_ctx.town_gen.get(wpos);
-                let town = near_towns
+                if let Some((pos, site)) = sites
                     .iter()
-                    .min_by_key(|(pos, _seed)| wpos.distance_squared(*pos));
-
-                let maybe_town = town
-                    .and_then(|(pos, _seed)| maybe_towns.get(pos))
-                    // Only care if we're close to the town
-                    .filter(|town| {
-                        Vec2::from(town.center()).distance_squared(wpos)
-                            < town.radius().add(64).pow(2)
-                    })
-                    .cloned();
-
-                chunk.structures.town = maybe_town;
+                    .filter(|(pos, _)| pos.distance_squared(wpos) < 1200i32.pow(2))
+                    .min_by_key(|(pos, _)| wpos.distance_squared(*pos))
+                {
+                    chunk.sites.push(site.clone());
+                }
             });
 
         // Create waypoints
@@ -1771,7 +1763,7 @@ pub struct SimChunk {
     pub location: Option<LocationInfo>,
     pub river: RiverData,
 
-    pub structures: Structures,
+    pub sites: Vec<Site>,
     pub contains_waypoint: bool,
 }
 
@@ -1787,11 +1779,6 @@ pub struct RegionInfo {
 pub struct LocationInfo {
     pub loc_idx: usize,
     pub near: Vec<RegionInfo>,
-}
-
-#[derive(Clone)]
-pub struct Structures {
-    pub town: Option<Arc<TownState>>,
 }
 
 impl SimChunk {
@@ -2015,7 +2002,7 @@ impl SimChunk {
             spawn_rate: 1.0,
             location: None,
             river,
-            structures: Structures { town: None },
+            sites: Vec::new(),
             contains_waypoint: false,
         }
     }

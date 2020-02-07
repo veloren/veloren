@@ -10,7 +10,7 @@ use super::SceneData;
 use common::{
     assets,
     figure::Segment,
-    spiral::Spiral2D,
+    spiral::Spiral2d,
     terrain::{Block, BlockKind, TerrainChunk},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, Vox},
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},

@@ -9,7 +9,7 @@ fn main() {
     let mut win =
         minifb::Window::new("Settlement Viewer", W, H, minifb::WindowOptions::default()).unwrap();
 
-    let settlement = Settlement::generate(&mut thread_rng());
+    let settlement = Settlement::generate(Vec2::zero(), &mut thread_rng());
 
     let mut focus = Vec2::<f32>::zero();
     let mut zoom = 1.0;
@@ -24,7 +24,7 @@ fn main() {
             for j in 0..H {
                 let pos = focus + win_to_pos(Vec2::new(i, j)) * zoom;
 
-                let color = settlement.get_color(pos);
+                let color = settlement.get_color(pos).unwrap_or(Rgb::new(35, 50, 20));
 
                 buf[j * W + i] = u32::from_le_bytes([color.b, color.g, color.r, 255]);
             }
