@@ -114,20 +114,6 @@ impl PlayState for CharSelectionState {
                 }
             }
 
-            let humanoid_body = self
-                .char_selection_ui
-                .get_character_list()
-                .and_then(|data| {
-                    if let Some(character) = data.get(self.char_selection_ui.selected_character) {
-                        match character.body {
-                            comp::Body::Humanoid(body) => Some(body),
-                            _ => None,
-                        }
-                    } else {
-                        None
-                    }
-                });
-
             let humanoid_body = self.get_humanoid_body();
             let loadout = self.char_selection_ui.get_loadout();
 
