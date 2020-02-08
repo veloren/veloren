@@ -1,9 +1,13 @@
-use crate::util::{Sampler, StructureGen2d};
+use crate::{
+    block::ZCache,
+    util::{Grid, Sampler, StructureGen2d},
+};
 use common::{
     astar::Astar,
     path::Path,
     spiral::Spiral2d,
     terrain::{Block, BlockKind},
+    vol::{BaseVol, WriteVol},
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -303,14 +307,53 @@ impl Settlement {
         }
     }
 
+    pub fn apply_to(
+        &self,
+        wpos2d: Vec2<i32>,
+        zcaches: &Grid<Option<ZCache>>,
+        vol: &mut (impl BaseVol<Vox = Block> + WriteVol),
+    ) {
+        for y in 0..zcaches.size().y {
+            for x in 0..zcaches.size().x {
+                let offs = Vec2::new(x, y);
+
+                let zcache = if let Some(Some(zcache)) = zcaches.get(offs) {
+                    zcache
+                } else {
+                    continue;
+                };
+
+                let wpos2d = wpos2d + offs;
+
+                match self.land.get_at_block(wpos2d - self.origin) {
+                    Sample::Way(WayKind::Wall) => {
+                        for z in 0..12 {
+                            vol.set(
+                                Vec3::new(offs.x, offs.y, zcache.sample.alt.floor() as i32 + z),
+                                Block::new(BlockKind::Normal, Rgb::new(60, 60, 60)),
+                            );
+                        }
+                    },
+                    Sample::Tower(Tower::Wall) => {
+                        for z in 0..16 {
+                            vol.set(
+                                Vec3::new(offs.x, offs.y, zcache.sample.alt.floor() as i32 + z),
+                                Block::new(BlockKind::Normal, Rgb::new(50, 50, 50)),
+                            );
+                        }
+                    },
+                    _ => {},
+                }
+            }
+        }
+    }
+
     pub fn get_surface(&self, wpos: Vec2<i32>) -> Option<Block> {
-        self.get_color((wpos - self.origin).map(|e| e as f32))
+        self.get_color(wpos - self.origin)
             .map(|col| Block::new(BlockKind::Normal, col))
     }
 
-    pub fn get_color(&self, pos: Vec2<f32>) -> Option<Rgb<u8>> {
-        let pos = pos.map(|e| e.floor() as i32);
-
+    pub fn get_color(&self, pos: Vec2<i32>) -> Option<Rgb<u8>> {
         if let Some(structure) = self
             .structures
             .iter()

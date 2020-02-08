@@ -24,7 +24,9 @@ fn main() {
             for j in 0..H {
                 let pos = focus + win_to_pos(Vec2::new(i, j)) * zoom;
 
-                let color = settlement.get_color(pos).unwrap_or(Rgb::new(35, 50, 20));
+                let color = settlement
+                    .get_color(pos.map(|e| e.floor() as i32))
+                    .unwrap_or(Rgb::new(35, 50, 20));
 
                 buf[j * W + i] = u32::from_le_bytes([color.b, color.g, color.r, 255]);
             }
