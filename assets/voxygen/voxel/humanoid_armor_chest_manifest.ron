@@ -23,6 +23,10 @@
         vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
         color: Some((29, 26, 33))
     ),
+    Assassin: (
+        vox_spec: ("armor.chest.assa", (-7.0, -3.5, 2.0)),
+        color: None
+    ),
     Kimono: (
         vox_spec: ("armor.chest.cloth_red_kimono", (-7.0, -3.5, 2.0)),
         color: None

@@ -3,8 +3,20 @@
         vox_spec: ("armor.belt.dark", (-4.0, -3.5, 2.0)),
         color: None
     ),
-    Cloth:(
+    TurqCloth:(
         vox_spec: ("armor.belt.cloth_turq", (-4.0, -3.5, -6.0)),
+        color: None
+    ),
+     BloodCloth:(
+        vox_spec: ("armor.belt.cloth_blood", (-4.0, -3.5, -6.0)),
+        color: Some((29, 26, 33))
+    ),
+    BlackCloth:(
+        vox_spec: ("armor.belt.cloth_black", (-4.0, -3.5, -6.0)),
+        color: Some((29, 26, 33))
+    ),
+    Assassin:(
+        vox_spec: ("armor.belt.assa", (-5.0, -3.5, 2.0)),
         color: None
     )
 })
