@@ -9,6 +9,16 @@
             color: None
         )
     ),
+    Assassin: (
+        left: (
+            vox_spec: ("armor.hand.assa_left", (-1.5, -1.5, -7.0)),
+            color: None
+        ),
+        right: (
+            vox_spec: ("armor.hand.assa_right", (-1.5, -1.5, -7.0)),
+            color: None
+        )
+    ),
     Cloth: (
         left: (
             vox_spec: ("armor.hand.cloth_basic_left", (-1.5, -1.5, -7.0)),

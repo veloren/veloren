@@ -8,6 +8,10 @@
         vox_spec: ("armor.foot.dark-0", (-2.5, -3.5, -9.0)),
         color: None
     ),
+    Assassin: (
+        vox_spec: ("armor.foot.assa", (-2.5, -3.5, -9.0)),
+        color: None
+    ),
     Sandal: (
         vox_spec: ("armor.foot.cloth_sandals", (-2.5, -2.5, -9.0)),
         color: None
