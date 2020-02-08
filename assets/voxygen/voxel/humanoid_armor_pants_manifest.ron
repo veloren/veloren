@@ -19,8 +19,12 @@
         vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
         color: Some((148, 52, 33))
     ),
+    Assassin: (
+        vox_spec: ("armor.pants.assa", (-5.0, -3.5, 1.0)),
+        color: None
+    ),
     Kimono: (
-        vox_spec: ("armor.pants.cloth_red_kimono", (-5.0, -3.5, 1.0)),
+        vox_spec: ("armor.pants.cloth_red_kimono", (-5.0, -3.5, 0.0)),
         color: None
     )
 })
