@@ -7,19 +7,19 @@ use veloren_voxygen::{
     audio::{self, AudioFrontend},
     i18n::{self, i18n_asset_key, VoxygenLocalization},
     logging,
-    menu::main::MainMenuState,
     profile::Profile,
+    run,
     settings::{AudioOutput, Settings},
     window::Window,
-    Direction, GlobalState, PlayState, PlayStateResult,
+    GlobalState,
 };
 
 use common::{
     assets::{load_watched, watch},
     clock::Clock,
 };
-use std::{mem, panic};
-use tracing::{debug, error, warn};
+use std::panic;
+use tracing::{error, warn};
 
 fn main() {
     #[cfg(feature = "tweak")]
@@ -140,10 +140,10 @@ fn main() {
         &mut localization_watcher,
     )
     .unwrap_or_else(|error| {
-        let preferred_language = &global_state.settings.language.selected_language;
+        let selected_language = &settings.language.selected_language;
         warn!(
-            ?e,
-            ?preferred_language,
+            ?error,
+            ?selected_language,
             "Impossible to load language: change to the default language (English) instead.",
         );
         settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();

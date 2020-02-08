@@ -49,7 +49,7 @@ pub struct GlobalState {
     #[cfg(feature = "singleplayer")]
     pub singleplayer: Option<Singleplayer>,
     // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
-    localization_watcher: watch::ReloadIndicator,
+    pub localization_watcher: watch::ReloadIndicator,
 }
 
 impl GlobalState {

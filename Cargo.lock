@@ -581,7 +581,7 @@ dependencies = [
 [[package]]
 name = "conrod_core"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=hide_text#92925b122dfed139169c7d7687b3ca15c0cb5a2e"
+source = "git+https://gitlab.com/veloren/conrod.git#971c7154f268ec52544634b5fde7383073b0a3b4"
 dependencies = [
  "conrod_derive",
  "copypasta",
@@ -596,7 +596,7 @@ dependencies = [
 [[package]]
 name = "conrod_derive"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=hide_text#92925b122dfed139169c7d7687b3ca15c0cb5a2e"
+source = "git+https://gitlab.com/veloren/conrod.git#971c7154f268ec52544634b5fde7383073b0a3b4"
 dependencies = [
  "proc-macro2 0.4.30",
  "quote 0.6.13",
@@ -606,7 +606,7 @@ dependencies = [
 [[package]]
 name = "conrod_winit"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=hide_text#92925b122dfed139169c7d7687b3ca15c0cb5a2e"
+source = "git+https://gitlab.com/veloren/conrod.git#971c7154f268ec52544634b5fde7383073b0a3b4"
 
 [[package]]
 name = "const-random"
