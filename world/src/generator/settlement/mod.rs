@@ -632,30 +632,23 @@ impl<T> PartialEq for Id<T> {
 }
 
 pub struct Store<T> {
-    items: HashMap<usize, T>,
-    id_counter: usize,
+    items: Vec<T>,
 }
 
 impl<T> Default for Store<T> {
-    fn default() -> Self {
-        Self {
-            items: HashMap::new(),
-            id_counter: 0,
-        }
-    }
+    fn default() -> Self { Self { items: Vec::new() } }
 }
 
 impl<T> Store<T> {
-    pub fn get(&self, id: Id<T>) -> &T { self.items.get(&id.0).unwrap() }
+    pub fn get(&self, id: Id<T>) -> &T { self.items.get(id.0).unwrap() }
 
-    pub fn get_mut(&mut self, id: Id<T>) -> &mut T { self.items.get_mut(&id.0).unwrap() }
+    pub fn get_mut(&mut self, id: Id<T>) -> &mut T { self.items.get_mut(id.0).unwrap() }
 
-    pub fn iter(&self) -> impl Iterator<Item = &T> { self.items.values() }
+    pub fn iter(&self) -> impl Iterator<Item = &T> { self.items.iter() }
 
     pub fn insert(&mut self, item: T) -> Id<T> {
-        self.id_counter += 1;
-        let id = Id(self.id_counter, PhantomData);
-        self.items.insert(id.0, item);
+        let id = Id(self.items.len(), PhantomData);
+        self.items.push(item);
         id
     }
 }

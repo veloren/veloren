@@ -1478,7 +1478,11 @@ impl WorldSim {
 
                 if let Some((pos, site)) = sites
                     .iter()
-                    .filter(|(pos, _)| pos.distance_squared(wpos) < 1200i32.pow(2))
+                    .filter(|(pos, _)| {
+                        pos.map(|e| e as i64)
+                            .distance_squared(wpos.map(|e| e as i64))
+                            < 1200i64.pow(2)
+                    })
                     .min_by_key(|(pos, _)| wpos.distance_squared(*pos))
                 {
                     chunk.sites.push(site.clone());
