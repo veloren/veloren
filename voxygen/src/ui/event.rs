@@ -5,7 +5,7 @@ use vek::*;
 pub struct Event(pub Input);
 impl Event {
     pub fn try_from(
-        event: glutin::event::Event<()>,
+        event: &winit::event::Event<()>,
         window: &glutin::ContextWrapper<glutin::PossiblyCurrent, winit::window::Window>,
     ) -> Option<Self> {
         use conrod_winit::*;
@@ -17,10 +17,14 @@ impl Event {
         // compatible conversion functions.
         impl<'a> conrod_winit::WinitWindow for WindowRef<'a> {
             fn get_inner_size(&self) -> Option<(u32, u32)> {
-                Some(winit::window::Window::inner_size(&self.0).into())
+                Some(
+                    winit::window::Window::inner_size(&self.0)
+                        .to_logical::<u32>(self.hidpi_factor())
+                        .into(),
+                )
             }
 
-            fn hidpi_factor(&self) -> f32 { winit::window::Window::hidpi_factor(&self.0) as _ }
+            fn hidpi_factor(&self) -> f64 { winit::window::Window::scale_factor(&self.0) }
         }
         convert_event!(event, &WindowRef(window.window())).map(|input| Self(input))
     }

@@ -1,7 +1,5 @@
 mod client_init;
 mod ui;
-// TODO: make sure turning off singleplayer feature still works (also make sure
-// all singleplayer stuff is still hidden with it off)
 
 use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]

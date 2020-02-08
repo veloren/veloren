@@ -4,10 +4,10 @@ use crate::{
     settings::{ControlSettings, Settings},
     ui, Error,
 };
+use crossbeam::channel;
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
-
-use crossbeam::channel;
+use old_school_gfx_glutin_ext::{ContextBuilderExt, WindowInitExt, WindowUpdateExt};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use tracing::{error, info, warn};
@@ -483,7 +483,7 @@ pub struct Window {
     focused: bool,
     gilrs: Option<Gilrs>,
     controller_settings: ControllerSettings,
-    cursor_position: winit::dpi::LogicalPosition,
+    cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
     // Currently used to send and receive screenshot result messages
     message_sender: channel::Sender<String>,
@@ -504,17 +504,14 @@ impl Window {
             ))
             .with_maximized(true);
 
-        let ctx_builder = glutin::ContextBuilder::new()
-            .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
-            .with_vsync(false);
-
         let (window, device, factory, win_color_view, win_depth_view) =
-            gfx_window_glutin::init::<WinColorFmt, WinDepthFmt, _>(
-                win_builder,
-                ctx_builder,
-                &event_loop,
-            )
-            .map_err(|err| Error::BackendError(Box::new(err)))?;
+            glutin::ContextBuilder::new()
+                .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
+                .with_vsync(false)
+                .with_gfx_color_depth::<WinColorFmt, WinDepthFmt>()
+                .build_windowed(win_builder, &event_loop)
+                .map_err(|err| Error::BackendError(Box::new(err)))?
+                .init_gfx::<WinColorFmt, WinDepthFmt>();
 
         let vendor = device.get_info().platform_name.vendor;
         let renderer = device.get_info().platform_name.renderer;
@@ -584,7 +581,7 @@ impl Window {
             focused: true,
             gilrs,
             controller_settings,
-            cursor_position: winit::dpi::LogicalPosition::new(0.0, 0.0),
+            cursor_position: winit::dpi::PhysicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
             // Currently used to send and receive screenshot result messages
             message_sender,
@@ -777,11 +774,11 @@ impl Window {
             }
         }
 
+        let mut events = std::mem::replace(&mut self.events, Vec::new());
         // Mouse emulation for the menus, to be removed when a proper menu navigation
         // system is available
         if !self.cursor_grabbed {
-            self.events = self
-                .events
+            events = events
                 .into_iter()
                 .filter_map(|event| match event {
                     Event::AnalogMenuInput(input) => match input {
@@ -794,36 +791,31 @@ impl Window {
                             self.mouse_emulation_vec.y = d * -1.0;
                             None
                         },
-                        _ => {
-                            let event = Event::AnalogMenuInput(input);
-                            Some(event)
-                        },
+                        input => Some(Event::AnalogMenuInput(input)),
                     },
-                    Event::MenuInput(input, state) => match input {
-                        MenuInput::Apply => Some(match state {
-                            true => Event::Ui(ui::Event(conrod_core::event::Input::Press(
-                                conrod_core::input::Button::Mouse(
-                                    conrod_core::input::state::mouse::Button::Left,
-                                ),
-                            ))),
-                            false => Event::Ui(ui::Event(conrod_core::event::Input::Release(
-                                conrod_core::input::Button::Mouse(
-                                    conrod_core::input::state::mouse::Button::Left,
-                                ),
-                            ))),
-                        }),
-                        _ => Some(event),
-                    },
+                    Event::MenuInput(MenuInput::Apply, state) => Some(match state {
+                        true => Event::Ui(ui::Event(conrod_core::event::Input::Press(
+                            conrod_core::input::Button::Mouse(
+                                conrod_core::input::state::mouse::Button::Left,
+                            ),
+                        ))),
+                        false => Event::Ui(ui::Event(conrod_core::event::Input::Release(
+                            conrod_core::input::Button::Mouse(
+                                conrod_core::input::state::mouse::Button::Left,
+                            ),
+                        ))),
+                    }),
                     _ => Some(event),
                 })
                 .collect();
 
             let sensitivity = self.controller_settings.mouse_emulation_sensitivity;
             // TODO: make this independent of framerate
+            // TODO: consider multiplying by scale factor
             self.offset_cursor(self.mouse_emulation_vec * sensitivity as f32);
         }
 
-        std::mem::replace(&mut self.events, Vec::new())
+        events
     }
 
     pub fn handle_device_event(&mut self, event: winit::event::DeviceEvent) {
@@ -890,10 +882,12 @@ impl Window {
 
         match event {
             WindowEvent::CloseRequested => self.events.push(Event::Close),
-            WindowEvent::Resized(winit::dpi::LogicalSize { width, height }) => {
+            WindowEvent::Resized(winit::dpi::PhysicalSize { width, height }) => {
                 let (mut color_view, mut depth_view) = self.renderer.win_views_mut();
-                gfx_window_glutin::update_views(&self.window, &mut color_view, &mut depth_view);
+                self.window.update_gfx(&mut color_view, &mut depth_view);
                 self.renderer.on_resize().unwrap();
+                // TODO: update users of this event with the fact that it is now the physical
+                // size
                 self.events
                     .push(Event::Resize(Vec2::new(width as u32, height as u32)));
             },
