@@ -25,10 +25,9 @@ anim = { package = "veloren-voxygen-anim", path = "src/anim", default-features =
 # Graphics
 gfx = "0.18.2"
 gfx_device_gl = { version = "0.16.2", optional = true }
-gfx_window_glutin = {git = "https://github.com/Imberflur/gfx_window_glutin.git" } 
-# TODO: change to non alpha
-glutin = "=0.22.0-alpha3"
-winit = { version = "=0.20.0-alpha4", features = ["serde"] }
+old_school_gfx_glutin_ext = { git = "https://github.com/Imberflur/old-school-gfx-glutin-ext.git" }
+glutin = "0.23.0"
+winit = { version = "0.21.0", features = ["serde"] }
 conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "hide_text" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "hide_text" }
 euc = { git = "https://github.com/zesterer/euc.git" }
@@ -88,7 +87,7 @@ winres = "0.1"
 criterion = "0.3"
 git2 = "0.13"
 world = { package = "veloren-world", path = "../world" }
-#gfx_window_glutin = { version = "0.31.0", features = ["headless"] }
+gfx_window_glutin = { version = "0.31.0", features = ["headless"] }
 
 [[bench]]
 name = "meshing_benchmark"

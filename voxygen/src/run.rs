@@ -17,13 +17,16 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
     });
 
     event_loop.run(move |event, _, control_flow| {
+        // Continously run loop since we handle sleeping
+        *control_flow = winit::event_loop::ControlFlow::Poll;
+
         // Get events for the ui.
-        if let Some(event) = ui::Event::try_from(event.clone(), global_state.window.window()) {
+        if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
             global_state.window.send_event(Event::Ui(event));
         }
 
         match event {
-            winit::event::Event::EventsCleared => {
+            winit::event::Event::MainEventsCleared => {
                 // Run tick here
 
                 // What's going on here?
@@ -94,11 +97,9 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
                     }
                 }
 
-                *control_flow = if exit {
-                    winit::event_loop::ControlFlow::Exit
-                } else {
-                    winit::event_loop::ControlFlow::Poll
-                };
+                if exit {
+                    *control_flow = winit::event_loop::ControlFlow::Exit;
+                }
 
                 // TODO: move
                 if let Some(last) = states.last_mut() {
