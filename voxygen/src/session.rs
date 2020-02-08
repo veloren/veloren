@@ -65,11 +65,6 @@ impl SessionState {
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
         let hud = Hud::new(global_state, &client.borrow());
-        {
-            let mut client = client.borrow_mut();
-            let my_entity = client.entity();
-            client.state_mut().ecs_mut().insert(MyEntity(my_entity));
-        }
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
@@ -101,9 +96,6 @@ impl SessionState {
 
         let mut client = self.client.borrow_mut();
         for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
-            self.voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
-                &global_state.settings.language.selected_language,
-            ));
             match event {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
@@ -183,7 +175,7 @@ impl PlayState for SessionState {
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
-        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+        self.voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
 
@@ -196,6 +188,17 @@ impl PlayState for SessionState {
 
         let client_state = self.client.borrow().get_client_state();
         if let ClientState::Pending | ClientState::Character = client_state {
+            // Update MyEntity
+            // Note: Alternatively, the client could emit an event when the entity changes
+            // which may or may not be more elegant
+            {
+                let my_entity = self.client.borrow().entity();
+                self.client
+                    .borrow_mut()
+                    .state_mut()
+                    .ecs_mut()
+                    .insert(MyEntity(my_entity));
+            }
             // Compute camera data
             self.scene
                 .camera_mut()
@@ -642,7 +645,7 @@ impl PlayState for SessionState {
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {
                         global_state.info_message =
-                            Some(localized_strings.get("common.connection_lost").to_owned());
+                            Some(self.voxygen_i18n.get("common.connection_lost").to_owned());
                         error!("[session] Failed to tick the scene: {:?}", err);
 
                         return PlayStateResult::Pop;
@@ -705,7 +708,7 @@ impl PlayState for SessionState {
             // TODO: dont
             // Look for changes in the localization files
             if global_state.localization_watcher.reloaded() {
-                hud_events.push(HudEvent::ChangeLanguage(localized_strings.metadata.clone()));
+                hud_events.push(HudEvent::ChangeLanguage(self.voxygen_i18n.metadata.clone()));
             }
 
             // Maintain the UI.
@@ -922,13 +925,13 @@ impl PlayState for SessionState {
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
-                        let localized_strings = load_watched::<VoxygenLocalization>(
+                        self.voxygen_i18n = load_watched::<VoxygenLocalization>(
                             &i18n_asset_key(&global_state.settings.language.selected_language),
                             &mut global_state.localization_watcher,
                         )
                         .unwrap();
-                        localized_strings.log_missing_entries();
-                        self.hud.update_language(localized_strings.clone());
+                        self.voxygen_i18n.log_missing_entries();
+                        self.hud.update_language(self.voxygen_i18n.clone());
                     },
                     HudEvent::ToggleFullscreen => {
                         global_state
