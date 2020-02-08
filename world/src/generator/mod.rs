@@ -7,8 +7,15 @@ pub use self::{
     town::{TownGen, TownState},
 };
 
-use crate::{column::ColumnSample, util::Sampler};
-use common::terrain::Block;
+use crate::{
+    block::ZCache,
+    column::ColumnSample,
+    util::{Grid, Sampler},
+};
+use common::{
+    terrain::Block,
+    vol::{BaseVol, WriteVol},
+};
 use std::sync::Arc;
 use vek::*;
 
@@ -22,6 +29,15 @@ impl Site {
         match self {
             Site::Settlement(settlement) => settlement.get_surface(wpos),
         }
+    }
+
+    pub fn apply_to(
+        &self,
+        wpos2d: Vec2<i32>,
+        zcaches: &Grid<Option<ZCache>>,
+        vol: &mut (impl BaseVol<Vox = Block> + WriteVol),
+    ) {
+        // TODO
     }
 }
 

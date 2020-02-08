@@ -136,6 +136,11 @@ impl World {
             }
         }
 
+        sim_chunk
+            .sites
+            .iter()
+            .for_each(|site| site.apply_to(chunk_wpos2d, &zcache_grid, &mut chunk));
+
         let gen_entity_pos = || {
             let lpos2d = TerrainChunkSize::RECT_SIZE
                 .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz));
