@@ -37,7 +37,9 @@ impl Site {
         zcaches: &Grid<Option<ZCache>>,
         vol: &mut (impl BaseVol<Vox = Block> + WriteVol),
     ) {
-        // TODO
+        match self {
+            Site::Settlement(settlement) => settlement.apply_to(wpos2d, zcaches, vol),
+        }
     }
 }
 

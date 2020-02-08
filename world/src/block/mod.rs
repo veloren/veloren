@@ -421,7 +421,7 @@ impl<'a> BlockGen<'a> {
 
 pub struct ZCache<'a> {
     wpos: Vec2<i32>,
-    sample: ColumnSample<'a>,
+    pub sample: ColumnSample<'a>,
     structures: [Option<(StructureInfo, ColumnSample<'a>)>; 9],
 }
 
