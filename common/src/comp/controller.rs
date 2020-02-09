@@ -57,12 +57,12 @@ impl Input {
 
     /// Whether it's the first frame this input has been in
     /// its current state
-    pub fn is_just_pressed(&self) -> bool { (self.just_changed && self.is_pressed()) }
+    pub fn is_just_pressed(&self) -> bool { self.just_changed && self.is_pressed() }
 
     /// Whether input has been in current state longer than
     /// `DEFAULT_HOLD_DURATION`
     pub fn is_held_down(&self) -> bool {
-        (self.is_pressed() && self.duration >= DEFAULT_HOLD_DURATION)
+        self.is_pressed() && self.duration >= DEFAULT_HOLD_DURATION
     }
 
     /// Handles logic of updating state of Input
