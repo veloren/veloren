@@ -8,6 +8,8 @@ use std::{
 
 fn main() {
     // Get the current githash
+    // Note: It will compare commits. As long as the commits do not diverge from the
+    // server no version change will be detected.
     match Command::new("git")
         .args(&[
             "log",
@@ -15,6 +17,7 @@ fn main() {
             "1",
             "--pretty=format:%h/%cd",
             "--date=format:%Y-%m-%d-%H:%M",
+            "--abbrev=8",
         ])
         .output()
     {
