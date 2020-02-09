@@ -175,12 +175,12 @@ pub fn uniform_noise<F: Float + Send>(
     let mut noise = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
         .filter_map(|i| {
-            (f(
+            f(
                 i,
                 (uniform_idx_as_vec2(i) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                     .map(|e| e as f64),
             )
-            .map(|res| (i, res)))
+            .map(|res| (i, res))
         })
         .collect::<Vec<_>>();
 
