@@ -25,6 +25,12 @@ pub enum Site {
 }
 
 impl Site {
+    pub fn radius(&self) -> f32 {
+        match self {
+            Site::Settlement(settlement) => settlement.radius(),
+        }
+    }
+
     pub fn get_surface(&self, wpos: Vec2<i32>) -> Option<Block> {
         match self {
             Site::Settlement(settlement) => settlement.get_surface(wpos),

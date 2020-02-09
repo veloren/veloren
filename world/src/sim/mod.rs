@@ -1463,7 +1463,10 @@ impl WorldSim {
                     // println!("Town: {:?}", town);
                     //TownState::generate(pos, &mut block_gen, &mut rng).map(|t| (pos,
                     // Arc::new(t)))
-                    (pos, Site::from(Settlement::generate(pos, &mut rng)))
+                    (
+                        pos,
+                        Site::from(Settlement::generate(pos, Some(self), &mut rng)),
+                    )
                 },
             )
             .collect::<Vec<_>>();
@@ -1478,10 +1481,8 @@ impl WorldSim {
 
                 if let Some((pos, site)) = sites
                     .iter()
-                    .filter(|(pos, _)| {
-                        pos.map(|e| e as i64)
-                            .distance_squared(wpos.map(|e| e as i64))
-                            < 1200i64.pow(2)
+                    .filter(|(pos, site)| {
+                        pos.map(|e| e as f32).distance(wpos.map(|e| e as f32)) < site.radius()
                     })
                     .min_by_key(|(pos, _)| wpos.distance_squared(*pos))
                 {
