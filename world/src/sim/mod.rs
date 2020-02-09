@@ -574,7 +574,7 @@ impl WorldSim {
 
                 fn spring(x: f64, pow: f64) -> f64 { x.abs().powf(pow) * x.signum() }
 
-                (0.0 + alt_main
+                0.0 + alt_main
                     + (gen_ctx
                         .small_nz
                         .get(
@@ -590,7 +590,7 @@ impl WorldSim {
                     .mul(0.3)
                     .add(1.0)
                     .mul(0.4)
-                    + spring(alt_main.abs().powf(0.5).min(0.75).mul(60.0).sin(), 4.0).mul(0.045))
+                    + spring(alt_main.abs().powf(0.5).min(0.75).mul(60.0).sin(), 4.0).mul(0.045)
             };
 
             // Now we can compute the final altitude using chaos.
@@ -669,7 +669,7 @@ impl WorldSim {
         let alt_exp_max_uniform = inv_func(max_epsilon);
 
         let erosion_factor = |x: f64| {
-            ((inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform))
+            (inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform)
         };
         let rock_strength_div_factor = (2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0;
         let theta_func = |_posi| 0.4;
