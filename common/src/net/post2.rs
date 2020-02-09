@@ -384,6 +384,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn send_recv_huge() {
         let (mut postoffice, sock) = create_postoffice::<(), Vec<i32>>(3).unwrap();
         let test_msgs: Vec<Vec<i32>> = (0..5)
