@@ -110,7 +110,6 @@ coverage:
         - veloren-docker
     script:
         - cargo tarpaulin -v
-    allow_failure: true
 
 benchmarks:
     stage: post
@@ -121,7 +120,6 @@ benchmarks:
     script:
         - unset DISABLE_GIT_LFS_CHECK
         - cargo bench
-    allow_failure: true
 
 linux:
     stage: post
