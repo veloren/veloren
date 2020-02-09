@@ -9,7 +9,7 @@ fn main() {
     let mut win =
         minifb::Window::new("Settlement Viewer", W, H, minifb::WindowOptions::default()).unwrap();
 
-    let settlement = Settlement::generate(Vec2::zero(), &mut thread_rng());
+    let settlement = Settlement::generate(Vec2::zero(), None, &mut thread_rng());
 
     let mut focus = Vec2::<f32>::zero();
     let mut zoom = 1.0;

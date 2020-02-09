@@ -1,6 +1,7 @@
 use crate::{
     block::ZCache,
-    util::{Grid, Sampler, StructureGen2d},
+    sim::{SimChunk, WorldSim},
+    util::{Grid, RandomField, Sampler, StructureGen2d},
 };
 use common::{
     astar::Astar,
@@ -65,7 +66,13 @@ pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
     Vec2::new(x, y)
 }
 
-const AREA_SIZE: u32 = 64;
+impl SimChunk {
+    fn can_host_settlement(&self) -> bool {
+        !self.near_cliffs && !self.river.is_river() && !self.river.is_lake()
+    }
+}
+
+const AREA_SIZE: u32 = 32;
 
 fn to_tile(e: i32) -> i32 { ((e as f32).div_euclid(AREA_SIZE as f32)).floor() as i32 }
 
@@ -95,7 +102,7 @@ pub struct Farm {
 }
 
 impl Settlement {
-    pub fn generate(wpos: Vec2<i32>, rng: &mut impl Rng) -> Self {
+    pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut this = Self {
             origin: wpos,
             land: Land::new(rng),
@@ -104,6 +111,10 @@ impl Settlement {
             town: None,
         };
 
+        if let Some(sim) = sim {
+            this.designate_from_world(sim, rng);
+        }
+
         //this.place_river(rng);
 
         this.place_farms(rng);
@@ -111,6 +122,28 @@ impl Settlement {
         this.place_paths(rng);
 
         this
+    }
+
+    pub fn designate_from_world(&mut self, sim: &WorldSim, rng: &mut impl Rng) {
+        let tile_radius = self.radius() as i32 / AREA_SIZE as i32;
+        let hazard = self.land.new_plot(Plot::Hazard);
+        Spiral2d::new()
+            .take_while(|tile| tile.map(|e| e.abs()).reduce_max() < tile_radius)
+            .for_each(|tile| {
+                let wpos = self.origin + tile * AREA_SIZE as i32;
+
+                if (0..4)
+                    .map(|x| (0..4).map(move |y| Vec2::new(x, y)))
+                    .flatten()
+                    .any(|offs| {
+                        sim.get_wpos(wpos + offs * AREA_SIZE as i32 / 2)
+                            .map(|chunk| !chunk.can_host_settlement())
+                            .unwrap_or(true)
+                    })
+                {
+                    self.land.set(tile, hazard);
+                }
+            })
     }
 
     pub fn place_river(&mut self, rng: &mut impl Rng) {
@@ -145,12 +178,14 @@ impl Settlement {
     }
 
     pub fn place_paths(&mut self, rng: &mut impl Rng) {
+        const PATH_COUNT: usize = 6;
+
         let mut dir = Vec2::zero();
-        for _ in 0..6 {
+        for _ in 0..PATH_COUNT {
             dir = (Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 2.0 - dir)
                 .try_normalized()
                 .unwrap_or(Vec2::zero());
-            let origin = dir.map(|e| (e * 20.0) as i32);
+            let origin = dir.map(|e| (e * 100.0) as i32);
             let origin = self
                 .land
                 .find_tile_near(origin, |plot| match plot {
@@ -164,6 +199,7 @@ impl Settlement {
                     .find_path(origin, town.base_tile, |from, to| match (from, to) {
                         (_, Some(b)) if self.land.plot(b.plot) == &Plot::Dirt => 0.0,
                         (_, Some(b)) if self.land.plot(b.plot) == &Plot::Water => 20.0,
+                        (_, Some(b)) if self.land.plot(b.plot) == &Plot::Hazard => 50.0,
                         (Some(a), Some(b)) if a.contains(WayKind::Wall) => {
                             if b.contains(WayKind::Wall) {
                                 1000.0
@@ -176,22 +212,25 @@ impl Settlement {
                     })
             }) {
                 let path = path.iter().copied().collect::<Vec<_>>();
-                self.land.write_path(&path, WayKind::Path, |_| true, true);
+                self.land.write_path(&path, WayKind::Path, |_| true, false);
             }
         }
     }
 
     pub fn place_town(&mut self, rng: &mut impl Rng) {
+        const PLOT_COUNT: usize = 2;
+
         let mut origin = Vec2::new(rng.gen_range(-2, 3), rng.gen_range(-2, 3));
 
-        let town = self.land.new_plot(Plot::Town);
-        for i in 0..6 {
+        for i in 0..PLOT_COUNT {
             if let Some(base_tile) = self.land.find_tile_near(origin, |plot| match plot {
                 Some(Plot::Field { .. }) => true,
                 Some(Plot::Dirt) => true,
                 _ => false,
             }) {
-                self.land.set(base_tile, town);
+                self.land
+                    .plot_at_mut(base_tile)
+                    .map(|plot| *plot = Plot::Town);
 
                 if i == 0 {
                     /*
@@ -222,6 +261,7 @@ impl Settlement {
                 .find_path(spokes[i], spokes[(i + 1) % spokes.len()], |_, to| match to
                     .map(|to| self.land.plot(to.plot))
                 {
+                    Some(Plot::Hazard) => 10000.0,
                     Some(Plot::Town) => 1000.0,
                     _ => 1.0,
                 })
@@ -248,7 +288,10 @@ impl Settlement {
     }
 
     pub fn place_farms(&mut self, rng: &mut impl Rng) {
-        for _ in 0..6 {
+        const FARM_COUNT: usize = 4;
+        const FIELDS_PER_FARM: usize = 5;
+
+        for _ in 0..FARM_COUNT {
             if let Some(base_tile) = self
                 .land
                 .find_tile_near(Vec2::zero(), |plot| plot.is_none())
@@ -258,7 +301,7 @@ impl Settlement {
                 self.land.set(base_tile, farmhouse);
 
                 // Farmhouses
-                for _ in 0..rng.gen_range(1, 4) {
+                for _ in 0..rng.gen_range(1, 3) {
                     let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
                         + Vec2::new(rng.gen_range(-16, 16), rng.gen_range(-16, 16));
 
@@ -273,7 +316,7 @@ impl Settlement {
 
                 // Fields
                 let farmland = self.farms.insert(Farm { base_tile });
-                for _ in 0..5 {
+                for _ in 0..FIELDS_PER_FARM {
                     self.place_field(farmland, base_tile, rng);
                 }
             }
@@ -286,18 +329,18 @@ impl Settlement {
         origin: Vec2<i32>,
         rng: &mut impl Rng,
     ) -> Option<Id<Plot>> {
-        let max_size = 7;
+        const MAX_FIELD_SIZE: usize = 24;
 
         if let Some(center) = self.land.find_tile_near(origin, |plot| plot.is_none()) {
             let field = self.land.new_plot(Plot::Field {
                 farm,
                 seed: rng.gen(),
             });
-            let tiles = self
-                .land
-                .grow_from(center, rng.gen_range(1, max_size), rng, |plot| {
-                    plot.is_none()
-                });
+            let tiles =
+                self.land
+                    .grow_from(center, rng.gen_range(5, MAX_FIELD_SIZE), rng, |plot| {
+                        plot.is_none()
+                    });
             for pos in tiles.into_iter() {
                 self.land.set(pos, field);
             }
@@ -307,12 +350,16 @@ impl Settlement {
         }
     }
 
+    pub fn radius(&self) -> f32 { 1200.0 }
+
     pub fn apply_to(
         &self,
         wpos2d: Vec2<i32>,
         zcaches: &Grid<Option<ZCache>>,
         vol: &mut (impl BaseVol<Vox = Block> + WriteVol),
     ) {
+        let rand_field = RandomField::new(0);
+
         for y in 0..zcaches.size().y {
             for x in 0..zcaches.size().x {
                 let offs = Vec2::new(x, y);
@@ -326,15 +373,25 @@ impl Settlement {
                 let wpos2d = wpos2d + offs;
 
                 match self.land.get_at_block(wpos2d - self.origin) {
-                    Sample::Way(WayKind::Wall) => {
+                    Sample::Way(WayKind::Wall, dist) => {
+                        let color = Lerp::lerp(
+                            Rgb::new(130i32, 100, 0),
+                            Rgb::new(90, 70, 50),
+                            (rand_field.get(wpos2d.into()) % 256) as f32 / 256.0,
+                        )
+                        .map(|e| (e % 256) as u8);
                         for z in 0..12 {
-                            vol.set(
-                                Vec3::new(offs.x, offs.y, zcache.sample.alt.floor() as i32 + z),
-                                Block::new(BlockKind::Normal, Rgb::new(60, 60, 60)),
-                            );
+                            if dist / WayKind::Wall.width()
+                                < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0)
+                            {
+                                vol.set(
+                                    Vec3::new(offs.x, offs.y, zcache.sample.alt.floor() as i32 + z),
+                                    Block::new(BlockKind::Normal, color),
+                                );
+                            }
                         }
                     },
-                    Sample::Tower(Tower::Wall) => {
+                    Sample::Tower(Tower::Wall, _pos) => {
                         for z in 0..16 {
                             vol.set(
                                 Vec3::new(offs.x, offs.y, zcache.sample.alt.floor() as i32 + z),
@@ -366,11 +423,12 @@ impl Settlement {
 
         Some(match self.land.get_at_block(pos) {
             Sample::Wilderness => return None,
-            Sample::Way(WayKind::Path) => Rgb::new(130, 100, 0),
-            Sample::Way(WayKind::Hedge) => Rgb::new(0, 150, 0),
-            Sample::Way(WayKind::Wall) => Rgb::new(60, 60, 60),
-            Sample::Tower(Tower::Wall) => Rgb::new(50, 50, 50),
-            Sample::Plot(Plot::Dirt) => Rgb::new(130, 100, 0),
+            Sample::Plot(Plot::Hazard) => return None,
+            Sample::Way(WayKind::Path, _) => Rgb::new(90, 70, 50),
+            Sample::Way(WayKind::Hedge, _) => Rgb::new(0, 150, 0),
+            Sample::Way(WayKind::Wall, _) => Rgb::new(60, 60, 60),
+            Sample::Tower(Tower::Wall, _) => Rgb::new(50, 50, 50),
+            Sample::Plot(Plot::Dirt) => Rgb::new(90, 70, 50),
             Sample::Plot(Plot::Grass) => Rgb::new(100, 200, 0),
             Sample::Plot(Plot::Water) => Rgb::new(100, 150, 250),
             Sample::Plot(Plot::Town) => {
@@ -405,6 +463,7 @@ impl Settlement {
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Plot {
+    Hazard,
     Dirt,
     Grass,
     Water,
@@ -431,7 +490,7 @@ impl WayKind {
         match self {
             WayKind::Path => 4.0,
             WayKind::Hedge => 1.5,
-            WayKind::Wall => 3.5,
+            WayKind::Wall => 2.5,
         }
     }
 }
@@ -444,7 +503,7 @@ pub enum Tower {
 impl Tower {
     pub fn radius(&self) -> f32 {
         match self {
-            Tower::Wall => 8.0,
+            Tower::Wall => 6.0,
         }
     }
 }
@@ -462,8 +521,8 @@ impl Tile {
 pub enum Sample<'a> {
     Wilderness,
     Plot(&'a Plot),
-    Way(&'a WayKind),
-    Tower(&'a Tower),
+    Way(&'a WayKind, f32),
+    Tower(&'a Tower, Vec2<i32>),
 }
 
 pub struct Land {
@@ -493,7 +552,7 @@ impl Land {
 
         if let Some(tower) = center_tile.and_then(|tile| tile.tower.as_ref()) {
             if (neighbors[4].0.distance_squared(pos) as f32) < tower.radius().powf(2.0) {
-                return Sample::Tower(tower);
+                return Sample::Tower(tower, neighbors[4].0);
             }
         }
 
@@ -504,8 +563,9 @@ impl Land {
                 neighbors[map[i]].0.map(|e| e as f32),
             ];
             if let Some(way) = center_tile.and_then(|tile| tile.ways[i].as_ref()) {
-                if dist_to_line(line, pos.map(|e| e as f32)) < way.width() {
-                    return Sample::Way(way);
+                let dist = dist_to_line(line, pos.map(|e| e as f32));
+                if dist < way.width() {
+                    return Sample::Way(way, dist);
                 }
             }
         }

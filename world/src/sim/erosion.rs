@@ -200,6 +200,8 @@ impl RiverData {
             .map(RiverKind::is_lake)
             .unwrap_or(false)
     }
+
+    pub fn near_river(&self) -> bool { self.is_river() || self.neighbor_rivers.len() > 0 }
 }
 
 /// Draw rivers and assign them heights, widths, and velocities.  Take some
