@@ -1027,8 +1027,8 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
         let mut error_msg = None;
 
         match opt_player {
-            Some(_alias) => {
-                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(entity) {
+            Some(player) => {
+                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
                     stats.exp.change_by(exp);
                 } else {
                     error_msg = Some(ServerMsg::private(String::from("Player has no stats!")));
