@@ -1,10 +1,11 @@
 use crate::{
     api::Promise,
     message::{InCommingMessage, OutGoingMessage},
-    worker::tcp::TcpChannel,
+    worker::{Channel, MpscChannel, TcpChannel, UdpChannel},
 };
 use enumset::EnumSet;
 use mio::{self, net::TcpListener, PollOpt, Ready};
+use mio_extras::channel::Sender;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use uuid::Uuid;
@@ -50,10 +51,23 @@ pub struct Statistics {
     pub nano_busy: u128,
 }
 
-#[derive(Debug)]
 pub(crate) enum TokenObjects {
     TcpListener(TcpListener),
-    TcpChannel(TcpChannel),
+    TcpChannel(Channel<TcpChannel>, Option<Sender<Pid>>),
+    UdpChannel(Channel<UdpChannel>, Option<Sender<Pid>>),
+    MpscChannel(Channel<MpscChannel>, Option<Sender<Pid>>),
+}
+
+impl std::fmt::Debug for TokenObjects {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TokenObjects::TcpListener(l) => write!(f, "{:?}", l),
+            TokenObjects::TcpChannel(c, _) => write!(f, "{:?}", c),
+            TokenObjects::UdpChannel(c, _) => write!(f, "{:?}", c),
+            TokenObjects::MpscChannel(c, _) => unimplemented!("MPSC"),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -121,6 +135,3 @@ pub(crate) enum Frame {
      * against veloren Server! */
     Raw(Vec<u8>),
 }
-
-pub(crate) type TcpFrame = Frame;
-pub(crate) type UdpFrame = Frame;

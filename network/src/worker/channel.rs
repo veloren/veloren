@@ -9,33 +9,21 @@ use mio_extras::channel::Sender;
 use std::{
     collections::{HashMap, VecDeque},
     sync::{Arc, RwLock},
-    time::Instant,
 };
 use tracing::*;
 
-pub(crate) trait Channel {
-    /*
-        uninitialized_dirty_speed_buffer: is just a already allocated buffer, that probably is already dirty because it's getting reused to save allocations, feel free to use it, but expect nothing
-        aprox_time is the time taken when the events come in, you can reuse it for message timeouts, to not make any more syscalls
-    */
+pub(crate) trait ChannelProtocol {
+    type Handle: ?Sized + mio::Evented;
     /// Execute when ready to read
-    fn read(
-        &mut self,
-        uninitialized_dirty_speed_buffer: &mut [u8; 65000],
-        aprox_time: Instant,
-        rtrn_tx: &Sender<RtrnMsg>,
-    );
+    fn read(&mut self) -> Vec<Frame>;
     /// Execute when ready to write
-    fn write(&mut self, uninitialized_dirty_speed_buffer: &mut [u8; 65000], aprox_time: Instant);
-    fn open_stream(&mut self, prio: u8, promises: EnumSet<Promise>) -> u32;
-    fn close_stream(&mut self, sid: u32);
-    fn handshake(&mut self);
-    fn shutdown(&mut self);
-    fn send(&mut self, outgoing: OutGoingMessage);
+    fn write(&mut self, frame: Frame);
+    /// used for mio
+    fn get_handle(&self) -> &Self::Handle;
 }
 
 #[derive(Debug)]
-pub(crate) struct ChannelState {
+pub(crate) struct Channel<P: ChannelProtocol> {
     pub stream_id_pool: Option<tlid::Pool<tlid::Wrapping<Sid>>>, /* TODO: stream_id unique per
                                                                   * participant */
     pub msg_id_pool: Option<tlid::Pool<tlid::Wrapping<Mid>>>, //TODO: msg_id unique per
@@ -46,6 +34,7 @@ pub(crate) struct ChannelState {
     pub streams: Vec<Stream>,
     pub send_queue: VecDeque<Frame>,
     pub recv_queue: VecDeque<InCommingMessage>,
+    pub protocol: P,
     pub send_handshake: bool,
     pub send_pid: bool,
     pub send_config: bool,
@@ -70,7 +59,7 @@ pub(crate) struct ChannelState {
  Shutdown phase
 */
 
-impl ChannelState {
+impl<P: ChannelProtocol> Channel<P> {
     const WRONG_NUMBER: &'static [u8] = "Handshake does not contain the magic number requiered by \
                                          veloren server.\nWe are not sure if you are a valid \
                                          veloren client.\nClosing the connection"
@@ -79,8 +68,12 @@ impl ChannelState {
                                          invalid version.\nWe don't know how to communicate with \
                                          you.\n";
 
-    pub fn new(local_pid: Pid, remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>) -> Self {
-        ChannelState {
+    pub fn new(
+        local_pid: Pid,
+        protocol: P,
+        remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
+    ) -> Self {
+        Self {
             stream_id_pool: None,
             msg_id_pool: None,
             local_pid,
@@ -89,6 +82,7 @@ impl ChannelState {
             streams: Vec::new(),
             send_queue: VecDeque::new(),
             recv_queue: VecDeque::new(),
+            protocol,
             send_handshake: false,
             send_pid: false,
             send_config: false,
@@ -110,7 +104,20 @@ impl ChannelState {
             && !self.recv_shutdown
     }
 
-    pub fn handle(&mut self, frame: Frame, rtrn_tx: &Sender<RtrnMsg>) {
+    pub fn tick_recv(&mut self, rtrn_tx: &Sender<RtrnMsg>) {
+        for frame in self.protocol.read() {
+            self.handle(frame, rtrn_tx);
+        }
+    }
+
+    pub fn tick_send(&mut self) {
+        self.tick_streams();
+        while let Some(frame) = self.send_queue.pop_front() {
+            self.protocol.write(frame)
+        }
+    }
+
+    fn handle(&mut self, frame: Frame, rtrn_tx: &Sender<RtrnMsg>) {
         match frame {
             Frame::Handshake {
                 magic_number,
@@ -261,9 +268,9 @@ impl ChannelState {
                     }
                     if let Some(pos) = pos {
                         for m in s.to_receive.drain(pos..pos + 1) {
-                            info!("receied message: {}", m.mid);
+                            info!("received message: {}", m.mid);
                             //self.recv_queue.push_back(m);
-                            rtrn_tx.send(RtrnMsg::Receive(m));
+                            rtrn_tx.send(RtrnMsg::Receive(m)).unwrap();
                         }
                     }
                 }
@@ -279,7 +286,7 @@ impl ChannelState {
 
     // This function will tick all streams according to priority and add them to the
     // send queue
-    pub(crate) fn tick_streams(&mut self) {
+    fn tick_streams(&mut self) {
         //ignoring prio for now
         //TODO: fix prio
         if let Some(msg_id_pool) = &mut self.msg_id_pool {
@@ -327,4 +334,50 @@ impl ChannelState {
             self.send_shutdown = true;
         }
     }
+
+    pub(crate) fn open_stream(&mut self, prio: u8, promises: EnumSet<Promise>) -> u32 {
+        // validate promises
+        if let Some(stream_id_pool) = &mut self.stream_id_pool {
+            let sid = stream_id_pool.next();
+            let stream = Stream::new(sid, prio, promises.clone());
+            self.streams.push(stream);
+            self.send_queue.push_back(Frame::OpenStream {
+                sid,
+                prio,
+                promises,
+            });
+            return sid;
+        }
+        error!("fix me");
+        return 0;
+        //TODO: fix me
+    }
+
+    pub(crate) fn close_stream(&mut self, sid: u32) {
+        self.streams.retain(|stream| stream.sid() != sid);
+        self.send_queue.push_back(Frame::CloseStream { sid });
+    }
+
+    pub(crate) fn handshake(&mut self) {
+        self.send_queue.push_back(Frame::Handshake {
+            magic_number: VELOREN_MAGIC_NUMBER.to_string(),
+            version: VELOREN_NETWORK_VERSION,
+        });
+        self.send_handshake = true;
+    }
+
+    pub(crate) fn shutdown(&mut self) {
+        self.send_queue.push_back(Frame::Shutdown {});
+        self.send_shutdown = true;
+    }
+
+    pub(crate) fn send(&mut self, outgoing: OutGoingMessage) {
+        //TODO: fix me
+        for s in self.streams.iter_mut() {
+            s.to_send.push_back(outgoing);
+            break;
+        }
+    }
+
+    pub(crate) fn get_handle(&self) -> &P::Handle { self.protocol.get_handle() }
 }

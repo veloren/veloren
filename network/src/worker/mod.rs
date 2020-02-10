@@ -5,9 +5,16 @@
     communication is done via channels.
 */
 pub mod channel;
+pub mod mpsc;
 pub mod tcp;
 pub mod types;
+pub mod udp;
 pub mod worker;
+
+pub(crate) use channel::Channel;
+pub(crate) use mpsc::MpscChannel;
+pub(crate) use tcp::TcpChannel;
+pub(crate) use udp::UdpChannel;
 
 use crate::{
     internal::RemoteParticipant,
