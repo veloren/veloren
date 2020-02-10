@@ -1,36 +1,33 @@
 use crate::worker::{channel::ChannelProtocol, types::Frame};
 use bincode;
-use mio::net::TcpStream;
-use std::io::{Read, Write};
+use mio::net::UdpSocket;
 use tracing::*;
 
 #[derive(Debug)]
-pub(crate) struct TcpChannel {
-    endpoint: TcpStream,
-    //these buffers only ever contain 1 FRAME !
+pub(crate) struct UdpChannel {
+    endpoint: UdpSocket,
     read_buffer: Vec<u8>,
     write_buffer: Vec<u8>,
 }
 
-impl TcpChannel {
-    pub fn new(endpoint: TcpStream) -> Self {
-        let mut b = vec![0; 200];
+impl UdpChannel {
+    pub fn new(endpoint: UdpSocket) -> Self {
         Self {
             endpoint,
-            read_buffer: b.clone(),
-            write_buffer: b,
+            read_buffer: Vec::new(),
+            write_buffer: Vec::new(),
         }
     }
 }
 
-impl ChannelProtocol for TcpChannel {
-    type Handle = TcpStream;
+impl ChannelProtocol for UdpChannel {
+    type Handle = UdpSocket;
 
     /// Execute when ready to read
     fn read(&mut self) -> Vec<Frame> {
         let mut result = Vec::new();
-        match self.endpoint.read(self.read_buffer.as_mut_slice()) {
-            Ok(n) => {
+        match self.endpoint.recv_from(self.read_buffer.as_mut_slice()) {
+            Ok((n, remote)) => {
                 trace!("incomming message with len: {}", n);
                 let mut cur = std::io::Cursor::new(&self.read_buffer[..n]);
                 while cur.position() < n as u64 {
@@ -64,10 +61,8 @@ impl ChannelProtocol for TcpChannel {
     fn write(&mut self, frame: Frame) {
         if let Ok(mut data) = bincode::serialize(&frame) {
             let total = data.len();
-            match self.endpoint.write(&data) {
-                Ok(n) if n == total => {
-                    trace!("send!");
-                },
+            match self.endpoint.send(&data) {
+                Ok(n) if n == total => {},
                 Ok(n) => {
                     error!("could only send part");
                     //let data = data.drain(n..).collect(); //TODO:
