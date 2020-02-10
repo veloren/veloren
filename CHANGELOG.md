@@ -16,8 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow spawning individual pet species, not just generic body kinds.
 
 ### Changed
+
 - Brighter / higher contrast main-map
 - Removed highlighting of non-collectible sprites
+- Fixed /give_exp ignoring player argument
 
 ### Removed
 
