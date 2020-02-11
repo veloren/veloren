@@ -1,7 +1,8 @@
 use crate::{
-    comp::{CharacterState, EcsStateData, ItemKind::Tool, StateUpdate},
+    comp::{Attacking, CharacterState, EcsStateData, ItemKind::Tool, StateUpdate},
     event::LocalEvent,
 };
+use std::time::Duration;
 use vek::vec::{Vec2, Vec3};
 
 pub fn handle_move_dir(ecs_data: &EcsStateData, update: &mut StateUpdate) {
@@ -96,9 +97,13 @@ pub fn handle_jump(ecs_data: &EcsStateData, update: &mut StateUpdate) {
 
 pub fn handle_primary(ecs_data: &EcsStateData, update: &mut StateUpdate) {
     if let Some(state) = ecs_data.ability_pool.primary {
-        if let CharacterState::Wielded(_) = update.character {
-            if ecs_data.inputs.primary.is_pressed() {
-                update.character = state;
+        if ecs_data.inputs.primary.is_pressed() {
+            update.character = state;
+            if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| i.kind) {
+                ecs_data.updater.insert(*ecs_data.entity, Attacking {
+                    weapon: data,
+                    time_active: Duration::default(),
+                });
             }
         }
     }
