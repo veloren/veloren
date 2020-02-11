@@ -1,13 +1,13 @@
 use crate::{
-    comp::{AbilityPool, Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, Vel},
+    comp::{AbilityPool, Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, ToolData, Vel},
     event::{LocalEvent, ServerEvent},
     state::DeltaTime,
     states::*,
     sync::Uid,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, Entity, FlaggedStorage, HashMapStorage, LazyUpdate};
-use std::collections::VecDeque;
+use specs::{Component, Entity, FlaggedStorage, HashMapStorage, LazyUpdate, VecStorage};
+use std::{collections::VecDeque, time::Duration};
 
 pub struct EcsStateData<'a> {
     pub entity: &'a Entity,
@@ -126,4 +126,31 @@ impl Default for CharacterState {
 
 impl Component for CharacterState {
     type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct Attacking {
+    pub weapon: ToolData,
+    pub time_active: Duration,
+}
+
+impl Attacking {
+    pub fn remaining_duration(&self) -> Duration {
+        self.weapon
+            .attack_duration()
+            .checked_sub(self.time_active)
+            .unwrap_or_default()
+    }
+
+    pub fn tick_time_active(&mut self, dt: Duration) {
+        self.time_active = self.time_active.checked_add(dt).unwrap_or_default();
+    }
+
+    pub fn can_apply_damage(&self) -> bool {
+        (self.time_active > self.weapon.attack_buildup_duration())
+    }
+}
+
+impl Component for Attacking {
+    type Storage = VecStorage<Self>;
 }
