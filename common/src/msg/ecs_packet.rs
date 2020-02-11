@@ -23,6 +23,7 @@ sum_type! {
         Sticky(comp::Sticky),
         AbilityAction(comp::AbilityAction),
         AbilityPool(comp::AbilityPool),
+        Attacking(comp::Attacking),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -45,6 +46,7 @@ sum_type! {
         Sticky(PhantomData<comp::Sticky>),
         AbilityAction(PhantomData<comp::AbilityAction>),
         AbilityPool(PhantomData<comp::AbilityPool>),
+        Attacking(PhantomData<comp::Attacking>),
     }
 }
 impl sync::CompPacket for EcsCompPacket {
@@ -67,6 +69,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Sticky(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::AbilityAction(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::AbilityPool(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Attacking(comp) => sync::handle_insert(comp, entity, world),
         }
     }
 
@@ -87,6 +90,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Sticky(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::AbilityAction(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::AbilityPool(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Attacking(comp) => sync::handle_modify(comp, entity, world),
         }
     }
 
@@ -109,10 +113,11 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Sticky(_) => sync::handle_remove::<comp::Sticky>(entity, world),
             EcsCompPhantom::AbilityAction(_) => {
                 sync::handle_remove::<comp::AbilityAction>(entity, world)
-            }
+            },
             EcsCompPhantom::AbilityPool(_) => {
                 sync::handle_remove::<comp::AbilityPool>(entity, world)
-            }
+            },
+            EcsCompPhantom::Attacking(_) => sync::handle_remove::<comp::Attacking>(entity, world),
         }
     }
 }

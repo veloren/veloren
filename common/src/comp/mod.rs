@@ -23,7 +23,7 @@ pub use body::{
     biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, humanoid,
     object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
-pub use character_state::{CharacterState, EcsStateData, StateUpdate};
+pub use character_state::{Attacking, CharacterState, EcsStateData, StateUpdate};
 pub use controller::{
     ControlEvent, Controller, ControllerInputs, Input, InputState, InventoryManip, MountState,
     Mounting,
