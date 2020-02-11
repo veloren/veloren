@@ -89,9 +89,9 @@ void main() {
 		0.1 / slope
 	);
 
-	nmap = mix(vec3(0, 0, 1), normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
+	nmap = mix(f_norm, normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
 
-	vec3 norm = f_norm * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
+	vec3 norm = vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
 
 	vec3 light, diffuse_light, ambient_light;
 	get_sun_diffuse(norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);

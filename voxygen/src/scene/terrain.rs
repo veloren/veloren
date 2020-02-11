@@ -1483,6 +1483,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .as_ref()
                     .map(|model| (model, &chunk.locals))
             })
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev() // Render back-to-front
             .for_each(|(model, locals)| {
                 renderer.render_fluid_chunk(model, globals, locals, lights, shadows, &self.waves)
             });
