@@ -551,6 +551,10 @@ impl PlayState for SessionState {
                         global_state.settings.save_to_file_warn();
                         self.scene.camera_mut().set_fov_deg(new_fov);
                     },
+                    HudEvent::ChangeGamma(new_gamma) => {
+                        global_state.settings.graphics.gamma = new_gamma;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ChangeAaMode(new_aa_mode) => {
                         // Do this first so if it crashes the setting isn't saved :)
                         global_state
