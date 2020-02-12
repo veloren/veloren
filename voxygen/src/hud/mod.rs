@@ -201,6 +201,7 @@ pub enum Event {
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
+    ChangeGamma(f32),
     AdjustWindowSize([u16; 2]),
     ToggleFullscreen,
     ChangeAaMode(AaMode),
@@ -1761,6 +1762,9 @@ impl Hud {
                     },
                     settings_window::Event::AdjustFOV(new_fov) => {
                         events.push(Event::ChangeFOV(new_fov));
+                    },
+                    settings_window::Event::AdjustGamma(new_gamma) => {
+                        events.push(Event::ChangeGamma(new_gamma));
                     },
                     settings_window::Event::ChangeAaMode(new_aa_mode) => {
                         events.push(Event::ChangeAaMode(new_aa_mode));
