@@ -89,6 +89,9 @@ widget_ids! {
         fov_slider,
         fov_text,
         fov_value,
+        gamma_slider,
+        gamma_text,
+        gamma_value,
         aa_mode_text,
         aa_mode_list,
         cloud_mode_text,
@@ -199,6 +202,7 @@ pub enum Event {
     ToggleMouseYInvert(bool),
     AdjustViewDistance(u32),
     AdjustFOV(u16),
+    AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
     ToggleFullscreen,
     ChangeAaMode(AaMode),
@@ -1554,9 +1558,41 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.fov_value, ui);
 
+            // Gamma
+            Text::new(&self.localized_strings.get("hud.settings.gamma"))
+                .down_from(state.ids.fov_slider, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.gamma_text, ui);
+
+            if let Some(new_val) = ImageSlider::continuous(
+                self.global_state.settings.graphics.gamma,
+                0.5,
+                2.0,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.gamma_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.gamma_slider, ui)
+            {
+                events.push(Event::AdjustGamma(new_val));
+            }
+
+            Text::new(&format!("{}", self.global_state.settings.graphics.gamma))
+                .right_from(state.ids.gamma_slider, 8.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.gamma_value, ui);
+
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
-                .down_from(state.ids.fov_slider, 8.0)
+                .down_from(state.ids.gamma_slider, 8.0)
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
