@@ -10,15 +10,27 @@ jobs:
   release-macos:
     runs-on: [macos-latest]
     steps:
-      - uses: actions/checkout@v2
+      # LFS Checkout from Gitlab
+      - name: Gitlab LFS Checkout
+        run: |
+          mkdir -p $RUNNER_WORKSPACE/veloren
+          git init $RUNNER_WORKSPACE/veloren
+          cd $RUNNER_WORKSPACE/veloren
+          git remote add origin https://gitlab.com/veloren/veloren.git/
+          git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +$GITHUB_SHA:refs/remotes/origin/$(echo $GITHUB_REF | cut -c 12-)
+          git checkout --progress --force -B $(echo $GITHUB_REF | cut -c 12-) refs/remotes/origin/$(echo $GITHUB_REF | cut -c 12-)
+          git log -1
       # Prepare toolchain
       - name: Pull toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          target: x86_64-apple-darwin
-          override: true
       # Cache
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo index
         uses: actions/cache@v1
         with:
