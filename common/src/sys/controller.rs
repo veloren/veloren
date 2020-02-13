@@ -576,8 +576,7 @@ impl<'a> System<'a> for Sys {
                             && can_climb(body),
                         physics.on_wall,)
                         {
-                           
-                                character.movement = Climb;
+                            character.movement = Climb;
                             continue;
                         }
 
@@ -627,8 +626,6 @@ impl<'a> System<'a> for Sys {
                                         time_left: ROLL_DURATION,
                                         was_wielding: character.action.is_wield(),
                                     };
-                                    
-                                    
                             }
                             continue;
                         }
