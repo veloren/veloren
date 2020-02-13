@@ -239,6 +239,13 @@ lazy_static! {
              true,
              handle_exp,
          ),
+         ChatCommand::new(
+             "set_level",
+             "{d} {}",
+             "/set_level <level> <playername?> : Set own Level or specify a target player",
+             true,
+             handle_level
+         ),
         ChatCommand::new(
              "removelights",
              "{}",
@@ -1044,6 +1051,34 @@ fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
             Ok(player) => {
                 if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
                     stats.exp.change_by(exp);
+                } else {
+                    error_msg = Some(ServerMsg::private(String::from("Player has no stats!")));
+                }
+            },
+            Err(e) => {
+                error_msg = Some(e);
+            },
+        }
+
+        if let Some(msg) = error_msg {
+            server.notify_client(entity, msg);
+        }
+    }
+}
+
+fn handle_level(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (a_lvl, a_alias) = scan_fmt_some!(&args, action.arg_fmt, u32, String);
+
+    if let Some(lvl) = a_lvl {
+        let ecs = server.state.ecs_mut();
+        let target = find_target(&ecs, a_alias, entity);
+
+        let mut error_msg = None;
+
+        match target {
+            Ok(player) => {
+                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
+                    stats.level.set_level(lvl);
                 } else {
                     error_msg = Some(ServerMsg::private(String::from("Player has no stats!")));
                 }
