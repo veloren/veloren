@@ -1,8 +1,8 @@
 use super::phys::GRAVITY;
 use crate::{
     comp::{
-        ActionState, CharacterState, Controller, Mounting, MovementState::*, Ori, PhysicsState,
-        Pos, Stats, Vel, Energy, EnergySource
+        ActionState, CharacterState, Controller, Energy, EnergySource, Mounting, MovementState::*,
+        Ori, PhysicsState, Pos, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
@@ -232,20 +232,22 @@ impl<'a> System<'a> for Sys {
                 character.movement == Climb && vel.0.z <= CLIMB_SPEED,
                 physics.on_wall,
             ) {
-                if inputs.climb_down.is_pressed() && !inputs.climb.is_pressed() && energy
-                        .get_mut_unchecked()
-                        .try_change_by(-CLIMB_COST, EnergySource::Climb)
-                        .is_ok() 
-                        {
-                        vel.0 -= dt.0 * vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
-                    }
-                } else if inputs.climb.is_pressed() && !inputs.climb_down.is_pressed() && energy
+                if inputs.climb_down.is_pressed() && !inputs.climb.is_pressed() {
+                    if energy
                         .get_mut_unchecked()
                         .try_change_by(-CLIMB_COST, EnergySource::Climb)
                         .is_ok()
-                        {
+                    {
+                        vel.0 -= dt.0 * vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
+                    }
+                } else if inputs.climb.is_pressed() && !inputs.climb_down.is_pressed() {
+                    if energy
+                        .get_mut_unchecked()
+                        .try_change_by(-CLIMB_COST, EnergySource::Climb)
+                        .is_ok()
+                    {
                         vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED).max(0.0);
-                    
+                    }
                 } else {
                     vel.0.z = (vel.0.z - dt.0 * GRAVITY * 0.01).min(CLIMB_SPEED);
                 }
