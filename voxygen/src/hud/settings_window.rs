@@ -1566,10 +1566,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.gamma_text, ui);
 
-            if let Some(new_val) = ImageSlider::continuous(
-                self.global_state.settings.graphics.gamma,
-                0.5,
-                2.0,
+            if let Some(new_val) = ImageSlider::discrete(
+                (self.global_state.settings.graphics.gamma.log2() * 8.0).round() as i32,
+                8,
+                -8,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -1580,7 +1580,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.gamma_slider, ui)
             {
-                events.push(Event::AdjustGamma(new_val));
+                events.push(Event::AdjustGamma(2.0f32.powf(new_val as f32 / 8.0)));
             }
 
             Text::new(&format!("{}", self.global_state.settings.graphics.gamma))
