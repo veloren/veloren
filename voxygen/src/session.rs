@@ -614,6 +614,7 @@ impl PlayState for SessionState {
                 global_state.window.renderer_mut(),
                 &mut global_state.audio,
                 &self.client.borrow(),
+                global_state.settings.graphics.gamma,
             );
 
             // Render the session.

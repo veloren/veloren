@@ -119,6 +119,7 @@ impl Scene {
         renderer: &mut Renderer,
         client: &Client,
         body: Option<humanoid::Body>,
+        gamma: f32,
     ) {
         self.camera.set_focus_pos(Vec3::unit_z() * 1.5);
         self.camera.update(client.state().get_time());
@@ -142,6 +143,7 @@ impl Scene {
             0,
             BlockKind::Air,
             None,
+            gamma,
         )]) {
             error!("Renderer failed to update: {:?}", err);
         }
