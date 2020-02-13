@@ -19,7 +19,6 @@ use vek::*;
 const CHARGE_COST: i32 = 200;
 const ROLL_COST: i32 = 30;
 
-
 /// # Controller System
 /// #### Responsible for validating controller inputs and setting new Character
 /// States ----
@@ -570,15 +569,15 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Try to climb
-                    
-                        if let (true, Some(_wall_dir)) = (
+
+                    if let (true, Some(_wall_dir)) = (
                         (inputs.climb.is_pressed() | inputs.climb_down.is_pressed())
                             && can_climb(body),
-                        physics.on_wall,)
-                        {
-                            character.movement = Climb;
-                            continue;
-                        }
+                        physics.on_wall,
+                    ) {
+                        character.movement = Climb;
+                        continue;
+                    }
 
                     // Try to swim
                     if !physics.on_ground {
@@ -607,7 +606,6 @@ impl<'a> System<'a> for Sys {
                                 character.action = Charge {
                                     time_left: Duration::from_millis(250),
                                 };
-                                
                             }
                             continue;
                         }
@@ -622,10 +620,10 @@ impl<'a> System<'a> for Sys {
                                 .try_change_by(-ROLL_COST, EnergySource::Roll)
                                 .is_ok()
                             {
-                                    character.action = Roll {
-                                        time_left: ROLL_DURATION,
-                                        was_wielding: character.action.is_wield(),
-                                    };
+                                character.action = Roll {
+                                    time_left: ROLL_DURATION,
+                                    was_wielding: character.action.is_wield(),
+                                };
                             }
                             continue;
                         }
