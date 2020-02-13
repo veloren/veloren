@@ -245,7 +245,7 @@ impl<'a> System<'a> for Sys {
                         .is_ok()
                         {
                         vel.0.z = (vel.0.z + dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED).max(0.0);
-                    }
+                    
                 } else {
                     vel.0.z = (vel.0.z - dt.0 * GRAVITY * 0.01).min(CLIMB_SPEED);
                 }
