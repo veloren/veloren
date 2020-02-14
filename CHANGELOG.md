@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added music system
 - Added zoomable and rotatable minimap
 - Added rotating orientation marker to main-map
+- Added daily Mac builds
 
 ### Changed
 - Brighter / higher contrast main-map
