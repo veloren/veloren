@@ -103,13 +103,14 @@ impl<'a> System<'a> for Sys {
                     server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
                 } else {
                     fn get_npc_name<
+                        'a,
                         Species,
-                        SpeciesData: core::ops::Index<Species, Output = npc::SpeciesNames>,
+                        SpeciesData: for<'b> core::ops::Index<&'b Species, Output = npc::SpeciesNames>,
                     >(
-                        body_data: &comp::BodyData<npc::BodyNames, SpeciesData>,
+                        body_data: &'a comp::BodyData<npc::BodyNames, SpeciesData>,
                         species: Species,
-                    ) -> &str {
-                        &body_data.species[species].generic
+                    ) -> &'a str {
+                        &body_data.species[&species].generic
                     }
                     const SPAWN_NPCS: &'static [fn() -> (
                         String,
