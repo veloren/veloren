@@ -63,6 +63,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
 impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, SpeciesMeta> {
     type Output = BodyMeta;
 
+    #[inline]
     fn index(&self, index: NpcKind) -> &Self::Output {
         match index {
             NpcKind::Humanoid => &self.humanoid.body,
