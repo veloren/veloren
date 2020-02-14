@@ -1,5 +1,5 @@
 use crate::{
-    comp::{ActionState, CharacterState, Energy, EnergySource, HealthSource, Stats},
+    comp::{ActionState, CharacterState, Energy, EnergySource, HealthSource, MovementState, Stats},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
@@ -95,6 +95,27 @@ impl<'a> System<'a> for Sys {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
+                },
+            }
+
+            match character_state.movement {
+                MovementState::Climb => {
+                    if energy.get_unchecked().regen_rate != 0.0 {
+                        energy.get_mut_unchecked().regen_rate = 0.0
+                    }
+                },
+                MovementState::Glide => {
+                    if energy.get_unchecked().regen_rate != 0.0 {
+                        energy.get_mut_unchecked().regen_rate = 0.0
+                    }
+                },
+                MovementState::Swim => {
+                    if energy.get_unchecked().regen_rate != 0.0 {
+                        energy.get_mut_unchecked().regen_rate = 0.0
+                    }
+                },
+                _ => {
+                    continue;
                 },
             }
         }
