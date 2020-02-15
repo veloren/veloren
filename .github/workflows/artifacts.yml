@@ -46,14 +46,10 @@ jobs:
       # Install required libraries
       - name: Install Required Packages
         run: |
-          sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
-            libglib2.0-dev \
-            libcairo2-dev \
             libasound2-dev \
             libpango1.0-dev \
             libatk1.0-dev \
-            libgdk-pixbuf2.0-dev \
             libgtk-3-dev
       # Build & Package Veloren
       - name: Build
