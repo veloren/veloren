@@ -43,7 +43,18 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      # Build & Package airshipper
+      # Install required libraries
+      - name: Install Required Packages
+        run: |
+          sudo apt-get install \
+            libglib2.0-dev \
+            libcairo2-dev \
+            libasound2-dev \
+            libpango1.0-dev \
+            libatk1.0-dev \
+            libgdk-pixbuf2.0-dev \
+            libgtk-3-dev
+      # Build & Package Veloren
       - name: Build
         run: cargo build
       - name: Package
@@ -57,7 +68,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
-          name: airshipper-linux
+          name: Veloren-linux
           path: artifact/
   release-windows:
     runs-on: [windows-latest]
@@ -93,7 +104,7 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      # Build & Package airshipper
+      # Build & Package Veloren
       - name: Build
         run: cargo build
       - name: Package
@@ -143,7 +154,7 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      # Build & Package airshipper
+      # Build & Package Veloren
       - name: Build
         run: cargo build
       - name: Package
