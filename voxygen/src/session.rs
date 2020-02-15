@@ -126,9 +126,6 @@ impl PlayState for SessionState {
         let mut clock = Clock::start();
         self.client.borrow_mut().clear_terrain();
 
-        // Kill the title music if it is still playing
-        global_state.audio.stop_title_music();
-
         // Send startup commands to the server
         if global_state.settings.send_logon_commands {
             for cmd in &global_state.settings.logon_commands {

@@ -91,7 +91,7 @@ impl SfxMgr {
                     },
                 };
 
-                audio.play_sound(sfx_file, position);
+                audio.play_sfx(sfx_file, position);
             }
         }
     }

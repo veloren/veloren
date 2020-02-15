@@ -221,6 +221,7 @@ pub struct AudioSettings {
     pub master_volume: f32,
     pub music_volume: f32,
     pub sfx_volume: f32,
+    pub max_sfx_channels: usize,
 
     /// Audio Device that Voxygen will use to play audio.
     pub audio_device: Option<String>,
@@ -233,6 +234,7 @@ impl Default for AudioSettings {
             master_volume: 1.0,
             music_volume: 0.4,
             sfx_volume: 0.6,
+            max_sfx_channels: 10,
             audio_device: None,
             audio_on: true,
         }
