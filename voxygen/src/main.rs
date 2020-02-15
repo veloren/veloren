@@ -121,7 +121,7 @@ fn main() {
     };
 
     let mut audio = if settings.audio.audio_on {
-        AudioFrontend::new(audio_device(), 16)
+        AudioFrontend::new(audio_device(), settings.audio.max_sfx_channels)
     } else {
         AudioFrontend::no_audio()
     };

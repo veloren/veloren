@@ -55,8 +55,7 @@ num = "0.2.0"
 backtrace = "0.3.40"
 rand = "0.7.2"
 treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
-# context for pinning to commit: https://gitlab.com/veloren/veloren/issues/280
-rodio = { git = "https://github.com/RustAudio/rodio", rev = "e5474a2"}
+rodio = { version = "0.10", default-features = false, features = ["wav", "vorbis"] }
 cpal = "0.10"
 crossbeam = "=0.7.2"
 hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
