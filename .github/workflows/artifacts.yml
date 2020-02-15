@@ -46,7 +46,7 @@ jobs:
       # Install required libraries
       - name: Install Required Packages
         run: |
-          sudo apt-get install \
+          sudo apt-get install --no-install-recommends -y \
             libglib2.0-dev \
             libcairo2-dev \
             libasound2-dev \
@@ -83,6 +83,7 @@ jobs:
           git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +$GITHUB_SHA:refs/remotes/origin/$(echo $GITHUB_REF | cut -c 12-)
           git checkout --progress --force -B $(echo $GITHUB_REF | cut -c 12-) refs/remotes/origin/$(echo $GITHUB_REF | cut -c 12-)
           git log -1
+        shell: bash
       # Prepare toolchain
       - name: Pull toolchain
         uses: actions-rs/toolchain@v1
@@ -114,6 +115,7 @@ jobs:
           cp -r assets/ artifact/assets/
           cp target/debug/veloren-server-cli artifact/
           cp target/debug/veloren-voxygen artifact/
+        shell: bash
       # Upload artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v1
