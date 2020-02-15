@@ -4,10 +4,111 @@
 name: Artifacts
 
 on:
+  push:
   schedule:
-    - cron:  '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
+  release-linux:
+    runs-on: [ubuntu-latest]
+    steps:
+      # LFS Checkout from Gitlab
+      - name: Gitlab LFS Checkout
+        run: |
+          mkdir -p $RUNNER_WORKSPACE/veloren
+          git init $RUNNER_WORKSPACE/veloren
+          cd $RUNNER_WORKSPACE/veloren
+          git remote add origin https://gitlab.com/veloren/veloren.git/
+          git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +$GITHUB_SHA:refs/remotes/origin/$(echo $GITHUB_REF | cut -c 12-)
+          git checkout --progress --force -B $(echo $GITHUB_REF | cut -c 12-) refs/remotes/origin/$(echo $GITHUB_REF | cut -c 12-)
+          git log -1
+      # Prepare toolchain
+      - name: Pull toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+      # Cache
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      # Build & Package airshipper
+      - name: Build
+        run: cargo build
+      - name: Package
+        run: |
+          mkdir -p artifact/
+          mkdir -p artifact/assets
+          cp -r assets/ artifact/assets/
+          cp target/debug/veloren-server-cli artifact/
+          cp target/debug/veloren-voxygen artifact/
+      # Upload artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: airshipper-linux
+          path: artifact/
+  release-windows:
+    runs-on: [windows-latest]
+    steps:
+      # LFS Checkout from Gitlab
+      - name: Gitlab LFS Checkout
+        run: |
+          mkdir -p $RUNNER_WORKSPACE/veloren
+          git init $RUNNER_WORKSPACE/veloren
+          cd $RUNNER_WORKSPACE/veloren
+          git remote add origin https://gitlab.com/veloren/veloren.git/
+          git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +$GITHUB_SHA:refs/remotes/origin/$(echo $GITHUB_REF | cut -c 12-)
+          git checkout --progress --force -B $(echo $GITHUB_REF | cut -c 12-) refs/remotes/origin/$(echo $GITHUB_REF | cut -c 12-)
+          git log -1
+      # Prepare toolchain
+      - name: Pull toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+      # Cache
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      # Build & Package airshipper
+      - name: Build
+        run: cargo build
+      - name: Package
+        run: |
+          mkdir -p artifact/
+          mkdir -p artifact/assets
+          cp -r assets/ artifact/assets/
+          cp target/debug/veloren-server-cli artifact/
+          cp target/debug/veloren-voxygen artifact/
+      # Upload artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: veloren-windows
+          path: artifact/
   release-macos:
     runs-on: [macos-latest]
     steps:
@@ -56,5 +157,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
-          name: airshipper-macos
+          name: veloren-macos
           path: artifact/
