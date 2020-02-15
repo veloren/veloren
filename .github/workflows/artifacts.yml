@@ -46,6 +46,7 @@ jobs:
       # Install required libraries
       - name: Install Required Packages
         run: |
+          sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
             libglib2.0-dev \
             libcairo2-dev \
