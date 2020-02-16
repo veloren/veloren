@@ -122,6 +122,18 @@ benchmarks:
         - unset DISABLE_GIT_LFS_CHECK
         - cargo bench
 
+localization-status:
+    variables:
+        GIT_DEPTH: 0
+    stage: post
+    when: delayed
+    start_in: 5 seconds
+    allow_failure: true
+    tags:
+        - veloren-docker
+    script:
+        - cargo test -q test_all_localizations -- --nocapture --ignored
+
 linux:
     stage: post
     when: delayed

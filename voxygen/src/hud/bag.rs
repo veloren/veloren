@@ -1,9 +1,9 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{ItemImgs, ItemKey},
-    Event as HudEvent, Fonts, TEXT_COLOR,
+    Event as HudEvent, TEXT_COLOR,
 };
-use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
+use crate::ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
 use conrod_core::{
     color, image,
@@ -35,7 +35,7 @@ pub struct Bag<'a> {
     client: &'a Client,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
@@ -48,7 +48,7 @@ impl<'a> Bag<'a> {
         client: &'a Client,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
         pulse: f32,
@@ -118,10 +118,11 @@ impl<'a> Widget for Bag<'a> {
                 5.0,
             )
         })
-        .title_font_size(15)
+        .title_font_size(self.fonts.cyri.scale(15))
         .parent(ui.window)
-        .desc_font_size(12)
+        .desc_font_size(self.fonts.cyri.scale(12))
         .title_text_color(TEXT_COLOR)
+        .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
         // Bag parts
