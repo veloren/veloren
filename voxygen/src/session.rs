@@ -590,6 +590,7 @@ impl PlayState for SessionState {
                         )
                         .unwrap();
                         localized_strings.log_missing_entries();
+                        self.hud.update_language(localized_strings.clone());
                     },
                     HudEvent::ToggleFullscreen => {
                         global_state
