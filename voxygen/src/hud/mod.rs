@@ -695,20 +695,19 @@ impl Hud {
                 let ingame_pos = pos + Vec3::unit_z() * height_offset;
 
                 // Background
-                Rectangle::fill_with(
-                    [82.0 * BARSIZE + 1.0, 8.0],
-                    Color::Rgba(0.1, 0.1, 0.1, 0.9),
-                )
-                .x_y(0.0, MANA_BAR_Y + 7.0) //-25.0)
-                .position_ingame(ingame_pos)
-                .set(back_id, ui_widgets);
+                Image::new(self.imgs.enemy_health_bg)
+                    .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                    .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
+                    .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
+                    .position_ingame(ingame_pos)
+                    .set(back_id, ui_widgets);
 
                 // % HP Filling
                 Image::new(self.imgs.enemy_bar)
-                    .w_h(72.9 * (hp_percentage / 100.0) * BARSIZE, 5.9 * BARSIZE)
+                    .w_h(73.0 * (hp_percentage / 100.0) * BARSIZE, 6.0 * BARSIZE)
                     .x_y(
                         (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
-                        MANA_BAR_Y + 9.0,
+                        MANA_BAR_Y + 7.5,
                     )
                     .color(Some(if hp_percentage <= 25.0 {
                         crit_hp_color
@@ -722,13 +721,13 @@ impl Hud {
                 // % Mana Filling
                 Rectangle::fill_with(
                     [
-                        73.0 * (energy.current() as f64 / energy.maximum() as f64) * BARSIZE,
+                        72.0 * (energy.current() as f64 / energy.maximum() as f64) * BARSIZE,
                         MANA_BAR_HEIGHT,
                     ],
                     MANA_COLOR,
                 )
                 .x_y(
-                    ((4.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
+                    ((3.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
                     MANA_BAR_Y, //-32.0,
                 )
                 .position_ingame(ingame_pos)

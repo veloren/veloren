@@ -265,6 +265,7 @@ image_ids! {
 
         // Enemy Healthbar
         enemy_health: "voxygen.element.frames.enemybar",
+        enemy_health_bg: "voxygen.element.frames.enemybar_bg",
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.skillbar.enemy_bar_content",
         // Spell Book Window
