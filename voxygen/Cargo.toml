@@ -72,6 +72,7 @@ winres = "0.1"
 
 [dev-dependencies]
 criterion = "0.3"
+git2 = "0.10"
 world = { package = "veloren-world", path = "../world" }
 
 [[bench]]

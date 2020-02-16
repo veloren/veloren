@@ -3,8 +3,8 @@ use conrod_core::{
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{img_ids::Imgs, Fonts, Windows, TEXT_COLOR};
-use crate::ui::ToggleButton;
+use super::{img_ids::Imgs, Windows, TEXT_COLOR};
+use crate::ui::{fonts::ConrodVoxygenFonts, ToggleButton};
 
 widget_ids! {
     struct Ids {
@@ -31,7 +31,7 @@ pub struct Buttons<'a> {
     show_bag: bool,
 
     imgs: &'a Imgs,
-    _fonts: &'a Fonts,
+    _fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -42,14 +42,14 @@ impl<'a> Buttons<'a> {
         show_map: bool,
         show_bag: bool,
         imgs: &'a Imgs,
-        _fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
     ) -> Self {
         Self {
             open_windows,
             show_map,
             show_bag,
             imgs,
-            _fonts,
+            _fonts: fonts,
             common: widget::CommonBuilder::default(),
         }
     }

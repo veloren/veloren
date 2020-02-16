@@ -30,10 +30,26 @@ pub struct LanguageMetadata {
     pub language_identifier: String,
 }
 
+/// Store font metadata
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Font {
+    /// Key to retrieve the font in the asset system
+    pub asset_key: String,
+
+    /// Scale ratio to resize the UI text dynamicly
+    pub scale_ratio: f32,
+}
+
+impl Font {
+    /// Scale input size to final UI size
+    pub fn scale(&self, value: u32) -> u32 { (value as f32 * self.scale_ratio).round() as u32 }
+}
+
+/// Store font metadata
+pub type VoxygenFonts = HashMap<String, Font>;
+
 /// Store internationalization data
-///
-/// TODO: store the font locations here (Font asset path for instance)
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct VoxygenLocalization {
     /// A map storing the localized texts
     ///
@@ -43,6 +59,9 @@ pub struct VoxygenLocalization {
     /// Either to convert the input text encoded in UTF-8
     /// into a ASCII version by using the `deunicode` crate.
     pub convert_utf8_to_ascii: bool,
+
+    /// Font configuration is stored here
+    pub fonts: VoxygenFonts,
 
     pub metadata: LanguageMetadata,
 }

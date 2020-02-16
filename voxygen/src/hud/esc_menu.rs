@@ -1,5 +1,5 @@
-use super::{img_ids::Imgs, settings_window::SettingsTab, Fonts, TEXT_COLOR};
-use crate::i18n::VoxygenLocalization;
+use super::{img_ids::Imgs, settings_window::SettingsTab, TEXT_COLOR};
+use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use conrod_core::{
     widget::{self, Button, Image},
     widget_ids, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
@@ -21,7 +21,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct EscMenu<'a> {
     imgs: &'a Imgs,
-    _fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 
     #[conrod(common_builder)]
@@ -31,12 +31,12 @@ pub struct EscMenu<'a> {
 impl<'a> EscMenu<'a> {
     pub fn new(
         imgs: &'a Imgs,
-        _fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
             imgs,
-            _fonts,
+            fonts,
             localized_strings,
             common: widget::CommonBuilder::default(),
         }
@@ -90,7 +90,8 @@ impl<'a> Widget for EscMenu<'a> {
             .label(&self.localized_strings.get("common.resume"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
-            .label_font_size(20)
+            .label_font_size(self.fonts.cyri.scale(20))
+            .label_font_id(self.fonts.cyri.conrod_id)
             .set(state.ids.menu_button_1, ui)
             .was_clicked()
         {
@@ -106,7 +107,8 @@ impl<'a> Widget for EscMenu<'a> {
             .label(&self.localized_strings.get("common.settings"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
-            .label_font_size(20)
+            .label_font_size(self.fonts.cyri.scale(20))
+            .label_font_id(self.fonts.cyri.conrod_id)
             .set(state.ids.menu_button_2, ui)
             .was_clicked()
         {
@@ -121,7 +123,8 @@ impl<'a> Widget for EscMenu<'a> {
             .label(&self.localized_strings.get("common.controls"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
-            .label_font_size(20)
+            .label_font_size(self.fonts.cyri.scale(20))
+            .label_font_id(self.fonts.cyri.conrod_id)
             .set(state.ids.menu_button_3, ui)
             .was_clicked()
         {
@@ -136,7 +139,8 @@ impl<'a> Widget for EscMenu<'a> {
             .label(&self.localized_strings.get("common.characters"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
-            .label_font_size(20)
+            .label_font_size(self.fonts.cyri.scale(20))
+            .label_font_id(self.fonts.cyri.conrod_id)
             .set(state.ids.menu_button_4, ui)
             .was_clicked()
         {
@@ -151,7 +155,8 @@ impl<'a> Widget for EscMenu<'a> {
             .label(&self.localized_strings.get("esc_menu.logout"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
-            .label_font_size(20)
+            .label_font_size(self.fonts.cyri.scale(20))
+            .label_font_id(self.fonts.cyri.conrod_id)
             .set(state.ids.menu_button_5, ui)
             .was_clicked()
         {
@@ -166,7 +171,8 @@ impl<'a> Widget for EscMenu<'a> {
             .label(&self.localized_strings.get("esc_menu.quit_game"))
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
-            .label_font_size(20)
+            .label_font_size(self.fonts.cyri.scale(20))
+            .label_font_id(self.fonts.cyri.conrod_id)
             .set(state.ids.menu_button_6, ui)
             .was_clicked()
         {
