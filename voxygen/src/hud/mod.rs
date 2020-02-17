@@ -806,12 +806,14 @@ impl Hud {
 
                         Text::new(&format!("{}", (hp_damage).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(0.0, y - 3.0)
                             .position_ingame(ingame_pos)
                             .set(sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", hp_damage.abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .x_y(0.0, y)
                             .color(if hp_damage < 0 {
                                 Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
@@ -852,6 +854,7 @@ impl Hud {
 
                             Text::new(&format!("{}", (floater.hp_change).abs()))
                                 .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
                                 .color(if floater.hp_change < 0 {
                                     Color::Rgba(0.0, 0.0, 0.0, fade)
                                 } else {
@@ -862,6 +865,7 @@ impl Hud {
                                 .set(sct_bg_id, ui_widgets);
                             Text::new(&format!("{}", (floater.hp_change).abs()))
                                 .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
                                 .x_y(0.0, y)
                                 .color(if floater.hp_change < 0 {
                                     Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
@@ -919,6 +923,7 @@ impl Hud {
                             ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
                         Text::new(&format!("{}", (hp_damage).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(if hp_damage < 0 {
                                 Color::Rgba(0.0, 0.0, 0.0, hp_fade)
                             } else {
@@ -928,6 +933,7 @@ impl Hud {
                             .set(player_sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", (hp_damage).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(if hp_damage < 0 {
                                 Color::Rgba(1.0, 0.1, 0.0, hp_fade)
                             } else {
@@ -991,11 +997,13 @@ impl Hud {
                             + 0.2;
                         Text::new(&format!("{}", (floater.hp_change).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
                             .x_y(x, y - 3.0)
                             .set(player_sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", (floater.hp_change).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(if floater.hp_change < 0 {
                                 Color::Rgba(1.0, 0.1, 0.0, hp_fade)
                             } else {
@@ -1046,6 +1054,7 @@ impl Hud {
 
                         Text::new(&format!("{} Exp", exp_change))
                             .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(
                                 ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
@@ -1054,6 +1063,7 @@ impl Hud {
                             .set(player_sct_bg_id, ui_widgets);
                         Text::new(&format!("{} Exp", exp_change))
                             .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.59, 0.41, 0.67, fade))
                             .x_y(
                                 ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
@@ -1087,6 +1097,7 @@ impl Hud {
 
                             Text::new(&format!("{} Exp", floater.exp_change))
                                 .font_size(font_size_xp)
+                                .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                                 .x_y(
                                     ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
@@ -1095,6 +1106,7 @@ impl Hud {
                                 .set(player_sct_bg_id, ui_widgets);
                             Text::new(&format!("{} Exp", floater.exp_change))
                                 .font_size(font_size_xp)
+                                .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.59, 0.41, 0.67, fade))
                                 .x_y(
                                     ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
@@ -1167,13 +1179,15 @@ impl Hud {
 
                 // Name
                 Text::new(&name)
-                    .font_size(self.fonts.cyri.scale(30))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(30)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                     .x_y(-1.0, MANA_BAR_Y + 48.0)
                     .position_ingame(ingame_pos)
                     .set(name_bg_id, ui_widgets);
                 Text::new(&name)
-                    .font_size(self.fonts.cyri.scale(30))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(30)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
                     .x_y(0.0, MANA_BAR_Y + 50.0)
                     .position_ingame(ingame_pos)
@@ -1193,6 +1207,7 @@ impl Hud {
                 // -5 - +5 levels around player level -> equal
                 // - 5 levels below player -> low
                 Text::new(if level_comp < 10 { &level_str } else { "?" })
+                    .font_id(self.fonts.cyri.conrod_id)
                     .font_size(if op_level > 9 && level_comp < 10 {
                         14
                     } else {
