@@ -26,6 +26,7 @@ gfx_defines! {
         light_shadow_count: [u32; 4] = "light_shadow_count",
         medium: [u32; 4] = "medium",
         select_pos: [i32; 4] = "select_pos",
+        gamma: [f32; 4] = "gamma",
     }
 
     constant Light {
@@ -53,6 +54,7 @@ impl Globals {
         shadow_count: usize,
         medium: BlockKind,
         select_pos: Option<Vec3<i32>>,
+        gamma: f32,
     ) -> Self {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
@@ -70,6 +72,7 @@ impl Globals {
                 .map(|sp| Vec4::from(sp) + Vec4::unit_w())
                 .unwrap_or(Vec4::zero())
                 .into_array(),
+            gamma: [gamma; 4],
         }
     }
 }
@@ -89,6 +92,7 @@ impl Default for Globals {
             0,
             BlockKind::Air,
             None,
+            1.0,
         )
     }
 }

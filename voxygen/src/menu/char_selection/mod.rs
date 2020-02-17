@@ -99,6 +99,7 @@ impl PlayState for CharSelectionState {
                 global_state.window.renderer_mut(),
                 &self.client.borrow(),
                 humanoid_body.clone(),
+                global_state.settings.graphics.gamma,
             );
 
             // Render the scene.
