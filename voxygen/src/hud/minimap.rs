@@ -306,7 +306,7 @@ impl<'a> Widget for MiniMap<'a> {
                 .font_size(
                     self.fonts
                         .cyri
-                        .scale(if self.show.mini_map { 30 } else { 18 }),
+                        .scale(if self.show.mini_map { 20 } else { 18 }),
                 )
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)

@@ -31,7 +31,7 @@ pub struct Buttons<'a> {
     show_bag: bool,
 
     imgs: &'a Imgs,
-    _fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -49,7 +49,7 @@ impl<'a> Buttons<'a> {
             show_map,
             show_bag,
             imgs,
-            _fonts: fonts,
+            fonts,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -101,6 +101,7 @@ impl<'a> Widget for Buttons<'a> {
             Text::new("B")
                 .bottom_right_with_margins_on(state.ids.bag, 0.0, 0.0)
                 .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.bag_text, ui);
         } else {
@@ -111,6 +112,7 @@ impl<'a> Widget for Buttons<'a> {
             Text::new("B")
                 .bottom_right_with_margins_on(state.ids.bag, 0.0, 0.0)
                 .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.bag_text, ui);
         }
@@ -122,6 +124,7 @@ impl<'a> Widget for Buttons<'a> {
             .hover_image(self.imgs.settings_hover)
             .press_image(self.imgs.settings_press)
             .label("N")
+            .label_font_id(self.fonts.cyri.conrod_id)
             .label_font_size(10)
             .label_color(TEXT_COLOR)
             .label_y(conrod_core::position::Relative::Scalar(-7.0))
@@ -144,6 +147,7 @@ impl<'a> Widget for Buttons<'a> {
             .hover_image(self.imgs.map_hover)
             .press_image(self.imgs.map_press)
             .label("M")
+            .label_font_id(self.fonts.cyri.conrod_id)
             .label_font_size(10)
             .label_color(TEXT_COLOR)
             .label_y(conrod_core::position::Relative::Scalar(-7.0))
@@ -185,6 +189,7 @@ impl<'a> Widget for Buttons<'a> {
                 .hover_image(self.imgs.social_hover)
                 .press_image(self.imgs.social_press)
                 .label("O")
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .label_font_size(10)
                 .label_color(TEXT_COLOR)
                 .label_y(conrod_core::position::Relative::Scalar(-7.0))
@@ -202,6 +207,7 @@ impl<'a> Widget for Buttons<'a> {
                 .hover_image(self.imgs.spellbook_hover)
                 .press_image(self.imgs.spellbook_press)
                 .label("P")
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .label_font_size(10)
                 .label_color(TEXT_COLOR)
                 .label_y(conrod_core::position::Relative::Scalar(-7.0))
@@ -219,6 +225,7 @@ impl<'a> Widget for Buttons<'a> {
                 .hover_image(self.imgs.character_hover)
                 .press_image(self.imgs.character_press)
                 .label("C")
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .label_font_size(10)
                 .label_color(TEXT_COLOR)
                 .label_y(conrod_core::position::Relative::Scalar(-7.0))
@@ -236,6 +243,7 @@ impl<'a> Widget for Buttons<'a> {
                 .hover_image(self.imgs.qlog_hover)
                 .press_image(self.imgs.qlog_press)
                 .label("L")
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .label_font_size(10)
                 .label_color(TEXT_COLOR)
                 .label_y(conrod_core::position::Relative::Scalar(-7.0))
