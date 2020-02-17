@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow spawning individual pet species, not just generic body kinds.
 - Configurable fonts
 - Tanslation status tracking
+- Added gamma setting
 
 ### Changed
 
