@@ -1,8 +1,8 @@
 uniform sampler2D t_noise;
 
 const float CLOUD_AVG_HEIGHT = 1025.0;
-const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 50.0;
-const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 50.0;
+const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 60.0;
+const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 60.0;
 const float CLOUD_THRESHOLD = 0.25;
 const float CLOUD_SCALE = 5.0;
 const float CLOUD_DENSITY = 100.0;
@@ -67,8 +67,8 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 			cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
 			dist += INCR * delta;
 
-			if (passthrough < 0.05 || (passthrough > 0.8 && dist > (maxd + mind) * 0.7)) {
-				break;
+			if (passthrough < 0.025 || (passthrough > 0.8 && dist > (maxd + mind) * 0.7) && mind > 100.0) {
+				//break;
 			}
 		}
 	}

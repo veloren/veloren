@@ -99,6 +99,7 @@ impl<'a> System<'a> for Sys {
                             - *bearing * 0.01
                             - if let Some(patrol_origin) = agent.patrol_origin {
                                 Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
+                                    + Vec3::one() / Vec2::<f32>::from(pos.0 - patrol_origin)
                             } else {
                                 Vec2::zero()
                             };
