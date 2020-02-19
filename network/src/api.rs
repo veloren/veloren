@@ -2,6 +2,7 @@ use crate::{
     internal::RemoteParticipant,
     message::{self, OutGoingMessage},
     worker::{
+        metrics::NetworkMetrics,
         types::{CtrlMsg, Pid, RtrnMsg, Sid, TokenObjects},
         Channel, Controller, TcpChannel,
     },
@@ -71,6 +72,7 @@ pub struct Network<E: Events> {
     thread_pool: Arc<ThreadPool>,
     participant_id: Pid,
     remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
+    metrics: Arc<Option<NetworkMetrics>>,
     _pe: PhantomData<E>,
 }
 
@@ -85,11 +87,13 @@ impl<E: Events> Network<E> {
             // created and we do not want to polute the traces with
             // network pid everytime
         }
+        let metrics = Arc::new(None);
         let controller = Arc::new(vec![Controller::new(
             worker_pool.next(),
             participant_id,
             thread_pool.clone(),
             token_pool.subpool(1000000).unwrap(),
+            metrics.clone(),
             remotes.clone(),
         )]);
         Self {
@@ -99,6 +103,7 @@ impl<E: Events> Network<E> {
             thread_pool,
             participant_id,
             remotes,
+            metrics,
             _pe: PhantomData::<E> {},
         }
     }

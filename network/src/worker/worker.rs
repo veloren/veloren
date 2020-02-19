@@ -1,7 +1,8 @@
 use crate::{
     internal::RemoteParticipant,
     worker::{
-        types::{CtrlMsg, Pid, RtrnMsg, Statistics, TokenObjects},
+        metrics::NetworkMetrics,
+        types::{CtrlMsg, Pid, RtrnMsg, TokenObjects},
         Channel, Controller, TcpChannel,
     },
 };
@@ -42,7 +43,7 @@ impl MioTokens {
 pub(crate) struct Worker {
     pid: Pid,
     poll: Arc<Poll>,
-    statistics: Arc<RwLock<Statistics>>,
+    metrics: Arc<Option<NetworkMetrics>>,
     remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
     ctrl_rx: Receiver<CtrlMsg>,
     rtrn_tx: Sender<RtrnMsg>,
@@ -55,7 +56,7 @@ impl Worker {
     pub fn new(
         pid: Pid,
         poll: Arc<Poll>,
-        statistics: Arc<RwLock<Statistics>>,
+        metrics: Arc<Option<NetworkMetrics>>,
         remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
         token_pool: tlid::Pool<tlid::Wrapping<usize>>,
         ctrl_rx: Receiver<CtrlMsg>,
@@ -65,7 +66,7 @@ impl Worker {
         Worker {
             pid,
             poll,
-            statistics,
+            metrics,
             remotes,
             ctrl_rx,
             rtrn_tx,
@@ -252,33 +253,19 @@ impl Worker {
 
     fn handle_statistics(&mut self) {
         let time_after_work = Instant::now();
-        let mut statistics = match self.statistics.try_write() {
-            Ok(s) => s,
-            Err(e) => {
-                warn!(
-                    ?e,
-                    "statistics dropped because they are currently accecssed"
-                );
-                return;
-            },
-        };
 
-        const KEEP_FACTOR: f64 = 0.995;
-        //in order to weight new data stronger than older we fade them out with a
-        // factor < 1. for 0.995 under full load (500 ticks a 1ms) we keep 8% of the old
-        // value this means, that we start to see load comming up after
-        // 500ms, but not for small spikes - as reordering for smaller spikes would be
-        // to slow
-        let first = self.time_after_poll.duration_since(self.time_before_poll);
-        let second = time_after_work.duration_since(self.time_after_poll);
-        statistics.nano_wait =
-            (statistics.nano_wait as f64 * KEEP_FACTOR) as u128 + first.as_nanos();
-        statistics.nano_busy =
-            (statistics.nano_busy as f64 * KEEP_FACTOR) as u128 + second.as_nanos();
+        let idle = self.time_after_poll.duration_since(self.time_before_poll);
+        let work = time_after_work.duration_since(self.time_after_poll);
 
-        trace!(
-            "current Load {}",
-            statistics.nano_busy as f32 / (statistics.nano_busy + statistics.nano_wait + 1) as f32
-        );
+        if let Some(metric) = &*self.metrics {
+            metric
+                .worker_idle_time
+                .with_label_values(&["message"])
+                .add(idle.as_millis() as i64); //todo convert correctly !
+            metric
+                .worker_work_time
+                .with_label_values(&["message"])
+                .add(work.as_millis() as i64);
+        }
     }
 }

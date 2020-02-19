@@ -5167,6 +5167,7 @@ dependencies = [
  "futures 0.3.4",
  "mio",
  "mio-extras",
+ "prometheus",
  "serde",
  "serde_derive",
  "tlid",

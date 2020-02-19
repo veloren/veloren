@@ -6,14 +6,14 @@ use std::{
     error::Error,
     net::SocketAddr,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
     },
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-pub struct ServerMetrics {
+pub struct TickMetrics {
     pub chonks_count: IntGauge,
     pub chunks_count: IntGauge,
     pub player_online: IntGauge,
@@ -23,77 +23,116 @@ pub struct ServerMetrics {
     pub start_time: IntGauge,
     pub time_of_day: Gauge,
     pub light_count: IntGauge,
-    running: Arc<AtomicBool>,
-    pub handle: Option<thread::JoinHandle<()>>,
-    pub every_100th: i8,
+    tick: Arc<AtomicU64>,
 }
 
-impl ServerMetrics {
-    pub fn new(addr: SocketAddr) -> Result<Self, Box<dyn Error>> {
-        let opts = Opts::new(
+pub struct ServerMetrics {
+    running: Arc<AtomicBool>,
+    handle: Option<thread::JoinHandle<()>>,
+    registry: Option<Registry>,
+    tick: Arc<AtomicU64>,
+}
+
+impl TickMetrics {
+    pub fn new(registry: &Registry, tick: Arc<AtomicU64>) -> Result<Self, Box<dyn Error>> {
+        let player_online = IntGauge::with_opts(Opts::new(
             "player_online",
             "shows the number of clients connected to the server",
-        );
-        let player_online = IntGauge::with_opts(opts)?;
-        let opts = Opts::new(
+        ))?;
+        let entity_count = IntGauge::with_opts(Opts::new(
             "entity_count",
             "number of all entities currently active on the server",
-        );
-        let entity_count = IntGauge::with_opts(opts)?;
+        ))?;
         let opts = Opts::new("veloren_build_info", "Build information")
             .const_label("hash", &common::util::GIT_HASH)
             .const_label("version", "");
         let build_info = IntGauge::with_opts(opts)?;
-        let opts = Opts::new(
+        let start_time = IntGauge::with_opts(Opts::new(
             "veloren_start_time",
             "start time of the server in seconds since EPOCH",
-        );
-        let start_time = IntGauge::with_opts(opts)?;
-        let opts = Opts::new("time_of_day", "ingame time in ingame-seconds");
-        let time_of_day = Gauge::with_opts(opts)?;
-        let opts = Opts::new(
+        ))?;
+        let time_of_day =
+            Gauge::with_opts(Opts::new("time_of_day", "ingame time in ingame-seconds"))?;
+        let light_count = IntGauge::with_opts(Opts::new(
             "light_count",
             "number of all lights currently active on the server",
-        );
-        let light_count = IntGauge::with_opts(opts)?;
-        let opts = Opts::new(
+        ))?;
+        let chonks_count = IntGauge::with_opts(Opts::new(
             "chonks_count",
             "number of all chonks currently active on the server",
-        );
-        let chonks_count = IntGauge::with_opts(opts)?;
-        let opts = Opts::new(
+        ))?;
+        let chunks_count = IntGauge::with_opts(Opts::new(
             "chunks_count",
             "number of all chunks currently active on the server",
-        );
-        let chunks_count = IntGauge::with_opts(opts)?;
-        let vec = IntGaugeVec::new(
+        ))?;
+        let tick_time = IntGaugeVec::from(IntGaugeVec::new(
             Opts::new("tick_time", "time in ns requiered for a tick of the server"),
             &["period"],
-        )?;
-        let tick_time = IntGaugeVec::from(vec);
+        )?);
 
         let since_the_epoch = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards");
         start_time.set(since_the_epoch.as_secs().try_into()?);
 
-        let registry = Registry::new();
-        //registry.register(Box::new(chonks_count.clone())).unwrap();
         registry.register(Box::new(player_online.clone()))?;
         registry.register(Box::new(entity_count.clone()))?;
         registry.register(Box::new(build_info.clone()))?;
         registry.register(Box::new(start_time.clone()))?;
         registry.register(Box::new(time_of_day.clone()))?;
-        //registry.register(Box::new(light_count.clone())).unwrap();
         registry.register(Box::new(chonks_count.clone()))?;
         registry.register(Box::new(chunks_count.clone()))?;
         registry.register(Box::new(tick_time.clone()))?;
 
-        let running = Arc::new(AtomicBool::new(true));
-        let running2 = running.clone();
+        Ok(Self {
+            chonks_count,
+            chunks_count,
+            player_online,
+            entity_count,
+            tick_time,
+            build_info,
+            start_time,
+            time_of_day,
+            light_count,
+            tick,
+        })
+    }
+
+    pub fn is_100th_tick(&self) -> bool { self.tick.load(Ordering::Relaxed).rem_euclid(100) == 0 }
+}
+
+impl ServerMetrics {
+    pub fn new() -> Self {
+        let running = Arc::new(AtomicBool::new(false));
+        let tick = Arc::new(AtomicU64::new(0));
+        let registry = Some(Registry::new());
+
+        Self {
+            running,
+            handle: None,
+            registry,
+            tick,
+        }
+    }
+
+    pub fn registry(&self) -> &Registry {
+        match self.registry {
+            Some(ref r) => r,
+            None => panic!("You cannot longer register new metrics after the server has started!"),
+        }
+    }
+
+    pub fn run(&mut self, addr: SocketAddr) -> Result<(), Box<dyn Error>> {
+        self.running.store(true, Ordering::Relaxed);
+        let running2 = self.running.clone();
+
+        let registry = self
+            .registry
+            .take()
+            .expect("ServerMetrics must be already started");
 
         //TODO: make this a job
-        let handle = Some(thread::spawn(move || {
+        self.handle = Some(thread::spawn(move || {
             let server = Server::new(addr, move |request| {
                 router!(request,
                         (GET) (/metrics) => {
@@ -106,7 +145,7 @@ impl ServerMetrics {
                 _ => rouille::Response::empty_404()
                 )
             })
-            .expect("Failed to start server");
+                .expect("Failed to start server");
             info!("Started server metrics: {}", addr);
             while running2.load(Ordering::Relaxed) {
                 server.poll();
@@ -114,32 +153,12 @@ impl ServerMetrics {
                 thread::sleep(Duration::from_millis(100));
             }
         }));
-
-        Ok(Self {
-            chonks_count,
-            chunks_count,
-            player_online,
-            entity_count,
-            tick_time,
-            build_info,
-            start_time,
-            time_of_day,
-            light_count,
-            running,
-            handle,
-            every_100th: 0,
-        })
+        Ok(())
     }
 
-    pub fn is_100th_tick(&mut self) -> bool {
-        self.every_100th += 1;
-        if self.every_100th == 100 {
-            self.every_100th = 0;
-            true
-        } else {
-            false
-        }
-    }
+    pub fn tick(&self) -> u64 { self.tick.fetch_add(1, Ordering::Relaxed) + 1 }
+
+    pub fn tick_clone(&self) -> Arc<AtomicU64> { self.tick.clone() }
 }
 
 impl Drop for ServerMetrics {

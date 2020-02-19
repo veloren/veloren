@@ -5,6 +5,7 @@
     communication is done via channels.
 */
 pub mod channel;
+pub mod metrics;
 pub mod mpsc;
 pub mod tcp;
 pub mod types;
@@ -19,7 +20,8 @@ pub(crate) use udp::UdpChannel;
 use crate::{
     internal::RemoteParticipant,
     worker::{
-        types::{CtrlMsg, Pid, RtrnMsg, Statistics},
+        metrics::NetworkMetrics,
+        types::{CtrlMsg, Pid, RtrnMsg},
         worker::Worker,
     },
 };
@@ -40,7 +42,6 @@ use uvth::ThreadPool;
 */
 pub struct Controller {
     poll: Arc<Poll>,
-    statistics: Arc<RwLock<Statistics>>,
     ctrl_tx: Sender<CtrlMsg>,
     rtrn_rx: Receiver<RtrnMsg>,
 }
@@ -53,12 +54,11 @@ impl Controller {
         pid: uuid::Uuid,
         thread_pool: Arc<ThreadPool>,
         mut token_pool: tlid::Pool<tlid::Wrapping<usize>>,
+        metrics: Arc<Option<NetworkMetrics>>,
         remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
     ) -> Self {
         let poll = Arc::new(Poll::new().unwrap());
         let poll_clone = poll.clone();
-        let statistics = Arc::new(RwLock::new(Statistics::default()));
-        let statistics_clone = statistics.clone();
 
         let (ctrl_tx, ctrl_rx) = channel();
         let (rtrn_tx, rtrn_rx) = channel();
@@ -74,27 +74,15 @@ impl Controller {
             let span = span!(Level::INFO, "worker", ?w);
             let _enter = span.enter();
             let mut worker = Worker::new(
-                pid,
-                poll_clone,
-                statistics_clone,
-                remotes,
-                token_pool,
-                ctrl_rx,
-                rtrn_tx,
+                pid, poll_clone, metrics, remotes, token_pool, ctrl_rx, rtrn_tx,
             );
             worker.run();
         });
         Controller {
             poll,
-            statistics,
             ctrl_tx,
             rtrn_rx,
         }
-    }
-
-    pub fn get_load_ratio(&self) -> f32 {
-        let statistics = self.statistics.read().unwrap();
-        statistics.nano_busy as f32 / (statistics.nano_busy + statistics.nano_wait + 1) as f32
     }
 
     //TODO: split 4->5 MioWorkers and merge 5->4 MioWorkers
