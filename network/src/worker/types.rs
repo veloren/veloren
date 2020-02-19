@@ -44,13 +44,6 @@ pub(crate) enum RtrnMsg {
     Receive(InCommingMessage),
 }
 
-// MioStatistics should be copied in order to not hold locks for long
-#[derive(Clone, Default)]
-pub struct Statistics {
-    pub nano_wait: u128,
-    pub nano_busy: u128,
-}
-
 pub(crate) enum TokenObjects {
     TcpListener(TcpListener),
     TcpChannel(Channel<TcpChannel>, Option<Sender<Pid>>),
