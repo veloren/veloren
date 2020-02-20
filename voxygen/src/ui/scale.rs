@@ -19,7 +19,7 @@ pub enum ScaleMode {
 pub struct Scale {
     mode: ScaleMode,
     // Current dpi factor
-    dpi_factor: f64,
+    scale_factor: f64,
     // Current logical window size
     window_dims: Vec2<f64>,
 }
@@ -27,10 +27,10 @@ pub struct Scale {
 impl Scale {
     pub fn new(window: &Window, mode: ScaleMode) -> Self {
         let window_dims = window.logical_size();
-        let dpi_factor = window.renderer().get_resolution().x as f64 / window_dims.x;
+        let scale_factor = window.renderer().get_resolution().x as f64 / window_dims.x;
         Scale {
             mode,
-            dpi_factor,
+            scale_factor,
             window_dims,
         }
     }
@@ -54,7 +54,7 @@ impl Scale {
     // coordinates.
     pub fn scale_factor_logical(&self) -> f64 {
         match self.mode {
-            ScaleMode::Absolute(scale) => scale / self.dpi_factor,
+            ScaleMode::Absolute(scale) => scale / self.scale_factor,
             ScaleMode::DpiFactor => 1.0,
             ScaleMode::RelativeToWindow(dims) => {
                 (self.window_dims.x / dims.x).min(self.window_dims.y / dims.y)
@@ -64,11 +64,11 @@ impl Scale {
 
     // Calculate factor to transform between physical coordinates and our scaled
     // coordinates.
-    pub fn scale_factor_physical(&self) -> f64 { self.scale_factor_logical() * self.dpi_factor }
+    pub fn scale_factor_physical(&self) -> f64 { self.scale_factor_logical() * self.scale_factor }
 
-    // Updates internal window size (and/or dpi_factor).
+    // Updates internal window size (and/or scale_factor).
     pub fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) {
-        self.dpi_factor = renderer.get_resolution().x as f64 / new_dims.x;
+        self.scale_factor = renderer.get_resolution().x as f64 / new_dims.x;
         self.window_dims = new_dims;
     }
 
