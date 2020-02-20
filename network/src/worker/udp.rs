@@ -3,7 +3,6 @@ use bincode;
 use mio::net::UdpSocket;
 use tracing::*;
 
-#[derive(Debug)]
 pub(crate) struct UdpChannel {
     endpoint: UdpSocket,
     read_buffer: Vec<u8>,
@@ -81,4 +80,11 @@ impl ChannelProtocol for UdpChannel {
     }
 
     fn get_handle(&self) -> &Self::Handle { &self.endpoint }
+}
+
+impl std::fmt::Debug for UdpChannel {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.endpoint)
+    }
 }

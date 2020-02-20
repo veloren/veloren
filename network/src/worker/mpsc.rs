@@ -53,3 +53,8 @@ impl ChannelProtocol for MpscChannel {
 
     fn get_handle(&self) -> &Self::Handle { &self.endpoint_receiver }
 }
+
+impl std::fmt::Debug for MpscChannel {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "{}", "MPSC") }
+}

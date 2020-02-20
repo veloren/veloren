@@ -4,7 +4,6 @@ use mio::net::TcpStream;
 use std::io::{Read, Write};
 use tracing::*;
 
-#[derive(Debug)]
 pub(crate) struct TcpChannel {
     endpoint: TcpStream,
     //these buffers only ever contain 1 FRAME !
@@ -86,4 +85,11 @@ impl ChannelProtocol for TcpChannel {
     }
 
     fn get_handle(&self) -> &Self::Handle { &self.endpoint }
+}
+
+impl std::fmt::Debug for TcpChannel {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.endpoint)
+    }
 }
