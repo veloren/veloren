@@ -1,17 +1,24 @@
 use crate::{
     api::Promise,
     message::{InCommingMessage, OutGoingMessage},
-    worker::{Channel, MpscChannel, TcpChannel, UdpChannel},
+    worker::Channel,
 };
 use enumset::EnumSet;
 use mio::{self, net::TcpListener, PollOpt, Ready};
-use mio_extras::channel::Sender;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use uuid::Uuid;
 
+//Participant Ids are randomly chosen
 pub type Pid = Uuid;
+//Stream Ids are unique per Participant* and are split in 2 ranges, one for
+// every Network involved Every Channel gets a subrange during their handshake
+// protocol from one of the 2 ranges
+//*otherwise extra synchronization would be needed
 pub type Sid = u32;
+//Message Ids are unique per Stream* and are split in 2 ranges, one for every
+// Channel involved
+//*otherwise extra synchronization would be needed
 pub type Mid = u64;
 
 // Used for Communication between Controller <--> Worker
@@ -22,6 +29,7 @@ pub(crate) enum CtrlMsg {
         pid: Pid,
         prio: u8,
         promises: EnumSet<Promise>,
+        return_sid: std::sync::mpsc::Sender<Sid>,
     },
     CloseStream {
         pid: Pid,
@@ -44,23 +52,10 @@ pub(crate) enum RtrnMsg {
     Receive(InCommingMessage),
 }
 
+#[derive(Debug)]
 pub(crate) enum TokenObjects {
     TcpListener(TcpListener),
-    TcpChannel(Channel<TcpChannel>, Option<Sender<Pid>>),
-    UdpChannel(Channel<UdpChannel>, Option<Sender<Pid>>),
-    MpscChannel(Channel<MpscChannel>, Option<Sender<Pid>>),
-}
-
-impl std::fmt::Debug for TokenObjects {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            TokenObjects::TcpListener(l) => write!(f, "{:?}", l),
-            TokenObjects::TcpChannel(c, _) => write!(f, "{:?}", c),
-            TokenObjects::UdpChannel(c, _) => write!(f, "{:?}", c),
-            TokenObjects::MpscChannel(c, _) => unimplemented!("MPSC"),
-        }
-    }
+    Channel(Channel),
 }
 
 #[derive(Debug)]

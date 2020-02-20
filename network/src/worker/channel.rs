@@ -2,7 +2,12 @@ use crate::{
     api::Promise,
     internal::{RemoteParticipant, VELOREN_MAGIC_NUMBER, VELOREN_NETWORK_VERSION},
     message::{InCommingMessage, MessageBuffer, OutGoingMessage},
-    worker::types::{Frame, Mid, Pid, RtrnMsg, Sid, Stream},
+    worker::{
+        mpsc::MpscChannel,
+        tcp::TcpChannel,
+        types::{Frame, Mid, Pid, RtrnMsg, Sid, Stream},
+        udp::UdpChannel,
+    },
 };
 use enumset::EnumSet;
 use mio_extras::channel::Sender;
@@ -23,7 +28,14 @@ pub(crate) trait ChannelProtocol {
 }
 
 #[derive(Debug)]
-pub(crate) struct Channel<P: ChannelProtocol> {
+pub(crate) enum ChannelProtocols {
+    Tcp(TcpChannel),
+    Udp(UdpChannel),
+    Mpsc(MpscChannel),
+}
+
+#[derive(Debug)]
+pub(crate) struct Channel {
     pub stream_id_pool: Option<tlid::Pool<tlid::Wrapping<Sid>>>, /* TODO: stream_id unique per
                                                                   * participant */
     pub msg_id_pool: Option<tlid::Pool<tlid::Wrapping<Mid>>>, //TODO: msg_id unique per
@@ -34,7 +46,8 @@ pub(crate) struct Channel<P: ChannelProtocol> {
     pub streams: Vec<Stream>,
     pub send_queue: VecDeque<Frame>,
     pub recv_queue: VecDeque<InCommingMessage>,
-    pub protocol: P,
+    pub protocol: ChannelProtocols,
+    pub return_pid_to: Option<std::sync::mpsc::Sender<Pid>>,
     pub send_handshake: bool,
     pub send_pid: bool,
     pub send_config: bool,
@@ -59,7 +72,7 @@ pub(crate) struct Channel<P: ChannelProtocol> {
  Shutdown phase
 */
 
-impl<P: ChannelProtocol> Channel<P> {
+impl Channel {
     const WRONG_NUMBER: &'static [u8] = "Handshake does not contain the magic number requiered by \
                                          veloren server.\nWe are not sure if you are a valid \
                                          veloren client.\nClosing the connection"
@@ -70,8 +83,9 @@ impl<P: ChannelProtocol> Channel<P> {
 
     pub fn new(
         local_pid: Pid,
-        protocol: P,
+        protocol: ChannelProtocols,
         remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
+        return_pid_to: Option<std::sync::mpsc::Sender<Pid>>,
     ) -> Self {
         Self {
             stream_id_pool: None,
@@ -83,6 +97,7 @@ impl<P: ChannelProtocol> Channel<P> {
             send_queue: VecDeque::new(),
             recv_queue: VecDeque::new(),
             protocol,
+            return_pid_to,
             send_handshake: false,
             send_pid: false,
             send_config: false,
@@ -105,15 +120,43 @@ impl<P: ChannelProtocol> Channel<P> {
     }
 
     pub fn tick_recv(&mut self, rtrn_tx: &Sender<RtrnMsg>) {
-        for frame in self.protocol.read() {
-            self.handle(frame, rtrn_tx);
+        match &mut self.protocol {
+            ChannelProtocols::Tcp(c) => {
+                for frame in c.read() {
+                    self.handle(frame, rtrn_tx);
+                }
+            },
+            ChannelProtocols::Udp(c) => {
+                for frame in c.read() {
+                    self.handle(frame, rtrn_tx);
+                }
+            },
+            ChannelProtocols::Mpsc(c) => {
+                for frame in c.read() {
+                    self.handle(frame, rtrn_tx);
+                }
+            },
         }
     }
 
     pub fn tick_send(&mut self) {
         self.tick_streams();
-        while let Some(frame) = self.send_queue.pop_front() {
-            self.protocol.write(frame)
+        match &mut self.protocol {
+            ChannelProtocols::Tcp(c) => {
+                while let Some(frame) = self.send_queue.pop_front() {
+                    c.write(frame)
+                }
+            },
+            ChannelProtocols::Udp(c) => {
+                while let Some(frame) = self.send_queue.pop_front() {
+                    c.write(frame)
+                }
+            },
+            ChannelProtocols::Mpsc(c) => {
+                while let Some(frame) = self.send_queue.pop_front() {
+                    c.write(frame)
+                }
+            },
         }
     }
 
@@ -154,24 +197,6 @@ impl<P: ChannelProtocol> Channel<P> {
                     self.send_handshake = true;
                 }
             },
-            Frame::Configure {
-                stream_id_pool,
-                msg_id_pool,
-            } => {
-                self.recv_config = true;
-                //TODO remove range from rp! as this could probably cause duplicate ID !!!
-                let mut remotes = self.remotes.write().unwrap();
-                if let Some(pid) = self.remote_pid {
-                    if !remotes.contains_key(&pid) {
-                        remotes.insert(pid, RemoteParticipant::new());
-                    }
-                    if let Some(rp) = remotes.get_mut(&pid) {
-                        self.stream_id_pool = Some(stream_id_pool);
-                        self.msg_id_pool = Some(msg_id_pool);
-                    }
-                }
-                info!("recv config. This channel is now configured!");
-            },
             Frame::ParticipantId { pid } => {
                 if self.remote_pid.is_some() {
                     error!(?pid, "invalid message, cant change participantId");
@@ -184,6 +209,11 @@ impl<P: ChannelProtocol> Channel<P> {
                     let mut remotes = self.remotes.write().unwrap();
                     if !remotes.contains_key(&pid) {
                         remotes.insert(pid, RemoteParticipant::new());
+                    } else {
+                        warn!(
+                            "a known participant opened an additional channel, UNCHECKED BECAUSE \
+                             NO TOKEN WAS IMPLEMENTED IN THE HANDSHAKE!"
+                        );
                     }
                     if let Some(rp) = remotes.get_mut(&pid) {
                         self.stream_id_pool = Some(rp.stream_id_pool.subpool(1000000).unwrap());
@@ -201,6 +231,31 @@ impl<P: ChannelProtocol> Channel<P> {
                     });
                     self.send_pid = true;
                 }
+            },
+            Frame::Configure {
+                stream_id_pool,
+                msg_id_pool,
+            } => {
+                self.recv_config = true;
+                //TODO remove range from rp! as this could probably cause duplicate ID !!!
+                let mut remotes = self.remotes.write().unwrap();
+                if let Some(pid) = self.remote_pid {
+                    if !remotes.contains_key(&pid) {
+                        remotes.insert(pid, RemoteParticipant::new());
+                    }
+                    if let Some(rp) = remotes.get_mut(&pid) {
+                        self.stream_id_pool = Some(stream_id_pool);
+                        self.msg_id_pool = Some(msg_id_pool);
+                    }
+                    if let Some(send) = &self.return_pid_to {
+                        info!("asdasd");
+                        send.send(pid);
+                    };
+                    self.return_pid_to = None;
+                } else {
+                    warn!(?self, "Protocol is done wrong!");
+                }
+                info!("recv config. This channel is now configured!");
             },
             Frame::Shutdown {} => {
                 self.recv_shutdown = true;
@@ -335,10 +390,11 @@ impl<P: ChannelProtocol> Channel<P> {
         }
     }
 
-    pub(crate) fn open_stream(&mut self, prio: u8, promises: EnumSet<Promise>) -> u32 {
+    pub(crate) fn open_stream(&mut self, prio: u8, promises: EnumSet<Promise>) -> Sid {
         // validate promises
         if let Some(stream_id_pool) = &mut self.stream_id_pool {
             let sid = stream_id_pool.next();
+            trace!(?sid, "going to open a new stream");
             let stream = Stream::new(sid, prio, promises.clone());
             self.streams.push(stream);
             self.send_queue.push_back(Frame::OpenStream {
@@ -347,13 +403,12 @@ impl<P: ChannelProtocol> Channel<P> {
                 promises,
             });
             return sid;
+        } else {
+            panic!("cant open stream because connection isn't initialized");
         }
-        error!("fix me");
-        return 0;
-        //TODO: fix me
     }
 
-    pub(crate) fn close_stream(&mut self, sid: u32) {
+    pub(crate) fn close_stream(&mut self, sid: Sid) {
         self.streams.retain(|stream| stream.sid() != sid);
         self.send_queue.push_back(Frame::CloseStream { sid });
     }
@@ -372,12 +427,16 @@ impl<P: ChannelProtocol> Channel<P> {
     }
 
     pub(crate) fn send(&mut self, outgoing: OutGoingMessage) {
-        //TODO: fix me
         for s in self.streams.iter_mut() {
-            s.to_send.push_back(outgoing);
-            break;
+            warn!("{}", s.sid());
+            if s.sid() == outgoing.sid {
+                s.to_send.push_back(outgoing);
+                return;
+            }
         }
+        let sid = &outgoing.sid;
+        error!(?sid, "couldn't send message, didn't found sid")
     }
 
-    pub(crate) fn get_handle(&self) -> &P::Handle { self.protocol.get_handle() }
+    pub(crate) fn get_protocol(&self) -> &ChannelProtocols { &self.protocol }
 }

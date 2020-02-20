@@ -2,6 +2,7 @@ use crate::{
     internal::RemoteParticipant,
     message::{self, OutGoingMessage},
     worker::{
+        channel::ChannelProtocols,
         metrics::NetworkMetrics,
         types::{CtrlMsg, Pid, RtrnMsg, Sid, TokenObjects},
         Channel, Controller, TcpChannel,
@@ -154,17 +155,25 @@ impl<E: Events> Network<E> {
     }
 
     pub fn open(&self, part: &Participant, prio: u8, promises: EnumSet<Promise>) -> Stream {
-        for worker in self.controller.iter() {
-            worker
+        let (ctrl_tx, ctrl_rx) = std::sync::mpsc::channel::<Sid>();
+        for controller in self.controller.iter() {
+            controller
                 .get_tx()
                 .send(CtrlMsg::OpenStream {
-                    pid: uuid::Uuid::new_v4(),
+                    pid: part.remote_pid,
                     prio,
                     promises,
+                    return_sid: ctrl_tx,
                 })
                 .unwrap();
+            break;
         }
-        Stream { sid: 0 }
+        // I dont like the fact that i need to wait on the worker thread for getting my
+        // sid back :/ we could avoid this by introducing a Thread Local Network
+        // which owns some sids we can take without waiting
+        let sid = ctrl_rx.recv().unwrap();
+        info!(?sid, " sucessfully opened stream");
+        Stream { sid }
     }
 
     pub fn close(&self, stream: Stream) {}
@@ -199,22 +208,28 @@ impl<E: Events> Network<E> {
                 info!("connecting");
                 let tcp_stream = TcpStream::connect(&a)?;
                 let tcp_channel = TcpChannel::new(tcp_stream);
-                let mut channel = Channel::new(pid, tcp_channel, remotes);
-                let (ctrl_tx, ctrl_rx) = mio_extras::channel::channel::<Pid>();
+                let (ctrl_tx, ctrl_rx) = std::sync::mpsc::channel::<Pid>();
+                let mut channel = Channel::new(
+                    pid,
+                    ChannelProtocols::Tcp(tcp_channel),
+                    remotes,
+                    Some(ctrl_tx),
+                );
                 worker.get_tx().send(CtrlMsg::Register(
-                    TokenObjects::TcpChannel(channel, Some(ctrl_tx)),
+                    TokenObjects::Channel(channel),
                     Ready::readable() | Ready::writable(),
                     PollOpt::edge(),
                 ))?;
-                // wait for a return
+                let remote_pid = ctrl_rx.recv().unwrap();
+                info!(?remote_pid, " sucessfully connected to");
+                return Ok(Participant {
+                    addr: address.clone(),
+                    remote_pid,
+                });
             },
             Address::Udp(_) => unimplemented!("lazy me"),
         }
-
-        Ok(Participant {
-            addr: address.clone(),
-            remote_pid: uuid::Uuid::new_v4(),
-        })
+        Err(NetworkError::Todo_Error_For_Wrong_Connection)
     }
 
     //TODO: evaluate if move to Participant
@@ -284,6 +299,7 @@ impl Stream {
 pub enum NetworkError {
     NetworkDestroyed,
     WorkerDestroyed,
+    Todo_Error_For_Wrong_Connection,
     IoError(std::io::Error),
 }
 
