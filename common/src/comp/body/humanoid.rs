@@ -488,8 +488,9 @@ pub enum Chest {
     Midnight = 5,
     Kimono = 6,
     Assassin = 7,
+    Plate = 8,
 }
-pub const ALL_CHESTS: [Chest; 8] = [
+pub const ALL_CHESTS: [Chest; 9] = [
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
@@ -498,6 +499,7 @@ pub const ALL_CHESTS: [Chest; 8] = [
     Chest::Midnight,
     Chest::Kimono,
     Chest::Assassin,
+    Chest::Plate,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
