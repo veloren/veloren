@@ -76,18 +76,24 @@ image_ids! {
     struct Imgs {
         <VoxelGraphic>
         v_logo: "voxygen.element.v_logo",
-        input_bg: "voxygen.element.misc_bg.textbox",
-        button: "voxygen.element.buttons.button",
-        button_hover: "voxygen.element.buttons.button_hover",
-        button_press: "voxygen.element.buttons.button_press",
+
         disclaimer: "voxygen.element.frames.disclaimer",
         info_frame: "voxygen.element.frames.info_frame_2",
         banner: "voxygen.element.frames.banner",
-        banner_top: "voxygen.element.frames.banner_top",
+
         banner_bottom: "voxygen.element.frames.banner_bottom",
 
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
+        banner_top: "voxygen.element.frames.banner_top",
+        button: "voxygen.element.buttons.button",
+        button_hover: "voxygen.element.buttons.button_hover",
+        button_press: "voxygen.element.buttons.button_press",
+        input_bg_top: "voxygen.element.misc_bg.textbox_top",
+        //input_bg_mid: "voxygen.element.misc_bg.textbox_mid", <-- For password input
+        input_bg_bot: "voxygen.element.misc_bg.textbox_bot",
+
+
 
         <BlankGraphic>
         nothing: (),
@@ -324,14 +330,14 @@ impl MainMenuUi {
                 .set(self.ids.banner, ui_widgets);
 
             Image::new(self.imgs.banner_top)
-                .w_h(65.0 * 6.0, 1.0 * 6.0)
-                .mid_top_with_margin_on(self.ids.banner, 0.0)
+                .w_h(70.0 * 6.0, 34.0)
+                .mid_top_with_margin_on(self.ids.banner, -34.0)
                 .set(self.ids.banner_top, ui_widgets);
 
             // Logo
             Image::new(self.imgs.v_logo)
                 .w_h(123.0 * 2.5, 35.0 * 2.5)
-                .mid_top_with_margin_on(self.ids.banner_top, 40.0)
+                .mid_top_with_margin_on(self.ids.banner_top, 45.0)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.95)))
                 .set(self.ids.v_logo, ui_widgets);
 
@@ -429,13 +435,13 @@ impl MainMenuUi {
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .mid_top_with_margin_on(self.ids.banner_top, 160.0)
                     .set(self.ids.usrnm_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
+                Image::new(self.imgs.input_bg_top)
                     .w_h(337.0, 67.0)
                     .middle_of(self.ids.usrnm_bg)
                     .set(self.ids.username_bg, ui_widgets);
                 for event in TextBox::new(&self.username)
                     .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
+                    .mid_bottom_with_margin_on(self.ids.username_bg, 38.0 / 2.0)
                     .font_size(self.fonts.cyri.scale(22))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
@@ -459,7 +465,7 @@ impl MainMenuUi {
                 /*Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .down_from(self.ids.usrnm_bg, 30.0)
                     .set(self.ids.passwd_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
+                Image::new(self.imgs.input_bg_mid)
                     .w_h(337.0, 67.0)
                     .middle_of(self.ids.passwd_bg)
                     .color(Some(INACTIVE))
@@ -552,13 +558,13 @@ impl MainMenuUi {
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .down_from(self.ids.usrnm_bg, 30.0)
                     .set(self.ids.srvr_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
+                Image::new(self.imgs.input_bg_bot)
                     .w_h(337.0, 67.0)
                     .middle_of(self.ids.srvr_bg)
                     .set(self.ids.address_bg, ui_widgets);
                 for event in TextBox::new(&self.server_address)
                     .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
+                    .mid_top_with_margin_on(self.ids.address_bg, 28.0 / 2.0)
                     .font_size(self.fonts.cyri.scale(22))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
