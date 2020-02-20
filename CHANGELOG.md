@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable fonts
 - Tanslation status tracking
 - Added gamma setting
+- Added new orc hairstyles
 
 ### Changed
 

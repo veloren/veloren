@@ -164,10 +164,6 @@ widget_ids! {
 image_ids! {
     struct Imgs {
         <VoxelGraphic>
-        button: "voxygen.element.buttons.button",
-        button_hover: "voxygen.element.buttons.button_hover",
-        button_press: "voxygen.element.buttons.button_press",
-        name_input: "voxygen.element.misc_bg.textbox",
         charlist_frame: "voxygen.element.frames.window_4",
         server_frame: "voxygen.element.frames.server_frame",
         selection: "voxygen.element.frames.selection",
@@ -185,6 +181,8 @@ image_ids! {
         delete_button_press: "voxygen.element.buttons.x_red_press",
 
         <ImageGraphic>
+
+        name_input: "voxygen.element.misc_bg.textbox_mid",
 
         // Tool Icons
         daggers: "voxygen.element.icons.daggers",
@@ -214,6 +212,11 @@ image_ids! {
         icon_border_mo: "voxygen.element.buttons.border_mo",
         icon_border_press: "voxygen.element.buttons.border_press",
         icon_border_pressed: "voxygen.element.buttons.border_pressed",
+
+        <ImageGraphic>
+        button: "voxygen.element.buttons.button",
+        button_hover: "voxygen.element.buttons.button_hover",
+        button_press: "voxygen.element.buttons.button_press",
 
         <BlankGraphic>
         nothing: (),
@@ -675,7 +678,9 @@ impl CharSelectionUi {
                     .press_image(self.imgs.button_press)
                     .label(&self.voxygen_i18n.get("common.create"))
                     .label_font_id(self.fonts.cyri.conrod_id)
-                    .label_color(TEXT_COLOR)
+                    .label_color(
+                        /* if self.mode { TEXT_COLOR } else { */ TEXT_COLOR, /* ,  } */
+                    )
                     .label_font_size(self.fonts.cyri.scale(20))
                     .label_y(conrod_core::position::Relative::Scalar(3.0))
                     .set(self.ids.create_button, ui_widgets)
@@ -1027,10 +1032,6 @@ impl CharSelectionUi {
                 {
                     *tool = Some(STARTER_BOW);
                 }
-                // REMOVE THIS AFTER IMPLEMENTATION
-                /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .middle_of(self.ids.bow)
-                .set(self.ids.bow_grey, ui_widgets);*/
                 // Staff
                 Image::new(self.imgs.staff)
                     .w_h(70.0, 70.0)
@@ -1055,10 +1056,6 @@ impl CharSelectionUi {
                 {
                     *tool = Some(STARTER_STAFF);
                 }
-                // REMOVE THIS AFTER IMPLEMENTATION
-                /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .middle_of(self.ids.staff)
-                .set(self.ids.staff_grey, ui_widgets);*/
                 // Sword
                 Image::new(self.imgs.sword)
                     .w_h(70.0, 70.0)
@@ -1254,8 +1251,8 @@ impl CharSelectionUi {
                 } else {
                     Text::new(&self.voxygen_i18n.get("char_selection.beard"))
                         .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
-                        .font_size(self.fonts.metamorph.scale(18))
-                        .font_id(self.fonts.metamorph.conrod_id)
+                        .font_size(self.fonts.cyri.scale(18))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(TEXT_COLOR_2)
                         .set(self.ids.beard_text, ui_widgets);
                     ImageSlider::discrete(5, 0, 10, self.imgs.nothing, self.imgs.slider_range)
