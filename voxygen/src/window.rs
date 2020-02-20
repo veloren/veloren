@@ -1031,7 +1031,12 @@ impl Window {
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn logical_size(&self) -> Vec2<f64> {
-        let (w, h) = self.window.window().inner_size().into();
+        let (w, h) = self
+            .window
+            .window()
+            .inner_size()
+            .to_logical::<f64>(self.window.window().scale_factor())
+            .into();
         Vec2::new(w, h)
     }
 
