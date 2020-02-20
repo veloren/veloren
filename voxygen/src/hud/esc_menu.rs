@@ -2,13 +2,14 @@ use super::{img_ids::Imgs, settings_window::SettingsTab, TEXT_COLOR};
 use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use conrod_core::{
     widget::{self, Button, Image},
-    widget_ids, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
     struct Ids {
         esc_bg,
         fireplace,
+        banner_top,
         menu_button_1,
         menu_button_2,
         menu_button_3,
@@ -72,18 +73,25 @@ impl<'a> Widget for EscMenu<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         Image::new(self.imgs.esc_frame)
-            .w_h(240.0, 440.0)
+            .w_h(240.0, 380.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.9)))
             .middle_of(ui.window)
             .set(state.ids.esc_bg, ui);
 
-        Image::new(self.imgs.fireplace)
-            .w_h(210.0, 60.0)
-            .mid_top_with_margin_on(state.ids.esc_bg, 15.0)
-            .set(state.ids.fireplace, ui);
+        Image::new(self.imgs.banner_top)
+            .w_h(250.0, 34.0)
+            .mid_top_with_margin_on(state.ids.esc_bg, -34.0)
+            .set(state.ids.banner_top, ui);
+
+        /*Image::new(self.imgs.fireplace)
+        .w_h(210.0, 60.0)
+        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
+        .mid_top_with_margin_on(state.ids.esc_bg, 5.0)
+        .set(state.ids.fireplace, ui);*/
 
         // Resume
         if Button::image(self.imgs.button)
-            .mid_bottom_with_margin_on(state.ids.fireplace, -55.0)
+            .mid_bottom_with_margin_on(state.ids.banner_top, -60.0)
             .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
