@@ -23,5 +23,17 @@
             ],
             threshold: 0.5,
         ),
+        Wield(Sword): (
+            files: [
+                "voxygen.audio.sfx.weapon.sword_out",
+            ],
+            threshold: 0.5,
+        ),
+        Unwield(Sword): (
+            files: [
+                "voxygen.audio.sfx.weapon.sword_in",
+            ],
+            threshold: 0.5,
+        ),
     }
 )
