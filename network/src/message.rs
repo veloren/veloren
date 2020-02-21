@@ -1,7 +1,7 @@
 use bincode;
 use serde::{de::DeserializeOwned, Serialize};
 //use std::collections::VecDeque;
-use crate::worker::types::{Mid, Sid};
+use crate::types::{Mid, Sid};
 use std::sync::Arc;
 use tracing::*;
 

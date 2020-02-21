@@ -1,12 +1,10 @@
 use crate::{
-    internal::RemoteParticipant,
+    channel::{Channel, ChannelProtocols},
+    controller::Controller,
     message::{self, OutGoingMessage},
-    worker::{
-        channel::ChannelProtocols,
-        metrics::NetworkMetrics,
-        types::{CtrlMsg, Pid, RtrnMsg, Sid, TokenObjects},
-        Channel, Controller, TcpChannel,
-    },
+    metrics::NetworkMetrics,
+    tcp::TcpChannel,
+    types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg, Sid, TokenObjects},
 };
 use enumset::*;
 use mio::{
@@ -154,7 +152,7 @@ impl<E: Events> Network<E> {
         None
     }
 
-    pub fn open(&self, part: &Participant, prio: u8, promises: EnumSet<Promise>) -> Stream {
+    pub async fn open(&self, part: &Participant, prio: u8, promises: EnumSet<Promise>) -> Stream {
         let (ctrl_tx, ctrl_rx) = std::sync::mpsc::channel::<Sid>();
         for controller in self.controller.iter() {
             controller
@@ -229,7 +227,6 @@ impl<E: Events> Network<E> {
             },
             Address::Udp(_) => unimplemented!("lazy me"),
         }
-        Err(NetworkError::Todo_Error_For_Wrong_Connection)
     }
 
     //TODO: evaluate if move to Participant
@@ -299,7 +296,6 @@ impl Stream {
 pub enum NetworkError {
     NetworkDestroyed,
     WorkerDestroyed,
-    Todo_Error_For_Wrong_Connection,
     IoError(std::io::Error),
 }
 

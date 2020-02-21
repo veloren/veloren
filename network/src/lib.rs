@@ -1,7 +1,13 @@
 #![feature(trait_alias)]
 mod api;
-mod internal;
+mod channel;
+mod controller;
 mod message;
+mod metrics;
+mod mpsc;
+mod tcp;
+mod types;
+mod udp;
 mod worker;
 
 #[cfg(test)]
@@ -10,6 +16,7 @@ pub mod tests {
     use futures::executor::block_on;
     use std::{net::SocketAddr, sync::Arc};
     use tracing::*;
+    use tracing_subscriber::EnvFilter;
     use uuid::Uuid;
     use uvth::ThreadPoolBuilder;
 
@@ -28,11 +35,24 @@ pub mod tests {
     }
 
     pub fn test_tracing() {
+        let filter = EnvFilter::from_default_env()
+            //.add_directive("[worker]=trace".parse().unwrap())
+            //.add_directive("trace".parse().unwrap())
+            .add_directive("veloren_network::worker=debug".parse().unwrap())
+            .add_directive("veloren_network::controller=trace".parse().unwrap())
+            .add_directive("veloren_network::channel=trace".parse().unwrap())
+            .add_directive("veloren_network::message=trace".parse().unwrap())
+            .add_directive("veloren_network::metrics=trace".parse().unwrap())
+            .add_directive("veloren_network::types=trace".parse().unwrap())
+            .add_directive("veloren_network::mpsc=debug".parse().unwrap())
+            .add_directive("veloren_network::udp=debug".parse().unwrap())
+            .add_directive("veloren_network::tcp=debug".parse().unwrap());
+
         tracing_subscriber::FmtSubscriber::builder()
             // all spans/events with a level higher than TRACE (e.g, info, warn, etc.)
             // will be written to stdout.
             .with_max_level(Level::TRACE)
-            //.with_env_filter("veloren_network::api=info,my_crate::my_mod=debug,[my_span]=trace")
+            .with_env_filter(filter)
             // sets this to be the default, global subscriber for this application.
             .init();
     }
@@ -105,7 +125,7 @@ pub mod tests {
         let p1 = p1.unwrap();
         std::thread::sleep(std::time::Duration::from_millis(20));
 
-        let s1 = n1.open(&p1, 16, Promise::InOrder | Promise::NoCorrupt);
+        let s1 = block_on(n1.open(&p1, 16, Promise::InOrder | Promise::NoCorrupt));
         //let s2 = n1.open(&p1, 16, Promise::InOrder | Promise::NoCorrupt);
         std::thread::sleep(std::time::Duration::from_millis(20));
 

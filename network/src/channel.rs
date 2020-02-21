@@ -1,13 +1,13 @@
 use crate::{
     api::Promise,
-    internal::{RemoteParticipant, VELOREN_MAGIC_NUMBER, VELOREN_NETWORK_VERSION},
     message::{InCommingMessage, MessageBuffer, OutGoingMessage},
-    worker::{
-        mpsc::MpscChannel,
-        tcp::TcpChannel,
-        types::{Frame, Mid, Pid, RtrnMsg, Sid, Stream},
-        udp::UdpChannel,
+    mpsc::MpscChannel,
+    tcp::TcpChannel,
+    types::{
+        Frame, Mid, Pid, RemoteParticipant, RtrnMsg, Sid, Stream, VELOREN_MAGIC_NUMBER,
+        VELOREN_NETWORK_VERSION,
     },
+    udp::UdpChannel,
 };
 use enumset::EnumSet;
 use mio_extras::channel::Sender;
@@ -248,7 +248,6 @@ impl Channel {
                         self.msg_id_pool = Some(msg_id_pool);
                     }
                     if let Some(send) = &self.return_pid_to {
-                        info!("asdasd");
                         send.send(pid);
                     };
                     self.return_pid_to = None;
@@ -428,7 +427,6 @@ impl Channel {
 
     pub(crate) fn send(&mut self, outgoing: OutGoingMessage) {
         for s in self.streams.iter_mut() {
-            warn!("{}", s.sid());
             if s.sid() == outgoing.sid {
                 s.to_send.push_back(outgoing);
                 return;

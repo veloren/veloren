@@ -1,4 +1,4 @@
-use crate::worker::{channel::ChannelProtocol, types::Frame};
+use crate::{channel::ChannelProtocol, types::Frame};
 use mio_extras::channel::{Receiver, Sender};
 use tracing::*;
 
