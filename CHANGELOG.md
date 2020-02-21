@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tanslation status tracking
 - Added gamma setting
 - Added new orc hairstyles
+- Added sfx for wielding/unwielding weapons
 
 ### Changed
 
