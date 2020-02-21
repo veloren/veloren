@@ -1240,7 +1240,8 @@ impl<V: RectRasterableVol> Terrain<V> {
             // a sample of the terrain that includes both the chunk we want and
             // its neighbours.
             let volume = match client.state().terrain().sample(aabr) {
-                Ok(sample) => sample, // TODO: Ensure that all of the chunk's neighbours still exist to avoid buggy shadow borders
+                Ok(sample) => sample, /* TODO: Ensure that all of the chunk's neighbours still
+                                        * exist to avoid buggy shadow borders */
                 // Either this chunk or its neighbours doesn't yet exist, so we keep it in the
                 // queue to be processed at a later date when we have its neighbours.
                 Err(VolGrid2dError::NoSuchChunk) => return,

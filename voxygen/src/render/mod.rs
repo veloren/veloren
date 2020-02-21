@@ -34,6 +34,7 @@ pub use self::{
     renderer::{Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt},
     texture::Texture,
 };
+pub use gfx::texture::{FilterMethod, WrapMode};
 
 #[cfg(feature = "gl")]
 use gfx_device_gl as gfx_backend;

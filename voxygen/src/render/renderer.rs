@@ -9,7 +9,7 @@ use super::{
         Shadow,
     },
     texture::Texture,
-    AaMode, CloudMode, FluidMode, Pipeline, RenderError,
+    AaMode, CloudMode, FilterMethod, FluidMode, Pipeline, RenderError, WrapMode,
 };
 use common::assets::{self, watch::ReloadIndicator};
 use gfx::{
@@ -419,8 +419,8 @@ impl Renderer {
     pub fn create_texture(
         &mut self,
         image: &image::DynamicImage,
-        filter_method: Option<gfx::texture::FilterMethod>,
-        wrap_mode: Option<gfx::texture::WrapMode>,
+        filter_method: Option<FilterMethod>,
+        wrap_mode: Option<WrapMode>,
     ) -> Result<Texture, RenderError> {
         Texture::new(&mut self.factory, image, filter_method, wrap_mode)
     }
@@ -646,12 +646,14 @@ impl Renderer {
         );
     }
 
-    /// Queue the rendering of the provided LoD terrain model in the upcoming frame.
+    /// Queue the rendering of the provided LoD terrain model in the upcoming
+    /// frame.
     pub fn render_lod_terrain(
         &mut self,
         model: &Model<lod_terrain::LodTerrainPipeline>,
         globals: &Consts<Globals>,
         locals: &Consts<lod_terrain::Locals>,
+        map: &Texture,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -667,6 +669,7 @@ impl Renderer {
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                map: (map.srv.clone(), map.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },

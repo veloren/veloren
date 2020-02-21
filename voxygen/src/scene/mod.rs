@@ -6,8 +6,8 @@ pub mod terrain;
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
-    music::MusicMgr,
     lod::Lod,
+    music::MusicMgr,
     terrain::Terrain,
 };
 use crate::{
@@ -67,7 +67,7 @@ pub struct Scene {
 
 impl Scene {
     /// Create a new `Scene` with default parameters.
-    pub fn new(renderer: &mut Renderer) -> Self {
+    pub fn new(renderer: &mut Renderer, client: &Client) -> Self {
         let resolution = renderer.get_resolution().map(|e| e as f32);
 
         Self {
@@ -91,7 +91,7 @@ impl Scene {
                     .unwrap(),
             },
             terrain: Terrain::new(renderer),
-            lod: Lod::new(renderer),
+            lod: Lod::new(renderer, client),
             loaded_distance: 0.0,
             select_pos: None,
 

@@ -242,7 +242,7 @@ impl MapConfig {
                 let water_color_factor = 2.0;
                 let g_water = 32.0 * water_color_factor;
                 let b_water = 64.0 * water_color_factor;
-                let rgba = match (river_kind, (is_water, true_alt >= true_sea_level)) {
+                let rgb = match (river_kind, (is_water, true_alt >= true_sea_level)) {
                     (_, (false, _)) | (None, (_, true)) => {
                         let (r, g, b) = (
                             (if is_shaded { alt } else { alt }
@@ -270,20 +270,17 @@ impl MapConfig {
                             (r * light * 255.0) as u8,
                             (g * light * 255.0) as u8,
                             (b * light * 255.0) as u8,
-                            255,
                         )
                     },
                     (Some(RiverKind::Ocean), _) => (
                         0,
                         ((g_water - water_depth * g_water) * 1.0) as u8,
                         ((b_water - water_depth * b_water) * 1.0) as u8,
-                        255,
                     ),
                     (Some(RiverKind::River { .. }), _) => (
                         0,
                         g_water as u8 + (alt * (127.0 - g_water)) as u8,
                         b_water as u8 + (alt * (255.0 - b_water)) as u8,
-                        255,
                     ),
                     (None, _) | (Some(RiverKind::Lake { .. }), _) => (
                         0,
@@ -291,9 +288,10 @@ impl MapConfig {
                             as u8,
                         (((b_water + water_alt * (255.0 - b_water)) + (-water_depth * b_water))
                             * 1.0) as u8,
-                        255,
                     ),
                 };
+
+                let rgba = (rgb.0, rgb.1, rgb.2, (255.0 * alt) as u8);
 
                 write_pixel(Vec2::new(i, j), rgba);
             });

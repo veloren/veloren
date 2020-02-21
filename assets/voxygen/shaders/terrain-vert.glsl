@@ -21,7 +21,7 @@ void main() {
 	f_pos = vec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu, 0xFFu, 0x1FFFu)) + model_offs;
 
 	f_pos.z *= min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0);
-	f_pos.z -= 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0);
+	f_pos.z -= 5.0 * pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.9), 20.0);
 
 	f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
 

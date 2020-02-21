@@ -39,7 +39,7 @@ impl SessionState {
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         // Create a scene for this session. The scene handles visible elements of the
         // game world.
-        let mut scene = Scene::new(global_state.window.renderer_mut());
+        let mut scene = Scene::new(global_state.window.renderer_mut(), &*client.borrow());
         scene
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
