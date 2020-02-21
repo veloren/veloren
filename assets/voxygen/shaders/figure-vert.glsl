@@ -33,7 +33,6 @@ void main() {
 	f_pos = (
 		combined_mat *
 		vec4(v_pos, 1)).xyz;
-	f_pos.z -= 1.0 * pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
 
 	f_col = v_col;
 
