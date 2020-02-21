@@ -112,7 +112,7 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
     let darkness = darkness_ao.map(|e| e.0);
     let ao = darkness_ao.map(|e| e.1);
 
-    let ao_map = ao;
+    let ao_map = ao * 0.75 + 0.25;
 
     if ao[0].min(ao[2]).min(darkness[0]).min(darkness[2])
         < ao[1].min(ao[3]).min(darkness[1]).min(darkness[3])

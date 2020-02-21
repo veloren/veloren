@@ -87,7 +87,7 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                         SpriteVertex::new(
                             origin,
                             norm,
-                            linear_to_srgb(srgb_to_linear(col) * ao * light),
+                            linear_to_srgb(srgb_to_linear(col) * light.min(ao)),
                         )
                     },
                     &[[[1.0; 3]; 3]; 3],
