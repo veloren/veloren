@@ -4,7 +4,7 @@ use crate::{
     mpsc::MpscChannel,
     tcp::TcpChannel,
     types::{
-        Frame, Mid, Pid, RemoteParticipant, RtrnMsg, Sid, Stream, VELOREN_MAGIC_NUMBER,
+        Frame, IntStream, Mid, Pid, RemoteParticipant, RtrnMsg, Sid, VELOREN_MAGIC_NUMBER,
         VELOREN_NETWORK_VERSION,
     },
     udp::UdpChannel,
@@ -13,7 +13,7 @@ use enumset::EnumSet;
 use mio_extras::channel::Sender;
 use std::{
     collections::{HashMap, VecDeque},
-    sync::{Arc, RwLock},
+    sync::{mpsc, Arc, RwLock},
 };
 use tracing::*;
 
@@ -43,11 +43,10 @@ pub(crate) struct Channel {
     pub local_pid: Pid,
     pub remote_pid: Option<Pid>,
     pub remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
-    pub streams: Vec<Stream>,
+    pub streams: Vec<IntStream>,
     pub send_queue: VecDeque<Frame>,
-    pub recv_queue: VecDeque<InCommingMessage>,
     pub protocol: ChannelProtocols,
-    pub return_pid_to: Option<std::sync::mpsc::Sender<Pid>>,
+    pub return_pid_to: Option<std::sync::mpsc::Sender<Pid>>, //use for network::connect()
     pub send_handshake: bool,
     pub send_pid: bool,
     pub send_config: bool,
@@ -95,7 +94,6 @@ impl Channel {
             remotes,
             streams: Vec::new(),
             send_queue: VecDeque::new(),
-            recv_queue: VecDeque::new(),
             protocol,
             return_pid_to,
             send_handshake: false,
@@ -224,6 +222,7 @@ impl Channel {
                         });
                         self.send_config = true;
                         info!(?pid, "this channel is now configured!");
+                        rtrn_tx.send(RtrnMsg::ConnectedParticipant { pid });
                     }
                 } else {
                     self.send_queue.push_back(Frame::ParticipantId {
@@ -259,6 +258,7 @@ impl Channel {
             Frame::Shutdown {} => {
                 self.recv_shutdown = true;
                 info!("shutting down channel");
+                rtrn_tx.send(RtrnMsg::Shutdown);
             },
             Frame::OpenStream {
                 sid,
@@ -266,9 +266,17 @@ impl Channel {
                 promises,
             } => {
                 if let Some(pid) = self.remote_pid {
-                    let stream = Stream::new(sid, prio, promises.clone());
+                    let (msg_tx, msg_rx) = mpsc::channel::<InCommingMessage>();
+                    let stream = IntStream::new(sid, prio, promises.clone(), msg_tx);
                     self.streams.push(stream);
                     info!("opened a stream");
+                    rtrn_tx.send(RtrnMsg::OpendStream {
+                        pid,
+                        sid,
+                        prio,
+                        msg_rx,
+                        promises,
+                    });
                 } else {
                     error!("called OpenStream before PartcipantID!");
                 }
@@ -277,6 +285,7 @@ impl Channel {
                 if let Some(pid) = self.remote_pid {
                     self.streams.retain(|stream| stream.sid() != sid);
                     info!("closed a stream");
+                    rtrn_tx.send(RtrnMsg::ClosedStream { pid, sid });
                 }
             },
             Frame::DataHeader { mid, sid, length } => {
@@ -321,10 +330,11 @@ impl Channel {
                         };
                     }
                     if let Some(pos) = pos {
+                        let sid = s.sid();
+                        let tx = s.msg_tx();
                         for m in s.to_receive.drain(pos..pos + 1) {
-                            info!("received message: {}", m.mid);
-                            //self.recv_queue.push_back(m);
-                            rtrn_tx.send(RtrnMsg::Receive(m)).unwrap();
+                            info!(?sid, ? m.mid, "received message");
+                            tx.send(m).unwrap();
                         }
                     }
                 }
@@ -389,12 +399,17 @@ impl Channel {
         }
     }
 
-    pub(crate) fn open_stream(&mut self, prio: u8, promises: EnumSet<Promise>) -> Sid {
+    pub(crate) fn open_stream(
+        &mut self,
+        prio: u8,
+        promises: EnumSet<Promise>,
+        msg_tx: mpsc::Sender<InCommingMessage>,
+    ) -> Sid {
         // validate promises
         if let Some(stream_id_pool) = &mut self.stream_id_pool {
             let sid = stream_id_pool.next();
             trace!(?sid, "going to open a new stream");
-            let stream = Stream::new(sid, prio, promises.clone());
+            let stream = IntStream::new(sid, prio, promises.clone(), msg_tx);
             self.streams.push(stream);
             self.send_queue.push_back(Frame::OpenStream {
                 sid,
