@@ -16,15 +16,12 @@ vec2 cloud_at(vec3 pos) {
 
 	float tick_offs = 0.0
 		+ texture(t_noise, scaled_pos * 0.0005 - time_of_day.x * 0.00002).x * 0.5
-		+ texture(t_noise, scaled_pos * 0.000015).x * 5.0;
+		+ texture(t_noise, scaled_pos * 0.0015).x * 0.25;
 
 	float value = (
 		0.0
 		+ texture(t_noise, scaled_pos * 0.0003 + tick_offs).x
 		+ texture(t_noise, scaled_pos * 0.0015 - tick_offs * 2.0).x * 0.5
-		//+ texture(t_noise, scaled_pos * 0.0025 - time_of_day.x * 0.0002).x * 0.25
-        //+ texture(t_noise, scaled_pos * 0.008 + time_of_day.x * 0.0004).x * 0.15
-        //+ texture(t_noise, scaled_pos * 0.02 + tick_offs + time_of_day.x * 0.0004).x * 0.2
 	) / 3.0;
 
 	value += (0.0
