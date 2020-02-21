@@ -1,29 +1,13 @@
 /*
     Most of the internals take place in it's own worker-thread.
     This folder contains all this outsourced calculation.
-    This mod.rs contains the interface to communicate with the thread,
+    This controller contains the interface to communicate with the thread,
     communication is done via channels.
 */
-pub mod channel;
-pub mod metrics;
-pub mod mpsc;
-pub mod tcp;
-pub mod types;
-pub mod udp;
-pub mod worker;
-
-pub(crate) use channel::Channel;
-pub(crate) use mpsc::MpscChannel;
-pub(crate) use tcp::TcpChannel;
-pub(crate) use udp::UdpChannel;
-
 use crate::{
-    internal::RemoteParticipant,
-    worker::{
-        metrics::NetworkMetrics,
-        types::{CtrlMsg, Pid, RtrnMsg},
-        worker::Worker,
-    },
+    metrics::NetworkMetrics,
+    types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg},
+    worker::Worker,
 };
 use mio::{self, Poll, PollOpt, Ready, Token};
 use mio_extras::channel::{channel, Receiver, Sender};

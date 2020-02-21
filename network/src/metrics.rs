@@ -53,9 +53,9 @@ impl NetworkMetrics {
             "version",
             &format!(
                 "{}.{}.{}",
-                &crate::internal::VELOREN_NETWORK_VERSION[0],
-                &crate::internal::VELOREN_NETWORK_VERSION[1],
-                &crate::internal::VELOREN_NETWORK_VERSION[2]
+                &crate::types::VELOREN_NETWORK_VERSION[0],
+                &crate::types::VELOREN_NETWORK_VERSION[1],
+                &crate::types::VELOREN_NETWORK_VERSION[2]
             ),
         );
         let network_info = IntGauge::with_opts(opts)?;

@@ -1,11 +1,9 @@
 use crate::{
-    internal::RemoteParticipant,
-    worker::{
-        channel::{ChannelProtocol, ChannelProtocols},
-        metrics::NetworkMetrics,
-        types::{CtrlMsg, Pid, RtrnMsg, TokenObjects},
-        Channel, Controller, TcpChannel,
-    },
+    channel::{Channel, ChannelProtocol, ChannelProtocols},
+    controller::Controller,
+    metrics::NetworkMetrics,
+    tcp::TcpChannel,
+    types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg, TokenObjects},
 };
 use mio::{self, Poll, PollOpt, Ready, Token};
 use mio_extras::channel::{Receiver, Sender};

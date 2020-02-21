@@ -1,32 +1,35 @@
-use crate::worker::{channel::ChannelProtocol, types::Frame};
+use crate::{channel::ChannelProtocol, types::Frame};
 use bincode;
-use mio::net::UdpSocket;
+use mio::net::TcpStream;
+use std::io::{Read, Write};
 use tracing::*;
 
-pub(crate) struct UdpChannel {
-    endpoint: UdpSocket,
+pub(crate) struct TcpChannel {
+    endpoint: TcpStream,
+    //these buffers only ever contain 1 FRAME !
     read_buffer: Vec<u8>,
     write_buffer: Vec<u8>,
 }
 
-impl UdpChannel {
-    pub fn new(endpoint: UdpSocket) -> Self {
+impl TcpChannel {
+    pub fn new(endpoint: TcpStream) -> Self {
+        let mut b = vec![0; 200];
         Self {
             endpoint,
-            read_buffer: Vec::new(),
-            write_buffer: Vec::new(),
+            read_buffer: b.clone(),
+            write_buffer: b,
         }
     }
 }
 
-impl ChannelProtocol for UdpChannel {
-    type Handle = UdpSocket;
+impl ChannelProtocol for TcpChannel {
+    type Handle = TcpStream;
 
     /// Execute when ready to read
     fn read(&mut self) -> Vec<Frame> {
         let mut result = Vec::new();
-        match self.endpoint.recv_from(self.read_buffer.as_mut_slice()) {
-            Ok((n, remote)) => {
+        match self.endpoint.read(self.read_buffer.as_mut_slice()) {
+            Ok(n) => {
                 trace!("incomming message with len: {}", n);
                 let mut cur = std::io::Cursor::new(&self.read_buffer[..n]);
                 while cur.position() < n as u64 {
@@ -60,8 +63,10 @@ impl ChannelProtocol for UdpChannel {
     fn write(&mut self, frame: Frame) {
         if let Ok(mut data) = bincode::serialize(&frame) {
             let total = data.len();
-            match self.endpoint.send(&data) {
-                Ok(n) if n == total => {},
+            match self.endpoint.write(&data) {
+                Ok(n) if n == total => {
+                    trace!("send {} bytes", n);
+                },
                 Ok(n) => {
                     error!("could only send part");
                     //let data = data.drain(n..).collect(); //TODO:
@@ -82,7 +87,7 @@ impl ChannelProtocol for UdpChannel {
     fn get_handle(&self) -> &Self::Handle { &self.endpoint }
 }
 
-impl std::fmt::Debug for UdpChannel {
+impl std::fmt::Debug for TcpChannel {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.endpoint)
