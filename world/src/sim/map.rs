@@ -1,12 +1,13 @@
 use crate::{
-    sim::{RiverKind, WorldSim, WORLD_SIZE},
+    column::ColumnSample,
+    sim::{vec2_as_uniform_idx, Alt, RiverKind, WorldSim, WORLD_SIZE},
     CONFIG,
 };
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use std::{f32, f64};
 use vek::*;
 
-pub struct MapConfig {
+pub struct MapConfig<'a> {
     /// Dimensions of the window being written to.  Defaults to WORLD_SIZE.
     pub dimensions: Vec2<usize>,
     /// x, y, and z of top left of map (defaults to (0.0, 0.0,
@@ -43,6 +44,14 @@ pub struct MapConfig {
     ///
     /// Defaults to (-0.8, -1.0, 0.3).
     pub light_direction: Vec3<f64>,
+    /// If Some, uses the provided shadow map.
+    ///
+    /// Defaults to None.
+    pub shadows: Option<&'a [Alt]>,
+    /// If Some, uses the provided column samples to determine surface color.
+    ///
+    /// Defaults to None.
+    pub samples: Option<&'a [Option<ColumnSample<'a>>]>,
     /// If true, only the basement (bedrock) is used for altitude; otherwise,
     /// the surface is used.
     ///
@@ -81,7 +90,7 @@ pub struct MapDebug {
     pub oceans: u32,
 }
 
-impl Default for MapConfig {
+impl<'a> Default for MapConfig<'a> {
     fn default() -> Self {
         let dimensions = WORLD_SIZE;
         Self {
@@ -90,7 +99,9 @@ impl Default for MapConfig {
             gain: CONFIG.mountain_scale,
             lgain: TerrainChunkSize::RECT_SIZE.x as f64,
             scale: WORLD_SIZE.x as f64 / dimensions.x as f64,
-            light_direction: Vec3::new(-0.8, -1.0, 0.3),
+            light_direction: Vec3::new(-1.2, -1.0, 0.8),
+            shadows: None,
+            samples: None,
 
             is_basement: false,
             is_water: true,
@@ -102,7 +113,7 @@ impl Default for MapConfig {
     }
 }
 
-impl MapConfig {
+impl<'a> MapConfig<'a> {
     /// Generates a map image using the specified settings.  Note that it will
     /// write from left to write from (0, 0) to dimensions - 1, inclusive,
     /// with 4 1-byte color components provided as (r, g, b, a).  It is up
@@ -120,6 +131,8 @@ impl MapConfig {
             lgain,
             scale,
             light_direction,
+            shadows,
+            samples,
 
             is_basement,
             is_water,
@@ -129,11 +142,15 @@ impl MapConfig {
             is_debug,
         } = *self;
 
+        let light_direction = Vec3::new(light_direction.x, light_direction.y, light_direction.z);
+        // let light_direction = Vec3::new(light_direction.x * lgain, light_direction.y,
+        // light_direction.z * lgain);
         let light = light_direction.normalized();
         let mut quads = [[0u32; QUADRANTS]; QUADRANTS];
         let mut rivers = 0u32;
         let mut lakes = 0u32;
         let mut oceans = 0u32;
+        // let column_sample = ColumnGen::new(sampler);
 
         let focus_rect = Vec2::from(focus);
         let true_sea_level = (CONFIG.sea_level as f64 - focus.z) / gain as f64;
@@ -147,32 +164,66 @@ impl MapConfig {
                 let pos =
                     (focus_rect + Vec2::new(i as f64, j as f64) * scale).map(|e: f64| e as i32);
 
-                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind) =
-                    sampler
-                        .get(pos)
-                        .map(|sample| {
-                            (
-                                sample.alt,
-                                sample.basement,
-                                sample.water_alt,
-                                sample.humidity,
-                                sample.temp,
-                                sample.downhill,
-                                sample.river.river_kind,
-                            )
-                        })
-                        .unwrap_or((
-                            CONFIG.sea_level,
-                            CONFIG.sea_level,
-                            CONFIG.sea_level,
-                            0.0,
-                            0.0,
-                            None,
-                            None,
-                        ));
+                let (
+                    chunk_idx,
+                    alt,
+                    basement,
+                    water_alt,
+                    humidity,
+                    temperature,
+                    downhill,
+                    river_kind,
+                ) = sampler
+                    .get(pos)
+                    .map(|sample| {
+                        (
+                            Some(vec2_as_uniform_idx(pos)),
+                            sample.alt,
+                            sample.basement,
+                            sample.water_alt,
+                            sample.humidity,
+                            sample.temp,
+                            sample.downhill,
+                            sample.river.river_kind,
+                        )
+                    })
+                    .unwrap_or((
+                        None,
+                        CONFIG.sea_level,
+                        CONFIG.sea_level,
+                        CONFIG.sea_level,
+                        0.0,
+                        0.0,
+                        None,
+                        None,
+                    ));
                 let humidity = humidity.min(1.0).max(0.0);
                 let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
                 let pos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                let column_rgb = samples
+                    .and_then(|samples| {
+                        chunk_idx
+                            .and_then(|chunk_idx| samples.get(chunk_idx))
+                            .map(Option::as_ref)
+                            .flatten()
+                    })
+                    .map(|sample| {
+                        if is_basement {
+                            sample.stone_col.map(|e| e as f64 / 255.0)
+                        } else {
+                            sample.surface_color.map(|e| e as f64)
+                        }
+                    });
+                /*let column_rgb = if is_sampled {
+                    column_sample.get(pos)
+                        .map(|sample| if is_basement {
+                            sample.stone_col.map(|e| e as f64 / 255.0)
+                        } else {
+                            sample.surface_color.map(|e| e as f64)
+                        })
+                } else {
+                    None
+                };*/
                 let downhill_pos = (downhill
                     .map(|downhill_pos| downhill_pos)
                     .unwrap_or(pos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
@@ -206,6 +257,8 @@ impl MapConfig {
                     (cross_alt - alt) as f64 * lgain,
                     (cross_pos.y - pos.y) as f64,
                 );
+                // let surface_normal = Vec3::new(lgain * (f.y * u.z - f.z * u.y), -(f.x * u.z -
+                // f.z * u.x), lgain * (f.x * u.y - f.y * u.x)).normalized();
                 // Then cross points "to the right" (upwards) on a right-handed coordinate
                 // system. (right-handed coordinate system means (0, 0, 1.0) is
                 // "forward" into the screen).
@@ -239,29 +292,84 @@ impl MapConfig {
                     }
                 }
 
+                let shade_frac = shadows
+                    .and_then(|shadows| chunk_idx.and_then(|chunk_idx| shadows.get(chunk_idx)))
+                    .copied()
+                    .map(|e| e as f64)
+                    .unwrap_or(alt);
                 let water_color_factor = 2.0;
-                let g_water = 32.0 * water_color_factor;
-                let b_water = 64.0 * water_color_factor;
+                let g_water = 32.0
+                    * water_color_factor
+                    * if is_shaded {
+                        0.2 + shade_frac * 0.8
+                    } else {
+                        1.0
+                    };
+                let b_water = 64.0
+                    * water_color_factor
+                    * if is_shaded {
+                        0.2 + shade_frac * 0.8
+                    } else {
+                        1.0
+                    };
+                let column_rgb = column_rgb.unwrap_or(Rgb::new(
+                    if is_shaded { shade_frac * 0.6 } else { alt },
+                    if is_shaded {
+                        0.4 + (shade_frac * 0.6)
+                    } else {
+                        alt
+                    },
+                    if is_shaded { shade_frac * 0.6 } else { alt },
+                ));
                 let rgba = match (river_kind, (is_water, true_alt >= true_sea_level)) {
                     (_, (false, _)) | (None, (_, true)) => {
                         let (r, g, b) = (
-                            (if is_shaded { alt } else { alt }
+                            (column_rgb.r/*if is_shaded { shade_frac * 0.6  } else { alt }*/
                                 * if is_temperature {
                                     temperature as f64
                                 } else if is_shaded {
-                                    alt
+                                    if samples.is_some() {
+                                        // column_rgb.r
+                                        0.2 + shade_frac * 0.8
+                                    } else {
+                                        shade_frac * 0.6
+                                    }
                                 } else {
-                                    0.0
+                                    if samples.is_some() {
+                                        alt
+                                    } else {
+                                        0.0
+                                    }
                                 })
                             .sqrt(),
-                            if is_shaded { 0.4 + (alt * 0.6) } else { alt },
-                            (if is_shaded { alt } else { alt }
+                            (column_rgb.g
+                                * if is_shaded {
+                                    if samples.is_some() {
+                                        // column_rgb.g
+                                        0.2 + shade_frac * 0.8
+                                    } else {
+                                        0.4 + shade_frac * 0.6
+                                    }
+                                } else {
+                                    alt
+                                })
+                            .sqrt(),
+                            (column_rgb.b/*if is_shaded { shade_frac * 0.6 } else { alt }*/
                                 * if is_humidity {
                                     humidity as f64
                                 } else if is_shaded {
-                                    alt
+                                    if samples.is_some() {
+                                        // column_rgb.b
+                                        0.2 + shade_frac * 0.8
+                                    } else {
+                                        shade_frac * 0.6
+                                    }
                                 } else {
-                                    0.0
+                                    if samples.is_some() {
+                                        alt
+                                    } else {
+                                        0.0
+                                    }
                                 })
                             .sqrt(),
                         );
@@ -281,15 +389,39 @@ impl MapConfig {
                     ),
                     (Some(RiverKind::River { .. }), _) => (
                         0,
-                        g_water as u8 + (alt * (127.0 - g_water)) as u8,
-                        b_water as u8 + (alt * (255.0 - b_water)) as u8,
+                        g_water as u8
+                            + (if is_shaded {
+                                0.2 + shade_frac * 0.8
+                            } else {
+                                alt
+                            } * (127.0 - g_water)) as u8,
+                        b_water as u8
+                            + (if is_shaded {
+                                0.2 + shade_frac * 0.8
+                            } else {
+                                alt
+                            } * (255.0 - b_water)) as u8,
                         255,
                     ),
                     (None, _) | (Some(RiverKind::Lake { .. }), _) => (
                         0,
-                        (((g_water + water_alt * (127.0 - 32.0)) + (-water_depth * g_water)) * 1.0)
-                            as u8,
-                        (((b_water + water_alt * (255.0 - b_water)) + (-water_depth * b_water))
+                        (((g_water
+                            + if is_shaded {
+                                0.2 + shade_frac * 0.8
+                            } else {
+                                1.0
+                            } * water_alt
+                                * (127.0 - g_water))
+                            + (-water_depth * g_water))
+                            * 1.0) as u8,
+                        (((b_water
+                            + if is_shaded {
+                                0.2 + shade_frac * 0.8
+                            } else {
+                                1.0
+                            } * water_alt
+                                * (255.0 - b_water))
+                            + (-water_depth * b_water))
                             * 1.0) as u8,
                         255,
                     ),

@@ -17,7 +17,7 @@ pub use self::{
     map::{MapConfig, MapDebug},
     settlement::Settlement,
     util::{
-        cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, neighbors,
+        cdf_irwin_hall, downhill, get_oceans, get_shadows, local_cells, map_edge_factor, neighbors,
         uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
         NEIGHBOR_DELTA,
     },
@@ -1101,9 +1101,9 @@ impl WorldSim {
             )
         };
         let flux_old = get_multi_drainage(&mstack, &mrec, &*mwrec, boundary_len);
-        let flux_rivers = get_drainage(&water_alt_pos, &dh, boundary_len);
+        // let flux_rivers = get_drainage(&water_alt_pos, &dh, boundary_len);
         // TODO: Make rivers work with multi-direction flux as well.
-        // let flux_rivers = flux_old.clone();
+        let flux_rivers = flux_old.clone();
 
         let water_height_initial = |chunk_idx| {
             let indirection_idx = indirection[chunk_idx];
@@ -1195,6 +1195,21 @@ impl WorldSim {
             Some(RiverKind::River { .. }) => false, // TODO: inspect width
             None => false,
         };
+
+        /* // Build a shadow map.
+        let shadows = get_shadows(
+            Vec3::new(-0.8, -1.0, 0.3),
+            TerrainChunkSize::RECT_SIZE.x,
+            TerrainChunkSize::RECT_SIZE.x as Alt,
+            TerrainChunkSize::RECT_SIZE.y as Alt,
+            Aabr {
+                min: Vec2::new(0.0, 0.0),
+                max: WORLD_SIZE.map(|e| e as Alt) * TerrainChunkSize::RECT_SIZE.map(|e| e as Alt),
+            },
+            0.0,
+            maxh,
+            |posi| alt[posi].max(water_alt[posi]),
+        ); */
 
         // Check whether any tiles around this tile are not water (since Lerp will
         // ensure that they are included).
@@ -1308,11 +1323,53 @@ impl WorldSim {
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
     pub fn get_map(&self) -> Vec<u32> {
+        let mut map_config = MapConfig::default();
+        map_config.lgain = 1.0;
+        // Build a shadow map.
+        let shadows = get_shadows(
+            Vec3::new(
+                map_config.light_direction.x,
+                map_config.light_direction.z,
+                map_config.light_direction.y,
+            ),
+            map_config.lgain,
+            TerrainChunkSize::RECT_SIZE.x as Alt,
+            TerrainChunkSize::RECT_SIZE.y as Alt,
+            Aabr {
+                min: Vec2::new(0.0, 0.0),
+                max: WORLD_SIZE.map(|e| e as Alt) * TerrainChunkSize::RECT_SIZE.map(|e| e as Alt),
+            },
+            CONFIG.sea_level as Alt,
+            (CONFIG.sea_level + self.max_height) as Alt,
+            |posi| {
+                let chunk = &self.chunks[posi];
+                chunk.alt.max(chunk.water_alt) as Alt
+            },
+        )
+        .unwrap();
+
+        let samples_data = {
+            let column_sample = ColumnGen::new(self);
+            (0..WORLD_SIZE.product())
+                .into_par_iter()
+                .map(|posi| {
+                    column_sample.get(
+                        uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                    )
+                })
+                .collect::<Vec<_>>()
+                .into_boxed_slice()
+        };
+
         let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
         // TODO: Parallelize again.
         MapConfig {
             gain: self.max_height,
-            ..MapConfig::default()
+            // lgain: 1.0,
+            shadows: Some(&shadows),
+            samples: Some(&samples_data),
+            // is_sampled: true,
+            ..map_config
         }
         .generate(&self, |pos, (r, g, b, a)| {
             v[pos.y * WORLD_SIZE.x + pos.x] = u32::from_le_bytes([r, g, b, a]);

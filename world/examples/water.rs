@@ -1,8 +1,12 @@
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use rayon::prelude::*;
 use std::{f64, io::Write, path::PathBuf, time::SystemTime};
 use vek::*;
 use veloren_world::{
-    sim::{self, MapConfig, MapDebug, WorldOpts, WORLD_SIZE},
+    sim::{
+        self, get_shadows, uniform_idx_as_vec2, Alt, MapConfig, MapDebug, WorldOpts, WORLD_SIZE,
+    },
+    util::Sampler,
     World, CONFIG,
 };
 
@@ -18,26 +22,64 @@ fn main() {
     let map_file =
         // "map_1575990726223.bin";
         // "map_1575987666972.bin";
-        "map_1576046079066.bin";
+        // "map_1576046079066.bin";
+        "map_1579539133272.bin";
     let mut _map_file = PathBuf::from("./maps");
     _map_file.push(map_file);
 
     let world = World::generate(5284, WorldOpts {
         seed_elements: false,
-        // world_file: sim::FileOpts::Load(_map_file),
-        world_file: sim::FileOpts::Save,
+        // world_file: sim::FileOpts::LoadAsset(veloren_world::sim::DEFAULT_WORLD_MAP.into()),
+        world_file: sim::FileOpts::Load(_map_file),
+        // world_file: sim::FileOpts::Save,
         ..WorldOpts::default()
     });
+    log::info!("Sampling data...");
+    let sampler = world.sim();
+
+    let samples_data = {
+        let column_sample = world.sample_columns();
+        (0..WORLD_SIZE.product())
+            .into_par_iter()
+            .map(|posi| {
+                column_sample
+                    .get(uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+            })
+            .collect::<Vec<_>>()
+            .into_boxed_slice()
+    };
+
+    let refresh_shadows = |light_direction: Vec3<f64>, lgain, scale, is_basement, is_water| {
+        get_shadows(
+        //Vec3::new(-0.8, 0.3, /*-1.0*/-(1.0 / TerrainChunkSize::RECT_SIZE.x as Alt)),
+        Vec3::new(light_direction.x, light_direction.z, light_direction.y/* / lgain*/),
+        lgain,
+        TerrainChunkSize::RECT_SIZE.x as f64/* * scale*/,
+        TerrainChunkSize::RECT_SIZE.y as f64/* * scale*/,
+        Aabr {
+            min: Vec2::new(0.0, 0.0), // focus.into(),
+            max: WORLD_SIZE.map(|e| e as f64) * TerrainChunkSize::RECT_SIZE.map(|e| e as f64)/* * scale*//* + focus.into() */,
+        },
+        CONFIG.sea_level as f64, // focus.z,
+        (CONFIG.sea_level + sampler.max_height) as f64, // (focus.z + self.max_height) as Alt,
+        |posi| {
+            let sample = sampler.get(uniform_idx_as_vec2(posi)).unwrap();
+            if is_basement {
+                sample.alt as f64
+            } else {
+                sample.basement as f64
+            }.max(if is_water { sample.water_alt as f64 } else { -f64::INFINITY })
+        },
+    ).ok()
+    };
 
     let mut win =
         minifb::Window::new("World Viewer", W, H, minifb::WindowOptions::default()).unwrap();
 
-    let sampler = world.sim();
-
     let mut focus = Vec3::new(0.0, 0.0, CONFIG.sea_level as f64);
     // Altitude is divided by gain and clamped to [0, 1]; thus, decreasing gain
     // makes smaller differences in altitude appear larger.
-    let mut gain = CONFIG.mountain_scale;
+    let mut gain = /*CONFIG.mountain_scale*/sampler.max_height;
     // The Z component during normal calculations is multiplied by gain; thus,
     let mut lgain = 1.0;
     let mut scale = WORLD_SIZE.x as f64 / W as f64;
@@ -50,13 +92,16 @@ fn main() {
     //
     // "In world space the x-axis will be pointing east, the y-axis up and the
     // z-axis will be pointing south"
-    let mut light_direction = Vec3::new(-0.8, -1.0, 0.3);
+    let mut light_direction = Vec3::new(-/*0.8*/1.3, -1.0, 0.3);
 
     let mut is_basement = false;
     let mut is_water = true;
     let mut is_shaded = true;
     let mut is_temperature = true;
     let mut is_humidity = true;
+
+    let mut shadows = None; //refresh_shadows(light_direction, lgain, scale, is_basement, is_water);
+    let mut samples = None;
 
     while win.is_open() {
         let config = MapConfig {
@@ -66,12 +111,15 @@ fn main() {
             lgain,
             scale,
             light_direction,
+            shadows: shadows.as_deref(),
+            samples,
 
             is_basement,
             is_water,
             is_shaded,
             is_temperature,
             is_humidity,
+            // is_sampled,
             is_debug: true,
         };
 
@@ -161,6 +209,9 @@ fn main() {
         let is_camera = win.is_key_down(minifb::Key::C);
         if win.is_key_down(minifb::Key::B) {
             is_basement ^= true;
+            shadows = shadows.and_then(|_| {
+                refresh_shadows(light_direction, lgain, scale, is_basement, is_water)
+            });
         }
         if win.is_key_down(minifb::Key::H) {
             is_humidity ^= true;
@@ -172,11 +223,25 @@ fn main() {
             is_water ^= true;
         }
         if win.is_key_down(minifb::Key::L) {
-            is_shaded ^= true;
+            if is_camera {
+                shadows = match shadows {
+                    Some(_) => None,
+                    None => refresh_shadows(light_direction, lgain, scale, is_basement, is_water),
+                };
+            } else {
+                is_shaded ^= true;
+            }
+        }
+        if win.is_key_down(minifb::Key::M) {
+            samples = samples.xor(Some(&*samples_data));
+            // is_sampled ^= true;
         }
         if win.is_key_down(minifb::Key::W) {
             if is_camera {
                 light_direction.z -= lspd;
+                shadows = shadows.and_then(|_| {
+                    refresh_shadows(light_direction, lgain, scale, is_basement, is_water)
+                });
             } else {
                 focus.y -= spd * scale;
             }
@@ -184,6 +249,9 @@ fn main() {
         if win.is_key_down(minifb::Key::A) {
             if is_camera {
                 light_direction.x -= lspd;
+                shadows = shadows.and_then(|_| {
+                    refresh_shadows(light_direction, lgain, scale, is_basement, is_water)
+                });
             } else {
                 focus.x -= spd * scale;
             }
@@ -191,6 +259,9 @@ fn main() {
         if win.is_key_down(minifb::Key::S) {
             if is_camera {
                 light_direction.z += lspd;
+                shadows = shadows.and_then(|_| {
+                    refresh_shadows(light_direction, lgain, scale, is_basement, is_water)
+                });
             } else {
                 focus.y += spd * scale;
             }
@@ -198,6 +269,9 @@ fn main() {
         if win.is_key_down(minifb::Key::D) {
             if is_camera {
                 light_direction.x += lspd;
+                shadows = shadows.and_then(|_| {
+                    refresh_shadows(light_direction, lgain, scale, is_basement, is_water)
+                });
             } else {
                 focus.x += spd * scale;
             }
@@ -206,6 +280,9 @@ fn main() {
             if is_camera {
                 if (lgain * 2.0).is_normal() {
                     lgain *= 2.0;
+                    shadows = shadows.and_then(|_| {
+                        refresh_shadows(light_direction, lgain, scale, is_basement, is_water)
+                    });
                 }
             } else {
                 gain += 64.0;
@@ -215,6 +292,9 @@ fn main() {
             if is_camera {
                 if (lgain / 2.0).is_normal() {
                     lgain /= 2.0;
+                    shadows = shadows.and_then(|_| {
+                        refresh_shadows(light_direction, lgain, scale, is_basement, is_water)
+                    });
                 }
             } else {
                 gain = (gain - 64.0).max(64.0);
@@ -226,6 +306,8 @@ fn main() {
             } else {
                 if (scale * 2.0).is_normal() {
                     scale *= 2.0;
+                    // shadows = refresh_shadows(light_direction, lgain, scale,
+                    // is_basement);
                 }
             }
         }
@@ -235,6 +317,8 @@ fn main() {
             } else {
                 if (scale / 2.0).is_normal() {
                     scale /= 2.0;
+                    // shadows = refresh_shadows(light_direction, lgain, scale,
+                    // is_basement);
                 }
             }
         }

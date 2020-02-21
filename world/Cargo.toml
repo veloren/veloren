@@ -5,6 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+approx = "0.1.1"
 bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
 bitvec = "0.15.2"
