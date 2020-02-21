@@ -30,7 +30,7 @@ void main() {
 	vec3 sprite_pos = (inst_mat * vec4(0, 0, 0, 1)).xyz;
 
 	f_pos = (inst_mat * vec4(v_pos * SCALE, 1)).xyz;
-	f_pos.z -= 1.0 * pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
+	f_pos.z -= min(32.0, pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0));
 
 	// Wind waving
 	f_pos += inst_wind_sway * vec3(
