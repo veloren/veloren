@@ -1,6 +1,7 @@
 use crate::{
     channel::{Channel, ChannelProtocol, ChannelProtocols},
     controller::Controller,
+    message::InCommingMessage,
     metrics::NetworkMetrics,
     tcp::TcpChannel,
     types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg, TokenObjects},
@@ -9,7 +10,7 @@ use mio::{self, Poll, PollOpt, Ready, Token};
 use mio_extras::channel::{Receiver, Sender};
 use std::{
     collections::HashMap,
-    sync::{mpsc::TryRecvError, Arc, RwLock},
+    sync::{mpsc, mpsc::TryRecvError, Arc, RwLock},
     time::Instant,
 };
 use tlid;
@@ -149,15 +150,18 @@ impl Worker {
                 pid,
                 prio,
                 promises,
+                msg_tx,
                 return_sid,
             } => {
                 let mut handled = false;
                 for (tok, obj) in self.mio_tokens.tokens.iter_mut() {
                     if let TokenObjects::Channel(channel) = obj {
                         if Some(pid) == channel.remote_pid {
-                            let sid = channel.open_stream(prio, promises);
+                            let (msg_tx, msg_rx) = mpsc::channel::<InCommingMessage>();
+                            let sid = channel.open_stream(prio, promises, msg_tx);
                             return_sid.send(sid);
                             channel.tick_send();
+                            error!("handle msg_tx");
                             handled = true;
                             break;
                         }

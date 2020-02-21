@@ -6,7 +6,7 @@ use crate::{
 use enumset::EnumSet;
 use mio::{self, net::TcpListener, PollOpt, Ready};
 use serde::{Deserialize, Serialize};
-use std::collections::VecDeque;
+use std::{collections::VecDeque, sync::mpsc};
 use uuid::Uuid;
 
 //Participant Ids are randomly chosen
@@ -32,7 +32,8 @@ pub(crate) enum CtrlMsg {
         pid: Pid,
         prio: u8,
         promises: EnumSet<Promise>,
-        return_sid: std::sync::mpsc::Sender<Sid>,
+        msg_tx: mpsc::Sender<InCommingMessage>,
+        return_sid: mpsc::Sender<Sid>,
     },
     CloseStream {
         pid: Pid,
@@ -43,16 +44,20 @@ pub(crate) enum CtrlMsg {
 
 pub(crate) enum RtrnMsg {
     Shutdown,
+    ConnectedParticipant {
+        pid: Pid,
+    },
     OpendStream {
         pid: Pid,
+        sid: Sid,
         prio: u8,
+        msg_rx: mpsc::Receiver<InCommingMessage>,
         promises: EnumSet<Promise>,
     },
     ClosedStream {
         pid: Pid,
         sid: Sid,
     },
-    Receive(InCommingMessage),
 }
 
 #[derive(Debug)]
@@ -62,20 +67,27 @@ pub(crate) enum TokenObjects {
 }
 
 #[derive(Debug)]
-pub(crate) struct Stream {
+pub(crate) struct IntStream {
     sid: Sid,
     prio: u8,
     promises: EnumSet<Promise>,
+    msg_tx: mpsc::Sender<InCommingMessage>,
     pub to_send: VecDeque<OutGoingMessage>,
     pub to_receive: VecDeque<InCommingMessage>,
 }
 
-impl Stream {
-    pub fn new(sid: Sid, prio: u8, promises: EnumSet<Promise>) -> Self {
-        Stream {
+impl IntStream {
+    pub fn new(
+        sid: Sid,
+        prio: u8,
+        promises: EnumSet<Promise>,
+        msg_tx: mpsc::Sender<InCommingMessage>,
+    ) -> Self {
+        IntStream {
             sid,
             prio,
             promises,
+            msg_tx,
             to_send: VecDeque::new(),
             to_receive: VecDeque::new(),
         }
@@ -84,6 +96,8 @@ impl Stream {
     pub fn sid(&self) -> Sid { self.sid }
 
     pub fn prio(&self) -> u8 { self.prio }
+
+    pub fn msg_tx(&self) -> mpsc::Sender<InCommingMessage> { self.msg_tx.clone() }
 
     pub fn promises(&self) -> EnumSet<Promise> { self.promises }
 }
