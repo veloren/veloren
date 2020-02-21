@@ -20,11 +20,6 @@ impl SfxEventItem {
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
 pub enum SfxEvent {
     Idle,
-    PlaceBlock,
-    RemoveBlock,
-    OpenChest,
-    ChatTellReceived,
-    OpenBag,
     Run,
     Roll,
     Climb,
@@ -36,10 +31,8 @@ pub enum SfxEvent {
     Fall,
     ExperienceGained,
     LevelUp,
-    LightLantern,
-    ExtinguishLantern,
-    Attack(Tool),
-    AttackWolf,
+    Wield(Tool),
+    Unwield(Tool),
 }
 
 pub enum LocalEvent {
