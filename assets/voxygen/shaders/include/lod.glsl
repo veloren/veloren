@@ -8,7 +8,7 @@ vec2 pos_to_uv(vec2 pos) {
 }
 
 float alt_at(vec2 pos) {
-	return texture(t_map, pos_to_uv(pos)).a * (1450.0);
+	return texture(t_map, pos_to_uv(pos)).a * (1310.0) + 140.0;
 
 	return 0.0
 		+ pow(texture(t_noise, pos * 0.00005).x * 1.4, 3.0) * 1000.0
