@@ -1079,6 +1079,11 @@ fn handle_level(server: &mut Server, entity: EcsEntity, args: String, action: &C
             Ok(player) => {
                 if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
                     stats.level.set_level(lvl);
+
+                    stats.update_max_hp();
+                    stats
+                        .health
+                        .set_to(stats.health.maximum(), comp::HealthSource::LevelUp);
                 } else {
                     error_msg = Some(ServerMsg::private(String::from("Player has no stats!")));
                 }
