@@ -15,7 +15,7 @@ out vec3 f_pos;
 out float f_light;
 
 void main() {
-	f_pos = lod_pos(v_pos + vec2(0, -v_pos.x * 0.5));
+	f_pos = lod_pos(v_pos);
 
 	f_pos.z -= 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
 

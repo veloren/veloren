@@ -329,6 +329,13 @@ impl Scene {
     /// Render the scene using the provided `Renderer`.
     pub fn render(&mut self, renderer: &mut Renderer, client: &mut Client) {
         // Render terrain and figures.
+        self.terrain.render(
+            renderer,
+            &self.globals,
+            &self.lights,
+            &self.shadows,
+            self.camera.get_focus_pos(),
+        );
         self.figure_mgr.render(
             renderer,
             client,
@@ -336,13 +343,6 @@ impl Scene {
             &self.lights,
             &self.shadows,
             &self.camera,
-        );
-        self.terrain.render(
-            renderer,
-            &self.globals,
-            &self.lights,
-            &self.shadows,
-            self.camera.get_focus_pos(),
         );
         self.lod.render(renderer, &self.globals);
 

@@ -291,7 +291,7 @@ impl MapConfig {
                     ),
                 };
 
-                let rgba = (rgb.0, rgb.1, rgb.2, (255.0 * alt) as u8);
+                let rgba = (rgb.0, rgb.1, rgb.2, (255.0 * alt.max(water_alt)) as u8);
 
                 write_pixel(Vec2::new(i, j), rgba);
             });

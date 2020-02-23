@@ -3,6 +3,7 @@ use crate::render::{
     Consts, FilterMethod, Globals, LodTerrainPipeline, Mesh, Model, Quad, Renderer, Texture,
 };
 use client::Client;
+use common::spiral::Spiral2d;
 use vek::*;
 
 pub struct Lod {
@@ -30,22 +31,25 @@ impl Lod {
 }
 
 fn create_lod_terrain_mesh(detail: usize) -> Mesh<LodTerrainPipeline> {
-    let transform = |x| (2.0 * x as f32) / detail as f32 - 1.0;
+    Spiral2d::new()
+        .take(detail * detail)
+        .map(|pos| {
+            let x = pos.x + detail as i32 / 2;
+            let y = pos.y + detail as i32 / 2;
 
-    let mut mesh = Mesh::new();
+            let transform = |x| (2.0 * x as f32) / detail as f32 - 1.0;
 
-    for x in 0..detail {
-        for y in 0..detail {
-            if Vec2::new(x, y).map(transform).magnitude() <= 1.0 {
-                mesh.push_quad(Quad::new(
-                    Vertex::new(Vec2::new(x + 0, y + 0).map(transform)),
-                    Vertex::new(Vec2::new(x + 1, y + 0).map(transform)),
-                    Vertex::new(Vec2::new(x + 1, y + 1).map(transform)),
-                    Vertex::new(Vec2::new(x + 0, y + 1).map(transform)),
-                ));
-            }
-        }
-    }
-
-    mesh
+            Quad::new(
+                Vertex::new(Vec2::new(x + 0, y + 0).map(transform)),
+                Vertex::new(Vec2::new(x + 1, y + 0).map(transform)),
+                Vertex::new(Vec2::new(x + 1, y + 1).map(transform)),
+                Vertex::new(Vec2::new(x + 0, y + 1).map(transform)),
+            )
+            .rotated_by(if (x > detail as i32 / 2) ^ (y > detail as i32 / 2) {
+                0
+            } else {
+                1
+            })
+        })
+        .collect()
 }

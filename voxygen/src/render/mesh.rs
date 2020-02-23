@@ -1,4 +1,5 @@
 use super::Pipeline;
+use std::iter::FromIterator;
 
 /// A `Vec`-based mesh structure used to store mesh data on the CPU.
 #[derive(Clone)]
@@ -57,6 +58,24 @@ impl<P: Pipeline> Mesh<P> {
     }
 }
 
+impl<P: Pipeline> FromIterator<Tri<P>> for Mesh<P> {
+    fn from_iter<I: IntoIterator<Item = Tri<P>>>(tris: I) -> Self {
+        tris.into_iter().fold(Self::new(), |mut this, tri| {
+            this.push_tri(tri);
+            this
+        })
+    }
+}
+
+impl<P: Pipeline> FromIterator<Quad<P>> for Mesh<P> {
+    fn from_iter<I: IntoIterator<Item = Quad<P>>>(quads: I) -> Self {
+        quads.into_iter().fold(Self::new(), |mut this, quad| {
+            this.push_quad(quad);
+            this
+        })
+    }
+}
+
 /// Represents a triangle stored on the CPU.
 pub struct Tri<P: Pipeline> {
     a: P::Vertex,
@@ -79,5 +98,19 @@ pub struct Quad<P: Pipeline> {
 impl<P: Pipeline> Quad<P> {
     pub fn new(a: P::Vertex, b: P::Vertex, c: P::Vertex, d: P::Vertex) -> Self {
         Self { a, b, c, d }
+    }
+
+    pub fn rotated_by(self, n: usize) -> Self
+    where
+        P::Vertex: Clone,
+    {
+        let verts = [self.a, self.b, self.c, self.d];
+
+        Self {
+            a: verts[(0 + n) % 4].clone(),
+            b: verts[(1 + n) % 4].clone(),
+            c: verts[(2 + n) % 4].clone(),
+            d: verts[(3 + n) % 4].clone(),
+        }
     }
 }

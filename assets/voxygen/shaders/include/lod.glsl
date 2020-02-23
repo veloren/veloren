@@ -38,14 +38,14 @@ vec3 lod_pos(vec2 v_pos) {
 
 vec3 lod_norm(vec2 pos) {
 	float alt00 = alt_at(pos);
-	float alt10 = alt_at(pos + vec2(100, 0));
-	float alt01 = alt_at(pos + vec2(0, 100));
+	float alt10 = alt_at(pos + vec2(32, 0));
+	float alt01 = alt_at(pos + vec2(0, 32));
 	float slope = abs(alt00 - alt10) + abs(alt00 - alt01);
 
 	return normalize(vec3(
-		(alt00 - alt10) / 100,
-		(alt00 - alt01) / 100,
-		100 / (slope + 0.00001) // Avoid NaN
+		(alt00 - alt10) / 32,
+		(alt00 - alt01) / 32,
+		32 / (slope + 0.00001) // Avoid NaN
 	));
 }
 

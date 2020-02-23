@@ -24,6 +24,7 @@ pub mod npc;
 pub mod path;
 pub mod ray;
 pub mod region;
+pub mod spiral;
 pub mod state;
 pub mod sync;
 pub mod sys;
