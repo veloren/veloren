@@ -6,6 +6,7 @@
 #include <lod.glsl>
 
 in vec3 f_pos;
+in vec3 f_norm;
 
 out vec4 tgt_color;
 

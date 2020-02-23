@@ -12,10 +12,13 @@ uniform u_locals {
 };
 
 out vec3 f_pos;
+out vec3 f_norm;
 out float f_light;
 
 void main() {
 	f_pos = lod_pos(v_pos);
+
+	f_norm = lod_norm(f_pos.xy);
 
 	//f_pos.z -= 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
 

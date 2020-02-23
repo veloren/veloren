@@ -25,8 +25,8 @@ float splay_scale(vec2 pos, float e) {
 }
 
 vec3 lod_pos(vec2 v_pos) {
-	vec2 hpos = focus_pos.xy + splay(v_pos, 5.0) * 1000000.0;
-	float splay = splay_scale(v_pos, 5.0);
+	vec2 hpos = focus_pos.xy + splay(v_pos, 8.0) * 1000000.0;
+	float splay = splay_scale(v_pos, 8.0) * 1.0;
 	return vec3(hpos, (
 		alt_at(hpos) +
 		alt_at(hpos + vec2(-1, 1) * splay) +
@@ -37,21 +37,25 @@ vec3 lod_pos(vec2 v_pos) {
 }
 
 vec3 lod_norm(vec2 pos) {
-	float alt00 = alt_at(pos);
-	float alt10 = alt_at(pos + vec2(32, 0));
-	float alt01 = alt_at(pos + vec2(0, 32));
-	float slope = abs(alt00 - alt10) + abs(alt00 - alt01);
+	const float SAMPLE_W = 8;
+
+	float altx0 = alt_at(pos + vec2(-1, 0) * SAMPLE_W);
+	float altx1 = alt_at(pos + vec2(1, 0) * SAMPLE_W);
+	float alty0 = alt_at(pos + vec2(0, -1) * SAMPLE_W);
+	float alty1 = alt_at(pos + vec2(0, 1) * SAMPLE_W);
+	float slope = abs(altx1 - altx0) + abs(alty0 - alty1);
 
 	return normalize(vec3(
-		(alt00 - alt10) / 32,
-		(alt00 - alt01) / 32,
-		32 / (slope + 0.00001) // Avoid NaN
+		(altx0 - altx1) / SAMPLE_W,
+		(alty0 - alty1) / SAMPLE_W,
+		SAMPLE_W / (slope + 0.00001) // Avoid NaN
 	));
 }
 
 vec3 lod_col(vec2 pos) {
+	//return vec3(1);
 	return texture(t_map, pos_to_uv(pos)).rgb
-		+ texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.01).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x * 0.1;
+		+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 
 	vec3 warmth = mix(
 		vec3(0.05, 0.4, 0.1),
