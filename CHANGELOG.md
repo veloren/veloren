@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New attack animation
 - weapon control system
 - Game pauses when in singleplayer and pause menu
+- Added authentication system (to play on the official server register on https://account.veloren.net)
 
 ### Changed
 
@@ -80,7 +81,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled NPC AI
 - Pets now attack enemies and defend their owners
 - Added collars to tame wild animals
-- Added authentication system (to play on the official server register on https://account.veloren.net)
 
 ### Changed
 
