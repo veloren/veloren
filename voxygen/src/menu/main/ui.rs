@@ -536,6 +536,7 @@ impl MainMenuUi {
                     // transparent background
                     .color(TRANSPARENT)
                     .border_color(TRANSPARENT)
+                    .hide_text("*")
                     .set(self.ids.password_field, ui_widgets)
                 {
                     match event {
