@@ -9,12 +9,21 @@ use vek::*;
 pub struct SfxEventItem {
     pub sfx: SfxEvent,
     pub pos: Option<Vec3<f32>>,
+    pub vol: Option<f32>,
 }
 
 impl SfxEventItem {
-    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>) -> Self { Self { sfx, pos } }
+    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>, vol: Option<f32>) -> Self {
+        Self { sfx, pos, vol }
+    }
 
-    pub fn at_player_position(sfx: SfxEvent) -> Self { Self { sfx, pos: None } }
+    pub fn at_player_position(sfx: SfxEvent) -> Self {
+        Self {
+            sfx,
+            pos: None,
+            vol: None,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
