@@ -17,7 +17,10 @@ out float f_light;
 void main() {
 	f_pos = lod_pos(v_pos);
 
-	f_pos.z -= 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
+	//f_pos.z -= 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
+
+	//f_pos.z -= 100.0 * pow(1.0 + 0.01 / view_distance.x, -pow(distance(focus_pos.xy, f_pos.xy), 2.0));
+	f_pos.z -= max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0);
 
 	f_light = 1.0;
 

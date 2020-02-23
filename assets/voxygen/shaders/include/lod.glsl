@@ -50,8 +50,8 @@ vec3 lod_norm(vec2 pos) {
 }
 
 vec3 lod_col(vec2 pos) {
-	return texture(t_map, pos_to_uv(pos)).rgb;
-		//+ texture(t_noise, pos * 0.02 + texture(t_noise, pos * 1.0).xy * 2.0).x * 0.2;
+	return texture(t_map, pos_to_uv(pos)).rgb
+		+ texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.01).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x * 0.1;
 
 	vec3 warmth = mix(
 		vec3(0.05, 0.4, 0.1),
