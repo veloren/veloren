@@ -32,7 +32,7 @@ impl MovementEventMapper {
     }
 
     pub fn maintain(&mut self, client: &Client, triggers: &SfxTriggers) {
-        const SFX_DIST_LIMIT_SQR: f32 = 22500.0;
+        const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
         let ecs = client.state().ecs();
 
         let player_position = ecs
@@ -65,18 +65,25 @@ impl MovementEventMapper {
 
                 let mapped_event = match body {
                     Body::Humanoid(_) => Self::map_movement_event(character, state, vel.0, stats),
-                    Body::QuadrupedMedium(_) => {
-                        // TODO: Quadriped running sfx
-                        SfxEvent::Idle
+                    Body::QuadrupedMedium(_)
+                    | Body::QuadrupedSmall(_)
+                    | Body::BirdMedium(_)
+                    | Body::BirdSmall(_)
+                    | Body::BipedLarge(_) => {
+                        Self::map_non_humanoid_movement_event(character, vel.0)
                     },
-                    _ => SfxEvent::Idle,
+                    _ => SfxEvent::Idle, // Ignore fish, critters, etc...
                 };
 
                 // Check for SFX config entry for this movement
                 if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
                     ecs.read_resource::<EventBus<SfxEventItem>>()
                         .emitter()
-                        .emit(SfxEventItem::new(mapped_event, Some(pos.0)));
+                        .emit(SfxEventItem::new(
+                            mapped_event,
+                            Some(pos.0),
+                            Some(Self::get_volume_for_body_type(body)),
+                        ));
 
                     // Update the last play time
                     state.event = mapped_event;
@@ -99,7 +106,7 @@ impl MovementEventMapper {
     /// they have not triggered an event for > n seconds. This prevents
     /// stale records from bloating the Map size.
     fn cleanup(&mut self, player: EcsEntity) {
-        const TRACKING_TIMEOUT: u64 = 15;
+        const TRACKING_TIMEOUT: u64 = 10;
 
         let now = Instant::now();
         self.event_history.retain(|entity, event| {
@@ -197,10 +204,33 @@ impl MovementEventMapper {
         }
     }
 
+    /// Maps a limited set of movements for other non-humanoid entities
+    fn map_non_humanoid_movement_event(current_event: &CharacterState, vel: Vec3<f32>) -> SfxEvent {
+        if current_event.movement == MovementState::Run && vel.magnitude() > 0.1 {
+            SfxEvent::Run
+        } else {
+            SfxEvent::Idle
+        }
+    }
+
     /// Returns true for any state where the player has their weapon drawn. This
     /// helps us manage the wield/unwield sfx events
     fn has_weapon_drawn(state: ActionState) -> bool {
         state.is_wield() | state.is_attack() | state.is_block() | state.is_charge()
+    }
+
+    /// Returns a relative volume value for a body type. This helps us emit sfx
+    /// at a volume appropriate fot the entity we are emitting the event for
+    fn get_volume_for_body_type(body: &Body) -> f32 {
+        match body {
+            Body::Humanoid(_) => 0.9,
+            Body::QuadrupedSmall(_) => 0.3,
+            Body::QuadrupedMedium(_) => 0.7,
+            Body::BirdMedium(_) => 0.3,
+            Body::BirdSmall(_) => 0.2,
+            Body::BipedLarge(_) => 1.0,
+            _ => 0.9,
+        }
     }
 }
 
