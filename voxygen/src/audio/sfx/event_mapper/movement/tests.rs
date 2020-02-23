@@ -1,7 +1,10 @@
 use super::*;
 use common::{
     assets,
-    comp::{humanoid, item::Tool, ActionState, Body, MovementState, Stats},
+    comp::{
+        bird_small, humanoid, item::Tool, quadruped_medium, quadruped_small, ActionState, Body,
+        MovementState, Stats,
+    },
     event::SfxEvent,
 };
 use std::time::{Duration, Instant};
@@ -416,4 +419,38 @@ fn does_not_map_wield_when_no_main_weapon() {
     );
 
     assert_eq!(result, SfxEvent::Run);
+}
+
+#[test]
+fn maps_quadrupeds_running() {
+    let result = MovementEventMapper::map_non_humanoid_movement_event(
+        &CharacterState {
+            movement: MovementState::Run,
+            action: ActionState::Idle,
+        },
+        Vec3::new(0.5, 0.8, 0.0),
+    );
+
+    assert_eq!(result, SfxEvent::Run);
+}
+
+#[test]
+fn determines_relative_volumes() {
+    let human =
+        MovementEventMapper::get_volume_for_body_type(&Body::Humanoid(humanoid::Body::random()));
+
+    let quadruped_medium = MovementEventMapper::get_volume_for_body_type(&Body::QuadrupedMedium(
+        quadruped_medium::Body::random(),
+    ));
+
+    let quadruped_small = MovementEventMapper::get_volume_for_body_type(&Body::QuadrupedSmall(
+        quadruped_small::Body::random(),
+    ));
+
+    let bird_small =
+        MovementEventMapper::get_volume_for_body_type(&Body::BirdSmall(bird_small::Body::random()));
+
+    assert!(quadruped_medium < human);
+    assert!(quadruped_small < quadruped_medium);
+    assert!(bird_small < quadruped_small);
 }
