@@ -1399,20 +1399,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             (e as i32).div_euclid(sz as i32)
         });
 
-        let chunks = &self.chunks;
         let chunk_iter = Spiral2d::new()
-            .scan(0, |n, rpos| {
-                if *n >= chunks.len() {
-                    None
-                } else {
-                    let pos = focus_chunk + rpos;
-                    Some(chunks.get(&pos).map(|c| {
-                        *n += 1;
-                        (pos, c)
-                    }))
-                }
+            .filter_map(|rpos| {
+                let pos = focus_chunk + rpos;
+                self.chunks.get(&pos).map(|c| (pos, c))
             })
-            .filter_map(|x| x);
+            .take(self.chunks.len());
 
         // Opaque
         for (_, chunk) in chunk_iter.clone() {
@@ -1440,20 +1432,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             (e as i32).div_euclid(sz as i32)
         });
 
-        let chunks = &self.chunks;
         let chunk_iter = Spiral2d::new()
-            .scan(0, |n, rpos| {
-                if *n >= chunks.len() {
-                    None
-                } else {
-                    let pos = focus_chunk + rpos;
-                    Some(chunks.get(&pos).map(|c| {
-                        *n += 1;
-                        (pos, c)
-                    }))
-                }
+            .filter_map(|rpos| {
+                let pos = focus_chunk + rpos;
+                self.chunks.get(&pos).map(|c| (pos, c))
             })
-            .filter_map(|x| x);
+            .take(self.chunks.len());
 
         // Terrain sprites
         for (pos, chunk) in chunk_iter.clone() {
