@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Brighter / higher contrast main-map
 - Removed highlighting of non-collectible sprites
 - Fixed /give_exp ignoring player argument
+- Extend run sfx to small animals to prevent sneak attacks by geese.
 
 ### Removed
 
