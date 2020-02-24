@@ -43,7 +43,7 @@ pub enum CharacterState {
     Wielded(Option<wielded::State>),
     Glide(Option<glide::State>),
     BasicAttack(Option<basic_attack::State>),
-    //BasicBlock(Option<basic_block::State>),
+    BasicBlock(Option<basic_block::State>),
     //Charge(Option<charge_attack::State>),
     Roll(Option<roll::State>),
 }
@@ -58,7 +58,7 @@ impl CharacterState {
 
     pub fn is_block(&self) -> bool {
         match self {
-            //CharacterState::BasicBlock(_) => true,
+            CharacterState::BasicBlock(_) => true,
             _ => false,
         }
     }
@@ -102,12 +102,12 @@ impl CharacterState {
             CharacterState::BasicAttack(opt_state) => opt_state
                 .unwrap_or_else(|| basic_attack::State::new(ecs_data))
                 .handle(ecs_data),
-            /*CharacterState::Charge(opt_state) => opt_state
-                .unwrap_or_else(|| charge_attack::State::new(ecs_data))
-                .handle(ecs_data),
             CharacterState::BasicBlock(opt_state) => opt_state
                 .unwrap_or_else(|| basic_block::State::new(ecs_data))
-                .handle(ecs_data),*/
+                .handle(ecs_data),
+            /*CharacterState::Charge(opt_state) => opt_state
+            .unwrap_or_else(|| charge_attack::State::new(ecs_data))
+            .handle(ecs_data),*/
             CharacterState::Roll(opt_state) => opt_state
                 .unwrap_or_else(|| roll::State::new(ecs_data))
                 .handle(ecs_data),

@@ -105,6 +105,16 @@ pub fn handle_primary(ecs_data: &EcsStateData, update: &mut StateUpdate) {
     }
 }
 
+pub fn handle_secondary(ecs_data: &EcsStateData, update: &mut StateUpdate) {
+    if let Some(state) = ecs_data.ability_pool.secondary {
+        if let CharacterState::Wielded(_) = update.character {
+            if ecs_data.inputs.secondary.is_pressed() {
+                update.character = state;
+            }
+        }
+    }
+}
+
 pub fn handle_dodge(ecs_data: &EcsStateData, update: &mut StateUpdate) {
     if let Some(state) = ecs_data.ability_pool.dodge {
         if let CharacterState::Idle(_) | CharacterState::Wielded(_) = update.character {

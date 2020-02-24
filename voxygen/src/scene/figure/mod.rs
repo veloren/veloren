@@ -457,15 +457,16 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        /*CharacterState::Block(_) => {
+                        CharacterState::BasicBlock(_) => {
                             anim::character::BlockIdleAnimation::update_skeleton(
-                                &target_base,
+                                &CharacterSkeleton::new(),
                                 (active_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
-                        }
+                        },
+                        /*
                         CharacterState::Charge(_) => {
                             anim::character::ChargeAnimation::update_skeleton(
                                 &target_base,

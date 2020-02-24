@@ -220,20 +220,8 @@ impl PlayState for SessionState {
                             if let Some(select_pos) = select_pos {
                                 client.remove_block(select_pos);
                             }
-                        } else if client
-                            .state()
-                            .read_storage::<comp::CharacterState>()
-                            .get(client.entity())
-                            .map(|cs| match cs {
-                                /*ActionState::Attack(_) // TODO: uncomment
-                                | ActionState::Block(_)
-                                | ActionState::Wield(_) => true,*/
-                                _ => false,
-                            })
-                            .unwrap_or(false)
-                        {
-                            self.inputs.secondary.set_state(state);
                         } else {
+                            self.inputs.secondary.set_state(state);
                             if let Some(select_pos) = select_pos {
                                 client.collect_block(select_pos);
                             }

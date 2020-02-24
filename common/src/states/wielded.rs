@@ -1,8 +1,9 @@
 use super::utils::*;
-use crate::comp::{EcsStateData, ItemKind::Tool, StateUpdate, ToolData};
-use crate::states::StateHandler;
-use std::collections::VecDeque;
-use std::time::Duration;
+use crate::{
+    comp::{EcsStateData, ItemKind::Tool, StateUpdate, ToolData},
+    states::StateHandler,
+};
+use std::{collections::VecDeque, time::Duration};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct State {
@@ -41,6 +42,7 @@ impl StateHandler for State {
         handle_glide(&ecs_data, &mut update);
         handle_unwield(&ecs_data, &mut update);
         handle_primary(&ecs_data, &mut update);
+        handle_secondary(&ecs_data, &mut update);
         handle_dodge(&ecs_data, &mut update);
 
         update
