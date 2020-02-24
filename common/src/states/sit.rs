@@ -1,15 +1,15 @@
 use super::utils::*;
-use crate::comp::{CharacterState, EcsStateData, StateUpdate};
-use crate::states::StateHandler;
+use crate::{
+    comp::{CharacterState, EcsStateData, StateUpdate},
+    states::StateHandler,
+};
 use std::collections::VecDeque;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct State;
 
 impl StateHandler for State {
-    fn new(_ecs_data: &EcsStateData) -> Self {
-        Self {}
-    }
+    fn new(_ecs_data: &EcsStateData) -> Self { Self {} }
 
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
@@ -17,6 +17,7 @@ impl StateHandler for State {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
+            energy: *ecs_data.energy,
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         };
