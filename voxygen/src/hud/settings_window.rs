@@ -1571,9 +1571,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.lod_detail_text, ui);
 
             if let Some(new_val) = ImageSlider::discrete(
-                self.global_state.settings.graphics.lod_detail,
-                100,
-                2000,
+                ((self.global_state.settings.graphics.lod_detail as f32 / 100.0).log(5.0) * 10.0).round() as i32,
+                0,
+                20,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -1584,7 +1584,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.lod_detail_slider, ui)
             {
-                events.push(Event::AdjustLodDetail(new_val as u32));
+                events.push(Event::AdjustLodDetail((5.0f32.powf(new_val as f32 / 10.0) * 100.0) as u32));
             }
 
             Text::new(&format!(

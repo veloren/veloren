@@ -24,11 +24,11 @@ impl Lod {
             map: renderer
                 .create_texture(&client.world_map.0, Some(FilterMethod::Trilinear), None)
                 .expect("Failed to generate map texture"),
-            tgt_detail: settings.graphics.lod_detail,
+            tgt_detail: settings.graphics.lod_detail.max(100).min(2500),
         }
     }
 
-    pub fn set_detail(&mut self, detail: u32) { self.tgt_detail = detail.max(100).min(2000); }
+    pub fn set_detail(&mut self, detail: u32) { self.tgt_detail = detail.max(100).min(2500); }
 
     pub fn maintain(&mut self, renderer: &mut Renderer) {
         if self
