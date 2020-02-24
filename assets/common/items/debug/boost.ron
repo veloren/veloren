@@ -2,10 +2,14 @@ Item(
     name: "Weightless Rod",
     description: "The sky is the limit.",
     kind: Tool(
-        kind: Debug(Boost),
-        equip_time_millis: 0,
-        attack_buildup_millis: 0,
-        attack_recover_millis: 0,
+        ToolData (
+            kind: Debug(Boost),
+            equip_time_millis: 0,
+            attack_buildup_millis: 0,
+            attack_recover_millis: 0,
+            range: 0,
+            base_damage: 0,
+        )
     ),
 )
 // And the ground is pretty hard at maximum velocity...

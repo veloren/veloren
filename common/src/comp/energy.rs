@@ -15,6 +15,7 @@ pub enum EnergySource {
     LevelUp,
     Regen,
     Revive,
+    Climb,
     Unknown,
 }
 
