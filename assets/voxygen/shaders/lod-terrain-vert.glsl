@@ -16,7 +16,7 @@ out vec3 f_norm;
 out float f_light;
 
 void main() {
-	f_pos = lod_pos(v_pos);
+	f_pos = lod_pos(v_pos, focus_pos.xy);
 
 	f_norm = lod_norm(f_pos.xy);
 
