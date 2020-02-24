@@ -16,11 +16,11 @@ impl Lod {
     pub fn new(renderer: &mut Renderer, client: &Client) -> Self {
         Self {
             model: renderer
-                .create_model(&create_lod_terrain_mesh(300)) //175
+                .create_model(&create_lod_terrain_mesh(500))
                 .unwrap(),
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
             map: renderer
-                .create_texture(&client.world_map.0, Some(FilterMethod::Bilinear), None)
+                .create_texture(&client.world_map.0, Some(FilterMethod::Trilinear), None)
                 .expect("Failed to generate map texture"),
         }
     }
