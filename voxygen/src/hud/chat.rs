@@ -1,8 +1,8 @@
 use super::{
-    img_ids::Imgs, Fonts, BROADCAST_COLOR, FACTION_COLOR, GAME_UPDATE_COLOR, GROUP_COLOR,
-    KILL_COLOR, META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
+    img_ids::Imgs, BROADCAST_COLOR, FACTION_COLOR, GAME_UPDATE_COLOR, GROUP_COLOR, KILL_COLOR,
+    META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
 };
-use crate::GlobalState;
+use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
 use client::Event as ClientEvent;
 use common::{msg::validate_chat_msg, ChatType};
 use conrod_core::{
@@ -34,7 +34,7 @@ pub struct Chat<'a> {
 
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -48,7 +48,7 @@ impl<'a> Chat<'a> {
         new_messages: &'a mut VecDeque<ClientEvent>,
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
     ) -> Self {
         Self {
             new_messages,
@@ -187,8 +187,8 @@ impl<'a> Widget for Chat<'a> {
                 .restrict_to_height(false)
                 .color(TEXT_COLOR)
                 .line_spacing(2.0)
-                .font_size(15)
-                .font_id(self.fonts.opensans);
+                .font_size(self.fonts.opensans.scale(15))
+                .font_id(self.fonts.opensans.conrod_id);
 
             if let Some(pos) = self.force_cursor {
                 text_edit = text_edit.cursor_pos(pos);
@@ -251,8 +251,8 @@ impl<'a> Widget for Chat<'a> {
                             ChatType::Kill => KILL_COLOR,
                         };
                         let text = Text::new(&message)
-                            .font_size(15)
-                            .font_id(self.fonts.opensans)
+                            .font_size(self.fonts.opensans.scale(15))
+                            .font_id(self.fonts.opensans.conrod_id)
                             .w(470.0)
                             .color(color)
                             .line_spacing(2.0);
@@ -270,8 +270,8 @@ impl<'a> Widget for Chat<'a> {
                 // Needs to be larger than the space above.
                 Some(
                     Text::new("")
-                        .font_size(6)
-                        .font_id(self.fonts.opensans)
+                        .font_size(self.fonts.opensans.scale(6))
+                        .font_id(self.fonts.opensans.conrod_id)
                         .w(470.0),
                 )
             };

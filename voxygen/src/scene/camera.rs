@@ -190,7 +190,7 @@ impl Camera {
     }
 
     /// Get the focus position of the camera.
-    pub fn get_focus_pos(&self) -> Vec3<f32> { self.tgt_focus }
+    pub fn get_focus_pos(&self) -> Vec3<f32> { self.focus }
 
     /// Set the focus position of the camera.
     pub fn set_focus_pos(&mut self, focus: Vec3<f32>) { self.tgt_focus = focus; }

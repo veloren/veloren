@@ -10,8 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added music system
+- Added zoomable and rotatable minimap
+- Added rotating orientation marker to main-map
+- Added daily Mac builds
+- Allow spawning individual pet species, not just generic body kinds.
+- Configurable fonts
+- Tanslation status tracking
+- Added gamma setting
+- Added new orc hairstyles
+- Added sfx for wielding/unwielding weapons
 
 ### Changed
+
+- Brighter / higher contrast main-map
+- Removed highlighting of non-collectible sprites
+- Fixed /give_exp ignoring player argument
+- Extend run sfx to small animals to prevent sneak attacks by geese.
 
 ### Removed
 

@@ -1,14 +1,18 @@
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
+use super::{
+    img_ids::{Imgs, ImgsRot},
+    Show, TEXT_COLOR,
+};
+use crate::ui::{fonts::ConrodVoxygenFonts, img_ids};
 use client::{self, Client};
 use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
     color,
-    image::Id,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::WorldExt;
 use vek::*;
+
 widget_ids! {
     struct Ids {
         map_frame,
@@ -30,12 +34,13 @@ widget_ids! {
 pub struct Map<'a> {
     _show: &'a Show,
     client: &'a Client,
-    world_map: (Id, Vec2<u32>),
+    world_map: &'a (img_ids::Rotations, Vec2<u32>),
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
+    rot_imgs: &'a ImgsRot,
+    fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    pulse: f32,
+    _pulse: f32,
     velocity: f32,
 }
 impl<'a> Map<'a> {
@@ -43,19 +48,21 @@ impl<'a> Map<'a> {
         show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
-        world_map: (Id, Vec2<u32>),
-        fonts: &'a Fonts,
+        rot_imgs: &'a ImgsRot,
+        world_map: &'a (img_ids::Rotations, Vec2<u32>),
+        fonts: &'a ConrodVoxygenFonts,
         pulse: f32,
         velocity: f32,
     ) -> Self {
         Self {
             _show: show,
             imgs,
+            rot_imgs,
             world_map,
             client,
             fonts,
             common: widget::CommonBuilder::default(),
-            pulse,
+            _pulse: pulse,
             velocity,
         }
     }
@@ -143,15 +150,15 @@ impl<'a> Widget for Map<'a> {
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
                 .mid_top_with_margin_on(state.ids.map_bg, 55.0)
-                .font_size(60)
+                .font_size(self.fonts.alkhemi.scale(60))
                 .color(TEXT_COLOR)
-                .font_id(self.fonts.alkhemi)
+                .font_id(self.fonts.alkhemi.conrod_id)
                 .parent(state.ids.map_frame_r)
                 .set(state.ids.location_name, ui),
             None => Text::new(" ")
                 .mid_top_with_margin_on(state.ids.map_bg, 3.0)
-                .font_size(40)
-                .font_id(self.fonts.alkhemi)
+                .font_size(self.fonts.alkhemi.scale(40))
+                .font_id(self.fonts.alkhemi.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.location_name, ui),
         }
@@ -160,9 +167,9 @@ impl<'a> Widget for Map<'a> {
         let (world_map, worldsize) = self.world_map;
         let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
 
-        Image::new(world_map)
+        Image::new(world_map.none)
             .middle_of(state.ids.map_bg)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade - 0.1)))
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade + 0.5)))
             .w_h(700.0, 700.0)
             .parent(state.ids.map_bg)
             .set(state.ids.grid, ui);
@@ -177,31 +184,18 @@ impl<'a> Widget for Map<'a> {
 
         let x = player_pos.x as f64 / worldsize.x * 700.0;
         let y = player_pos.y as f64 / worldsize.y * 700.0;
-        let indic_ani = (self.pulse * 6.0/*animation speed*/).cos()/*starts at 1.0*/ * 0.5 + 0.50; // changes the animation frame
-        let indic_scale = 1.2;
-        // Indicator
-        Image::new(if indic_ani <= 0.3 {
-            self.imgs.indicator_mmap
-        } else if indic_ani <= 0.6 {
-            self.imgs.indicator_mmap_2
-        } else {
-            self.imgs.indicator_mmap_3
-        })
-        .bottom_left_with_margins_on(state.ids.grid, y, x - (20.0 * 1.2) / 2.0)
-        .w_h(
-            22.0 * 1.2,
-            if indic_ani <= 0.3 {
-                16.0 * indic_scale
-            } else if indic_ani <= 0.6 {
-                23.0 * indic_scale
-            } else {
-                34.0 * indic_scale
-            },
-        )
-        .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade + 0.2)))
-        .floating(true)
-        .parent(ui.window)
-        .set(state.ids.indicator, ui);
+        let indic_scale = 0.6;
+        Image::new(self.rot_imgs.indicator_mmap_small.target_north)
+            .bottom_left_with_margins_on(
+                state.ids.grid,
+                y - 37.0 * indic_scale / 2.0,
+                x - 32.0 * indic_scale / 2.0,
+            )
+            .w_h(32.0 * indic_scale, 37.0 * indic_scale)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .floating(true)
+            .parent(ui.window)
+            .set(state.ids.indicator, ui);
 
         None
     }

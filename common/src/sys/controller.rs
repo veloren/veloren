@@ -13,6 +13,7 @@ use specs::{
 };
 
 const CHARGE_COST: i32 = 200;
+const ROLL_COST: i32 = 30;
 
 pub struct Sys;
 

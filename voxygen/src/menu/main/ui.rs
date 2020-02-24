@@ -3,6 +3,7 @@ use crate::{
     render::Renderer,
     ui::{
         self,
+        fonts::ConrodVoxygenFonts,
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
         Graphic, ImageFrame, Tooltip, Ui,
     },
@@ -75,18 +76,24 @@ image_ids! {
     struct Imgs {
         <VoxelGraphic>
         v_logo: "voxygen.element.v_logo",
-        input_bg: "voxygen.element.misc_bg.textbox",
-        button: "voxygen.element.buttons.button",
-        button_hover: "voxygen.element.buttons.button_hover",
-        button_press: "voxygen.element.buttons.button_press",
+
         disclaimer: "voxygen.element.frames.disclaimer",
         info_frame: "voxygen.element.frames.info_frame_2",
         banner: "voxygen.element.frames.banner",
-        banner_top: "voxygen.element.frames.banner_top",
+
         banner_bottom: "voxygen.element.frames.banner_bottom",
 
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
+        banner_top: "voxygen.element.frames.banner_top",
+        button: "voxygen.element.buttons.button",
+        button_hover: "voxygen.element.buttons.button_hover",
+        button_press: "voxygen.element.buttons.button_press",
+        input_bg_top: "voxygen.element.misc_bg.textbox_top",
+        //input_bg_mid: "voxygen.element.misc_bg.textbox_mid", <-- For password input
+        input_bg_bot: "voxygen.element.misc_bg.textbox_bot",
+
+
 
         <BlankGraphic>
         nothing: (),
@@ -100,16 +107,6 @@ rotation_image_ids! {
         // Tooltip Test
         tt_side: "voxygen/element/frames/tt_test_edge",
         tt_corner: "voxygen/element/frames/tt_test_corner_tr",
-    }
-}
-
-font_ids! {
-    pub struct Fonts {
-        opensans: "voxygen.font.OpenSans-Regular",
-        metamorph: "voxygen.font.Metamorphous-Regular",
-        alkhemi: "voxygen.font.Alkhemikal",
-        cyri:"voxygen.font.haxrcorp_4089_cyrillic_altgr",
-        wizard: "voxygen.font.wizard",
     }
 }
 
@@ -143,7 +140,6 @@ pub struct MainMenuUi {
     ids: Ids,
     imgs: Imgs,
     rot_imgs: ImgsRot,
-    fonts: Fonts,
     username: String,
     password: String,
     server_address: String,
@@ -154,6 +150,8 @@ pub struct MainMenuUi {
     show_disclaimer: bool,
     time: f32,
     bg_img_id: conrod_core::image::Id,
+    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
+    fonts: ConrodVoxygenFonts,
 }
 
 impl MainMenuUi {
@@ -184,15 +182,19 @@ impl MainMenuUi {
         let bg_img_id = ui.add_graphic(Graphic::Image(load_expect(
             bg_imgs.choose(&mut rng).unwrap(),
         )));
-        // Load fonts
-        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
+        // Load language
+        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
+        // Load fonts.
+        let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
+            .expect("Impossible to load fonts!");
 
         Self {
             ui,
             ids,
             imgs,
             rot_imgs,
-            fonts,
             username: networking.username.clone(),
             password: "".to_owned(),
             server_address: networking.servers[networking.default_server].clone(),
@@ -203,6 +205,8 @@ impl MainMenuUi {
             time: 0.0,
             show_disclaimer: global_state.settings.show_disclaimer,
             bg_img_id,
+            voxygen_i18n,
+            fonts,
         }
     }
 
@@ -220,10 +224,7 @@ impl MainMenuUi {
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
         //const INACTIVE: Color = Color::Rgba(0.47, 0.47, 0.47, 0.47);
 
-        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
-            &global_state.settings.language.selected_language,
-        ));
-        let intro_text = &localized_strings.get("main.login_process");
+        let intro_text = &self.voxygen_i18n.get("main.login_process");
 
         // Tooltip
         let _tooltip = Tooltip::new({
@@ -238,8 +239,9 @@ impl MainMenuUi {
                 5.0,
             )
         })
-        .title_font_size(15)
-        .desc_font_size(10)
+        .title_font_size(self.fonts.cyri.scale(15))
+        .desc_font_size(self.fonts.cyri.scale(10))
+        .font_id(self.fonts.cyri.conrod_id)
         .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
 
@@ -256,14 +258,14 @@ impl MainMenuUi {
         Text::new(&version)
             .color(TEXT_COLOR)
             .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.version, ui_widgets);
         // Popup (Error/Info)
         if let Some(popup_data) = &self.popup {
             let text = Text::new(&popup_data.msg)
                 .rgba(1.0, 1.0, 1.0, if self.connect { fade_msg } else { 1.0 })
-                .font_id(self.fonts.cyri);
+                .font_id(self.fonts.cyri.conrod_id);
             Rectangle::fill_with([65.0 * 6.0, 140.0], color::TRANSPARENT)
                 .rgba(0.1, 0.1, 0.1, if self.connect { 0.0 } else { 1.0 })
                 .parent(ui_widgets.window)
@@ -281,14 +283,14 @@ impl MainMenuUi {
                 .set(self.ids.error_frame, ui_widgets);
             if self.connect {
                 text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
-                    .font_id(self.fonts.alkhemi)
+                    .font_id(self.fonts.alkhemi.conrod_id)
                     .bottom_left_with_margins_on(ui_widgets.window, 60.0, 60.0)
-                    .font_size(70)
+                    .font_size(self.fonts.cyri.scale(70))
                     .set(self.ids.login_error, ui_widgets);
             } else {
                 text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
-                    .font_id(self.fonts.cyri)
-                    .font_size(25)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(25))
                     .set(self.ids.login_error, ui_widgets);
             };
             if Button::image(self.imgs.button)
@@ -305,8 +307,8 @@ impl MainMenuUi {
                 .press_image(self.imgs.button_press)
                 .label_y(Relative::Scalar(2.0))
                 .label(&popup_data.button_text)
-                .label_font_id(self.fonts.cyri)
-                .label_font_size(15)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_font_size(self.fonts.cyri.scale(15))
                 .label_color(TEXT_COLOR)
                 .set(self.ids.button_ok, ui_widgets)
                 .was_clicked()
@@ -328,14 +330,14 @@ impl MainMenuUi {
                 .set(self.ids.banner, ui_widgets);
 
             Image::new(self.imgs.banner_top)
-                .w_h(65.0 * 6.0, 1.0 * 6.0)
-                .mid_top_with_margin_on(self.ids.banner, 0.0)
+                .w_h(70.0 * 6.0, 34.0)
+                .mid_top_with_margin_on(self.ids.banner, -34.0)
                 .set(self.ids.banner_top, ui_widgets);
 
             // Logo
             Image::new(self.imgs.v_logo)
                 .w_h(123.0 * 2.5, 35.0 * 2.5)
-                .mid_top_with_margin_on(self.ids.banner_top, 40.0)
+                .mid_top_with_margin_on(self.ids.banner_top, 45.0)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.95)))
                 .set(self.ids.v_logo, ui_widgets);
 
@@ -347,16 +349,16 @@ impl MainMenuUi {
                     .scroll_kids_vertically()
                     .set(self.ids.disc_window, ui_widgets);
 
-                Text::new(&localized_strings.get("common.disclaimer"))
+                Text::new(&self.voxygen_i18n.get("common.disclaimer"))
                     .top_left_with_margins_on(self.ids.disc_window, 30.0, 40.0)
-                    .font_size(35)
-                    .font_id(self.fonts.alkhemi)
+                    .font_size(self.fonts.cyri.scale(35))
+                    .font_id(self.fonts.alkhemi.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.disc_text_1, ui_widgets);
-                Text::new(&localized_strings.get("main.notice"))
+                Text::new(&self.voxygen_i18n.get("main.notice"))
                     .top_left_with_margins_on(self.ids.disc_window, 110.0, 40.0)
-                    .font_size(26)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(26))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.disc_text_2, ui_widgets);
                 if Button::image(self.imgs.button)
@@ -366,9 +368,9 @@ impl MainMenuUi {
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
                     .label("Accept")
-                    .label_font_size(22)
+                    .label_font_size(self.fonts.cyri.scale(22))
                     .label_color(TEXT_COLOR)
-                    .label_font_id(self.fonts.cyri)
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .set(self.ids.disc_button, ui_widgets)
                     .was_clicked()
                 {
@@ -384,8 +386,8 @@ impl MainMenuUi {
                         self.connect = true;
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
-                            msg: [localized_strings.get("main.connecting"), "..."].concat(),
-                            button_text: localized_strings.get("common.cancel").to_owned(),
+                            msg: [self.voxygen_i18n.get("main.connecting"), "..."].concat(),
+                            button_text: self.voxygen_i18n.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
 
@@ -408,8 +410,8 @@ impl MainMenuUi {
                     .set(self.ids.info_bottom, ui_widgets);
                 Text::new(intro_text)
                     .top_left_with_margins_on(self.ids.info_frame, 15.0, 15.0)
-                    .font_size(20)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.info_text, ui_widgets);
 
@@ -422,8 +424,8 @@ impl MainMenuUi {
                         self.connect = true;
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
-                            msg: [localized_strings.get("main.creating_world"), "..."].concat(),
-                            button_text: localized_strings.get("common.cancel").to_owned(),
+                            msg: [self.voxygen_i18n.get("main.creating_world"), "..."].concat(),
+                            button_text: self.voxygen_i18n.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
                     };
@@ -433,15 +435,15 @@ impl MainMenuUi {
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .mid_top_with_margin_on(self.ids.banner_top, 160.0)
                     .set(self.ids.usrnm_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
+                Image::new(self.imgs.input_bg_top)
                     .w_h(337.0, 67.0)
                     .middle_of(self.ids.usrnm_bg)
                     .set(self.ids.username_bg, ui_widgets);
                 for event in TextBox::new(&self.username)
                     .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
-                    .font_size(22)
-                    .font_id(self.fonts.cyri)
+                    .mid_bottom_with_margin_on(self.ids.username_bg, 38.0 / 2.0)
+                    .font_size(self.fonts.cyri.scale(22))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
                     // transparent background
                     .color(TRANSPARENT)
@@ -463,7 +465,7 @@ impl MainMenuUi {
                 /*Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .down_from(self.ids.usrnm_bg, 30.0)
                     .set(self.ids.passwd_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
+                Image::new(self.imgs.input_bg_mid)
                     .w_h(337.0, 67.0)
                     .middle_of(self.ids.passwd_bg)
                     .color(Some(INACTIVE))
@@ -471,8 +473,8 @@ impl MainMenuUi {
                 for event in TextBox::new(&self.password)
                     .w_h(290.0, 30.0)
                     .mid_bottom_with_margin_on(self.ids.password_bg, 44.0 / 2.0)
-                    .font_size(22)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(22))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
                     // transparent background
                     .color(TRANSPARENT)
@@ -524,8 +526,8 @@ impl MainMenuUi {
                                     //.press_image(self.imgs.button_press)
                                     .label_y(Relative::Scalar(2.0))
                                     .label(&text)
-                                    .label_font_size(20)
-                                    .label_font_id(self.fonts.cyri)
+                                    .label_font_size(self.fonts.cyri.scale(20))
+                                    .label_font_id(self.fonts.cyri.conrod_id)
                                     .label_color(TEXT_COLOR),
                                 ui_widgets,
                             )
@@ -542,9 +544,9 @@ impl MainMenuUi {
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .label_y(Relative::Scalar(2.0))
-                        .label(&localized_strings.get("common.close"))
-                        .label_font_size(20)
-                        .label_font_id(self.fonts.cyri)
+                        .label(&self.voxygen_i18n.get("common.close"))
+                        .label_font_size(self.fonts.cyri.scale(20))
+                        .label_font_id(self.fonts.cyri.conrod_id)
                         .label_color(TEXT_COLOR)
                         .set(self.ids.servers_close, ui_widgets)
                         .was_clicked()
@@ -556,15 +558,15 @@ impl MainMenuUi {
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .down_from(self.ids.usrnm_bg, 30.0)
                     .set(self.ids.srvr_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
+                Image::new(self.imgs.input_bg_bot)
                     .w_h(337.0, 67.0)
                     .middle_of(self.ids.srvr_bg)
                     .set(self.ids.address_bg, ui_widgets);
                 for event in TextBox::new(&self.server_address)
                     .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
-                    .font_size(22)
-                    .font_id(self.fonts.cyri)
+                    .mid_top_with_margin_on(self.ids.address_bg, 28.0 / 2.0)
+                    .font_size(self.fonts.cyri.scale(22))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
                     // transparent background
                     .color(TRANSPARENT)
@@ -587,10 +589,10 @@ impl MainMenuUi {
                     .w_h(258.0, 55.0)
                     .down_from(self.ids.address_bg, 20.0)
                     .align_middle_x_of(self.ids.address_bg)
-                    .label(&localized_strings.get("common.multiplayer"))
-                    .label_font_id(self.fonts.cyri)
+                    .label(&self.voxygen_i18n.get("common.multiplayer"))
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(22)
+                    .label_font_size(self.fonts.cyri.scale(22))
                     .label_y(Relative::Scalar(5.0))
                     /*.with_tooltip(
                         tooltip_manager,
@@ -614,10 +616,10 @@ impl MainMenuUi {
                         .w_h(258.0, 55.0)
                         .down_from(self.ids.login_button, 20.0)
                         .align_middle_x_of(self.ids.address_bg)
-                        .label(&localized_strings.get("common.singleplayer"))
-                        .label_font_id(self.fonts.cyri)
+                        .label(&self.voxygen_i18n.get("common.singleplayer"))
+                        .label_font_id(self.fonts.cyri.conrod_id)
                         .label_color(TEXT_COLOR)
-                        .label_font_size(22)
+                        .label_font_size(self.fonts.cyri.scale(22))
                         .label_y(Relative::Scalar(5.0))
                         .label_x(Relative::Scalar(2.0))
                         .set(self.ids.singleplayer_button, ui_widgets)
@@ -632,10 +634,10 @@ impl MainMenuUi {
                     .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(&localized_strings.get("common.quit"))
-                    .label_font_id(self.fonts.cyri)
+                    .label(&self.voxygen_i18n.get("common.quit"))
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(20)
+                    .label_font_size(self.fonts.cyri.scale(20))
                     .label_y(Relative::Scalar(3.0))
                     .set(self.ids.quit_button, ui_widgets)
                     .was_clicked()
@@ -649,10 +651,10 @@ impl MainMenuUi {
                     .up_from(self.ids.quit_button, 8.0)
                     //.hover_image(self.imgs.button_hover)
                     //.press_image(self.imgs.button_press)
-                    .label(&localized_strings.get("common.settings"))
-                    .label_font_id(self.fonts.cyri)
+                    .label(&self.voxygen_i18n.get("common.settings"))
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR_2)
-                    .label_font_size(20)
+                    .label_font_size(self.fonts.cyri.scale(20))
                     .label_y(Relative::Scalar(3.0))
                     .set(self.ids.settings_button, ui_widgets)
                     .was_clicked()
@@ -666,10 +668,10 @@ impl MainMenuUi {
                     .up_from(self.ids.settings_button, 8.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(&localized_strings.get("common.servers"))
-                    .label_font_id(self.fonts.cyri)
+                    .label(&self.voxygen_i18n.get("common.servers"))
+                    .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(20)
+                    .label_font_size(self.fonts.cyri.scale(20))
                     .label_y(Relative::Scalar(3.0))
                     .set(self.ids.servers_button, ui_widgets)
                     .was_clicked()
