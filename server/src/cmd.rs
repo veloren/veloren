@@ -8,7 +8,7 @@ use common::{
     assets, comp,
     event::{EventBus, ServerEvent},
     msg::{PlayerListUpdate, ServerMsg},
-    npc::{get_npc_name, NpcKind},
+    npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
     terrain::TerrainChunkSize,
@@ -234,10 +234,17 @@ lazy_static! {
          ),
          ChatCommand::new(
              "give_exp",
-             "{} {}",
-             "/give_exp <playername> <amount> : Give experience to specified player",
+             "{d} {}",
+             "/give_exp <amount> <playername?> : Give experience to yourself or specify a target player",
              true,
              handle_exp,
+         ),
+         ChatCommand::new(
+             "set_level",
+             "{d} {}",
+             "/set_level <level> <playername?> : Set own Level or specify a target player",
+             true,
+             handle_level
          ),
         ChatCommand::new(
              "removelights",
@@ -462,8 +469,8 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
 }
 
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    match scan_fmt_some!(&args, action.arg_fmt, String, NpcKind, String) {
-        (Some(opt_align), Some(id), opt_amount) => {
+    match scan_fmt_some!(&args, action.arg_fmt, String, npc::NpcBody, String) {
+        (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount) => {
             if let Some(alignment) = parse_alignment(entity, &opt_align) {
                 let amount = opt_amount
                     .and_then(|a| a.parse().ok())
@@ -487,7 +494,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                                 10.0,
                             );
 
-                            let body = kind_to_body(id);
+                            let body = body();
 
                             let new_entity = server
                                 .state
@@ -597,17 +604,6 @@ fn parse_alignment(owner: EcsEntity, alignment: &str) -> Option<comp::Alignment>
         "npc" => Some(comp::Alignment::Npc),
         "pet" => Some(comp::Alignment::Owned(owner)),
         _ => None,
-    }
-}
-
-fn kind_to_body(kind: NpcKind) -> comp::Body {
-    match kind {
-        NpcKind::Humanoid => comp::Body::Humanoid(comp::humanoid::Body::random()),
-        NpcKind::Pig => comp::Body::QuadrupedSmall(comp::quadruped_small::Body::random()),
-        NpcKind::Wolf => comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
-        NpcKind::Duck => comp::Body::BirdMedium(comp::bird_medium::Body::random()),
-        NpcKind::Giant => comp::Body::BipedLarge(comp::biped_large::Body::random()),
-        NpcKind::Rat => comp::Body::Critter(comp::critter::Body::random()),
     }
 }
 
@@ -1026,27 +1022,74 @@ spawn_rate {:?} "#,
     }
 }
 
-fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let (a_alias, a_exp) = scan_fmt_some!(&args, action.arg_fmt, String, i64);
-    if let (Some(alias), Some(exp)) = (a_alias, a_exp) {
-        let ecs = server.state.ecs_mut();
-        let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+fn find_target(
+    ecs: &specs::World,
+    opt_alias: Option<String>,
+    fallback: EcsEntity,
+) -> Result<EcsEntity, ServerMsg> {
+    if let Some(alias) = opt_alias {
+        (&ecs.entities(), &ecs.read_storage::<comp::Player>())
             .join()
             .find(|(_, player)| player.alias == alias)
-            .map(|(entity, _)| entity);
+            .map(|(entity, _)| entity)
+            .ok_or(ServerMsg::private(format!("Player '{}' not found!", alias)))
+    } else {
+        Ok(fallback)
+    }
+}
+
+fn handle_exp(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (a_exp, a_alias) = scan_fmt_some!(&args, action.arg_fmt, i64, String);
+
+    if let Some(exp) = a_exp {
+        let ecs = server.state.ecs_mut();
+        let target = find_target(&ecs, a_alias, entity);
 
         let mut error_msg = None;
 
-        match opt_player {
-            Some(_alias) => {
-                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(entity) {
+        match target {
+            Ok(player) => {
+                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
                     stats.exp.change_by(exp);
                 } else {
                     error_msg = Some(ServerMsg::private(String::from("Player has no stats!")));
                 }
             },
-            _ => {
-                error_msg = Some(ServerMsg::private(format!("Player '{}' not found!", alias)));
+            Err(e) => {
+                error_msg = Some(e);
+            },
+        }
+
+        if let Some(msg) = error_msg {
+            server.notify_client(entity, msg);
+        }
+    }
+}
+
+fn handle_level(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (a_lvl, a_alias) = scan_fmt_some!(&args, action.arg_fmt, u32, String);
+
+    if let Some(lvl) = a_lvl {
+        let ecs = server.state.ecs_mut();
+        let target = find_target(&ecs, a_alias, entity);
+
+        let mut error_msg = None;
+
+        match target {
+            Ok(player) => {
+                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
+                    stats.level.set_level(lvl);
+
+                    stats.update_max_hp();
+                    stats
+                        .health
+                        .set_to(stats.health.maximum(), comp::HealthSource::LevelUp);
+                } else {
+                    error_msg = Some(ServerMsg::private(String::from("Player has no stats!")));
+                }
+            },
+            Err(e) => {
+                error_msg = Some(e);
             },
         }
 

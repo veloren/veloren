@@ -149,6 +149,7 @@ impl Scene {
         renderer: &mut Renderer,
         audio: &mut AudioFrontend,
         client: &Client,
+        gamma: f32,
     ) {
         // Get player position.
         let player_pos = client
@@ -296,6 +297,7 @@ impl Scene {
                     .map(|b| b.kind())
                     .unwrap_or(BlockKind::Air),
                 self.select_pos,
+                gamma,
             )])
             .expect("Failed to update global constants");
 

@@ -1,5 +1,5 @@
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR, XP_COLOR};
-use crate::i18n::VoxygenLocalization;
+use super::{img_ids::Imgs, Show, TEXT_COLOR, XP_COLOR};
+use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use common::comp::Stats;
 use conrod_core::{
     color,
@@ -71,7 +71,7 @@ widget_ids! {
 pub struct CharacterWindow<'a> {
     _show: &'a Show,
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     stats: &'a Stats,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 
@@ -84,7 +84,7 @@ impl<'a> CharacterWindow<'a> {
         _show: &'a Show,
         stats: &'a Stats,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
@@ -155,8 +155,8 @@ impl<'a> Widget for CharacterWindow<'a> {
                 .get("character_window.character_name"),
         )
         .mid_top_with_margin_on(state.charwindow_frame, 6.0)
-        .font_id(self.fonts.cyri)
-        .font_size(14)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(14))
         .color(TEXT_COLOR)
         .set(state.charwindow_title, ui);
 
@@ -352,8 +352,8 @@ impl<'a> Widget for CharacterWindow<'a> {
         // Level
         Text::new(&level)
             .mid_top_with_margin_on(state.charwindow_rectangle, 10.0)
-            .font_id(self.fonts.cyri)
-            .font_size(30)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(30))
             .color(TEXT_COLOR)
             .set(state.charwindow_tab1_level, ui);
 
@@ -376,8 +376,8 @@ impl<'a> Widget for CharacterWindow<'a> {
         // Exp-Text
         Text::new(&exp_treshold)
             .mid_top_with_margin_on(state.charwindow_tab1_expbar, 10.0)
-            .font_id(self.fonts.cyri)
-            .font_size(15)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(15))
             .color(TEXT_COLOR)
             .set(state.charwindow_tab1_exp, ui);
 
@@ -395,8 +395,8 @@ impl<'a> Widget for CharacterWindow<'a> {
                 .get("character_window.character_stats"),
         )
         .top_left_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
-        .font_id(self.fonts.cyri)
-        .font_size(16)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(16))
         .color(TEXT_COLOR)
         .set(state.charwindow_tab1_statnames, ui);
 
@@ -406,8 +406,8 @@ impl<'a> Widget for CharacterWindow<'a> {
             self.stats.endurance, self.stats.fitness, self.stats.willpower
         ))
         .top_right_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
-        .font_id(self.fonts.cyri)
-        .font_size(16)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(16))
         .color(TEXT_COLOR)
         .set(state.charwindow_tab1_stats, ui);
 

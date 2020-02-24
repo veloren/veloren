@@ -12,11 +12,11 @@ pub struct Energy {
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum EnergySource {
     CastSpell,
+    Roll,
+    Climb,
     LevelUp,
     Regen,
     Revive,
-    Climb,
-    Roll,
     Unknown,
 }
 
