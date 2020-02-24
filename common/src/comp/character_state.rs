@@ -131,24 +131,6 @@ impl Component for CharacterState {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Attacking {
     pub weapon: ToolData,
-    pub time_active: Duration,
-}
-
-impl Attacking {
-    pub fn remaining_duration(&self) -> Duration {
-        self.weapon
-            .attack_duration()
-            .checked_sub(self.time_active)
-            .unwrap_or_default()
-    }
-
-    pub fn tick_time_active(&mut self, dt: Duration) {
-        self.time_active = self.time_active.checked_add(dt).unwrap_or_default();
-    }
-
-    pub fn can_apply_damage(&self) -> bool {
-        (self.time_active > self.weapon.attack_buildup_duration())
-    }
 }
 
 impl Component for Attacking {
