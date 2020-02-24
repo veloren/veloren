@@ -10,9 +10,7 @@ pub enum AbilityActionKind {
     // UpdatePool?
 }
 impl Default for AbilityActionKind {
-    fn default() -> Self {
-        Self::Primary
-    }
+    fn default() -> Self { Self::Primary }
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct AbilityAction(pub AbilityActionKind);
@@ -33,7 +31,7 @@ impl Default for AbilityPool {
     fn default() -> Self {
         Self {
             primary: Some(comp::CharacterState::BasicAttack(None)),
-            secondary: None,
+            secondary: Some(comp::CharacterState::BasicBlock(None)),
             block: None,
             dodge: Some(comp::CharacterState::Roll(None)),
         }
