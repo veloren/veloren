@@ -143,7 +143,7 @@ impl Component for CharacterState {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Attacking {
-    pub weapon: ToolData,
+    pub weapon: Option<ToolData>,
 }
 
 impl Component for Attacking {

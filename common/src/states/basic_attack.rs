@@ -14,14 +14,14 @@ pub struct State {
 
 impl StateHandler for State {
     fn new(ecs_data: &EcsStateData) -> Self {
-        let tool_data =
+        let remaining_duration =
             if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| i.kind) {
-                data
+                data.attack_duration()
             } else {
-                ToolData::default()
+                Duration::from_millis(300)
             };
         Self {
-            remaining_duration: tool_data.attack_duration(),
+            remaining_duration,
             exhausted: false,
         }
     }
@@ -43,7 +43,7 @@ impl StateHandler for State {
             && if let Some(Tool(data)) = tool_kind {
                 (self.remaining_duration < data.attack_recover_duration())
             } else {
-                false
+                true
             };
 
         let mut exhausted = self.exhausted;
@@ -52,9 +52,13 @@ impl StateHandler for State {
             if let Some(Tool(data)) = tool_kind {
                 ecs_data
                     .updater
-                    .insert(*ecs_data.entity, Attacking { weapon: data });
-                exhausted = true;
+                    .insert(*ecs_data.entity, Attacking { weapon: Some(data) });
+            } else {
+                ecs_data
+                    .updater
+                    .insert(*ecs_data.entity, Attacking { weapon: None });
             }
+            exhausted = true;
         } else {
             ecs_data.updater.remove::<Attacking>(*ecs_data.entity);
         }
