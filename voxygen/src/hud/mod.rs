@@ -196,6 +196,7 @@ pub enum Event {
     ToggleZoomInvert(bool),
     ToggleMouseYInvert(bool),
     AdjustViewDistance(u32),
+    AdjustLodDetail(u32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -1743,6 +1744,9 @@ impl Hud {
                     },
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
+                    },
+                    settings_window::Event::AdjustLodDetail(lod_detail) => {
+                        events.push(Event::AdjustLodDetail(lod_detail));
                     },
                     settings_window::Event::CrosshairTransp(crosshair_transp) => {
                         events.push(Event::CrosshairTransp(crosshair_transp));

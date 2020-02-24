@@ -39,7 +39,11 @@ impl SessionState {
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         // Create a scene for this session. The scene handles visible elements of the
         // game world.
-        let mut scene = Scene::new(global_state.window.renderer_mut(), &*client.borrow());
+        let mut scene = Scene::new(
+            global_state.window.renderer_mut(),
+            &*client.borrow(),
+            &global_state.settings,
+        );
         scene
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
@@ -484,6 +488,12 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.view_distance = view_distance;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::AdjustLodDetail(lod_detail) => {
+                        self.scene.lod.set_detail(lod_detail);
+
+                        global_state.settings.graphics.lod_detail = lod_detail;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::CrosshairTransp(crosshair_transp) => {
                         global_state.settings.gameplay.crosshair_transp = crosshair_transp;
                         global_state.settings.save_to_file_warn();
@@ -614,7 +624,7 @@ impl PlayState for SessionState {
                 global_state.window.renderer_mut(),
                 &mut global_state.audio,
                 &self.client.borrow(),
-                global_state.settings.graphics.gamma,
+                &global_state.settings,
             );
 
             // Render the session.

@@ -17,6 +17,7 @@ use crate::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
     },
+    settings::Settings,
     window::Event,
 };
 use client::Client;
@@ -56,7 +57,7 @@ pub struct Scene {
     skybox: Skybox,
     postprocess: PostProcess,
     terrain: Terrain<TerrainChunk>,
-    lod: Lod,
+    pub lod: Lod,
     loaded_distance: f32,
     select_pos: Option<Vec3<i32>>,
 
@@ -67,7 +68,7 @@ pub struct Scene {
 
 impl Scene {
     /// Create a new `Scene` with default parameters.
-    pub fn new(renderer: &mut Renderer, client: &Client) -> Self {
+    pub fn new(renderer: &mut Renderer, client: &Client, settings: &Settings) -> Self {
         let resolution = renderer.get_resolution().map(|e| e as f32);
 
         Self {
@@ -91,7 +92,7 @@ impl Scene {
                     .unwrap(),
             },
             terrain: Terrain::new(renderer),
-            lod: Lod::new(renderer, client),
+            lod: Lod::new(renderer, client, settings),
             loaded_distance: 0.0,
             select_pos: None,
 
@@ -153,7 +154,7 @@ impl Scene {
         renderer: &mut Renderer,
         audio: &mut AudioFrontend,
         client: &Client,
-        gamma: f32,
+        settings: &Settings,
     ) {
         // Get player position.
         let player_pos = client
@@ -301,9 +302,12 @@ impl Scene {
                     .map(|b| b.kind())
                     .unwrap_or(BlockKind::Air),
                 self.select_pos,
-                gamma,
+                settings.graphics.gamma,
             )])
             .expect("Failed to update global constants");
+
+        // Maintain LoD.
+        self.lod.maintain(renderer);
 
         // Maintain the terrain.
         self.terrain.maintain(

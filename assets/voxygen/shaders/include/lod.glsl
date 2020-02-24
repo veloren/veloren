@@ -3,7 +3,7 @@
 uniform sampler2D t_map;
 
 vec2 pos_to_uv(vec2 pos) {
-	vec2 uv_pos = pos / 32768.0;
+	vec2 uv_pos = (pos + 16) / 32768.0;
 	return vec2(uv_pos.x, 1.0 - uv_pos.y);
 }
 
