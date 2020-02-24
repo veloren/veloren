@@ -47,9 +47,7 @@ pub fn handle_move_dir(ecs_data: &EcsStateData, update: &mut StateUpdate) {
 
 pub fn handle_wield(ecs_data: &EcsStateData, update: &mut StateUpdate) {
     if ecs_data.inputs.primary.is_pressed() {
-        if let Some(Tool(_)) = ecs_data.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            update.character = CharacterState::Wielding(None);
-        }
+        update.character = CharacterState::Wielding(None);
     }
 }
 
