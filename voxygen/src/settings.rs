@@ -191,6 +191,7 @@ pub struct GraphicsSettings {
     pub view_distance: u32,
     pub max_fps: u32,
     pub fov: u16,
+    pub gamma: f32,
     pub aa_mode: AaMode,
     pub cloud_mode: CloudMode,
     pub fluid_mode: FluidMode,
@@ -204,6 +205,7 @@ impl Default for GraphicsSettings {
             view_distance: 10,
             max_fps: 60,
             fov: 50,
+            gamma: 1.0,
             aa_mode: AaMode::Fxaa,
             cloud_mode: CloudMode::Regular,
             fluid_mode: FluidMode::Shiny,
@@ -221,6 +223,7 @@ pub struct AudioSettings {
     pub master_volume: f32,
     pub music_volume: f32,
     pub sfx_volume: f32,
+    pub max_sfx_channels: usize,
 
     /// Audio Device that Voxygen will use to play audio.
     pub audio_device: Option<String>,
@@ -233,6 +236,7 @@ impl Default for AudioSettings {
             master_volume: 1.0,
             music_volume: 0.4,
             sfx_volume: 0.6,
+            max_sfx_channels: 10,
             audio_device: None,
             audio_on: true,
         }

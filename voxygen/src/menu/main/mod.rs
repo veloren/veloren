@@ -18,7 +18,6 @@ use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
-    title_music_channel: Option<usize>,
     singleplayer: Option<Singleplayer>,
 }
 
@@ -27,7 +26,6 @@ impl MainMenuState {
     pub fn new(global_state: &mut GlobalState) -> Self {
         Self {
             main_menu_ui: MainMenuUi::new(global_state),
-            title_music_channel: None,
             singleplayer: None,
         }
     }
@@ -44,11 +42,8 @@ impl PlayState for MainMenuState {
         let mut client_init: Option<ClientInit> = None;
 
         // Kick off title music
-        if self.title_music_channel.is_none()
-            && global_state.settings.audio.audio_on
-            && global_state.audio.music_enabled()
-        {
-            self.title_music_channel = global_state.audio.play_title_music();
+        if global_state.settings.audio.audio_on && global_state.audio.music_enabled() {
+            global_state.audio.play_title_music();
         }
 
         // Reset singleplayer server if it was running already

@@ -292,6 +292,9 @@ impl WorldFile {
 
 pub struct WorldSim {
     pub seed: u32,
+    /// Maximum height above sea level of any chunk in the map (not including
+    /// post-erosion warping, cliffs, and other things like that).
+    pub max_height: f32,
     pub(crate) chunks: Vec<SimChunk>,
     pub(crate) locations: Vec<Location>,
 
@@ -571,7 +574,7 @@ impl WorldSim {
 
                 fn spring(x: f64, pow: f64) -> f64 { x.abs().powf(pow) * x.signum() }
 
-                (0.0 + alt_main
+                0.0 + alt_main
                     + (gen_ctx
                         .small_nz
                         .get(
@@ -587,7 +590,7 @@ impl WorldSim {
                     .mul(0.3)
                     .add(1.0)
                     .mul(0.4)
-                    + spring(alt_main.abs().powf(0.5).min(0.75).mul(60.0).sin(), 4.0).mul(0.045))
+                    + spring(alt_main.abs().powf(0.5).min(0.75).mul(60.0).sin(), 4.0).mul(0.045)
             };
 
             // Now we can compute the final altitude using chaos.
@@ -666,7 +669,7 @@ impl WorldSim {
         let alt_exp_max_uniform = inv_func(max_epsilon);
 
         let erosion_factor = |x: f64| {
-            ((inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform))
+            (inv_func(x) - alt_exp_min_uniform) / (alt_exp_max_uniform - alt_exp_min_uniform)
         };
         let rock_strength_div_factor = (2.0 * TerrainChunkSize::RECT_SIZE.x as f64) / 8.0;
         let theta_func = |_posi| 0.4;
@@ -1288,6 +1291,7 @@ impl WorldSim {
 
         let mut this = Self {
             seed,
+            max_height: maxh as f32,
             chunks,
             locations: Vec::new(),
             gen_ctx,
@@ -1306,7 +1310,11 @@ impl WorldSim {
     pub fn get_map(&self) -> Vec<u32> {
         let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
         // TODO: Parallelize again.
-        MapConfig::default().generate(&self, |pos, (r, g, b, a)| {
+        MapConfig {
+            gain: self.max_height,
+            ..MapConfig::default()
+        }
+        .generate(&self, |pos, (r, g, b, a)| {
             v[pos.y * WORLD_SIZE.x + pos.x] = u32::from_le_bytes([r, g, b, a]);
         });
         v

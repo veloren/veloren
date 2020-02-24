@@ -13,7 +13,7 @@ mod skillbar;
 mod social;
 mod spell;
 
-use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot};
+use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot, ui::img_ids::Rotations};
 pub use settings_window::ScaleChange;
 use std::time::Duration;
 
@@ -39,14 +39,13 @@ use crate::{
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
     scene::camera::Camera,
-    ui::{Graphic, Ingameable, ScaleMode, Ui},
+    ui::{fonts::ConrodVoxygenFonts, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
 use client::{Client, Event as ClientEvent};
 use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
-    image::Id,
     text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
@@ -179,16 +178,6 @@ widget_ids! {
     }
 }
 
-font_ids! {
-    pub struct Fonts {
-        opensans: "voxygen.font.OpenSans-Regular",
-        metamorph: "voxygen.font.Metamorphous-Regular",
-        alkhemi: "voxygen.font.Alkhemikal",
-        wizard: "voxygen.font.wizard",
-        cyri:"voxygen.font.haxrcorp_4089_cyrillic_altgr",
-    }
-}
-
 pub struct DebugInfo {
     pub tps: f64,
     pub ping_ms: f64,
@@ -212,6 +201,7 @@ pub enum Event {
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
+    ChangeGamma(f32),
     AdjustWindowSize([u16; 2]),
     ToggleFullscreen,
     ChangeAaMode(AaMode),
@@ -307,7 +297,7 @@ impl Show {
     fn map(&mut self, open: bool) {
         self.map = open;
         self.bag = false;
-        self.want_grab = !open;
+        self.want_grab = true;
     }
 
     fn character_window(&mut self, open: bool) {
@@ -431,10 +421,10 @@ impl Show {
 pub struct Hud {
     ui: Ui,
     ids: Ids,
-    world_map: (Id, Vec2<u32>),
+    world_map: (/* Id */ Rotations, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
-    fonts: Fonts,
+    fonts: ConrodVoxygenFonts,
     rot_imgs: ImgsRot,
     new_messages: VecDeque<ClientEvent>,
     show: Show,
@@ -446,8 +436,8 @@ pub struct Hud {
     force_chat_input: Option<String>,
     force_chat_cursor: Option<Index>,
     pulse: f32,
-    zoom: f32,
     velocity: f32,
+    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
 }
 
 impl Hud {
@@ -461,7 +451,7 @@ impl Hud {
         let ids = Ids::new(ui.id_generator());
         // Load world map
         let world_map = (
-            ui.add_graphic(Graphic::Image(client.world_map.0.clone())),
+            ui.add_graphic_with_rotations(Graphic::Image(client.world_map.0.clone())),
             client.world_map.1,
         );
         // Load images.
@@ -470,8 +460,13 @@ impl Hud {
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load rot images!");
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui);
+        // Load language
+        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
         // Load fonts.
-        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
+        let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
+            .expect("Impossible to load fonts!");
 
         Self {
             ui,
@@ -497,7 +492,7 @@ impl Hud {
                 quest: false,
                 spell: false,
                 character_window: false,
-                mini_map: false,
+                mini_map: true,
                 settings_tab: SettingsTab::Interface,
                 social_tab: SocialTab::Online,
                 want_grab: true,
@@ -509,9 +504,15 @@ impl Hud {
             force_chat_input: None,
             force_chat_cursor: None,
             pulse: 0.0,
-            zoom: 1.0,
             velocity: 0.0,
+            voxygen_i18n,
         }
+    }
+
+    pub fn update_language(&mut self, voxygen_i18n: std::sync::Arc<VoxygenLocalization>) {
+        self.voxygen_i18n = voxygen_i18n;
+        self.fonts = ConrodVoxygenFonts::load(&self.voxygen_i18n.fonts, &mut self.ui)
+            .expect("Impossible to load fonts!");
     }
 
     fn update_layout(
@@ -536,10 +537,6 @@ impl Hud {
             common::util::GIT_VERSION.to_string()
         );
 
-        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
-            &global_state.settings.language.selected_language,
-        ));
-
         if self.show.ingame {
             let ecs = client.state().ecs();
             let pos = ecs.read_storage::<comp::Pos>();
@@ -549,6 +546,7 @@ impl Hud {
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
+            let bodies = ecs.read_storage::<comp::Body>();
             let entities = ecs.entities();
             let me = client.entity();
             let own_level = stats
@@ -612,6 +610,8 @@ impl Hud {
             // Max amount the sct font size increases when "flashing"
             const FLASH_MAX: f32 = 25.0;
             const BARSIZE: f64 = 2.0;
+            const MANA_BAR_HEIGHT: f64 = BARSIZE * 1.5;
+            const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
             // Get player position.
             let player_pos = client
                 .state()
@@ -631,22 +631,23 @@ impl Hud {
             let mut sct_id_walker = self.ids.scts.walk();
 
             // Render Health Bars
-            for (pos, stats, energy, scale, hp_floater_list) in (
+            for (pos, stats, energy, height_offset, hp_floater_list) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
                 &energy,
                 scales.maybe(),
+                &bodies,
                 &hp_floater_lists,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _, _)| {
+                .filter(|(entity, _, _, stats, _, _, _, _)| {
                     *entity != me && !stats.is_dead
                     //&& stats.health.current() != stats.health.maximum()
                 })
                 // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, hpfl)| {
+                .filter(|(_, pos, _, _, _, _, _, hpfl)| {
                     pos.0.distance_squared(player_pos)
                         < (if hpfl
                             .time_since_last_dmg_by_me
@@ -658,12 +659,13 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, energy, scale, f)| {
+                .map(|(_, pos, interpolated, stats, energy, scale, body, f)| {
                     (
                         interpolated.map_or(pos.0, |i| i.pos),
                         stats,
                         energy,
-                        scale.map_or(1.0, |s| s.0),
+                        // TODO: when body.height() is more accurate remove the 2.0
+                        body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
                         f,
                     )
                 })
@@ -690,21 +692,22 @@ impl Hud {
                 let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
                 let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
+                let ingame_pos = pos + Vec3::unit_z() * height_offset;
+
                 // Background
-                Rectangle::fill_with(
-                    [82.0 * BARSIZE + 1.0, 8.0 * BARSIZE + 1.0],
-                    Color::Rgba(0.1, 0.1, 0.1, 0.9),
-                )
-                .x_y(0.0, -25.0)
-                .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
-                .set(back_id, ui_widgets);
+                Image::new(self.imgs.enemy_health_bg)
+                    .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                    .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
+                    .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
+                    .position_ingame(ingame_pos)
+                    .set(back_id, ui_widgets);
 
                 // % HP Filling
                 Image::new(self.imgs.enemy_bar)
-                    .w_h(72.9 * (hp_percentage / 100.0) * BARSIZE, 5.9 * BARSIZE)
+                    .w_h(73.0 * (hp_percentage / 100.0) * BARSIZE, 6.0 * BARSIZE)
                     .x_y(
                         (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
-                        -23.0,
+                        MANA_BAR_Y + 7.5,
                     )
                     .color(Some(if hp_percentage <= 25.0 {
                         crit_hp_color
@@ -713,29 +716,29 @@ impl Hud {
                     } else {
                         HP_COLOR
                     }))
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(ingame_pos)
                     .set(health_bar_id, ui_widgets);
                 // % Mana Filling
                 Rectangle::fill_with(
                     [
-                        73.0 * (energy.current() as f64 / energy.maximum() as f64) * BARSIZE,
-                        1.5 * BARSIZE,
+                        72.0 * (energy.current() as f64 / energy.maximum() as f64) * BARSIZE,
+                        MANA_BAR_HEIGHT,
                     ],
                     MANA_COLOR,
                 )
                 .x_y(
-                    ((4.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
-                    -32.0,
+                    ((3.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
+                    MANA_BAR_Y, //-32.0,
                 )
-                .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                .position_ingame(ingame_pos)
                 .set(mana_bar_id, ui_widgets);
 
                 // Foreground
                 Image::new(self.imgs.enemy_health)
                     .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
-                    .x_y(0.0, -25.5)
+                    .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(ingame_pos)
                     .set(front_id, ui_widgets);
 
                 // Enemy SCT
@@ -797,25 +800,27 @@ impl Hud {
                         // Timer sets the widget offset
                         let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
                             * number_speed)
-                            + 30.0;
+                            + 100.0;
                         // Timer sets text transparency
                         let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
 
                         Text::new(&format!("{}", (hp_damage).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(0.0, y - 3.0)
-                            .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
+                            .position_ingame(ingame_pos)
                             .set(sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", hp_damage.abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .x_y(0.0, y)
                             .color(if hp_damage < 0 {
                                 Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
                             } else {
                                 Color::Rgba(0.1, 1.0, 0.1, fade)
                             })
-                            .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8))
+                            .position_ingame(ingame_pos)
                             .set(sct_id, ui_widgets);
                     } else {
                         for floater in floaters {
@@ -841,7 +846,7 @@ impl Hud {
                             let y = (floater.timer as f64
                                 / crate::ecs::sys::floater::HP_SHOWTIME as f64
                                 * number_speed)
-                                + 30.0;
+                                + 100.0;
                             // Timer sets text transparency
                             let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer)
                                 * 0.25)
@@ -849,27 +854,25 @@ impl Hud {
 
                             Text::new(&format!("{}", (floater.hp_change).abs()))
                                 .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
                                 .color(if floater.hp_change < 0 {
                                     Color::Rgba(0.0, 0.0, 0.0, fade)
                                 } else {
                                     Color::Rgba(0.1, 1.0, 0.1, 0.0)
                                 })
                                 .x_y(0.0, y - 3.0)
-                                .position_ingame(
-                                    pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
-                                )
+                                .position_ingame(ingame_pos)
                                 .set(sct_bg_id, ui_widgets);
                             Text::new(&format!("{}", (floater.hp_change).abs()))
                                 .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
                                 .x_y(0.0, y)
                                 .color(if floater.hp_change < 0 {
                                     Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
                                 } else {
                                     Color::Rgba(0.1, 1.0, 0.1, 0.0)
                                 })
-                                .position_ingame(
-                                    pos + Vec3::new(0.0, 0.0, 1.5 * scale as f32 + 1.8),
-                                )
+                                .position_ingame(ingame_pos)
                                 .set(sct_id, ui_widgets);
                         }
                     }
@@ -920,6 +923,7 @@ impl Hud {
                             ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
                         Text::new(&format!("{}", (hp_damage).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(if hp_damage < 0 {
                                 Color::Rgba(0.0, 0.0, 0.0, hp_fade)
                             } else {
@@ -929,6 +933,7 @@ impl Hud {
                             .set(player_sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", (hp_damage).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(if hp_damage < 0 {
                                 Color::Rgba(1.0, 0.1, 0.0, hp_fade)
                             } else {
@@ -992,11 +997,13 @@ impl Hud {
                             + 0.2;
                         Text::new(&format!("{}", (floater.hp_change).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
                             .x_y(x, y - 3.0)
                             .set(player_sct_bg_id, ui_widgets);
                         Text::new(&format!("{}", (floater.hp_change).abs()))
                             .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(if floater.hp_change < 0 {
                                 Color::Rgba(1.0, 0.1, 0.0, hp_fade)
                             } else {
@@ -1047,6 +1054,7 @@ impl Hud {
 
                         Text::new(&format!("{} Exp", exp_change))
                             .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(
                                 ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
@@ -1055,6 +1063,7 @@ impl Hud {
                             .set(player_sct_bg_id, ui_widgets);
                         Text::new(&format!("{} Exp", exp_change))
                             .font_size(font_size_xp)
+                            .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.59, 0.41, 0.67, fade))
                             .x_y(
                                 ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
@@ -1088,6 +1097,7 @@ impl Hud {
 
                             Text::new(&format!("{} Exp", floater.exp_change))
                                 .font_size(font_size_xp)
+                                .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                                 .x_y(
                                     ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
@@ -1096,6 +1106,7 @@ impl Hud {
                                 .set(player_sct_bg_id, ui_widgets);
                             Text::new(&format!("{} Exp", floater.exp_change))
                                 .font_size(font_size_xp)
+                                .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.59, 0.41, 0.67, fade))
                                 .x_y(
                                     ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
@@ -1108,19 +1119,20 @@ impl Hud {
             }
 
             // Render Name Tags
-            for (pos, name, level, scale) in (
+            for (pos, name, level, height_offset) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
                 players.maybe(),
                 scales.maybe(),
+                &bodies,
                 &hp_floater_lists,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _, _)| *entity != me && !stats.is_dead)
+                .filter(|(entity, _, _, stats, _, _, _, _)| *entity != me && !stats.is_dead)
                 // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, hpfl)| {
+                .filter(|(_, pos, _, _, _, _, _, hpfl)| {
                     pos.0.distance_squared(player_pos)
                         < (if hpfl
                             .time_since_last_dmg_by_me
@@ -1132,7 +1144,7 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, player, scale, _)| {
+                .map(|(_, pos, interpolated, stats, player, scale, body, _)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -1144,7 +1156,7 @@ impl Hud {
                         interpolated.map_or(pos.0, |i| i.pos),
                         format!("{}", name),
                         stats.level,
-                        scale.map_or(1.0, |s| s.0),
+                        body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
                     )
                 })
             {
@@ -1163,18 +1175,22 @@ impl Hud {
                     &mut ui_widgets.widget_id_generator(),
                 );
 
+                let ingame_pos = pos + Vec3::unit_z() * height_offset;
+
                 // Name
                 Text::new(&name)
+                    .font_id(self.fonts.cyri.conrod_id)
                     .font_size(30)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                    .x_y(-1.0, 16.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .x_y(-1.0, MANA_BAR_Y + 48.0)
+                    .position_ingame(ingame_pos)
                     .set(name_bg_id, ui_widgets);
                 Text::new(&name)
+                    .font_id(self.fonts.cyri.conrod_id)
                     .font_size(30)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
-                    .x_y(0.0, 18.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .x_y(0.0, MANA_BAR_Y + 50.0)
+                    .position_ingame(ingame_pos)
                     .set(name_id, ui_widgets);
 
                 // Level
@@ -1191,6 +1207,7 @@ impl Hud {
                 // -5 - +5 levels around player level -> equal
                 // - 5 levels below player -> low
                 Text::new(if level_comp < 10 { &level_str } else { "?" })
+                    .font_id(self.fonts.cyri.conrod_id)
                     .font_size(if op_level > 9 && level_comp < 10 {
                         14
                     } else {
@@ -1203,8 +1220,8 @@ impl Hud {
                     } else {
                         EQUAL
                     })
-                    .x_y(-37.0 * BARSIZE, -23.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 9.0)
+                    .position_ingame(ingame_pos)
                     .set(level_id, ui_widgets);
                 if level_comp > 9 {
                     let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
@@ -1214,16 +1231,16 @@ impl Hud {
                         self.imgs.skull
                     })
                     .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                    .x_y(-39.0 * BARSIZE, -25.0)
+                    .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
+                    .position_ingame(ingame_pos)
                     .set(level_skull_id, ui_widgets);
                 }
             }
         }
 
         // Introduction Text
-        let intro_text = &localized_strings.get("hud.welcome");
+        let intro_text = &self.voxygen_i18n.get("hud.welcome");
         if self.show.intro && !self.show.esc_menu && !self.intro_2 {
             match global_state.settings.gameplay.intro_show {
                 Intro::Show => {
@@ -1233,15 +1250,16 @@ impl Hud {
                         .set(self.ids.intro_bg, ui_widgets);
                     Text::new(intro_text)
                         .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
-                        .font_size(20)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(20))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(TEXT_COLOR)
                         .set(self.ids.intro_text, ui_widgets);
                     if Button::image(self.imgs.button)
                         .w_h(100.0, 50.0)
                         .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                        .label(&localized_strings.get("common.close"))
-                        .label_font_size(20)
+                        .label(&self.voxygen_i18n.get("common.close"))
+                        .label_font_size(self.fonts.cyri.scale(20))
+                        .label_font_id(self.fonts.cyri.conrod_id)
                         .label_color(TEXT_COLOR)
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
@@ -1277,10 +1295,10 @@ impl Hud {
                     {
                         self.never_show = !self.never_show
                     };
-                    Text::new(&localized_strings.get("hud.do_not_show_on_startup"))
+                    Text::new(&self.voxygen_i18n.get("hud.do_not_show_on_startup"))
                         .right_from(self.ids.intro_check, 10.0)
-                        .font_size(10)
-                        .font_id(self.fonts.cyri)
+                        .font_size(self.fonts.cyri.scale(10))
+                        .font_id(self.fonts.cyri.conrod_id)
                         .color(TEXT_COLOR)
                         .set(self.ids.intro_check_text, ui_widgets);
                     // X-button
@@ -1316,15 +1334,16 @@ impl Hud {
                 .set(self.ids.intro_bg, ui_widgets);
             Text::new(intro_text)
                 .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
-                .font_size(20)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(20))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(self.ids.intro_text, ui_widgets);
             if Button::image(self.imgs.button)
                 .w_h(100.0, 50.0)
                 .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                .label(&localized_strings.get("common.close"))
-                .label_font_size(20)
+                .label(&self.voxygen_i18n.get("common.close"))
+                .label_font_size(self.fonts.cyri.scale(20))
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
@@ -1361,23 +1380,23 @@ impl Hud {
             // Alpha Version
             Text::new(&version)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .font_size(14)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
             // Ticks per second
             Text::new(&format!("FPS: {:.0}", debug_info.tps))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.version, 5.0)
-                .font_id(self.fonts.cyri)
-                .font_size(14)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.fps_counter, ui_widgets);
             // Ping
             Text::new(&format!("Ping: {:.0}ms", debug_info.ping_ms))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.fps_counter, 5.0)
-                .font_id(self.fonts.cyri)
-                .font_size(14)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.ping, ui_widgets);
             // Player's position
             let coordinates_text = match debug_info.coordinates {
@@ -1390,8 +1409,8 @@ impl Hud {
             Text::new(&coordinates_text)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.ping, 5.0)
-                .font_id(self.fonts.cyri)
-                .font_size(14)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.coordinates, ui_widgets);
             // Player's velocity
             let velocity_text = match debug_info.velocity {
@@ -1407,8 +1426,8 @@ impl Hud {
             Text::new(&velocity_text)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.coordinates, 5.0)
-                .font_id(self.fonts.cyri)
-                .font_size(14)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.velocity, ui_widgets);
             // Loaded distance
             Text::new(&format!(
@@ -1418,8 +1437,8 @@ impl Hud {
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.velocity, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.loaded_distance, ui_widgets);
             // Time
             let time_in_seconds = client.state().get_time_of_day();
@@ -1434,8 +1453,8 @@ impl Hud {
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.loaded_distance, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.time, ui_widgets);
 
             // Number of entities
@@ -1443,8 +1462,8 @@ impl Hud {
             Text::new(&format!("Entity count: {}", entity_count))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.time, 5.0)
-                .font_id(self.fonts.cyri)
-                .font_size(14)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.entity_count, ui_widgets);
 
             // Number of chunks
@@ -1454,8 +1473,8 @@ impl Hud {
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.entity_count, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_chunks, ui_widgets);
 
             // Number of figures
@@ -1465,13 +1484,14 @@ impl Hud {
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.num_chunks, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_figures, ui_widgets);
 
             // Help Window
             Text::new(
-                &localized_strings
+                &self
+                    .voxygen_i18n
                     .get("hud.press_key_to_toggle_keybindings_fmt")
                     .replace(
                         "{key}",
@@ -1480,12 +1500,13 @@ impl Hud {
             )
             .color(TEXT_COLOR)
             .down_from(self.ids.num_figures, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.help_info, ui_widgets);
             // Info about Debug Shortcut
             Text::new(
-                &localized_strings
+                &self
+                    .voxygen_i18n
                     .get("hud.press_key_to_toggle_debug_info_fmt")
                     .replace(
                         "{key}",
@@ -1494,13 +1515,14 @@ impl Hud {
             )
             .color(TEXT_COLOR)
             .down_from(self.ids.help_info, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.debug_info, ui_widgets);
         } else {
             // Help Window
             Text::new(
-                &localized_strings
+                &self
+                    .voxygen_i18n
                     .get("hud.press_key_to_show_keybindings_fmt")
                     .replace(
                         "{key}",
@@ -1509,12 +1531,13 @@ impl Hud {
             )
             .color(TEXT_COLOR)
             .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(16)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(16))
             .set(self.ids.help_info, ui_widgets);
             // Info about Debug Shortcut
             Text::new(
-                &localized_strings
+                &self
+                    .voxygen_i18n
                     .get("hud.press_key_to_show_debug_info_fmt")
                     .replace(
                         "{key}",
@@ -1523,8 +1546,8 @@ impl Hud {
             )
             .color(TEXT_COLOR)
             .down_from(self.ids.help_info, 5.0)
-            .font_id(self.fonts.cyri)
-            .font_size(12)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(12))
             .set(self.ids.debug_info, ui_widgets);
         }
 
@@ -1539,8 +1562,9 @@ impl Hud {
                 .w_h(120.0, 50.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label(&localized_strings.get("hud.show_tips"))
-                .label_font_size(20)
+                .label(&self.voxygen_i18n.get("hud.show_tips"))
+                .label_font_size(self.fonts.cyri.scale(20))
+                .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
                 .mid_bottom_with_margin_on(self.ids.help, 20.0)
                 .set(self.ids.button_help3, ui_widgets)
@@ -1590,10 +1614,9 @@ impl Hud {
             &self.show,
             client,
             &self.imgs,
-            self.world_map,
+            &self.rot_imgs,
+            &self.world_map,
             &self.fonts,
-            self.pulse,
-            self.zoom,
         )
         .set(self.ids.minimap, ui_widgets)
         {
@@ -1685,7 +1708,7 @@ impl Hud {
                 &self.show,
                 &self.imgs,
                 &self.fonts,
-                &localized_strings,
+                &self.voxygen_i18n,
             )
             .set(self.ids.settings_window, ui_widgets)
             {
@@ -1757,6 +1780,9 @@ impl Hud {
                     settings_window::Event::AdjustFOV(new_fov) => {
                         events.push(Event::ChangeFOV(new_fov));
                     },
+                    settings_window::Event::AdjustGamma(new_gamma) => {
+                        events.push(Event::ChangeGamma(new_gamma));
+                    },
                     settings_window::Event::ChangeAaMode(new_aa_mode) => {
                         events.push(Event::ChangeAaMode(new_aa_mode));
                     },
@@ -1786,7 +1812,7 @@ impl Hud {
                 client,
                 &self.imgs,
                 &self.fonts,
-                &localized_strings,
+                &self.voxygen_i18n,
             )
             .set(self.ids.social_window, ui_widgets)
             {
@@ -1809,7 +1835,7 @@ impl Hud {
                 &player_stats,
                 &self.imgs,
                 &self.fonts,
-                &localized_strings,
+                &self.voxygen_i18n,
             )
             .set(self.ids.character_window, ui_widgets)
             {
@@ -1828,7 +1854,7 @@ impl Hud {
                 client,
                 &self.imgs,
                 &self.fonts,
-                &localized_strings,
+                &self.voxygen_i18n,
             )
             .set(self.ids.spell, ui_widgets)
             {
@@ -1847,7 +1873,7 @@ impl Hud {
                 client,
                 &self.imgs,
                 &self.fonts,
-                &localized_strings,
+                &self.voxygen_i18n,
             )
             .set(self.ids.quest, ui_widgets)
             {
@@ -1864,7 +1890,8 @@ impl Hud {
                 &self.show,
                 client,
                 &self.imgs,
-                self.world_map,
+                &self.rot_imgs,
+                &self.world_map,
                 &self.fonts,
                 self.pulse,
                 self.velocity,
@@ -1880,7 +1907,7 @@ impl Hud {
         }
 
         if self.show.esc_menu {
-            match EscMenu::new(&self.imgs, &self.fonts, &localized_strings)
+            match EscMenu::new(&self.imgs, &self.fonts, &self.voxygen_i18n)
                 .set(self.ids.esc_menu, ui_widgets)
             {
                 Some(esc_menu::Event::OpenSettings(tab)) => {

@@ -17,6 +17,28 @@ VoxygenLocalization(
         language_identifier: "en",
     ),
     convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
     string_map: {
         /// Start Common section
         // Texts used in multiple locations with the same formatting
@@ -186,6 +208,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.view_distance": "View Distance",
         "hud.settings.maximum_fps": "Maximum FPS",
         "hud.settings.fov": "Field of View (deg)",
+        "hud.settings.gamma": "Gamma",
         "hud.settings.antialiasing_mode": "AntiAliasing Mode",
         "hud.settings.cloud_rendering_mode": "Cloud Rendering Mode",
         "hud.settings.fluid_rendering_mode": "Fluid Rendering Mode",

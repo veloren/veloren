@@ -6,7 +6,7 @@ pub use renderer::{SampleStrat, Transform};
 use crate::render::{Renderer, Texture};
 use dot_vox::DotVoxData;
 use guillotiere::{size2, SimpleAtlasAllocator};
-use hashbrown::HashMap;
+use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
 use log::warn;
 use pixel_art::resize_pixel_art;
@@ -26,6 +26,14 @@ pub enum Rotation {
     Cw90,
     Cw180,
     Cw270,
+    /// Orientation of source rectangle that always faces true north.
+    /// Simple hack to get around Conrod not having space for proper
+    /// rotation data (though it should be possible to add in other ways).
+    SourceNorth,
+    /// Orientation of target rectangle that always faces true north.
+    /// Simple hack to get around Conrod not having space for proper
+    /// rotation data (though it should be possible to add in other ways).
+    TargetNorth,
 }
 
 /// Images larger than this are stored in individual textures
@@ -41,7 +49,7 @@ pub struct Id(u32);
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct TexId(usize);
 
-type Parameters = (Id, Vec2<u16>, Aabr<u64>);
+type Parameters = (Id, Vec2<u16>);
 type GraphicMap = HashMap<Id, Graphic>;
 
 enum CacheLoc {
@@ -130,6 +138,8 @@ impl GraphicCache {
         self.textures = vec![texture];
     }
 
+    /// Source rectangle should be from 0 to 1, and represents a bounding box
+    /// for the source image of the graphic.
     pub fn cache_res(
         &mut self,
         renderer: &mut Renderer,
@@ -137,15 +147,18 @@ impl GraphicCache {
         dims: Vec2<u16>,
         source: Aabr<f64>,
         rotation: Rotation,
-    ) -> Option<(Aabr<u16>, TexId)> {
+    ) -> Option<(Aabr<f64>, TexId)> {
         let dims = match rotation {
             Rotation::Cw90 | Rotation::Cw270 => Vec2::new(dims.y, dims.x),
             Rotation::None | Rotation::Cw180 => dims,
+            Rotation::SourceNorth => dims,
+            Rotation::TargetNorth => dims,
         };
-        let key = (graphic_id, dims, source.map(|e| e.to_bits())); // TODO: Replace this with rounded representation of source
+        let key = (graphic_id, dims);
 
+        // Rotate aabr according to requested rotation.
         let rotated_aabr = |Aabr { min, max }| match rotation {
-            Rotation::None => Aabr { min, max },
+            Rotation::None | Rotation::SourceNorth | Rotation::TargetNorth => Aabr { min, max },
             Rotation::Cw90 => Aabr {
                 min: Vec2::new(min.x, max.y),
                 max: Vec2::new(max.x, min.y),
@@ -156,101 +169,115 @@ impl GraphicCache {
                 max: Vec2::new(min.x, max.y),
             },
         };
+        // Scale aabr according to provided source rectangle.
+        let scaled_aabr = |aabr: Aabr<_>| {
+            let size: Vec2<_> = aabr.size().into();
+            Aabr {
+                min: size.mul_add(source.min, aabr.min),
+                max: size.mul_add(source.max, aabr.min),
+            }
+        };
+        // Apply all transformations.
+        // TODO: Verify rotation is being applied correctly.
+        let transformed_aabr = |aabr| rotated_aabr(scaled_aabr(aabr));
 
-        if let Some(details) = self.cache_map.get(&key) {
-            let (idx, aabr) = match details.location {
-                CacheLoc::Atlas {
-                    atlas_idx, aabr, ..
-                } => (self.atlases[atlas_idx].1, aabr),
-                CacheLoc::Texture { index } => {
-                    (index, Aabr {
-                        min: Vec2::new(0, 0),
-                        // Note texture should always match the cached dimensions
-                        max: dims,
-                    })
-                },
-            };
+        let details = match self.cache_map.entry(key) {
+            Entry::Occupied(details) => {
+                let details = details.get();
+                let (idx, aabr) = match details.location {
+                    CacheLoc::Atlas {
+                        atlas_idx, aabr, ..
+                    } => (self.atlases[atlas_idx].1, aabr),
+                    CacheLoc::Texture { index } => {
+                        (index, Aabr {
+                            min: Vec2::new(0, 0),
+                            // Note texture should always match the cached dimensions
+                            max: dims,
+                        })
+                    },
+                };
 
-            // Check if the cached version has been invalidated by replacing the underlying
-            // graphic
-            if !details.valid {
-                // Create image
-                let image = draw_graphic(&self.graphic_map, graphic_id, dims)?;
-                // Transfer to the gpu
-                upload_image(renderer, aabr, &self.textures[idx], &image);
+                // Check if the cached version has been invalidated by replacing the underlying
+                // graphic
+                if !details.valid {
+                    // Create image
+                    let image = draw_graphic(&self.graphic_map, graphic_id, dims)?;
+                    // Transfer to the gpu
+                    upload_image(renderer, aabr, &self.textures[idx], &image);
+                }
+
+                return Some((transformed_aabr(aabr.map(|e| e as f64)), TexId(idx)));
+            },
+            Entry::Vacant(details) => details,
+        };
+
+        // Create image
+        let image = draw_graphic(&self.graphic_map, graphic_id, dims)?;
+
+        // Allocate space on the gpu
+        // Check size of graphic
+        // Graphics over a particular size are sent to their own textures
+        let location = if Vec2::<i32>::from(self.atlases[0].0.size().to_tuple())
+            .map(|e| e as u16)
+            .map2(dims, |a, d| a as f32 * ATLAS_CUTTOFF_FRAC >= d as f32)
+            .reduce_and()
+        {
+            // Fit into an atlas
+            let mut loc = None;
+            for (atlas_idx, (ref mut atlas, _)) in self.atlases.iter_mut().enumerate() {
+                if let Some(rectangle) = atlas.allocate(size2(i32::from(dims.x), i32::from(dims.y)))
+                {
+                    let aabr = aabr_from_alloc_rect(rectangle);
+                    loc = Some(CacheLoc::Atlas { atlas_idx, aabr });
+                    break;
+                }
             }
 
-            Some((rotated_aabr(aabr), TexId(idx)))
-        } else {
-            // Create image
-            let image = draw_graphic(&self.graphic_map, graphic_id, dims)?;
-
-            // Allocate space on the gpu
-            // Check size of graphic
-            // Graphics over a particular size are sent to their own textures
-            let location = if Vec2::<i32>::from(self.atlases[0].0.size().to_tuple())
-                .map(|e| e as u16)
-                .map2(dims, |a, d| a as f32 * ATLAS_CUTTOFF_FRAC >= d as f32)
-                .reduce_and()
-            {
-                // Fit into an atlas
-                let mut loc = None;
-                for (atlas_idx, (ref mut atlas, _)) in self.atlases.iter_mut().enumerate() {
-                    if let Some(rectangle) =
-                        atlas.allocate(size2(i32::from(dims.x), i32::from(dims.y)))
-                    {
-                        let aabr = aabr_from_alloc_rect(rectangle);
-                        loc = Some(CacheLoc::Atlas { atlas_idx, aabr });
-                        break;
-                    }
-                }
-
-                match loc {
-                    Some(loc) => loc,
-                    // Create a new atlas
-                    None => {
-                        let (mut atlas, texture) = create_atlas_texture(renderer);
-                        let aabr = atlas
-                            .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
-                            .map(aabr_from_alloc_rect)
-                            .unwrap();
-                        let tex_idx = self.textures.len();
-                        let atlas_idx = self.atlases.len();
-                        self.textures.push(texture);
-                        self.atlases.push((atlas, tex_idx));
-                        CacheLoc::Atlas { atlas_idx, aabr }
-                    },
-                }
-            } else {
-                // Create a texture just for this
-                let texture = renderer.create_dynamic_texture(dims).unwrap();
-                let index = self.textures.len();
-                self.textures.push(texture);
-                CacheLoc::Texture { index }
-            };
-
-            let (idx, aabr) = match location {
-                CacheLoc::Atlas {
-                    atlas_idx, aabr, ..
-                } => (self.atlases[atlas_idx].1, aabr),
-                CacheLoc::Texture { index } => {
-                    (index, Aabr {
-                        min: Vec2::new(0, 0),
-                        // Note texture should always match the cached dimensions
-                        max: dims,
-                    })
+            match loc {
+                Some(loc) => loc,
+                // Create a new atlas
+                None => {
+                    let (mut atlas, texture) = create_atlas_texture(renderer);
+                    let aabr = atlas
+                        .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
+                        .map(aabr_from_alloc_rect)
+                        .unwrap();
+                    let tex_idx = self.textures.len();
+                    let atlas_idx = self.atlases.len();
+                    self.textures.push(texture);
+                    self.atlases.push((atlas, tex_idx));
+                    CacheLoc::Atlas { atlas_idx, aabr }
                 },
-            };
-            // Upload
-            upload_image(renderer, aabr, &self.textures[idx], &image);
-            // Insert into cached map
-            self.cache_map.insert(key, CachedDetails {
-                location,
-                valid: true,
-            });
+            }
+        } else {
+            // Create a texture just for this
+            let texture = renderer.create_dynamic_texture(dims).unwrap();
+            let index = self.textures.len();
+            self.textures.push(texture);
+            CacheLoc::Texture { index }
+        };
 
-            Some((rotated_aabr(aabr), TexId(idx)))
-        }
+        let (idx, aabr) = match location {
+            CacheLoc::Atlas {
+                atlas_idx, aabr, ..
+            } => (self.atlases[atlas_idx].1, aabr),
+            CacheLoc::Texture { index } => {
+                (index, Aabr {
+                    min: Vec2::new(0, 0),
+                    // Note texture should always match the cached dimensions
+                    max: dims,
+                })
+            },
+        };
+        // Upload
+        upload_image(renderer, aabr, &self.textures[idx], &image);
+        // Insert into cached map
+        details.insert(CachedDetails {
+            location,
+            valid: true,
+        });
+
+        Some((transformed_aabr(aabr.map(|e| e as f64)), TexId(idx)))
     }
 }
 

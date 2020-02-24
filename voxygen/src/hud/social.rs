@@ -1,6 +1,6 @@
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR, TEXT_COLOR_3};
+use super::{img_ids::Imgs, Show, TEXT_COLOR, TEXT_COLOR_3};
 
-use crate::i18n::VoxygenLocalization;
+use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use client::{self, Client};
 use conrod_core::{
     color,
@@ -39,7 +39,7 @@ pub struct Social<'a> {
     show: &'a Show,
     client: &'a Client,
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 
     #[conrod(common_builder)]
@@ -51,7 +51,7 @@ impl<'a> Social<'a> {
         show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
@@ -115,8 +115,8 @@ impl<'a> Widget for Social<'a> {
         // Title
         Text::new(&self.localized_strings.get("hud.social"))
             .mid_top_with_margin_on(ids.social_frame, 6.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .color(TEXT_COLOR)
             .set(ids.social_title, ui);
 
@@ -160,7 +160,8 @@ impl<'a> Widget for Social<'a> {
         })
         .top_left_with_margins_on(ids.align, 4.0, 0.0)
         .label(&self.localized_strings.get("hud.social.online"))
-        .label_font_size(14)
+        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_id(self.fonts.cyri.conrod_id)
         .parent(ids.frame)
         .label_color(TEXT_COLOR)
         .set(ids.online_tab, ui)
@@ -191,15 +192,15 @@ impl<'a> Widget for Social<'a> {
                     .replace("{nb_player}", &format!("{:?}", count)),
             )
             .top_left_with_margins_on(ids.content_align, -2.0, 7.0)
-            .font_size(14)
-            .font_id(self.fonts.cyri)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(ids.online_title, ui);
             for (i, (_, player_alias)) in self.client.player_list.iter().enumerate() {
                 Text::new(player_alias)
                     .down(3.0)
-                    .font_size(15)
-                    .font_id(self.fonts.cyri)
+                    .font_size(self.fonts.cyri.scale(15))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(ids.player_names[i], ui);
             }
@@ -225,7 +226,8 @@ impl<'a> Widget for Social<'a> {
         })
         .right_from(ids.online_tab, 0.0)
         .label(&self.localized_strings.get("hud.social.friends"))
-        .label_font_size(14)
+        .label_font_size(self.fonts.cyri.scale(14))
+        .label_font_id(self.fonts.cyri.conrod_id)
         .parent(ids.frame)
         .label_color(TEXT_COLOR_3)
         .set(ids.friends_tab, ui)
@@ -239,8 +241,8 @@ impl<'a> Widget for Social<'a> {
         if let SocialTab::Friends = self.show.social_tab {
             Text::new(&self.localized_strings.get("hud.social.not_yet_available"))
                 .middle_of(ids.content_align)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR_3)
                 .set(ids.friends_test, ui);
         }
@@ -256,7 +258,8 @@ impl<'a> Widget for Social<'a> {
             .right_from(ids.friends_tab, 0.0)
             .label(&self.localized_strings.get("hud.social.faction"))
             .parent(ids.frame)
-            .label_font_size(14)
+            .label_font_size(self.fonts.cyri.scale(14))
+            .label_font_id(self.fonts.cyri.conrod_id)
             .label_color(TEXT_COLOR_3)
             .set(ids.faction_tab, ui)
             .was_clicked()
@@ -269,8 +272,8 @@ impl<'a> Widget for Social<'a> {
         if let SocialTab::Faction = self.show.social_tab {
             Text::new(&self.localized_strings.get("hud.social.not_yet_available"))
                 .middle_of(ids.content_align)
-                .font_size(18)
-                .font_id(self.fonts.cyri)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR_3)
                 .set(ids.faction_test, ui);
         }

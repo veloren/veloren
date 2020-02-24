@@ -5,7 +5,7 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use client::Client;
 use common::{
-    comp::{Body, CharacterState, Pos, Vel},
+    comp::{Body, CharacterState, Item, ItemKind, Pos, Stats, ToolData, Vel},
     event::{EventBus, SfxEvent, SfxEventItem},
 };
 use hashbrown::HashMap;
@@ -16,6 +16,7 @@ use vek::*;
 #[derive(Clone)]
 struct LastSfxEvent {
     event: SfxEvent,
+    weapon_drawn: bool,
     time: Instant,
 }
 
@@ -31,7 +32,7 @@ impl MovementEventMapper {
     }
 
     pub fn maintain(&mut self, client: &Client, triggers: &SfxTriggers) {
-        const SFX_DIST_LIMIT_SQR: f32 = 22500.0;
+        const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
         let ecs = client.state().ecs();
 
         let player_position = ecs
@@ -39,11 +40,12 @@ impl MovementEventMapper {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, vel, body, character) in (
+        for (entity, pos, vel, body, stats, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Body>(),
+            &ecs.read_storage::<Stats>(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
@@ -57,27 +59,36 @@ impl MovementEventMapper {
                     .entry(entity)
                     .or_insert_with(|| LastSfxEvent {
                         event: SfxEvent::Idle,
+                        weapon_drawn: false,
                         time: Instant::now(),
                     });
 
                 let mapped_event = match body {
-                    Body::Humanoid(_) => Self::map_movement_event(character, state.event.clone()),
-                    Body::QuadrupedMedium(_) => {
-                        // TODO: Quadriped running sfx
-                        SfxEvent::Idle
+                    Body::Humanoid(_) => Self::map_movement_event(character, state, vel.0, stats),
+                    Body::QuadrupedMedium(_)
+                    | Body::QuadrupedSmall(_)
+                    | Body::BirdMedium(_)
+                    | Body::BirdSmall(_)
+                    | Body::BipedLarge(_) => {
+                        Self::map_non_humanoid_movement_event(character, vel.0)
                     },
-                    _ => SfxEvent::Idle,
+                    _ => SfxEvent::Idle, // Ignore fish, critters, etc...
                 };
 
                 // Check for SFX config entry for this movement
                 if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
                     ecs.read_resource::<EventBus<SfxEventItem>>()
                         .emitter()
-                        .emit(SfxEventItem::new(mapped_event, Some(pos.0)));
+                        .emit(SfxEventItem::new(
+                            mapped_event,
+                            Some(pos.0),
+                            Some(Self::get_volume_for_body_type(body)),
+                        ));
 
                     // Update the last play time
                     state.event = mapped_event;
                     state.time = Instant::now();
+                    state.weapon_drawn = character.is_wielded();
                 } else {
                     // Keep the last event, it may not have an SFX trigger but it helps us determine
                     // the next one
@@ -95,7 +106,7 @@ impl MovementEventMapper {
     /// they have not triggered an event for > n seconds. This prevents
     /// stale records from bloating the Map size.
     fn cleanup(&mut self, player: EcsEntity) {
-        const TRACKING_TIMEOUT: u64 = 15;
+        const TRACKING_TIMEOUT: u64 = 10;
 
         let now = Instant::now();
         self.event_history.retain(|entity, event| {
@@ -129,8 +140,33 @@ impl MovementEventMapper {
     /// as opening or closing the glider. These methods translate those
     /// entity states with some additional data into more specific
     /// `SfxEvent`'s which we attach sounds to
-    fn map_movement_event(current_event: &CharacterState, previous_event: SfxEvent) -> SfxEvent {
-        match (previous_event, current_event) {
+    fn map_movement_event(
+        current_event: &CharacterState,
+        previous_event: &LastSfxEvent,
+        vel: Vec3<f32>,
+        stats: &Stats,
+    ) -> SfxEvent {
+        // Handle any weapon wielding changes up front. Doing so here first simplifies
+        // handling the movement/action state later, since they don't require querying
+        // stats or previous wield state.
+        if let Some(Item {
+            kind: ItemKind::Tool(ToolData { kind, .. }),
+            ..
+        }) = stats.equipment.main
+        {
+            if let Some(wield_event) =
+                match (previous_event.weapon_drawn, current_event.is_wielded()) {
+                    (false, true) => Some(SfxEvent::Wield(kind)),
+                    (true, false) => Some(SfxEvent::Unwield(kind)),
+                    _ => None,
+                }
+            {
+                return wield_event;
+            }
+        }
+
+        // Match all other Movemement and Action states
+        match (previous_event.event, current_event) {
             (_, CharacterState::Roll(_)) => SfxEvent::Roll,
             (_, CharacterState::Climb(_)) => SfxEvent::Climb,
             (SfxEvent::Glide, CharacterState::Idle(_)) => SfxEvent::GliderClose,
@@ -144,135 +180,33 @@ impl MovementEventMapper {
             _ => SfxEvent::Idle,
         }
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use common::{comp::CharacterState, event::SfxEvent};
-    use std::time::{Duration, Instant};
-
-    #[test]
-    fn no_item_config_no_emit() {
-        let last_sfx_event = LastSfxEvent {
-            event: SfxEvent::Idle,
-            time: Instant::now(),
-        };
-
-        let result = MovementEventMapper::should_emit(&last_sfx_event, None);
-
-        assert_eq!(result, false);
+    /// Maps a limited set of movements for other non-humanoid entities
+    fn map_non_humanoid_movement_event(current_event: &CharacterState, vel: Vec3<f32>) -> SfxEvent {
+        if let CharacterState::Idle(_) = current_event {
+            if vel.magnitude() > 0.1 {
+                SfxEvent::Run
+            } else {
+                SfxEvent::Idle
+            }
+        } else {
+            SfxEvent::Idle
+        }
     }
 
-    #[test]
-    fn config_but_played_since_threshold_no_emit() {
-        let event = SfxEvent::Run;
-
-        let trigger_item = SfxTriggerItem {
-            files: vec![String::from("some.path.to.sfx.file")],
-            threshold: 1.0,
-        };
-
-        // Triggered a 'Run' 0 seconds ago
-        let last_sfx_event = LastSfxEvent {
-            event: SfxEvent::Run,
-            time: Instant::now(),
-        };
-
-        let result =
-            MovementEventMapper::should_emit(&last_sfx_event, Some((&event, &trigger_item)));
-
-        assert_eq!(result, false);
-    }
-
-    #[test]
-    fn config_and_not_played_since_threshold_emits() {
-        let event = SfxEvent::Run;
-
-        let trigger_item = SfxTriggerItem {
-            files: vec![String::from("some.path.to.sfx.file")],
-            threshold: 0.5,
-        };
-
-        let last_sfx_event = LastSfxEvent {
-            event: SfxEvent::Idle,
-            time: Instant::now().checked_add(Duration::from_secs(1)).unwrap(),
-        };
-
-        let result =
-            MovementEventMapper::should_emit(&last_sfx_event, Some((&event, &trigger_item)));
-
-        assert_eq!(result, true);
-    }
-
-    #[test]
-    fn same_previous_event_elapsed_emits() {
-        let event = SfxEvent::Run;
-
-        let trigger_item = SfxTriggerItem {
-            files: vec![String::from("some.path.to.sfx.file")],
-            threshold: 0.5,
-        };
-
-        let last_sfx_event = LastSfxEvent {
-            event: SfxEvent::Run,
-            time: Instant::now()
-                .checked_sub(Duration::from_millis(500))
-                .unwrap(),
-        };
-
-        let result =
-            MovementEventMapper::should_emit(&last_sfx_event, Some((&event, &trigger_item)));
-
-        assert_eq!(result, true);
-    }
-
-    #[test]
-    fn maps_idle() {
-        let result =
-            MovementEventMapper::map_movement_event(&CharacterState::Idle(None), SfxEvent::Idle);
-        assert_eq!(result, SfxEvent::Idle);
-    }
-
-    #[test]
-    fn maps_roll() {
-        let result =
-            MovementEventMapper::map_movement_event(&CharacterState::Roll(None), SfxEvent::Run);
-        assert_eq!(result, SfxEvent::Roll);
-    }
-
-    #[test]
-    fn maps_land_on_ground_to_run() {
-        let result =
-            MovementEventMapper::map_movement_event(&CharacterState::Idle(None), SfxEvent::Fall);
-        assert_eq!(result, SfxEvent::Run);
-    }
-
-    #[test]
-    fn maps_glider_open() {
-        let result =
-            MovementEventMapper::map_movement_event(&CharacterState::Glide(None), SfxEvent::Jump);
-        assert_eq!(result, SfxEvent::GliderOpen);
-    }
-
-    #[test]
-    fn maps_glide() {
-        let result =
-            MovementEventMapper::map_movement_event(&CharacterState::Glide(None), SfxEvent::Glide);
-        assert_eq!(result, SfxEvent::Glide);
-    }
-
-    #[test]
-    fn maps_glider_close_when_closing_mid_flight() {
-        let result =
-            MovementEventMapper::map_movement_event(&CharacterState::Idle(None), SfxEvent::Glide);
-        assert_eq!(result, SfxEvent::GliderClose);
-    }
-
-    #[test]
-    fn maps_glider_close_when_landing() {
-        let result =
-            MovementEventMapper::map_movement_event(&CharacterState::Idle(None), SfxEvent::Glide);
-        assert_eq!(result, SfxEvent::GliderClose);
+    /// Returns a relative volume value for a body type. This helps us emit sfx
+    /// at a volume appropriate fot the entity we are emitting the event for
+    fn get_volume_for_body_type(body: &Body) -> f32 {
+        match body {
+            Body::Humanoid(_) => 0.9,
+            Body::QuadrupedSmall(_) => 0.3,
+            Body::QuadrupedMedium(_) => 0.7,
+            Body::BirdMedium(_) => 0.3,
+            Body::BirdSmall(_) => 0.2,
+            Body::BipedLarge(_) => 1.0,
+            _ => 0.9,
+        }
     }
 }
+
+#[cfg(test)] mod tests;

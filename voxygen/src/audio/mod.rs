@@ -4,13 +4,13 @@ pub mod music;
 pub mod sfx;
 pub mod soundcache;
 
-use channel::{AudioType, Channel, ChannelTag};
+use channel::{MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
 use soundcache::SoundCache;
 
 use common::assets;
 use cpal::traits::DeviceTrait;
-use rodio::{Decoder, Device};
+use rodio::{source::Source, Decoder, Device};
 use vek::*;
 
 const FALLOFF: f32 = 0.13;
@@ -21,8 +21,8 @@ pub struct AudioFrontend {
     audio_device: Option<Device>,
     sound_cache: SoundCache,
 
-    channels: Vec<Channel>,
-    next_channel_id: usize,
+    music_channels: Vec<MusicChannel>,
+    sfx_channels: Vec<SfxChannel>,
 
     sfx_volume: f32,
     music_volume: f32,
@@ -36,21 +36,23 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     /// Construct with given device
-    pub fn new(device: String, channel_num: usize) -> Self {
-        let mut channels = Vec::with_capacity(channel_num);
+    pub fn new(device: String, max_sfx_channels: usize) -> Self {
+        let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
         let audio_device = get_device_raw(&device);
+
         if let Some(audio_device) = &audio_device {
-            for _i in 0..channel_num {
-                channels.push(Channel::new(&audio_device));
+            for _ in 0..max_sfx_channels {
+                sfx_channels.push(SfxChannel::new(&audio_device));
             }
         }
+
         Self {
             device: device.clone(),
             device_list: list_devices(),
             audio_device,
             sound_cache: SoundCache::new(),
-            channels,
-            next_channel_id: 1,
+            music_channels: Vec::new(),
+            sfx_channels,
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener_pos: Vec3::zero(),
@@ -67,8 +69,8 @@ impl AudioFrontend {
             device_list: Vec::new(),
             audio_device: None,
             sound_cache: SoundCache::new(),
-            channels: Vec::new(),
-            next_channel_id: 1,
+            music_channels: Vec::new(),
+            sfx_channels: Vec::new(),
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener_pos: Vec3::zero(),
@@ -78,75 +80,89 @@ impl AudioFrontend {
         }
     }
 
-    /// Maintain audio
+    /// Drop any unused music channels, and update their faders
     pub fn maintain(&mut self, dt: f32) {
-        for channel in self.channels.iter_mut() {
-            channel.update(dt);
+        self.music_channels.retain(|c| !c.is_done());
+
+        for channel in self.music_channels.iter_mut() {
+            channel.maintain(dt);
         }
     }
 
-    pub fn get_channel(
+    fn get_sfx_channel(&mut self) -> Option<&mut SfxChannel> {
+        if self.audio_device.is_some() {
+            if let Some(channel) = self.sfx_channels.iter_mut().find(|c| c.is_done()) {
+                channel.set_volume(self.sfx_volume);
+
+                return Some(channel);
+            }
+        }
+
+        None
+    }
+
+    /// Retrieve a music channel from the channel list. This inspects the
+    /// MusicChannelTag to determine whether we are transitioning between
+    /// music types and acts accordingly. For example transitioning between
+    /// `TitleMusic` and `Exploration` should fade out the title channel and
+    /// fade in a new `Exploration` channel.
+    fn get_music_channel(
         &mut self,
-        audio_type: AudioType,
-        channel_tag: Option<ChannelTag>,
-    ) -> Option<&mut Channel> {
-        if let Some(channel) = self.channels.iter_mut().find(|c| c.is_done()) {
-            let id = self.next_channel_id;
-            self.next_channel_id += 1;
+        next_channel_tag: MusicChannelTag,
+    ) -> Option<&mut MusicChannel> {
+        if let Some(audio_device) = &self.audio_device {
+            if self.music_channels.is_empty() {
+                let mut next_music_channel = MusicChannel::new(&audio_device);
+                next_music_channel.set_volume(self.music_volume);
 
-            let volume = match audio_type {
-                AudioType::Music => self.music_volume,
-                _ => self.sfx_volume,
-            };
+                self.music_channels.push(next_music_channel);
+            } else {
+                let existing_channel = self.music_channels.last_mut()?;
 
-            channel.set_id(id);
-            channel.set_tag(channel_tag);
-            channel.set_audio_type(audio_type);
-            channel.set_volume(volume);
+                if existing_channel.get_tag() != next_channel_tag {
+                    // Fade the existing channel out. It will be removed when the fade completes.
+                    existing_channel.set_fader(Fader::fade_out(2.0, self.music_volume));
 
-            Some(channel)
-        } else {
-            None
+                    let mut next_music_channel = MusicChannel::new(&audio_device);
+
+                    next_music_channel.set_fader(Fader::fade_in(12.0, self.music_volume));
+
+                    self.music_channels.push(next_music_channel);
+                }
+            }
         }
+
+        self.music_channels.last_mut()
     }
 
-    /// Play specfied sound file.
-    pub fn play_sound(&mut self, sound: &str, pos: Vec3<f32>) -> Option<usize> {
+    pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_device.is_some() {
             let calc_pos = ((pos - self.listener_pos) * FALLOFF).into_array();
 
-            let sound = self.sound_cache.load_sound(sound);
+            let sound = self
+                .sound_cache
+                .load_sound(sound)
+                .amplify(vol.unwrap_or(1.0));
 
             let left_ear = self.listener_ear_left.into_array();
             let right_ear = self.listener_ear_right.into_array();
 
-            if let Some(channel) = self.get_channel(AudioType::Sfx, None) {
+            if let Some(channel) = self.get_sfx_channel() {
                 channel.set_emitter_position(calc_pos);
                 channel.set_left_ear_position(left_ear);
                 channel.set_right_ear_position(right_ear);
                 channel.play(sound);
-
-                return Some(channel.get_id());
             }
         }
-
-        None
     }
 
-    pub fn play_music(&mut self, sound: &str, channel_tag: Option<ChannelTag>) -> Option<usize> {
-        if self.audio_device.is_some() {
-            if let Some(channel) = self.get_channel(AudioType::Music, channel_tag) {
-                let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
-                let sound = Decoder::new(file).expect("Failed to decode sound");
+    fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
+        if let Some(channel) = self.get_music_channel(channel_tag) {
+            let file = assets::load_file(&sound, &["ogg"]).expect("Failed to load sound");
+            let sound = Decoder::new(file).expect("Failed to decode sound");
 
-                channel.set_emitter_position([0.0; 3]);
-                channel.play(sound);
-
-                return Some(channel.get_id());
-            }
+            channel.play(sound, channel_tag);
         }
-
-        None
     }
 
     pub fn set_listener_pos(&mut self, pos: &Vec3<f32>, ori: &Vec3<f32>) {
@@ -161,8 +177,8 @@ impl AudioFrontend {
         self.listener_ear_left = pos_left;
         self.listener_ear_right = pos_right;
 
-        for channel in self.channels.iter_mut() {
-            if !channel.is_done() && channel.get_audio_type() == AudioType::Sfx {
+        for channel in self.sfx_channels.iter_mut() {
+            if !channel.is_done() {
                 // TODO: Update this to correctly determine the updated relative position of
                 // the SFX emitter when the player (listener) moves
                 // channel.set_emitter_position(
@@ -174,32 +190,18 @@ impl AudioFrontend {
         }
     }
 
-    pub fn play_title_music(&mut self) -> Option<usize> {
+    pub fn play_title_music(&mut self) {
         if self.music_enabled() {
             self.play_music(
                 "voxygen.audio.soundtrack.veloren_title_tune",
-                Some(ChannelTag::TitleMusic),
+                MusicChannelTag::TitleMusic,
             )
-        } else {
-            None
         }
     }
 
-    pub fn stop_title_music(&mut self) {
-        let index = self.channels.iter().position(|c| {
-            !c.is_done() && c.get_tag().is_some() && c.get_tag().unwrap() == ChannelTag::TitleMusic
-        });
-
-        if let Some(index) = index {
-            self.channels[index].stop(Fader::fade_out(1.5, self.music_volume));
-        }
-    }
-
-    pub fn stop_channel(&mut self, channel_id: usize, fader: Fader) {
-        let index = self.channels.iter().position(|c| c.get_id() == channel_id);
-
-        if let Some(index) = index {
-            self.channels[index].stop(fader);
+    pub fn play_exploration_music(&mut self, item: &str) {
+        if self.music_enabled() {
+            self.play_music(item, MusicChannelTag::Exploration)
         }
     }
 
@@ -214,24 +216,16 @@ impl AudioFrontend {
     pub fn set_sfx_volume(&mut self, sfx_volume: f32) {
         self.sfx_volume = sfx_volume;
 
-        for channel in self.channels.iter_mut() {
-            if channel.get_audio_type() == AudioType::Sfx {
-                channel.set_volume(sfx_volume);
-            }
+        for channel in self.sfx_channels.iter_mut() {
+            channel.set_volume(sfx_volume);
         }
     }
 
     pub fn set_music_volume(&mut self, music_volume: f32) {
         self.music_volume = music_volume;
 
-        for channel in self.channels.iter_mut() {
-            if channel.get_audio_type() == AudioType::Music {
-                if music_volume > 0.0 {
-                    channel.set_volume(music_volume);
-                } else {
-                    channel.stop(Fader::fade_out(0.0, 0.0));
-                }
-            }
+        for channel in self.music_channels.iter_mut() {
+            channel.set_volume(music_volume);
         }
     }
 

@@ -91,7 +91,7 @@ impl<'a> System<'a> for Sys {
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
                     }
                 },
-                // All other states do not regen and set the rate back to zero.
+                // Wield does not regen and sets the rate back to zero.
                 CharacterState::Wielded(_) => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0

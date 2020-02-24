@@ -19,6 +19,7 @@
                 "Colborn",
                 "Dagfinn",
                 "Dagrod",
+                "Digbod",
                 "Dimian",
                 "Domnhar",
                 "Ebraheim",
@@ -107,28 +108,34 @@
         },
         "species": {
             "danari": {
+                "keyword": "danari",
                 "generic": "Danari"
             },
             "dwarf": {
+                "keyword": "dwarf",
                 "generic": "Dwarf"
             },
             "elf": {
+                "keyword": "elf",
                 "generic": "Elf"
             },
             "human": {
+                "keyword": "human",
                 "generic": "Human"
             },
             "orc": {
+                "keyword": "orc",
                 "generic": "Orc"
             },
             "undead": {
+                "keyword": "undead",
                 "generic": "Undead"
             }
         }
     },
     "quadruped_medium": {
         "body": {
-            "keyword": "wolf",
+            "keyword": "quadruped_medium",
             "names": [
                 "Achak",
                 "Adalwolf",
@@ -237,34 +244,42 @@
         },
         "species": {
             "wolf": {
+                "keyword": "wolf",
                 "generic": "Wolf"
             },
             "saber": {
+                "keyword": "sabertooth",
                 "generic": "Sabertooth Tiger"
             },
             "viper": {
+                "keyword": "viper",
                 "generic": "Lizard"
             },
             "tuskram": {
+                "keyword": "tuskram",
                 "generic": "Tusk Ram"
             },
             "alligator": {
+                "keyword": "alligator",
                 "generic": "Alligator"
             },
             "monitor": {
+                "keyword": "monitor",
                 "generic": "Monitor Lizard"
             },
             "lion": {
+                "keyword": "lion",
                 "generic": "Lion"
             },
             "tarasque": {
+                "keyword": "tarasque",
                 "generic": "Tarasque"
             }
         }
     },
     "quadruped_small": {
         "body": {
-            "keyword": "pig",
+            "keyword": "quadruped_small",
             "names": [
                 "Acorn",
                 "Adeline",
@@ -372,102 +387,125 @@
         },
         "species": {
             "pig": {
+                "keyword": "pig",
                 "generic": "Pig"
             },
             "fox": {
+                "keyword": "fox",
                 "generic": "Fox"
             },
             "sheep": {
+                "keyword": "sheep",
                 "generic": "Sheep"
             },
             "boar": {
+                "keyword": "boar",
                 "generic": "Boar"
             },
             "jackalope": {
+                "keyword": "jackalope",
                 "generic": "Jackalope"
             },
             "skunk": {
+                "keyword": "skunk",
                 "generic": "Skunk"
             },
             "cat": {
+                "keyword": "cat",
                 "generic": "Cat"
             },
             "batfox": {
+                "keyword": "batfox",
                 "generic": "Bat Fox"
             },
             "raccoon": {
+                "keyword": "raccoon",
                 "generic": "Raccoon"
             },
             "quokka": {
+                "keyword": "quokka",
                 "generic": "Quokka"
             },
             "dodarock": {
+                "keyword": "dodarock",
                 "generic": "Dodarock"
             },
             "holladon": {
+                "keyword": "holladon",
                 "generic": "Holladon"
             }
         }
     },
     "bird_medium": {
         "body": {
-            "keyword": "duck",
+            "keyword": "bird_medium",
             "names": [
                 "Donald"
             ]
         },
         "species": {
             "duck": {
+                "keyword": "duck",
                 "generic": "Duck"
             },
             "chicken": {
+                "keyword": "chicken",
                 "generic": "Chicken"
             },
             "goose": {
+                "keyword": "goose",
                 "generic": "Goose"
             },
             "peacock": {
+                "keyword": "peacock",
                 "generic": "Peacock"
             }
         }
     },
     "biped_large": {
         "body": {
-            "keyword": "giant",
+            "keyword": "biped_large",
             "names": [
                 "Leroy Brown"
             ]
         },
         "species": {
             "giant": {
+                "keyword": "giant",
                 "generic": "Giant"
             }
         }
     },
     "critter": {
         "body": {
-            "keyword": "rat",
+            "keyword": "critter",
             "names": [
                 "Remy"
             ]
         },
         "species": {
             "rat": {
+                "keyword": "rat",
                 "generic": "Rat"
             },
             "axolotl": {
+                "keyword": "axolotl",
                 "generic": "Axolotl"
             },
             "gecko": {
+                "keyword": "gecko",
                 "generic": "Gecko"
             },
             "turtle": {
+                "keyword": "turtle",
                 "generic": "Turtle"
             },
             "squirrel": {
+                "keyword": "squirrel",
                 "generic": "Squirrel"
             },
             "fungome": {
+                "keyword": "fungome",
                 "generic": "Fungome"
             }
         }

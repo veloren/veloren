@@ -109,8 +109,8 @@ coverage:
     tags:
         - veloren-docker
     script:
-        - cargo tarpaulin -v
-    allow_failure: true
+        - echo "Workaround, tarpaulin fails due some rust files are already deleted, so we just stack tarpaulin. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
+        - cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v
 
 benchmarks:
     stage: post
@@ -121,7 +121,18 @@ benchmarks:
     script:
         - unset DISABLE_GIT_LFS_CHECK
         - cargo bench
+
+localization-status:
+    variables:
+        GIT_DEPTH: 0
+    stage: post
+    when: delayed
+    start_in: 5 seconds
     allow_failure: true
+    tags:
+        - veloren-docker
+    script:
+        - cargo test -q test_all_localizations -- --nocapture --ignored
 
 linux:
     stage: post
@@ -170,5 +181,4 @@ windows:
             - assets/
             - LICENSE
         expire_in: 1 week
-
 # --
