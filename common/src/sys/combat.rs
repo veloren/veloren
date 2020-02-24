@@ -99,7 +99,7 @@ impl<'a> System<'a> for Sys {
                     && ori2.angle_between(pos_b2 - pos2) < ATTACK_ANGLE.to_radians() / 2.0 + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // Weapon gives base damage
-                    let mut dmg = attack.weapon.base_damage as i32;
+                    let mut dmg = attack.weapon.map(|w| w.base_damage as i32).unwrap_or(3);
 
                     // Block
                     if character_b.is_block()

@@ -14,16 +14,14 @@ pub struct State {
 
 impl StateHandler for State {
     fn new(ecs_data: &EcsStateData) -> Self {
-        let tool_data =
+        let equip_delay =
             if let Some(Tool(data)) = ecs_data.stats.equipment.main.as_ref().map(|i| i.kind) {
-                data
+                data.equip_time()
             } else {
-                ToolData::default()
+                Duration::default()
             };
 
-        Self {
-            equip_delay: tool_data.equip_time(),
-        }
+        Self { equip_delay }
     }
 
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
