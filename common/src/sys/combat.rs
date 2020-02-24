@@ -68,66 +68,56 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            attack.tick_time_active(Duration::from_secs_f32(dt.0));
+            // Go through all other entities
+            for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stats_b, body_b) in (
+                &entities,
+                &uids,
+                &positions,
+                &orientations,
+                scales.maybe(),
+                &character_states,
+                &stats,
+                &bodies,
+            )
+                .join()
+            {
+                // 2D versions
+                let pos2 = Vec2::from(pos.0);
+                let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
+                let ori2 = Vec2::from(ori.0);
 
-            if attack.can_apply_damage() {
-                // Go through all other entities
-                for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stats_b, body_b) in (
-                    &entities,
-                    &uids,
-                    &positions,
-                    &orientations,
-                    scales.maybe(),
-                    &character_states,
-                    &stats,
-                    &bodies,
-                )
-                    .join()
+                // Scales
+                let scale = scale_maybe.map_or(1.0, |s| s.0);
+                let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
+                let rad_b = body_b.radius() * scale_b;
+
+                // Check if it is a hit
+                if entity != b
+                    && !stats_b.is_dead
+                    // Spherical wedge shaped attack field
+                    && pos.0.distance_squared(pos_b.0) < (rad_b + scale * ATTACK_RANGE).powi(2)
+                    && ori2.angle_between(pos_b2 - pos2) < ATTACK_ANGLE.to_radians() / 2.0 + (rad_b / pos2.distance(pos_b2)).atan()
                 {
-                    // 2D versions
-                    let pos2 = Vec2::from(pos.0);
-                    let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
-                    let ori2 = Vec2::from(ori.0);
+                    // Weapon gives base damage
+                    let mut dmg = attack.weapon.base_damage as i32;
 
-                    // Scales
-                    let scale = scale_maybe.map_or(1.0, |s| s.0);
-                    let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
-                    let rad_b = body_b.radius() * scale_b;
-
-                    // Check if it is a hit
-                    if entity != b
-                        && !stats_b.is_dead
-                        // Spherical wedge shaped attack field
-                        && pos.0.distance_squared(pos_b.0) < (rad_b + scale * ATTACK_RANGE).powi(2)
-                        && ori2.angle_between(pos_b2 - pos2) < ATTACK_ANGLE.to_radians() / 2.0 + (rad_b / pos2.distance(pos_b2)).atan()
+                    // Block
+                    if character_b.is_block()
+                        && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
                     {
-                        // Weapon gives base damage
-                        let mut dmg = attack.weapon.base_damage as i32;
-
-                        // Block
-                        if character_b.is_block()
-                            && ori_b.0.angle_between(pos.0 - pos_b.0)
-                                < BLOCK_ANGLE.to_radians() / 2.0
-                        {
-                            dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
-                        }
-
-                        server_bus.emitter().emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change: HealthChange {
-                                amount: -dmg,
-                                cause: HealthSource::Attack { by: *uid },
-                            },
-                        });
+                        dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
                     }
-                }
-            }
 
-            if attack.remaining_duration() == Duration::default() {
-                if let Some(character) = character_states.get_mut(entity) {
-                    *character = CharacterState::Wielded(None);
+                    server_bus.emitter().emit(ServerEvent::Damage {
+                        uid: *uid_b,
+                        change: HealthChange {
+                            amount: -dmg,
+                            cause: HealthSource::Attack { by: *uid },
+                        },
+                    });
                 }
             }
         }
+        attacking_storage.clear();
     }
 }
