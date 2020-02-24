@@ -1,6 +1,6 @@
 use crate::{
     comp::{Attacking, CharacterState, EcsStateData, ItemKind::Tool, StateUpdate, ToolData},
-    states::{utils, StateHandler},
+    states::StateHandler,
 };
 use std::{collections::VecDeque, time::Duration};
 

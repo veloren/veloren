@@ -50,6 +50,16 @@ impl StateHandler for State {
             .unwrap_or_default()
                 * ROLL_SPEED;
 
+        // Smooth orientation
+        if update.vel.0.magnitude_squared() > 0.0001
+            && (update.ori.0.normalized() - Vec3::from(update.vel.0).normalized())
+                .magnitude_squared()
+                > 0.001
+        {
+            update.ori.0 =
+                vek::ops::Slerp::slerp(update.ori.0, update.vel.0.into(), 9.0 * ecs_data.dt.0);
+        }
+
         if self.remaining_duration == Duration::default() {
             // Roll duration has expired
             update.character = CharacterState::Idle(None);

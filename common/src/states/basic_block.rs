@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{EcsStateData, StateUpdate},
+    comp::{CharacterState, EcsStateData, StateUpdate},
     states::StateHandler,
 };
 use std::{collections::VecDeque, time::Duration};
@@ -25,6 +25,12 @@ impl StateHandler for State {
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         };
+
+        handle_move_dir(&ecs_data, &mut update);
+
+        if !ecs_data.physics.on_ground || !ecs_data.inputs.secondary.is_pressed() {
+            update.character = CharacterState::Wielded(None);
+        }
 
         update
     }
