@@ -41,8 +41,8 @@ vec3 lod_pos(vec2 v_pos, vec2 focus_pos) {
 
 	// Remove spiking by "pushing" vertices towards local optima
 	vec2 nhpos = hpos;
-	for (int i = 0; i < 5; i ++) {
-		nhpos -= lod_norm(hpos).xy * 10.0;
+	for (int i = 0; i < 3; i ++) {
+		nhpos -= lod_norm(hpos).xy * 15.0;
 	}
 	hpos = hpos + normalize(nhpos - hpos + 0.001) * min(length(nhpos - hpos), 32);
 
