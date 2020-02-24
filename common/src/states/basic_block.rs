@@ -20,6 +20,7 @@ impl StateHandler for State {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
+            energy: *ecs_data.energy,
             character: *ecs_data.character,
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),

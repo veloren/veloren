@@ -1,9 +1,13 @@
-use crate::comp::{CharacterState, EcsStateData, StateUpdate};
-use crate::states::StateHandler;
-use crate::sys::phys::GRAVITY;
+use crate::{
+    comp::{CharacterState, EcsStateData, EnergySource, StateUpdate},
+    states::StateHandler,
+    sys::phys::GRAVITY,
+};
 use std::collections::VecDeque;
-use vek::vec::{Vec2, Vec3};
-use vek::Lerp;
+use vek::{
+    vec::{Vec2, Vec3},
+    Lerp,
+};
 
 const HUMANOID_CLIMB_ACCEL: f32 = 5.0;
 const CLIMB_SPEED: f32 = 5.0;
@@ -12,9 +16,7 @@ const CLIMB_SPEED: f32 = 5.0;
 pub struct State;
 
 impl StateHandler for State {
-    fn new(_ecs_data: &EcsStateData) -> Self {
-        Self {}
-    }
+    fn new(_ecs_data: &EcsStateData) -> Self { Self {} }
 
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
@@ -22,9 +24,14 @@ impl StateHandler for State {
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
             character: *ecs_data.character,
+            energy: *ecs_data.energy,
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         };
+
+        if let Err(_) = update.energy.try_change_by(-5, EnergySource::Climb) {
+            update.character = CharacterState::Idle(None);
+        }
 
         // If no wall is in front of character ...
         if ecs_data.physics.on_wall.is_none() || ecs_data.physics.on_ground {

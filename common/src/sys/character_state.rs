@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        AbilityPool, Body, CharacterState, Controller, EcsStateData, Mounting, Ori, PhysicsState,
-        Pos, Stats, Vel,
+        AbilityPool, Body, CharacterState, Controller, EcsStateData, Energy, Mounting, Ori,
+        PhysicsState, Pos, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -11,10 +11,11 @@ use crate::{
 use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
 
 /// ## Character State System
-/// #### Calls updates to `CharacterState`s. Acts on tuples of ( `CharacterState`, `Pos`, `Vel`, and `Ori` ).
+/// #### Calls updates to `CharacterState`s. Acts on tuples of (
+/// `CharacterState`, `Pos`, `Vel`, and `Ori` ).
 ///
-/// _System forms `EcsStateData` tuples and passes those to `ActionState` `update()` fn,
-/// then does the same for `MoveState` `update`_
+/// _System forms `EcsStateData` tuples and passes those to `ActionState`
+/// `update()` fn, then does the same for `MoveState` `update`_
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
@@ -29,6 +30,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        WriteStorage<'a, Energy>,
         ReadStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Body>,
@@ -37,6 +39,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
     );
+
     fn run(
         &mut self,
         (
@@ -50,6 +53,7 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
+            mut energies,
             controllers,
             stats,
             bodies,
@@ -66,6 +70,7 @@ impl<'a> System<'a> for Sys {
             pos,
             vel,
             ori,
+            energy,
             controller,
             stats,
             body,
@@ -78,6 +83,7 @@ impl<'a> System<'a> for Sys {
             &mut positions,
             &mut velocities,
             &mut orientations,
+            &mut energies,
             &controllers,
             &stats,
             &bodies,
@@ -113,6 +119,7 @@ impl<'a> System<'a> for Sys {
                 pos,
                 vel,
                 ori,
+                energy,
                 dt: &dt,
                 inputs,
                 stats,
@@ -126,6 +133,7 @@ impl<'a> System<'a> for Sys {
             *pos = state_update.pos;
             *vel = state_update.vel;
             *ori = state_update.ori;
+            *energy = state_update.energy;
             local_bus.emitter().append(&mut state_update.local_events);
             server_bus.emitter().append(&mut state_update.server_events);
         }

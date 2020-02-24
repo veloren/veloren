@@ -1,5 +1,7 @@
 use crate::{
-    comp::{AbilityPool, Body, ControllerInputs, Ori, PhysicsState, Pos, Stats, ToolData, Vel},
+    comp::{
+        AbilityPool, Body, ControllerInputs, Energy, Ori, PhysicsState, Pos, Stats, ToolData, Vel,
+    },
     event::{LocalEvent, ServerEvent},
     state::DeltaTime,
     states::*,
@@ -7,7 +9,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, Entity, FlaggedStorage, HashMapStorage, LazyUpdate, VecStorage};
-use std::{collections::VecDeque, time::Duration};
+use std::collections::VecDeque;
 
 pub struct EcsStateData<'a> {
     pub entity: &'a Entity,
@@ -19,6 +21,7 @@ pub struct EcsStateData<'a> {
     pub dt: &'a DeltaTime,
     pub inputs: &'a ControllerInputs,
     pub stats: &'a Stats,
+    pub energy: &'a Energy,
     pub body: &'a Body,
     pub physics: &'a PhysicsState,
     pub ability_pool: &'a AbilityPool,
@@ -30,6 +33,7 @@ pub struct StateUpdate {
     pub pos: Pos,
     pub vel: Vel,
     pub ori: Ori,
+    pub energy: Energy,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
 }

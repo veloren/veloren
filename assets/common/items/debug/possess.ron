@@ -2,10 +2,14 @@ Item(
     name: "Rod of Possession",
     description: "It's fixed on my branch.",
     kind: Tool(
-        kind: Debug(Possess),
-        equip_time_millis: 0,
-        attack_buildup_millis: 0,
-        attack_recover_millis: 0,
+        ToolData (
+            kind: Debug(Possess),
+            equip_time_millis: 0,
+            attack_buildup_millis: 0,
+            attack_recover_millis: 0,
+            range: 3,
+            base_damage: 10,
+        )
     ),
 )
 // ... as zesterer always uses to tell us.

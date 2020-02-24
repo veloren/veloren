@@ -1,5 +1,7 @@
-use crate::comp::{CharacterState, EcsStateData, StateUpdate};
-use crate::states::StateHandler;
+use crate::{
+    comp::{CharacterState, EcsStateData, StateUpdate},
+    states::StateHandler,
+};
 use std::collections::VecDeque;
 use vek::{Vec2, Vec3};
 
@@ -12,15 +14,14 @@ const GLIDE_SPEED: f32 = 45.0;
 pub struct State;
 
 impl StateHandler for State {
-    fn new(_ecs_data: &EcsStateData) -> Self {
-        Self {}
-    }
+    fn new(_ecs_data: &EcsStateData) -> Self { Self {} }
 
     fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
             ori: *ecs_data.ori,
+            energy: *ecs_data.energy,
             character: *ecs_data.character,
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
