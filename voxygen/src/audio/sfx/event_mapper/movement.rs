@@ -124,28 +124,23 @@ impl MovementEventMapper {
         }
     }
 
-    /// Voxygen has an existing list of character states via `MoveState::*` and
-    /// `ActionState::*` however that list does not provide enough
-    /// resolution to target specific entity events, such as opening or
-    /// closing the glider. These methods translate those entity states with
-    /// some additional data into more specific `SfxEvent`'s which we attach
-    /// sounds to
+    /// Voxygen has an existing list of character states however that list does
+    /// not provide enough resolution to target specific entity events, such
+    /// as opening or closing the glider. These methods translate those
+    /// entity states with some additional data into more specific
+    /// `SfxEvent`'s which we attach sounds to
     fn map_movement_event(current_event: &CharacterState, previous_event: SfxEvent) -> SfxEvent {
-        match (current_event, previous_event) {
-            (CharacterState::Roll(_), _) => SfxEvent::Roll,
-            (CharacterState::Climb(_), _) => SfxEvent::Climb,
-            (CharacterState::Idle(_), _) => SfxEvent::Run,
-            (CharacterState::Idle(_), SfxEvent::Glide) => SfxEvent::GliderClose,
-            (CharacterState::Idle(_), SfxEvent::Fall) => SfxEvent::Run,
-            (CharacterState::Idle(_), SfxEvent::Jump) => SfxEvent::Idle,
-            (CharacterState::Glide(_), previous_event) => {
+        match (previous_event, current_event) {
+            (_, CharacterState::Roll(_)) => SfxEvent::Roll,
+            (_, CharacterState::Climb(_)) => SfxEvent::Climb,
+            (SfxEvent::Glide, CharacterState::Idle(_)) => SfxEvent::GliderClose,
+            (previous_event, CharacterState::Glide(_)) => {
                 if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
                     SfxEvent::GliderOpen
                 } else {
                     SfxEvent::Glide
                 }
             },
-            (CharacterState::Idle(_), SfxEvent::Glide) => SfxEvent::GliderClose,
             _ => SfxEvent::Idle,
         }
     }

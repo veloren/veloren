@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, EcsStateData, ItemKind::Tool, StateUpdate},
+    comp::{Attacking, CharacterState, EcsStateData, EnergySource, ItemKind::Tool, StateUpdate},
     event::LocalEvent,
 };
 use std::time::Duration;
@@ -27,7 +27,10 @@ pub fn handle_move_dir(ecs_data: &EcsStateData, update: &mut StateUpdate) {
     }
 
     // Set direction based on move direction
-    let ori_dir = if update.character.is_attack() || update.character.is_block() {
+    let ori_dir = if update.character.is_wielded()
+        || update.character.is_attack()
+        || update.character.is_block()
+    {
         Vec2::from(ecs_data.inputs.look_dir).normalized()
     } else {
         Vec2::from(update.vel.0)
@@ -58,7 +61,7 @@ pub fn handle_sit(ecs_data: &EcsStateData, update: &mut StateUpdate) {
 }
 
 pub fn handle_climb(ecs_data: &EcsStateData, update: &mut StateUpdate) {
-    if (ecs_data.inputs.climb.is_just_pressed() || ecs_data.inputs.climb_down.is_pressed())
+    if (ecs_data.inputs.climb.is_pressed() || ecs_data.inputs.climb_down.is_pressed())
         && ecs_data.physics.on_wall.is_some()
         && !ecs_data.physics.on_ground
         //&& update.vel.0.z < 0.0
@@ -121,6 +124,10 @@ pub fn handle_dodge(ecs_data: &EcsStateData, update: &mut StateUpdate) {
             if ecs_data.inputs.roll.is_pressed()
                 && ecs_data.physics.on_ground
                 && ecs_data.body.is_humanoid()
+                && update
+                    .energy
+                    .try_change_by(-200, EnergySource::Roll)
+                    .is_ok()
             {
                 update.character = state;
             }
