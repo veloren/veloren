@@ -573,9 +573,13 @@ version = "2.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5067f5bb2d80ef5d68b4c87db81601f0b75bca627bc2ef76b141d7b846a3c6d9"
 dependencies = [
+ "ansi_term",
+ "atty",
  "bitflags",
+ "strsim 0.8.0",
  "textwrap",
  "unicode-width",
+ "vec_map",
 ]
 
 [[package]]
@@ -1049,7 +1053,7 @@ dependencies = [
  "ident_case",
  "proc-macro2 1.0.9",
  "quote 1.0.3",
- "strsim",
+ "strsim 0.9.3",
  "syn 1.0.16",
 ]
 
@@ -2814,6 +2818,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "network-speed"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "clap",
+ "futures 0.3.4",
+ "serde",
+ "tracing",
+ "tracing-subscriber",
+ "uuid 0.8.1",
+ "uvth",
+ "veloren-network",
+]
+
+[[package]]
 name = "nix"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4453,6 +4472,12 @@ checksum = "d24114bfcceb867ca7f71a0d3fe45d45619ec47a6fbfa98cb14e14250bfa5d6d"
 dependencies = [
  "bytes 0.4.12",
 ]
+
+[[package]]
+name = "strsim"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "strsim"
