@@ -39,10 +39,6 @@ pub enum SfxEvent {
     Fall,
     ExperienceGained,
     LevelUp,
-    LightLantern,
-    ExtinguishLantern,
-    Attack,
-    AttackWolf,
     Wield(comp::item::ToolKind),
     Unwield(comp::item::ToolKind),
 }
