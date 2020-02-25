@@ -9,7 +9,7 @@
                 "voxygen.audio.sfx.footsteps.stepgrass_5",
                 "voxygen.audio.sfx.footsteps.stepgrass_6",
             ],
-            threshold: 0.25,
+            threshold: 0.4,
         ),
         GliderOpen: (
             files: [
@@ -23,17 +23,17 @@
             ],
             threshold: 0.5,
         ),
-        Wield(Sword): (
+        Wield(Sword(Rapier)): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",
             ],
-            threshold: 0.5,
+            threshold: 1.0,
         ),
-        Unwield(Sword): (
+        Unwield(Sword(Rapier)): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_in",
             ],
-            threshold: 0.5,
+            threshold: 1.0,
         ),
     }
 )
