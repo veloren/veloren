@@ -8,7 +8,8 @@ variables:
 stages:
     - optional-builds
     - check-compile
-    - post
+    - build-post
+    - publish
 
 before_script:
     - source $HOME/.cargo/env
@@ -90,10 +91,10 @@ security:
 
 # --
 
-# -- post build
+# -- build-post
 
 unittests:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     tags:
@@ -103,7 +104,7 @@ unittests:
         - cargo test || cargo test || cargo test || cargo test
 
 coverage:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     tags:
@@ -113,7 +114,7 @@ coverage:
         - cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v
 
 benchmarks:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     tags:
@@ -125,7 +126,7 @@ benchmarks:
 localization-status:
     variables:
         GIT_DEPTH: 0
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     allow_failure: true
@@ -135,14 +136,15 @@ localization-status:
         - cargo test -q test_all_localizations -- --nocapture --ignored
 
 linux:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     only:
         refs:
             - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+\.[0-9]+/
+            - /^v[0-9]+\.[0-9]+/
             - /^master$/
+            - /^docker-server$/
     tags:
         - veloren-docker
     script:
@@ -160,13 +162,13 @@ linux:
         expire_in: 1 week
 
 windows:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     only:
         refs:
             - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+\.[0-9]+/
+            - /^v[0-9]+\.[0-9]+/
             - /^master$/
     tags:
         - veloren-docker
@@ -181,4 +183,31 @@ windows:
             - assets/
             - LICENSE
         expire_in: 1 week
+# --
+
+# -- publish
+
+docker:
+    stage: publish
+    when: delayed
+    start_in: 5 seconds
+    image:
+      name: gcr.io/kaniko-project/executor:debug
+      entrypoint: [""]
+    dependencies:
+        - linux
+    before_script:
+        - ls "$CI_PROJECT_DIR/server-cli/"
+    only:
+      refs:
+          - /^r[0-9]+\.[0-9]+\.[0-9]+/
+          - /^v[0-9]+\.[0-9]+/
+          - /^master$/
+          - /^docker-server$/
+    tags:
+        - veloren-docker
+    script:
+        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-server"
+
 # --
