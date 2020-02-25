@@ -15,9 +15,8 @@ use mio::{
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    marker::PhantomData,
     sync::{
-        mpsc::{self, Receiver, Sender, TryRecvError},
+        mpsc::{self, Receiver, TryRecvError},
         Arc, RwLock,
     },
 };
@@ -270,8 +269,8 @@ impl Stream {
         // updated by workes via a channel and needs to be intepreted on a send but it
         // should almost ever be empty except for new channel creations and stream
         // creations!
-        for worker in self.network_controller.iter() {
-            worker
+        for controller in self.network_controller.iter() {
+            controller
                 .get_tx()
                 .send(CtrlMsg::Send(OutGoingMessage {
                     buffer: messagebuffer.clone(),
@@ -284,6 +283,7 @@ impl Stream {
         Ok(())
     }
 
+    //TODO: remove the Option, async should make it unnecesarry!
     pub fn recv<M: DeserializeOwned>(&self) -> Result<Option<M>, StreamError> {
         match self.msg_rx.try_recv() {
             Ok(msg) => {

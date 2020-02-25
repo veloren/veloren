@@ -10,6 +10,10 @@ mod types;
 mod udp;
 mod worker;
 
+pub use api::{
+    Address, Network, NetworkError, Participant, ParticipantError, Promise, Stream, StreamError,
+};
+
 #[cfg(test)]
 pub mod tests {
     use crate::api::*;
@@ -63,7 +67,6 @@ pub mod tests {
     fn aaa() { test_tracing(); }
 
     #[test]
-    #[ignore]
     fn client_server() {
         let thread_pool = Arc::new(
             ThreadPoolBuilder::new()
@@ -82,7 +85,7 @@ pub mod tests {
         let p1 = block_on(n1.connect(&a2)).unwrap(); //await
         let s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap();
 
-        s1.send("Hello World");
+        assert!(s1.send("Hello World").is_ok());
 
         let p1_n2 = block_on(n2.connected()).unwrap(); //remote representation of p1
         let s1_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s1
@@ -90,7 +93,7 @@ pub mod tests {
         let s = block_on_recv(&s1_n2);
         assert_eq!(s, Ok("Hello World".to_string()));
 
-        p1.close(s1);
+        assert!(p1.close(s1).is_ok());
     }
 
     #[test]
@@ -118,14 +121,11 @@ pub mod tests {
         let s4 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap();
         let s5 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap();
 
-        thread::sleep(Duration::from_millis(3));
-        s3.send("Hello World3");
-        thread::sleep(Duration::from_millis(3));
-        s1.send("Hello World1");
-        s5.send("Hello World5");
-        s2.send("Hello World2");
-        s4.send("Hello World4");
-        thread::sleep(Duration::from_millis(3));
+        assert!(s3.send("Hello World3").is_ok());
+        assert!(s1.send("Hello World1").is_ok());
+        assert!(s5.send("Hello World5").is_ok());
+        assert!(s2.send("Hello World2").is_ok());
+        assert!(s4.send("Hello World4").is_ok());
 
         let p1_n2 = block_on(n2.connected()).unwrap(); //remote representation of p1
         let s1_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s1
@@ -138,20 +138,15 @@ pub mod tests {
 
         let s = block_on_recv(&s3_n2);
         assert_eq!(s, Ok("Hello World3".to_string()));
-        info!("1 read");
         let s = block_on_recv(&s1_n2);
         assert_eq!(s, Ok("Hello World1".to_string()));
-        info!("2 read");
         let s = block_on_recv(&s2_n2);
         assert_eq!(s, Ok("Hello World2".to_string()));
-        info!("3 read");
         let s = block_on_recv(&s5_n2);
         assert_eq!(s, Ok("Hello World5".to_string()));
-        info!("4 read");
         let s = block_on_recv(&s4_n2);
         assert_eq!(s, Ok("Hello World4".to_string()));
-        info!("5 read");
 
-        p1.close(s1);
+        assert!(p1.close(s1).is_ok());
     }
 }

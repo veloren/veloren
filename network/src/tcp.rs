@@ -13,7 +13,7 @@ pub(crate) struct TcpChannel {
 
 impl TcpChannel {
     pub fn new(endpoint: TcpStream) -> Self {
-        let mut b = vec![0; 200];
+        let mut b = vec![0; 1600000];
         Self {
             endpoint,
             read_buffer: b.clone(),
@@ -33,17 +33,38 @@ impl ChannelProtocol for TcpChannel {
                 trace!("incomming message with len: {}", n);
                 let mut cur = std::io::Cursor::new(&self.read_buffer[..n]);
                 while cur.position() < n as u64 {
+                    let round_start = cur.position();
                     let r: Result<Frame, _> = bincode::deserialize_from(&mut cur);
                     match r {
                         Ok(frame) => result.push(frame),
                         Err(e) => {
-                            error!(
+                            let newlen = self.read_buffer.len() * 2;
+                            let debug_part = &self.read_buffer[(round_start as usize)
+                                ..std::cmp::min(n as usize, (round_start + 10) as usize)];
+                            warn!(
                                 ?self,
                                 ?e,
-                                "failure parsing a message with len: {}, starting with: {:?}",
-                                n,
-                                &self.read_buffer[0..std::cmp::min(n, 10)]
+                                ?round_start,
+                                "message cant be parsed, probably because buffer isn't large \
+                                 enough, starting with: {:?}, increase to {}",
+                                debug_part,
+                                newlen
                             );
+                            error!(
+                                "please please please find a solution, either we need to keep the \
+                                 buffer hight 1500 and hope for the other part to coorporate or \
+                                 we need a way to keep some data in read_buffer till next call or \
+                                 have a loop around it ... etc... which is error prone, so i dont \
+                                 want to do it!"
+                            );
+                            if newlen > 204800000 {
+                                error!(
+                                    "something is seriossly broken with our messages, skipp the \
+                                     resize"
+                                );
+                            } else {
+                                self.read_buffer.resize(newlen as usize, 0);
+                            }
                             break;
                         },
                     }

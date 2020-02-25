@@ -2,10 +2,10 @@ use bincode;
 use serde::{de::DeserializeOwned, Serialize};
 //use std::collections::VecDeque;
 use crate::types::{Mid, Sid};
+use byteorder::{NetworkEndian, ReadBytesExt};
 use std::sync::Arc;
 use tracing::*;
 
-#[derive(Debug)]
 pub(crate) struct MessageBuffer {
     // use VecDeque for msg storage, because it allows to quickly remove data from front.
     //however VecDeque needs custom bincode code, but it's possible
@@ -43,6 +43,31 @@ pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> M {
     let span = buffer.data;
     let decoded: M = bincode::deserialize(span.as_slice()).unwrap();
     decoded
+}
+
+impl std::fmt::Debug for MessageBuffer {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        //TODO: small messages!
+        let len = self.data.len();
+        if len > 20 {
+            let n1 = (&self.data[0..4]).read_u32::<NetworkEndian>().unwrap();
+            let n2 = (&self.data[4..8]).read_u32::<NetworkEndian>().unwrap();
+            let n3 = (&self.data[8..12]).read_u32::<NetworkEndian>().unwrap();
+            write!(
+                f,
+                "MessageBuffer(len: {}, {}, {}, {}, {:?}..{:?})",
+                len,
+                n1,
+                n2,
+                n3,
+                &self.data[13..16],
+                &self.data[len - 8..len]
+            )
+        } else {
+            write!(f, "MessageBuffer(len: {}, {:?})", len, &self.data[..])
+        }
+    }
 }
 
 #[cfg(test)]

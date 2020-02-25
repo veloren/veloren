@@ -1,7 +1,6 @@
 use crate::{
     channel::{Channel, ChannelProtocol, ChannelProtocols},
     controller::Controller,
-    message::InCommingMessage,
     metrics::NetworkMetrics,
     tcp::TcpChannel,
     types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg, TokenObjects},
@@ -10,7 +9,7 @@ use mio::{self, Poll, PollOpt, Ready, Token};
 use mio_extras::channel::{Receiver, Sender};
 use std::{
     collections::HashMap,
-    sync::{mpsc, mpsc::TryRecvError, Arc, RwLock},
+    sync::{mpsc::TryRecvError, Arc, RwLock},
     time::Instant,
 };
 use tlid;
@@ -101,108 +100,109 @@ impl Worker {
     }
 
     fn handle_ctl(&mut self) -> bool {
-        let msg = match self.ctrl_rx.try_recv() {
-            Ok(msg) => msg,
-            Err(TryRecvError::Empty) => {
-                return false;
-            },
-            Err(err) => {
-                panic!("Unexpected error '{}'", err);
-            },
-        };
+        loop {
+            let msg = match self.ctrl_rx.try_recv() {
+                Ok(msg) => msg,
+                Err(TryRecvError::Empty) => {
+                    return false;
+                },
+                Err(err) => {
+                    panic!("Unexpected error '{}'", err);
+                },
+            };
 
-        match msg {
-            CtrlMsg::Shutdown => {
-                debug!("Shutting Down");
-                for (tok, obj) in self.mio_tokens.tokens.iter_mut() {
-                    if let TokenObjects::Channel(channel) = obj {
-                        channel.shutdown();
-                        channel.tick_send();
-                    }
-                }
-                return true;
-            },
-            CtrlMsg::Register(handle, interest, opts) => {
-                let tok = self.mio_tokens.construct();
-                match &handle {
-                    TokenObjects::TcpListener(h) => {
-                        self.poll.register(h, tok, interest, opts).unwrap()
-                    },
-                    TokenObjects::Channel(channel) => {
-                        match channel.get_protocol() {
-                            ChannelProtocols::Tcp(c) => {
-                                self.poll.register(c.get_handle(), tok, interest, opts)
-                            },
-                            ChannelProtocols::Udp(c) => {
-                                self.poll.register(c.get_handle(), tok, interest, opts)
-                            },
-                            ChannelProtocols::Mpsc(c) => {
-                                self.poll.register(c.get_handle(), tok, interest, opts)
-                            },
-                        }
-                        .unwrap();
-                    },
-                }
-                debug!(?handle, ?tok, "Registered new handle");
-                self.mio_tokens.insert(tok, handle);
-            },
-            CtrlMsg::OpenStream {
-                pid,
-                prio,
-                promises,
-                msg_tx,
-                return_sid,
-            } => {
-                let mut handled = false;
-                for (tok, obj) in self.mio_tokens.tokens.iter_mut() {
-                    if let TokenObjects::Channel(channel) = obj {
-                        if Some(pid) == channel.remote_pid {
-                            let (msg_tx, msg_rx) = mpsc::channel::<InCommingMessage>();
-                            let sid = channel.open_stream(prio, promises, msg_tx);
-                            return_sid.send(sid);
+            match msg {
+                CtrlMsg::Shutdown => {
+                    debug!("Shutting Down");
+                    for (tok, obj) in self.mio_tokens.tokens.iter_mut() {
+                        if let TokenObjects::Channel(channel) = obj {
+                            channel.shutdown();
                             channel.tick_send();
-                            error!("handle msg_tx");
+                        }
+                    }
+                    return true;
+                },
+                CtrlMsg::Register(handle, interest, opts) => {
+                    let tok = self.mio_tokens.construct();
+                    match &handle {
+                        TokenObjects::TcpListener(h) => {
+                            self.poll.register(h, tok, interest, opts).unwrap()
+                        },
+                        TokenObjects::Channel(channel) => {
+                            match channel.get_protocol() {
+                                ChannelProtocols::Tcp(c) => {
+                                    self.poll.register(c.get_handle(), tok, interest, opts)
+                                },
+                                ChannelProtocols::Udp(c) => {
+                                    self.poll.register(c.get_handle(), tok, interest, opts)
+                                },
+                                ChannelProtocols::Mpsc(c) => {
+                                    self.poll.register(c.get_handle(), tok, interest, opts)
+                                },
+                            }
+                            .unwrap();
+                        },
+                    }
+                    debug!(?handle, ?tok, "Registered new handle");
+                    self.mio_tokens.insert(tok, handle);
+                },
+                CtrlMsg::OpenStream {
+                    pid,
+                    prio,
+                    promises,
+                    msg_tx,
+                    return_sid,
+                } => {
+                    let mut handled = false;
+                    for (tok, obj) in self.mio_tokens.tokens.iter_mut() {
+                        if let TokenObjects::Channel(channel) = obj {
+                            if Some(pid) == channel.remote_pid {
+                                let sid = channel.open_stream(prio, promises, msg_tx);
+                                return_sid.send(sid);
+                                channel.tick_send();
+                                handled = true;
+                                break;
+                            }
+                        }
+                    }
+                    if !handled {
+                        error!(?pid, "couldn't open Stream, didn't found pid");
+                    }
+                },
+                CtrlMsg::CloseStream { pid, sid } => {
+                    let mut handled = false;
+                    for to in self.mio_tokens.tokens.values_mut() {
+                        if let TokenObjects::Channel(channel) = to {
+                            if Some(pid) == channel.remote_pid {
+                                channel.close_stream(sid); //TODO: check participant
+                                channel.tick_send();
+                                handled = true;
+                                break;
+                            }
+                        }
+                    }
+                    if !handled {
+                        error!(?pid, "couldn't close Stream, didn't found pid");
+                    }
+                },
+                CtrlMsg::Send(outgoing) => {
+                    let mut handled = false;
+                    for to in self.mio_tokens.tokens.values_mut() {
+                        if let TokenObjects::Channel(channel) = to {
+                            channel.send(outgoing); //TODO: check participant
+                            channel.tick_send();
                             handled = true;
                             break;
                         }
                     }
-                }
-                if !handled {
-                    error!(?pid, "couldn't open Stream, didn't found pid");
-                }
-            },
-            CtrlMsg::CloseStream { pid, sid } => {
-                let mut handled = false;
-                for to in self.mio_tokens.tokens.values_mut() {
-                    if let TokenObjects::Channel(channel) = to {
-                        if Some(pid) == channel.remote_pid {
-                            channel.close_stream(sid); //TODO: check participant
-                            channel.tick_send();
-                            handled = true;
-                            break;
-                        }
+                    if !handled {
+                        error!(
+                            "help, we should check here for stream data, but its in channel ...."
+                        );
                     }
-                }
-                if !handled {
-                    error!(?pid, "couldn't close Stream, didn't found pid");
-                }
-            },
-            CtrlMsg::Send(outgoing) => {
-                let mut handled = false;
-                for to in self.mio_tokens.tokens.values_mut() {
-                    if let TokenObjects::Channel(channel) = to {
-                        channel.send(outgoing); //TODO: check participant
-                        channel.tick_send();
-                        handled = true;
-                        break;
-                    }
-                }
-                if !handled {
-                    error!("help, we should check here for stream data, but its in channel ....");
-                }
-            },
-        };
-        false
+                },
+            };
+        }
     }
 
     fn handle_tok(&mut self, event: &mio::Event) {
