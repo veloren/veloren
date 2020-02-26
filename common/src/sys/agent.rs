@@ -208,7 +208,7 @@ impl<'a> System<'a> for Sys {
                         } else {
                             do_idle = true;
                         }
-                    }
+                    },
                 }
             }
 
