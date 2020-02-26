@@ -183,6 +183,30 @@ windows:
             - assets/
             - LICENSE
         expire_in: 1 week
+
+macos:
+    stage: build-post
+    when: delayed
+    start_in: 5 seconds
+    only:
+        refs:
+            - /^r[0-9]+\.[0-9]+\.[0-9]+/
+            - /^v[0-9]+\.[0-9]+/
+            - /^master$/
+            - /^docker-server$/
+    tags:
+        - veloren-docker
+    script:
+        - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
+        - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
+        - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli
+            - veloren-voxygen
+            - assets/
+            - LICENSE
+        expire_in: 1 week
 # --
 
 # -- publish
