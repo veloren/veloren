@@ -6,8 +6,8 @@ mod all;
 mod block;
 mod column;
 pub mod config;
-pub mod generator;
 pub mod sim;
+pub mod site;
 pub mod util;
 
 // Reexports
