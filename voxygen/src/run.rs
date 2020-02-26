@@ -73,7 +73,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
                                 global_state.on_play_state_changed();
                             });
                             states.last_mut().map(|new_state| {
-                                new_state.enter(&mut global_state, Direction::Forwards);
+                                new_state.enter(&mut global_state, Direction::Backwards);
                             });
                         },
                         PlayStateResult::Push(mut new_state) => {
@@ -115,17 +115,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
                         .swap_buffers()
                         .expect("Failed to swap window buffers!");
                 }
-                //global_state.window.request_redraw();
             },
-            /*winit::event::Event::WindowEvent {
-                event: WindowEvent::RedrawRequested,
-                ..
-            } => {
-                // render here
-            }
-                ..
-                *control_flow = ControlFlow::Exit;
-            }*/
             winit::event::Event::WindowEvent { event, .. } => global_state
                 .window
                 .handle_window_event(event, &mut global_state.settings),
