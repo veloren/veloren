@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added gamma setting
 - Added new orc hairstyles
 - Added sfx for wielding/unwielding weapons
+- Fixed NPCs attacking the player forever after killing them
 
 ### Changed
 
