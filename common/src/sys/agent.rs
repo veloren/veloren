@@ -124,7 +124,7 @@ impl<'a> System<'a> for Sys {
                         if thread_rng().gen::<f32>() < 0.1 {
                             choose_target = true;
                         }
-                    }
+                    },
                     Activity::Follow(target, chaser) => {
                         if let (Some(tgt_pos), _tgt_stats) =
                             (positions.get(*target), stats.get(*target))
@@ -146,7 +146,7 @@ impl<'a> System<'a> for Sys {
                         } else {
                             do_idle = true;
                         }
-                    }
+                    },
                     Activity::Attack {
                         target,
                         chaser,
