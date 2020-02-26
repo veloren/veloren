@@ -26,7 +26,7 @@ use crate::{
     all::ForestKind,
     block::BlockGen,
     column::ColumnGen,
-    generator::{Settlement, Site},
+    site::{Settlement, Site},
     util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d},
     CONFIG,
 };

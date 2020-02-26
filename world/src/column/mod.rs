@@ -1,7 +1,6 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
-    generator::{Generator, SpawnRules, TownGen},
     sim::{
         local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, LocationInfo, RiverKind, SimChunk,
         WorldSim,
@@ -1102,22 +1101,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             stone_col,
 
             chunk: sim_chunk,
-            /*
-            spawn_rules: sim_chunk
-                .structures
-                .town
-                .as_ref()
-                .map(|town| TownGen.spawn_rules(town, wpos))
-                .unwrap_or(SpawnRules::default())
-                .and(SpawnRules {
-                    cliffs: !in_water,
-                    trees: true,
-                }),
-            */
-            spawn_rules: SpawnRules {
-                cliffs: !in_water,
-                trees: true,
-            },
         })
     }
 }
@@ -1150,7 +1133,6 @@ pub struct ColumnSample<'a> {
     pub stone_col: Rgb<u8>,
 
     pub chunk: &'a SimChunk,
-    pub spawn_rules: SpawnRules,
 }
 
 #[derive(Copy, Clone)]
