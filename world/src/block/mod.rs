@@ -2,7 +2,6 @@ mod natural;
 
 use crate::{
     column::{ColumnGen, ColumnSample},
-    generator::{Generator, TownGen},
     util::{RandomField, Sampler, SmallCache},
     CONFIG,
 };
@@ -51,11 +50,7 @@ impl<'a> BlockGen<'a> {
                 cache,
                 Vec2::from(*cliff_pos),
             ) {
-                Some(cliff_sample)
-                    if cliff_sample.is_cliffs
-                        && cliff_sample.spawn_rate > 0.5
-                        && cliff_sample.spawn_rules.cliffs =>
-                {
+                Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
                     // Conservative range of height: [15.70, 49.33]
@@ -80,7 +75,7 @@ impl<'a> BlockGen<'a> {
                             0.0
                         },
                     )
-                }
+                },
                 _ => max_height,
             },
         )
@@ -397,16 +392,6 @@ impl<'a> BlockGen<'a> {
             (None, sample.alt)
         };
 
-        // Structures (like towns)
-        /*
-        let block = chunk
-            .structures
-            .town
-            .as_ref()
-            .and_then(|town| TownGen.get((town, wpos, sample, height)))
-            .or(block);
-        */
-
         let block = structures
             .iter()
             .find_map(|st| {
@@ -472,21 +457,6 @@ impl<'a> ZCache<'a> {
 
         let min = min + structure_min;
         let max = (ground_max + structure_max).max(self.sample.water_level + 2.0);
-
-        // Structures
-        /*
-        let (min, max) = self
-            .sample
-            .chunk
-            .structures
-            .town
-            .as_ref()
-            .map(|town| {
-                let (town_min, town_max) = TownGen.get_z_limits(town, self.wpos, &self.sample);
-                (town_min.min(min), town_max.max(max))
-            })
-            .unwrap_or((min, max));
-        */
 
         let structures_only_min_z = ground_max.max(self.sample.water_level + 2.0);
 
