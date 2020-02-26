@@ -4,13 +4,12 @@ mod settlement;
 pub use self::settlement::Settlement;
 
 use crate::{
-    block::ZCache,
     column::ColumnSample,
     util::{Grid, Sampler},
 };
 use common::{
     terrain::Block,
-    vol::{BaseVol, WriteVol},
+    vol::{BaseVol, RectSizedVol, WriteVol},
 };
 use std::sync::Arc;
 use vek::*;
@@ -33,14 +32,14 @@ impl Site {
         }
     }
 
-    pub fn apply_to(
-        &self,
+    pub fn apply_to<'a>(
+        &'a self,
         wpos2d: Vec2<i32>,
-        zcaches: &Grid<Option<ZCache>>,
-        vol: &mut (impl BaseVol<Vox = Block> + WriteVol),
+        get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + WriteVol),
     ) {
         match self {
-            Site::Settlement(settlement) => settlement.apply_to(wpos2d, zcaches, vol),
+            Site::Settlement(settlement) => settlement.apply_to(wpos2d, get_column, vol),
         }
     }
 }
