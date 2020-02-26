@@ -39,7 +39,13 @@ pub struct ItemConfig {
 pub struct Loadout {
     pub active_item: Option<ItemConfig>,
     pub second_item: Option<ItemConfig>,
-    // armor
+
+    pub shoulder: Option<Item>,
+    pub chest: Option<Item>,
+    pub belt: Option<Item>,
+    pub hand: Option<Item>,
+    pub pants: Option<Item>,
+    pub foot: Option<Item>,
 }
 
 impl From<CharacterAbility> for CharacterState {

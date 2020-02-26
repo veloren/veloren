@@ -100,6 +100,7 @@ pub enum ServerEvent {
     CreateNpc {
         pos: comp::Pos,
         stats: comp::Stats,
+        loadout: comp::Loadout,
         body: comp::Body,
         agent: comp::Agent,
         alignment: comp::Alignment,

@@ -505,6 +505,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                                 .create_npc(
                                     pos,
                                     comp::Stats::new(get_npc_name(id).into(), body),
+                                    comp::Loadout::default(),
                                     body,
                                 )
                                 .with(comp::Vel(vel))

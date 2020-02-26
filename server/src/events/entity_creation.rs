@@ -1,7 +1,7 @@
 use crate::{sys, Server, StateExt};
 use common::comp::{
-    self, Agent, Alignment, Body, Gravity, LightEmitter, Pos, Projectile, Scale, Stats, Vel,
-    WaypointArea,
+    self, Agent, Alignment, Body, Gravity, LightEmitter, Loadout, Pos, Projectile, Scale, Stats,
+    Vel, WaypointArea,
 };
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
@@ -24,6 +24,7 @@ pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,
     stats: Stats,
+    loadout: Loadout,
     body: Body,
     agent: Agent,
     alignment: Alignment,
@@ -31,7 +32,7 @@ pub fn handle_create_npc(
 ) {
     server
         .state
-        .create_npc(pos, stats, body)
+        .create_npc(pos, stats, loadout, body)
         .with(agent)
         .with(scale)
         .with(alignment)

@@ -17,6 +17,7 @@ pub trait StateExt {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder;
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder;
@@ -81,6 +82,7 @@ impl StateExt for State {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder {
         self.ecs_mut()
@@ -95,7 +97,7 @@ impl StateExt for State {
             .with(comp::Energy::new(500))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
-            .with(comp::Loadout::default()) // TODO Give the poor npc something to do
+            .with(loadout)
     }
 
     /// Build a static object entity
@@ -161,7 +163,7 @@ impl StateExt for State {
 
         self.write_component(
             entity,
-            if let Some(comp::ItemKind::Tool(tool)) = main.as_ref().map(|i| i.kind) {
+            if let Some(comp::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
                 let mut abilities = tool.get_abilities();
                 let mut ability_drain = abilities.drain(..);
                 comp::Loadout {
@@ -173,6 +175,12 @@ impl StateExt for State {
                         dodge_ability: Some(comp::CharacterAbility::Roll),
                     }),
                     second_item: None,
+                    shoulder: None,
+                    chest: None,
+                    belt: None,
+                    hand: None,
+                    pants: None,
+                    foot: None,
                 }
             } else {
                 comp::Loadout::default()

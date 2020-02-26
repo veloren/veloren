@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, Asset},
-    comp::CharacterAbility,
+    comp::{body::humanoid, CharacterAbility},
     effect::Effect,
     terrain::{Block, BlockKind},
 };
@@ -80,22 +80,17 @@ pub enum DebugKind {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
-    // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also a creepy
-    // thing to do.
-    Helmet,
-    Shoulders,
-    Chestplate,
-    Belt,
-    Gloves,
-    Pants,
-    Boots,
-    Back,
-    Tabard,
-    Gem,
-    Necklace,
+    Shoulder(humanoid::Shoulder),
+    Chest(humanoid::Chest),
+    Belt(humanoid::Belt),
+    Hand(humanoid::Hand),
+    Pants(humanoid::Pants),
+    Foot(humanoid::Foot),
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub type ArmorStats = u32;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
     Apple,
     Cheese,
@@ -124,13 +119,13 @@ pub struct ToolData {
     // TODO: item specific abilities
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(ToolData),
     Armor {
         kind: Armor,
-        power: u32,
+        stats: ArmorStats,
     },
     Consumable {
         kind: Consumable,

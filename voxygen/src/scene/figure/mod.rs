@@ -386,7 +386,7 @@ impl FigureMgr {
 
             let active_item_kind = loadout
                 .and_then(|l| l.active_item.as_ref())
-                .map(|i| i.item.kind);
+                .map(|i| &i.item.kind);
             let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
                 Some(tool.kind)
             } else {
@@ -1348,7 +1348,7 @@ impl FigureMgr {
             };
             let active_item_kind = loadout
                 .and_then(|l| l.active_item.as_ref())
-                .map(|i| i.item.kind);
+                .map(|i| &i.item.kind);
             let character_state = if is_player { character_state } else { None };
 
             let FigureMgr {
