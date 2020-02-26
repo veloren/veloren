@@ -1,5 +1,5 @@
 use crate::{
-    block::ZCache,
+    column::ColumnSample,
     sim::{SimChunk, WorldSim},
     util::{Grid, RandomField, Sampler, StructureGen2d},
 };
@@ -8,7 +8,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     terrain::{Block, BlockKind},
-    vol::{BaseVol, WriteVol},
+    vol::{BaseVol, RectSizedVol, WriteVol},
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -124,6 +124,7 @@ impl Settlement {
         this
     }
 
+    /// Designate hazardous terrain based on world data
     pub fn designate_from_world(&mut self, sim: &WorldSim, rng: &mut impl Rng) {
         let tile_radius = self.radius() as i32 / AREA_SIZE as i32;
         let hazard = self.land.new_plot(Plot::Hazard);
@@ -146,6 +147,7 @@ impl Settlement {
             })
     }
 
+    /// Testing only
     pub fn place_river(&mut self, rng: &mut impl Rng) {
         let river_dir = Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5).normalized();
         let radius = 500.0 + rng.gen::<f32>().powf(2.0) * 1000.0;
@@ -352,20 +354,20 @@ impl Settlement {
 
     pub fn radius(&self) -> f32 { 1200.0 }
 
-    pub fn apply_to(
-        &self,
+    pub fn apply_to<'a>(
+        &'a self,
         wpos2d: Vec2<i32>,
-        zcaches: &Grid<Option<ZCache>>,
-        vol: &mut (impl BaseVol<Vox = Block> + WriteVol),
+        mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + WriteVol),
     ) {
         let rand_field = RandomField::new(0);
 
-        for y in 0..zcaches.size().y {
-            for x in 0..zcaches.size().x {
+        for y in 0..vol.size_xy().y as i32 {
+            for x in 0..vol.size_xy().x as i32 {
                 let offs = Vec2::new(x, y);
 
-                let zcache = if let Some(Some(zcache)) = zcaches.get(offs) {
-                    zcache
+                let col_sample = if let Some(col_sample) = get_column(offs) {
+                    col_sample
                 } else {
                     continue;
                 };
@@ -385,7 +387,7 @@ impl Settlement {
                                 < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0)
                             {
                                 vol.set(
-                                    Vec3::new(offs.x, offs.y, zcache.sample.alt.floor() as i32 + z),
+                                    Vec3::new(offs.x, offs.y, col_sample.alt.floor() as i32 + z),
                                     Block::new(BlockKind::Normal, color),
                                 );
                             }
@@ -394,7 +396,7 @@ impl Settlement {
                     Sample::Tower(Tower::Wall, _pos) => {
                         for z in 0..16 {
                             vol.set(
-                                Vec3::new(offs.x, offs.y, zcache.sample.alt.floor() as i32 + z),
+                                Vec3::new(offs.x, offs.y, col_sample.alt.floor() as i32 + z),
                                 Block::new(BlockKind::Normal, Rgb::new(50, 50, 50)),
                             );
                         }
@@ -446,14 +448,14 @@ impl Settlement {
                     Vec2::new(-1, 1),
                 ];
                 let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
-                let furrow = (pos * furrow_dir).sum().rem_euclid(4) < 2;
+                let furrow = (pos * furrow_dir).sum().rem_euclid(6) < 3;
                 Rgb::new(
                     if furrow {
-                        120
+                        100
                     } else {
-                        48 + seed.to_le_bytes()[0] % 64
+                        32 + seed.to_le_bytes()[0] % 64
                     },
-                    128 + seed.to_le_bytes()[1] % 128,
+                    64 + seed.to_le_bytes()[1] % 128,
                     16 + seed.to_le_bytes()[2] % 32,
                 )
             },

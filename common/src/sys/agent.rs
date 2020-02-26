@@ -109,7 +109,10 @@ impl<'a> System<'a> for Sys {
                                 .ray(
                                     pos.0 + Vec3::unit_z(),
                                     pos.0
-                                        + Vec3::from(*bearing).normalized() * 1.5
+                                        + Vec3::from(*bearing)
+                                            .try_normalized()
+                                            .unwrap_or(Vec3::zero())
+                                            * 1.5
                                         + Vec3::unit_z(),
                                 )
                                 .until(|block| block.is_solid())

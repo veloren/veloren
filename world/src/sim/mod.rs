@@ -2,7 +2,6 @@ mod diffusion;
 mod erosion;
 mod location;
 mod map;
-mod settlement;
 mod util;
 
 // Reexports
