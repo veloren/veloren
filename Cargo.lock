@@ -2779,7 +2779,8 @@ dependencies = [
 [[package]]
 name = "old_school_gfx_glutin_ext"
 version = "0.23.0"
-source = "git+https://github.com/Imberflur/old-school-gfx-glutin-ext.git#e128e187a81d1fa15409db38bc93e6677fc09288"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7cf32ddfed46b511150abb23d3193d38ec71ffafa561e6c2d82ad06eb51072e"
 dependencies = [
  "gfx_core",
  "gfx_device_gl",

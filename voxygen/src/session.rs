@@ -705,7 +705,6 @@ impl PlayState for SessionState {
                 },
             );
 
-            // TODO: dont
             // Look for changes in the localization files
             if global_state.localization_watcher.reloaded() {
                 hud_events.push(HudEvent::ChangeLanguage(self.voxygen_i18n.metadata.clone()));

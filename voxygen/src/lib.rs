@@ -63,6 +63,7 @@ impl GlobalState {
     pub fn maintain(&mut self, dt: f32) { self.audio.maintain(dt); }
 }
 
+// TODO: appears to be currently unused by playstates
 pub enum Direction {
     Forwards,
     Backwards,
@@ -86,7 +87,6 @@ pub enum PlayStateResult {
 /// A trait representing a playable game state. This may be a menu, a game
 /// session, the title screen, etc.
 pub trait PlayState {
-    /// Get a descriptive name for this state type.
     /// Called when entering this play state from another
     fn enter(&mut self, global_state: &mut GlobalState, direction: Direction);
 

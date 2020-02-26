@@ -25,7 +25,7 @@ anim = { package = "veloren-voxygen-anim", path = "src/anim", default-features =
 # Graphics
 gfx = "0.18.2"
 gfx_device_gl = { version = "0.16.2", optional = true }
-old_school_gfx_glutin_ext = { git = "https://github.com/Imberflur/old-school-gfx-glutin-ext.git" }
+old_school_gfx_glutin_ext = "0.23"
 glutin = "0.23.0"
 winit = { version = "0.21.0", features = ["serde"] }
 conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
