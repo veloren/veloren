@@ -58,7 +58,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         &mut self,
         renderer: &mut Renderer,
         body: Body,
-        item_kind: Option<ItemKind>,
+        item_kind: Option<&ItemKind>,
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
@@ -70,7 +70,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         let key = if item_kind.is_some() {
             FigureKey::Complex(
                 body,
-                item_kind,
+                item_kind.cloned(),
                 camera_mode,
                 character_state.map(|cs| CharacterStateCacheKey::from(cs)),
             )

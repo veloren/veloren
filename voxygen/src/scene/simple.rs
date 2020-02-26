@@ -208,7 +208,7 @@ impl Scene {
         renderer: &mut Renderer,
         tick: u64,
         body: Option<humanoid::Body>,
-        active_item_kind: Option<ItemKind>,
+        active_item_kind: Option<&ItemKind>,
     ) {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 

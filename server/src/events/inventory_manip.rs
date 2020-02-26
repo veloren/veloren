@@ -83,21 +83,97 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         },
 
-        comp::InventoryManip::Use(slot) => {
+        comp::InventoryManip::Use(slot_idx) => {
             let item_opt = state
                 .ecs()
                 .write_storage::<comp::Inventory>()
                 .get_mut(entity)
-                .and_then(|inv| inv.remove(slot));
+                .and_then(|inv| inv.remove(slot_idx));
 
             let mut event = comp::InventoryUpdateEvent::Used;
 
             if let Some(item) = item_opt {
-                match item.kind {
-                    comp::ItemKind::Consumable { kind, effect } => {
-                        event = comp::InventoryUpdateEvent::Consumed(kind);
-                        state.apply_effect(entity, effect);
+                match &item.kind {
+                    comp::ItemKind::Tool(tool) => {
+                        if let Some(loadout) =
+                            state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
+                        {
+                            // Insert old item into inventory
+                            if let Some(old_item) = loadout.active_item.take() {
+                                state
+                                    .ecs()
+                                    .write_storage::<comp::Inventory>()
+                                    .get_mut(entity)
+                                    .map(|inv| inv.insert(slot_idx, old_item.item));
+                            }
+
+                            let mut abilities = tool.get_abilities();
+                            let mut ability_drain = abilities.drain(..);
+                            let active_item = comp::ItemConfig {
+                                item,
+                                primary_ability: ability_drain.next(),
+                                secondary_ability: ability_drain.next(),
+                                block_ability: Some(comp::CharacterAbility::BasicBlock),
+                                dodge_ability: Some(comp::CharacterAbility::Roll),
+                            };
+                            loadout.active_item = Some(active_item);
+                        }
                     },
+
+                    comp::ItemKind::Consumable { kind, effect } => {
+                        event = comp::InventoryUpdateEvent::Consumed(*kind);
+                        state.apply_effect(entity, *effect);
+                    },
+
+                    comp::ItemKind::Armor { kind, .. } => {
+                        if let Some(loadout) =
+                            state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
+                        {
+                            if let Some(comp::Body::Humanoid(body)) =
+                                state.ecs().write_storage::<comp::Body>().get_mut(entity)
+                            {
+                                use comp::item::Armor::*;
+                                let slot = match kind.clone() {
+                                    Shoulder(shoulder) => {
+                                        body.shoulder = shoulder;
+                                        &mut loadout.shoulder
+                                    },
+                                    Chest(chest) => {
+                                        body.chest = chest;
+                                        &mut loadout.chest
+                                    },
+                                    Belt(belt) => {
+                                        body.belt = belt;
+                                        &mut loadout.belt
+                                    },
+                                    Hand(hand) => {
+                                        body.hand = hand;
+                                        &mut loadout.hand
+                                    },
+                                    Pants(pants) => {
+                                        body.pants = pants;
+                                        &mut loadout.pants
+                                    },
+                                    Foot(foot) => {
+                                        body.foot = foot;
+                                        &mut loadout.foot
+                                    },
+                                };
+
+                                // Insert old item into inventory
+                                if let Some(old_item) = slot.take() {
+                                    state
+                                        .ecs()
+                                        .write_storage::<comp::Inventory>()
+                                        .get_mut(entity)
+                                        .map(|inv| inv.insert(slot_idx, old_item));
+                                }
+
+                                *slot = Some(item);
+                            }
+                        }
+                    },
+
                     comp::ItemKind::Utility { kind } => match kind {
                         comp::item::Utility::Collar => {
                             let reinsert = if let Some(pos) =
@@ -155,7 +231,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     .ecs()
                                     .write_storage::<comp::Inventory>()
                                     .get_mut(entity)
-                                    .map(|inv| inv.insert(slot, item));
+                                    .map(|inv| inv.insert(slot_idx, item));
                             }
                         },
                     },
@@ -164,7 +240,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             .ecs()
                             .write_storage::<comp::Inventory>()
                             .get_mut(entity)
-                            .map(|inv| inv.insert(slot, item));
+                            .map(|inv| inv.insert(slot_idx, item));
                     },
                 }
             }

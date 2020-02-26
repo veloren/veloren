@@ -190,6 +190,12 @@ impl<'a> System<'a> for Sys {
                             dodge_ability: None,
                         }),
                         second_item: None,
+                        shoulder: None,
+                        chest: None,
+                        belt: None,
+                        hand: None,
+                        pants: None,
+                        foot: None,
                     };
 
                     let mut scale = 1.0;
@@ -222,6 +228,12 @@ impl<'a> System<'a> for Sys {
                                 dodge_ability: None,
                             }),
                             second_item: None,
+                            shoulder: None,
+                            chest: None,
+                            belt: None,
+                            hand: None,
+                            pants: None,
+                            foot: None,
                         };
 
                         stats.level.set_level(rand::thread_rng().gen_range(8, 15));
@@ -246,6 +258,7 @@ impl<'a> System<'a> for Sys {
                     server_emitter.emit(ServerEvent::CreateNpc {
                         pos: Pos(entity.pos),
                         stats,
+                        loadout,
                         body,
                         alignment,
                         agent: comp::Agent::default().with_patrol_origin(entity.pos),

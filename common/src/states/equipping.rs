@@ -1,15 +1,12 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, StateUpdate, ToolData},
-    states::wielding,
+    comp::{CharacterState, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use std::{collections::VecDeque, time::Duration};
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
-    /// The weapon being equipped
-    pub tool: ToolData,
     /// Time left before next state
     pub time_left: Duration,
 }
@@ -40,7 +37,6 @@ impl CharacterBehavior for Data {
                     .time_left
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
-                tool: self.tool,
             });
         }
 

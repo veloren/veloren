@@ -534,7 +534,7 @@ impl HumArmorFootSpec {
     }
 }
 
-pub fn mesh_main(item_kind: Option<ItemKind>) -> Mesh<FigurePipeline> {
+pub fn mesh_main(item_kind: Option<&ItemKind>) -> Mesh<FigurePipeline> {
     if let Some(item_kind) = item_kind {
         let (name, offset) = match item_kind {
             ItemKind::Tool(ToolData { kind, .. }) => match kind {
