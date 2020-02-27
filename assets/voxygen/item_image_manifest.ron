@@ -35,6 +35,37 @@
         "element.icons.collar",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 10.0), 1.3,
     ),
+    // Armor
+    // Assassin Set
+    Armor(Chest(Assassin)): VoxTrans(
+        "voxel.armor.pants.assa",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants(Assassin)): VoxTrans(
+        "voxel.armor.pants.assa",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants(Assassin)): VoxTrans(
+        "voxel.armor.belt.assa",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants(Assassin)): VoxTrans(
+        "voxel.armor.foot.assa",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Hand(Assassin)): VoxTrans(
+        "voxel.armor.hand.assa_left",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Shoulder(Assassin)): VoxTrans(
+        "voxel.armor.pants.assa",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    // Starting Armor - Plate
+    Armor(Chest(Plate)): VoxTrans(
+        "voxel.armor.chest.plate",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
     // Consumables
     Consumable(Apple): VoxTrans(
         "element.icons.item_apple",
