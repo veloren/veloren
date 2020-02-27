@@ -101,7 +101,7 @@ unittests:
         - veloren-docker
     script:
         - echo "Workaround, cargo tests fails due some rust files are already deleted, so we just stack cargo test. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
-        - cargo test || cargo test || cargo test || cargo test
+        - cargo test || ( sleep 10 && cargo test ) || ( sleep 10 && cargo test ) || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test
 
 coverage:
     stage: build-post
@@ -111,7 +111,7 @@ coverage:
         - veloren-docker
     script:
         - echo "Workaround, tarpaulin fails due some rust files are already deleted, so we just stack tarpaulin. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
-        - cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v
+        - cargo tarpaulin -v || ( sleep 10 && cargo tarpaulin -v ) || ( sleep 10 && cargo tarpaulin -v ) || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v
 
 benchmarks:
     stage: build-post
@@ -144,7 +144,6 @@ linux:
             - /^r[0-9]+\.[0-9]+\.[0-9]+/
             - /^v[0-9]+\.[0-9]+/
             - /^master$/
-            - /^docker-server$/
     tags:
         - veloren-docker
     script:
@@ -193,7 +192,6 @@ macos:
             - /^r[0-9]+\.[0-9]+\.[0-9]+/
             - /^v[0-9]+\.[0-9]+/
             - /^master$/
-            - /^docker-server$/
     tags:
         - veloren-docker
     script:
@@ -227,7 +225,6 @@ docker:
           - /^r[0-9]+\.[0-9]+\.[0-9]+/
           - /^v[0-9]+\.[0-9]+/
           - /^master$/
-          - /^docker-server$/
     tags:
         - veloren-docker
     script:
