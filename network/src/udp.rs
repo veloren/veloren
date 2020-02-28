@@ -57,7 +57,7 @@ impl ChannelProtocol for UdpChannel {
     }
 
     /// Execute when ready to write
-    fn write(&mut self, frame: Frame) {
+    fn write(&mut self, frame: Frame) -> Result<(), ()> {
         if let Ok(mut data) = bincode::serialize(&frame) {
             let total = data.len();
             match self.endpoint.send(&data) {
@@ -72,13 +72,14 @@ impl ChannelProtocol for UdpChannel {
                 },
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     debug!("would block");
-                    return;
+                    return Err(());
                 },
                 Err(e) => {
                     panic!("{}", e);
                 },
             };
         };
+        Ok(())
     }
 
     fn get_handle(&self) -> &Self::Handle { &self.endpoint }

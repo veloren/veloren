@@ -34,7 +34,7 @@ impl ChannelProtocol for MpscChannel {
     }
 
     /// Execute when ready to write
-    fn write(&mut self, frame: Frame) {
+    fn write(&mut self, frame: Frame) -> Result<(), ()> {
         match self.endpoint_sender.send(frame) {
             Ok(n) => {
                 trace!("semded");
@@ -43,12 +43,13 @@ impl ChannelProtocol for MpscChannel {
                 if e.kind() == std::io::ErrorKind::WouldBlock =>
             {
                 debug!("would block");
-                return;
+                return Err(());
             }
             Err(e) => {
                 panic!("{}", e);
             },
         };
+        Ok(())
     }
 
     fn get_handle(&self) -> &Self::Handle { &self.endpoint_receiver }
