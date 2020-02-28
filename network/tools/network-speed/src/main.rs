@@ -59,7 +59,7 @@ fn main() {
         )
         .get_matches();
 
-    let filter = EnvFilter::from_default_env().add_directive("warn".parse().unwrap());
+    let filter = EnvFilter::from_default_env().add_directive("trace".parse().unwrap());
     //.add_directive("veloren_network::tests=trace".parse().unwrap());
 
     tracing_subscriber::FmtSubscriber::builder()
@@ -121,18 +121,18 @@ fn client() {
         let p1 = block_on(client.connect(&address)).unwrap(); //remote representation of p1
         let s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
         let mut last = Instant::now();
+        let mut id = 0u64;
         loop {
-            let mut id = 0u64;
             s1.send(Msg::Ping {
                 id,
-                data: vec![0; 100],
+                data: vec![0; 1000],
             });
             id += 1;
-            if id.rem_euclid(10000) == 0 {
+            if id.rem_euclid(1000000) == 0 {
                 let new = Instant::now();
                 let diff = new.duration_since(last);
                 last = new;
-                println!("10.000 took {}", diff.as_millis());
+                println!("1.000.000 took {}", diff.as_millis());
             }
             let _: Result<Option<Msg>, _> = s1.recv();
         }

@@ -21,8 +21,8 @@ pub(crate) trait ChannelProtocol {
     type Handle: ?Sized + mio::Evented;
     /// Execute when ready to read
     fn read(&mut self) -> Vec<Frame>;
-    /// Execute when ready to write
-    fn write(&mut self, frame: Frame);
+    /// Execute when ready to write, return Err when would block
+    fn write(&mut self, frame: Frame) -> Result<(), ()>;
     /// used for mio
     fn get_handle(&self) -> &Self::Handle;
 }
@@ -142,17 +142,23 @@ impl Channel {
         match &mut self.protocol {
             ChannelProtocols::Tcp(c) => {
                 while let Some(frame) = self.send_queue.pop_front() {
-                    c.write(frame)
+                    if c.write(frame).is_err() {
+                        break;
+                    }
                 }
             },
             ChannelProtocols::Udp(c) => {
                 while let Some(frame) = self.send_queue.pop_front() {
-                    c.write(frame)
+                    if c.write(frame).is_err() {
+                        break;
+                    }
                 }
             },
             ChannelProtocols::Mpsc(c) => {
                 while let Some(frame) = self.send_queue.pop_front() {
-                    c.write(frame)
+                    if c.write(frame).is_err() {
+                        break;
+                    }
                 }
             },
         }
@@ -165,11 +171,14 @@ impl Channel {
                 version,
             } => {
                 if magic_number != VELOREN_MAGIC_NUMBER {
-                    error!("tcp connection with invalid handshake, closing connection");
+                    error!(
+                        ?magic_number,
+                        "connection with invalid magic_number, closing connection"
+                    );
                     self.wrong_shutdown(Self::WRONG_NUMBER);
                 }
                 if version != VELOREN_NETWORK_VERSION {
-                    error!("tcp connection with wrong network version");
+                    error!(?version, "tcp connection with wrong network version");
                     self.wrong_shutdown(
                         format!(
                             "{} Our Version: {:?}\nYour Version: {:?}\nClosing the connection",
