@@ -23,11 +23,6 @@
 
 .project
 
-# Vim
-
-**/*.swp
-**/*.vi
-
 # Veloren
 *.rar
 *.log
