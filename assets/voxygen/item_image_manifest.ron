@@ -38,18 +38,18 @@
     // Armor
     // Assassin Set
     Armor(Chest(Assassin)): VoxTrans(
-        "voxel.armor.pants.assa",
+        "voxel.armor.chest.assa",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Pants(Assassin)): VoxTrans(
         "voxel.armor.pants.assa",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Pants(Assassin)): VoxTrans(
+    Armor(Belt(Assassin)): VoxTrans(
         "voxel.armor.belt.assa",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Pants(Assassin)): VoxTrans(
+    Armor(Foot(Assassin)): VoxTrans(
         "voxel.armor.foot.assa",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
@@ -58,7 +58,7 @@
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Shoulder(Assassin)): VoxTrans(
-        "voxel.armor.pants.assa",
+        "voxel.armor.shoulder.assa",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     // Starting Armor - Plate
