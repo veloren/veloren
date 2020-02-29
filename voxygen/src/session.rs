@@ -4,7 +4,7 @@ use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
     render::Renderer,
-    scene::Scene,
+    scene::{camera, Scene, SceneData},
     window::{Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -108,7 +108,11 @@ impl SessionState {
         renderer.clear();
 
         // Render the screen using the global renderer
-        self.scene.render(renderer, &mut self.client.borrow_mut());
+        {
+            let client = self.client.borrow();
+            self.scene
+                .render(renderer, client.state(), client.entity(), client.get_tick());
+        }
         // Draw the UI to the screen
         self.hud.render(renderer, self.scene.globals());
 
@@ -145,10 +149,12 @@ impl PlayState for SessionState {
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Character = current_client_state {
             // Compute camera data
-            let (view_mat, _, cam_pos) = self
-                .scene
-                .camera()
-                .compute_dependents(&self.client.borrow());
+            self.scene
+                .camera_mut()
+                .compute_dependents(&*self.client.borrow().state().terrain());
+            let camera::Dependents {
+                view_mat, cam_pos, ..
+            } = self.scene.camera().dependents();
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
             // Check to see whether we're aiming at anything
@@ -396,6 +402,10 @@ impl PlayState for SessionState {
             // Maintain global state.
             global_state.maintain(clock.get_last_delta().as_secs_f32());
 
+            // Recompute dependents just in case some input modified the camera
+            self.scene
+                .camera_mut()
+                .compute_dependents(&*self.client.borrow().state().terrain());
             // Extract HUD events ensuring the client borrow gets dropped.
             let mut hud_events = self.hud.maintain(
                 &self.client.borrow(),
@@ -555,6 +565,9 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();
                         self.scene.camera_mut().set_fov_deg(new_fov);
+                        self.scene
+                            .camera_mut()
+                            .compute_dependents(&*self.client.borrow().state().terrain());
                     },
                     HudEvent::ChangeGamma(new_gamma) => {
                         global_state.settings.graphics.gamma = new_gamma;
@@ -618,11 +631,19 @@ impl PlayState for SessionState {
             if global_state.singleplayer.is_none()
                 || !global_state.singleplayer.as_ref().unwrap().is_paused()
             {
-                // Maintain the scene.
+                let client = self.client.borrow();
+                let scene_data = SceneData {
+                    state: client.state(),
+                    player_entity: client.entity(),
+                    loaded_distance: client.loaded_distance(),
+                    view_distance: client.view_distance().unwrap_or(1),
+                    tick: client.get_tick(),
+                    thread_pool: client.thread_pool(),
+                };
                 self.scene.maintain(
                     global_state.window.renderer_mut(),
                     &mut global_state.audio,
-                    &self.client.borrow(),
+                    &scene_data,
                     global_state.settings.graphics.gamma,
                 );
             }

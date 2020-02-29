@@ -3377,6 +3377,7 @@ dependencies = [
  "specs 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git)",
  "treeculler 0.1.0 (git+https://gitlab.com/yusdacra/treeculler.git)",
+ "uvth 3.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "veloren-client 0.5.0",
  "veloren-common 0.5.0",
