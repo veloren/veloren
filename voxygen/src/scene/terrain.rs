@@ -6,7 +6,7 @@ use crate::{
     },
 };
 
-use client::Client;
+use super::SceneData;
 use common::{
     assets,
     figure::Segment,
@@ -1083,26 +1083,26 @@ impl<V: RectRasterableVol> Terrain<V> {
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
-        client: &Client,
+        scene_data: &SceneData,
         focus_pos: Vec3<f32>,
         loaded_distance: f32,
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,
     ) {
-        let current_tick = client.get_tick();
-        let current_time = client.state().get_time();
+        let current_tick = scene_data.tick;
+        let current_time = scene_data.state.get_time();
 
         // Add any recently created or changed chunks to the list of chunks to be
         // meshed.
-        for (modified, pos) in client
-            .state()
+        for (modified, pos) in scene_data
+            .state
             .terrain_changes()
             .modified_chunks
             .iter()
             .map(|c| (true, c))
             .chain(
-                client
-                    .state()
+                scene_data
+                    .state
                     .terrain_changes()
                     .new_chunks
                     .iter()
@@ -1121,8 +1121,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                         let mut neighbours = true;
                         for i in -1..2 {
                             for j in -1..2 {
-                                neighbours &= client
-                                    .state()
+                                neighbours &= scene_data
+                                    .state
                                     .terrain()
                                     .get_key(pos + Vec2::new(i, j))
                                     .is_some();
@@ -1143,20 +1143,20 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         // Add the chunks belonging to recently changed blocks to the list of chunks to
         // be meshed
-        for pos in client
-            .state()
+        for pos in scene_data
+            .state
             .terrain_changes()
             .modified_blocks
             .iter()
             .map(|(p, _)| *p)
         {
-            let chunk_pos = client.state().terrain().pos_key(pos);
+            let chunk_pos = scene_data.state.terrain().pos_key(pos);
             // Only mesh if this chunk has all its neighbors
             let mut neighbours = true;
             for i in -1..2 {
                 for j in -1..2 {
-                    neighbours &= client
-                        .state()
+                    neighbours &= scene_data
+                        .state
                         .terrain()
                         .get_key(chunk_pos + Vec2::new(i, j))
                         .is_some();
@@ -1178,15 +1178,15 @@ impl<V: RectRasterableVol> Terrain<V> {
             for x in -1..2 {
                 for y in -1..2 {
                     let neighbour_pos = pos + Vec3::new(x, y, 0);
-                    let neighbour_chunk_pos = client.state().terrain().pos_key(neighbour_pos);
+                    let neighbour_chunk_pos = scene_data.state.terrain().pos_key(neighbour_pos);
 
                     if neighbour_chunk_pos != chunk_pos {
                         // Only remesh if this chunk has all its neighbors
                         let mut neighbours = true;
                         for i in -1..2 {
                             for j in -1..2 {
-                                neighbours &= client
-                                    .state()
+                                neighbours &= scene_data
+                                    .state
                                     .terrain()
                                     .get_key(neighbour_chunk_pos + Vec2::new(i, j))
                                     .is_some();
@@ -1205,7 +1205,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         }
 
         // Remove any models for chunks that have been recently removed.
-        for pos in &client.state().terrain_changes().removed_chunks {
+        for pos in &scene_data.state.terrain_changes().removed_chunks {
             self.chunks.remove(pos);
             self.mesh_todo.remove(pos);
         }
@@ -1220,7 +1220,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
         {
-            if client.thread_pool().queued_jobs() > 0 {
+            if scene_data.thread_pool.queued_jobs() > 0 {
                 break;
             }
 
@@ -1239,7 +1239,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             // Copy out the chunk data we need to perform the meshing. We do this by taking
             // a sample of the terrain that includes both the chunk we want and
             // its neighbours.
-            let volume = match client.state().terrain().sample(aabr) {
+            let volume = match scene_data.state.terrain().sample(aabr) {
                 Ok(sample) => sample,
                 // Either this chunk or its neighbours doesn't yet exist, so we keep it in the
                 // queue to be processed at a later date when we have its neighbours.
@@ -1266,7 +1266,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             // Queue the worker thread.
             let started_tick = todo.started_tick;
-            client.thread_pool().execute(move || {
+            scene_data.thread_pool.execute(move || {
                 let _ = send.send(mesh_worker(
                     pos,
                     (min_z as f32, max_z as f32),
