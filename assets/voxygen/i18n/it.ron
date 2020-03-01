@@ -20,7 +20,7 @@ VoxygenLocalization(
                 language_identifier: "it",
             ),
             convert_utf8_to_ascii: false,
-			 fonts: {
+             fonts: {
         "opensans": Font (
             asset_key: "voxygen.font.OpenSans-Regular",
             scale_ratio: 1.0,
@@ -285,7 +285,7 @@ Goditi il tuo soggiorno nel Mondo di Veloren."#,
 
                 "hud.settings.general": "Generale",
                 "hud.settings.none": "Nessuno",
-                "hud.settings.press_behavior.toggle": "Attiva/Disattiva"
+                "hud.settings.press_behavior.toggle": "Attiva/Disattiva",
                 "hud.settings.press_behavior.hold": "Tieni Premuto",
                 "hud.settings.help_window": "Finestra di Aiuto",
                 "hud.settings.debug_info": "Informazioni di Debug",
@@ -317,7 +317,7 @@ Goditi il tuo soggiorno nel Mondo di Veloren."#,
                 "hud.settings.zoom_sensitivity": "Sensibilità Zoom",
                 "hud.settings.invert_scroll_zoom": "Zoom Invertito",
                 "hud.settings.invert_mouse_y_axis": "Asse Y del Mouse Invertito",
-                "hud.settings.free_look_behavior": "Comportamento Visuale Libera"
+                "hud.settings.free_look_behavior": "Comportamento Visuale Libera",
 
 
 
@@ -355,56 +355,38 @@ Attiva/Disattiva Nomi
 Attiva/Disattiva Schermo Intero
 
 
-
-
 Movimento in Avanti
 Movimento a Sinistra
 Movimento a Destra
 Movimento all’Indietro
 
-
 Salto
-
 
 Aliante
 
-
 Schivata
-
 
 Rotolata
 
-
 Scalata
-
 
 Discesa
 
-
 Camminata Automatica
-
 
 Riporre/Sfoderare Armi
 
-
 Mettere/Rimuovere Elmo
-
 
 Sedersi
 
-
 Cavalcatura
-
 
 Interagire
 
 
-
-
 Attacco Base
 Attacco Secondario/Parata/Mira
-
-
 
 
 Slot 1 Barra delle Abilità
@@ -419,8 +401,6 @@ Slot 9 Barra delle Abilità
 Slot 10 Barra delle Abilità
 
 
-
-
 Menù di Pausa
 Impostazioni
 Social
@@ -432,22 +412,14 @@ Borsa
 
 
 
-
-
-
 Invia Messaggio nella Chat
 Scorrimento della Chat
-
-
 
 Camera Libera
 
 
 
 Comandi della Chat:  
-
-
-
 
 /alias [Name] - Cambia il tuo Nome nella Chat   
 /tp [Name] - Ti teleporta da un altro giocatore    
@@ -456,10 +428,7 @@ Comandi della Chat:
 /kill - Suicidati   
 /pig - Fai apparire un maiale PNG    
 /wolf - Fai apparire un lupo PNG  
-/help - Mostra comandi della Chat
-
-
-"#,
+/help - Mostra comandi della Chat"#,
 
 
 
@@ -468,7 +437,7 @@ Comandi della Chat:
                 "hud.social.online": "Online",
                 "hud.social.friends": "Amici",
                 "hud.social.not_yet_available": "Non ancora disponibile",
-                "hud.social.Faction": "Fazione",
+                "hud.social.faction": "Fazione",
                 "hud.social.play_online_fmt": "{nb_player} giocatore/i online",
 
 
@@ -476,7 +445,7 @@ Comandi della Chat:
 
                 "hud.spell": "Incantesimo",
                 
-                "hud.free_look_indicator": "Visuale Libera Attiva"
+                "hud.free_look_indicator": "Visuale Libera Attiva",
                 /// End HUD section
 
 
