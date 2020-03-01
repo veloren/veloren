@@ -157,10 +157,11 @@ impl MovementEventMapper {
         {
             if let Some(wield_event) = match (
                 previous_event.weapon_drawn,
+                current_event.action.is_roll(),
                 Self::has_weapon_drawn(current_event.action),
             ) {
-                (false, true) => Some(SfxEvent::Wield(kind)),
-                (true, false) => Some(SfxEvent::Unwield(kind)),
+                (false, false, true) => Some(SfxEvent::Wield(kind)),
+                (true, false, false) => Some(SfxEvent::Unwield(kind)),
                 _ => None,
             } {
                 return wield_event;
