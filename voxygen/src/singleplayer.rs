@@ -12,6 +12,7 @@ const TPS: u64 = 30;
 
 enum Msg {
     Stop,
+    Pause(bool),
 }
 
 /// Used to start and stop the background thread running the server
@@ -50,6 +51,8 @@ impl Singleplayer {
             settings,
         )
     }
+
+    pub fn pause(&self, paused: bool) { let _ = self.sender.send(Msg::Pause(paused)); }
 }
 
 impl Drop for Singleplayer {
@@ -64,8 +67,26 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
     // Set up an fps clock
     let mut clock = Clock::start();
+    let mut paused = false;
 
     loop {
+        match rec.try_recv() {
+            Ok(msg) => match msg {
+                Msg::Stop => break,
+                Msg::Pause(val) => paused = val,
+            },
+            Err(err) => match err {
+                TryRecvError::Empty => (),
+                TryRecvError::Disconnected => break,
+            },
+        }
+
+        if paused {
+            // Wait for the next tick.
+            clock.tick(Duration::from_millis(1000 / TPS));
+            continue;
+        }
+
         let events = server
             .tick(Input::default(), clock.get_last_delta())
             .expect("Failed to tick server!");
@@ -80,14 +101,6 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
         // Clean up the server after a tick.
         server.cleanup();
-
-        match rec.try_recv() {
-            Ok(_msg) => break,
-            Err(err) => match err {
-                TryRecvError::Empty => (),
-                TryRecvError::Disconnected => break,
-            },
-        }
 
         // Wait for the next tick.
         clock.tick(Duration::from_millis(1000 / TPS));

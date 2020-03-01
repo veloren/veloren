@@ -357,7 +357,7 @@ impl Show {
 
     fn toggle_ui(&mut self) { self.ui = !self.ui; }
 
-    fn toggle_windows(&mut self) {
+    fn toggle_windows(&mut self, global_state: &mut GlobalState) {
         if self.bag
             || self.esc_menu
             || self.map
@@ -379,9 +379,21 @@ impl Show {
             self.character_window = false;
             self.open_windows = Windows::None;
             self.want_grab = true;
+
+            // Unpause the game if we are on singleplayer
+            if let Some(ref singleplayer) = global_state.singleplayer {
+                singleplayer.pause(false);
+                global_state.paused = false;
+            };
         } else {
             self.esc_menu = true;
             self.want_grab = false;
+
+            // Pause the game if we are on singleplayer
+            if let Some(ref singleplayer) = global_state.singleplayer {
+                singleplayer.pause(true);
+                global_state.paused = true;
+            };
         }
     }
 
@@ -1992,7 +2004,7 @@ impl Hud {
                     self.ui.focus_widget(None);
                 } else {
                     // Close windows on esc
-                    self.show.toggle_windows();
+                    self.show.toggle_windows(global_state);
                 }
                 true
             },

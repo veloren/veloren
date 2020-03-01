@@ -32,6 +32,7 @@ use crate::{
     menu::main::MainMenuState,
     meta::Meta,
     settings::Settings,
+    singleplayer::Singleplayer,
     window::Window,
 };
 use common::assets::{load, load_expect};
@@ -45,6 +46,8 @@ pub struct GlobalState {
     window: Window,
     audio: AudioFrontend,
     info_message: Option<String>,
+    singleplayer: Option<Singleplayer>,
+    paused: bool,
 }
 
 impl GlobalState {
@@ -135,6 +138,8 @@ fn main() {
         settings,
         meta,
         info_message: None,
+        singleplayer: None,
+        paused: false,
     };
 
     // Try to load the localization and log missing entries
