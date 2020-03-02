@@ -59,7 +59,7 @@ fn main() {
         )
         .get_matches();
 
-    let filter = EnvFilter::from_default_env().add_directive("trace".parse().unwrap());
+    let filter = EnvFilter::from_default_env().add_directive("error".parse().unwrap());
     //.add_directive("veloren_network::tests=trace".parse().unwrap());
 
     tracing_subscriber::FmtSubscriber::builder()
