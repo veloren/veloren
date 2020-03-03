@@ -21,8 +21,8 @@ pub(crate) trait ChannelProtocol {
     type Handle: ?Sized + mio::Evented;
     /// Execute when ready to read
     fn read(&mut self) -> Vec<Frame>;
-    /// Execute when ready to write, return Err when would block
-    fn write(&mut self, frame: Frame) -> Result<(), ()>;
+    /// Execute when ready to write
+    fn write<I: std::iter::Iterator<Item = Frame>>(&mut self, frames: &mut I);
     /// used for mio
     fn get_handle(&self) -> &Self::Handle;
 }
@@ -141,25 +141,13 @@ impl Channel {
         self.tick_streams();
         match &mut self.protocol {
             ChannelProtocols::Tcp(c) => {
-                while let Some(frame) = self.send_queue.pop_front() {
-                    if c.write(frame).is_err() {
-                        break;
-                    }
-                }
+                c.write(&mut self.send_queue.drain(..));
             },
             ChannelProtocols::Udp(c) => {
-                while let Some(frame) = self.send_queue.pop_front() {
-                    if c.write(frame).is_err() {
-                        break;
-                    }
-                }
+                c.write(&mut self.send_queue.drain(..));
             },
             ChannelProtocols::Mpsc(c) => {
-                while let Some(frame) = self.send_queue.pop_front() {
-                    if c.write(frame).is_err() {
-                        break;
-                    }
-                }
+                c.write(&mut self.send_queue.drain(..));
             },
         }
     }
