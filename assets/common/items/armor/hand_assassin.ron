@@ -1,0 +1,8 @@
+Item(
+    name: "Assassin Gloves",
+    description: "Only the best for a member of the creed.",
+    kind: Armor(
+        kind: Hand(Assassin),
+        stats: 20,
+    ),
+)
