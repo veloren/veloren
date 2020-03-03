@@ -58,7 +58,7 @@
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Shoulder(Assassin)): VoxTrans(
-        "voxel.armor.shoulder.assa",
+        "voxel.armor.shoulder.assa_left",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     // Starting Armor - Plate
@@ -113,3 +113,5 @@
         (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
     ),
 })
+
+

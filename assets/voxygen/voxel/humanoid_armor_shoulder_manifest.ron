@@ -22,7 +22,7 @@
     ),
     Assassin: (
         left: (
-            vox_spec: ("armor.shoulder.assa_left", (-4.5, -3.0, 0.1)),
+            vox_spec: ("armor.shoulder.assa_left", (-4.0, -3.5, 0.1)),
             color: None
         ),
         right: (
