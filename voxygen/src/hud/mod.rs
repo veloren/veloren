@@ -1934,6 +1934,11 @@ impl Hud {
                     };
                 },
                 Some(esc_menu::Event::Logout) => {
+                    // Unpause the game if we are on singleplayer so that we can logout
+                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                        singleplayer.pause(false);
+                    };
+
                     events.push(Event::Logout);
                 },
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
