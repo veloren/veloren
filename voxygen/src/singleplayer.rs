@@ -4,6 +4,7 @@ use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use log::info;
 use server::{Event, Input, Server, ServerSettings};
 use std::{
+    sync::atomic::{AtomicBool, Ordering},
     thread::{self, JoinHandle},
     time::Duration,
 };
@@ -20,6 +21,8 @@ enum Msg {
 pub struct Singleplayer {
     _server_thread: JoinHandle<()>,
     sender: Sender<Msg>,
+    // Wether the server is stopped or not
+    paused: AtomicBool,
 }
 
 impl Singleplayer {
@@ -47,12 +50,21 @@ impl Singleplayer {
             Singleplayer {
                 _server_thread: thread,
                 sender,
+                paused: AtomicBool::new(false),
             },
             settings,
         )
     }
 
-    pub fn pause(&self, paused: bool) { let _ = self.sender.send(Msg::Pause(paused)); }
+    /// Returns wether or not the server is paused
+    pub fn is_paused(&self) -> bool { self.paused.load(Ordering::Relaxed) }
+
+    /// Pauses if true is passed and unpauses if false (Does nothing if in that
+    /// state already)
+    pub fn pause(&self, state: bool) {
+        self.paused.load(Ordering::SeqCst);
+        let _ = self.sender.send(Msg::Pause(state));
+    }
 }
 
 impl Drop for Singleplayer {
@@ -70,6 +82,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
     let mut paused = false;
 
     loop {
+        // Check any event such as stopping and pausing
         match rec.try_recv() {
             Ok(msg) => match msg {
                 Msg::Stop => break,
@@ -81,9 +94,11 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
             },
         }
 
+        // Wait for the next tick.
+        clock.tick(Duration::from_millis(1000 / TPS));
+
+        // Skip updating the server if it's paused
         if paused {
-            // Wait for the next tick.
-            clock.tick(Duration::from_millis(1000 / TPS));
             continue;
         }
 
@@ -101,8 +116,5 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
         // Clean up the server after a tick.
         server.cleanup();
-
-        // Wait for the next tick.
-        clock.tick(Duration::from_millis(1000 / TPS));
     }
 }
