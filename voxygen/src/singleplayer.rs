@@ -57,12 +57,12 @@ impl Singleplayer {
     }
 
     /// Returns wether or not the server is paused
-    pub fn is_paused(&self) -> bool { self.paused.load(Ordering::Relaxed) }
+    pub fn is_paused(&self) -> bool { self.paused.load(Ordering::SeqCst) }
 
     /// Pauses if true is passed and unpauses if false (Does nothing if in that
     /// state already)
     pub fn pause(&self, state: bool) {
-        self.paused.load(Ordering::SeqCst);
+        self.paused.store(state, Ordering::SeqCst);
         let _ = self.sender.send(Msg::Pause(state));
     }
 }

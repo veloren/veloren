@@ -383,6 +383,10 @@ impl PlayState for SessionState {
             if global_state.singleplayer.is_none()
                 || !global_state.singleplayer.as_ref().unwrap().is_paused()
             {
+                log::warn!(
+                    "{}",
+                    global_state.singleplayer.as_ref().unwrap().is_paused()
+                );
                 // Perform an in-game tick.
                 if let Err(err) = self.tick(clock.get_avg_delta()) {
                     global_state.info_message =
