@@ -381,18 +381,16 @@ impl Show {
             self.want_grab = true;
 
             // Unpause the game if we are on singleplayer
-            if let Some(ref singleplayer) = global_state.singleplayer {
+            if let Some(singleplayer) = global_state.singleplayer.as_ref() {
                 singleplayer.pause(false);
-                global_state.paused = false;
             };
         } else {
             self.esc_menu = true;
             self.want_grab = false;
 
             // Pause the game if we are on singleplayer
-            if let Some(ref singleplayer) = global_state.singleplayer {
+            if let Some(singleplayer) = global_state.singleplayer.as_ref() {
                 singleplayer.pause(true);
-                global_state.paused = true;
             };
         }
     }
@@ -1929,6 +1927,11 @@ impl Hud {
                     self.show.esc_menu = false;
                     self.show.want_grab = false;
                     self.force_ungrab = true;
+
+                    // Unpause the game if we are on singleplayer
+                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                        singleplayer.pause(false);
+                    };
                 },
                 Some(esc_menu::Event::Logout) => {
                     events.push(Event::Logout);
