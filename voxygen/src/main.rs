@@ -47,7 +47,6 @@ pub struct GlobalState {
     audio: AudioFrontend,
     info_message: Option<String>,
     singleplayer: Option<Singleplayer>,
-    paused: bool,
 }
 
 impl GlobalState {
@@ -139,7 +138,6 @@ fn main() {
         meta,
         info_message: None,
         singleplayer: None,
-        paused: false,
     };
 
     // Try to load the localization and log missing entries
