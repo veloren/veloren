@@ -57,29 +57,27 @@ impl ChannelProtocol for UdpChannel {
     }
 
     /// Execute when ready to write
-    fn write(&mut self, frame: Frame) -> Result<(), ()> {
-        if let Ok(mut data) = bincode::serialize(&frame) {
-            let total = data.len();
-            match self.endpoint.send(&data) {
-                Ok(n) if n == total => {
-                    trace!("send {} bytes", n);
-                },
-                Ok(n) => {
-                    error!("could only send part");
-                    //let data = data.drain(n..).collect(); //TODO:
-                    // validate n.. is correct
-                    // to_send.push_front(data);
-                },
-                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                    debug!("would block");
-                    return Err(());
-                },
-                Err(e) => {
-                    panic!("{}", e);
-                },
+    fn write<I: std::iter::Iterator<Item = Frame>>(&mut self, frames: &mut I) {
+        for frame in frames {
+            if let Ok(mut data) = bincode::serialize(&frame) {
+                let total = data.len();
+                match self.endpoint.send(&data) {
+                    Ok(n) if n == total => {
+                        trace!("send {} bytes", n);
+                    },
+                    Ok(n) => {
+                        error!("could only send part");
+                    },
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        debug!("would block");
+                        return;
+                    },
+                    Err(e) => {
+                        panic!("{}", e);
+                    },
+                };
             };
-        };
-        Ok(())
+        }
     }
 
     fn get_handle(&self) -> &Self::Handle { &self.endpoint }

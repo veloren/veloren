@@ -33,23 +33,23 @@ impl ChannelProtocol for MpscChannel {
         result
     }
 
-    /// Execute when ready to write
-    fn write(&mut self, frame: Frame) -> Result<(), ()> {
-        match self.endpoint_sender.send(frame) {
-            Ok(n) => {
-                trace!("semded");
-            },
-            Err(mio_extras::channel::SendError::Io(e))
-                if e.kind() == std::io::ErrorKind::WouldBlock =>
-            {
-                debug!("would block");
-                return Err(());
-            }
-            Err(e) => {
-                panic!("{}", e);
-            },
-        };
-        Ok(())
+    fn write<I: std::iter::Iterator<Item = Frame>>(&mut self, frames: &mut I) {
+        for frame in frames {
+            match self.endpoint_sender.send(frame) {
+                Ok(n) => {
+                    trace!("sended");
+                },
+                Err(mio_extras::channel::SendError::Io(e))
+                    if e.kind() == std::io::ErrorKind::WouldBlock =>
+                {
+                    debug!("would block");
+                    return;
+                }
+                Err(e) => {
+                    panic!("{}", e);
+                },
+            };
+        }
     }
 
     fn get_handle(&self) -> &Self::Handle { &self.endpoint_receiver }

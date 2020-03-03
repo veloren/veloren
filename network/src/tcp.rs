@@ -59,10 +59,7 @@ impl NetworkBuffer {
 
     fn actually_written(&mut self, cnt: usize) { self.write_idx += cnt; }
 
-    fn get_read_slice(&self) -> &[u8] {
-        trace!(?self, "get_read_slice");
-        &self.data[self.read_idx..self.write_idx]
-    }
+    fn get_read_slice(&self) -> &[u8] { &self.data[self.read_idx..self.write_idx] }
 
     fn actually_read(&mut self, cnt: usize) {
         self.read_idx += cnt;
@@ -162,30 +159,42 @@ impl ChannelProtocol for TcpChannel {
     }
 
     /// Execute when ready to write
-    fn write(&mut self, frame: Frame) -> Result<(), ()> {
-        if let Ok(mut size) = bincode::serialized_size(&frame) {
-            let slice = self.write_buffer.get_write_slice(size as usize);
-            if let Err(e) = bincode::serialize_into(slice, &frame) {
-                error!(
-                    "serialising frame was unsuccessful, this should never happen! dropping frame!"
-                )
+    fn write<I: std::iter::Iterator<Item = Frame>>(&mut self, frames: &mut I) {
+        loop {
+            //serialize when len < MTU 1500, then write
+            if self.write_buffer.get_read_slice().len() < 1500 {
+                match frames.next() {
+                    Some(frame) => {
+                        if let Ok(mut size) = bincode::serialized_size(&frame) {
+                            let slice = self.write_buffer.get_write_slice(size as usize);
+                            if let Err(e) = bincode::serialize_into(slice, &frame) {
+                                error!(
+                                    "serialising frame was unsuccessful, this should never \
+                                     happen! dropping frame!"
+                                )
+                            }
+                            self.write_buffer.actually_written(size as usize); //I have to rely on those informations to be consistent!
+                        } else {
+                            error!(
+                                "getting size of frame was unsuccessful, this should never \
+                                 happen! dropping frame!"
+                            )
+                        };
+                    },
+                    None => break,
+                }
             }
-            self.write_buffer.actually_written(size as usize); //I have to rely on those informations to be consistent!
-        } else {
-            error!(
-                "getting size of frame was unsuccessful, this should never happen! dropping frame!"
-            )
-        };
-        match self.endpoint.write(self.write_buffer.get_read_slice()) {
-            Ok(n) => {
-                self.write_buffer.actually_read(n);
-                Ok(())
-            },
-            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                debug!("can't send tcp yet, would block");
-                Err(())
-            },
-            Err(e) => panic!("{}", e),
+
+            match self.endpoint.write(self.write_buffer.get_read_slice()) {
+                Ok(n) => {
+                    self.write_buffer.actually_read(n);
+                },
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    debug!("can't send tcp yet, would block");
+                    return;
+                },
+                Err(e) => panic!("{}", e),
+            }
         }
     }
 
