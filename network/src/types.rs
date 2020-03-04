@@ -4,6 +4,7 @@ use crate::{
     message::{InCommingMessage, OutGoingMessage},
 };
 use enumset::EnumSet;
+use futures;
 use mio::{self, net::TcpListener, PollOpt, Ready};
 use serde::{Deserialize, Serialize};
 use std::{collections::VecDeque, sync::mpsc};
@@ -32,7 +33,7 @@ pub(crate) enum CtrlMsg {
         pid: Pid,
         prio: u8,
         promises: EnumSet<Promise>,
-        msg_tx: mpsc::Sender<InCommingMessage>,
+        msg_tx: futures::channel::mpsc::UnboundedSender<InCommingMessage>,
         return_sid: mpsc::Sender<Sid>,
     },
     CloseStream {
@@ -51,7 +52,7 @@ pub(crate) enum RtrnMsg {
         pid: Pid,
         sid: Sid,
         prio: u8,
-        msg_rx: mpsc::Receiver<InCommingMessage>,
+        msg_rx: futures::channel::mpsc::UnboundedReceiver<InCommingMessage>,
         promises: EnumSet<Promise>,
     },
     ClosedStream {
@@ -71,7 +72,7 @@ pub(crate) struct IntStream {
     sid: Sid,
     prio: u8,
     promises: EnumSet<Promise>,
-    msg_tx: mpsc::Sender<InCommingMessage>,
+    msg_tx: futures::channel::mpsc::UnboundedSender<InCommingMessage>,
     pub to_send: VecDeque<OutGoingMessage>,
     pub to_receive: VecDeque<InCommingMessage>,
 }
@@ -81,7 +82,7 @@ impl IntStream {
         sid: Sid,
         prio: u8,
         promises: EnumSet<Promise>,
-        msg_tx: mpsc::Sender<InCommingMessage>,
+        msg_tx: futures::channel::mpsc::UnboundedSender<InCommingMessage>,
     ) -> Self {
         IntStream {
             sid,
@@ -97,7 +98,9 @@ impl IntStream {
 
     pub fn prio(&self) -> u8 { self.prio }
 
-    pub fn msg_tx(&self) -> mpsc::Sender<InCommingMessage> { self.msg_tx.clone() }
+    pub fn msg_tx(&self) -> futures::channel::mpsc::UnboundedSender<InCommingMessage> {
+        self.msg_tx.clone()
+    }
 
     pub fn promises(&self) -> EnumSet<Promise> { self.promises }
 }

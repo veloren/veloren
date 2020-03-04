@@ -86,8 +86,8 @@ fn server(port: u16) {
     println!("waiting for client");
 
     let p1 = block_on(server.connected()).unwrap(); //remote representation of p1
-    let s1 = block_on(p1.opened()).unwrap(); //remote representation of s1
-    let s2 = block_on(p1.opened()).unwrap(); //remote representation of s2
+    let mut s1 = block_on(p1.opened()).unwrap(); //remote representation of s1
+    let mut s2 = block_on(p1.opened()).unwrap(); //remote representation of s2
     let t1 = thread::spawn(move || {
         if let Ok(Msg::Ping(id)) = block_on(s1.recv()) {
             thread::sleep(Duration::from_millis(3000));
@@ -117,7 +117,7 @@ fn server(port: u16) {
     thread::sleep(Duration::from_millis(50));
 }
 
-async fn async_task1(s: Stream) -> u64 {
+async fn async_task1(mut s: Stream) -> u64 {
     s.send(Msg::Ping(100));
     println!("[{}], s1_1...", Utc::now().time());
     let m1: Result<Msg, _> = s.recv().await;
@@ -133,7 +133,7 @@ async fn async_task1(s: Stream) -> u64 {
     }
 }
 
-async fn async_task2(s: Stream) -> u64 {
+async fn async_task2(mut s: Stream) -> u64 {
     s.send(Msg::Ping(200));
     println!("[{}], s2_1...", Utc::now().time());
     let m1: Result<Msg, _> = s.recv().await;
@@ -161,8 +161,8 @@ fn client(port: u16) {
     thread::sleep(Duration::from_millis(3)); //TODO: listeing still doesnt block correctly!
 
     let p1 = block_on(client.connect(&address)).unwrap(); //remote representation of p1
-    let s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
-    let s2 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s2
+    let mut s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
+    let mut s2 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s2
     let before = Instant::now();
     block_on(async {
         let f1 = async_task1(s1);
