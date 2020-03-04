@@ -71,7 +71,7 @@ pub enum ServerMsg {
         entity: u64,
         character_state: comp::CharacterState,
     },
-    InventoryUpdate(comp::Inventory),
+    InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
     TerrainChunkUpdate {
         key: Vec2<i32>,
         chunk: Result<Box<TerrainChunk>, ()>,

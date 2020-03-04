@@ -90,7 +90,7 @@ pub enum Armor {
     Necklace,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
     Apple,
     Cheese,
