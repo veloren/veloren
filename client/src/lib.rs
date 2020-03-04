@@ -14,6 +14,7 @@ pub use specs::{
 use byteorder::{ByteOrder, LittleEndian};
 use common::{
     comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
+    event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
         RequestStateError, ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
@@ -377,6 +378,7 @@ impl Client {
                 }
             }
         }
+
         // Handle new messages from the server.
         frontend_events.append(&mut self.handle_new_messages()?);
 
@@ -669,8 +671,14 @@ impl Client {
                             self.state.write_component(entity, character_state);
                         }
                     },
-                    ServerMsg::InventoryUpdate(inventory) => {
-                        self.state.write_component(self.entity, inventory)
+                    ServerMsg::InventoryUpdate(inventory, event) => {
+                        self.state.write_component(self.entity, inventory);
+
+                        self.state
+                            .ecs()
+                            .read_resource::<EventBus<SfxEventItem>>()
+                            .emitter()
+                            .emit(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
                     },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         if let Ok(chunk) = chunk {
