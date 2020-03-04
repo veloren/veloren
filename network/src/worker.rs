@@ -114,7 +114,7 @@ impl Worker {
             match msg {
                 CtrlMsg::Shutdown => {
                     debug!("Shutting Down");
-                    for (tok, obj) in self.mio_tokens.tokens.iter_mut() {
+                    for (_, obj) in self.mio_tokens.tokens.iter_mut() {
                         if let TokenObjects::Channel(channel) = obj {
                             channel.shutdown();
                             channel.tick_send();
@@ -154,11 +154,17 @@ impl Worker {
                     return_sid,
                 } => {
                     let mut handled = false;
-                    for (tok, obj) in self.mio_tokens.tokens.iter_mut() {
+                    for (_, obj) in self.mio_tokens.tokens.iter_mut() {
                         if let TokenObjects::Channel(channel) = obj {
                             if Some(pid) == channel.remote_pid {
                                 let sid = channel.open_stream(prio, promises, msg_tx);
-                                return_sid.send(sid);
+                                if let Err(err) = return_sid.send(sid) {
+                                    error!(
+                                        ?err,
+                                        "cannot send that a stream opened, probably channel was \
+                                         already closed!"
+                                    );
+                                };
                                 channel.tick_send();
                                 handled = true;
                                 break;

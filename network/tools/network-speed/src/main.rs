@@ -93,9 +93,9 @@ fn server(port: u16) {
 
     loop {
         let p1 = block_on(server.connected()).unwrap(); //remote representation of p1
-        let s1 = block_on(p1.opened()).unwrap(); //remote representation of s1
+        let mut s1 = block_on(p1.opened()).unwrap(); //remote representation of s1
         loop {
-            let m: Result<Option<Msg>, _> = s1.recv();
+            let m: Result<Option<Msg>, _> = block_on(s1.recv());
             match m {
                 Ok(Some(Msg::Ping { id, data })) => {
                     //s1.send(Msg::Pong {id, data});
@@ -120,7 +120,7 @@ fn client(port: u16) {
 
     loop {
         let p1 = block_on(client.connect(&address)).unwrap(); //remote representation of p1
-        let s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
+        let mut s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
         let mut last = Instant::now();
         let mut id = 0u64;
         loop {
@@ -135,7 +135,7 @@ fn client(port: u16) {
                 last = new;
                 println!("1.000.000 took {}", diff.as_millis());
             }
-            let _: Result<Option<Msg>, _> = s1.recv();
+            //let _: Result<Option<Msg>, _> = block_on(s1.recv());
         }
     }
 }

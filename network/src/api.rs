@@ -7,7 +7,7 @@ use crate::{
     types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg, Sid, TokenObjects},
 };
 use enumset::*;
-use futures::{future::poll_fn, stream::StreamExt};
+use futures::stream::StreamExt;
 use mio::{
     self,
     net::{TcpListener, TcpStream},
@@ -16,10 +16,7 @@ use mio::{
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    sync::{
-        mpsc::{self, TryRecvError},
-        Arc, RwLock,
-    },
+    sync::{mpsc, Arc, RwLock},
 };
 use tlid;
 use tracing::*;
@@ -46,8 +43,6 @@ pub struct Participant {
     remote_pid: Pid,
     network_controller: Arc<Vec<Controller>>,
 }
-
-pub struct Connection {}
 
 pub struct Stream {
     sid: Sid,
@@ -121,7 +116,7 @@ impl Network {
         let worker = Self::get_lowest_worker(&self.controller);
         let pid = self.participant_id;
         let remotes = self.remotes.clone();
-        let mut span = span!(Level::INFO, "connect", ?address);
+        let span = span!(Level::INFO, "connect", ?address);
         let _enter = span.enter();
         match address {
             Address::Tcp(a) => {
@@ -129,7 +124,7 @@ impl Network {
                 let tcp_stream = TcpStream::connect(&a)?;
                 let tcp_channel = TcpChannel::new(tcp_stream);
                 let (ctrl_tx, ctrl_rx) = mpsc::channel::<Pid>();
-                let mut channel = Channel::new(
+                let channel = Channel::new(
                     pid,
                     ChannelProtocols::Tcp(tcp_channel),
                     remotes,
@@ -190,7 +185,23 @@ impl Network {
         streams: Vec<Stream>,
         msg: M,
     ) -> Result<(), NetworkError> {
-        panic!("sda");
+        let messagebuffer = Arc::new(message::serialize(&msg));
+        //TODO: why do we need a look here, i want my own local directory which is
+        // updated by workes via a channel and needs to be intepreted on a send but it
+        // should almost ever be empty except for new channel creations and stream
+        // creations!
+        for stream in streams {
+            stream
+                .ctr_tx
+                .send(CtrlMsg::Send(OutGoingMessage {
+                    buffer: messagebuffer.clone(),
+                    cursor: 0,
+                    mid: None,
+                    sid: stream.sid,
+                }))
+                .unwrap();
+        }
+        Ok(())
     }
 }
 
@@ -227,7 +238,18 @@ impl Participant {
         Err(ParticipantError::ParticipantDisconected)
     }
 
-    pub fn close(&self, stream: Stream) -> Result<(), ParticipantError> { Ok(()) }
+    pub fn close(&self, stream: Stream) -> Result<(), ParticipantError> {
+        for controller in self.network_controller.iter() {
+            let tx = controller.get_tx();
+            tx.send(CtrlMsg::CloseStream {
+                pid: self.remote_pid,
+                sid: stream.sid,
+            })
+            .unwrap();
+            return Ok(());
+        }
+        Err(ParticipantError::ParticipantDisconected)
+    }
 
     pub async fn opened(&self) -> Result<Stream, ParticipantError> {
         loop {
@@ -255,7 +277,7 @@ impl Participant {
     }
 
     pub async fn _closed(&self) -> Result<Stream, ParticipantError> {
-        panic!("sda");
+        panic!("aaa");
     }
 }
 
@@ -272,7 +294,7 @@ impl Stream {
         // creations!
         self.ctr_tx
             .send(CtrlMsg::Send(OutGoingMessage {
-                buffer: messagebuffer.clone(),
+                buffer: messagebuffer,
                 cursor: 0,
                 mid: None,
                 sid: self.sid,
@@ -317,5 +339,5 @@ impl From<std::io::Error> for NetworkError {
 }
 
 impl<T> From<mio_extras::channel::SendError<T>> for NetworkError {
-    fn from(err: mio_extras::channel::SendError<T>) -> Self { NetworkError::WorkerDestroyed }
+    fn from(_err: mio_extras::channel::SendError<T>) -> Self { NetworkError::WorkerDestroyed }
 }

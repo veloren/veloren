@@ -36,7 +36,7 @@ impl ChannelProtocol for MpscChannel {
     fn write<I: std::iter::Iterator<Item = Frame>>(&mut self, frames: &mut I) {
         for frame in frames {
             match self.endpoint_sender.send(frame) {
-                Ok(n) => {
+                Ok(()) => {
                     trace!("sended");
                 },
                 Err(mio_extras::channel::SendError::Io(e))

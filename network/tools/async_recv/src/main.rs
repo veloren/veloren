@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use clap::{App, Arg, SubCommand};
 use futures::executor::block_on;
-use network::{Address, Network, Participant, Promise, Stream};
+use network::{Address, Network, Promise, Stream};
 use serde::{Deserialize, Serialize};
 use std::{
     net::SocketAddr,
@@ -91,39 +91,39 @@ fn server(port: u16) {
     let t1 = thread::spawn(move || {
         if let Ok(Msg::Ping(id)) = block_on(s1.recv()) {
             thread::sleep(Duration::from_millis(3000));
-            s1.send(Msg::Pong(id));
+            s1.send(Msg::Pong(id)).unwrap();
             println!("[{}], send s1_1", Utc::now().time());
         }
         if let Ok(Msg::Ping(id)) = block_on(s1.recv()) {
             thread::sleep(Duration::from_millis(3000));
-            s1.send(Msg::Pong(id));
+            s1.send(Msg::Pong(id)).unwrap();
             println!("[{}], send s1_2", Utc::now().time());
         }
     });
     let t2 = thread::spawn(move || {
         if let Ok(Msg::Ping(id)) = block_on(s2.recv()) {
             thread::sleep(Duration::from_millis(1000));
-            s2.send(Msg::Pong(id));
+            s2.send(Msg::Pong(id)).unwrap();
             println!("[{}], send s2_1", Utc::now().time());
         }
         if let Ok(Msg::Ping(id)) = block_on(s2.recv()) {
             thread::sleep(Duration::from_millis(1000));
-            s2.send(Msg::Pong(id));
+            s2.send(Msg::Pong(id)).unwrap();
             println!("[{}], send s2_2", Utc::now().time());
         }
     });
-    t1.join();
-    t2.join();
+    t1.join().unwrap();
+    t2.join().unwrap();
     thread::sleep(Duration::from_millis(50));
 }
 
 async fn async_task1(mut s: Stream) -> u64 {
-    s.send(Msg::Ping(100));
+    s.send(Msg::Ping(100)).unwrap();
     println!("[{}], s1_1...", Utc::now().time());
     let m1: Result<Msg, _> = s.recv().await;
     println!("[{}], s1_1: {:?}", Utc::now().time(), m1);
     thread::sleep(Duration::from_millis(1000));
-    s.send(Msg::Ping(101));
+    s.send(Msg::Ping(101)).unwrap();
     println!("[{}], s1_2...", Utc::now().time());
     let m2: Result<Msg, _> = s.recv().await;
     println!("[{}], s1_2: {:?}", Utc::now().time(), m2);
@@ -134,12 +134,12 @@ async fn async_task1(mut s: Stream) -> u64 {
 }
 
 async fn async_task2(mut s: Stream) -> u64 {
-    s.send(Msg::Ping(200));
+    s.send(Msg::Ping(200)).unwrap();
     println!("[{}], s2_1...", Utc::now().time());
     let m1: Result<Msg, _> = s.recv().await;
     println!("[{}], s2_1: {:?}", Utc::now().time(), m1);
     thread::sleep(Duration::from_millis(5000));
-    s.send(Msg::Ping(201));
+    s.send(Msg::Ping(201)).unwrap();
     println!("[{}], s2_2...", Utc::now().time());
     let m2: Result<Msg, _> = s.recv().await;
     println!("[{}], s2_2: {:?}", Utc::now().time(), m2);
@@ -161,13 +161,13 @@ fn client(port: u16) {
     thread::sleep(Duration::from_millis(3)); //TODO: listeing still doesnt block correctly!
 
     let p1 = block_on(client.connect(&address)).unwrap(); //remote representation of p1
-    let mut s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
-    let mut s2 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s2
+    let s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
+    let s2 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s2
     let before = Instant::now();
     block_on(async {
         let f1 = async_task1(s1);
         let f2 = async_task2(s2);
-        let x = futures::join!(f1, f2);
+        let _ = futures::join!(f1, f2);
     });
     if before.elapsed() < Duration::from_secs(13) {
         println!("IT WORKS!");

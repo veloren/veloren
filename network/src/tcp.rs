@@ -1,10 +1,7 @@
 use crate::{channel::ChannelProtocol, types::Frame};
 use bincode;
 use mio::net::TcpStream;
-use std::{
-    io::{Read, Write},
-    ops::Range,
-};
+use std::io::{Read, Write};
 use tracing::*;
 
 pub(crate) struct TcpChannel {
@@ -12,7 +9,6 @@ pub(crate) struct TcpChannel {
     //these buffers only ever contain 1 FRAME !
     read_buffer: NetworkBuffer,
     write_buffer: NetworkBuffer,
-    need_to_send_till: usize,
 }
 
 struct NetworkBuffer {
@@ -27,7 +23,6 @@ impl TcpChannel {
             endpoint,
             read_buffer: NetworkBuffer::new(),
             write_buffer: NetworkBuffer::new(),
-            need_to_send_till: 0,
         }
     }
 }
@@ -98,15 +93,6 @@ impl NetworkBuffer {
     }
 }
 
-fn move_in_vec(vec: &mut Vec<u8>, src: Range<usize>, dest: Range<usize>) {
-    debug_assert_eq!(src.end - src.start, dest.end - dest.start);
-    let mut i2 = dest.start;
-    for i in src {
-        vec[i2] = vec[i];
-        i2 += 1;
-    }
-}
-
 impl ChannelProtocol for TcpChannel {
     type Handle = TcpStream;
 
@@ -165,10 +151,11 @@ impl ChannelProtocol for TcpChannel {
             if self.write_buffer.get_read_slice().len() < 1500 {
                 match frames.next() {
                     Some(frame) => {
-                        if let Ok(mut size) = bincode::serialized_size(&frame) {
+                        if let Ok(size) = bincode::serialized_size(&frame) {
                             let slice = self.write_buffer.get_write_slice(size as usize);
-                            if let Err(e) = bincode::serialize_into(slice, &frame) {
+                            if let Err(err) = bincode::serialize_into(slice, &frame) {
                                 error!(
+                                    ?err,
                                     "serialising frame was unsuccessful, this should never \
                                      happen! dropping frame!"
                                 )
