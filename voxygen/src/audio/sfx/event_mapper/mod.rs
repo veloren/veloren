@@ -1,5 +1,5 @@
-pub mod movement;
-pub mod progression;
+mod movement;
+mod progression;
 
 use movement::MovementEventMapper;
 use progression::ProgressionEventMapper;
