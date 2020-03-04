@@ -331,7 +331,12 @@ impl Channel {
                         let tx = s.msg_tx();
                         for m in s.to_receive.drain(pos..pos + 1) {
                             info!(?sid, ? m.mid, "received message");
-                            tx.send(m).unwrap();
+                            tx.send(m).map_err(|err| {
+                                error!(
+                                    ?err,
+                                    "Couldn't deliver message, as stream no longer exists!"
+                                )
+                            });
                         }
                     }
                 }
