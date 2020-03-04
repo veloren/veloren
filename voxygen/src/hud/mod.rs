@@ -1735,7 +1735,14 @@ impl Hud {
                     settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
-                    settings_window::Event::Close => self.show.settings(false),
+                    settings_window::Event::Close => {
+                        // Unpause the game if we are on singleplayer so that we can logout
+                        if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                            singleplayer.pause(false);
+                        };
+
+                        self.show.settings(false)
+                    },
                     settings_window::Event::AdjustMousePan(sensitivity) => {
                         events.push(Event::AdjustMousePan(sensitivity));
                     },
@@ -1942,7 +1949,14 @@ impl Hud {
                     events.push(Event::Logout);
                 },
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
-                Some(esc_menu::Event::CharacterSelection) => events.push(Event::CharacterSelection),
+                Some(esc_menu::Event::CharacterSelection) => {
+                    // Unpause the game if we are on singleplayer so that we can logout
+                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                        singleplayer.pause(false);
+                    };
+
+                    events.push(Event::CharacterSelection)
+                },
                 None => {},
             }
         }

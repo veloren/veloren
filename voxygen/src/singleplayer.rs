@@ -4,7 +4,10 @@ use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use log::info;
 use server::{Event, Input, Server, ServerSettings};
 use std::{
-    sync::atomic::{AtomicBool, Ordering},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
     thread::{self, JoinHandle},
     time::Duration,
 };
@@ -13,7 +16,6 @@ const TPS: u64 = 30;
 
 enum Msg {
     Stop,
-    Pause(bool),
 }
 
 /// Used to start and stop the background thread running the server
@@ -22,7 +24,7 @@ pub struct Singleplayer {
     _server_thread: JoinHandle<()>,
     sender: Sender<Msg>,
     // Wether the server is stopped or not
-    paused: AtomicBool,
+    paused: Arc<AtomicBool>,
 }
 
 impl Singleplayer {
@@ -35,6 +37,9 @@ impl Singleplayer {
         let thread_pool = client.map(|c| c.thread_pool().clone());
         let settings2 = settings.clone();
 
+        let paused = Arc::new(AtomicBool::new(false));
+        let paused1 = paused.clone();
+
         let thread = thread::spawn(move || {
             let server = Server::new(settings2).expect("Failed to create server instance!");
 
@@ -43,14 +48,14 @@ impl Singleplayer {
                 None => server,
             };
 
-            run_server(server, receiver);
+            run_server(server, receiver, paused1);
         });
 
         (
             Singleplayer {
                 _server_thread: thread,
                 sender,
-                paused: AtomicBool::new(false),
+                paused,
             },
             settings,
         )
@@ -61,10 +66,7 @@ impl Singleplayer {
 
     /// Pauses if true is passed and unpauses if false (Does nothing if in that
     /// state already)
-    pub fn pause(&self, state: bool) {
-        self.paused.store(state, Ordering::SeqCst);
-        let _ = self.sender.send(Msg::Pause(state));
-    }
+    pub fn pause(&self, state: bool) { self.paused.store(state, Ordering::SeqCst); }
 }
 
 impl Drop for Singleplayer {
@@ -74,19 +76,17 @@ impl Drop for Singleplayer {
     }
 }
 
-fn run_server(mut server: Server, rec: Receiver<Msg>) {
+fn run_server(mut server: Server, rec: Receiver<Msg>, paused: Arc<AtomicBool>) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
     let mut clock = Clock::start();
-    let mut paused = false;
 
     loop {
         // Check any event such as stopping and pausing
         match rec.try_recv() {
             Ok(msg) => match msg {
                 Msg::Stop => break,
-                Msg::Pause(val) => paused = val,
             },
             Err(err) => match err {
                 TryRecvError::Empty => (),
@@ -98,8 +98,10 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
         clock.tick(Duration::from_millis(1000 / TPS));
 
         // Skip updating the server if it's paused
-        if paused {
+        if paused.load(Ordering::SeqCst) && server.number_of_players() < 2 {
             continue;
+        } else if server.number_of_players() > 1 {
+            paused.store(false, Ordering::SeqCst);
         }
 
         let events = server
