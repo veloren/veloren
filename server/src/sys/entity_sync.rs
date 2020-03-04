@@ -328,8 +328,11 @@ impl<'a> System<'a> for Sys {
         // TODO: Sync clients that don't have a position?
 
         // Sync inventories
-        for (client, inventory, _) in (&mut clients, &inventories, &inventory_updates).join() {
-            client.notify(ServerMsg::InventoryUpdate(inventory.clone()));
+        for (client, inventory, update) in (&mut clients, &inventories, &inventory_updates).join() {
+            client.notify(ServerMsg::InventoryUpdate(
+                inventory.clone(),
+                update.event(),
+            ));
         }
 
         // Remove all force flags.
