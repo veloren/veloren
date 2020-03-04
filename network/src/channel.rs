@@ -10,6 +10,7 @@ use crate::{
     udp::UdpChannel,
 };
 use enumset::EnumSet;
+use futures::{executor::block_on, sink::SinkExt};
 use mio_extras::channel::Sender;
 use std::{
     collections::{HashMap, VecDeque},
@@ -263,7 +264,7 @@ impl Channel {
                 promises,
             } => {
                 if let Some(pid) = self.remote_pid {
-                    let (msg_tx, msg_rx) = mpsc::channel::<InCommingMessage>();
+                    let (msg_tx, msg_rx) = futures::channel::mpsc::unbounded::<InCommingMessage>();
                     let stream = IntStream::new(sid, prio, promises.clone(), msg_tx);
                     self.streams.push(stream);
                     info!("opened a stream");
@@ -328,14 +329,12 @@ impl Channel {
                     }
                     if let Some(pos) = pos {
                         let sid = s.sid();
-                        let tx = s.msg_tx();
+                        let mut tx = s.msg_tx();
                         for m in s.to_receive.drain(pos..pos + 1) {
                             info!(?sid, ? m.mid, "received message");
-                            tx.send(m).map_err(|err| {
-                                error!(
-                                    ?err,
-                                    "Couldn't deliver message, as stream no longer exists!"
-                                )
+                            //TODO: I dislike that block_on here!
+                            block_on(async {
+                                tx.send(m).await;
                             });
                         }
                     }
@@ -405,7 +404,7 @@ impl Channel {
         &mut self,
         prio: u8,
         promises: EnumSet<Promise>,
-        msg_tx: mpsc::Sender<InCommingMessage>,
+        msg_tx: futures::channel::mpsc::UnboundedSender<InCommingMessage>,
     ) -> Sid {
         // validate promises
         if let Some(stream_id_pool) = &mut self.stream_id_pool {

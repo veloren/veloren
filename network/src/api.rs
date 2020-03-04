@@ -7,6 +7,7 @@ use crate::{
     types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg, Sid, TokenObjects},
 };
 use enumset::*;
+use futures::{future::poll_fn, stream::StreamExt};
 use mio::{
     self,
     net::{TcpListener, TcpStream},
@@ -16,7 +17,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
     collections::HashMap,
     sync::{
-        mpsc::{self, Receiver, TryRecvError},
+        mpsc::{self, TryRecvError},
         Arc, RwLock,
     },
 };
@@ -50,7 +51,7 @@ pub struct Connection {}
 
 pub struct Stream {
     sid: Sid,
-    msg_rx: Receiver<InCommingMessage>,
+    msg_rx: futures::channel::mpsc::UnboundedReceiver<InCommingMessage>,
     ctr_tx: mio_extras::channel::Sender<CtrlMsg>,
 }
 
@@ -200,7 +201,7 @@ impl Participant {
         promises: EnumSet<Promise>,
     ) -> Result<Stream, ParticipantError> {
         let (ctrl_tx, ctrl_rx) = mpsc::channel::<Sid>();
-        let (msg_tx, msg_rx) = mpsc::channel::<InCommingMessage>();
+        let (msg_tx, msg_rx) = futures::channel::mpsc::unbounded::<InCommingMessage>();
         for controller in self.network_controller.iter() {
             let tx = controller.get_tx();
             tx.send(CtrlMsg::OpenStream {
@@ -280,13 +281,16 @@ impl Stream {
         Ok(())
     }
 
-    pub async fn recv<M: DeserializeOwned>(&self) -> Result<M, StreamError> {
-        match self.msg_rx.recv() {
-            Ok(msg) => {
+    pub async fn recv<M: DeserializeOwned>(&mut self) -> Result<M, StreamError> {
+        match self.msg_rx.next().await {
+            Some(msg) => {
                 info!(?msg, "delivering a message");
                 Ok(message::deserialize(msg.buffer))
             },
-            Err(err) => panic!("Unexpected error '{}'", err),
+            None => panic!(
+                "Unexpected error, probably stream was destroyed... maybe i dont know yet, no \
+                 idea of async stuff"
+            ),
         }
     }
 }
