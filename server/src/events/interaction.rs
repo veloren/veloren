@@ -106,7 +106,10 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     }
                 }
                 ecs.write_storage::<comp::InventoryUpdate>()
-                    .insert(possesse, comp::InventoryUpdate)
+                    .insert(
+                        possesse,
+                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Possession),
+                    )
                     .err()
                     .map(|e| {
                         error!(

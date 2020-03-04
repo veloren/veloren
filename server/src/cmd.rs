@@ -262,6 +262,7 @@ lazy_static! {
         ),
     ];
 }
+
 fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
     if let Ok(item) = assets::load_cloned(&args) {
         server
@@ -274,7 +275,10 @@ fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &C
             .state
             .ecs()
             .write_storage::<comp::InventoryUpdate>()
-            .insert(entity, comp::InventoryUpdate);
+            .insert(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
+            );
     } else {
         server.notify_client(entity, ServerMsg::private(String::from("Invalid item!")));
     }
@@ -1113,7 +1117,10 @@ fn handle_debug(server: &mut Server, entity: EcsEntity, _args: String, _action: 
             .state
             .ecs()
             .write_storage::<comp::InventoryUpdate>()
-            .insert(entity, comp::InventoryUpdate);
+            .insert(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
+            );
     } else {
         server.notify_client(
             entity,

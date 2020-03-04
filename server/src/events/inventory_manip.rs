@@ -48,7 +48,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 }
             }
 
-            state.write_component(entity, comp::InventoryUpdate);
+            state.write_component(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected),
+            );
         },
 
         comp::InventoryManip::Collect(pos) => {
@@ -76,6 +79,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .get_mut(entity)
                 .and_then(|inv| inv.remove(slot));
 
+            let mut event = comp::InventoryUpdateEvent::Used;
+
             if let Some(item) = item_opt {
                 match item.kind {
                     comp::ItemKind::Tool { .. } => {
@@ -94,7 +99,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             stats.equipment.main = Some(item);
                         }
                     },
-                    comp::ItemKind::Consumable { effect, .. } => {
+                    comp::ItemKind::Consumable { kind, effect } => {
+                        event = comp::InventoryUpdateEvent::Consumed(kind);
                         state.apply_effect(entity, effect);
                     },
                     comp::ItemKind::Utility { kind } => match kind {
@@ -168,7 +174,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 }
             }
 
-            state.write_component(entity, comp::InventoryUpdate);
+            state.write_component(entity, comp::InventoryUpdate::new(event));
         },
 
         comp::InventoryManip::Swap(a, b) => {
@@ -177,7 +183,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .write_storage::<comp::Inventory>()
                 .get_mut(entity)
                 .map(|inv| inv.swap_slots(a, b));
-            state.write_component(entity, comp::InventoryUpdate);
+            state.write_component(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
+            );
         },
 
         comp::InventoryManip::Drop(slot) => {
@@ -201,7 +210,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     item,
                 ));
             }
-            state.write_component(entity, comp::InventoryUpdate);
+            state.write_component(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
+            );
         },
     }
 

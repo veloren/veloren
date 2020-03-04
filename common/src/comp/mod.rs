@@ -28,7 +28,7 @@ pub use controller::{
 };
 pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;
-pub use inventory::{item, Inventory, InventoryUpdate, Item, ItemKind};
+pub use inventory::{item, Inventory, InventoryUpdate, InventoryUpdateEvent, Item, ItemKind};
 pub use last::Last;
 pub use location::{Waypoint, WaypointArea};
 pub use phys::{ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};

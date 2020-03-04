@@ -35,5 +35,59 @@
             ],
             threshold: 0.5,
         ),
+        Inventory(Collected): (
+            files: [
+                "voxygen.audio.sfx.inventory.add_item",
+            ],
+            threshold: 0.5,
+        ),
+        Inventory(Swapped): (
+            files: [
+                "voxygen.audio.sfx.inventory.add_item",
+            ],
+            threshold: 0.5,
+        ),
+        Inventory(Given): (
+            files: [
+                "voxygen.audio.sfx.inventory.add_item",
+            ],
+            threshold: 0.5,
+        ),
+        Inventory(Dropped): (
+            files: [
+                "voxygen.audio.sfx.footsteps.stepgrass_4",
+            ],
+            threshold: 0.5,
+        ),
+        Inventory(Consumed(Potion)): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed(PotionMinor)): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed(Apple)): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.apple",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed(Mushroom)): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed(Cheese)): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        )
     }
 )
