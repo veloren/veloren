@@ -148,6 +148,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97be891acc47ca214468e09425d02cef3af2c94d0d82081cd02061f996802f14"
 
 [[package]]
+name = "async-recv"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "chrono",
+ "clap",
+ "futures 0.3.4",
+ "serde",
+ "tracing",
+ "tracing-subscriber",
+ "uuid 0.8.1",
+ "uvth",
+ "veloren-network",
+]
+
+[[package]]
 name = "async-std"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

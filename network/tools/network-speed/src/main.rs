@@ -36,26 +36,21 @@ fn main() {
                 ),
         )
         .subcommand(
-            SubCommand::with_name("run")
-                .arg(
-                    Arg::with_name("port")
-                        .short("p")
-                        .long("port")
-                        .takes_value(true)
-                        .help("port to connect too"),
-                )
-                .arg(
-                    Arg::with_name("participants")
-                        .long("participants")
-                        .takes_value(true)
-                        .help("number of participants to open"),
-                )
-                .arg(
-                    Arg::with_name("streams")
-                        .long("streams")
-                        .takes_value(true)
-                        .help("number of streams to open per participant"),
-                ),
+            SubCommand::with_name("run").arg(
+                Arg::with_name("port")
+                    .short("p")
+                    .long("port")
+                    .takes_value(true)
+                    .help("port to connect too"),
+            ), /*
+               .arg(Arg::with_name("participants")
+                   .long("participants")
+                   .takes_value(true)
+                   .help("number of participants to open"))
+               .arg(Arg::with_name("streams")
+                   .long("streams")
+                   .takes_value(true)
+                   .help("number of streams to open per participant"))*/
         )
         .get_matches();
 
@@ -71,14 +66,20 @@ fn main() {
         .init();
 
     if let Some(matches) = matches.subcommand_matches("listen") {
-        server();
+        let port = matches
+            .value_of("port")
+            .map_or(52000, |v| v.parse::<u16>().unwrap_or(52000));
+        server(port);
     };
     if let Some(matches) = matches.subcommand_matches("run") {
-        client();
+        let port = matches
+            .value_of("port")
+            .map_or(52000, |v| v.parse::<u16>().unwrap_or(52000));
+        client(port);
     };
 }
 
-fn server() {
+fn server(port: u16) {
     let thread_pool = Arc::new(
         ThreadPoolBuilder::new()
             .name("veloren-network-server".into())
@@ -86,7 +87,7 @@ fn server() {
     );
     thread::sleep(Duration::from_millis(200));
     let server = Network::new(Uuid::new_v4(), thread_pool.clone());
-    let address = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], 52000)));
+    let address = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], port)));
     block_on(server.listen(&address)).unwrap(); //await
     thread::sleep(Duration::from_millis(3)); //TODO: listeing still doesnt block correctly!
 
@@ -106,7 +107,7 @@ fn server() {
     }
 }
 
-fn client() {
+fn client(port: u16) {
     let thread_pool = Arc::new(
         ThreadPoolBuilder::new()
             .name("veloren-network-server".into())
@@ -114,7 +115,7 @@ fn client() {
     );
     thread::sleep(Duration::from_millis(200));
     let client = Network::new(Uuid::new_v4(), thread_pool.clone());
-    let address = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], 52000)));
+    let address = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], port)));
     thread::sleep(Duration::from_millis(3)); //TODO: listeing still doesnt block correctly!
 
     loop {

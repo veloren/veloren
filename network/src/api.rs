@@ -51,7 +51,7 @@ pub struct Connection {}
 pub struct Stream {
     sid: Sid,
     msg_rx: Receiver<InCommingMessage>,
-    network_controller: Arc<Vec<Controller>>,
+    ctr_tx: mio_extras::channel::Sender<CtrlMsg>,
 }
 
 pub struct Network {
@@ -202,28 +202,28 @@ impl Participant {
         let (ctrl_tx, ctrl_rx) = mpsc::channel::<Sid>();
         let (msg_tx, msg_rx) = mpsc::channel::<InCommingMessage>();
         for controller in self.network_controller.iter() {
-            controller
-                .get_tx()
-                .send(CtrlMsg::OpenStream {
-                    pid: self.remote_pid,
-                    prio,
-                    promises,
-                    return_sid: ctrl_tx,
-                    msg_tx,
-                })
-                .unwrap();
-            break;
+            let tx = controller.get_tx();
+            tx.send(CtrlMsg::OpenStream {
+                pid: self.remote_pid,
+                prio,
+                promises,
+                return_sid: ctrl_tx,
+                msg_tx,
+            })
+            .unwrap();
+
+            // I dont like the fact that i need to wait on the worker thread for getting my
+            // sid back :/ we could avoid this by introducing a Thread Local Network
+            // which owns some sids we can take without waiting
+            let sid = ctrl_rx.recv().unwrap();
+            info!(?sid, " sucessfully opened stream");
+            return Ok(Stream {
+                sid,
+                msg_rx,
+                ctr_tx: tx,
+            });
         }
-        // I dont like the fact that i need to wait on the worker thread for getting my
-        // sid back :/ we could avoid this by introducing a Thread Local Network
-        // which owns some sids we can take without waiting
-        let sid = ctrl_rx.recv().unwrap();
-        info!(?sid, " sucessfully opened stream");
-        Ok(Stream {
-            sid,
-            msg_rx,
-            network_controller: self.network_controller.clone(),
-        })
+        Err(ParticipantError::ParticipantDisconected)
     }
 
     pub fn close(&self, stream: Stream) -> Result<(), ParticipantError> { Ok(()) }
@@ -245,7 +245,7 @@ impl Participant {
                         return Ok(Stream {
                             sid,
                             msg_rx,
-                            network_controller: self.network_controller.clone(),
+                            ctr_tx: worker.get_tx(),
                         });
                     }
                 };
@@ -269,31 +269,24 @@ impl Stream {
         // updated by workes via a channel and needs to be intepreted on a send but it
         // should almost ever be empty except for new channel creations and stream
         // creations!
-        for controller in self.network_controller.iter() {
-            controller
-                .get_tx()
-                .send(CtrlMsg::Send(OutGoingMessage {
-                    buffer: messagebuffer.clone(),
-                    cursor: 0,
-                    mid: None,
-                    sid: self.sid,
-                }))
-                .unwrap();
-        }
+        self.ctr_tx
+            .send(CtrlMsg::Send(OutGoingMessage {
+                buffer: messagebuffer.clone(),
+                cursor: 0,
+                mid: None,
+                sid: self.sid,
+            }))
+            .unwrap();
         Ok(())
     }
 
-    //TODO: remove the Option, async should make it unnecesarry!
-    pub fn recv<M: DeserializeOwned>(&self) -> Result<Option<M>, StreamError> {
-        match self.msg_rx.try_recv() {
+    pub async fn recv<M: DeserializeOwned>(&self) -> Result<M, StreamError> {
+        match self.msg_rx.recv() {
             Ok(msg) => {
                 info!(?msg, "delivering a message");
-                Ok(Some(message::deserialize(msg.buffer)))
+                Ok(message::deserialize(msg.buffer))
             },
-            Err(TryRecvError::Empty) => Ok(None),
-            Err(err) => {
-                panic!("Unexpected error '{}'", err);
-            },
+            Err(err) => panic!("Unexpected error '{}'", err),
         }
     }
 }
