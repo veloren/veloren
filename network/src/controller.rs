@@ -25,7 +25,6 @@ use uvth::ThreadPool;
     It is monitored, and when it's thread is fully loaded it can be splitted up into 2 MioWorkers
 */
 pub struct Controller {
-    poll: Arc<Poll>,
     ctrl_tx: Sender<CtrlMsg>,
     rtrn_rx: Receiver<RtrnMsg>,
 }
@@ -42,7 +41,6 @@ impl Controller {
         remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
     ) -> Self {
         let poll = Arc::new(Poll::new().unwrap());
-        let poll_clone = poll.clone();
 
         let (ctrl_tx, ctrl_rx) = channel();
         let (rtrn_tx, rtrn_rx) = channel();
@@ -57,16 +55,10 @@ impl Controller {
             let w = wid;
             let span = span!(Level::INFO, "worker", ?w);
             let _enter = span.enter();
-            let mut worker = Worker::new(
-                pid, poll_clone, metrics, remotes, token_pool, ctrl_rx, rtrn_tx,
-            );
+            let mut worker = Worker::new(pid, poll, metrics, remotes, token_pool, ctrl_rx, rtrn_tx);
             worker.run();
         });
-        Controller {
-            poll,
-            ctrl_tx,
-            rtrn_rx,
-        }
+        Controller { ctrl_tx, rtrn_rx }
     }
 
     //TODO: split 4->5 MioWorkers and merge 5->4 MioWorkers

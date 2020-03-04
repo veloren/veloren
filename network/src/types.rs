@@ -1,5 +1,5 @@
 use crate::{
-    api::{Address, Promise},
+    api::Promise,
     channel::Channel,
     message::{InCommingMessage, OutGoingMessage},
 };
@@ -142,20 +142,6 @@ pub(crate) enum Frame {
     /* WARNING: Sending RAW is only used for debug purposes in case someone write a new API
      * against veloren Server! */
     Raw(Vec<u8>),
-}
-
-pub(crate) enum Protocol {
-    Tcp,
-    Udp,
-}
-
-impl Address {
-    pub(crate) fn get_protocol(&self) -> Protocol {
-        match self {
-            Address::Tcp(_) => Protocol::Tcp,
-            Address::Udp(_) => Protocol::Udp,
-        }
-    }
 }
 
 #[derive(Debug)]

@@ -14,7 +14,7 @@ use futures::{executor::block_on, sink::SinkExt};
 use mio_extras::channel::Sender;
 use std::{
     collections::{HashMap, VecDeque},
-    sync::{mpsc, Arc, RwLock},
+    sync::{Arc, RwLock},
 };
 use tracing::*;
 
@@ -220,7 +220,13 @@ impl Channel {
                         });
                         self.send_config = true;
                         info!(?pid, "this channel is now configured!");
-                        rtrn_tx.send(RtrnMsg::ConnectedParticipant { pid });
+                        if let Err(err) = rtrn_tx.send(RtrnMsg::ConnectedParticipant { pid }) {
+                            error!(
+                                ?err,
+                                "couldn't notify of connected participant, is network already \
+                                 closed ?"
+                            );
+                        }
                     }
                 } else {
                     self.send_queue.push_back(Frame::ParticipantId {
@@ -240,12 +246,19 @@ impl Channel {
                     if !remotes.contains_key(&pid) {
                         remotes.insert(pid, RemoteParticipant::new());
                     }
-                    if let Some(rp) = remotes.get_mut(&pid) {
+                    if let Some(_rp) = remotes.get_mut(&pid) {
+                        //TODO: make use of RemoteParticipant
                         self.stream_id_pool = Some(stream_id_pool);
                         self.msg_id_pool = Some(msg_id_pool);
                     }
                     if let Some(send) = &self.return_pid_to {
-                        send.send(pid);
+                        if let Err(err) = send.send(pid) {
+                            error!(
+                                ?err,
+                                "couldn't notify of connected participant, is network already \
+                                 closed ?"
+                            );
+                        }
                     };
                     self.return_pid_to = None;
                 } else {
@@ -256,7 +269,9 @@ impl Channel {
             Frame::Shutdown {} => {
                 self.recv_shutdown = true;
                 info!("shutting down channel");
-                rtrn_tx.send(RtrnMsg::Shutdown);
+                if let Err(err) = rtrn_tx.send(RtrnMsg::Shutdown) {
+                    error!(?err, "couldn't notify of shutdown");
+                }
             },
             Frame::OpenStream {
                 sid,
@@ -268,13 +283,15 @@ impl Channel {
                     let stream = IntStream::new(sid, prio, promises.clone(), msg_tx);
                     self.streams.push(stream);
                     info!("opened a stream");
-                    rtrn_tx.send(RtrnMsg::OpendStream {
+                    if let Err(err) = rtrn_tx.send(RtrnMsg::OpendStream {
                         pid,
                         sid,
                         prio,
                         msg_rx,
                         promises,
-                    });
+                    }) {
+                        error!(?err, "couldn't notify of opened stream");
+                    }
                 } else {
                     error!("called OpenStream before PartcipantID!");
                 }
@@ -283,7 +300,9 @@ impl Channel {
                 if let Some(pid) = self.remote_pid {
                     self.streams.retain(|stream| stream.sid() != sid);
                     info!("closed a stream");
-                    rtrn_tx.send(RtrnMsg::ClosedStream { pid, sid });
+                    if let Err(err) = rtrn_tx.send(RtrnMsg::ClosedStream { pid, sid }) {
+                        error!(?err, "couldn't notify of closed stream");
+                    }
                 }
             },
             Frame::DataHeader { mid, sid, length } => {
@@ -309,7 +328,7 @@ impl Channel {
             },
             Frame::Data {
                 id,
-                start,
+                start: _, //TODO: use start to verify!
                 mut data,
             } => {
                 debug!("Data Package {}, len: {}", id, data.len());
@@ -334,7 +353,13 @@ impl Channel {
                             info!(?sid, ? m.mid, "received message");
                             //TODO: I dislike that block_on here!
                             block_on(async {
-                                tx.send(m).await;
+                                if let Err(err) = tx.send(m).await {
+                                    error!(
+                                        ?err,
+                                        "cannot notify that message was received, probably stream \
+                                         is already closed"
+                                    );
+                                };
                             });
                         }
                     }

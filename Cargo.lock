@@ -5210,7 +5210,6 @@ dependencies = [
  "mio-extras",
  "prometheus",
  "serde",
- "serde_derive",
  "tlid",
  "tracing",
  "tracing-subscriber",

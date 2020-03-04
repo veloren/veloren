@@ -48,21 +48,6 @@ pub mod tests {
             .init();
     }
 
-    pub fn block_on_recv(stream: &Stream) -> Result<String, StreamError> {
-        let mut s: Result<Option<String>, StreamError> = stream.recv();
-        while let Ok(None) = s {
-            thread::sleep(Duration::from_millis(1));
-            s = stream.recv();
-        }
-        if let Ok(Some(s)) = s {
-            return Ok(s);
-        }
-        if let Err(e) = s {
-            return Err(e);
-        }
-        unreachable!("invalid test");
-    }
-
     #[test]
     fn aaa() { test_tracing(); }
 
@@ -88,9 +73,9 @@ pub mod tests {
         assert!(s1.send("Hello World").is_ok());
 
         let p1_n2 = block_on(n2.connected()).unwrap(); //remote representation of p1
-        let s1_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s1
+        let mut s1_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s1
 
-        let s = block_on_recv(&s1_n2);
+        let s: Result<String, _> = block_on(s1_n2.recv());
         assert_eq!(s, Ok("Hello World".to_string()));
 
         assert!(p1.close(s1).is_ok());
@@ -128,23 +113,23 @@ pub mod tests {
         assert!(s4.send("Hello World4").is_ok());
 
         let p1_n2 = block_on(n2.connected()).unwrap(); //remote representation of p1
-        let s1_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s1
-        let s2_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s2
-        let s3_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s3
-        let s4_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s4
-        let s5_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s5
+        let mut s1_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s1
+        let mut s2_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s2
+        let mut s3_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s3
+        let mut s4_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s4
+        let mut s5_n2 = block_on(p1_n2.opened()).unwrap(); //remote representation of s5
 
         info!("all streams opened");
 
-        let s = block_on_recv(&s3_n2);
+        let s: Result<String, _> = block_on(s3_n2.recv());
         assert_eq!(s, Ok("Hello World3".to_string()));
-        let s = block_on_recv(&s1_n2);
+        let s: Result<String, _> = block_on(s1_n2.recv());
         assert_eq!(s, Ok("Hello World1".to_string()));
-        let s = block_on_recv(&s2_n2);
+        let s: Result<String, _> = block_on(s2_n2.recv());
         assert_eq!(s, Ok("Hello World2".to_string()));
-        let s = block_on_recv(&s5_n2);
+        let s: Result<String, _> = block_on(s5_n2.recv());
         assert_eq!(s, Ok("Hello World5".to_string()));
-        let s = block_on_recv(&s4_n2);
+        let s: Result<String, _> = block_on(s4_n2.recv());
         assert_eq!(s, Ok("Hello World4".to_string()));
 
         assert!(p1.close(s1).is_ok());

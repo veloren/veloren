@@ -6,15 +6,15 @@ use tracing::*;
 pub(crate) struct UdpChannel {
     endpoint: UdpSocket,
     read_buffer: Vec<u8>,
-    write_buffer: Vec<u8>,
+    _write_buffer: Vec<u8>,
 }
 
 impl UdpChannel {
-    pub fn new(endpoint: UdpSocket) -> Self {
+    pub fn _new(endpoint: UdpSocket) -> Self {
         Self {
             endpoint,
             read_buffer: Vec::new(),
-            write_buffer: Vec::new(),
+            _write_buffer: Vec::new(),
         }
     }
 }
@@ -26,7 +26,7 @@ impl ChannelProtocol for UdpChannel {
     fn read(&mut self) -> Vec<Frame> {
         let mut result = Vec::new();
         match self.endpoint.recv_from(self.read_buffer.as_mut_slice()) {
-            Ok((n, remote)) => {
+            Ok((n, _)) => {
                 trace!("incomming message with len: {}", n);
                 let mut cur = std::io::Cursor::new(&self.read_buffer[..n]);
                 while cur.position() < n as u64 {
@@ -59,13 +59,13 @@ impl ChannelProtocol for UdpChannel {
     /// Execute when ready to write
     fn write<I: std::iter::Iterator<Item = Frame>>(&mut self, frames: &mut I) {
         for frame in frames {
-            if let Ok(mut data) = bincode::serialize(&frame) {
+            if let Ok(data) = bincode::serialize(&frame) {
                 let total = data.len();
                 match self.endpoint.send(&data) {
                     Ok(n) if n == total => {
                         trace!("send {} bytes", n);
                     },
-                    Ok(n) => {
+                    Ok(_) => {
                         error!("could only send part");
                     },
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
