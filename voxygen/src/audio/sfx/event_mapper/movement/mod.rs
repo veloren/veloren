@@ -172,7 +172,7 @@ impl MovementEventMapper {
         match (
             current_event.movement,
             current_event.action,
-            previous_event.event,
+            previous_event.event.clone(),
         ) {
             (_, ActionState::Roll { .. }, _) => SfxEvent::Roll,
             (MovementState::Climb, ..) => SfxEvent::Climb,
