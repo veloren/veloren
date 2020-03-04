@@ -578,6 +578,8 @@ impl Server {
             .get(entity)
             .is_some()
     }
+
+    pub fn number_of_players(&self) -> i64 { self.metrics.player_online.get() }
 }
 
 impl Drop for Server {
