@@ -18,7 +18,6 @@ use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
-    singleplayer: Option<Singleplayer>,
 }
 
 impl MainMenuState {
@@ -26,7 +25,6 @@ impl MainMenuState {
     pub fn new(global_state: &mut GlobalState) -> Self {
         Self {
             main_menu_ui: MainMenuUi::new(global_state),
-            singleplayer: None,
         }
     }
 }
@@ -47,7 +45,7 @@ impl PlayState for MainMenuState {
         }
 
         // Reset singleplayer server if it was running already
-        self.singleplayer = None;
+        global_state.singleplayer = None;
 
         loop {
             // Handle window events.
@@ -119,7 +117,7 @@ impl PlayState for MainMenuState {
                         // client_init contains Some(ClientInit), which spawns a thread which
                         // contains a TcpStream::connect() call This call is
                         // blocking TODO fix when the network rework happens
-                        self.singleplayer = None;
+                        global_state.singleplayer = None;
                         client_init = None;
                         self.main_menu_ui.cancel_connection();
                     },
@@ -127,7 +125,7 @@ impl PlayState for MainMenuState {
                     MainMenuEvent::StartSingleplayer => {
                         let (singleplayer, server_settings) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
 
-                        self.singleplayer = Some(singleplayer);
+                        global_state.singleplayer = Some(singleplayer);
 
                         attempt_login(
                             global_state,
