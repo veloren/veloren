@@ -31,8 +31,8 @@
         vox_spec: ("armor.chest.cloth_red_kimono", (-7.0, -3.5, 2.0)),
         color: None
     ),
-    Plate: (
-        vox_spec: ("armor.chest.plate", (-7.0, -3.5, 2.0)),
+    PlateGreen0: (
+        vox_spec: ("armor.chest.plate_green-0", (-7.0, -3.5, 2.0)),
         color: None
     )
 })

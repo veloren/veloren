@@ -1,0 +1,8 @@
+Item(
+    name: "Iron Chestplate",
+    description: "Arrows to the stomach are soooo last update.",
+    kind: Armor(
+        kind: Chest(Plate),
+        stats: 20,
+    ),
+)
