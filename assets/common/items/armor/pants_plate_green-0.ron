@@ -1,8 +1,8 @@
 Item(
-    name: "Iron Chestplate",
-    description: "Arrows to the stomach are soooo last update.",
+    name: "Iron Legguards",
+    description: "WIP",
     kind: Armor(
-        kind: Chest(Plate),
+        kind: Pants(PlateGreen0),
         stats: 20,
     ),
 )

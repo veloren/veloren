@@ -1,8 +1,8 @@
 Item(
-    name: "Assassin Belt",
-    description: "Only the best for a member of the creed.",
+    name: "Iron Belt",
+   description: "WIP",
     kind: Armor(
-        kind: Belt(Assassin),
+        kind: Belt(Plate0),
         stats: 20,
     ),
 )
