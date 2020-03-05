@@ -66,7 +66,7 @@
         "voxel.armor.chest.plate_green-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-    Armor(Pants((PlateGreen0)): VoxTrans(
+    Armor(Pants(PlateGreen0)): VoxTrans(
         "voxel.armor.pants.plate_green-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),

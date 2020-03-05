@@ -1,8 +1,8 @@
 Item(
-    name: "Assassin Shoulder Guard",
-    description: "Only the best for a member of the creed.",
+    name: "Iron Shoulderguards",
+    description: "A strong shoulder to lean on.",
     kind: Armor(
-        kind: Shoulder(Assassin),
+        kind: Shoulder(Plate0),
         stats: 20,
     ),
 )
