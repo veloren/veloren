@@ -18,5 +18,13 @@
     Assassin:(
         vox_spec: ("armor.belt.assa", (-5.0, -3.5, 2.0)),
         color: None
-    )
+    ),
+    Dark:(
+        vox_spec: ("armor.belt.plate-0", (-4.0, -3.5, 2.0)),
+        color: None
+    ),
+    Plate0:(
+        vox_spec: ("armor.belt.plate-0", (-4.0, -3.5, 2.0)),
+        color: None
+    ),
 })

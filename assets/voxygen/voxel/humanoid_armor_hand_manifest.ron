@@ -28,5 +28,15 @@
             vox_spec: ("armor.hand.cloth_basic_right", (-1.5, -1.5, -7.0)),
             color: None
         )
-    )
+    ),
+    Plate0: (
+        left: (
+            vox_spec: ("armor.hand.plate_left-0", (-1.5, -1.5, -7.0)),
+            color: None
+        ),
+        right: (
+            vox_spec: ("armor.hand.plate_right-0", (-1.5, -1.5, -7.0)),
+            color: None
+        )
+    ),
 })
