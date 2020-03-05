@@ -357,7 +357,7 @@ impl Show {
 
     fn toggle_ui(&mut self) { self.ui = !self.ui; }
 
-    fn toggle_windows(&mut self) {
+    fn toggle_windows(&mut self, global_state: &mut GlobalState) {
         if self.bag
             || self.esc_menu
             || self.map
@@ -379,9 +379,19 @@ impl Show {
             self.character_window = false;
             self.open_windows = Windows::None;
             self.want_grab = true;
+
+            // Unpause the game if we are on singleplayer
+            if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                singleplayer.pause(false);
+            };
         } else {
             self.esc_menu = true;
             self.want_grab = false;
+
+            // Pause the game if we are on singleplayer
+            if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                singleplayer.pause(true);
+            };
         }
     }
 
@@ -1725,7 +1735,14 @@ impl Hud {
                     settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
-                    settings_window::Event::Close => self.show.settings(false),
+                    settings_window::Event::Close => {
+                        // Unpause the game if we are on singleplayer so that we can logout
+                        if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                            singleplayer.pause(false);
+                        };
+
+                        self.show.settings(false)
+                    },
                     settings_window::Event::AdjustMousePan(sensitivity) => {
                         events.push(Event::AdjustMousePan(sensitivity));
                     },
@@ -1917,12 +1934,29 @@ impl Hud {
                     self.show.esc_menu = false;
                     self.show.want_grab = false;
                     self.force_ungrab = true;
+
+                    // Unpause the game if we are on singleplayer
+                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                        singleplayer.pause(false);
+                    };
                 },
                 Some(esc_menu::Event::Logout) => {
+                    // Unpause the game if we are on singleplayer so that we can logout
+                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                        singleplayer.pause(false);
+                    };
+
                     events.push(Event::Logout);
                 },
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
-                Some(esc_menu::Event::CharacterSelection) => events.push(Event::CharacterSelection),
+                Some(esc_menu::Event::CharacterSelection) => {
+                    // Unpause the game if we are on singleplayer so that we can logout
+                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
+                        singleplayer.pause(false);
+                    };
+
+                    events.push(Event::CharacterSelection)
+                },
                 None => {},
             }
         }
@@ -1992,7 +2026,7 @@ impl Hud {
                     self.ui.focus_widget(None);
                 } else {
                     // Close windows on esc
-                    self.show.toggle_windows();
+                    self.show.toggle_windows(global_state);
                 }
                 true
             },
