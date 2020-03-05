@@ -594,7 +594,7 @@ impl Window {
         });
 
         if take_screenshot {
-            self.take_screenshot();
+            self.take_screenshot(&settings);
         }
 
         if toggle_fullscreen {
@@ -659,15 +659,16 @@ impl Window {
 
     pub fn send_supplement_event(&mut self, event: Event) { self.supplement_events.push(event) }
 
-    pub fn take_screenshot(&mut self) {
+    pub fn take_screenshot(&mut self, settings: &Settings) {
         match self.renderer.create_screenshot() {
             Ok(img) => {
+                let mut path = settings.screenshots_path.clone();
+
                 std::thread::spawn(move || {
-                    use std::{path::PathBuf, time::SystemTime};
+                    use std::time::SystemTime;
                     // Check if folder exists and create it if it does not
-                    let mut path = PathBuf::from("./screenshots");
                     if !path.exists() {
-                        if let Err(err) = std::fs::create_dir(&path) {
+                        if let Err(err) = std::fs::create_dir_all(&path) {
                             warn!("Couldn't create folder for screenshot: {:?}", err);
                         }
                     }
