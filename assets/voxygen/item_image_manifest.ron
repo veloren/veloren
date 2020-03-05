@@ -47,7 +47,7 @@
     ),
     Armor(Belt(Assassin)): VoxTrans(
         "voxel.armor.belt.assa",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
     ),
     Armor(Foot(Assassin)): VoxTrans(
         "voxel.armor.foot.assa",
@@ -62,8 +62,28 @@
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     // Starting Armor - Plate
-    Armor(Chest(Plate)): VoxTrans(
-        "voxel.armor.chest.plate",
+    Armor(Chest(PlateGreen0)): VoxTrans(
+        "voxel.armor.chest.plate_green-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants((PlateGreen0)): VoxTrans(
+        "voxel.armor.pants.plate_green-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt(Plate0)): VoxTrans(
+        "voxel.armor.belt.plate-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Foot(Plate0)): VoxTrans(
+        "voxel.armor.foot.plate-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Hand(Plate0)): VoxTrans(
+        "voxel.armor.hand.plate_left-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Shoulder(Plate0)): VoxTrans(
+        "voxel.armor.shoulder.plate_left-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     // Consumables
