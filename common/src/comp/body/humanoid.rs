@@ -125,7 +125,7 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
 }
 
 // Hair Colors
-pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 11] = [
+pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 12] = [
     (198, 169, 113), // Philosopher's Grey
     //(245, 232, 175), // Cream Blonde
     //(228, 208, 147), // Gold Blonde
@@ -141,9 +141,10 @@ pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 11] = [
     (107, 32, 60), // Grape Purple
     (135, 38, 39), // Dark Red
     (88, 26, 29),  // Wine Red
-                   //(146, 32, 32), // Autumn Red
+    //(146, 32, 32), // Autumn Red
+    (20, 19, 17), // Black
 ];
-pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 20] = [
+pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
@@ -164,8 +165,9 @@ pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 20] = [
     (163, 186, 192), // Matte Green
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
+    (20, 19, 17),    // Black
 ];
-pub const ELF_HAIR_COLORS: [(u8, u8, u8); 23] = [
+pub const ELF_HAIR_COLORS: [(u8, u8, u8); 24] = [
     (66, 83, 113),   // Mysterious Blue
     (13, 76, 41),    // Rainforest Green
     (245, 232, 175), // Cream Blonde
@@ -189,8 +191,9 @@ pub const ELF_HAIR_COLORS: [(u8, u8, u8); 23] = [
     (163, 186, 192), // Matte Green
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
+    (20, 19, 17),    // Black
 ];
-pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 21] = [
+pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 22] = [
     (245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
@@ -212,8 +215,9 @@ pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (163, 186, 192), // Matte Green
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
+    (20, 19, 17),    // Black
 ];
-pub const ORC_HAIR_COLORS: [(u8, u8, u8); 10] = [
+pub const ORC_HAIR_COLORS: [(u8, u8, u8); 11] = [
     (66, 66, 59), // Wise Grey
     //(107, 76, 51),  // Oak Skin4
     //(203, 154, 98), // Light Skin4
@@ -226,8 +230,9 @@ pub const ORC_HAIR_COLORS: [(u8, u8, u8); 10] = [
     (135, 38, 39), // Dark Red
     (88, 26, 29),  // Wine Red
     (66, 83, 113), // Mysterious Blue
+    (20, 19, 17),  // Black
 ];
-pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 21] = [
+pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 22] = [
     //(245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     //(228, 223, 141), // Platinum Blonde
@@ -252,6 +257,7 @@ pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (163, 186, 192), // Matte Green
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
+    (20, 19, 17),    // Black
 ];
 
 // Skin colors

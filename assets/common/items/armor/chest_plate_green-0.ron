@@ -2,7 +2,7 @@ Item(
     name: "Iron Chestplate",
     description: "Arrows to the stomach are soooo last update.",
     kind: Armor(
-        kind: Chest(Plate),
+        kind: Chest(PlateGreen0),
         stats: 20,
     ),
 )

@@ -2,51 +2,51 @@
     //This shouldn't be the none option, but what is?
     None: (
         left: (
-            vox_spec: ("armor.empty", (-3.0, -3.5, 0.1)),
+            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None
         ),
         right: (
-            vox_spec: ("armor.empty", (-2.0, -3.5, 0.1)),
+            vox_spec: ("armor.empty", (-2.0, -3.5, 1.0)),
             color: None
         )
     ),
     Brown1: (
         left: (
-            vox_spec: ("armor.shoulder.brown_left", (-3.0, -3.5, 0.1)),
+            vox_spec: ("armor.shoulder.brown_left", (-3.0, -3.5, 1.0)),
             color: None
         ),
         right: (
-            vox_spec: ("armor.shoulder.brown_right", (-2.0, -3.5, 0.1)),
+            vox_spec: ("armor.shoulder.brown_right", (-2.0, -3.5, 1.0)),
             color: None
         )
     ),
     Assassin: (
         left: (
-            vox_spec: ("armor.shoulder.assa_left", (-4.0, -3.5, 0.1)),
+            vox_spec: ("armor.shoulder.assa_left", (-4.0, -3.5, 1.0)),
             color: None
         ),
         right: (
-            vox_spec: ("armor.shoulder.assa_right", (-2.0, -3.5, 0.1)),
+            vox_spec: ("armor.shoulder.assa_right", (-2.0, -3.5, 1.0)),
             color: None
         )
     ),
     Chain: (
         left: (
-            vox_spec: ("armor.shoulder.chain_left-1", (-4.0, -3.5, 0.1)),
+            vox_spec: ("armor.shoulder.chain_left-1", (-4.0, -3.5, 1.0)),
             color: None
         ),
         right: (
-            vox_spec: ("armor.shoulder.chain_right-1", (-2.0, -3.5, 0.1)),
+            vox_spec: ("armor.shoulder.chain_right-1", (-2.0, -3.5, 1.0)),
             color: None
         )
     ),
     Plate0: (
         left: (
-            vox_spec: ("armor.shoulder.plate_left-0", (-4.0, -3.5, 0.1)),
+            vox_spec: ("armor.shoulder.plate_left-0", (-3.6, -3.5, 1.0)),
             color: None
         ),
         right: (
-            vox_spec: ("armor.shoulder.plate_right-0", (-2.0, -3.5, 0.1)),
+            vox_spec: ("armor.shoulder.plate_right-0", (-2.6, -3.5, 1.0)),
             color: None
         )
     ),
