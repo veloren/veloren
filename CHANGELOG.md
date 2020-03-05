@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added sfx for wielding/unwielding weapons
 - Fixed NPCs attacking the player forever after killing them
 - Added sfx for collecting, dropping and using inventory items
+- New attack animation
+- weapon control system
 
 ### Changed
 
