@@ -22,7 +22,7 @@ impl Animation for CidleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave_ultra_slow = (anim_time as f32 * 3.0 + PI).sin();
+        let wave_ultra_slow = (anim_time as f32 * 0.5 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
         let wave_slow_cos = (anim_time as f32 * 6.0 + PI).cos();
         let wave_slow = (anim_time as f32 * 6.0 + PI).sin();
@@ -63,29 +63,23 @@ impl Animation for CidleAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(Tool::Sword) => {
-                next.l_hand.offset = Vec3::new(
-                    -6.0 + wave_ultra_slow_cos * 1.0,
-                    -2.0 + wave_ultra_slow_cos * 0.5,
-                    1.0 + wave_ultra_slow * 1.0,
-                );
-                next.l_hand.ori = Quaternion::rotation_x(1.27);
-                next.l_hand.scale = Vec3::one() * 1.0;
-                next.r_hand.offset = Vec3::new(
-                    -6.0 + wave_ultra_slow_cos * 1.0,
-                    -2.5 + wave_ultra_slow_cos * 0.5,
-                    -1.0 + wave_ultra_slow * 1.0,
-                );
-                next.r_hand.ori = Quaternion::rotation_x(1.27);
-                next.r_hand.scale = Vec3::one() * 1.01;
-                next.main.offset = Vec3::new(
-                    -6.0 + skeleton_attr.weapon_x + wave_ultra_slow_cos * 1.0,
-                    5.5 + skeleton_attr.weapon_y + wave_ultra_slow_cos * 0.5,
-                    1.0 + wave_ultra_slow * 1.0,
-                );
-                next.main.ori = Quaternion::rotation_x(-0.3)
+                next.l_hand.offset = Vec3::new(-0.25, -5.0, -5.0);
+                next.l_hand.ori = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
+                next.l_hand.scale = Vec3::one() * 1.04;
+                next.r_hand.offset = Vec3::new(1.25, -5.5, -8.0);
+                next.r_hand.ori = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
+                next.r_hand.scale = Vec3::one() * 1.05;
+                next.main.offset = Vec3::new(0.0, 0.0, -6.0);
+                next.main.ori = Quaternion::rotation_x(-0.1)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
+
+                next.control.offset = Vec3::new(-7.0, 6.0, 6.0);
+                next.control.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.control.scale = Vec3::one();
             },
             Some(Tool::Axe) => {
                 next.l_hand.offset = Vec3::new(

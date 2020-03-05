@@ -30,21 +30,23 @@ impl Animation for WieldAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(Tool::Sword) => {
-                next.l_hand.offset = Vec3::new(-6.0, -2.0, 1.0);
+                next.l_hand.offset = Vec3::new(0.0, -5.0, -5.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
-                next.l_hand.scale = Vec3::one() * 1.00;
-                next.r_hand.offset = Vec3::new(-6.0, -2.5, -1.0);
+                next.l_hand.scale = Vec3::one() * 1.04;
+                next.r_hand.offset = Vec3::new(0.0, -6.0, -8.0);
                 next.r_hand.ori = Quaternion::rotation_x(1.27);
-                next.r_hand.scale = Vec3::one() * 1.01;
-                next.main.offset = Vec3::new(
-                    -6.0 + skeleton_attr.weapon_x,
-                    5.5 + skeleton_attr.weapon_y,
-                    1.0,
-                );
+                next.r_hand.scale = Vec3::one() * 1.05;
+                next.main.offset = Vec3::new(0.0, 0.0, -6.0);
                 next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
+
+                next.control.offset = Vec3::new(-8.0, 4.0, 6.0);
+                next.control.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.control.scale = Vec3::one();
             },
             Some(Tool::Axe) => {
                 next.l_hand.offset = Vec3::new(-6.5, -0.5, 6.0);
@@ -200,6 +202,14 @@ impl Animation for WieldAnimation {
         next.torso.offset = Vec3::new(0.0, 0.3 + wave * -0.08, 0.4) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(wave_stop * -0.2);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
+
+        next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.l_control.ori = Quaternion::rotation_x(0.0);
+        next.l_control.scale = Vec3::one();
+
+        next.r_control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.r_control.ori = Quaternion::rotation_x(0.0);
+        next.r_control.scale = Vec3::one();
         next
     }
 }
