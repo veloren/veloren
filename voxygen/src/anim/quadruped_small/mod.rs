@@ -26,7 +26,7 @@ impl QuadrupedSmallSkeleton {
 impl Skeleton for QuadrupedSmallSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
+    fn compute_matrices(&self) -> [FigureBoneData; 18] {
         [
             FigureBoneData::new(self.head.compute_base_matrix()),
             FigureBoneData::new(self.chest.compute_base_matrix()),
@@ -34,6 +34,8 @@ impl Skeleton for QuadrupedSmallSkeleton {
             FigureBoneData::new(self.leg_rf.compute_base_matrix()),
             FigureBoneData::new(self.leg_lb.compute_base_matrix()),
             FigureBoneData::new(self.leg_rb.compute_base_matrix()),
+            FigureBoneData::default(),
+            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),

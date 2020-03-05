@@ -43,26 +43,25 @@ impl Animation for StandAnimation {
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + slow * 0.3);
-        next.chest.ori = Quaternion::rotation_x(0.0);
-        next.chest.scale = Vec3::one() * 1.01 + breathe * 0.05;
+        next.chest.ori = Quaternion::rotation_z(head_look.x * 0.6);
+        next.chest.scale = Vec3::one() * 1.01;
 
         next.belt.offset = Vec3::new(0.0, 0.0, 5.0 + slow * 0.3);
-        next.belt.ori = Quaternion::rotation_x(0.0);
+        next.belt.ori = Quaternion::rotation_z(head_look.x * 0.4);
         next.belt.scale = Vec3::one() + breathe * 0.05;
 
         next.shorts.offset = Vec3::new(0.0, 0.0, 2.0 + slow * 0.3);
         next.shorts.ori = Quaternion::rotation_x(0.0);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-6.0, -0.25 + slow * 0.15, 5.0 + slow * 0.5);
+        next.l_hand.offset = Vec3::new(-7.0, -0.25 + slow * 0.15, 5.0 + slow * 0.5);
 
         next.l_hand.ori = Quaternion::rotation_x(0.0 + slow * -0.06);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset =
-            Vec3::new(6.0, -0.25 + slow * 0.15, 5.0 + slow * 0.5 + breathe * -0.05);
+        next.r_hand.offset = Vec3::new(7.0, -0.25 + slow * 0.15, 5.0 + slow * 0.5);
         next.r_hand.ori = Quaternion::rotation_x(0.0 + slow * -0.06);
-        next.r_hand.scale = Vec3::one() + breathe * -0.05;
+        next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, -0.1, 8.0);
         next.l_foot.ori = Quaternion::identity();
@@ -71,14 +70,6 @@ impl Animation for StandAnimation {
         next.r_foot.offset = Vec3::new(3.4, -0.1, 8.0);
         next.r_foot.ori = Quaternion::identity();
         next.r_foot.scale = Vec3::one();
-
-        next.main.offset = Vec3::new(
-            -7.0 + skeleton_attr.weapon_x,
-            -5.0 + skeleton_attr.weapon_y,
-            15.0,
-        );
-        next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-        next.main.scale = Vec3::one() + breathe * -0.05;
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 5.0);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
@@ -92,6 +83,22 @@ impl Animation for StandAnimation {
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
 
+        next.main.offset = Vec3::new(
+            -7.0 + skeleton_attr.weapon_x,
+            -5.0 + skeleton_attr.weapon_y,
+            18.0,
+        );
+        next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+        next.main.scale = Vec3::one();
+
+        next.second.offset = Vec3::new(
+            0.0 + skeleton_attr.weapon_x,
+            0.0 + skeleton_attr.weapon_y,
+            0.0,
+        );
+        next.second.ori = Quaternion::rotation_y(0.0);
+        next.second.scale = Vec3::one() * 0.0;
+
         next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
         next.lantern.ori = Quaternion::rotation_x(0.0);
         next.lantern.scale = Vec3::one() * 0.0;
@@ -100,6 +107,17 @@ impl Animation for StandAnimation {
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
+        next.control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.control.ori = Quaternion::rotation_x(0.0);
+        next.control.scale = Vec3::one();
+
+        next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.l_control.ori = Quaternion::rotation_x(0.0);
+        next.l_control.scale = Vec3::one();
+
+        next.r_control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.r_control.ori = Quaternion::rotation_x(0.0);
+        next.r_control.scale = Vec3::one();
         next
     }
 }
