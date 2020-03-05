@@ -103,6 +103,11 @@ impl Animation for ChargeAnimation {
         next.torso.ori =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
+
+        next.control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.control.ori = Quaternion::rotation_x(0.0);
+        next.control.scale = Vec3::one();
+
         next
     }
 }

@@ -172,19 +172,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                         },
                                         CameraMode::FirstPerson => None,
                                     },
-                                    if camera_mode != CameraMode::FirstPerson
-                                        || character_state
-                                            .map(|cs| {
-                                                cs.action.is_attack()
-                                                    || cs.action.is_block()
-                                                    || cs.action.is_wield()
-                                            })
-                                            .unwrap_or_default()
-                                    {
-                                        Some(mesh_main(equipment.and_then(|e| e.main.as_ref())))
-                                    } else {
-                                        None
-                                    },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => Some(
                                             humanoid_armor_shoulder_spec.mesh_left_shoulder(&body),
@@ -198,6 +185,19 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                         CameraMode::FirstPerson => None,
                                     },
                                     Some(mesh_glider()),
+                                    if camera_mode != CameraMode::FirstPerson
+                                        || character_state
+                                            .map(|cs| {
+                                                cs.action.is_attack()
+                                                    || cs.action.is_block()
+                                                    || cs.action.is_wield()
+                                            })
+                                            .unwrap_or_default()
+                                    {
+                                        Some(mesh_main(equipment.and_then(|e| e.main.as_ref())))
+                                    } else {
+                                        None
+                                    },
                                     Some(mesh_lantern()),
                                     None,
                                     None,
