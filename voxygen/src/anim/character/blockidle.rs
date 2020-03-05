@@ -62,21 +62,23 @@ impl Animation for BlockIdleAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(Tool::Sword) => {
-                next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0 + wave_ultra_slow * 1.0);
-                next.l_hand.ori = Quaternion::rotation_x(-0.3);
-                next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
-                next.r_hand.ori = Quaternion::rotation_x(-0.3);
-                next.r_hand.scale = Vec3::one() * 1.01;
-                next.main.offset = Vec3::new(
-                    -6.0 + skeleton_attr.weapon_x,
-                    4.5 + skeleton_attr.weapon_y,
-                    0.0,
-                );
+                next.l_hand.offset = Vec3::new(0.0, -5.0, -5.0);
+                next.l_hand.ori = Quaternion::rotation_x(1.27);
+                next.l_hand.scale = Vec3::one() * 1.04;
+                next.r_hand.offset = Vec3::new(0.0, -6.0, -8.0);
+                next.r_hand.ori = Quaternion::rotation_x(1.27);
+                next.r_hand.scale = Vec3::one() * 1.05;
+                next.main.offset = Vec3::new(0.0, 0.0, -6.0);
                 next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
+
+                next.control.offset = Vec3::new(-8.0, 13.0, 8.0);
+                next.control.ori = Quaternion::rotation_x(0.2)
+                    * Quaternion::rotation_y(0.4)
+                    * Quaternion::rotation_z(-1.57);
+                next.control.scale = Vec3::one();
             },
             Some(Tool::Axe) => {
                 next.l_hand.offset = Vec3::new(
