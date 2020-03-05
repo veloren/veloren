@@ -5,7 +5,7 @@ use crate::{
     ui::ScaleMode,
     window::KeyMouse,
 };
-use directories::ProjectDirs;
+use directories::{ProjectDirs, UserDirs};
 use glutin::{MouseButton, VirtualKeyCode};
 use log::warn;
 use serde_derive::{Deserialize, Serialize};
@@ -177,10 +177,28 @@ pub struct Log {
     // Whether to create a log file or not.
     // Default is to create one.
     pub log_to_file: bool,
+    // The path on which the logs will be stored
+    pub logs_path: PathBuf,
 }
 
 impl Default for Log {
-    fn default() -> Self { Self { log_to_file: true } }
+    fn default() -> Self {
+        let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
+            .expect("System's $HOME directory path not found!");
+
+        // Chooses a path to store the logs by the following order:
+        //  - The VOXYGEN_LOGS environment variable
+        //  - The ProjectsDirs data local directory
+        // This only selects if there isn't already an entry in the settings file
+        let logs_path = std::env::var_os("VOXYGEN_LOGS")
+            .map(PathBuf::from)
+            .unwrap_or(proj_dirs.data_local_dir().join("logs"));
+
+        Self {
+            log_to_file: true,
+            logs_path,
+        }
+    }
 }
 
 /// `GraphicsSettings` contains settings related to framerate and in-game
@@ -273,10 +291,26 @@ pub struct Settings {
     // TODO: Remove at a later date, for dev testing
     pub logon_commands: Vec<String>,
     pub language: LanguageSettings,
+    pub screenshots_path: PathBuf,
 }
 
 impl Default for Settings {
     fn default() -> Self {
+        let user_dirs = UserDirs::new().expect("System's $HOME directory path not found!");
+
+        // Chooses a path to store the screenshots by the following order:
+        //  - The VOXYGEN_SCREENSHOT environment variable
+        //  - The user's picture directory
+        //  - The executable's directory
+        // This only selects if there isn't already an entry in the settings file
+        let screenshots_path = std::env::var_os("VOXYGEN_SCREENSHOT")
+            .map(PathBuf::from)
+            .or(user_dirs.picture_dir().map(|dir| dir.join("veloren")))
+            .or(std::env::current_exe()
+                .ok()
+                .and_then(|dir| dir.parent().map(|val| PathBuf::from(val))))
+            .expect("Couldn't choose a place to store the screenshots");
+
         Settings {
             controls: ControlSettings::default(),
             gameplay: GameplaySettings::default(),
@@ -288,6 +322,7 @@ impl Default for Settings {
             send_logon_commands: false,
             logon_commands: Vec::new(),
             language: LanguageSettings::default(),
+            screenshots_path,
         }
     }
 }
