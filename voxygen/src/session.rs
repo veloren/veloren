@@ -379,13 +379,18 @@ impl PlayState for SessionState {
 
             self.inputs.look_dir = cam_dir;
 
-            // Perform an in-game tick.
-            if let Err(err) = self.tick(clock.get_avg_delta()) {
-                global_state.info_message =
-                    Some(localized_strings.get("common.connection_lost").to_owned());
-                error!("[session] Failed to tick the scene: {:?}", err);
+            // Runs if either in a multiplayer server or the singleplayer server is unpaused
+            if global_state.singleplayer.is_none()
+                || !global_state.singleplayer.as_ref().unwrap().is_paused()
+            {
+                // Perform an in-game tick.
+                if let Err(err) = self.tick(clock.get_avg_delta()) {
+                    global_state.info_message =
+                        Some(localized_strings.get("common.connection_lost").to_owned());
+                    error!("[session] Failed to tick the scene: {:?}", err);
 
-                return PlayStateResult::Pop;
+                    return PlayStateResult::Pop;
+                }
             }
 
             // Maintain global state.
@@ -609,13 +614,18 @@ impl PlayState for SessionState {
                 }
             }
 
-            // Maintain the scene.
-            self.scene.maintain(
-                global_state.window.renderer_mut(),
-                &mut global_state.audio,
-                &self.client.borrow(),
-                global_state.settings.graphics.gamma,
-            );
+            // Runs if either in a multiplayer server or the singleplayer server is unpaused
+            if global_state.singleplayer.is_none()
+                || !global_state.singleplayer.as_ref().unwrap().is_paused()
+            {
+                // Maintain the scene.
+                self.scene.maintain(
+                    global_state.window.renderer_mut(),
+                    &mut global_state.audio,
+                    &self.client.borrow(),
+                    global_state.settings.graphics.gamma,
+                );
+            }
 
             // Render the session.
             self.render(global_state.window.renderer_mut());
