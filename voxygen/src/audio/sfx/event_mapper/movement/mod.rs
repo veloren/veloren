@@ -3,10 +3,10 @@
 /// from
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
-use client::Client;
 use common::{
     comp::{ActionState, Body, CharacterState, Item, ItemKind, MovementState, Pos, Stats, Vel},
     event::{EventBus, SfxEvent, SfxEventItem},
+    state::State,
 };
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -31,13 +31,13 @@ impl MovementEventMapper {
         }
     }
 
-    pub fn maintain(&mut self, client: &Client, triggers: &SfxTriggers) {
+    pub fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
         const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
-        let ecs = client.state().ecs();
+        let ecs = state.ecs();
 
         let player_position = ecs
             .read_storage::<Pos>()
-            .get(client.entity())
+            .get(player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
         for (entity, pos, vel, body, stats, character) in (
@@ -97,7 +97,7 @@ impl MovementEventMapper {
             }
         }
 
-        self.cleanup(client.entity());
+        self.cleanup(player_entity);
     }
 
     /// As the player explores the world, we track the last event of the nearby
