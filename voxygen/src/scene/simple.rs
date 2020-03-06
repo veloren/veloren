@@ -148,17 +148,14 @@ impl Scene {
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: SceneData) {
         self.camera.update(scene_data.time);
 
-        //self.camera
-        //    .set_orientation(Vec3::new(scene_data.time as f32 * 0.0, 0.0, 0.0));
-
         self.camera.compute_dependents(&VoidVol);
         let camera::Dependents {
             view_mat,
             proj_mat,
             cam_pos,
         } = self.camera.dependents();
-        const VD: f32 = 115.0; //View Distance
-        const TIME: f64 = 43200.0; // hours*3600 seconds
+        const VD: f32 = 115.0; // View Distance
+        const TIME: f64 = 43200.0; // 12 hours*3600 seconds
         if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
             view_mat,
             proj_mat,
