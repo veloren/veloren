@@ -38,7 +38,7 @@ use crate::{
     ecs::comp as vcomp,
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
-    scene::camera::Camera,
+    scene::camera::{self, Camera},
     ui::{fonts::ConrodVoxygenFonts, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
@@ -2112,9 +2112,13 @@ impl Hud {
             self.ui.focus_widget(maybe_id);
         }
         let events = self.update_layout(client, global_state, debug_info, dt);
-        let (v_mat, p_mat, _) = camera.compute_dependents(client);
-        self.ui
-            .maintain(&mut global_state.window.renderer_mut(), Some(p_mat * v_mat));
+        let camera::Dependents {
+            view_mat, proj_mat, ..
+        } = camera.dependents();
+        self.ui.maintain(
+            &mut global_state.window.renderer_mut(),
+            Some(proj_mat * view_mat),
+        );
 
         // Check if item images need to be reloaded
         self.item_imgs.reload_if_changed(&mut self.ui);

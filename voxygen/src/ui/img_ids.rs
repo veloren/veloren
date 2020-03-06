@@ -114,7 +114,12 @@ pub struct Rotations {
 /// corresponding ImgIds and create a struct with all of them.
 ///
 /// Example usage:
-/// ```
+/// ```ignore
+/// use veloren_voxygen::{
+///     image_ids,
+///     ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
+/// };
+///
 /// image_ids! {
 ///     pub struct Imgs {
 ///         <VoxelGraphic>

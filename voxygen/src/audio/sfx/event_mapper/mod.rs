@@ -1,11 +1,12 @@
 mod movement;
 mod progression;
 
+use common::state::State;
+
 use movement::MovementEventMapper;
 use progression::ProgressionEventMapper;
 
 use super::SfxTriggers;
-use client::Client;
 
 pub struct SfxEventMapper {
     progression_event_mapper: ProgressionEventMapper,
@@ -20,8 +21,15 @@ impl SfxEventMapper {
         }
     }
 
-    pub fn maintain(&mut self, client: &Client, triggers: &SfxTriggers) {
-        self.progression_event_mapper.maintain(client, triggers);
-        self.movement_event_mapper.maintain(client, triggers);
+    pub fn maintain(
+        &mut self,
+        state: &State,
+        player_entity: specs::Entity,
+        triggers: &SfxTriggers,
+    ) {
+        self.progression_event_mapper
+            .maintain(state, player_entity, triggers);
+        self.movement_event_mapper
+            .maintain(state, player_entity, triggers);
     }
 }
