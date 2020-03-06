@@ -1,6 +1,5 @@
 use crate::audio::AudioFrontend;
-use client::Client;
-use common::assets;
+use common::{assets, state::State};
 use rand::{seq::IteratorRandom, thread_rng};
 use serde::Deserialize;
 use std::time::Instant;
@@ -44,18 +43,18 @@ impl MusicMgr {
         }
     }
 
-    pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
+    pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State) {
         if audio.music_enabled()
             && self.began_playing.elapsed().as_secs_f64() > self.next_track_change
         {
-            self.play_random_track(audio, client);
+            self.play_random_track(audio, state);
         }
     }
 
-    fn play_random_track(&mut self, audio: &mut AudioFrontend, client: &Client) {
+    fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State) {
         const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
 
-        let game_time = (client.state().get_time_of_day() as u64 % 86400) as u32;
+        let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
         let mut rng = thread_rng();
 
