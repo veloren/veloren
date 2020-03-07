@@ -33,6 +33,14 @@ pub struct SessionState {
     selected_block: Block,
 }
 
+/// The action to perform after a tick
+enum TickAction {
+    // Continue executing
+    Continue,
+    // Disconnected (i.e. go to main menu)
+    Disconnect,
+}
+
 /// Represents an active game session (i.e., the one being played).
 impl SessionState {
     /// Create a new `SessionState`.
@@ -65,7 +73,7 @@ impl SessionState {
 
 impl SessionState {
     /// Tick the session (and the client attached to it).
-    fn tick(&mut self, dt: Duration) -> Result<(), Error> {
+    fn tick(&mut self, dt: Duration) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
         for event in self.client.borrow_mut().tick(
             self.inputs.clone(),
@@ -79,7 +87,10 @@ impl SessionState {
                 } => {
                     self.hud.new_message(event);
                 },
-                client::Event::Disconnect => {}, // TODO
+                client::Event::Disconnect => {
+                    log::warn!("disconnect");
+                    return Ok(TickAction::Disconnect);
+                },
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
                         0 => String::from("Goodbye!"),
@@ -94,7 +105,7 @@ impl SessionState {
             }
         }
 
-        Ok(())
+        Ok(TickAction::Continue)
     }
 
     /// Clean up the session (and the client attached to it) after a tick.
@@ -390,12 +401,16 @@ impl PlayState for SessionState {
                 || !global_state.singleplayer.as_ref().unwrap().is_paused()
             {
                 // Perform an in-game tick.
-                if let Err(err) = self.tick(clock.get_avg_delta()) {
-                    global_state.info_message =
-                        Some(localized_strings.get("common.connection_lost").to_owned());
-                    error!("[session] Failed to tick the scene: {:?}", err);
+                match self.tick(clock.get_avg_delta()) {
+                    Ok(TickAction::Continue) => {}, // Do nothing
+                    Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
+                    Err(err) => {
+                        global_state.info_message =
+                            Some(localized_strings.get("common.connection_lost").to_owned());
+                        error!("[session] Failed to tick the scene: {:?}", err);
 
-                    return PlayStateResult::Pop;
+                        return PlayStateResult::Pop;
+                    },
                 }
             }
 
