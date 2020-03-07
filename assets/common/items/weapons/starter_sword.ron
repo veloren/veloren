@@ -1,6 +1,8 @@
 Item(
     name: "Battered Sword",
-    description: "Held together by Rust and hope.",
+    description: "Held together by Rust and hope.
+    
+    Power: 15",
     kind: Tool(
         ToolData (
             kind: Sword(Rapier),    

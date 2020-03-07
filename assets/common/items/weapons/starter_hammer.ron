@@ -1,6 +1,8 @@
 Item(
     name: "Sturdy Old Hammer",
-    description: "'Property of...' The rest is missing. ",
+    description: "'Property of...' The rest is missing.
+    
+    Power: 15",
     kind: Tool(
         ToolData (
             kind: Hammer,    
