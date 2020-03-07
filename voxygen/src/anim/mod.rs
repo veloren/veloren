@@ -58,6 +58,9 @@ pub trait Skeleton: Send + Sync + 'static {
     fn interpolate(&mut self, target: &Self, dt: f32);
 }
 
+// rustc complains that `SkeletonAttr` fields are never read.
+// Pls remove when they are.
+#[allow(dead_code)]
 pub struct SkeletonAttr {
     scaler: f32,
     head_scale: f32,

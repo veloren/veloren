@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         AbilityPool, Body, CharacterState, Controller, ControllerInputs, Energy, Mounting, Ori,
-        PhysicsState, Pos, StateUpdate, Stats, Vel,
+        PhysicsState, Pos, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -11,7 +11,7 @@ use crate::{
 
 use specs::{Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
 
-use std::collections::VecDeque;
+// use std::collections::VecDeque;
 
 /// Read-Only Data sent from Character Behavior System to bahvior fn's
 pub struct JoinData<'a> {
@@ -171,15 +171,15 @@ impl<'a> System<'a> for Sys {
                 CharacterState::BasicBlock { .. } => states::basic_block::behavior(&j),
                 CharacterState::Sit { .. } => states::sit::behavior(&j),
 
-                _ => StateUpdate {
-                    character: *j.character,
-                    pos: *j.pos,
-                    vel: *j.vel,
-                    ori: *j.ori,
-                    energy: *j.energy,
-                    local_events: VecDeque::new(),
-                    server_events: VecDeque::new(),
-                },
+                // _ => StateUpdate {
+                //     character: *j.character,
+                //     pos: *j.pos,
+                //     vel: *j.vel,
+                //     ori: *j.ori,
+                //     energy: *j.energy,
+                //     local_events: VecDeque::new(),
+                //     server_events: VecDeque::new(),
+                // },
             };
 
             *tuple.2 = state_update.character;
