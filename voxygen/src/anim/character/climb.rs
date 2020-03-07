@@ -59,11 +59,11 @@ impl Animation for ClimbAnimation {
             * Quaternion::rotation_y(wave_test * 0.10);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-6.0, -0.25 + wave_testc * 1.5, 5.0 - wave_test * 4.0);
+        next.l_hand.offset = Vec3::new(-6.0, -0.25 + wave_testc * 1.5, 6.0 - wave_test * 4.0);
         next.l_hand.ori = Quaternion::rotation_x(2.2 + wave_testc * 0.5);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(6.0, -0.25 - wave_testc * 1.5, 5.0 + wave_test * 4.0);
+        next.r_hand.offset = Vec3::new(6.0, -0.25 - wave_testc * 1.5, 6.0 + wave_test * 4.0);
         next.r_hand.ori = Quaternion::rotation_x(2.2 - wave_testc * 0.5);
         next.r_hand.scale = Vec3::one();
 
@@ -74,15 +74,6 @@ impl Animation for ClimbAnimation {
         next.r_foot.offset = Vec3::new(3.4, 1.0, 6.0 - wave_test * 2.5);
         next.r_foot.ori = Quaternion::rotation_x(0.2 + wave_testc * 0.5);
         next.r_foot.scale = Vec3::one();
-
-        next.main.offset = Vec3::new(
-            -7.0 + skeleton_attr.weapon_x,
-            -5.0 + skeleton_attr.weapon_y,
-            15.0,
-        );
-        next.main.ori =
-            Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + wave_cos * 0.25);
-        next.main.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(wave_cos * 0.15);
@@ -96,6 +87,23 @@ impl Animation for ClimbAnimation {
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
 
+        next.main.offset = Vec3::new(
+            -7.0 + skeleton_attr.weapon_x,
+            -5.0 + skeleton_attr.weapon_y,
+            18.0,
+        );
+        next.main.ori =
+            Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + wave_cos * 0.25);
+        next.main.scale = Vec3::one();
+
+        next.second.offset = Vec3::new(
+            0.0 + skeleton_attr.weapon_x,
+            0.0 + skeleton_attr.weapon_y,
+            0.0,
+        );
+        next.second.ori = Quaternion::rotation_y(0.0);
+        next.second.scale = Vec3::one() * 0.0;
+
         next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
         next.lantern.ori = Quaternion::rotation_x(0.0);
         next.lantern.scale = Vec3::one() * 0.0;
@@ -104,6 +112,17 @@ impl Animation for ClimbAnimation {
         next.torso.ori = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
+        next.control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.control.ori = Quaternion::rotation_x(0.0);
+        next.control.scale = Vec3::one();
+
+        next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.l_control.ori = Quaternion::rotation_x(0.0);
+        next.l_control.scale = Vec3::one();
+
+        next.r_control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.r_control.ori = Quaternion::rotation_x(0.0);
+        next.r_control.scale = Vec3::one();
         next
     }
 }

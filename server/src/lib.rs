@@ -282,7 +282,10 @@ impl Server {
         state.write_component(entity, comp::CharacterState::default());
         state.write_component(entity, comp::Alignment::Owned(entity));
         state.write_component(entity, comp::Inventory::default());
-        state.write_component(entity, comp::InventoryUpdate);
+        state.write_component(
+            entity,
+            comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
+        );
         state.write_component(entity, comp::AbilityPool::default());
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
@@ -576,6 +579,8 @@ impl Server {
             .get(entity)
             .is_some()
     }
+
+    pub fn number_of_players(&self) -> i64 { self.metrics.player_online.get() }
 }
 
 impl Drop for Server {
@@ -607,7 +612,10 @@ impl StateExt for State {
             .map(|inv| inv.push(item).is_none())
             .unwrap_or(false);
         if success {
-            self.write_component(entity, comp::InventoryUpdate);
+            self.write_component(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected),
+            );
         }
         success
     }

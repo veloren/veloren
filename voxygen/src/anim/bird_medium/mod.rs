@@ -27,17 +27,19 @@ impl BirdMediumSkeleton {
 impl Skeleton for BirdMediumSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
+    fn compute_matrices(&self) -> [FigureBoneData; 18] {
         let torso_mat = self.torso.compute_base_matrix();
 
         [
-            FigureBoneData::new(self.head.compute_base_matrix() * torso_mat),
+            FigureBoneData::new(torso_mat * self.head.compute_base_matrix()),
             FigureBoneData::new(torso_mat),
-            FigureBoneData::new(self.tail.compute_base_matrix() * torso_mat),
-            FigureBoneData::new(self.wing_l.compute_base_matrix() * torso_mat),
-            FigureBoneData::new(self.wing_r.compute_base_matrix() * torso_mat),
+            FigureBoneData::new(torso_mat * self.tail.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.wing_l.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.wing_r.compute_base_matrix()),
             FigureBoneData::new(self.leg_l.compute_base_matrix()),
             FigureBoneData::new(self.leg_r.compute_base_matrix()),
+            FigureBoneData::default(),
+            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),

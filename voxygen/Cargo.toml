@@ -63,6 +63,7 @@ chrono = "0.4.9"
 rust-argon2 = "0.5"
 bincode = "1.2"
 deunicode = "1.0"
+uvth = "3.1.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
@@ -74,6 +75,7 @@ winres = "0.1"
 criterion = "0.3"
 git2 = "0.10"
 world = { package = "veloren-world", path = "../world" }
+gfx_window_glutin = { version = "0.31.0", features = ["headless"] }
 
 [[bench]]
 name = "meshing_benchmark"
