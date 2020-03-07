@@ -4,7 +4,7 @@
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use common::{
-    comp::{Body, CharacterState, Item, ItemKind, PhysicsState, Pos, Stats, ToolData, Vel},
+    comp::{Body, CharacterState, PhysicsState, Pos, Stats, Vel},
     event::{EventBus, SfxEvent, SfxEventItem},
     state::State,
 };
@@ -156,7 +156,7 @@ impl MovementEventMapper {
         physics_state: &PhysicsState,
         previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
-        stats: &Stats,
+        _stats: &Stats,
     ) -> SfxEvent {
         // Match run state
         if physics_state.on_ground && vel.magnitude() > 0.1 {
