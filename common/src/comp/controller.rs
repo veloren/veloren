@@ -67,7 +67,7 @@ impl Input {
 
     /// Whether input has been pressed for longer than `threshold`
     pub fn is_long_press(&self, threshold: Duration) -> bool {
-        (self.is_pressed() && self.duration >= threshold)
+        self.is_pressed() && self.duration >= threshold
     }
 
     /// Handles logic of updating state of Input
