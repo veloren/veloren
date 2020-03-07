@@ -5,7 +5,7 @@ use crate::{
         ItemKind::Tool, MoveState::Run, StateUpdate, ToolData,
     },
     event::ServerEvent,
-    sys::character_state::JoinData,
+    sys::character_behavior::JoinData,
 };
 use std::time::Duration;
 use vek::Vec3;
