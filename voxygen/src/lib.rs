@@ -28,12 +28,13 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
+#[cfg(feature = "singleplayer")]
+use crate::singleplayer::Singleplayer;
 use crate::{
     audio::AudioFrontend,
     profile::Profile,
     render::Renderer,
     settings::Settings,
-    singleplayer::Singleplayer,
     window::{Event, Window},
 };
 use common::{assets::watch, clock::Clock};
@@ -61,6 +62,23 @@ impl GlobalState {
     }
 
     pub fn maintain(&mut self, dt: f32) { self.audio.maintain(dt); }
+
+    #[cfg(feature = "singleplayer")]
+    pub fn paused(&self) -> bool {
+        self.singleplayer
+            .as_ref()
+            .map_or(false, Singleplayer::is_paused)
+    }
+
+    #[cfg(not(feature = "singleplayer"))]
+    pub fn paused(&self) -> bool { false }
+
+    pub fn unpause(&self) {
+        #[cfg(feature = "singleplayer")]
+        {
+            self.singleplayer.as_ref().map(|s| s.pause(false));
+        }
+    }
 }
 
 // TODO: appears to be currently unused by playstates
