@@ -1,6 +1,6 @@
 // Module declarations
 pub mod basic_attack;
-// pub mod basic_block;
+pub mod basic_block;
 pub mod climb;
 pub mod equipping;
 pub mod glide;
