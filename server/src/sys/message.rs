@@ -111,6 +111,7 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::ExitIngame { entity });
                         },
                         ClientState::Pending => {},
+                        ClientState::Disconnected => unreachable!(),
                     },
                     // Request spectator state
                     ClientMsg::Spectate => match client.client_state {
@@ -121,6 +122,7 @@ impl<'a> System<'a> for Sys {
                             client.allow_state(ClientState::Spectator)
                         },
                         ClientState::Pending => {},
+                        ClientState::Disconnected => unreachable!(),
                     },
                     // Valid player
                     ClientMsg::Register { player, password } if player.is_valid() => {
@@ -187,6 +189,7 @@ impl<'a> System<'a> for Sys {
                         },
                         ClientState::Character => client.error_state(RequestStateError::Already),
                         ClientState::Pending => {},
+                        ClientState::Disconnected => unreachable!(),
                     },
                     ClientMsg::ControllerInputs(inputs) => match client.client_state {
                         ClientState::Connected
@@ -200,6 +203,7 @@ impl<'a> System<'a> for Sys {
                             }
                         },
                         ClientState::Pending => {},
+                        ClientState::Disconnected => unreachable!(),
                     },
                     ClientMsg::ControlEvent(event) => match client.client_state {
                         ClientState::Connected
@@ -213,6 +217,7 @@ impl<'a> System<'a> for Sys {
                             }
                         },
                         ClientState::Pending => {},
+                        ClientState::Disconnected => unreachable!(),
                     },
                     ClientMsg::ChatMsg { message } => match client.client_state {
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
@@ -227,6 +232,7 @@ impl<'a> System<'a> for Sys {
                             ),
                         },
                         ClientState::Pending => {},
+                        ClientState::Disconnected => unreachable!(),
                     },
                     ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
                         ClientState::Character => {
@@ -267,6 +273,7 @@ impl<'a> System<'a> for Sys {
                             }
                         },
                         ClientState::Pending => {},
+                        ClientState::Disconnected => unreachable!(),
                     },
                     // Always possible.
                     ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
