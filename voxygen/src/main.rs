@@ -15,7 +15,7 @@ use veloren_voxygen::{
 };
 
 use common::{
-    assets::{load, load_expect, load_watched, watch},
+    assets::{load_watched, watch},
     clock::Clock,
 };
 use std::panic;
