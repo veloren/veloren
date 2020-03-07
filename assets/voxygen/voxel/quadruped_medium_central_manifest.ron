@@ -386,7 +386,7 @@
             central: ("npc.lion.male.ears"),
         ),
         tail: (
-            offset: (-0.5, -1.0, -8.0),
+            offset: (-0.5, -1.0, -1.0),
             central: ("npc.lion.male.tail"),
         ),
     ),
@@ -417,7 +417,7 @@
         ),
         tail: (
             offset: (-0.5, -1.0, -1.0),
-            central: ("npc.lion.male.tail"),
+            central: ("npc.lion.female.tail"),
         ),
     ),
     (Tarasque, Male): (
