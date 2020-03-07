@@ -11,16 +11,16 @@ const HUMANOID_WATER_SPEED: f32 = 120.0;
 
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate) {
     if data.physics.in_fluid {
-        handle_swim_move(data, update);
+        swim_move(data, update);
     } else {
-        handle_ground_move(data, update);
+        ground_move(data, update);
     }
 }
 
-pub fn handle_ground_move(data: &JoinData, update: &mut StateUpdate) {
+fn ground_move(data: &JoinData, update: &mut StateUpdate) {
     let (accel, speed): (f32, f32) = if data.physics.on_ground {
         let accel = 100.0;
-        let speed = 8.0;
+        let speed = 9.0;
         (accel, speed)
     } else {
         let accel = 100.0;
@@ -56,7 +56,7 @@ pub fn handle_ground_move(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-pub fn handle_swim_move(data: &JoinData, update: &mut StateUpdate) {
+fn swim_move(data: &JoinData, update: &mut StateUpdate) {
     // Update velocity
     update.vel.0 += Vec2::broadcast(data.dt.0)
         * data.inputs.move_dir
