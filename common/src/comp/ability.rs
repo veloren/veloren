@@ -1,39 +1,34 @@
-use crate::comp;
-use specs::{Component, FlaggedStorage, HashMapStorage, VecStorage};
+use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub enum AbilityActionKind {
-    Primary,
-    Secondary,
-    Dodge,
-    Block,
-    // UpdatePool?
+pub enum AbilityState {
+    BasicAttack,
+    BasicBlock,
+    Roll,
 }
-impl Default for AbilityActionKind {
-    fn default() -> Self { Self::Primary }
+impl Default for AbilityState {
+    fn default() -> Self { Self::BasicAttack }
 }
-#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct AbilityAction(pub AbilityActionKind);
 
-impl Component for AbilityAction {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+impl Component for AbilityState {
+    type Storage = DenseVecStorage<Self>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct AbilityPool {
-    pub primary: Option<comp::CharacterState>,
-    pub secondary: Option<comp::CharacterState>,
-    pub block: Option<comp::CharacterState>,
-    pub dodge: Option<comp::CharacterState>,
+    pub primary: Option<AbilityState>,
+    pub secondary: Option<AbilityState>,
+    pub block: Option<AbilityState>,
+    pub dodge: Option<AbilityState>,
 }
 
 impl Default for AbilityPool {
     fn default() -> Self {
         Self {
-            primary: Some(comp::CharacterState::BasicAttack(None)),
-            secondary: Some(comp::CharacterState::BasicBlock(None)),
+            primary: Some(AbilityState::BasicAttack),
+            secondary: Some(AbilityState::BasicAttack),
             block: None,
-            dodge: Some(comp::CharacterState::Roll(None)),
+            dodge: Some(AbilityState::Roll),
         }
     }
 }

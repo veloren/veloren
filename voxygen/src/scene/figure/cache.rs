@@ -170,10 +170,10 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     if camera_mode != CameraMode::FirstPerson
                                         || character_state
                                             .map(|cs| match cs {
-                                                CharacterState::BasicAttack(_)
-                                                | CharacterState::BasicBlock(_)
-                                                | CharacterState::Wielding(_)
-                                                | CharacterState::Wielded(_) => true,
+                                                CharacterState::BasicAttack { .. }
+                                                | CharacterState::BasicBlock { .. }
+                                                | CharacterState::Equipping { .. }
+                                                | CharacterState::Wielding { .. } => true,
                                                 _ => false,
                                             })
                                             .unwrap_or_default()

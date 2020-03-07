@@ -202,10 +202,10 @@ impl MovementEventMapper {
 
         // Match all other Movemement and Action states
         match (previous_state.event, character_state) {
-            (_, CharacterState::Roll(_)) => SfxEvent::Roll,
-            (_, CharacterState::Climb(_)) => SfxEvent::Climb,
-            (SfxEvent::Glide, CharacterState::Idle(_)) => SfxEvent::GliderClose,
-            (previous_event, CharacterState::Glide(_)) => {
+            (_, CharacterState::Roll { .. }) => SfxEvent::Roll,
+            (_, CharacterState::Climb { .. }) => SfxEvent::Climb,
+            (SfxEvent::Glide, CharacterState::Idle { .. }) => SfxEvent::GliderClose,
+            (previous_event, CharacterState::Glide { .. }) => {
                 if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
                     SfxEvent::GliderOpen
                 } else {
@@ -226,13 +226,13 @@ impl MovementEventMapper {
     }
 
     /// This helps us determine whether we should be emitting the Wield/Unwield
-    /// events. For now, consider either CharacterState::Wielded or
-    /// ::Wielding to mean the weapon is drawn. This will need updating if the
+    /// events. For now, consider either CharacterState::Wielding or
+    /// ::Equipping to mean the weapon is drawn. This will need updating if the
     /// animations change to match the wield_duration associated with the weapon
     fn weapon_drawn(character: &CharacterState) -> bool {
         character.is_wielded()
             || match character {
-                CharacterState::Wielding(_) => true,
+                CharacterState::Equipping { .. } => true,
                 _ => false,
             }
     }

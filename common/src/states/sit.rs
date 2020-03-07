@@ -1,38 +1,30 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, EcsStateData, StateUpdate},
-    states::StateHandler,
+    comp::{CharacterState, StateUpdate},
+    sys::character_state::JoinData,
 };
 use std::collections::VecDeque;
 
-#[derive(Clone, Copy, Default, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct State;
+pub fn behavior(data: &JoinData) -> StateUpdate {
+    let mut update = StateUpdate {
+        character: *data.character,
+        pos: *data.pos,
+        vel: *data.vel,
+        ori: *data.ori,
+        energy: *data.energy,
+        local_events: VecDeque::new(),
+        server_events: VecDeque::new(),
+    };
 
-impl StateHandler for State {
-    fn new(_ecs_data: &EcsStateData) -> Self { Self {} }
+    handle_wield(data, &mut update);
 
-    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
-        let mut update = StateUpdate {
-            character: *ecs_data.character,
-            pos: *ecs_data.pos,
-            vel: *ecs_data.vel,
-            ori: *ecs_data.ori,
-            energy: *ecs_data.energy,
-            local_events: VecDeque::new(),
-            server_events: VecDeque::new(),
-        };
-
-        //handle_jump(ecs_data, &mut update);
-        handle_wield(ecs_data, &mut update);
-
-        // Try to Fall/Stand up/Move
-        if !ecs_data.physics.on_ground
-            || ecs_data.inputs.sit.is_just_pressed()
-            || ecs_data.inputs.move_dir.magnitude_squared() > 0.0
-        {
-            update.character = CharacterState::Idle(None);
-        }
-
-        update
+    // Try to Fall/Stand up/Move
+    if !data.physics.on_ground
+        || data.inputs.sit.is_just_pressed()
+        || data.inputs.move_dir.magnitude_squared() > 0.0
+    {
+        update.character = CharacterState::Idle {};
     }
+
+    update
 }

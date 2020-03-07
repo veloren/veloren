@@ -1,4 +1,4 @@
-use crate::comp::{ActionState, EcsStateData, MoveState, StateUpdate};
+use crate::comp::{ActionState, CharacterEntityData, MoveState, StateUpdate};
 
 use super::utils::*;
 use crate::states::StateHandler;
@@ -11,11 +11,9 @@ const HUMANOID_AIR_SPEED: f32 = 100.0;
 pub struct State;
 
 impl StateHandler for State {
-    fn new(_ecs_data: &EcsStateData) -> Self {
-        Self {}
-    }
+    fn new(_ecs_data: &CharacterEntityData) -> Self { Self {} }
 
-    fn handle(&self, ecs_data: &EcsStateData) -> StateUpdate {
+    fn handle(&self, ecs_data: &CharacterEntityData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *ecs_data.pos,
             vel: *ecs_data.vel,
