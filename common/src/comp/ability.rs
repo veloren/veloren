@@ -26,7 +26,7 @@ impl Default for AbilityPool {
     fn default() -> Self {
         Self {
             primary: Some(AbilityState::BasicAttack),
-            secondary: Some(AbilityState::BasicAttack),
+            secondary: Some(AbilityState::BasicBlock),
             block: None,
             dodge: Some(AbilityState::Roll),
         }
