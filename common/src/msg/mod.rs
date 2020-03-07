@@ -16,6 +16,7 @@ pub enum ClientState {
     Registered,
     Spectator,
     Character,
+    Disconnected,
 }
 
 pub const MAX_BYTES_CHAT_MSG: usize = 256;
