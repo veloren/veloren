@@ -258,6 +258,7 @@ impl<'a> Widget for Bag<'a> {
         if let Some(to_drop) = state.selected_slot {
             if ui.widget_input(ui.window).clicks().left().next().is_some() {
                 event = Some(Event::HudEvent(HudEvent::DropInventorySlot(to_drop)));
+                state.update(|s| s.selected_slot = None);
             }
         }
 

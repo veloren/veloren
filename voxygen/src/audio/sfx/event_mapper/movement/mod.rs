@@ -3,10 +3,10 @@
 /// from
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
-use client::Client;
 use common::{
     comp::{Body, CharacterState, Item, ItemKind, PhysicsState, Pos, Stats, ToolData, Vel},
     event::{EventBus, SfxEvent, SfxEventItem},
+    state::State,
 };
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -43,13 +43,13 @@ impl MovementEventMapper {
         }
     }
 
-    pub fn maintain(&mut self, client: &Client, triggers: &SfxTriggers) {
+    pub fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
         const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
-        let ecs = client.state().ecs();
+        let ecs = state.ecs();
 
         let player_position = ecs
             .read_storage::<Pos>()
-            .get(client.entity())
+            .get(player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
         for (entity, pos, vel, body, stats, physics, character) in (
@@ -108,7 +108,7 @@ impl MovementEventMapper {
             }
         }
 
-        self.cleanup(client.entity());
+        self.cleanup(player_entity);
     }
 
     /// As the player explores the world, we track the last event of the nearby
@@ -167,31 +167,42 @@ impl MovementEventMapper {
         }) = stats.equipment.main
         {
             if let Some(wield_event) = match (
-                previous_state.weapon_drawn,
-                Self::weapon_drawn(character_state),
+                previous_event.weapon_drawn,
+                current_event.action.is_roll(),
+                Self::has_weapon_drawn(current_event.action),
             ) {
-                (false, true) => Some(SfxEvent::Wield(kind)),
-                (true, false) => Some(SfxEvent::Unwield(kind)),
+                (false, false, true) => Some(SfxEvent::Wield(kind)),
+                (true, false, false) => Some(SfxEvent::Unwield(kind)),
                 _ => None,
             } {
                 return wield_event;
             }
         }
 
-        // Match the fall/land and jump states based on the on_ground status
-        // They may also have landed on the ground with the glider (!jump)
-        if let Some(jump_or_fall_event) = match (physics_state.on_ground, previous_state.on_ground)
-        {
-            (true, false) => {
-                if previous_state.event == SfxEvent::Glide {
-                    Some(SfxEvent::GliderClose)
+        // Match all other Movemement and Action states
+        match (
+            current_event.movement,
+            current_event.action,
+            previous_event.event.clone(),
+        ) {
+            (_, ActionState::Roll { .. }, _) => SfxEvent::Roll,
+            (MovementState::Climb, ..) => SfxEvent::Climb,
+            (MovementState::Swim, ..) => SfxEvent::Swim,
+            (MovementState::Run, ..) => {
+                // If the entitys's velocity is very low, they may be stuck, or walking into a
+                // solid object. We should not trigger the run SFX in this case,
+                // even if their move state indicates running. The 0.1 value is
+                // an approximation from playtesting scenarios where this can occur.
+                if vel.magnitude() > 0.1 {
+                    SfxEvent::Run
                 } else {
                     Some(SfxEvent::Run)
                 }
             },
             (false, true) => Some(SfxEvent::Jump),
             _ => None,
-        } {
+        }
+        {
             return jump_or_fall_event;
         }
 

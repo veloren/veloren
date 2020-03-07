@@ -37,12 +37,16 @@ pub struct CharacterSkeleton {
     r_hand: Bone,
     l_foot: Bone,
     r_foot: Bone,
-    main: Bone,
     l_shoulder: Bone,
     r_shoulder: Bone,
     glider: Bone,
+    main: Bone,
+    second: Bone,
     lantern: Bone,
     torso: Bone,
+    control: Bone,
+    l_control: Bone,
+    r_control: Bone,
 }
 
 impl CharacterSkeleton {
@@ -52,11 +56,16 @@ impl CharacterSkeleton {
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
+    fn compute_matrices(&self) -> [FigureBoneData; 18] {
         let chest_mat = self.chest.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
         let l_hand_mat = self.l_hand.compute_base_matrix();
+        let r_hand_mat = self.r_hand.compute_base_matrix();
+        let control_mat = self.control.compute_base_matrix();
+        let l_control_mat = self.l_control.compute_base_matrix();
+        let r_control_mat = self.r_control.compute_base_matrix();
         let main_mat = self.main.compute_base_matrix();
+        let second_mat = self.second.compute_base_matrix();
 
         let head_mat = self.head.compute_base_matrix();
         [
@@ -64,18 +73,20 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(torso_mat * chest_mat),
             FigureBoneData::new(torso_mat * self.belt.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.shorts.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * chest_mat * l_hand_mat),
-            FigureBoneData::new(torso_mat * chest_mat * self.r_hand.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * l_hand_mat),
+            FigureBoneData::new(torso_mat * chest_mat * control_mat * r_control_mat * r_hand_mat),
             FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * chest_mat * main_mat),
             FigureBoneData::new(torso_mat * chest_mat * self.l_shoulder.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat * self.r_shoulder.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.glider.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * main_mat),
+            FigureBoneData::new(torso_mat * chest_mat * control_mat * r_control_mat * second_mat),
             FigureBoneData::new(torso_mat * chest_mat * self.lantern.compute_base_matrix()),
             FigureBoneData::new(torso_mat),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
+            FigureBoneData::new(control_mat),
+            FigureBoneData::new(l_control_mat),
+            FigureBoneData::new(r_control_mat),
         ]
     }
 
@@ -88,12 +99,16 @@ impl Skeleton for CharacterSkeleton {
         self.r_hand.interpolate(&target.r_hand, dt);
         self.l_foot.interpolate(&target.l_foot, dt);
         self.r_foot.interpolate(&target.r_foot, dt);
-        self.main.interpolate(&target.main, dt);
         self.l_shoulder.interpolate(&target.l_shoulder, dt);
         self.r_shoulder.interpolate(&target.r_shoulder, dt);
         self.glider.interpolate(&target.glider, dt);
+        self.main.interpolate(&target.main, dt);
+        self.second.interpolate(&target.second, dt);
         self.lantern.interpolate(&target.lantern, dt);
         self.torso.interpolate(&target.torso, dt);
+        self.control.interpolate(&target.control, dt);
+        self.l_control.interpolate(&target.l_control, dt);
+        self.r_control.interpolate(&target.r_control, dt);
     }
 }
 

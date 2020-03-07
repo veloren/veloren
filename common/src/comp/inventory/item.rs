@@ -70,8 +70,7 @@ pub enum Armor {
     Necklace,
 }
 
-//TODO: Do we even need this?
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
     Apple,
     Cheese,

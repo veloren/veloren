@@ -1,5 +1,5 @@
 mod cache;
-mod load;
+pub mod load;
 
 pub use cache::FigureModelCache;
 pub use load::load_mesh; // TODO: Don't make this public.
@@ -13,13 +13,16 @@ use crate::{
         quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
     },
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
-    scene::camera::{Camera, CameraMode},
+    scene::{
+        camera::{Camera, CameraMode},
+        SceneData,
+    },
 };
-use client::Client;
 use common::{
     comp::{
         Body, CharacterState, ItemKind, Last, Ori, PhysicsState, Pos, Scale, Stats, ToolData, Vel,
     },
+    state::State,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
@@ -95,17 +98,18 @@ impl FigureMgr {
         self.biped_large_model_cache.clean(tick);
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, camera: &Camera) {
-        let time = client.state().get_time();
-        let tick = client.get_tick();
-        let ecs = client.state().ecs();
-        let view_distance = client.view_distance().unwrap_or(1);
-        let dt = client.state().get_delta_time();
-        let frustum = camera.frustum(client);
+    pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData, camera: &Camera) {
+        let state = scene_data.state;
+        let time = state.get_time();
+        let tick = scene_data.tick;
+        let ecs = state.ecs();
+        let view_distance = scene_data.view_distance;
+        let dt = state.get_delta_time();
+        let frustum = camera.frustum();
         // Get player position.
         let player_pos = ecs
             .read_storage::<Pos>()
-            .get(client.entity())
+            .get(scene_data.player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
         for (entity, pos, vel, ori, scale, body, character, last_character, physics, stats) in (
@@ -1252,7 +1256,7 @@ impl FigureMgr {
             }
         }
 
-        // Clear states that have dead entities.
+        // Clear states that have deleted entities.
         self.character_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_small_states
@@ -1280,19 +1284,18 @@ impl FigureMgr {
     pub fn render(
         &mut self,
         renderer: &mut Renderer,
-        client: &mut Client,
+        state: &State,
+        player_entity: EcsEntity,
+        tick: u64,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         camera: &Camera,
     ) {
-        let tick = client.get_tick();
-        let ecs = client.state().ecs();
+        let ecs = state.ecs();
 
-        let character_state_storage = client
-            .state()
-            .read_storage::<common::comp::CharacterState>();
-        let character_state = character_state_storage.get(client.entity());
+        let character_state_storage = state.read_storage::<common::comp::CharacterState>();
+        let character_state = character_state_storage.get(player_entity);
 
         for (entity, _, _, body, stats, _) in (
             &ecs.entities(),
@@ -1306,7 +1309,7 @@ impl FigureMgr {
             // Don't render dead entities
             .filter(|(_, _, _, _, stats, _)| stats.map_or(true, |s| !s.is_dead))
         {
-            let is_player = entity == client.entity();
+            let is_player = entity == player_entity;
             let player_camera_mode = if is_player {
                 camera.get_mode()
             } else {

@@ -1,4 +1,5 @@
 use fern::colors::{Color, ColoredLevelConfig};
+use std::fs;
 
 use crate::settings::Settings;
 
@@ -39,12 +40,20 @@ pub fn init(
                 ))
             });
 
-    // Try to create the log file.
-    // Incase of it failing we simply print it out to the console.
-    let mut log_file_created = Ok(());
-    match fern::log_file(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H"))) {
-        Ok(log_file) => file_cfg = file_cfg.chain(log_file),
-        Err(e) => log_file_created = Err(e),
+    // Try to create the logs file parent directories.
+    let mut log_file_created = fs::create_dir_all(&settings.log.logs_path);
+
+    if log_file_created.is_ok() {
+        // Try to create the log file.
+        match fern::log_file(
+            settings
+                .log
+                .logs_path
+                .join(&format!("voxygen-{}.log", time.format("%Y-%m-%d-%H"))),
+        ) {
+            Ok(log_file) => file_cfg = file_cfg.chain(log_file),
+            Err(e) => log_file_created = Err(e),
+        }
     }
 
     let stdout_cfg = fern::Dispatch::new()
@@ -65,6 +74,7 @@ pub fn init(
         .apply()
         .expect("Failed to setup logging!");
 
+    // Incase that the log file creation failed simply print it to the console
     if let Err(e) = log_file_created {
         log::error!("Failed to create log file! {}", e);
     }

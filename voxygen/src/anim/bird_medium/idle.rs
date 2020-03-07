@@ -33,7 +33,7 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-        next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) / 11.0;
+        next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.ori = Quaternion::rotation_z(duck_head_look.x)
             * Quaternion::rotation_x(-duck_head_look.y.abs() + wave_slow_cos * 0.03);
         next.head.scale = Vec3::one();
@@ -46,7 +46,7 @@ impl Animation for IdleAnimation {
         next.torso.ori = Quaternion::rotation_y(wave_slow * 0.03);
         next.torso.scale = Vec3::one() / 11.0;
 
-        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1) / 11.0;
+        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
         next.tail.ori = Quaternion::rotation_x(wave_slow_cos * 0.03);
         next.tail.scale = Vec3::one();
 
@@ -54,7 +54,7 @@ impl Animation for IdleAnimation {
             -skeleton_attr.wing.0,
             skeleton_attr.wing.1,
             skeleton_attr.wing.2,
-        ) / 11.0;
+        );
         next.wing_l.ori = Quaternion::rotation_z(0.0);
         next.wing_l.scale = Vec3::one() * 1.05;
 
@@ -62,7 +62,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.wing.0,
             skeleton_attr.wing.1,
             skeleton_attr.wing.2,
-        ) / 11.0;
+        );
         next.wing_r.ori = Quaternion::rotation_y(0.0);
         next.wing_r.scale = Vec3::one() * 1.05;
 

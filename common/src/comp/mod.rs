@@ -31,7 +31,8 @@ pub use controller::{
 pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;
 pub use inventory::{
-    item, Inventory, InventoryUpdate, Item, ItemKind, SwordKind, ToolData, ToolKind,
+    item, Inventory, InventoryUpdate, InventoryUpdateEvent, Item, ItemKind, SwordKind, ToolData,
+    ToolKind,
 };
 pub use last::Last;
 pub use location::{Waypoint, WaypointArea};
