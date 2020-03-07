@@ -38,7 +38,7 @@ pub fn handle_ground_move(data: &JoinData, update: &mut StateUpdate) {
     }
 
     // Set direction based on move direction
-    let ori_dir = if update.character.is_wielded()
+    let ori_dir = if update.character.is_wield()
         || update.character.is_attack()
         || update.character.is_block()
     {

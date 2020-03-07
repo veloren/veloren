@@ -1,5 +1,5 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::Tool;
+use common::comp::item::ToolKind;
 use std::ops::Mul;
 use vek::*;
 
