@@ -1,6 +1,8 @@
 Item(
     name: "Crude Mallet",
-    description: "Breaks bones like sticks and stones.",
+    description: "Breaks bones like sticks and stones.
+    \n
+    Power: 20",
     kind: Tool(
         ToolData (
             kind: Hammer,    
