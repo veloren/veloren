@@ -1,20 +1,79 @@
 use crate::{
     comp::{
-        AbilityPool, Body, CharacterState, Controller, EcsStateData, Energy, Mounting, Ori,
-        PhysicsState, Pos, Stats, Vel,
+        AbilityPool, Body, CharacterState, Controller, ControllerInputs, Energy, Mounting, Ori,
+        PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
+    states,
     sync::{Uid, UidAllocator},
 };
 
-use specs::{Entities, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
 
-/// ## Character State System
+use std::collections::VecDeque;
+
+/// Read-Only Data sent from Character Behavior System to bahvior fn's
+pub struct JoinData<'a> {
+    pub entity: Entity,
+    pub uid: &'a Uid,
+    pub character: &'a CharacterState,
+    pub pos: &'a Pos,
+    pub vel: &'a Vel,
+    pub ori: &'a Ori,
+    pub dt: &'a DeltaTime,
+    pub controller: &'a Controller,
+    pub inputs: &'a ControllerInputs,
+    pub stats: &'a Stats,
+    pub energy: &'a Energy,
+    pub body: &'a Body,
+    pub physics: &'a PhysicsState,
+    pub ability_pool: &'a AbilityPool,
+    pub updater: &'a LazyUpdate,
+}
+
+pub type JoinTuple<'a> = (
+    Entity,
+    &'a Uid,
+    &'a mut CharacterState,
+    &'a mut Pos,
+    &'a mut Vel,
+    &'a mut Ori,
+    &'a mut Energy,
+    &'a Controller,
+    &'a Stats,
+    &'a Body,
+    &'a PhysicsState,
+    &'a AbilityPool,
+);
+
+impl<'a> JoinData<'a> {
+    fn new(j: &'a JoinTuple<'a>, updater: &'a LazyUpdate, dt: &'a DeltaTime) -> Self {
+        Self {
+            entity: j.0,
+            uid: j.1,
+            character: j.2,
+            pos: j.3,
+            vel: j.4,
+            ori: j.5,
+            energy: j.6,
+            controller: j.7,
+            inputs: &j.7.inputs,
+            stats: j.8,
+            body: j.9,
+            physics: j.10,
+            ability_pool: j.11,
+            updater,
+            dt,
+        }
+    }
+}
+
+/// /// ## Character State System
 /// #### Calls updates to `CharacterState`s. Acts on tuples of (
 /// `CharacterState`, `Pos`, `Vel`, and `Ori` ).
 ///
-/// _System forms `EcsStateData` tuples and passes those to `ActionState`
+/// _System forms `CharacterEntityData` tuples and passes those to `ActionState`
 /// `update()` fn, then does the same for `MoveState` `update`_
 pub struct Sys;
 
@@ -63,20 +122,7 @@ impl<'a> System<'a> for Sys {
             mountings,
         ): Self::SystemData,
     ) {
-        for (
-            entity,
-            uid,
-            character,
-            pos,
-            vel,
-            ori,
-            energy,
-            controller,
-            stats,
-            body,
-            physics,
-            ability_pool,
-        ) in (
+        let mut join_iter = (
             &entities,
             &uids,
             &mut character_states,
@@ -90,50 +136,56 @@ impl<'a> System<'a> for Sys {
             &physics_states,
             &ability_pools,
         )
-            .join()
-        {
-            let inputs = &controller.inputs;
+            .join();
+
+        while let Some(tuple) = join_iter.next() {
+            let j = JoinData::new(&tuple, &updater, &dt);
+            let inputs = &j.inputs;
 
             // Being dead overrides all other states
-            if stats.is_dead {
+            if j.stats.is_dead {
                 // Only options: click respawn
                 // prevent instant-respawns (i.e. player was holding attack)
                 // by disallowing while input is held down
                 if inputs.respawn.is_pressed() && !inputs.respawn.is_held_down() {
-                    server_bus.emitter().emit(ServerEvent::Respawn(entity));
+                    server_bus.emitter().emit(ServerEvent::Respawn(j.entity));
                 }
                 // Or do nothing
                 return;
             }
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
-            if let Some(Mounting(_)) = mountings.get(entity) {
-                *character = CharacterState::Sit(None);
+            if let Some(Mounting(_)) = mountings.get(j.entity) {
+                *tuple.2 = CharacterState::Sit {};
                 return;
             }
 
-            let mut state_update = character.update(&EcsStateData {
-                entity: &entity,
-                uid,
-                character,
-                pos,
-                vel,
-                ori,
-                energy,
-                dt: &dt,
-                inputs,
-                stats,
-                body,
-                physics,
-                updater: &updater,
-                ability_pool,
-            });
+            let mut state_update = match j.character {
+                CharacterState::Idle { .. } => states::idle::behavior(&j),
+                CharacterState::Climb { .. } => states::climb::behavior(&j),
+                CharacterState::Glide { .. } => states::glide::behavior(&j),
+                CharacterState::Roll { .. } => states::roll::behavior(&j),
+                CharacterState::Wielding { .. } => states::wielding::behavior(&j),
+                CharacterState::Equipping { .. } => states::equipping::behavior(&j),
+                CharacterState::BasicAttack { .. } => states::basic_attack::behavior(&j),
+                CharacterState::Sit { .. } => states::sit::behavior(&j),
 
-            *character = state_update.character;
-            *pos = state_update.pos;
-            *vel = state_update.vel;
-            *ori = state_update.ori;
-            *energy = state_update.energy;
+                _ => StateUpdate {
+                    character: *j.character,
+                    pos: *j.pos,
+                    vel: *j.vel,
+                    ori: *j.ori,
+                    energy: *j.energy,
+                    local_events: VecDeque::new(),
+                    server_events: VecDeque::new(),
+                },
+            };
+
+            *tuple.2 = state_update.character;
+            *tuple.3 = state_update.pos;
+            *tuple.4 = state_update.vel;
+            *tuple.5 = state_update.ori;
+            *tuple.6 = state_update.energy;
             local_bus.emitter().append(&mut state_update.local_events);
             server_bus.emitter().append(&mut state_update.server_events);
         }
