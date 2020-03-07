@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added gamma setting
 - Added new orc hairstyles
 - Added sfx for wielding/unwielding weapons
+- Fixed NPCs attacking the player forever after killing them
+- Added sfx for collecting, dropping and using inventory items
+- New attack animation
+- weapon control system
+- Game pauses when in singleplayer and pause menu
 
 ### Changed
 

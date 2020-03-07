@@ -153,7 +153,7 @@ impl<'a> System<'a> for Sys {
                         been_close,
                         ..
                     } => {
-                        if let (Some(tgt_pos), _tgt_stats, tgt_alignment) = (
+                        if let (Some(tgt_pos), Some(tgt_stats), tgt_alignment) = (
                             positions.get(*target),
                             stats.get(*target),
                             alignments
@@ -164,7 +164,8 @@ impl<'a> System<'a> for Sys {
                             // Don't attack entities we are passive towards
                             // TODO: This is here, it's a bit of a hack
                             if let Some(alignment) = alignment {
-                                if (*alignment).passive_towards(tgt_alignment) {
+                                if (*alignment).passive_towards(tgt_alignment) || tgt_stats.is_dead
+                                {
                                     do_idle = true;
                                     break 'activity;
                                 }
