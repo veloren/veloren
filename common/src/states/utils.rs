@@ -1,7 +1,7 @@
 use crate::{
     comp::{AbilityState, CharacterState, EnergySource, ItemKind::Tool, StateUpdate},
     event::LocalEvent,
-    sys::{character_state::JoinData, phys::GRAVITY},
+    sys::{character_behavior::JoinData, phys::GRAVITY},
 };
 use std::time::Duration;
 use vek::vec::{Vec2, Vec3};

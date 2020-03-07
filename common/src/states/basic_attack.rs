@@ -1,7 +1,7 @@
 use crate::{
     comp::{Attacking, CharacterState, ItemKind::Tool, StateUpdate},
     states::utils::*,
-    sys::character_state::JoinData,
+    sys::character_behavior::JoinData,
 };
 use std::{collections::VecDeque, time::Duration};
 

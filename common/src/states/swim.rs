@@ -1,6 +1,6 @@
 use crate::{
     comp::StateUpdate,
-    sys::{character_state::JoinData, phys::GRAVITY},
+    sys::{character_behavior::JoinData, phys::GRAVITY},
 };
 use std::time::Duration;
 use vek::{Vec2, Vec3};
