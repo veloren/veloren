@@ -183,9 +183,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     if camera_mode != CameraMode::FirstPerson
                                         || character_state
                                             .map(|cs| {
-                                                cs.action.is_attack()
-                                                    || cs.action.is_block()
-                                                    || cs.action.is_wield()
+                                                cs.is_attack() || cs.is_block() || cs.is_wield()
                                             })
                                             .unwrap_or_default()
                                     {

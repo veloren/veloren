@@ -62,7 +62,7 @@ impl Animation for CidleAnimation {
 
         match active_tool_kind {
             //TODO: Inventory
-            Some(Tool::Sword(_)) => {
+            Some(ToolKind::Sword(_)) => {
                 next.l_hand.offset = Vec3::new(-0.25, -5.0, -5.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
                 next.l_hand.scale = Vec3::one() * 1.04;

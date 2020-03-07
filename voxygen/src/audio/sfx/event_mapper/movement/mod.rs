@@ -158,54 +158,6 @@ impl MovementEventMapper {
         vel: Vec3<f32>,
         stats: &Stats,
     ) -> SfxEvent {
-        // Handle any weapon wielding changes up front. Doing so here first simplifies
-        // handling the movement/action state later, since they don't require querying
-        // stats or previous wield state.
-        if let Some(Item {
-            kind: ItemKind::Tool(ToolData { kind, .. }),
-            ..
-        }) = stats.equipment.main
-        {
-            if let Some(wield_event) = match (
-                previous_event.weapon_drawn,
-                current_event.action.is_roll(),
-                Self::has_weapon_drawn(current_event.action),
-            ) {
-                (false, false, true) => Some(SfxEvent::Wield(kind)),
-                (true, false, false) => Some(SfxEvent::Unwield(kind)),
-                _ => None,
-            } {
-                return wield_event;
-            }
-        }
-
-        // Match all other Movemement and Action states
-        match (
-            current_event.movement,
-            current_event.action,
-            previous_event.event.clone(),
-        ) {
-            (_, ActionState::Roll { .. }, _) => SfxEvent::Roll,
-            (MovementState::Climb, ..) => SfxEvent::Climb,
-            (MovementState::Swim, ..) => SfxEvent::Swim,
-            (MovementState::Run, ..) => {
-                // If the entitys's velocity is very low, they may be stuck, or walking into a
-                // solid object. We should not trigger the run SFX in this case,
-                // even if their move state indicates running. The 0.1 value is
-                // an approximation from playtesting scenarios where this can occur.
-                if vel.magnitude() > 0.1 {
-                    SfxEvent::Run
-                } else {
-                    Some(SfxEvent::Run)
-                }
-            },
-            (false, true) => Some(SfxEvent::Jump),
-            _ => None,
-        }
-        {
-            return jump_or_fall_event;
-        }
-
         // Match run state
         if physics_state.on_ground && vel.magnitude() > 0.1 {
             return SfxEvent::Run;
@@ -241,7 +193,7 @@ impl MovementEventMapper {
     /// ::Equipping to mean the weapon is drawn. This will need updating if the
     /// animations change to match the wield_duration associated with the weapon
     fn weapon_drawn(character: &CharacterState) -> bool {
-        character.is_wielded()
+        character.is_wield()
             || match character {
                 CharacterState::Equipping { .. } => true,
                 _ => false,

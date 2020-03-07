@@ -1,7 +1,7 @@
 pub mod item;
 
 // Reexports
-pub use item::{Consumable, Debug, Item, ItemKind, Tool};
+pub use item::{Consumable, Debug, Item, ItemKind, SwordKind, ToolData, ToolKind};
 
 use crate::assets;
 use specs::{Component, FlaggedStorage, HashMapStorage};

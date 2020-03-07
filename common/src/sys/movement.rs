@@ -121,7 +121,7 @@ impl<'a> System<'a> for Sys {
 
             let inputs = &controller.inputs;
 
-            if character.action.is_roll() {
+            if character.action.is_dodge() {
                 vel.0 = Vec3::new(0.0, 0.0, vel.0.z)
                     + (vel.0 * Vec3::new(1.0, 1.0, 0.0)
                         + 1.5 * inputs.move_dir.try_normalized().unwrap_or_default())
