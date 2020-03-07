@@ -50,7 +50,7 @@ pub enum CharacterState {
 }
 
 impl CharacterState {
-    pub fn is_wielded(&self) -> bool {
+    pub fn is_wield(&self) -> bool {
         match self {
             CharacterState::Wielding { .. } => true,
             CharacterState::BasicAttack { .. } => true,

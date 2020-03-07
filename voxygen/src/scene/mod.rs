@@ -173,7 +173,7 @@ impl Scene {
             .ecs()
             .read_storage::<comp::CharacterState>()
             .get(scene_data.player_entity)
-            .map_or(false, |cs| cs.action.is_roll());
+            .map_or(false, |cs| cs.is_dodge());
 
         let player_scale = match scene_data
             .state
