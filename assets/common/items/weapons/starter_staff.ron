@@ -1,6 +1,8 @@
 Item(
     name: "Gnarled Rod",
-    description: "Smells like resin and magic.",
+    description: "Smells like resin and magic.
+    
+    Power: 20",
     kind: Tool(
         ToolData (
             kind: Staff,    

@@ -1,6 +1,7 @@
 Item(
     name: "Sharp Kitchen Knife",
-    description: "Great for cutting meat.",
+    description: "Great for cutting meat.
+    Power: 15",
     kind: Tool(
         ToolData (
             kind: Dagger,    

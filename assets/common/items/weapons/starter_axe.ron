@@ -1,6 +1,8 @@
 Item(
     name: "Notched Axe",
-    description: "Every dent tells the story of a chopped tree.",
+    description: "Every dent tells the story of a chopped tree.
+    
+    Power: 15",
     kind: Tool(
         ToolData (
             kind: Axe,    
