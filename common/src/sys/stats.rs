@@ -75,7 +75,7 @@ impl<'a> System<'a> for Sys {
 
             // Accelerate recharging energy if not wielding.
             match character_state {
-                CharacterState::Idle(_) => {
+                CharacterState::Idle { .. } => {
                     if {
                         let energy = energy.get_unchecked();
                         energy.current() < energy.maximum()
@@ -92,7 +92,7 @@ impl<'a> System<'a> for Sys {
                     }
                 },
                 // Wield does not regen and sets the rate back to zero.
-                CharacterState::Wielded(_) => {
+                CharacterState::Wielding { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }

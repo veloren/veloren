@@ -441,14 +441,16 @@ impl FigureMgr {
                         ),
                     };
                     let target_bones = match &character {
-                        CharacterState::Roll(_) => anim::character::RollAnimation::update_skeleton(
-                            &target_base,
-                            (active_tool_kind, ori.0, state.last_ori, time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        CharacterState::BasicAttack(_) => {
+                        CharacterState::Roll { .. } => {
+                            anim::character::RollAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, ori.0, state.last_ori, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::BasicAttack { .. } => {
                             anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
@@ -457,7 +459,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicBlock(_) => {
+                        CharacterState::BasicBlock { .. } => {
                             anim::character::BlockIdleAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),
                                 (active_tool_kind, time),
@@ -476,7 +478,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         }*/
-                        CharacterState::Wielding(_) => {
+                        CharacterState::Equipping { .. } => {
                             anim::character::WieldAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, vel.0.magnitude(), time),
@@ -485,7 +487,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Wielded(_) => {
+                        CharacterState::Wielding { .. } => {
                             anim::character::WieldAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, vel.0.magnitude(), time),
@@ -494,7 +496,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Glide(_) => {
+                        CharacterState::Glide { .. } => {
                             anim::character::GlidingAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, vel.0, ori.0, state.last_ori, time),
@@ -503,7 +505,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Climb(_) => {
+                        CharacterState::Climb { .. } => {
                             anim::character::ClimbAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),
                                 (active_tool_kind, vel.0, ori.0, time),
@@ -512,13 +514,15 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Sit(_) => anim::character::SitAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
-                            (active_tool_kind, time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
+                        CharacterState::Sit { .. } => {
+                            anim::character::SitAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         _ => target_base,
                     };
 

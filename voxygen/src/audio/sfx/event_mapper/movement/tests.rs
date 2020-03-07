@@ -91,7 +91,7 @@ fn maps_idle() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(None),
+        &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -120,7 +120,7 @@ fn maps_run_with_sufficient_velocity() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(None),
+        &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -149,7 +149,7 @@ fn does_not_map_run_with_insufficient_velocity() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(None),
+        &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -178,7 +178,7 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(None),
+        &CharacterState::Idle {},
         &PhysicsState {
             on_ground: false,
             on_wall: None,
@@ -207,7 +207,7 @@ fn maps_roll() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Roll(None),
+        &CharacterState::Roll {},
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -236,7 +236,7 @@ fn maps_land_on_ground_to_run() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(None),
+        &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -265,7 +265,7 @@ fn maps_glider_open() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Glide(None),
+        &CharacterState::Glide {},
         &PhysicsState {
             on_ground: false,
             on_wall: None,
@@ -294,7 +294,7 @@ fn maps_glide() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Glide(None),
+        &CharacterState::Glide {},
         &PhysicsState {
             on_ground: false,
             on_wall: None,
@@ -323,7 +323,7 @@ fn maps_glider_close_when_closing_mid_flight() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(None),
+        &CharacterState::Idle {},
         &PhysicsState {
             on_ground: false,
             on_wall: None,
@@ -352,7 +352,7 @@ fn maps_glider_close_when_landing() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(None),
+        &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -383,7 +383,7 @@ fn maps_wield() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Wielding(None),
+        &CharacterState::Equipping {},
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -443,7 +443,7 @@ fn does_not_map_wield_when_no_main_weapon() {
     );
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Wielded(None),
+        &CharacterState::Wielding {},
         &PhysicsState {
             on_ground: true,
             on_wall: None,
