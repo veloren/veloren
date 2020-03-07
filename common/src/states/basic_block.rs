@@ -4,7 +4,7 @@ use crate::{
 };
 use std::{collections::VecDeque, time::Duration};
 use vek::Vec2;
-use crate::sys::character_state::JoinData;
+use crate::sys::character_behavior::JoinData;
 
 const BLOCK_ACCEL: f32 = 30.0;
 const BLOCK_SPEED: f32 = 75.0;

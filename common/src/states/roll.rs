@@ -1,6 +1,6 @@
 use crate::{
     comp::{CharacterState, StateUpdate},
-    sys::character_state::JoinData,
+    sys::character_behavior::JoinData,
 };
 use std::{collections::VecDeque, time::Duration};
 use vek::Vec3;

@@ -1,7 +1,7 @@
 use crate::{
     comp::{CharacterState, EnergySource, StateUpdate},
     event::LocalEvent,
-    sys::{character_state::JoinData, phys::GRAVITY},
+    sys::{character_behavior::JoinData, phys::GRAVITY},
 };
 use std::collections::VecDeque;
 use vek::{

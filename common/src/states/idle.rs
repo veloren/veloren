@@ -1,5 +1,5 @@
 use super::utils::*;
-use crate::{comp::StateUpdate, sys::character_state::JoinData};
+use crate::{comp::StateUpdate, sys::character_behavior::JoinData};
 use std::collections::VecDeque;
 
 pub fn behavior(data: &JoinData) -> StateUpdate {
