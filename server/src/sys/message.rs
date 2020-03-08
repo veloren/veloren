@@ -122,12 +122,27 @@ impl<'a> System<'a> for Sys {
                         },
                         ClientState::Pending => {},
                     },
-                    // Valid player
-                    ClientMsg::Register { player, password } if player.is_valid() => {
-                        if !accounts.query(player.alias.clone(), password) {
-                            client.error_state(RequestStateError::Denied);
+                    // Request registered state (login)
+                    ClientMsg::Register {
+                        view_distance,
+                        token_or_username,
+                    } => {
+                        let (username, uuid) = match accounts.query(token_or_username.clone()) {
+                            Err(err) => {
+                                client.error_state(RequestStateError::RegisterDenied(err));
+                                break;
+                            },
+                            Ok((username, uuid)) => (username, uuid),
+                        };
+
+                        let player = Player::new(username, view_distance, uuid);
+
+                        if !player.is_valid() {
+                            // Invalid player
+                            client.error_state(RequestStateError::Impossible);
                             break;
                         }
+
                         match client.client_state {
                             ClientState::Connected => {
                                 // Add Player component to this client
@@ -148,8 +163,6 @@ impl<'a> System<'a> for Sys {
                         }
                         //client.allow_state(ClientState::Registered);
                     },
-                    // Invalid player
-                    ClientMsg::Register { .. } => client.error_state(RequestStateError::Impossible),
                     ClientMsg::SetViewDistance(view_distance) => match client.client_state {
                         ClientState::Character { .. } => {
                             players
@@ -287,6 +300,7 @@ impl<'a> System<'a> for Sys {
                         None,
                         ServerMsg::broadcast(format!("{} went offline.", &player.alias)),
                     ));
+                    accounts.logout(player.uuid());
                 }
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                 client.postbox.send_message(ServerMsg::Disconnect);
