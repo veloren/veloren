@@ -16,9 +16,10 @@ impl Animation for AttackAnimation {
         skeleton: &Self::Skeleton,
         (active_tool_kind, _global_time): Self::Dependency,
         anim_time: f64,
-        _rate: &mut f32,
+        rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
+        *rate = 1.0;
         let mut next = (*skeleton).clone();
 
         let lab = 1.0;
@@ -270,7 +271,7 @@ impl Animation for AttackAnimation {
         next.lantern.ori = Quaternion::rotation_x(0.0);
         next.lantern.scale = Vec3::one() * 0.0;
 
-        next.torso.offset = Vec3::new(0.0, -0.2, 0.1) * skeleton_attr.scaler;
+        next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
         next.torso.ori =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;

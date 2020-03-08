@@ -12,37 +12,33 @@ impl Animation for WieldAnimation {
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, velocity, _global_time): Self::Dependency,
+        (active_tool_kind, _velocity, _global_time): Self::Dependency,
         anim_time: f64,
-        rate: &mut f32,
+        _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-
-        let speed = Vec2::<f32>::from(velocity).magnitude();
-        *rate = speed;
 
         let wave_ultra_slow = (anim_time as f32 * 3.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
 
         let wave = (anim_time as f32 * 1.0).sin();
-        let wave_stop = (anim_time as f32 * 2.6).min(PI / 2.0).sin();
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
-                next.l_hand.offset = Vec3::new(0.0, -5.0, -5.0);
-                next.l_hand.ori = Quaternion::rotation_x(1.27);
+                next.l_hand.offset = Vec3::new(-0.25, -5.0, -5.0);
+                next.l_hand.ori = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
                 next.l_hand.scale = Vec3::one() * 1.04;
-                next.r_hand.offset = Vec3::new(0.0, -6.0, -8.0);
-                next.r_hand.ori = Quaternion::rotation_x(1.27);
+                next.r_hand.offset = Vec3::new(1.25, -5.5, -8.0);
+                next.r_hand.ori = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
                 next.r_hand.scale = Vec3::one() * 1.05;
                 next.main.offset = Vec3::new(0.0, 0.0, -6.0);
-                next.main.ori = Quaternion::rotation_x(-0.3)
+                next.main.ori = Quaternion::rotation_x(-0.1)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
 
-                next.control.offset = Vec3::new(-8.0, 4.0, 6.0);
+                next.control.offset = Vec3::new(-7.0, 6.0, 6.0);
                 next.control.ori = Quaternion::rotation_x(0.0)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
@@ -199,8 +195,9 @@ impl Animation for WieldAnimation {
             },
             _ => {},
         }
-        next.torso.offset = Vec3::new(0.0, 0.3 + wave * -0.08, 0.4) * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(wave_stop * -0.2);
+
+        next.torso.offset = Vec3::new(0.0, 0.0 + wave * -0.08, 0.1) * skeleton_attr.scaler;
+        next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);

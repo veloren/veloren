@@ -256,7 +256,7 @@ pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) 
         },
         AbilityState::TripleAttack { .. } => {
             if let Some(tool) = get_tool_data(data) {
-                CharacterState::TripleAttack { 
+                CharacterState::TripleAttack {
                     tool,
                     stage: 1,
                     stage_time_active: Duration::default(),
