@@ -39,11 +39,6 @@ impl PlayState for CharSelectionState {
         // Set up an fps clock.
         let mut clock = Clock::start();
 
-        // Check if we just disconnected, if so go to main menu
-        if self.client.borrow().disconnected() {
-            return PlayStateResult::Pop;
-        }
-
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Registered = current_client_state {
             // Handle window events
@@ -83,7 +78,7 @@ impl PlayState for CharSelectionState {
                             char_data.body,
                             char_data.tool,
                         );
-                        return PlayStateResult::Push(Box::new(SessionState::new(
+                        return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
                             self.client.clone(),
                         )));
