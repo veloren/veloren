@@ -10,12 +10,12 @@ const DEFAULT_WORLD_SEED: u32 = 5284;
 pub struct ServerSettings {
     pub gameserver_address: SocketAddr,
     pub metrics_address: SocketAddr,
+    pub auth_server_address: Option<String>,
     pub max_players: usize,
     pub world_seed: u32,
     //pub pvp_enabled: bool,
     pub server_name: String,
     pub server_description: String,
-    //pub login_server: whatever
     pub start_time: f64,
     pub admins: Vec<String>,
     /// When set to None, loads the default map file (if available); otherwise,
@@ -28,6 +28,7 @@ impl Default for ServerSettings {
         Self {
             gameserver_address: SocketAddr::from(([0; 4], 14004)),
             metrics_address: SocketAddr::from(([0; 4], 14005)),
+            auth_server_address: Some("https://auth.veloren.net".into()),
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".to_owned(),
             server_description: "This is the best Veloren server.".to_owned(),
@@ -107,6 +108,7 @@ impl ServerSettings {
                 [127, 0, 0, 1],
                 pick_unused_port().expect("Failed to find unused port!"),
             )),
+            auth_server_address: None,
             // If loading the default map file, make sure the seed is also default.
             world_seed: if load.map_file.is_some() {
                 load.world_seed

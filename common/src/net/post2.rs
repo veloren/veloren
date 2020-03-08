@@ -119,16 +119,16 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
 
     pub fn send_message(&mut self, msg: S) { let _ = self.send_tx.send(msg); }
 
-    pub fn next_message(&mut self) -> Option<R> {
-        if self.error.is_some() {
-            return None;
+    pub fn next_message(&mut self) -> Result<R, Error> {
+        if let Some(e) = self.error.clone() {
+            return Err(e);
         }
 
-        match self.recv_rx.recv().ok()? {
-            Ok(msg) => Some(msg),
+        match self.recv_rx.recv().map_err(|_| Error::ChannelFailure)? {
+            Ok(msg) => Ok(msg),
             Err(e) => {
-                self.error = Some(e);
-                None
+                self.error = Some(e.clone());
+                Err(e)
             },
         }
     }

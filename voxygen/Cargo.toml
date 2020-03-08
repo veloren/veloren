@@ -24,8 +24,8 @@ gfx_device_gl = { version = "0.16.2", optional = true }
 gfx_window_glutin = "0.31.0"
 glutin = "0.21.1"
 winit = { version = "0.19.4", features = ["serde"] }
-conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
-conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
+conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "hide_text" }
+conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "hide_text" }
 euc = "0.3.0"
 
 # ECS
@@ -60,10 +60,10 @@ cpal = "0.10"
 crossbeam = "=0.7.2"
 hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
 chrono = "0.4.9"
-rust-argon2 = "0.5"
 bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "65571ade0d954a0e0bd995fdb314854ff146ab97" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
