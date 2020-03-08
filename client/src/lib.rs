@@ -77,8 +77,6 @@ pub struct Client {
     loaded_distance: f32,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
-
-    disconnected: bool,
 }
 
 impl Client {
@@ -165,8 +163,6 @@ impl Client {
             loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),
-
-            disconnected: false,
         })
     }
 
@@ -703,7 +699,6 @@ impl Client {
                         );
                     },
                     ServerMsg::Disconnect => {
-                        self.disconnected = true;
                         frontend_events.push(Event::Disconnect);
                         self.postbox.send_message(ClientMsg::Terminate);
                     },
@@ -717,9 +712,6 @@ impl Client {
         }
         Ok(frontend_events)
     }
-
-    // Get's whether or not the client just disconnected
-    pub fn disconnected(&self) -> bool { self.disconnected }
 
     /// Get the player's entity.
     pub fn entity(&self) -> EcsEntity { self.entity }
