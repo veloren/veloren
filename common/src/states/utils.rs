@@ -105,17 +105,24 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+/// First checks whether `primary` input is pressed, then
+/// attempts to go into Equipping state, otherwise Idle
 pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.primary.is_pressed() {
-        if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
-            update.character = CharacterState::Equipping {
-                tool,
-                time_left: tool.equip_time(),
-            };
-        } else {
-            update.character = CharacterState::Idle {};
-        };
+        attempt_wield(data, update);
     }
+}
+
+/// If a tool is equipped, goes into Equipping state, otherwise goes to Idle
+pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
+    if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
+        update.character = CharacterState::Equipping {
+            tool,
+            time_left: tool.equip_time(),
+        };
+    } else {
+        update.character = CharacterState::Idle {};
+    };
 }
 
 pub fn handle_sit(data: &JoinData, update: &mut StateUpdate) {
@@ -224,6 +231,9 @@ pub fn character_state_from_ability(
         },
         AbilityState::BasicBlock { .. } => CharacterState::BasicBlock {},
         AbilityState::Roll { .. } => CharacterState::Roll {
+            remaining_duration: Duration::from_millis(600),
+        },
+        AbilityState::ChargeAttack { .. } => CharacterState::ChargeAttack {
             remaining_duration: Duration::from_millis(600),
         },
     }

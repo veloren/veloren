@@ -5,6 +5,7 @@ pub enum AbilityState {
     BasicAttack,
     BasicBlock,
     Roll,
+    ChargeAttack,
 }
 impl Default for AbilityState {
     fn default() -> Self { Self::BasicAttack }
@@ -26,7 +27,7 @@ impl Default for AbilityPool {
     fn default() -> Self {
         Self {
             primary: Some(AbilityState::BasicAttack),
-            secondary: Some(AbilityState::BasicBlock),
+            secondary: Some(AbilityState::ChargeAttack),
             block: None,
             dodge: Some(AbilityState::Roll),
         }

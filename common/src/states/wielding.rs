@@ -2,26 +2,26 @@ use super::utils::*;
 use crate::{comp::StateUpdate, sys::character_behavior::JoinData};
 use std::collections::VecDeque;
 
-pub fn behavior(ecs_data: &JoinData) -> StateUpdate {
+pub fn behavior(data: &JoinData) -> StateUpdate {
     let mut update = StateUpdate {
-        character: *ecs_data.character,
-        pos: *ecs_data.pos,
-        vel: *ecs_data.vel,
-        ori: *ecs_data.ori,
-        energy: *ecs_data.energy,
+        character: *data.character,
+        pos: *data.pos,
+        vel: *data.vel,
+        ori: *data.ori,
+        energy: *data.energy,
         local_events: VecDeque::new(),
         server_events: VecDeque::new(),
     };
 
-    handle_move(&ecs_data, &mut update);
-    handle_jump(&ecs_data, &mut update);
-    handle_sit(&ecs_data, &mut update);
-    handle_climb(&ecs_data, &mut update);
-    handle_glide(&ecs_data, &mut update);
-    handle_unwield(&ecs_data, &mut update);
-    handle_primary(&ecs_data, &mut update);
-    handle_secondary(&ecs_data, &mut update);
-    handle_dodge(&ecs_data, &mut update);
+    handle_move(&data, &mut update);
+    handle_jump(&data, &mut update);
+    handle_sit(&data, &mut update);
+    handle_climb(&data, &mut update);
+    handle_glide(&data, &mut update);
+    handle_unwield(&data, &mut update);
+    handle_primary(&data, &mut update);
+    handle_secondary(&data, &mut update);
+    handle_dodge(&data, &mut update);
 
     update
 }

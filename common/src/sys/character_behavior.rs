@@ -169,6 +169,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Equipping { .. } => states::equipping::behavior(&j),
                 CharacterState::BasicAttack { .. } => states::basic_attack::behavior(&j),
                 CharacterState::BasicBlock { .. } => states::basic_block::behavior(&j),
+                CharacterState::ChargeAttack { .. } => states::charge_attack::behavior(&j),
                 CharacterState::Sit { .. } => states::sit::behavior(&j),
 
                 // _ => StateUpdate {

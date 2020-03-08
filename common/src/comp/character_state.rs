@@ -42,7 +42,10 @@ pub enum CharacterState {
     },
     /// A basic blocking state
     BasicBlock {},
-    //Charge{},
+    ChargeAttack {
+        /// How long the state has until exiting
+        remaining_duration: Duration,
+    },
     Roll {
         /// How long the state has until exiting
         remaining_duration: Duration,
@@ -61,7 +64,7 @@ impl CharacterState {
 
     pub fn is_attack(&self) -> bool {
         match self {
-            CharacterState::BasicAttack { .. } => true,
+            CharacterState::BasicAttack { .. } | CharacterState::ChargeAttack { .. } => true,
             _ => false,
         }
     }
