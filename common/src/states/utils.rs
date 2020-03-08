@@ -26,15 +26,17 @@ const BASE_HUMANOID_WATER_SPEED: f32 = 120.0;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
+/// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate) {
     if data.physics.in_fluid {
         swim_move(data, update);
     } else {
-        ground_move(data, update);
+        basic_move(data, update);
     }
 }
 
-fn ground_move(data: &JoinData, update: &mut StateUpdate) {
+/// Updates components to move player as if theyre on ground or in air
+fn basic_move(data: &JoinData, update: &mut StateUpdate) {
     let (accel, speed): (f32, f32) = if data.physics.on_ground {
         (BASE_HUMANOID_ACCEL, BASE_HUMANOID_SPEED)
     } else {
@@ -69,6 +71,7 @@ fn ground_move(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+/// Updates components to move player as if theyre swimming
 fn swim_move(data: &JoinData, update: &mut StateUpdate) {
     // Update velocity
     update.vel.0 += Vec2::broadcast(data.dt.0)
@@ -125,12 +128,14 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
     };
 }
 
+/// Checks that player can `Sit` and updates `CharacterState` if so
 pub fn handle_sit(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.sit.is_pressed() && data.physics.on_ground && data.body.is_humanoid() {
         update.character = CharacterState::Sit {};
     }
 }
 
+/// Checks that player can `Climb` and updates `CharacterState` if so
 pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
     if (data.inputs.climb.is_pressed() || data.inputs.climb_down.is_pressed())
         && data.physics.on_wall.is_some()
@@ -142,6 +147,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+/// Checks that player can `Glide` and updates `CharacterState` if so
 pub fn handle_unwield(data: &JoinData, update: &mut StateUpdate) {
     if let CharacterState::Wielding { .. } = update.character {
         if data.inputs.toggle_wield.is_pressed() {
@@ -150,6 +156,7 @@ pub fn handle_unwield(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+/// Checks that player can glide and updates `CharacterState` if so
 pub fn handle_glide(data: &JoinData, update: &mut StateUpdate) {
     if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {
         if data.inputs.glide.is_pressed() && !data.physics.on_ground && data.body.is_humanoid() {
@@ -158,6 +165,7 @@ pub fn handle_glide(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+/// Checks that player can jump and sends jump event if so
 pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.jump.is_pressed() && data.physics.on_ground {
         update
@@ -166,58 +174,69 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-pub fn handle_primary(data: &JoinData, update: &mut StateUpdate) {
+/// If `inputs.primary` is pressed and in `Wielding` state,
+/// will attempt to go into `ability_pool.primary`
+pub fn handle_primary_input(data: &JoinData, update: &mut StateUpdate) {
+    if data.inputs.primary.is_pressed() {
+        if let CharacterState::Wielding { .. } = update.character {
+            attempt_primary_ability(data, update);
+        }
+    }
+}
+
+/// Attempts to go into `ability_pool.primary` if is `Some()` on `AbilityPool`
+pub fn attempt_primary_ability(data: &JoinData, update: &mut StateUpdate) {
     if let Some(ability_state) = data.ability_pool.primary {
+        update.character = ability_to_character_state(data, ability_state);
+    }
+}
+
+/// If `inputs.secondary` is pressed and in `Wielding` state,
+/// will attempt to go into `ability_pool.secondary`
+pub fn handle_secondary_input(data: &JoinData, update: &mut StateUpdate) {
+    if data.inputs.secondary.is_pressed() {
         if let CharacterState::Wielding { .. } = update.character {
-            if data.inputs.primary.is_pressed() {
-                // data.updater.insert(data.entity, state);
-                update.character = character_state_from_ability(data, ability_state);
-            }
+            attempt_seconday_ability(data, update);
         }
     }
 }
 
-pub fn handle_secondary(data: &JoinData, update: &mut StateUpdate) {
+/// Attempts to go into `ability_pool.secondary` if is `Some()` on `AbilityPool`
+pub fn attempt_seconday_ability(data: &JoinData, update: &mut StateUpdate) {
     if let Some(ability_state) = data.ability_pool.secondary {
-        if let CharacterState::Wielding { .. } = update.character {
-            if data.inputs.secondary.is_pressed() {
-                // data.updater.insert(data.entity, state);
-                update.character = character_state_from_ability(data, ability_state);
-            }
+        update.character = ability_to_character_state(data, ability_state);
+    }
+}
+
+/// Checks that player can perform a dodge, then
+/// attempts to go into `ability_pool.dodge`
+pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
+    if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {
+        if data.inputs.roll.is_pressed()
+            && data.physics.on_ground
+            && data.body.is_humanoid()
+            && update
+                .energy
+                .try_change_by(-200, EnergySource::Roll)
+                .is_ok()
+        {
+            attempt_dodge_ability(data, update);
         }
     }
 }
 
-pub fn handle_dodge(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(state) = data.ability_pool.dodge {
-        if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {
-            if data.inputs.roll.is_pressed()
-                && data.physics.on_ground
-                && data.body.is_humanoid()
-                && update
-                    .energy
-                    .try_change_by(-200, EnergySource::Roll)
-                    .is_ok()
-            {
-                // let tool_data =
-                //     if let Some(Tool(data)) = data.stats.equipment.main.as_ref().map(|i|
-                // i.kind) {         data
-                //     } else {
-                //         ToolData::default()
-                //     };
-                update.character = CharacterState::Roll {
-                    remaining_duration: Duration::from_millis(600), // tool_data.attack_duration(),
-                };
-                data.updater.insert(data.entity, state);
-            }
-        }
+pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
+    if let Some(ability_state) = data.ability_pool.dodge {
+        update.character = ability_to_character_state(data, ability_state);
     }
 }
 
-pub fn character_state_from_ability(
-    data: &JoinData,
-    ability_state: AbilityState,
-) -> CharacterState {
+// TODO: This might need a CharacterState::new(data, update) fn if
+// initialization gets too lengthy.
+
+/// Maps from `AbilityState`s to `CharacterStates`s. Also handles intializing
+/// the new `CharacterState`
+pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) -> CharacterState {
     match ability_state {
         AbilityState::BasicAttack { .. } => {
             if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
