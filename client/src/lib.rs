@@ -224,10 +224,7 @@ impl Client {
     }
 
     /// Send disconnect message to the server
-    pub fn request_logout(&mut self) {
-        self.postbox.send_message(ClientMsg::Disconnect);
-        self.client_state = ClientState::Disconnected;
-    }
+    pub fn request_logout(&mut self) { self.postbox.send_message(ClientMsg::Disconnect); }
 
     /// Request a state transition to `ClientState::Registered` from an ingame
     /// state.
