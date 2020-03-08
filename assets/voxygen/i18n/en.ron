@@ -65,6 +65,8 @@ VoxygenLocalization(
         "common.disclaimer": "Disclaimer",
         "common.cancel": "Cancel",
         "common.none": "None",
+        "common.error": "Error",
+        "common.fatal_error": "Fatal Error",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Connection lost!
@@ -113,12 +115,25 @@ Thanks for taking the time to read this notice, we hope you enjoy the game!
         // Login process description
         "main.login_process": r#"Information on the Login Process:
 
-Put in any username. No Account needed yet.
-                                        
-Character names and appearances will be saved locally.
+If you are having issues signing in:
 
-Levels/Items are not saved yet."#,
+Please note that you now need an account
+to play on auth-enabled servers.
 
+You can create an account over at
+
+https://account.veloren.net."#,
+        "main.login.server_not_found": "Server not found",
+        "main.login.authentication_error": "Auth error on server",
+        "main.login.server_full": "Server is full",
+        "main.login.untrusted_auth_server": "Auth server not trusted",
+        "main.login.outdated_client_or_server": "ServerWentMad: Probably versions are incompatible, check for updates.",
+        "main.login.timeout": "Timeout: Server did not respond in time. (Overloaded or network issues).",
+        "main.login.server_shut_down": "Server shut down",
+        "main.login.already_logged_in": "You are already logged into the server.",
+        "main.login.network_error": "Network error",
+        "main.login.failed_sending_request": "Request to Auth server failed",
+        "main.login.client_crashed": "Client crashed",
 
         /// End Main screen section
 
