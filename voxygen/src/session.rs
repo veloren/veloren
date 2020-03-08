@@ -24,6 +24,14 @@ use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
+/// The action to perform after a tick
+enum TickAction {
+    // Continue executing
+    Continue,
+    // Disconnected (i.e. go to main menu)
+    Disconnect,
+}
+
 pub struct SessionState {
     scene: Scene,
     client: Rc<RefCell<Client>>,
@@ -31,14 +39,6 @@ pub struct SessionState {
     key_state: KeyState,
     inputs: comp::ControllerInputs,
     selected_block: Block,
-}
-
-/// The action to perform after a tick
-enum TickAction {
-    // Continue executing
-    Continue,
-    // Disconnected (i.e. go to main menu)
-    Disconnect,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -87,10 +87,7 @@ impl SessionState {
                 } => {
                     self.hud.new_message(event);
                 },
-                client::Event::Disconnect => {
-                    log::warn!("disconnect");
-                    return Ok(TickAction::Disconnect);
-                },
+                client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
                         0 => String::from("Goodbye!"),
