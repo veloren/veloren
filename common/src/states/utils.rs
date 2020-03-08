@@ -6,8 +6,25 @@ use crate::{
 use std::time::Duration;
 use vek::vec::{Vec2, Vec3};
 
-const HUMANOID_WATER_ACCEL: f32 = 70.0;
-const HUMANOID_WATER_SPEED: f32 = 120.0;
+const BASE_HUMANOID_ACCEL: f32 = 100.0;
+const BASE_HUMANOID_SPEED: f32 = 150.0;
+const BASE_HUMANOID_AIR_ACCEL: f32 = 15.0;
+const BASE_HUMANOID_AIR_SPEED: f32 = 8.0;
+const BASE_HUMANOID_WATER_ACCEL: f32 = 70.0;
+const BASE_HUMANOID_WATER_SPEED: f32 = 120.0;
+// const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
+// const ROLL_SPEED: f32 = 17.0;
+// const CHARGE_SPEED: f32 = 20.0;
+// const GLIDE_ACCEL: f32 = 15.0;
+// const GLIDE_SPEED: f32 = 45.0;
+// const BLOCK_ACCEL: f32 = 30.0;
+// const BLOCK_SPEED: f32 = 75.0;
+// // Gravity is 9.81 * 4, so this makes gravity equal to .15
+// const GLIDE_ANTIGRAV: f32 = GRAVITY * 0.96;
+// const CLIMB_SPEED: f32 = 5.0;
+// const CLIMB_COST: i32 = 5;
+
+pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate) {
     if data.physics.in_fluid {
@@ -19,13 +36,9 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate) {
 
 fn ground_move(data: &JoinData, update: &mut StateUpdate) {
     let (accel, speed): (f32, f32) = if data.physics.on_ground {
-        let accel = 100.0;
-        let speed = 9.0;
-        (accel, speed)
+        (BASE_HUMANOID_ACCEL, BASE_HUMANOID_SPEED)
     } else {
-        let accel = 100.0;
-        let speed = 8.0;
-        (accel, speed)
+        (BASE_HUMANOID_AIR_ACCEL, BASE_HUMANOID_AIR_SPEED)
     };
 
     // Move player according to move_dir
@@ -60,8 +73,8 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate) {
     // Update velocity
     update.vel.0 += Vec2::broadcast(data.dt.0)
         * data.inputs.move_dir
-        * if update.vel.0.magnitude_squared() < HUMANOID_WATER_SPEED.powf(2.0) {
-            HUMANOID_WATER_ACCEL
+        * if update.vel.0.magnitude_squared() < BASE_HUMANOID_WATER_SPEED.powf(2.0) {
+            BASE_HUMANOID_WATER_ACCEL
         } else {
             0.0
         };
@@ -87,7 +100,8 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate) {
     // Force players to pulse jump button to swim up
     if data.inputs.jump.is_pressed() && !data.inputs.jump.is_long_press(Duration::from_millis(600))
     {
-        update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(HUMANOID_WATER_SPEED);
+        update.vel.0.z =
+            (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(BASE_HUMANOID_WATER_SPEED);
     }
 }
 
@@ -146,22 +160,22 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
 }
 
 pub fn handle_primary(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(state) = data.ability_pool.primary {
+    if let Some(ability_state) = data.ability_pool.primary {
         if let CharacterState::Wielding { .. } = update.character {
             if data.inputs.primary.is_pressed() {
                 // data.updater.insert(data.entity, state);
-                update.character = character_state_from_ability(data, state);
+                update.character = character_state_from_ability(data, ability_state);
             }
         }
     }
 }
 
 pub fn handle_secondary(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(state) = data.ability_pool.secondary {
+    if let Some(ability_state) = data.ability_pool.secondary {
         if let CharacterState::Wielding { .. } = update.character {
             if data.inputs.secondary.is_pressed() {
                 // data.updater.insert(data.entity, state);
-                update.character = character_state_from_ability(data, state);
+                update.character = character_state_from_ability(data, ability_state);
             }
         }
     }
