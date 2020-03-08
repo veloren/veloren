@@ -408,8 +408,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.001, // Moving
-                        physics.in_fluid,                  // In water
+                        vel.0.magnitude_squared() > 0.5, // Moving
+                        physics.in_fluid,                // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::character::StandAnimation::update_skeleton(
