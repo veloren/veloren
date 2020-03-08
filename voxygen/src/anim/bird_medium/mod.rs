@@ -117,14 +117,14 @@ impl<'a> From<&'a comp::bird_medium::Body> for SkeletonAttr {
                 (Chicken, _) => (-3.0, 1.5),
                 (Goose, _) => (-5.0, 3.0),
                 (Peacock, _) => (-5.5, 2.0),
-                (Eagle, _) => (-4.5, -5.0),
+                (Eagle, _) => (-8.0, -4.0),
             },
             wing: match (body.species, body.body_type) {
                 (Duck, _) => (2.75, 0.0, 6.0),
                 (Chicken, _) => (2.75, 0.0, 6.0),
                 (Goose, _) => (3.75, -1.0, 9.0),
                 (Peacock, _) => (3.0, 0.0, 9.0),
-                (Eagle, _) => (3.0, -8.0, 4.0),
+                (Eagle, _) => (3.0, -8.0, 5.0),
             },
             foot: match (body.species, body.body_type) {
                 (Duck, _) => (2.0, -1.5, 4.0),
