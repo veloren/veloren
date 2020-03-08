@@ -3,6 +3,7 @@ use crate::{
     hud::{DebugInfo, Event as HudEvent, Hud},
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
+    menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, Scene, SceneData},
     window::{Event, GameInput},
@@ -678,6 +679,13 @@ impl PlayState for SessionState {
             self.cleanup();
 
             current_client_state = self.client.borrow().get_client_state();
+        }
+
+        if let ClientState::Registered = current_client_state {
+            return PlayStateResult::Switch(Box::new(CharSelectionState::new(
+                global_state,
+                self.client.clone(),
+            )));
         }
 
         PlayStateResult::Pop
