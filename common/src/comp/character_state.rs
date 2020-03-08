@@ -50,6 +50,20 @@ pub enum CharacterState {
         /// How long the state has until exiting
         remaining_duration: Duration,
     },
+    /// A three-stage attack where play must click at appropriate times
+    /// to continue attack chain.
+    TripleAttack {
+        /// The tool this state will read to handle damage, etc.
+        tool: ToolData,
+        /// `int` denoting what stage (of 3) the attack is in.
+        stage: i8,
+        /// How long current stage has been active
+        stage_time_active: Duration,
+        /// Whether current stage has exhausted its attack
+        stage_exhausted: bool,
+        /// Whether player has clicked at the proper time to go to next stage
+        can_transition: bool,
+    },
 }
 
 impl CharacterState {

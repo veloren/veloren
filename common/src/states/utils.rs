@@ -1,11 +1,12 @@
 use crate::{
-    comp::{AbilityState, CharacterState, EnergySource, ItemKind::Tool, StateUpdate},
+    comp::{AbilityState, CharacterState, EnergySource, ItemKind::Tool, StateUpdate, ToolData},
     event::LocalEvent,
     sys::{character_behavior::JoinData, phys::GRAVITY},
 };
 use std::time::Duration;
 use vek::vec::{Vec2, Vec3};
 
+pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 const BASE_HUMANOID_ACCEL: f32 = 100.0;
 const BASE_HUMANOID_SPEED: f32 = 150.0;
 const BASE_HUMANOID_AIR_ACCEL: f32 = 15.0;
@@ -23,8 +24,6 @@ const BASE_HUMANOID_WATER_SPEED: f32 = 120.0;
 // const GLIDE_ANTIGRAV: f32 = GRAVITY * 0.96;
 // const CLIMB_SPEED: f32 = 5.0;
 // const CLIMB_COST: i32 = 5;
-
-pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
 /// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate) {
@@ -231,7 +230,7 @@ pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-// TODO: This might need a CharacterState::new(data, update) fn if
+// TODO: Wight need a fn `CharacterState::new(data, update)` if
 // initialization gets too lengthy.
 
 /// Maps from `AbilityState`s to `CharacterStates`s. Also handles intializing
@@ -239,13 +238,13 @@ pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
 pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) -> CharacterState {
     match ability_state {
         AbilityState::BasicAttack { .. } => {
-            if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
+            if let Some(tool) = get_tool_data(data) {
                 CharacterState::BasicAttack {
                     exhausted: false,
                     remaining_duration: tool.attack_duration(),
                 }
             } else {
-                CharacterState::Idle {}
+                *data.character
             }
         },
         AbilityState::BasicBlock { .. } => CharacterState::BasicBlock {},
@@ -255,5 +254,29 @@ pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) 
         AbilityState::ChargeAttack { .. } => CharacterState::ChargeAttack {
             remaining_duration: Duration::from_millis(600),
         },
+        AbilityState::TripleAttack { .. } => {
+            if let Some(tool) = get_tool_data(data) {
+                CharacterState::TripleAttack { 
+                    tool,
+                    stage: 1,
+                    stage_time_active: Duration::default(),
+                    stage_exhausted: false,
+                    can_transition: false,
+                }
+            } else {
+                *data.character
+            }
+        },
+
+        // Do not use default match
+        // _ => *data.character
+    }
+}
+
+pub fn get_tool_data(data: &JoinData) -> Option<ToolData> {
+    if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
+        Some(tool)
+    } else {
+        None
     }
 }
