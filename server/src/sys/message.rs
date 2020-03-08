@@ -281,6 +281,9 @@ impl<'a> System<'a> for Sys {
                     ClientMsg::Disconnect => {
                         disconnect = true;
                     },
+                    ClientMsg::Terminate => {
+                        server_emitter.emit(ServerEvent::ClientDisconnect(entity));
+                    },
                 }
             }
 
@@ -295,7 +298,6 @@ impl<'a> System<'a> for Sys {
                         ServerMsg::broadcast(format!("{} went offline.", &player.alias)),
                     ));
                 }
-                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                 client.postbox.send_message(ServerMsg::Disconnect);
             }
         }

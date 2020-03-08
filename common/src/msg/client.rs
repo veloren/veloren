@@ -35,4 +35,5 @@ pub enum ClientMsg {
         key: Vec2<i32>,
     },
     Disconnect,
+    Terminate,
 }
