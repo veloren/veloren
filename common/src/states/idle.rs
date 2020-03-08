@@ -18,7 +18,7 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
     handle_sit(data, &mut update);
     handle_climb(data, &mut update);
     handle_glide(data, &mut update);
-    handle_dodge(data, &mut update);
+    handle_dodge_input(data, &mut update);
 
     update
 }
