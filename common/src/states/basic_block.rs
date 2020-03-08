@@ -22,14 +22,7 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
     handle_move(&data, &mut update);
 
     if !data.physics.on_ground || !data.inputs.secondary.is_pressed() {
-        if let Some(ItemKind::Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
-            update.character = CharacterState::Equipping {
-                tool,
-                time_left: tool.equip_time(),
-            };
-        } else {
-            update.character = CharacterState::Idle {};
-        };
+        attempt_wield(data, &mut update);
     }
     update
 }
