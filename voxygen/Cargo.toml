@@ -63,7 +63,7 @@ chrono = "0.4.9"
 bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "7c1abde83f0ea7d83b0e7c655fac82eb9bb3d7ad" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "65571ade0d954a0e0bd995fdb314854ff146ab97" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
