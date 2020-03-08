@@ -31,4 +31,4 @@ prometheus = "0.7"
 prometheus-static-metric = "0.2"
 rouille = "3.0.0"
 portpicker = { git = "https://github.com/wusyong/portpicker-rs", branch = "fix_ipv6" }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "0f7efccdcce2089a6997653d36178705ade5749e" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "65571ade0d954a0e0bd995fdb314854ff146ab97" }
