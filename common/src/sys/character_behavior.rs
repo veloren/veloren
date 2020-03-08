@@ -171,7 +171,9 @@ impl<'a> System<'a> for Sys {
                 CharacterState::BasicBlock { .. } => states::basic_block::behavior(&j),
                 CharacterState::ChargeAttack { .. } => states::charge_attack::behavior(&j),
                 CharacterState::Sit { .. } => states::sit::behavior(&j),
+                CharacterState::TripleAttack { .. } => states::triple_attack::behavior(&j),
 
+                // Do not use default match.
                 // _ => StateUpdate {
                 //     character: *j.character,
                 //     pos: *j.pos,

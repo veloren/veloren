@@ -8,5 +8,6 @@ pub mod glide;
 pub mod idle;
 pub mod roll;
 pub mod sit;
+pub mod triple_attack;
 pub mod utils;
 pub mod wielding;

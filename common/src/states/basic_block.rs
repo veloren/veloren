@@ -1,8 +1,5 @@
 use super::utils::*;
-use crate::{
-    comp::{CharacterState, ItemKind, StateUpdate},
-    sys::character_behavior::JoinData,
-};
+use crate::{comp::StateUpdate, sys::character_behavior::JoinData};
 use std::collections::VecDeque;
 
 // const BLOCK_ACCEL: f32 = 30.0;
