@@ -238,7 +238,7 @@ pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
 pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) -> CharacterState {
     match ability_state {
         AbilityState::BasicAttack { .. } => {
-            if let Some(tool) = get_tool_data(data) {
+            if let Some(tool) = unwrap_tool_data(data) {
                 CharacterState::BasicAttack {
                     exhausted: false,
                     remaining_duration: tool.attack_duration(),
@@ -255,7 +255,7 @@ pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) 
             remaining_duration: Duration::from_millis(600),
         },
         AbilityState::TripleAttack { .. } => {
-            if let Some(tool) = get_tool_data(data) {
+            if let Some(tool) = unwrap_tool_data(data) {
                 CharacterState::TripleAttack {
                     tool,
                     stage: 1,
@@ -273,7 +273,7 @@ pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) 
     }
 }
 
-pub fn get_tool_data(data: &JoinData) -> Option<ToolData> {
+pub fn unwrap_tool_data(data: &JoinData) -> Option<ToolData> {
     if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
         Some(tool)
     } else {
