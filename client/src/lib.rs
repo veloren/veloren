@@ -410,7 +410,7 @@ impl Client {
         // 3) Update client local data
 
         // 4) Tick the client's LocalState
-        self.state.tick(dt, add_foreign_systems);
+        self.state.tick(dt, add_foreign_systems, true);
 
         // 5) Terrain
         let pos = self

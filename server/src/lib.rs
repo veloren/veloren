@@ -98,6 +98,7 @@ impl Server {
         state.ecs_mut().insert(sys::SubscriptionTimer::default());
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
         state.ecs_mut().insert(sys::TerrainTimer::default());
+        state.ecs_mut().insert(sys::WaypointTimer::default());
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
@@ -336,7 +337,6 @@ impl Server {
         // 8) Finish the tick, passing control of the main thread back
         //    to the frontend
 
-        let before_tick_1 = Instant::now();
         // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
@@ -354,23 +354,38 @@ impl Server {
         // (e.g. run before controller system)
         sys::message::Sys.run_now(&self.state.ecs());
 
-        let before_tick_4 = Instant::now();
+        let before_state_tick = Instant::now();
 
         // 4) Tick the server's LocalState.
-        self.state.tick(dt, sys::add_server_systems);
+        // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
+        // in sys/terrain.rs
+        self.state.tick(dt, sys::add_server_systems, false);
 
         let before_handle_events = Instant::now();
+
         // Handle game events
         frontend_events.append(&mut self.handle_events());
+
+        let before_update_terrain_and_regions = Instant::now();
+
+        // Apply terrain changes and update the region map after processing server
+        // events so that changes made by server events will be immediately
+        // visble to client synchronization systems, minimizing the latency of
+        // `ServerEvent` mediated effects
+        self.state.update_region_map();
+        self.state.apply_terrain_changes();
+
+        let before_sync = Instant::now();
+
+        // 6) Synchronise clients with the new state of the world.
+        sys::run_sync_systems(self.state.ecs_mut());
+
+        let before_world_tick = Instant::now();
 
         // Tick the world
         self.world.tick(dt);
 
-        // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
-        // in sys/terrain.rs
-
-        let before_tick_6 = Instant::now();
-        // 6) Synchronise clients with the new state of the world.
+        let before_entity_cleanup = Instant::now();
 
         // Remove NPCs that are outside the view distances of all players
         // This is done by removing NPCs in unloaded chunks
@@ -392,7 +407,7 @@ impl Server {
             }
         }
 
-        let before_tick_7 = Instant::now();
+        let end_of_server_tick = Instant::now();
         // 7) Update Metrics
         let entity_sync_nanos = self
             .state
@@ -412,31 +427,31 @@ impl Server {
             .read_resource::<sys::TerrainSyncTimer>()
             .nanos as i64;
         let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
-        let total_sys_nanos = entity_sync_nanos
-            + message_nanos
-            + sentinel_nanos
-            + subscription_nanos
-            + terrain_sync_nanos
-            + terrain_nanos;
-        self.metrics
-            .tick_time
-            .with_label_values(&["input"])
-            .set((before_tick_4 - before_tick_1).as_nanos() as i64 - message_nanos);
+        let waypoint_nanos = self.state.ecs().read_resource::<sys::WaypointTimer>().nanos as i64;
+        let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos;
         self.metrics
             .tick_time
             .with_label_values(&["state tick"])
             .set(
-                (before_handle_events - before_tick_4).as_nanos() as i64
-                    - (total_sys_nanos - message_nanos),
+                (before_handle_events - before_state_tick).as_nanos() as i64
+                    - total_sys_ran_in_dispatcher_nanos,
             );
         self.metrics
             .tick_time
             .with_label_values(&["handle server events"])
-            .set((before_tick_6 - before_handle_events).as_nanos() as i64);
+            .set((before_update_terrain_and_regions - before_handle_events).as_nanos() as i64);
         self.metrics
             .tick_time
-            .with_label_values(&["entity deletion"])
-            .set((before_tick_7 - before_tick_6).as_nanos() as i64);
+            .with_label_values(&["update terrain and region map"])
+            .set((before_sync - before_update_terrain_and_regions).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["world tick"])
+            .set((before_entity_cleanup - before_world_tick).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["entity cleanup"])
+            .set((end_of_server_tick - before_entity_cleanup).as_nanos() as i64);
         self.metrics
             .tick_time
             .with_label_values(&["entity sync"])
@@ -445,6 +460,10 @@ impl Server {
             .tick_time
             .with_label_values(&["message"])
             .set(message_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["sentinel"])
+            .set(sentinel_nanos);
         self.metrics
             .tick_time
             .with_label_values(&["subscription"])
@@ -457,6 +476,10 @@ impl Server {
             .tick_time
             .with_label_values(&["terrain"])
             .set(terrain_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["waypoint"])
+            .set(waypoint_nanos);
         self.metrics
             .player_online
             .set(self.state.ecs().read_storage::<Client>().join().count() as i64);
@@ -476,7 +499,7 @@ impl Server {
         self.metrics
             .tick_time
             .with_label_values(&["metrics"])
-            .set(before_tick_7.elapsed().as_nanos() as i64);
+            .set(end_of_server_tick.elapsed().as_nanos() as i64);
 
         // 8) Finish the tick, pass control back to the frontend.
 
