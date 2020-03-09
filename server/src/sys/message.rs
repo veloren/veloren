@@ -300,7 +300,6 @@ impl<'a> System<'a> for Sys {
                         None,
                         ServerMsg::broadcast(format!("{} went offline.", &player.alias)),
                     ));
-                    accounts.logout(player.uuid());
                 }
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                 client.postbox.send_message(ServerMsg::Disconnect);

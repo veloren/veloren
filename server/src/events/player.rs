@@ -1,7 +1,8 @@
 use super::Event;
-use crate::{client::Client, Server, StateExt};
+use crate::{auth_provider::AuthProvider, client::Client, Server, StateExt};
 use common::{
     comp,
+    comp::Player,
     msg::{ClientState, PlayerListUpdate, ServerMsg},
     sync::{Uid, UidAllocator},
 };
@@ -51,6 +52,15 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         )))
     }
 
+    // Make sure to remove the player from the logged in list. (See AuthProvider)
+    {
+        let players = state.ecs().read_storage::<Player>();
+        let mut accounts = state.ecs().write_resource::<AuthProvider>();
+
+        if let Some(player) = players.get(entity) {
+            accounts.logout(player.uuid());
+        }
+    }
     // Delete client entity
     if let Err(err) = state.delete_entity_recorded(entity) {
         error!("Failed to delete disconnected client: {:?}", err);
