@@ -251,6 +251,15 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+        // Close-Button
+        close_btn: "voxygen.element.buttons.close_btn",
+        close_btn_hover: "voxygen.element.buttons.close_btn_hover",
+        close_btn_press: "voxygen.element.buttons.close_btn_press",
+
+        // Inventory
+        inv_bg: "voxygen.element.misc_bg.inv_bg",
+        inv_frame: "voxygen.element.misc_bg.inv_frame",
+
 
         not_found:"voxygen.element.not_found",
 
