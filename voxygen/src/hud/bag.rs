@@ -8,7 +8,7 @@ use client::Client;
 use conrod_core::{
     color, image,
     widget::{self, Button, Image, Rectangle},
-    widget_ids, Color, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -26,6 +26,8 @@ widget_ids! {
         inv_slots[],
         items[],
         tooltip[],
+        bg,
+        bg_frame,
     }
 }
 
@@ -125,6 +127,31 @@ impl<'a> Widget for Bag<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
+        // BG
+
+        Image::new(self.imgs.inv_bg)
+            .w_h(424.0, 708.0)
+            .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.97)))
+            .set(state.ids.bg, ui);
+        Image::new(self.imgs.inv_frame)
+            .w_h(424.0, 708.0)
+            .middle_of(state.ids.bg)
+            .set(state.ids.bg_frame, ui);
+
+        // Close button
+        if Button::image(self.imgs.close_btn)
+            .w_h(24.0, 25.0)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
+            .top_right_with_margins_on(state.ids.bg, 0.0, 0.0)
+            .set(state.ids.bag_close, ui)
+            .was_clicked()
+        {
+            event = Some(Event::Close);
+        }
+
+        /*
         // Bag parts
         Image::new(self.imgs.bag_bot)
             .w_h(58.0 * BAG_SCALE, 9.0 * BAG_SCALE)
@@ -262,17 +289,7 @@ impl<'a> Widget for Bag<'a> {
             }
         }
 
-        // Close button
-        if Button::image(self.imgs.close_button)
-            .w_h(28.0, 28.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.ids.bag_top, 0.0, 0.0)
-            .set(state.ids.bag_close, ui)
-            .was_clicked()
-        {
-            event = Some(Event::Close);
-        }
+        */
 
         event
     }
