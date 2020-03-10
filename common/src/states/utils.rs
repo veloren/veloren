@@ -141,6 +141,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
         && !data.physics.on_ground
         //&& update.vel.0.z < 0.0
         && data.body.is_humanoid()
+        && update.energy.current() > 100
     {
         update.character = CharacterState::Climb {};
     }
