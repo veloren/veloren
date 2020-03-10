@@ -634,8 +634,8 @@ impl Ui {
                     mesh.push_quad(create_ui_quad(
                         gl_aabr(rect),
                         Aabr {
-                            min: Vec2::new(0.0, 0.0),
-                            max: Vec2::new(0.0, 0.0),
+                            min: Vec2::zero(),
+                            max: Vec2::zero(),
                         },
                         color,
                         UiMode::Geometry,

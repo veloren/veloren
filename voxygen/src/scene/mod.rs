@@ -15,7 +15,7 @@ use crate::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
     },
-    window::Event,
+    window::{AnalogGameInput, Event},
 };
 use common::{
     comp,
@@ -50,6 +50,7 @@ pub struct Scene {
     lights: Consts<Light>,
     shadows: Consts<Shadow>,
     camera: Camera,
+    camera_input_state: Vec2<f32>,
 
     skybox: Skybox,
     postprocess: PostProcess,
@@ -85,6 +86,7 @@ impl Scene {
                 .create_consts(&[Shadow::default(); MAX_SHADOW_COUNT])
                 .unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
+            camera_input_state: Vec2::zero(),
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
@@ -146,6 +148,17 @@ impl Scene {
                     .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01));
                 true
             },
+            Event::AnalogGameInput(input) => match input {
+                AnalogGameInput::CameraX(d) => {
+                    self.camera_input_state.x = d;
+                    true
+                },
+                AnalogGameInput::CameraY(d) => {
+                    self.camera_input_state.y = d;
+                    true
+                },
+                _ => false,
+            },
             // All other events are unhandled
             _ => false,
         }
@@ -184,6 +197,12 @@ impl Scene {
             Some(comp::Body::Humanoid(body)) => SkeletonAttr::calculate_scale(body),
             _ => 1_f32,
         };
+
+        // Add the analog input to camera
+        self.camera
+            .rotate_by(Vec3::from([self.camera_input_state.x, 0.0, 0.0]));
+        self.camera
+            .rotate_by(Vec3::from([0.0, self.camera_input_state.y, 0.0]));
 
         // Alter camera position to match player.
         let tilt = self.camera.get_orientation().y;
