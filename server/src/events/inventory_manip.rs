@@ -227,7 +227,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             + Vec3::unit_z() * 10.0
             + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
 
-        server
+        state
             .create_object(Default::default(), comp::object::Body::Pouch)
             .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
             .with(item)
