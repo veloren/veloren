@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, ItemKind::Tool, StateUpdate},
+    comp::{Attacking, CharacterState, EnergySource, ItemKind::Tool, StateUpdate},
     states::utils::*,
     sys::character_behavior::JoinData,
 };
@@ -35,19 +35,25 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
 
         if can_apply_damage {
             if let Some(Tool(tool)) = tool_kind {
-                data.updater
-                    .insert(data.entity, Attacking { weapon: Some(tool) });
-            } else {
-                data.updater.insert(data.entity, Attacking { weapon: None });
+                data.updater.insert(data.entity, Attacking {
+                    weapon: Some(tool),
+                    applied: false,
+                    hit_count: 0,
+                });
             }
             new_exhausted = true;
-        } else {
-            data.updater.remove::<Attacking>(data.entity);
         }
 
         let new_remaining_duration = remaining_duration
             .checked_sub(Duration::from_secs_f32(data.dt.0))
             .unwrap_or_default();
+
+        if let Some(attack) = data.attacking {
+            if attack.applied && attack.hit_count > 0 {
+                data.updater.remove::<Attacking>(data.entity);
+                update.energy.change_by(100, EnergySource::HitEnemy);
+            }
+        }
 
         // Tick down
         update.character = CharacterState::BasicAttack {

@@ -37,6 +37,8 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
                         // Try to deal damage
                         data.updater.insert(data.entity, Attacking {
                             weapon: Some(*tool),
+                            applied: false,
+                            hit_count: 0,
                         });
                         new_stage_exhausted = true;
                     } else {
