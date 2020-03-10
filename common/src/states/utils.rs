@@ -159,7 +159,11 @@ pub fn handle_unwield(data: &JoinData, update: &mut StateUpdate) {
 /// Checks that player can glide and updates `CharacterState` if so
 pub fn handle_glide(data: &JoinData, update: &mut StateUpdate) {
     if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {
-        if data.inputs.glide.is_pressed() && !data.physics.on_ground && data.body.is_humanoid() {
+        if data.inputs.glide.is_pressed()
+            && !data.physics.on_ground
+            && !data.physics.in_fluid
+            && data.body.is_humanoid()
+        {
             update.character = CharacterState::Glide {};
         }
     }
@@ -167,7 +171,7 @@ pub fn handle_glide(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can jump and sends jump event if so
 pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.jump.is_pressed() && data.physics.on_ground {
+    if data.inputs.jump.is_pressed() && data.physics.on_ground && !data.physics.in_fluid {
         update
             .local_events
             .push_front(LocalEvent::Jump(data.entity));
@@ -214,6 +218,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
     if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {
         if data.inputs.roll.is_pressed()
             && data.physics.on_ground
+            && !data.physics.in_fluid
             && data.body.is_humanoid()
             && update
                 .energy
