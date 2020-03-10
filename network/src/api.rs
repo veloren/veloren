@@ -3,8 +3,9 @@ use crate::{
     controller::Controller,
     message::{self, InCommingMessage, OutGoingMessage},
     metrics::NetworkMetrics,
+    mpsc::MpscChannel,
     tcp::TcpChannel,
-    types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg, Sid, TokenObjects},
+    types::{CtrlMsg, Pid, Sid, TokenObjects},
 };
 use enumset::*;
 use futures::stream::StreamExt;
@@ -13,10 +14,11 @@ use mio::{
     net::{TcpListener, TcpStream},
     PollOpt, Ready,
 };
+use mio_extras;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    sync::{mpsc, Arc, RwLock},
+    sync::{atomic::AtomicBool, mpsc, Arc, Mutex, RwLock},
 };
 use tlid;
 use tracing::*;
@@ -27,6 +29,7 @@ use uvth::ThreadPool;
 pub enum Address {
     Tcp(std::net::SocketAddr),
     Udp(std::net::SocketAddr),
+    Mpsc(u64),
 }
 
 #[derive(Serialize, Deserialize, EnumSetType, Debug)]
@@ -38,38 +41,42 @@ pub enum Promise {
     Encrypted,
 }
 
+#[derive(Clone)]
 pub struct Participant {
-    addr: Address,
     remote_pid: Pid,
     network_controller: Arc<Vec<Controller>>,
 }
 
 pub struct Stream {
     sid: Sid,
+    remote_pid: Pid,
+    closed: AtomicBool,
+    closed_rx: mpsc::Receiver<()>,
     msg_rx: futures::channel::mpsc::UnboundedReceiver<InCommingMessage>,
     ctr_tx: mio_extras::channel::Sender<CtrlMsg>,
 }
 
 pub struct Network {
-    token_pool: tlid::Pool<tlid::Wrapping<usize>>,
-    worker_pool: tlid::Pool<tlid::Wrapping<u64>>,
+    _token_pool: tlid::Pool<tlid::Wrapping<usize>>,
+    _worker_pool: tlid::Pool<tlid::Wrapping<u64>>,
     controller: Arc<Vec<Controller>>,
-    thread_pool: Arc<ThreadPool>,
+    _thread_pool: Arc<ThreadPool>,
     participant_id: Pid,
-    remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
-    metrics: Arc<Option<NetworkMetrics>>,
+    sid_backup_per_participant: Arc<RwLock<HashMap<Pid, tlid::Pool<tlid::Checked<Sid>>>>>,
+    participants: RwLock<Vec<Participant>>,
+    _metrics: Arc<Option<NetworkMetrics>>,
 }
 
 impl Network {
     pub fn new(participant_id: Uuid, thread_pool: Arc<ThreadPool>) -> Self {
         let mut token_pool = tlid::Pool::new_full();
         let mut worker_pool = tlid::Pool::new_full();
-        let remotes = Arc::new(RwLock::new(HashMap::new()));
+        let sid_backup_per_participant = Arc::new(RwLock::new(HashMap::new()));
         for _ in 0..participant_id.as_u128().rem_euclid(64) {
             worker_pool.next();
             //random offset from 0 for tests where multiple networks are
             // created and we do not want to polute the traces with
-            // network pid everytime
+            // network pid everywhere
         }
         let metrics = Arc::new(None);
         let controller = Arc::new(vec![Controller::new(
@@ -78,22 +85,24 @@ impl Network {
             thread_pool.clone(),
             token_pool.subpool(1000000).unwrap(),
             metrics.clone(),
-            remotes.clone(),
+            sid_backup_per_participant.clone(),
         )]);
+        let participants = RwLock::new(vec![]);
         Self {
-            token_pool,
-            worker_pool,
+            _token_pool: token_pool,
+            _worker_pool: worker_pool,
             controller,
-            thread_pool,
+            _thread_pool: thread_pool,
             participant_id,
-            remotes,
-            metrics,
+            sid_backup_per_participant,
+            participants,
+            _metrics: metrics,
         }
     }
 
     fn get_lowest_worker<'a: 'b, 'b>(list: &'a Arc<Vec<Controller>>) -> &'a Controller { &list[0] }
 
-    pub async fn listen(&self, address: &Address) -> Result<(), NetworkError> {
+    pub fn listen(&self, address: &Address) -> Result<(), NetworkError> {
         let span = span!(Level::TRACE, "listen", ?address);
         let worker = Self::get_lowest_worker(&self.controller);
         let _enter = span.enter();
@@ -107,15 +116,41 @@ impl Network {
                     PollOpt::edge(),
                 ))?;
             },
-            Address::Udp(_) => unimplemented!("lazy me"),
+            Address::Udp(_) => unimplemented!(
+                "UDP is currently not supportet problem is in internal worker - channel view. I \
+                 except to have every Channel it#s own socket, but UDP shares a Socket with \
+                 everyone on it. So there needs to be a instance that detects new connections \
+                 inside worker and then creates a new channel for them, while handling needs to \
+                 be done in UDP layer... however i am to lazy to build it yet."
+            ),
+            Address::Mpsc(a) => {
+                let (listen_tx, listen_rx) = mio_extras::channel::channel();
+                let (connect_tx, conntect_rx) = mio_extras::channel::channel();
+                let mut registry = (*crate::mpsc::MPSC_REGISTRY).write().unwrap();
+                registry.insert(*a, Mutex::new((listen_tx, conntect_rx)));
+                info!("listening");
+                let mpsc_channel = MpscChannel::new(connect_tx, listen_rx);
+                let mut channel = Channel::new(
+                    self.participant_id,
+                    ChannelProtocols::Mpsc(mpsc_channel),
+                    self.sid_backup_per_participant.clone(),
+                    None,
+                );
+                channel.handshake();
+                channel.tick_send();
+                worker.get_tx().send(CtrlMsg::Register(
+                    TokenObjects::Channel(channel),
+                    Ready::readable() | Ready::writable(),
+                    PollOpt::edge(),
+                ))?;
+            },
         };
         Ok(())
     }
 
     pub async fn connect(&self, address: &Address) -> Result<Participant, NetworkError> {
         let worker = Self::get_lowest_worker(&self.controller);
-        let pid = self.participant_id;
-        let remotes = self.remotes.clone();
+        let sid_backup_per_participant = self.sid_backup_per_participant.clone();
         let span = span!(Level::INFO, "connect", ?address);
         let _enter = span.enter();
         match address {
@@ -125,9 +160,9 @@ impl Network {
                 let tcp_channel = TcpChannel::new(tcp_stream);
                 let (ctrl_tx, ctrl_rx) = mpsc::channel::<Pid>();
                 let channel = Channel::new(
-                    pid,
+                    self.participant_id,
                     ChannelProtocols::Tcp(tcp_channel),
-                    remotes,
+                    sid_backup_per_participant,
                     Some(ctrl_tx),
                 );
                 worker.get_tx().send(CtrlMsg::Register(
@@ -137,23 +172,57 @@ impl Network {
                 ))?;
                 let remote_pid = ctrl_rx.recv().unwrap();
                 info!(?remote_pid, " sucessfully connected to");
-                return Ok(Participant {
-                    addr: address.clone(),
+                let part = Participant {
                     remote_pid,
                     network_controller: self.controller.clone(),
-                });
+                };
+                self.participants.write().unwrap().push(part.clone());
+                return Ok(part);
             },
             Address::Udp(_) => unimplemented!("lazy me"),
+            Address::Mpsc(a) => {
+                let mut registry = (*crate::mpsc::MPSC_REGISTRY).write().unwrap();
+                let (listen_tx, conntect_rx) = match registry.remove(a) {
+                    Some(x) => x.into_inner().unwrap(),
+                    None => {
+                        error!("could not connect to mpsc");
+                        return Err(NetworkError::NetworkDestroyed);
+                    },
+                };
+                info!("connect to mpsc");
+                let mpsc_channel = MpscChannel::new(listen_tx, conntect_rx);
+                let (ctrl_tx, ctrl_rx) = mpsc::channel::<Pid>();
+                let channel = Channel::new(
+                    self.participant_id,
+                    ChannelProtocols::Mpsc(mpsc_channel),
+                    self.sid_backup_per_participant.clone(),
+                    Some(ctrl_tx),
+                );
+                worker.get_tx().send(CtrlMsg::Register(
+                    TokenObjects::Channel(channel),
+                    Ready::readable() | Ready::writable(),
+                    PollOpt::edge(),
+                ))?;
+
+                let remote_pid = ctrl_rx.recv().unwrap();
+                info!(?remote_pid, " sucessfully connected to");
+                let part = Participant {
+                    remote_pid,
+                    network_controller: self.controller.clone(),
+                };
+                self.participants.write().unwrap().push(part.clone());
+                return Ok(part);
+            },
         }
     }
 
-    //TODO: evaluate if move to Participant
-    pub async fn _disconnect(&self, participant: Participant) -> Result<(), NetworkError> {
-        panic!("sda");
+    pub fn disconnect(&self, _participant: Participant) -> Result<(), NetworkError> {
+        //todo: close all channels to a participant!
+        unimplemented!("sda");
     }
 
-    pub fn participants(&self) -> Vec<Participant> {
-        panic!("sda");
+    pub fn participants(&self) -> std::sync::RwLockReadGuard<Vec<Participant>> {
+        self.participants.read().unwrap()
     }
 
     pub async fn connected(&self) -> Result<Participant, NetworkError> {
@@ -162,25 +231,21 @@ impl Network {
             //ARRGGG
             for worker in self.controller.iter() {
                 //TODO harden!
-                if let Ok(msg) = worker.get_rx().try_recv() {
-                    if let RtrnMsg::ConnectedParticipant { pid } = msg {
-                        return Ok(Participant {
-                            addr: Address::Tcp(std::net::SocketAddr::from(([1, 3, 3, 7], 1337))), /* TODO: FIXME */
-                            remote_pid: pid,
-                            network_controller: self.controller.clone(),
-                        });
-                    }
+                worker.tick();
+                if let Ok(remote_pid) = worker.get_participant_connect_rx().try_recv() {
+                    let part = Participant {
+                        remote_pid,
+                        network_controller: self.controller.clone(),
+                    };
+                    self.participants.write().unwrap().push(part.clone());
+                    return Ok(part);
                 };
             }
+            std::thread::sleep(std::time::Duration::from_millis(1));
         }
     }
 
-    pub async fn _disconnected(&self) -> Result<Participant, NetworkError> {
-        // returns if a Participant connected and is ready
-        panic!("sda");
-    }
-
-    pub async fn multisend<M: Serialize>(
+    pub fn multisend<M: Serialize>(
         &self,
         streams: Vec<Stream>,
         msg: M,
@@ -206,92 +271,91 @@ impl Network {
 }
 
 impl Participant {
-    pub async fn open(
-        &self,
-        prio: u8,
-        promises: EnumSet<Promise>,
-    ) -> Result<Stream, ParticipantError> {
-        let (ctrl_tx, ctrl_rx) = mpsc::channel::<Sid>();
+    pub fn open(&self, prio: u8, promises: EnumSet<Promise>) -> Result<Stream, ParticipantError> {
         let (msg_tx, msg_rx) = futures::channel::mpsc::unbounded::<InCommingMessage>();
         for controller in self.network_controller.iter() {
+            //trigger tick:
+            controller.tick();
+            let parts = controller.participants();
+            let (stream_close_tx, stream_close_rx) = mpsc::channel();
+            let sid = match parts.get(&self.remote_pid) {
+                Some(p) => {
+                    let sid = p.sid_pool.write().unwrap().next();
+                    //prepare the closing of the new stream already
+                    p.stream_close_txs
+                        .write()
+                        .unwrap()
+                        .insert(sid, stream_close_tx);
+                    sid
+                },
+                None => return Err(ParticipantError::ParticipantDisconected), /* TODO: participant was never connected in the first case maybe... */
+            };
             let tx = controller.get_tx();
             tx.send(CtrlMsg::OpenStream {
                 pid: self.remote_pid,
+                sid,
                 prio,
                 promises,
-                return_sid: ctrl_tx,
                 msg_tx,
             })
             .unwrap();
-
-            // I dont like the fact that i need to wait on the worker thread for getting my
-            // sid back :/ we could avoid this by introducing a Thread Local Network
-            // which owns some sids we can take without waiting
-            let sid = ctrl_rx.recv().unwrap();
             info!(?sid, " sucessfully opened stream");
-            return Ok(Stream {
+            return Ok(Stream::new(
                 sid,
+                self.remote_pid,
+                stream_close_rx,
                 msg_rx,
-                ctr_tx: tx,
-            });
-        }
-        Err(ParticipantError::ParticipantDisconected)
-    }
-
-    pub fn close(&self, stream: Stream) -> Result<(), ParticipantError> {
-        for controller in self.network_controller.iter() {
-            let tx = controller.get_tx();
-            tx.send(CtrlMsg::CloseStream {
-                pid: self.remote_pid,
-                sid: stream.sid,
-            })
-            .unwrap();
-            return Ok(());
+                tx,
+            ));
         }
         Err(ParticipantError::ParticipantDisconected)
     }
 
     pub async fn opened(&self) -> Result<Stream, ParticipantError> {
+        //TODO: make this async native!
         loop {
-            //ARRGGG
+            // Going to all workers in a network, but only receive on specific channels!
             for worker in self.network_controller.iter() {
-                //TODO harden!
-                if let Ok(msg) = worker.get_rx().try_recv() {
-                    if let RtrnMsg::OpendStream {
-                        pid,
-                        sid,
-                        prio,
-                        msg_rx,
-                        promises,
-                    } = msg
-                    {
-                        return Ok(Stream {
-                            sid,
-                            msg_rx,
-                            ctr_tx: worker.get_tx(),
-                        });
-                    }
-                };
+                worker.tick();
+                let parts = worker.participants();
+                if let Some(p) = parts.get(&self.remote_pid) {
+                    if let Ok(stream) = p.stream_open_rx.try_recv() {
+                        //need a try, as i depend on the tick, it's the same thread...
+                        debug!("delivering a stream");
+                        return Ok(stream);
+                    };
+                }
             }
         }
-    }
-
-    pub async fn _closed(&self) -> Result<Stream, ParticipantError> {
-        panic!("aaa");
     }
 }
 
 impl Stream {
     //TODO: What about SEND instead of Serializeable if it goes via PIPE ?
-    //TODO: timeout per message or per stream ? stream or ?
+    //TODO: timeout per message or per stream ? stream or ? like for Position Data,
+    // if not transmitted within 1 second, throw away...
+    pub(crate) fn new(
+        sid: Sid,
+        remote_pid: Pid,
+        closed_rx: mpsc::Receiver<()>,
+        msg_rx: futures::channel::mpsc::UnboundedReceiver<InCommingMessage>,
+        ctr_tx: mio_extras::channel::Sender<CtrlMsg>,
+    ) -> Self {
+        Self {
+            sid,
+            remote_pid,
+            closed: AtomicBool::new(false),
+            closed_rx,
+            msg_rx,
+            ctr_tx,
+        }
+    }
 
     pub fn send<M: Serialize>(&self, msg: M) -> Result<(), StreamError> {
+        if self.is_closed() {
+            return Err(StreamError::StreamClosed);
+        }
         let messagebuffer = Arc::new(message::serialize(&msg));
-        //transfer message to right worker to right channel to correct stream
-        //TODO: why do we need a look here, i want my own local directory which is
-        // updated by workes via a channel and needs to be intepreted on a send but it
-        // should almost ever be empty except for new channel creations and stream
-        // creations!
         self.ctr_tx
             .send(CtrlMsg::Send(OutGoingMessage {
                 buffer: messagebuffer,
@@ -304,6 +368,9 @@ impl Stream {
     }
 
     pub async fn recv<M: DeserializeOwned>(&mut self) -> Result<M, StreamError> {
+        if self.is_closed() {
+            return Err(StreamError::StreamClosed);
+        }
         match self.msg_rx.next().await {
             Some(msg) => {
                 info!(?msg, "delivering a message");
@@ -314,6 +381,45 @@ impl Stream {
                  idea of async stuff"
             ),
         }
+    }
+
+    pub fn close(mut self) -> Result<(), StreamError> { self.intclose() }
+
+    fn is_closed(&self) -> bool {
+        use core::sync::atomic::Ordering;
+        if self.closed.load(Ordering::Relaxed) {
+            true
+        } else {
+            if let Ok(()) = self.closed_rx.try_recv() {
+                self.closed.store(true, Ordering::SeqCst); //TODO: Is this the right Ordering?
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    fn intclose(&mut self) -> Result<(), StreamError> {
+        use core::sync::atomic::Ordering;
+        if self.is_closed() {
+            return Err(StreamError::StreamClosed);
+        }
+        self.ctr_tx
+            .send(CtrlMsg::CloseStream {
+                pid: self.remote_pid,
+                sid: self.sid,
+            })
+            .unwrap();
+        self.closed.store(true, Ordering::SeqCst); //TODO: Is this the right Ordering?
+        Ok(())
+    }
+}
+
+impl Drop for Stream {
+    fn drop(&mut self) {
+        let _ = self.intclose().map_err(
+            |e| error!(?self.sid, ?e, "could not properly shutdown stream, which got out of scope"),
+        );
     }
 }
 
