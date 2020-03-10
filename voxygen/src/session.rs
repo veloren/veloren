@@ -13,7 +13,7 @@ use common::{
     assets::{load_watched, watch},
     clock::Clock,
     comp,
-    comp::{Pos, Vel},
+    comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
     msg::ClientState,
     terrain::{Block, BlockKind},
     vol::ReadVol,
@@ -155,27 +155,52 @@ impl PlayState for SessionState {
             let camera::Dependents {
                 view_mat, cam_pos, ..
             } = self.scene.camera().dependents();
+
+            // Choose a spot above the player's head for item distance checks
+            let player_pos = match self
+                .client
+                .borrow()
+                .state()
+                .read_storage::<comp::Pos>()
+                .get(self.client.borrow().entity())
+            {
+                Some(pos) => pos.0 + (Vec3::unit_z() * 2.0),
+                _ => cam_pos, // Should never happen, but a safe fallback
+            };
+
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
             // Check to see whether we're aiming at anything
             let (build_pos, select_pos) = {
                 let client = self.client.borrow();
                 let terrain = client.state().terrain();
-                let ray = terrain
+
+                let cam_ray = terrain
                     .ray(cam_pos, cam_pos + cam_dir * 100.0)
                     .until(|block| block.is_tangible())
                     .cast();
-                let dist = ray.0;
-                if let Ok(Some(_)) = ray.1 {
-                    // Hit something!
+
+                let cam_dist = cam_ray.0;
+
+                if let Ok(Some(_)) = cam_ray.1 {
+                    // The ray hit something, is it within pickup range?
+                    let select_pos = if player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
+                        <= MAX_PICKUP_RANGE_SQR
+                    {
+                        Some((cam_pos + cam_dir * cam_dist).map(|e| e.floor() as i32))
+                    } else {
+                        None
+                    };
+
                     (
-                        Some((cam_pos + cam_dir * (dist - 0.01)).map(|e| e.floor() as i32)),
-                        Some((cam_pos + cam_dir * dist).map(|e| e.floor() as i32)),
+                        Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
+                        select_pos,
                     )
                 } else {
                     (None, None)
                 }
             };
+
             // Only highlight collectables
             self.scene.set_select_pos(select_pos.filter(|sp| {
                 self.client
