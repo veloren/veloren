@@ -71,7 +71,7 @@ check:
     tags:
         - veloren-docker
     script:
-        - RUSTFLAGS="-D warnings" cargo check
+        - RUSTFLAGS="-D warnings" cargo check --locked
 
 code-quality:
     stage: check-compile
