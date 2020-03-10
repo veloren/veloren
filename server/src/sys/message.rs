@@ -287,9 +287,6 @@ impl<'a> System<'a> for Sys {
                     ClientMsg::Terminate => {
                         server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                     },
-                    ClientMsg::Terminate => {
-                        server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-                    },
                 }
             }
         }
