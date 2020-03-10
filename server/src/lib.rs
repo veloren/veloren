@@ -10,6 +10,7 @@ pub mod events;
 pub mod input;
 pub mod metrics;
 pub mod settings;
+pub mod state_ext;
 pub mod sys;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 
@@ -21,25 +22,22 @@ use crate::{
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::CHAT_COMMANDS,
+    state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
 use common::{
-    assets, comp,
-    effect::Effect,
+    comp,
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{State, TimeOfDay},
-    sync::{Uid, WorldSyncExt},
+    sync::WorldSyncExt,
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
 };
-use log::{debug, error, warn};
+use log::{debug, error};
 use metrics::ServerMetrics;
-use specs::{
-    join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, RunNow,
-    SystemData, WorldExt,
-};
+use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
     i32,
     sync::Arc,
@@ -224,94 +222,6 @@ impl Server {
     /// Get a reference to the server's world.
     pub fn world(&self) -> &World { &self.world }
 
-    /// Build a static object entity
-    pub fn create_object(
-        &mut self,
-        pos: comp::Pos,
-        object: comp::object::Body,
-    ) -> EcsEntityBuilder {
-        self.state
-            .ecs_mut()
-            .create_entity_synced()
-            .with(pos)
-            .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori(Vec3::unit_y()))
-            .with(comp::Body::Object(object))
-            .with(comp::Mass(100.0))
-            .with(comp::Gravity(1.0))
-        //.with(comp::LightEmitter::default())
-    }
-
-    /// Build a projectile
-    pub fn create_projectile(
-        state: &mut State,
-        pos: comp::Pos,
-        vel: comp::Vel,
-        body: comp::Body,
-        projectile: comp::Projectile,
-    ) -> EcsEntityBuilder {
-        state
-            .ecs_mut()
-            .create_entity_synced()
-            .with(pos)
-            .with(vel)
-            .with(comp::Ori(vel.0.normalized()))
-            .with(comp::Mass(0.0))
-            .with(body)
-            .with(projectile)
-            .with(comp::Sticky)
-    }
-
-    pub fn create_player_character(
-        state: &mut State,
-        entity: EcsEntity,
-        name: String,
-        body: comp::Body,
-        main: Option<String>,
-        server_settings: &ServerSettings,
-    ) {
-        // Give no item when an invalid specifier is given
-        let main = main.and_then(|specifier| assets::load_cloned(&specifier).ok());
-
-        let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
-
-        state.write_component(entity, body);
-        state.write_component(entity, comp::Stats::new(name, body, main));
-        state.write_component(entity, comp::Energy::new(1000));
-        state.write_component(entity, comp::Controller::default());
-        state.write_component(entity, comp::Pos(spawn_point));
-        state.write_component(entity, comp::Vel(Vec3::zero()));
-        state.write_component(entity, comp::Ori(Vec3::unit_y()));
-        state.write_component(entity, comp::Gravity(1.0));
-        state.write_component(entity, comp::CharacterState::default());
-        state.write_component(entity, comp::Alignment::Owned(entity));
-        state.write_component(entity, comp::Inventory::default());
-        state.write_component(
-            entity,
-            comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
-        );
-        // Make sure physics are accepted.
-        state.write_component(entity, comp::ForceUpdate);
-
-        // Give the Admin component to the player if their name exists in admin list
-        if server_settings.admins.contains(
-            &state
-                .ecs()
-                .read_storage::<comp::Player>()
-                .get(entity)
-                .expect("Failed to fetch entity.")
-                .alias,
-        ) {
-            state.write_component(entity, comp::Admin);
-        }
-        // Tell the client its request was successful.
-        if let Some(client) = state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.allow_state(ClientState::Character);
-        }
-    }
-
-    /// Handle events coming through via the event bus
-
     /// Execute a single server tick, handle input and update the game state by
     /// the given duration.
     pub fn tick(&mut self, _input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
@@ -347,8 +257,12 @@ impl Server {
 
         // 2)
 
+        let before_new_connections = Instant::now();
+
         // 3) Handle inputs from clients
         frontend_events.append(&mut self.handle_new_connections()?);
+
+        let before_message_system = Instant::now();
 
         // Run message recieving sys before the systems in common for decreased latency
         // (e.g. run before controller system)
@@ -409,6 +323,7 @@ impl Server {
 
         let end_of_server_tick = Instant::now();
         // 7) Update Metrics
+        // Get system timing info
         let entity_sync_nanos = self
             .state
             .ecs()
@@ -429,6 +344,11 @@ impl Server {
         let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
         let waypoint_nanos = self.state.ecs().read_resource::<sys::WaypointTimer>().nanos as i64;
         let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos;
+        // Report timing info
+        self.metrics
+            .tick_time
+            .with_label_values(&["new connections"])
+            .set((before_message_system - before_new_connections).as_nanos() as i64);
         self.metrics
             .tick_time
             .with_label_values(&["state tick"])
@@ -480,6 +400,7 @@ impl Server {
             .tick_time
             .with_label_values(&["waypoint"])
             .set(waypoint_nanos);
+        // Report other info
         self.metrics
             .player_online
             .set(self.state.ecs().read_storage::<Client>().join().count() as i64);
@@ -610,119 +531,4 @@ impl Server {
 
 impl Drop for Server {
     fn drop(&mut self) { self.state.notify_registered_clients(ServerMsg::Shutdown); }
-}
-
-trait StateExt {
-    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool;
-    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
-    fn notify_registered_clients(&self, msg: ServerMsg);
-    fn create_npc(
-        &mut self,
-        pos: comp::Pos,
-        stats: comp::Stats,
-        body: comp::Body,
-    ) -> EcsEntityBuilder;
-    fn delete_entity_recorded(
-        &mut self,
-        entity: EcsEntity,
-    ) -> Result<(), specs::error::WrongGeneration>;
-}
-
-impl StateExt for State {
-    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool {
-        let success = self
-            .ecs()
-            .write_storage::<comp::Inventory>()
-            .get_mut(entity)
-            .map(|inv| inv.push(item).is_none())
-            .unwrap_or(false);
-        if success {
-            self.write_component(
-                entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected),
-            );
-        }
-        success
-    }
-
-    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
-        match effect {
-            Effect::Health(change) => {
-                self.ecs()
-                    .write_storage::<comp::Stats>()
-                    .get_mut(entity)
-                    .map(|stats| stats.health.change_by(change));
-            },
-            Effect::Xp(xp) => {
-                self.ecs()
-                    .write_storage::<comp::Stats>()
-                    .get_mut(entity)
-                    .map(|stats| stats.exp.change_by(xp));
-            },
-        }
-    }
-
-    /// Build a non-player character.
-    fn create_npc(
-        &mut self,
-        pos: comp::Pos,
-        stats: comp::Stats,
-        body: comp::Body,
-    ) -> EcsEntityBuilder {
-        self.ecs_mut()
-            .create_entity_synced()
-            .with(pos)
-            .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori(Vec3::unit_y()))
-            .with(comp::Controller::default())
-            .with(body)
-            .with(stats)
-            .with(comp::Alignment::Npc)
-            .with(comp::Energy::new(500))
-            .with(comp::Gravity(1.0))
-            .with(comp::CharacterState::default())
-    }
-
-    fn notify_registered_clients(&self, msg: ServerMsg) {
-        for client in (&mut self.ecs().write_storage::<Client>())
-            .join()
-            .filter(|c| c.is_registered())
-        {
-            client.notify(msg.clone())
-        }
-    }
-
-    fn delete_entity_recorded(
-        &mut self,
-        entity: EcsEntity,
-    ) -> Result<(), specs::error::WrongGeneration> {
-        let (maybe_uid, maybe_pos) = (
-            self.ecs().read_storage::<Uid>().get(entity).copied(),
-            self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
-        );
-        let res = self.ecs_mut().delete_entity(entity);
-        if res.is_ok() {
-            if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
-                if let Some(region_key) = self
-                    .ecs()
-                    .read_resource::<common::region::RegionMap>()
-                    .find_region(entity, pos.0)
-                {
-                    self.ecs()
-                        .write_resource::<DeletedEntities>()
-                        .record_deleted_entity(uid, region_key);
-                } else {
-                    // Don't panic if the entity wasn't found in a region maybe it was just created
-                    // and then deleted before the region manager had a chance to assign it a
-                    // region
-                    warn!(
-                        "Failed to find region containing entity during entity deletion, assuming \
-                         it wasn't sent to any clients and so deletion doesn't need to be \
-                         recorded for sync purposes"
-                    );
-                }
-            }
-        }
-        res
-    }
 }
