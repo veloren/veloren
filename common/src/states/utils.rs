@@ -20,7 +20,8 @@ const BASE_HUMANOID_WATER_SPEED: f32 = 120.0;
 // const GLIDE_SPEED: f32 = 45.0;
 // const BLOCK_ACCEL: f32 = 30.0;
 // const BLOCK_SPEED: f32 = 75.0;
-// // Gravity is 9.81 * 4, so this makes gravity equal to .15
+// Gravity is 9.81 * 4, so this makes gravity equal to .15 //TODO: <- is wrong
+//
 // const GLIDE_ANTIGRAV: f32 = GRAVITY * 0.96;
 // const CLIMB_SPEED: f32 = 5.0;
 // const CLIMB_COST: i32 = 5;
