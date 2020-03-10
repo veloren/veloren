@@ -9,7 +9,7 @@ use crate::{
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
 
-pub const GRAVITY: f32 = 9.81 * 10.0;
+pub const GRAVITY: f32 = 9.81 * 5.0;
 const BOUYANCY: f32 = 0.0;
 // Friction values used for linear damping. They are unitless quantities. The
 // value of these quantities must be between zero and one. They represent the
