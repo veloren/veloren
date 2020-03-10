@@ -169,7 +169,7 @@ dependencies = [
  "tracing-subscriber",
  "uuid 0.8.1",
  "uvth",
- "veloren-network",
+ "veloren_network",
 ]
 
 [[package]]
@@ -2864,7 +2864,7 @@ dependencies = [
  "tracing-subscriber",
  "uuid 0.8.1",
  "uvth",
- "veloren-network",
+ "veloren_network",
 ]
 
 [[package]]
@@ -5235,25 +5235,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-network"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "byteorder 1.3.4",
- "enumset",
- "futures 0.3.5",
- "mio",
- "mio-extras",
- "prometheus",
- "serde",
- "tlid",
- "tracing",
- "tracing-subscriber",
- "uuid 0.8.1",
- "uvth",
-]
-
-[[package]]
 name = "veloren-server"
 version = "0.6.0"
 dependencies = [
@@ -5375,6 +5356,27 @@ dependencies = [
  "serde_derive",
  "vek 0.10.4",
  "veloren-common",
+]
+
+[[package]]
+name = "veloren_network"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "byteorder 1.3.4",
+ "enumset",
+ "futures 0.3.5",
+ "lazy_static",
+ "mio",
+ "mio-extras",
+ "prometheus",
+ "rand 0.7.3",
+ "serde",
+ "tlid",
+ "tracing",
+ "tracing-subscriber",
+ "uuid 0.8.1",
+ "uvth",
 ]
 
 [[package]]

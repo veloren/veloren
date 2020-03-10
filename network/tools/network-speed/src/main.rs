@@ -64,7 +64,7 @@ fn main() {
         .with_env_filter(filter)
         // sets this to be the default, global subscriber for this application.
         .init();
-
+    /*
     if let Some(matches) = matches.subcommand_matches("listen") {
         let port = matches
             .value_of("port")
@@ -76,7 +76,12 @@ fn main() {
             .value_of("port")
             .map_or(52000, |v| v.parse::<u16>().unwrap_or(52000));
         client(port);
-    };
+    };*/
+    thread::spawn(|| {
+        server(52000);
+    });
+    thread::sleep(Duration::from_millis(3));
+    client(52000);
 }
 
 fn server(port: u16) {
@@ -88,7 +93,9 @@ fn server(port: u16) {
     thread::sleep(Duration::from_millis(200));
     let server = Network::new(Uuid::new_v4(), thread_pool.clone());
     let address = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], port)));
-    block_on(server.listen(&address)).unwrap(); //await
+    //let address = Address::Mpsc(port as u64);
+    //let address = Address::Udp(SocketAddr::from(([127, 0, 0, 1], port)));
+    server.listen(&address).unwrap(); //await
     thread::sleep(Duration::from_millis(3)); //TODO: listeing still doesnt block correctly!
 
     loop {
@@ -116,11 +123,13 @@ fn client(port: u16) {
     thread::sleep(Duration::from_millis(200));
     let client = Network::new(Uuid::new_v4(), thread_pool.clone());
     let address = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], port)));
+    //let address = Address::Mpsc(port as u64);
+    //let address = Address::Udp(SocketAddr::from(([127, 0, 0, 1], port)));
     thread::sleep(Duration::from_millis(3)); //TODO: listeing still doesnt block correctly!
 
     loop {
         let p1 = block_on(client.connect(&address)).unwrap(); //remote representation of p1
-        let mut s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
+        let mut s1 = p1.open(16, Promise::InOrder | Promise::NoCorrupt).unwrap(); //remote representation of s1
         let mut last = Instant::now();
         let mut id = 0u64;
         loop {

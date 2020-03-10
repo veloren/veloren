@@ -3,13 +3,13 @@ use crate::{
     controller::Controller,
     metrics::NetworkMetrics,
     tcp::TcpChannel,
-    types::{CtrlMsg, Pid, RemoteParticipant, RtrnMsg, TokenObjects},
+    types::{CtrlMsg, Pid, RtrnMsg, Sid, TokenObjects},
 };
 use mio::{self, Poll, PollOpt, Ready, Token};
-use mio_extras::channel::{Receiver, Sender};
+use mio_extras::channel::Receiver;
 use std::{
     collections::HashMap,
-    sync::{mpsc::TryRecvError, Arc, RwLock},
+    sync::{mpsc, mpsc::TryRecvError, Arc, RwLock},
     time::Instant,
 };
 use tlid;
@@ -43,9 +43,10 @@ pub(crate) struct Worker {
     pid: Pid,
     poll: Arc<Poll>,
     metrics: Arc<Option<NetworkMetrics>>,
-    remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
+    sid_backup_per_participant: Arc<RwLock<HashMap<Pid, tlid::Pool<tlid::Checked<Sid>>>>>,
+    participants: HashMap<Pid, tlid::Pool<tlid::Wrapping<Sid>>>,
     ctrl_rx: Receiver<CtrlMsg>,
-    rtrn_tx: Sender<RtrnMsg>,
+    rtrn_tx: mpsc::Sender<RtrnMsg>,
     mio_tokens: MioTokens,
     time_before_poll: Instant,
     time_after_poll: Instant,
@@ -56,17 +57,18 @@ impl Worker {
         pid: Pid,
         poll: Arc<Poll>,
         metrics: Arc<Option<NetworkMetrics>>,
-        remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
+        sid_backup_per_participant: Arc<RwLock<HashMap<Pid, tlid::Pool<tlid::Checked<Sid>>>>>,
         token_pool: tlid::Pool<tlid::Wrapping<usize>>,
         ctrl_rx: Receiver<CtrlMsg>,
-        rtrn_tx: Sender<RtrnMsg>,
+        rtrn_tx: mpsc::Sender<RtrnMsg>,
     ) -> Self {
         let mio_tokens = MioTokens::new(token_pool);
         Worker {
             pid,
             poll,
             metrics,
-            remotes,
+            sid_backup_per_participant,
+            participants: HashMap::new(),
             ctrl_rx,
             rtrn_tx,
             mio_tokens,
@@ -100,7 +102,10 @@ impl Worker {
     }
 
     fn handle_ctl(&mut self) -> bool {
+        info!("start in handle_ctl");
         loop {
+            info!("recv in handle_ctl");
+
             let msg = match self.ctrl_rx.try_recv() {
                 Ok(msg) => msg,
                 Err(TryRecvError::Empty) => {
@@ -110,6 +115,7 @@ impl Worker {
                     panic!("Unexpected error '{}'", err);
                 },
             };
+            info!("Loop in handle_ctl");
 
             match msg {
                 CtrlMsg::Shutdown => {
@@ -148,24 +154,20 @@ impl Worker {
                 },
                 CtrlMsg::OpenStream {
                     pid,
+                    sid,
                     prio,
                     promises,
                     msg_tx,
-                    return_sid,
                 } => {
                     let mut handled = false;
                     for (_, obj) in self.mio_tokens.tokens.iter_mut() {
                         if let TokenObjects::Channel(channel) = obj {
                             if Some(pid) == channel.remote_pid {
-                                let sid = channel.open_stream(prio, promises, msg_tx);
-                                if let Err(err) = return_sid.send(sid) {
-                                    error!(
-                                        ?err,
-                                        "cannot send that a stream opened, probably channel was \
-                                         already closed!"
-                                    );
-                                };
+                                info!(?channel.streams, "-CTR- going to open stream");
+                                channel.open_stream(sid, prio, promises, msg_tx);
+                                info!(?channel.streams, "-CTR- going to tick");
                                 channel.tick_send();
+                                info!(?channel.streams, "-CTR- did to open stream");
                                 handled = true;
                                 break;
                             }
@@ -180,8 +182,11 @@ impl Worker {
                     for to in self.mio_tokens.tokens.values_mut() {
                         if let TokenObjects::Channel(channel) = to {
                             if Some(pid) == channel.remote_pid {
+                                info!(?channel.streams, "-CTR- going to close stream");
                                 channel.close_stream(sid); //TODO: check participant
+                                info!(?channel.streams, "-CTR- going to tick");
                                 channel.tick_send();
+                                info!(?channel.streams, "-CTR- did to close stream");
                                 handled = true;
                                 break;
                             }
@@ -195,8 +200,11 @@ impl Worker {
                     let mut handled = false;
                     for to in self.mio_tokens.tokens.values_mut() {
                         if let TokenObjects::Channel(channel) = to {
+                            info!(?channel.streams, "-CTR- going to send msg");
                             channel.send(outgoing); //TODO: check participant
+                            info!(?channel.streams, "-CTR- going to tick");
                             channel.tick_send();
+                            info!(?channel.streams, "-CTR- did to send msg");
                             handled = true;
                             break;
                         }
@@ -236,7 +244,7 @@ impl Worker {
                     let mut channel = Channel::new(
                         self.pid,
                         ChannelProtocols::Tcp(tcp_channel),
-                        self.remotes.clone(),
+                        self.sid_backup_per_participant.clone(),
                         None,
                     );
                     channel.handshake();
@@ -254,12 +262,20 @@ impl Worker {
                 if event.readiness().is_readable() {
                     let protocol = channel.get_protocol();
                     trace!(?protocol, "channel readable");
-                    channel.tick_recv(&self.rtrn_tx);
+                    channel.tick_recv(&mut self.participants, &self.rtrn_tx);
+                } else {
+                    trace!("channel not readable");
                 }
                 if event.readiness().is_writable() {
                     let protocol = channel.get_protocol();
                     trace!(?protocol, "channel writeable");
                     channel.tick_send();
+                } else {
+                    trace!("channel not writeable");
+                    let protocol = channel.get_protocol();
+                    if let ChannelProtocols::Mpsc(_) = &protocol {
+                        channel.tick_send(); //workaround for MPSC!!! ONLY for MPSC
+                    }
                 }
             },
         };

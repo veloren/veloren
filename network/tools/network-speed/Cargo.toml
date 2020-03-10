@@ -8,11 +8,11 @@ edition = "2018"
 
 [dependencies]
 uvth = "3.1"
-network = { package = "veloren-network", path = "../../../network" }
+network = { package = "veloren_network", path = "../../../network" }
 clap = "2.33"
 uuid = { version = "0.8", features = ["serde", "v4"] }
 futures = "0.3"
 tracing = "0.1"
-tracing-subscriber = "0.2.0-alpha.4"
+tracing-subscriber = "0.2.3"
 bincode = "1.2"
 serde = "1.0"

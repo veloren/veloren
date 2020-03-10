@@ -47,7 +47,7 @@ fn main() {
         )
         .get_matches();
 
-    let filter = EnvFilter::from_default_env().add_directive("error".parse().unwrap());
+    let filter = EnvFilter::from_default_env().add_directive("trace".parse().unwrap());
     //.add_directive("veloren_network::tests=trace".parse().unwrap());
 
     tracing_subscriber::FmtSubscriber::builder()
@@ -81,7 +81,7 @@ fn server(port: u16) {
     thread::sleep(Duration::from_millis(200));
     let server = Network::new(Uuid::new_v4(), thread_pool.clone());
     let address = Address::Tcp(SocketAddr::from(([127, 0, 0, 1], port)));
-    block_on(server.listen(&address)).unwrap(); //await
+    server.listen(&address).unwrap(); //await
     thread::sleep(Duration::from_millis(10)); //TODO: listeing still doesnt block correctly!
     println!("waiting for client");
 
@@ -161,8 +161,8 @@ fn client(port: u16) {
     thread::sleep(Duration::from_millis(3)); //TODO: listeing still doesnt block correctly!
 
     let p1 = block_on(client.connect(&address)).unwrap(); //remote representation of p1
-    let s1 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s1
-    let s2 = block_on(p1.open(16, Promise::InOrder | Promise::NoCorrupt)).unwrap(); //remote representation of s2
+    let s1 = p1.open(16, Promise::InOrder | Promise::NoCorrupt).unwrap(); //remote representation of s1
+    let s2 = p1.open(16, Promise::InOrder | Promise::NoCorrupt).unwrap(); //remote representation of s2
     let before = Instant::now();
     block_on(async {
         let f1 = async_task1(s1);

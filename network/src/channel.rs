@@ -4,18 +4,19 @@ use crate::{
     mpsc::MpscChannel,
     tcp::TcpChannel,
     types::{
-        Frame, IntStream, Mid, Pid, RemoteParticipant, RtrnMsg, Sid, VELOREN_MAGIC_NUMBER,
+        Frame, IntStream, Pid, RtrnMsg, Sid, DEFAULT_SID_SIZE, VELOREN_MAGIC_NUMBER,
         VELOREN_NETWORK_VERSION,
     },
     udp::UdpChannel,
 };
 use enumset::EnumSet;
 use futures::{executor::block_on, sink::SinkExt};
-use mio_extras::channel::Sender;
+use rand::{thread_rng, Rng};
 use std::{
     collections::{HashMap, VecDeque},
-    sync::{Arc, RwLock},
+    sync::{mpsc, Arc, RwLock},
 };
+use tlid;
 use tracing::*;
 
 pub(crate) trait ChannelProtocol {
@@ -39,11 +40,11 @@ pub(crate) enum ChannelProtocols {
 pub(crate) struct Channel {
     pub stream_id_pool: Option<tlid::Pool<tlid::Wrapping<Sid>>>, /* TODO: stream_id unique per
                                                                   * participant */
-    pub msg_id_pool: Option<tlid::Pool<tlid::Wrapping<Mid>>>, //TODO: msg_id unique per
-    // participant
+    // participantd
+    pub randomno: u64,
     pub local_pid: Pid,
     pub remote_pid: Option<Pid>,
-    pub remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
+    pub sid_backup_per_participant: Arc<RwLock<HashMap<Pid, tlid::Pool<tlid::Checked<Sid>>>>>,
     pub streams: Vec<IntStream>,
     pub send_queue: VecDeque<Frame>,
     pub protocol: ChannelProtocols,
@@ -84,15 +85,17 @@ impl Channel {
     pub fn new(
         local_pid: Pid,
         protocol: ChannelProtocols,
-        remotes: Arc<RwLock<HashMap<Pid, RemoteParticipant>>>,
+        sid_backup_per_participant: Arc<RwLock<HashMap<Pid, tlid::Pool<tlid::Checked<Sid>>>>>,
         return_pid_to: Option<std::sync::mpsc::Sender<Pid>>,
     ) -> Self {
+        let randomno = thread_rng().gen();
+        warn!(?randomno, "new channel,yay ");
         Self {
+            randomno,
             stream_id_pool: None,
-            msg_id_pool: None,
             local_pid,
             remote_pid: None,
-            remotes,
+            sid_backup_per_participant,
             streams: Vec::new(),
             send_queue: VecDeque::new(),
             protocol,
@@ -118,21 +121,25 @@ impl Channel {
             && !self.recv_shutdown
     }
 
-    pub fn tick_recv(&mut self, rtrn_tx: &Sender<RtrnMsg>) {
+    pub fn tick_recv(
+        &mut self,
+        worker_participants: &mut HashMap<Pid, tlid::Pool<tlid::Wrapping<Sid>>>,
+        rtrn_tx: &mpsc::Sender<RtrnMsg>,
+    ) {
         match &mut self.protocol {
             ChannelProtocols::Tcp(c) => {
                 for frame in c.read() {
-                    self.handle(frame, rtrn_tx);
+                    self.handle(frame, worker_participants, rtrn_tx);
                 }
             },
             ChannelProtocols::Udp(c) => {
                 for frame in c.read() {
-                    self.handle(frame, rtrn_tx);
+                    self.handle(frame, worker_participants, rtrn_tx);
                 }
             },
             ChannelProtocols::Mpsc(c) => {
                 for frame in c.read() {
-                    self.handle(frame, rtrn_tx);
+                    self.handle(frame, worker_participants, rtrn_tx);
                 }
             },
         }
@@ -153,7 +160,12 @@ impl Channel {
         }
     }
 
-    fn handle(&mut self, frame: Frame, rtrn_tx: &Sender<RtrnMsg>) {
+    fn handle(
+        &mut self,
+        frame: Frame,
+        worker_participants: &mut HashMap<Pid, tlid::Pool<tlid::Wrapping<Sid>>>,
+        rtrn_tx: &mpsc::Sender<RtrnMsg>,
+    ) {
         match frame {
             Frame::Handshake {
                 magic_number,
@@ -202,31 +214,53 @@ impl Channel {
                 debug!(?pid, "Participant send their ID");
                 self.recv_pid = true;
                 if self.send_pid {
-                    let mut remotes = self.remotes.write().unwrap();
-                    if !remotes.contains_key(&pid) {
-                        remotes.insert(pid, RemoteParticipant::new());
+                    //If participant is unknown to worker, assign some range from global pool
+                    if !worker_participants.contains_key(&pid) {
+                        let mut global_participants =
+                            self.sid_backup_per_participant.write().unwrap();
+                        //if this is the first time a participant connects to this Controller
+                        if !global_participants.contains_key(&pid) {
+                            // I dont no participant, so i can safely assume that they don't know
+                            // me. so HERE we gonna fill local network pool
+                            global_participants.insert(pid, tlid::Pool::new_full());
+                        }
+                        //grab a range for controller
+                        let global_part_pool = global_participants.get_mut(&pid).unwrap();
+
+                        let mut local_controller_sids =
+                            tlid::subpool_wrapping(global_part_pool, DEFAULT_SID_SIZE).unwrap();
+                        let remote_controller_sids =
+                            tlid::subpool_wrapping(global_part_pool, DEFAULT_SID_SIZE).unwrap();
+                        let mut local_worker_sids =
+                            tlid::subpool_wrapping(global_part_pool, DEFAULT_SID_SIZE).unwrap();
+                        let remote_worker_sids =
+                            tlid::subpool_wrapping(global_part_pool, DEFAULT_SID_SIZE).unwrap();
+
+                        let local_controller_range =
+                            tlid::RemoveAllocation::new(&mut local_controller_sids);
+                        let local_worker_range =
+                            tlid::RemoveAllocation::new(&mut local_worker_sids);
+
+                        worker_participants.insert(pid.clone(), local_worker_sids);
+                        self.send_queue.push_back(Frame::Configure {
+                            sender_controller_sids: local_controller_range,
+                            sender_worker_sids: local_worker_range,
+                            receiver_controller_sids: remote_controller_sids,
+                            receiver_worker_sids: remote_worker_sids,
+                        });
+                        self.send_config = true;
+                        info!(?pid, "this channel is now configured!");
+                        if let Err(err) = rtrn_tx.send(RtrnMsg::ConnectedParticipant {
+                            controller_sids: local_controller_sids,
+                            pid,
+                        }) {
+                            error!(?err, "couldn't notify, is network already closed ?");
+                        }
                     } else {
                         warn!(
                             "a known participant opened an additional channel, UNCHECKED BECAUSE \
                              NO TOKEN WAS IMPLEMENTED IN THE HANDSHAKE!"
                         );
-                    }
-                    if let Some(rp) = remotes.get_mut(&pid) {
-                        self.stream_id_pool = Some(rp.stream_id_pool.subpool(1000000).unwrap());
-                        self.msg_id_pool = Some(rp.msg_id_pool.subpool(1000000).unwrap());
-                        self.send_queue.push_back(Frame::Configure {
-                            stream_id_pool: rp.stream_id_pool.subpool(1000000).unwrap(),
-                            msg_id_pool: rp.msg_id_pool.subpool(1000000).unwrap(),
-                        });
-                        self.send_config = true;
-                        info!(?pid, "this channel is now configured!");
-                        if let Err(err) = rtrn_tx.send(RtrnMsg::ConnectedParticipant { pid }) {
-                            error!(
-                                ?err,
-                                "couldn't notify of connected participant, is network already \
-                                 closed ?"
-                            );
-                        }
                     }
                 } else {
                     self.send_queue.push_back(Frame::ParticipantId {
@@ -236,20 +270,47 @@ impl Channel {
                 }
             },
             Frame::Configure {
-                stream_id_pool,
-                msg_id_pool,
+                sender_controller_sids,
+                sender_worker_sids,
+                mut receiver_controller_sids,
+                mut receiver_worker_sids,
             } => {
+                let pid = match self.remote_pid {
+                    Some(pid) => pid,
+                    None => {
+                        error!("Cant configure a Channel without a PID first!");
+                        return;
+                    },
+                };
                 self.recv_config = true;
-                //TODO remove range from rp! as this could probably cause duplicate ID !!!
-                let mut remotes = self.remotes.write().unwrap();
-                if let Some(pid) = self.remote_pid {
-                    if !remotes.contains_key(&pid) {
-                        remotes.insert(pid, RemoteParticipant::new());
+                //Check if worker already knows about this participant
+                if !worker_participants.contains_key(&pid) {
+                    let mut global_participants = self.sid_backup_per_participant.write().unwrap();
+                    if !global_participants.contains_key(&pid) {
+                        // I dont no participant, so i can safely assume that they don't know me. so
+                        // HERE we gonna fill local network pool
+                        global_participants.insert(pid, tlid::Pool::new_full());
                     }
-                    if let Some(_rp) = remotes.get_mut(&pid) {
-                        //TODO: make use of RemoteParticipant
-                        self.stream_id_pool = Some(stream_id_pool);
-                        self.msg_id_pool = Some(msg_id_pool);
+                    //grab a range for controller
+                    let global_part_pool = global_participants.get_mut(&pid).unwrap();
+
+                    sender_controller_sids
+                        .remove_from(global_part_pool)
+                        .unwrap();
+                    sender_worker_sids.remove_from(global_part_pool).unwrap();
+                    tlid::RemoveAllocation::new(&mut receiver_controller_sids)
+                        .remove_from(global_part_pool)
+                        .unwrap();
+                    tlid::RemoveAllocation::new(&mut receiver_worker_sids)
+                        .remove_from(global_part_pool)
+                        .unwrap();
+
+                    worker_participants.insert(pid.clone(), receiver_worker_sids);
+                    if let Err(err) = rtrn_tx.send(RtrnMsg::ConnectedParticipant {
+                        pid,
+                        controller_sids: receiver_controller_sids,
+                    }) {
+                        error!(?err, "couldn't notify, is network already closed ?");
                     }
                     if let Some(send) = &self.return_pid_to {
                         if let Err(err) = send.send(pid) {
@@ -262,11 +323,14 @@ impl Channel {
                     };
                     self.return_pid_to = None;
                 } else {
-                    warn!(?self, "Protocol is done wrong!");
+                    warn!(
+                        "a known participant opened an additional channel, UNCHECKED BECAUSE NO \
+                         TOKEN WAS IMPLEMENTED IN THE HANDSHAKE!"
+                    );
                 }
                 info!("recv config. This channel is now configured!");
             },
-            Frame::Shutdown {} => {
+            Frame::Shutdown => {
                 self.recv_shutdown = true;
                 info!("shutting down channel");
                 if let Err(err) = rtrn_tx.send(RtrnMsg::Shutdown) {
@@ -281,7 +345,10 @@ impl Channel {
                 if let Some(pid) = self.remote_pid {
                     let (msg_tx, msg_rx) = futures::channel::mpsc::unbounded::<InCommingMessage>();
                     let stream = IntStream::new(sid, prio, promises.clone(), msg_tx);
+
+                    trace!(?self.streams, "-OPEN STREAM- going to modify streams");
                     self.streams.push(stream);
+                    trace!(?self.streams, "-OPEN STREAM- did to modify streams");
                     info!("opened a stream");
                     if let Err(err) = rtrn_tx.send(RtrnMsg::OpendStream {
                         pid,
@@ -298,7 +365,9 @@ impl Channel {
             },
             Frame::CloseStream { sid } => {
                 if let Some(pid) = self.remote_pid {
+                    trace!(?self.streams, "-CLOSE STREAM- going to modify streams");
                     self.streams.retain(|stream| stream.sid() != sid);
+                    trace!(?self.streams, "-CLOSE STREAM- did to modify streams");
                     info!("closed a stream");
                     if let Err(err) = rtrn_tx.send(RtrnMsg::ClosedStream { pid, sid }) {
                         error!(?err, "couldn't notify of closed stream");
@@ -379,38 +448,36 @@ impl Channel {
     fn tick_streams(&mut self) {
         //ignoring prio for now
         //TODO: fix prio
-        if let Some(msg_id_pool) = &mut self.msg_id_pool {
-            for s in &mut self.streams {
-                let mut remove = false;
-                let sid = s.sid();
-                if let Some(m) = s.to_send.front_mut() {
-                    let to_send = std::cmp::min(m.buffer.data.len() as u64 - m.cursor, 1400);
-                    if to_send > 0 {
-                        if m.cursor == 0 {
-                            let mid = msg_id_pool.next();
-                            m.mid = Some(mid);
-                            self.send_queue.push_back(Frame::DataHeader {
-                                mid,
-                                sid,
-                                length: m.buffer.data.len() as u64,
-                            });
-                        }
-                        self.send_queue.push_back(Frame::Data {
-                            id: m.mid.unwrap(),
-                            start: m.cursor,
-                            data: m.buffer.data[m.cursor as usize..(m.cursor + to_send) as usize]
-                                .to_vec(),
+        for s in &mut self.streams {
+            let mut remove = false;
+            let sid = s.sid();
+            if let Some(m) = s.to_send.front_mut() {
+                let to_send = std::cmp::min(m.buffer.data.len() as u64 - m.cursor, 1400);
+                if to_send > 0 {
+                    if m.cursor == 0 {
+                        let mid = s.mid_pool.next();
+                        m.mid = Some(mid);
+                        self.send_queue.push_back(Frame::DataHeader {
+                            mid,
+                            sid,
+                            length: m.buffer.data.len() as u64,
                         });
-                    };
-                    m.cursor += to_send;
-                    if m.cursor == m.buffer.data.len() as u64 {
-                        remove = true;
-                        debug!(?m.mid, "finish message")
                     }
+                    self.send_queue.push_back(Frame::Data {
+                        id: m.mid.unwrap(),
+                        start: m.cursor,
+                        data: m.buffer.data[m.cursor as usize..(m.cursor + to_send) as usize]
+                            .to_vec(),
+                    });
+                };
+                m.cursor += to_send;
+                if m.cursor == m.buffer.data.len() as u64 {
+                    remove = true;
+                    debug!(?m.mid, "finish message")
                 }
-                if remove {
-                    s.to_send.pop_front();
-                }
+            }
+            if remove {
+                s.to_send.pop_front();
             }
         }
     }
@@ -427,29 +494,37 @@ impl Channel {
 
     pub(crate) fn open_stream(
         &mut self,
+        sid: Sid,
         prio: u8,
         promises: EnumSet<Promise>,
         msg_tx: futures::channel::mpsc::UnboundedSender<InCommingMessage>,
-    ) -> Sid {
+    ) {
         // validate promises
-        if let Some(stream_id_pool) = &mut self.stream_id_pool {
-            let sid = stream_id_pool.next();
-            trace!(?sid, "going to open a new stream");
-            let stream = IntStream::new(sid, prio, promises.clone(), msg_tx);
-            self.streams.push(stream);
-            self.send_queue.push_back(Frame::OpenStream {
-                sid,
-                prio,
-                promises,
-            });
-            return sid;
-        } else {
-            panic!("cant open stream because connection isn't initialized");
+        trace!(?sid, "going to open a new stream");
+        let stream = IntStream::new(sid, prio, promises.clone(), msg_tx);
+        trace!(?sid, "1");
+        self.streams.push(stream);
+        trace!(?sid, "2");
+        trace!(?self.streams, ?self.randomno, "2b");
+        if self.streams.len() >= 0 {
+            // breakpoint here
+            let a = self.streams.len();
+            if a > 1000 {
+                //this will never happen but is a blackbox to catch a
+                panic!("dasd");
+            }
         }
+        self.send_queue.push_back(Frame::OpenStream {
+            sid,
+            prio,
+            promises,
+        });
     }
 
     pub(crate) fn close_stream(&mut self, sid: Sid) {
+        trace!(?self.streams, "--CLOSE STREAM-- going to modify streams");
         self.streams.retain(|stream| stream.sid() != sid);
+        trace!(?self.streams, "--CLOSE STREAM-- did to modify streams");
         self.send_queue.push_back(Frame::CloseStream { sid });
     }
 
@@ -467,12 +542,16 @@ impl Channel {
     }
 
     pub(crate) fn send(&mut self, outgoing: OutGoingMessage) {
+        trace!(?outgoing.sid, "3");
+        trace!(?self.streams, ?self.randomno, "3b");
+
         for s in self.streams.iter_mut() {
             if s.sid() == outgoing.sid {
                 s.to_send.push_back(outgoing);
                 return;
             }
         }
+        trace!(?outgoing.sid, "4");
         let sid = &outgoing.sid;
         error!(?sid, "couldn't send message, didn't found sid")
     }

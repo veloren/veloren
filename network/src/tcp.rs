@@ -1,4 +1,7 @@
-use crate::{channel::ChannelProtocol, types::Frame};
+use crate::{
+    channel::ChannelProtocol,
+    types::{Frame, NetworkBuffer},
+};
 use bincode;
 use mio::net::TcpStream;
 use std::io::{Read, Write};
@@ -6,15 +9,8 @@ use tracing::*;
 
 pub(crate) struct TcpChannel {
     endpoint: TcpStream,
-    //these buffers only ever contain 1 FRAME !
     read_buffer: NetworkBuffer,
     write_buffer: NetworkBuffer,
-}
-
-struct NetworkBuffer {
-    data: Vec<u8>,
-    read_idx: usize,
-    write_idx: usize,
 }
 
 impl TcpChannel {
@@ -27,72 +23,6 @@ impl TcpChannel {
     }
 }
 
-/// NetworkBuffer to use for streamed access
-/// valid data is between read_idx and write_idx!
-/// everything before read_idx is already processed and no longer important
-/// everything after write_idx is either 0 or random data buffered
-impl NetworkBuffer {
-    fn new() -> Self {
-        NetworkBuffer {
-            data: vec![0; 2048],
-            read_idx: 0,
-            write_idx: 0,
-        }
-    }
-
-    fn get_write_slice(&mut self, min_size: usize) -> &mut [u8] {
-        if self.data.len() < self.write_idx + min_size {
-            trace!(
-                ?self,
-                ?min_size,
-                "need to resize because buffer is to small"
-            );
-            self.data.resize(self.write_idx + min_size, 0);
-        }
-        &mut self.data[self.write_idx..]
-    }
-
-    fn actually_written(&mut self, cnt: usize) { self.write_idx += cnt; }
-
-    fn get_read_slice(&self) -> &[u8] { &self.data[self.read_idx..self.write_idx] }
-
-    fn actually_read(&mut self, cnt: usize) {
-        self.read_idx += cnt;
-        if self.read_idx == self.write_idx {
-            if self.read_idx > 10485760 {
-                trace!(?self, "buffer empty, resetting indices");
-            }
-            self.read_idx = 0;
-            self.write_idx = 0;
-        }
-        if self.write_idx > 10485760 {
-            if self.write_idx - self.read_idx < 65536 {
-                debug!(
-                    ?self,
-                    "This buffer is filled over 10 MB, but the actual data diff is less then \
-                     65kB, which is a sign of stressing this connection much as always new data \
-                     comes in - nevertheless, in order to handle this we will remove some data \
-                     now so that this buffer doesn't grow endlessly"
-                );
-                let mut i2 = 0;
-                for i in self.read_idx..self.write_idx {
-                    self.data[i2] = self.data[i];
-                    i2 += 1;
-                }
-                self.read_idx = 0;
-                self.write_idx = i2;
-            }
-            if self.data.len() > 67108864 {
-                warn!(
-                    ?self,
-                    "over 64Mbyte used, something seems fishy, len: {}",
-                    self.data.len()
-                );
-            }
-        }
-    }
-}
-
 impl ChannelProtocol for TcpChannel {
     type Handle = TcpStream;
 
@@ -101,6 +31,12 @@ impl ChannelProtocol for TcpChannel {
         let mut result = Vec::new();
         loop {
             match self.endpoint.read(self.read_buffer.get_write_slice(2048)) {
+                Ok(0) => {
+                    //Shutdown
+                    trace!(?self, "shutdown of tcp channel detected");
+                    result.push(Frame::Shutdown);
+                    break;
+                },
                 Ok(n) => {
                     self.read_buffer.actually_written(n);
                     trace!("incomming message with len: {}", n);
