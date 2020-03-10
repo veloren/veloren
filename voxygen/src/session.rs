@@ -3,6 +3,7 @@ use crate::{
     hud::{DebugInfo, Event as HudEvent, Hud},
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
+    menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, Scene, SceneData},
     window::{AnalogGameInput, Event, GameInput},
@@ -23,6 +24,14 @@ use log::error;
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
+
+/// The action to perform after a tick
+enum TickAction {
+    // Continue executing
+    Continue,
+    // Disconnected (i.e. go to main menu)
+    Disconnect,
+}
 
 pub struct SessionState {
     scene: Scene,
@@ -65,7 +74,7 @@ impl SessionState {
 
 impl SessionState {
     /// Tick the session (and the client attached to it).
-    fn tick(&mut self, dt: Duration) -> Result<(), Error> {
+    fn tick(&mut self, dt: Duration) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
         for event in self.client.borrow_mut().tick(
             self.inputs.clone(),
@@ -79,7 +88,7 @@ impl SessionState {
                 } => {
                     self.hud.new_message(event);
                 },
-                client::Event::Disconnect => {}, // TODO
+                client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
                         0 => String::from("Goodbye!"),
@@ -94,7 +103,7 @@ impl SessionState {
             }
         }
 
-        Ok(())
+        Ok(TickAction::Continue)
     }
 
     /// Clean up the session (and the client attached to it) after a tick.
@@ -426,12 +435,16 @@ impl PlayState for SessionState {
                 || !global_state.singleplayer.as_ref().unwrap().is_paused()
             {
                 // Perform an in-game tick.
-                if let Err(err) = self.tick(clock.get_avg_delta()) {
-                    global_state.info_message =
-                        Some(localized_strings.get("common.connection_lost").to_owned());
-                    error!("[session] Failed to tick the scene: {:?}", err);
+                match self.tick(clock.get_avg_delta()) {
+                    Ok(TickAction::Continue) => {}, // Do nothing
+                    Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
+                    Err(err) => {
+                        global_state.info_message =
+                            Some(localized_strings.get("common.connection_lost").to_owned());
+                        error!("[session] Failed to tick the scene: {:?}", err);
 
-                    return PlayStateResult::Pop;
+                        return PlayStateResult::Pop;
+                    },
                 }
             }
 
@@ -702,6 +715,13 @@ impl PlayState for SessionState {
             self.cleanup();
 
             current_client_state = self.client.borrow().get_client_state();
+        }
+
+        if let ClientState::Registered = current_client_state {
+            return PlayStateResult::Switch(Box::new(CharSelectionState::new(
+                global_state,
+                self.client.clone(),
+            )));
         }
 
         PlayStateResult::Pop

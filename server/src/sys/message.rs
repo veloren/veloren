@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
-    comp::{Admin, Body, CanBuild, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
+    comp::{Admin, CanBuild, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
@@ -27,7 +27,6 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
-        ReadStorage<'a, Body>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, Admin>,
         ReadStorage<'a, ForceUpdate>,
@@ -51,7 +50,6 @@ impl<'a> System<'a> for Sys {
             terrain,
             mut timer,
             uids,
-            bodies,
             can_build,
             admins,
             force_updates,
@@ -81,7 +79,6 @@ impl<'a> System<'a> for Sys {
         let mut new_players = Vec::new();
 
         for (entity, client) in (&entities, &mut clients).join() {
-            let mut disconnect = false;
             let new_msgs = client.postbox.new_messages();
 
             // Update client ping.
@@ -91,7 +88,7 @@ impl<'a> System<'a> for Sys {
                 || client.postbox.error().is_some()
             // Postbox error
             {
-                disconnect = true;
+                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             } else if time - client.last_ping > CLIENT_TIMEOUT * 0.5 {
                 // Try pinging the client if the timeout is nearing.
                 client.postbox.send_message(ServerMsg::Ping);
@@ -285,24 +282,12 @@ impl<'a> System<'a> for Sys {
                     ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                     ClientMsg::Pong => {},
                     ClientMsg::Disconnect => {
-                        disconnect = true;
+                        client.postbox.send_message(ServerMsg::Disconnect);
+                    },
+                    ClientMsg::Terminate => {
+                        server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                     },
                 }
-            }
-
-            if disconnect {
-                if let (Some(player), Some(_)) = (
-                    players.get(entity),
-                    // It only shows a message if you had a body (not in char selection)
-                    bodies.get(entity),
-                ) {
-                    new_chat_msgs.push((
-                        None,
-                        ServerMsg::broadcast(format!("{} went offline.", &player.alias)),
-                    ));
-                }
-                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-                client.postbox.send_message(ServerMsg::Disconnect);
             }
         }
 

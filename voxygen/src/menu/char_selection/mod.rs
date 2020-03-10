@@ -78,7 +78,7 @@ impl PlayState for CharSelectionState {
                             char_data.body,
                             char_data.tool,
                         );
-                        return PlayStateResult::Push(Box::new(SessionState::new(
+                        return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
                             self.client.clone(),
                         )));
@@ -141,7 +141,7 @@ impl PlayState for CharSelectionState {
             ) {
                 global_state.info_message =
                     Some(localized_strings.get("common.connection_lost").to_owned());
-                error!("[session] Failed to tick the scene: {:?}", err);
+                error!("[char_selection] Failed to tick the scene: {:?}", err);
 
                 return PlayStateResult::Pop;
             }
