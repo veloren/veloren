@@ -68,6 +68,11 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            if attack.applied {
+                continue;
+            }
+            attack.applied = true;
+
             // Go through all other entities
             for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stats_b, body_b) in (
                 &entities,
@@ -115,9 +120,9 @@ impl<'a> System<'a> for Sys {
                             cause: HealthSource::Attack { by: *uid },
                         },
                     });
+                    attack.hit_count += 1;
                 }
             }
         }
-        attacking_storage.clear();
     }
 }

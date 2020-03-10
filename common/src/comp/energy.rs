@@ -15,6 +15,7 @@ pub enum EnergySource {
     Roll,
     Climb,
     LevelUp,
+    HitEnemy,
     Regen,
     Revive,
     Unknown,
