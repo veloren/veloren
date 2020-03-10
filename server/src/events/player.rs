@@ -1,5 +1,5 @@
 use super::Event;
-use crate::{auth_provider::AuthProvider, client::Client, Server, StateExt};
+use crate::{auth_provider::AuthProvider, client::Client, state_ext::StateExt, Server};
 use common::{
     comp,
     comp::Player,
