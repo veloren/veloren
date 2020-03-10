@@ -5,7 +5,7 @@ use crate::{
     key_state::KeyState,
     render::Renderer,
     scene::{camera, Scene, SceneData},
-    window::{Event, GameInput},
+    window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client, Event::Chat};
@@ -364,6 +364,17 @@ impl PlayState for SessionState {
                     },
                     Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
+                    },
+                    Event::AnalogGameInput(input) => match input {
+                        AnalogGameInput::MovementX(v) => {
+                            self.key_state.analog_matrix.x = v;
+                        },
+                        AnalogGameInput::MovementY(v) => {
+                            self.key_state.analog_matrix.y = v;
+                        },
+                        other => {
+                            self.scene.handle_input_event(Event::AnalogGameInput(other));
+                        },
                     },
 
                     // Pass all other events to the scene
