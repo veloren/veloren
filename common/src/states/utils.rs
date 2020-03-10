@@ -58,7 +58,7 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate) {
     {
         Vec2::from(data.inputs.look_dir).normalized()
     } else {
-        Vec2::from(update.vel.0)
+        Vec2::from(data.inputs.move_dir)
     };
 
     // Smooth orientation

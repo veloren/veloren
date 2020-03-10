@@ -39,6 +39,7 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
 
         if *remaining_duration == Duration::default() {
             // Roll duration has expired
+            update.vel.0 *= 0.3;
             update.character = CharacterState::Idle {};
         } else {
             // Otherwise, tick down remaining_duration

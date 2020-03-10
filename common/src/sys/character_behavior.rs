@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        AbilityPool, Body, CharacterState, Controller, ControllerInputs, Energy, Mounting, Ori,
-        PhysicsState, Pos, Stats, Vel,
+        AbilityPool, Attacking, Body, CharacterState, Controller, ControllerInputs, Energy,
+        Mounting, Ori, PhysicsState, Pos, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -29,6 +29,7 @@ pub struct JoinData<'a> {
     pub body: &'a Body,
     pub physics: &'a PhysicsState,
     pub ability_pool: &'a AbilityPool,
+    pub attacking: Option<&'a Attacking>,
     pub updater: &'a LazyUpdate,
 }
 
@@ -45,6 +46,7 @@ pub type JoinTuple<'a> = (
     &'a Body,
     &'a PhysicsState,
     &'a AbilityPool,
+    Option<&'a Attacking>,
 );
 
 impl<'a> JoinData<'a> {
@@ -63,6 +65,7 @@ impl<'a> JoinData<'a> {
             body: j.9,
             physics: j.10,
             ability_pool: j.11,
+            attacking: j.12,
             updater,
             dt,
         }
@@ -95,6 +98,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, AbilityPool>,
+        ReadStorage<'a, Attacking>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
     );
@@ -118,6 +122,7 @@ impl<'a> System<'a> for Sys {
             bodies,
             physics_states,
             ability_pools,
+            attacking_storage,
             uids,
             mountings,
         ): Self::SystemData,
@@ -135,6 +140,7 @@ impl<'a> System<'a> for Sys {
             &bodies,
             &physics_states,
             &ability_pools,
+            attacking_storage.maybe(),
         )
             .join();
 
