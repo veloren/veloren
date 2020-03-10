@@ -8,6 +8,9 @@ use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs_idvs::IDVStorage;
 use std::ops::Not;
 
+// The limit on distance between the entity and a collectible (squared)
+pub const MAX_PICKUP_RANGE_SQR: f32 = 64.0;
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
     pub slots: Vec<Option<Item>>,
