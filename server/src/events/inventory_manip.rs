@@ -1,6 +1,6 @@
 use crate::{Server, StateExt};
 use common::{
-    comp,
+    comp::{self, Pos, MAX_PICKUP_RANGE_SQR},
     sync::WorldSyncExt,
     terrain::block::Block,
     vol::{ReadVol, Vox},
@@ -16,7 +16,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
     match manip {
         comp::InventoryManip::Pickup(uid) => {
-            // TODO: enforce max pickup range
             let item_entity = if let (Some((item, item_entity)), Some(inv)) = (
                 state
                     .ecs()
@@ -33,7 +32,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     .write_storage::<comp::Inventory>()
                     .get_mut(entity),
             ) {
-                if inv.push(item).is_none() {
+                if within_pickup_range(
+                    state.ecs().read_storage::<comp::Pos>().get(entity),
+                    state.ecs().read_storage::<comp::Pos>().get(item_entity),
+                ) && inv.push(item).is_none()
+                {
                     Some(item_entity)
                 } else {
                     None
@@ -56,6 +59,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
         comp::InventoryManip::Collect(pos) => {
             let block = state.terrain().get(pos).ok().copied();
+
             if let Some(block) = block {
                 if block.is_collectible()
                     && state
@@ -229,5 +233,41 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             .with(item)
             .with(comp::Vel(vel))
             .build();
+    }
+}
+
+fn within_pickup_range(player_position: Option<&Pos>, item_position: Option<&Pos>) -> bool {
+    match (player_position, item_position) {
+        (Some(ppos), Some(ipos)) => ppos.0.distance_squared(ipos.0) < MAX_PICKUP_RANGE_SQR,
+        _ => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use common::comp::Pos;
+    use vek::Vec3;
+
+    #[test]
+    fn pickup_distance_within_range() {
+        let player_position = Pos(Vec3::zero());
+        let item_position = Pos(Vec3::one());
+
+        assert_eq!(
+            within_pickup_range(Some(&player_position), Some(&item_position)),
+            true
+        );
+    }
+
+    #[test]
+    fn pickup_distance_not_within_range() {
+        let player_position = Pos(Vec3::zero());
+        let item_position = Pos(Vec3::one() * 500.0);
+
+        assert_eq!(
+            within_pickup_range(Some(&player_position), Some(&item_position)),
+            false
+        );
     }
 }
