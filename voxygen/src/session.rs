@@ -278,7 +278,7 @@ impl PlayState for SessionState {
                             .unwrap_or(false)
                         {
                             self.inputs.secondary.set_state(state);
-                        } else {
+                        } else if state {
                             if let Some(select_pos) = select_pos {
                                 client.collect_block(select_pos);
                             }
