@@ -61,17 +61,24 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let block = state.terrain().get(pos).ok().copied();
 
             if let Some(block) = block {
-                if block.is_collectible()
-                    && state
-                        .ecs()
-                        .read_storage::<comp::Inventory>()
-                        .get(entity)
-                        .map(|inv| !inv.is_full())
-                        .unwrap_or(false)
-                    && state.try_set_block(pos, Block::empty()).is_some()
-                {
-                    comp::Item::try_reclaim_from_block(block)
-                        .map(|item| state.give_item(entity, item));
+                let has_inv_space = state
+                    .ecs()
+                    .read_storage::<comp::Inventory>()
+                    .get(entity)
+                    .map(|inv| !inv.is_full())
+                    .unwrap_or(false);
+
+                if !has_inv_space {
+                    state.write_component(
+                        entity,
+                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::CollectFailed),
+                    );
+                } else {
+                    if block.is_collectible() && state.try_set_block(pos, Block::empty()).is_some()
+                    {
+                        comp::Item::try_reclaim_from_block(block)
+                            .map(|item| state.give_item(entity, item));
+                    }
                 }
             }
         },
