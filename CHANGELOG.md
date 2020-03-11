@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Game pauses when in singleplayer and pause menu
 - Added authentication system (to play on the official server register on https://account.veloren.net)
 - Added gamepad/controller support
+- Added player feedback when attempting to pickup an item with a full inventory
 
 ### Changed
 
