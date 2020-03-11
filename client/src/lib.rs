@@ -14,7 +14,9 @@ pub use specs::{
 
 use byteorder::{ByteOrder, LittleEndian};
 use common::{
-    comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
+    comp::{
+        self, ControlEvent, Controller, ControllerInputs, InventoryManip, InventoryUpdateEvent,
+    },
     event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
@@ -689,7 +691,19 @@ impl Client {
                         }
                     },
                     ServerMsg::InventoryUpdate(inventory, event) => {
-                        self.state.write_component(self.entity, inventory);
+                        match event {
+                            InventoryUpdateEvent::CollectFailed => {
+                                frontend_events.push(Event::Chat {
+                                    message: String::from(
+                                        "Failed to collect item. Your inventory may be full!",
+                                    ),
+                                    chat_type: ChatType::Meta,
+                                })
+                            },
+                            _ => {
+                                self.state.write_component(self.entity, inventory);
+                            },
+                        }
 
                         self.state
                             .ecs()
