@@ -150,6 +150,7 @@ pub enum InventoryUpdateEvent {
     Swapped,
     Dropped,
     Collected,
+    CollectFailed,
     Possession,
     Debug,
 }
