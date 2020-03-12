@@ -2,14 +2,20 @@ use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum AbilityState {
-    BasicAttack,
+    BasicAttack {
+        /// Amount of energy required to use ability
+        cost: i32,
+    },
     BasicBlock,
     Roll,
     ChargeAttack,
-    TimedCombo,
+    TimedCombo {
+        /// Amount of energy required to use ability
+        cost: i32,
+    },
 }
 impl Default for AbilityState {
-    fn default() -> Self { Self::BasicAttack }
+    fn default() -> Self { Self::BasicAttack { cost: -100 } }
 }
 
 impl Component for AbilityState {
@@ -27,7 +33,7 @@ pub struct AbilityPool {
 impl Default for AbilityPool {
     fn default() -> Self {
         Self {
-            primary: Some(AbilityState::BasicAttack),
+            primary: Some(AbilityState::default()),
             // primary: Some(AbilityState::TimedCombo),
             secondary: Some(AbilityState::BasicBlock),
             block: None,
