@@ -192,7 +192,7 @@ pub fn handle_primary_input(data: &JoinData, update: &mut StateUpdate) {
 /// Attempts to go into `ability_pool.primary` if is `Some()` on `AbilityPool`
 pub fn attempt_primary_ability(data: &JoinData, update: &mut StateUpdate) {
     if let Some(ability_state) = data.ability_pool.primary {
-        update.character = ability_to_character_state(data, ability_state);
+        update.character = ability_to_character_state(data, update, ability_state);
     }
 }
 
@@ -209,7 +209,7 @@ pub fn handle_secondary_input(data: &JoinData, update: &mut StateUpdate) {
 /// Attempts to go into `ability_pool.secondary` if is `Some()` on `AbilityPool`
 pub fn attempt_seconday_ability(data: &JoinData, update: &mut StateUpdate) {
     if let Some(ability_state) = data.ability_pool.secondary {
-        update.character = ability_to_character_state(data, ability_state);
+        update.character = ability_to_character_state(data, update, ability_state);
     }
 }
 
@@ -233,7 +233,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
 
 pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
     if let Some(ability_state) = data.ability_pool.dodge {
-        update.character = ability_to_character_state(data, ability_state);
+        update.character = ability_to_character_state(data, update, ability_state);
     }
 }
 
@@ -242,17 +242,22 @@ pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
 
 /// Maps from `AbilityState`s to `CharacterStates`s. Also handles intializing
 /// the new `CharacterState`
-pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) -> CharacterState {
+pub fn ability_to_character_state(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    ability_state: AbilityState,
+) -> CharacterState {
     match ability_state {
-        AbilityState::BasicAttack { .. } => {
-            if let Some(tool) = unwrap_tool_data(data) {
-                CharacterState::BasicAttack {
+        AbilityState::BasicAttack { cost, .. } => {
+         if let Some(tool) = unwrap_tool_data(data) {
+             if update.energy.try_change_by(cost, EnergySource::HitEnemy).is_ok() {
+                return CharacterState::BasicAttack {
                     exhausted: false,
                     remaining_duration: tool.attack_duration(),
-                }
-            } else {
-                *data.character
+                };
             }
+        }
+                *data.character
         },
         AbilityState::BasicBlock { .. } => CharacterState::BasicBlock {},
         AbilityState::Roll { .. } => CharacterState::Roll {
