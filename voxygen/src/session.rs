@@ -381,7 +381,7 @@ impl PlayState for SessionState {
                             )
                                 .join()
                                 .filter(|(_, pos, _)| {
-                                    pos.0.distance_squared(player_pos.0) < 3.0 * 3.0
+                                    pos.0.distance_squared(player_pos.0) < MAX_PICKUP_RANGE_SQR
                                 })
                                 .min_by_key(|(_, pos, _)| {
                                     (pos.0.distance_squared(player_pos.0) * 1000.0) as i32
