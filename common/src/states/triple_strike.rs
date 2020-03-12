@@ -5,10 +5,13 @@ use crate::{
 };
 use std::{collections::VecDeque, time::Duration};
 
-/// ### This behavior is a series of 3 attacks in sequence.
+// In millis
+const STAGE_DURATION: u64 = 600;
+
+/// ### A sequence of 3 incrementally increasing attacks.
 ///
-/// Holding down the `primary` button executes a series of 3 attacks,
-/// each one moves the player forward as the character steps into the swings.
+/// While holding down the `primary` button, perform a series of 3 attacks,
+/// each one pushes the player forward as the character steps into the swings.
 /// The player can let go of the left mouse button at any time
 /// and stop their attacks by interrupting the attack animation.
 pub fn behavior(data: &JoinData) -> StateUpdate {
@@ -34,26 +37,22 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
             .checked_add(Duration::from_secs_f32(data.dt.0))
             .unwrap_or(Duration::default());
 
+        // If player stops holding input,
         if !data.inputs.primary.is_pressed() {
             attempt_wield(data, &mut update);
+            return update;
         }
 
-        match stage {
-            1 => {
-                println!("1");
-                attempt_wield(data, &mut update);
-            },
-            2 => {
-                println!("2");
-                attempt_wield(data, &mut update);
-            },
-            3 => {
-                println!("3");
-                attempt_wield(data, &mut update);
-            },
-            _ => {
-                // Should never get here.
-            },
+        while *stage < 3 {
+            if new_stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
+                // Move player forward while in first third of each stage
+                handle_move(data, &mut update);
+            } else if new_stage_time_active > Duration::from_millis(STAGE_DURATION / 2)
+                && !new_stage_exhausted
+            {
+                // Try to deal damage in second half of stage
+                // TODO: deal damage
+            }
         }
     }
 
