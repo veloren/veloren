@@ -75,8 +75,6 @@ pub enum CharacterState {
         stage_time_active: Duration,
         /// Whether current stage has exhausted its attack
         stage_exhausted: bool,
-        /// Whether player has clicked at the proper time to go to next stage
-        can_transition: bool,
     },
 }
 
