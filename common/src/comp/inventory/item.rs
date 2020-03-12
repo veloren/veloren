@@ -1,5 +1,6 @@
 use crate::{
     assets::{self, Asset},
+    comp::AbilityState,
     effect::Effect,
     terrain::{Block, BlockKind},
 };
@@ -7,7 +8,7 @@ use crate::{
 use rand::seq::SliceRandom;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
-use std::{fs::File, io::BufReader, time::Duration};
+use std::{fs::File, io::BufReader, time::Duration, vec::Vec};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum SwordKind {
@@ -44,6 +45,22 @@ impl ToolData {
 
     pub fn attack_duration(&self) -> Duration {
         self.attack_buildup_duration() + self.attack_recover_duration()
+    }
+
+    pub fn get_primary_abilities(&self) -> Vec<AbilityState> {
+        use AbilityState::*;
+        use SwordKind::*;
+        use ToolKind::*;
+
+        let default_return = vec![AbilityState::default()];
+
+        match self.kind {
+            Sword(kind) => match kind {
+                Rapier => vec![TimedCombo { cost: -150 }],
+                Scimitar => default_return,
+            },
+            _ => default_return,
+        }
     }
 }
 
