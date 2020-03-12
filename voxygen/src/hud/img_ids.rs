@@ -67,10 +67,6 @@ image_ids! {
         tab_small_open: "voxygen.element.frames.tab_small_open",
         tab_small_closed: "voxygen.element.frames.tab_small_closed",
 
-        // MiniMap
-        mmap_frame: "voxygen.element.frames.mmap",
-        mmap_frame_closed: "voxygen.element.frames.mmap_closed",
-
         // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
         window_frame: "voxygen.element.frames.window2",
 
@@ -169,20 +165,6 @@ image_ids! {
         checkbox_checked: "voxygen.element.buttons.checkbox.active",
         checkbox_checked_mo: "voxygen.element.buttons.checkbox.hover",
 
-        // Buttons
-        mmap_closed: "voxygen.element.buttons.button_mmap_closed",
-        mmap_closed_hover: "voxygen.element.buttons.button_mmap_closed_hover",
-        mmap_closed_press: "voxygen.element.buttons.button_mmap_closed_press",
-        mmap_open: "voxygen.element.buttons.button_mmap_open",
-        mmap_open_hover: "voxygen.element.buttons.button_mmap_open_hover",
-        mmap_open_press: "voxygen.element.buttons.button_mmap_open_press",
-        mmap_plus: "voxygen.element.buttons.min_plus.mmap_button-plus",
-        mmap_plus_hover: "voxygen.element.buttons.min_plus.mmap_button-plus_hover",
-        mmap_plus_press: "voxygen.element.buttons.min_plus.mmap_button-plus_press",
-        mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
-        mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
-        mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
-
         // Grid
         grid: "voxygen.element.buttons.grid",
         grid_hover: "voxygen.element.buttons.grid",
@@ -251,6 +233,22 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+        // MiniMap
+        mmap_frame: "voxygen.element.frames.mmap",
+        mmap_frame_closed: "voxygen.element.frames.mmap_closed",
+        mmap_closed: "voxygen.element.buttons.button_mmap_closed",
+        mmap_closed_hover: "voxygen.element.buttons.button_mmap_closed_hover",
+        mmap_closed_press: "voxygen.element.buttons.button_mmap_closed_press",
+        mmap_open: "voxygen.element.buttons.button_mmap_open",
+        mmap_open_hover: "voxygen.element.buttons.button_mmap_open_hover",
+        mmap_open_press: "voxygen.element.buttons.button_mmap_open_press",
+        mmap_plus: "voxygen.element.buttons.min_plus.mmap_button-plus",
+        mmap_plus_hover: "voxygen.element.buttons.min_plus.mmap_button-plus_hover",
+        mmap_plus_press: "voxygen.element.buttons.min_plus.mmap_button-plus_press",
+        mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
+        mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
+        mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
+
         // Close-Button
         close_btn: "voxygen.element.buttons.close_btn",
         close_btn_hover: "voxygen.element.buttons.close_btn_hover",
