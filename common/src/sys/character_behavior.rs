@@ -177,7 +177,8 @@ impl<'a> System<'a> for Sys {
                 CharacterState::BasicBlock { .. } => states::basic_block::behavior(&j),
                 CharacterState::ChargeAttack { .. } => states::charge_attack::behavior(&j),
                 CharacterState::Sit { .. } => states::sit::behavior(&j),
-                CharacterState::TimedCombo { .. } => states::triple_attack::behavior(&j),
+                CharacterState::TripleStrike { .. } => states::triple_strike::behavior(&j),
+                CharacterState::TimedCombo { .. } => states::timed_combo::behavior(&j),
 
                 // Do not use default match.
                 // _ => StateUpdate {
