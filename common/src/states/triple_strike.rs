@@ -40,49 +40,8 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
 
         match stage {
             1 => {
-                if new_stage_time_active > tool.attack_buildup_duration() {
-                    if !*stage_exhausted {
-                        // Try to deal damage
-                        data.updater.insert(data.entity, Attacking {
-                            weapon: Some(*tool),
-                            applied: false,
-                            hit_count: 0,
-                        });
-                        new_stage_exhausted = true;
-                    } else {
-                        // Make sure to remove Attacking component
-                        data.updater.remove::<Attacking>(data.entity);
-                    }
-
-                    // Check if player has timed click right
-                    if data.inputs.primary.is_just_pressed() {
-                        println!("Can transition");
-                        new_can_transition = true;
-                    }
-                }
-
-                if new_stage_time_active > tool.attack_duration() {
-                    if new_can_transition {
-                        update.character = CharacterState::TimedCombo {
-                            tool: *tool,
-                            stage: 2,
-                            stage_time_active: Duration::default(),
-                            stage_exhausted: false,
-                            can_transition: false,
-                        }
-                    } else {
-                        println!("Failed");
-                        attempt_wield(data, &mut update);
-                    }
-                } else {
-                    update.character = CharacterState::TimedCombo {
-                        tool: *tool,
-                        stage: 1,
-                        stage_time_active: new_stage_time_active,
-                        stage_exhausted: new_stage_exhausted,
-                        can_transition: new_can_transition,
-                    }
-                }
+                println!("1");
+                attempt_wield(data, &mut update);
             },
             2 => {
                 println!("2");
