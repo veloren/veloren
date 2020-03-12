@@ -237,7 +237,7 @@ pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-// TODO: Wight need a fn `CharacterState::new(data, update)` if
+// TODO: Might need a fn `CharacterState::new(data, update)` if
 // initialization gets too lengthy.
 
 /// Maps from `AbilityState`s to `CharacterStates`s. Also handles intializing
@@ -261,9 +261,9 @@ pub fn ability_to_character_state(data: &JoinData, ability_state: AbilityState) 
         AbilityState::ChargeAttack { .. } => CharacterState::ChargeAttack {
             remaining_duration: Duration::from_millis(600),
         },
-        AbilityState::TripleAttack { .. } => {
+        AbilityState::TimedCombo { .. } => {
             if let Some(tool) = unwrap_tool_data(data) {
-                CharacterState::TripleAttack {
+                CharacterState::TimedCombo {
                     tool,
                     stage: 1,
                     stage_time_active: Duration::default(),

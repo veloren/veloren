@@ -16,7 +16,7 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
         server_events: VecDeque::new(),
     };
 
-    if let CharacterState::TripleAttack {
+    if let CharacterState::TimedCombo {
         tool,
         stage,
         stage_time_active,
@@ -55,7 +55,7 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
 
                 if new_stage_time_active > tool.attack_duration() {
                     if new_can_transition {
-                        update.character = CharacterState::TripleAttack {
+                        update.character = CharacterState::TimedCombo {
                             tool: *tool,
                             stage: 2,
                             stage_time_active: Duration::default(),
@@ -67,7 +67,7 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
                         attempt_wield(data, &mut update);
                     }
                 } else {
-                    update.character = CharacterState::TripleAttack {
+                    update.character = CharacterState::TimedCombo {
                         tool: *tool,
                         stage: 1,
                         stage_time_active: new_stage_time_active,
