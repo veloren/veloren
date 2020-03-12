@@ -52,7 +52,7 @@ pub enum CharacterState {
     },
     /// A three-stage attack where play must click at appropriate times
     /// to continue attack chain.
-    TripleAttack {
+    TimedCombo {
         /// The tool this state will read to handle damage, etc.
         tool: ToolData,
         /// `int` denoting what stage (of 3) the attack is in.
