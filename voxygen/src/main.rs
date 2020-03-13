@@ -1,91 +1,20 @@
 #![deny(unsafe_code)]
-#![feature(drain_filter)]
 #![recursion_limit = "2048"]
 
-#[macro_use]
-pub mod ui;
-pub mod anim;
-pub mod audio;
-mod ecs;
-pub mod error;
-pub mod hud;
-pub mod i18n;
-pub mod key_state;
-mod logging;
-pub mod menu;
-pub mod mesh;
-pub mod meta;
-pub mod render;
-pub mod scene;
-pub mod session;
-pub mod settings;
-#[cfg(feature = "singleplayer")]
-pub mod singleplayer;
-pub mod window;
-
-// Reexports
-pub use crate::error::Error;
-
-use crate::{
-    audio::AudioFrontend,
-    i18n::{i18n_asset_key, VoxygenLocalization},
+use veloren_voxygen::{
+    audio::{self, AudioFrontend},
+    i18n::{self, i18n_asset_key, VoxygenLocalization},
+    logging,
     menu::main::MainMenuState,
     meta::Meta,
     settings::Settings,
     window::Window,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
+
 use common::assets::{load, load_expect};
 use log::{debug, error};
 use std::{mem, panic, str::FromStr};
-
-/// A type used to store state that is shared between all play states.
-pub struct GlobalState {
-    settings: Settings,
-    meta: Meta,
-    window: Window,
-    audio: AudioFrontend,
-    info_message: Option<String>,
-}
-
-impl GlobalState {
-    /// Called after a change in play state has occurred (usually used to
-    /// reverse any temporary effects a state may have made).
-    pub fn on_play_state_changed(&mut self) {
-        self.window.grab_cursor(false);
-        self.window.needs_refresh_resize();
-    }
-
-    pub fn maintain(&mut self, dt: f32) { self.audio.maintain(dt); }
-}
-
-pub enum Direction {
-    Forwards,
-    Backwards,
-}
-
-/// States can either close (and revert to a previous state), push a new state
-/// on top of themselves, or switch to a totally different state.
-pub enum PlayStateResult {
-    /// Pop all play states in reverse order and shut down the program.
-    Shutdown,
-    /// Close the current play state and pop it from the play state stack.
-    Pop,
-    /// Push a new play state onto the play state stack.
-    Push(Box<dyn PlayState>),
-    /// Switch the current play state with a new play state.
-    Switch(Box<dyn PlayState>),
-}
-
-/// A trait representing a playable game state. This may be a menu, a game
-/// session, the title screen, etc.
-pub trait PlayState {
-    /// Play the state until some change of state is required (i.e: a menu is
-    /// opened or the game is closed).
-    fn play(&mut self, direction: Direction, global_state: &mut GlobalState) -> PlayStateResult;
-
-    /// Get a descriptive name for this state type.
-    fn name(&self) -> &'static str;
-}
 
 fn main() {
     // Initialize logging.
@@ -121,7 +50,7 @@ fn main() {
     };
 
     let mut audio = if settings.audio.audio_on {
-        AudioFrontend::new(audio_device(), 16)
+        AudioFrontend::new(audio_device(), settings.audio.max_sfx_channels)
     } else {
         AudioFrontend::no_audio()
     };
@@ -135,6 +64,7 @@ fn main() {
         settings,
         meta,
         info_message: None,
+        singleplayer: None,
     };
 
     // Try to load the localization and log missing entries

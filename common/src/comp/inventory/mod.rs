@@ -1,11 +1,15 @@
 pub mod item;
 
 // Reexports
-pub use item::{Debug, Item, ItemKind, Tool};
+pub use item::{Consumable, Debug, Item, ItemKind, Tool};
 
 use crate::assets;
-use specs::{Component, HashMapStorage, NullStorage};
+use specs::{Component, FlaggedStorage, HashMapStorage};
+use specs_idvs::IDVStorage;
 use std::ops::Not;
+
+// The limit on distance between the entity and a collectible (squared)
+pub const MAX_PICKUP_RANGE_SQR: f32 = 64.0;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
@@ -136,12 +140,38 @@ impl Component for Inventory {
     type Storage = HashMapStorage<Self>;
 }
 
-// ForceUpdate
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub enum InventoryUpdateEvent {
+    Init,
+    Used,
+    Consumed(Consumable),
+    Gave,
+    Given,
+    Swapped,
+    Dropped,
+    Collected,
+    CollectFailed,
+    Possession,
+    Debug,
+}
+
+impl Default for InventoryUpdateEvent {
+    fn default() -> Self { Self::Init }
+}
+
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
-pub struct InventoryUpdate;
+pub struct InventoryUpdate {
+    event: InventoryUpdateEvent,
+}
+
+impl InventoryUpdate {
+    pub fn new(event: InventoryUpdateEvent) -> Self { Self { event } }
+
+    pub fn event(&self) -> InventoryUpdateEvent { self.event }
+}
 
 impl Component for InventoryUpdate {
-    type Storage = NullStorage<Self>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
 #[cfg(test)] mod test;

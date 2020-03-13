@@ -6,7 +6,7 @@ mod widgets;
 #[macro_use]
 pub mod img_ids;
 #[macro_use]
-mod font_ids;
+pub mod fonts;
 
 pub use event::Event;
 pub use graphic::{Graphic, SampleStrat, Transform};
@@ -96,7 +96,7 @@ impl assets::Asset for Font {
 }
 
 pub struct Ui {
-    ui: conrod_core::Ui,
+    pub ui: conrod_core::Ui,
     image_map: Map<(graphic::Id, Rotation)>,
     cache: Cache,
     // Draw commands for the next render
@@ -634,8 +634,8 @@ impl Ui {
                     mesh.push_quad(create_ui_quad(
                         gl_aabr(rect),
                         Aabr {
-                            min: Vec2::new(0.0, 0.0),
-                            max: Vec2::new(0.0, 0.0),
+                            min: Vec2::zero(),
+                            max: Vec2::zero(),
                         },
                         color,
                         UiMode::Geometry,

@@ -9,20 +9,36 @@ use crate::{
         PostProcessLocals, PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
     },
     scene::{
-        camera::{Camera, CameraMode},
+        camera::{self, Camera, CameraMode},
         figure::{load_mesh, FigureModelCache, FigureState},
     },
     window::{Event, PressState},
 };
-use client::Client;
 use common::{
     comp::{humanoid, Body, Equipment},
-    state::DeltaTime,
     terrain::BlockKind,
+    vol::{BaseVol, ReadVol, Vox},
 };
 use log::error;
-use specs::WorldExt;
 use vek::*;
+
+#[derive(PartialEq, Eq, Copy, Clone)]
+struct VoidVox;
+impl Vox for VoidVox {
+    fn empty() -> Self { VoidVox }
+
+    fn is_empty(&self) -> bool { true }
+
+    fn or(self, _other: Self) -> Self { VoidVox }
+}
+struct VoidVol;
+impl BaseVol for VoidVol {
+    type Error = ();
+    type Vox = VoidVox;
+}
+impl ReadVol for VoidVol {
+    fn get<'a>(&'a self, _pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> { Ok(&VoidVox) }
+}
 
 struct Skybox {
     model: Model<SkyboxPipeline>,
@@ -42,8 +58,7 @@ pub struct Scene {
 
     skybox: Skybox,
     postprocess: PostProcess,
-    backdrop_model: Model<FigurePipeline>,
-    backdrop_state: FigureState<FixtureSkeleton>,
+    backdrop: Option<(Model<FigurePipeline>, FigureState<FixtureSkeleton>)>,
 
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
@@ -52,15 +67,28 @@ pub struct Scene {
     char_ori: f32,
 }
 
+pub struct SceneData {
+    pub time: f64,
+    pub delta_time: f32,
+    pub tick: u64,
+    pub body: Option<humanoid::Body>,
+    pub gamma: f32,
+}
+
 impl Scene {
-    pub fn new(renderer: &mut Renderer) -> Self {
+    pub fn new(renderer: &mut Renderer, backdrop: Option<&str>) -> Self {
         let resolution = renderer.get_resolution().map(|e| e as f32);
+
+        let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
+        camera.set_focus_pos(Vec3::unit_z() * 1.5);
+        camera.set_distance(3.0); // 4.2
+        camera.set_orientation(Vec3::new(0.0, 0.0, 0.0));
 
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
             shadows: renderer.create_consts(&[Shadow::default(); 32]).unwrap(),
-            camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
+            camera,
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
@@ -75,13 +103,14 @@ impl Scene {
             figure_model_cache: FigureModelCache::new(),
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
 
-            backdrop_model: renderer
-                .create_model(&load_mesh(
-                    "fixture.selection_bg",
-                    Vec3::new(-55.0, -49.5, -2.0),
-                ))
-                .unwrap(),
-            backdrop_state: FigureState::new(renderer, FixtureSkeleton::new()),
+            backdrop: backdrop.map(|specifier| {
+                (
+                    renderer
+                        .create_model(&load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0)))
+                        .unwrap(),
+                    FigureState::new(renderer, FixtureSkeleton::new()),
+                )
+            }),
 
             turning: false,
             char_ori: 0.0,
@@ -89,6 +118,8 @@ impl Scene {
     }
 
     pub fn globals(&self) -> &Consts<Globals> { &self.globals }
+
+    pub fn camera_mut(&mut self) -> &mut Camera { &mut self.camera }
 
     /// Handle an incoming user input event (e.g.: cursor moved, key pressed,
     /// window closed).
@@ -114,21 +145,17 @@ impl Scene {
         }
     }
 
-    pub fn maintain(
-        &mut self,
-        renderer: &mut Renderer,
-        client: &Client,
-        body: Option<humanoid::Body>,
-    ) {
-        self.camera.set_focus_pos(Vec3::unit_z() * 1.5);
-        self.camera.update(client.state().get_time());
-        self.camera.set_distance(3.0); // 4.2
-        self.camera
-            .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.0, 0.0, 0.0));
+    pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: SceneData) {
+        self.camera.update(scene_data.time);
 
-        let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
-        const VD: f32 = 115.0; //View Distance
-        const TIME: f64 = 43200.0; // hours*3600 seconds
+        self.camera.compute_dependents(&VoidVol);
+        let camera::Dependents {
+            view_mat,
+            proj_mat,
+            cam_pos,
+        } = self.camera.dependents();
+        const VD: f32 = 115.0; // View Distance
+        const TIME: f64 = 43200.0; // 12 hours*3600 seconds
         if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
             view_mat,
             proj_mat,
@@ -136,30 +163,30 @@ impl Scene {
             self.camera.get_focus_pos(),
             VD,
             TIME,
-            client.state().get_time(),
+            scene_data.time,
             renderer.get_resolution(),
             0,
             0,
             BlockKind::Air,
             None,
+            scene_data.gamma,
         )]) {
             error!("Renderer failed to update: {:?}", err);
         }
 
-        self.figure_model_cache.clean(client.get_tick());
+        self.figure_model_cache.clean(scene_data.tick);
 
-        if let Some(body) = body {
+        if let Some(body) = scene_data.body {
             let tgt_skeleton = IdleAnimation::update_skeleton(
                 self.figure_state.skeleton_mut(),
-                client.state().get_time(),
-                client.state().get_time(),
+                scene_data.time,
+                scene_data.time,
                 &mut 0.0,
                 &SkeletonAttr::from(&body),
             );
-            self.figure_state.skeleton_mut().interpolate(
-                &tgt_skeleton,
-                client.state().ecs().read_resource::<DeltaTime>().0,
-            );
+            self.figure_state
+                .skeleton_mut()
+                .interpolate(&tgt_skeleton, scene_data.delta_time);
         }
 
         self.figure_state.update(
@@ -180,7 +207,7 @@ impl Scene {
     pub fn render(
         &mut self,
         renderer: &mut Renderer,
-        client: &Client,
+        tick: u64,
         body: Option<humanoid::Body>,
         equipment: &Equipment,
     ) {
@@ -193,7 +220,7 @@ impl Scene {
                     renderer,
                     Body::Humanoid(body),
                     Some(equipment),
-                    client.get_tick(),
+                    tick,
                     CameraMode::default(),
                     None,
                 )
@@ -209,14 +236,16 @@ impl Scene {
             );
         }
 
-        renderer.render_figure(
-            &self.backdrop_model,
-            &self.globals,
-            self.backdrop_state.locals(),
-            self.backdrop_state.bone_consts(),
-            &self.lights,
-            &self.shadows,
-        );
+        if let Some((model, state)) = &self.backdrop {
+            renderer.render_figure(
+                model,
+                &self.globals,
+                state.locals(),
+                state.bone_consts(),
+                &self.lights,
+                &self.shadows,
+            );
+        }
 
         renderer.render_post_process(
             &self.postprocess.model,

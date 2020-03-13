@@ -1,4 +1,5 @@
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
+use super::{img_ids::Imgs, Show, TEXT_COLOR};
+use crate::ui::fonts::ConrodVoxygenFonts;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -25,7 +26,7 @@ pub struct Spell<'a> {
     _client: &'a Client,
 
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 
     #[conrod(common_builder)]
@@ -37,7 +38,7 @@ impl<'a> Spell<'a> {
         show: &'a Show,
         _client: &'a Client,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
@@ -101,8 +102,8 @@ impl<'a> Widget for Spell<'a> {
         // TODO: Use an actual character name.
         Text::new(&self.localized_strings.get("hud.spell"))
             .mid_top_with_margin_on(state.spell_frame, 6.0)
-            .font_id(self.fonts.cyri)
-            .font_size(14)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
             .color(TEXT_COLOR)
             .set(state.spell_title, ui);
 

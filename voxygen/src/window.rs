@@ -1,15 +1,17 @@
 use crate::{
+    controller::*,
     render::{Renderer, WinColorFmt, WinDepthFmt},
     settings::Settings,
     ui, Error,
 };
+use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use vek::*;
 
-/// Represents a key that the game recognises after keyboard mapping.
+/// Represents a key that the game recognises after input mapping.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum GameInput {
     Primary,
@@ -49,6 +51,40 @@ pub enum GameInput {
     Charge,
 }
 
+/// Represents a key that the game menus recognise after input mapping
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub enum MenuInput {
+    Up,
+    Down,
+    Left,
+    Right,
+    ScrollUp,
+    ScrollDown,
+    ScrollLeft,
+    ScrollRight,
+    Home,
+    End,
+    Apply,
+    Back,
+    Exit,
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+pub enum AnalogMenuInput {
+    MoveX(f32),
+    MoveY(f32),
+    ScrollX(f32),
+    ScrollY(f32),
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+pub enum AnalogGameInput {
+    MovementX(f32),
+    MovementY(f32),
+    CameraX(f32),
+    CameraY(f32),
+}
+
 /// Represents an incoming event from the window.
 #[derive(Clone)]
 pub enum Event {
@@ -76,6 +112,13 @@ pub enum Event {
     SettingsChanged,
     /// The window is (un)focused
     Focused(bool),
+    /// A key that the game recognises for menu navigation has been pressed or
+    /// released
+    MenuInput(MenuInput, bool),
+    /// Update of the analog inputs recognized by the menus
+    AnalogMenuInput(AnalogMenuInput),
+    /// Update of the analog inputs recognized by the game
+    AnalogGameInput(AnalogGameInput),
 }
 
 pub type MouseButton = winit::MouseButton;
@@ -277,6 +320,10 @@ pub struct Window {
     keypress_map: HashMap<GameInput, glutin::ElementState>,
     supplement_events: Vec<Event>,
     focused: bool,
+    gilrs: Option<Gilrs>,
+    controller_settings: ControllerSettings,
+    cursor_position: winit::dpi::LogicalPosition,
+    mouse_emulation_vec: Vec2<f32>,
 }
 
 impl Window {
@@ -414,6 +461,30 @@ impl Window {
 
         let keypress_map = HashMap::new();
 
+        let gilrs = match Gilrs::new() {
+            Ok(gilrs) => Some(gilrs),
+            Err(gilrs::Error::NotImplemented(_dummy)) => {
+                warn!("Controller input is unsupported on this platform.");
+                None
+            },
+            Err(gilrs::Error::InvalidAxisToBtn) => {
+                error!(
+                    "Invalid AxisToBtn controller mapping. Falling back to no controller support."
+                );
+                None
+            },
+            Err(gilrs::Error::Other(err)) => {
+                error!(
+                    "Platform-specific error when creating a Gilrs instance: `{}`. Falling back \
+                     to no controller support.",
+                    err
+                );
+                None
+            },
+        };
+
+        let controller_settings = ControllerSettings::from(&settings.controller);
+
         let mut this = Self {
             events_loop,
             renderer: Renderer::new(
@@ -437,6 +508,10 @@ impl Window {
             keypress_map,
             supplement_events: vec![],
             focused: true,
+            gilrs,
+            controller_settings,
+            cursor_position: winit::dpi::LogicalPosition::new(0.0, 0.0),
+            mouse_emulation_vec: Vec2::zero(),
         };
 
         this.fullscreen(settings.graphics.fullscreen);
@@ -477,6 +552,7 @@ impl Window {
         };
         let mut toggle_fullscreen = false;
         let mut take_screenshot = false;
+        let mut cursor_position = None;
 
         self.events_loop.poll_events(|event| {
             // Get events for ui.
@@ -556,6 +632,9 @@ impl Window {
                         *focused = state;
                         events.push(Event::Focused(state));
                     },
+                    glutin::WindowEvent::CursorMoved { position, .. } => {
+                        cursor_position = Some(position);
+                    },
                     _ => {},
                 },
                 glutin::Event::DeviceEvent { event, .. } => match event {
@@ -593,15 +672,227 @@ impl Window {
             }
         });
 
+        if let Some(pos) = cursor_position {
+            self.cursor_position = pos;
+        }
+
         if take_screenshot {
-            self.take_screenshot();
+            self.take_screenshot(&settings);
         }
 
         if toggle_fullscreen {
             self.toggle_fullscreen(settings);
         }
 
+        if let Some(gilrs) = &mut self.gilrs {
+            while let Some(event) = gilrs.next_event() {
+                fn handle_buttons(
+                    settings: &ControllerSettings,
+                    events: &mut Vec<Event>,
+                    button: &Button,
+                    is_pressed: bool,
+                ) {
+                    if let Some(evs) = settings.game_button_map.get(button) {
+                        for ev in evs {
+                            events.push(Event::InputUpdate(*ev, is_pressed));
+                        }
+                    }
+                    if let Some(evs) = settings.menu_button_map.get(button) {
+                        for ev in evs {
+                            events.push(Event::MenuInput(*ev, is_pressed));
+                        }
+                    }
+                }
+
+                match event.event {
+                    EventType::ButtonPressed(button, code)
+                    | EventType::ButtonRepeated(button, code) => {
+                        handle_buttons(
+                            &self.controller_settings,
+                            &mut events,
+                            &Button::from((button, code)),
+                            true,
+                        );
+                    },
+                    EventType::ButtonReleased(button, code) => {
+                        handle_buttons(
+                            &self.controller_settings,
+                            &mut events,
+                            &Button::from((button, code)),
+                            false,
+                        );
+                    },
+                    EventType::ButtonChanged(button, _value, code) => {
+                        if let Some(actions) = self
+                            .controller_settings
+                            .game_analog_button_map
+                            .get(&AnalogButton::from((button, code)))
+                        {
+                            for action in actions {
+                                match *action {}
+                            }
+                        }
+                        if let Some(actions) = self
+                            .controller_settings
+                            .menu_analog_button_map
+                            .get(&AnalogButton::from((button, code)))
+                        {
+                            for action in actions {
+                                match *action {}
+                            }
+                        }
+                    },
+
+                    EventType::AxisChanged(axis, value, code) => {
+                        let value = match self
+                            .controller_settings
+                            .inverted_axes
+                            .contains(&Axis::from((axis, code)))
+                        {
+                            true => value * -1.0,
+                            false => value,
+                        };
+
+                        let value = self
+                            .controller_settings
+                            .apply_axis_deadzone(&Axis::from((axis, code)), value);
+
+                        if self.cursor_grabbed {
+                            if let Some(actions) = self
+                                .controller_settings
+                                .game_axis_map
+                                .get(&Axis::from((axis, code)))
+                            {
+                                for action in actions {
+                                    match *action {
+                                        AxisGameAction::MovementX => {
+                                            events.push(Event::AnalogGameInput(
+                                                AnalogGameInput::MovementX(value),
+                                            ));
+                                        },
+                                        AxisGameAction::MovementY => {
+                                            events.push(Event::AnalogGameInput(
+                                                AnalogGameInput::MovementY(value),
+                                            ));
+                                        },
+                                        AxisGameAction::CameraX => {
+                                            events.push(Event::AnalogGameInput(
+                                                AnalogGameInput::CameraX(
+                                                    value
+                                                        * self.controller_settings.pan_sensitivity
+                                                            as f32
+                                                        / 100.0,
+                                                ),
+                                            ));
+                                        },
+                                        AxisGameAction::CameraY => {
+                                            events.push(Event::AnalogGameInput(
+                                                AnalogGameInput::CameraY(
+                                                    value
+                                                        * self.controller_settings.pan_sensitivity
+                                                            as f32
+                                                        / 100.0,
+                                                ),
+                                            ));
+                                        },
+                                    }
+                                }
+                            }
+                        } else if let Some(actions) = self
+                            .controller_settings
+                            .menu_axis_map
+                            .get(&Axis::from((axis, code)))
+                        {
+                            // TODO: possibly add sensitivity settings when this is used
+                            for action in actions {
+                                match *action {
+                                    AxisMenuAction::MoveX => {
+                                        events.push(Event::AnalogMenuInput(
+                                            AnalogMenuInput::MoveX(value),
+                                        ));
+                                    },
+                                    AxisMenuAction::MoveY => {
+                                        events.push(Event::AnalogMenuInput(
+                                            AnalogMenuInput::MoveY(value),
+                                        ));
+                                    },
+                                    AxisMenuAction::ScrollX => {
+                                        events.push(Event::AnalogMenuInput(
+                                            AnalogMenuInput::ScrollX(value),
+                                        ));
+                                    },
+                                    AxisMenuAction::ScrollY => {
+                                        events.push(Event::AnalogMenuInput(
+                                            AnalogMenuInput::ScrollY(value),
+                                        ));
+                                    },
+                                }
+                            }
+                        }
+                    },
+                    EventType::Connected => {},
+                    EventType::Disconnected => {},
+                    EventType::Dropped => {},
+                }
+            }
+        }
+
+        // Mouse emulation for the menus, to be removed when a proper menu navigation
+        // system is available
+        if !self.cursor_grabbed {
+            events = events
+                .into_iter()
+                .filter_map(|event| match event {
+                    Event::AnalogMenuInput(input) => match input {
+                        AnalogMenuInput::MoveX(d) => {
+                            self.mouse_emulation_vec.x = d;
+                            None
+                        },
+                        AnalogMenuInput::MoveY(d) => {
+                            // This just has to be inverted for some reason
+                            self.mouse_emulation_vec.y = d * -1.0;
+                            None
+                        },
+                        _ => {
+                            let event = Event::AnalogMenuInput(input);
+                            Some(event)
+                        },
+                    },
+                    Event::MenuInput(input, state) => match input {
+                        MenuInput::Apply => Some(match state {
+                            true => Event::Ui(ui::Event(conrod_core::event::Input::Press(
+                                conrod_core::input::Button::Mouse(
+                                    conrod_core::input::state::mouse::Button::Left,
+                                ),
+                            ))),
+                            false => Event::Ui(ui::Event(conrod_core::event::Input::Release(
+                                conrod_core::input::Button::Mouse(
+                                    conrod_core::input::state::mouse::Button::Left,
+                                ),
+                            ))),
+                        }),
+                        _ => Some(event),
+                    },
+                    _ => Some(event),
+                })
+                .collect();
+            let sensitivity = self.controller_settings.mouse_emulation_sensitivity;
+            if self.mouse_emulation_vec != Vec2::zero() {
+                self.offset_cursor(self.mouse_emulation_vec * sensitivity as f32)
+                    .unwrap_or(());
+            }
+        }
         events
+    }
+
+    /// Moves cursor by an offset
+    pub fn offset_cursor(&self, d: Vec2<f32>) -> Result<(), String> {
+        self.window
+            .window()
+            .set_cursor_position(winit::dpi::LogicalPosition::new(
+                d.x as f64 + self.cursor_position.x,
+                d.y as f64 + self.cursor_position.y,
+            ))
     }
 
     pub fn swap_buffers(&self) -> Result<(), Error> {
@@ -659,15 +950,16 @@ impl Window {
 
     pub fn send_supplement_event(&mut self, event: Event) { self.supplement_events.push(event) }
 
-    pub fn take_screenshot(&mut self) {
+    pub fn take_screenshot(&mut self, settings: &Settings) {
         match self.renderer.create_screenshot() {
             Ok(img) => {
+                let mut path = settings.screenshots_path.clone();
+
                 std::thread::spawn(move || {
-                    use std::{path::PathBuf, time::SystemTime};
+                    use std::time::SystemTime;
                     // Check if folder exists and create it if it does not
-                    let mut path = PathBuf::from("./screenshots");
                     if !path.exists() {
-                        if let Err(err) = std::fs::create_dir(&path) {
+                        if let Err(err) = std::fs::create_dir_all(&path) {
                             warn!("Couldn't create folder for screenshot: {:?}", err);
                         }
                     }

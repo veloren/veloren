@@ -131,10 +131,10 @@ pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 11] = [
     //(228, 208, 147), // Gold Blonde
     //(228, 223, 141), // Platinum Blonde
     (199, 131, 58), // Summer Blonde
-    (107, 76, 51),  // Oak Brown
-    //(203, 154, 98),  // Light Brown
-    (64, 32, 18),  // Chocolate Brown
-    (86, 72, 71),  // Ash Brown
+    (107, 76, 51),  // Oak Skin4
+    //(203, 154, 98),  // Light Skin4
+    (64, 32, 18),  // Skin7 Skin4
+    (86, 72, 71),  // Ash Skin4
     (57, 56, 61),  // Raven Black
     (101, 83, 95), // Matte Purple
     (101, 57, 90), // Witch Purple
@@ -148,10 +148,10 @@ pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 20] = [
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
     (199, 131, 58),  // Summer Blonde
-    (107, 76, 51),   // Oak Brown
-    (203, 154, 98),  // Light Brown
-    (64, 32, 18),    // Chocolate Brown
-    (86, 72, 71),    // Ash Brown
+    (107, 76, 51),   // Oak Skin4
+    (203, 154, 98),  // Light Skin4
+    (64, 32, 18),    // Skin7 Skin4
+    (86, 72, 71),    // Ash Skin4
     (57, 56, 61),    // Raven Black
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
@@ -172,10 +172,10 @@ pub const ELF_HAIR_COLORS: [(u8, u8, u8); 23] = [
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
     (199, 131, 58),  // Summer Blonde
-    (107, 76, 51),   // Oak Brown
-    (203, 154, 98),  // Light Brown
-    (64, 32, 18),    // Chocolate Brown
-    (86, 72, 71),    // Ash Brown
+    (107, 76, 51),   // Oak Skin4
+    (203, 154, 98),  // Light Skin4
+    (64, 32, 18),    // Skin7 Skin4
+    (86, 72, 71),    // Ash Skin4
     (57, 56, 61),    // Raven Black
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
@@ -195,10 +195,10 @@ pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
     (199, 131, 58),  // Summer Blonde
-    (107, 76, 51),   // Oak Brown
-    (203, 154, 98),  // Light Brown
-    (64, 32, 18),    // Chocolate Brown
-    (86, 72, 71),    // Ash Brown
+    (107, 76, 51),   // Oak Skin4
+    (203, 154, 98),  // Light Skin4
+    (64, 32, 18),    // Skin7 Skin4
+    (86, 72, 71),    // Ash Skin4
     (57, 56, 61),    // Raven Black
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
@@ -215,11 +215,11 @@ pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 21] = [
 ];
 pub const ORC_HAIR_COLORS: [(u8, u8, u8); 10] = [
     (66, 66, 59), // Wise Grey
-    //(107, 76, 51),  // Oak Brown
-    //(203, 154, 98), // Light Brown
-    (64, 32, 18),  // Chocolate Brown
-    (54, 30, 26),  // Dark Chocolate
-    (86, 72, 71),  // Ash Brown
+    //(107, 76, 51),  // Oak Skin4
+    //(203, 154, 98), // Light Skin4
+    (64, 32, 18),  // Skin7 Skin4
+    (54, 30, 26),  // Dark Skin7
+    (86, 72, 71),  // Ash Skin4
     (57, 56, 61),  // Raven Black
     (101, 83, 95), // Matte Purple
     (101, 57, 90), // Witch Purple
@@ -232,10 +232,10 @@ pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (228, 208, 147), // Gold Blonde
     //(228, 223, 141), // Platinum Blonde
     (199, 131, 58),  // Summer Blonde
-    (107, 76, 51),   // Oak Brown
-    (203, 154, 98),  // Light Brown
-    (64, 32, 18),    // Chocolate Brown
-    (86, 72, 71),    // Ash Brown
+    (107, 76, 51),   // Oak Skin4
+    (203, 154, 98),  // Light Skin4
+    (64, 32, 18),    // Skin7 Skin4
+    (86, 72, 71),    // Ash Skin4
     (57, 56, 61),    // Raven Black
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
@@ -261,30 +261,59 @@ pub const DANARI_SKIN_COLORS: [Skin; 4] = [
     Skin::DanariThree,
     Skin::DanariFour,
 ];
-pub const DWARF_SKIN_COLORS: [Skin; 5] = [
-    Skin::Pale,
-    Skin::White,
-    Skin::Tanned,
+pub const DWARF_SKIN_COLORS: [Skin; 14] = [
+    Skin::Skin1,
+    Skin::Skin2,
+    Skin::Skin3,
+    Skin::Skin4,
+    Skin::Skin5,
+    Skin::Skin6,
+    Skin::Skin7,
+    Skin::Skin8,
+    Skin::Skin9,
+    Skin::Skin10,
+    Skin::Skin11,
+    Skin::Skin12,
     Skin::Iron,
     Skin::Steel,
 ];
-pub const ELF_SKIN_COLORS: [Skin; 7] = [
-    Skin::Pale,
+pub const ELF_SKIN_COLORS: [Skin; 14] = [
+    Skin::Skin1,
+    Skin::Skin2,
+    Skin::Skin3,
+    Skin::Skin5,
+    Skin::Skin6,
+    Skin::Skin7,
+    Skin::Skin8,
+    Skin::Skin9,
+    Skin::Skin10,
+    Skin::Skin11,
+    Skin::Skin12,
     Skin::ElfOne,
     Skin::ElfTwo,
     Skin::ElfThree,
-    Skin::White,
-    Skin::Tanned,
-    Skin::TannedBrown,
 ];
-pub const HUMAN_SKIN_COLORS: [Skin; 5] = [
-    Skin::Pale,
-    Skin::White,
-    Skin::Tanned,
-    Skin::TannedBrown,
-    Skin::TannedDarkBrown,
+pub const HUMAN_SKIN_COLORS: [Skin; 18] = [
+    Skin::Skin1,
+    Skin::Skin2,
+    Skin::Skin3,
+    Skin::Skin4,
+    Skin::Skin5,
+    Skin::Skin6,
+    Skin::Skin7,
+    Skin::Skin8,
+    Skin::Skin9,
+    Skin::Skin10,
+    Skin::Skin11,
+    Skin::Skin12,
+    Skin::Skin13,
+    Skin::Skin14,
+    Skin::Skin15,
+    Skin::Skin16,
+    Skin::Skin17,
+    Skin::Skin18,
 ];
-pub const ORC_SKIN_COLORS: [Skin; 4] = [Skin::OrcOne, Skin::OrcTwo, Skin::OrcThree, Skin::Brown];
+pub const ORC_SKIN_COLORS: [Skin; 4] = [Skin::OrcOne, Skin::OrcTwo, Skin::OrcThree, Skin::OrcFour];
 pub const UNDEAD_SKIN_COLORS: [Skin; 3] = [Skin::UndeadOne, Skin::UndeadTwo, Skin::UndeadThree];
 
 // Eye colors
@@ -293,22 +322,31 @@ pub const DANARI_EYE_COLORS: [EyeColor; 3] = [
     EyeColor::LoyalBrown,
     EyeColor::ViciousRed,
 ];
-pub const DWARF_EYE_COLORS: [EyeColor; 3] = [
+pub const DWARF_EYE_COLORS: [EyeColor; 4] = [
     EyeColor::CuriousGreen,
     EyeColor::LoyalBrown,
     EyeColor::NobleBlue,
+    EyeColor::CornflowerBlue,
 ];
-pub const ELF_EYE_COLORS: [EyeColor; 3] = [
+pub const ELF_EYE_COLORS: [EyeColor; 4] = [
     EyeColor::NobleBlue,
+    EyeColor::CornflowerBlue,
     EyeColor::CuriousGreen,
     EyeColor::LoyalBrown,
 ];
-pub const HUMAN_EYE_COLORS: [EyeColor; 3] = [
+pub const HUMAN_EYE_COLORS: [EyeColor; 4] = [
     EyeColor::NobleBlue,
+    EyeColor::CornflowerBlue,
     EyeColor::CuriousGreen,
     EyeColor::LoyalBrown,
 ];
-pub const ORC_EYE_COLORS: [EyeColor; 2] = [EyeColor::LoyalBrown, EyeColor::ExoticPurple];
+pub const ORC_EYE_COLORS: [EyeColor; 5] = [
+    EyeColor::LoyalBrown,
+    EyeColor::ExoticPurple,
+    EyeColor::AmberOrange,
+    EyeColor::PineGreen,
+    EyeColor::CornflowerBlue,
+];
 pub const UNDEAD_EYE_COLORS: [EyeColor; 5] = [
     EyeColor::ViciousRed,
     EyeColor::PumpkinOrange,
@@ -365,7 +403,7 @@ impl Race {
         self.skin_colors()
             .get(val as usize)
             .copied()
-            .unwrap_or(Skin::Tanned)
+            .unwrap_or(Skin::Skin3)
     }
 
     pub fn num_skin_colors(self) -> u8 { self.skin_colors().len() as u8 }
@@ -389,7 +427,7 @@ impl Race {
             (Race::Elf, BodyType::Male) => 4,
             (Race::Human, BodyType::Female) => 19,
             (Race::Human, BodyType::Male) => 17,
-            (Race::Orc, BodyType::Female) => 1,
+            (Race::Orc, BodyType::Female) => 7,
             (Race::Orc, BodyType::Male) => 8,
             (Race::Undead, BodyType::Female) => 4,
             (Race::Undead, BodyType::Male) => 3,
@@ -406,7 +444,7 @@ impl Race {
             (Race::Elf, BodyType::Male) => 1,
             (Race::Human, BodyType::Female) => 1,
             (Race::Human, BodyType::Male) => 1,
-            (Race::Orc, BodyType::Female) => 3,
+            (Race::Orc, BodyType::Female) => 4,
             (Race::Orc, BodyType::Male) => 5,
             (Race::Undead, BodyType::Female) => 1,
             (Race::Undead, BodyType::Male) => 1,
@@ -534,6 +572,10 @@ pub enum EyeColor {
     MagicPurple = 7,
     ToxicGreen = 8,
     ExoticPurple = 9,
+    SulfurYellow = 10,
+    AmberOrange = 11,
+    PineGreen = 12,
+    CornflowerBlue = 13,
 }
 impl EyeColor {
     pub fn light_rgb(self) -> Rgb<u8> {
@@ -548,6 +590,10 @@ impl EyeColor {
             EyeColor::MagicPurple => Rgb::new(137, 4, 177),
             EyeColor::ToxicGreen => Rgb::new(1, 223, 1),
             EyeColor::ExoticPurple => Rgb::new(95, 32, 111),
+            EyeColor::SulfurYellow => Rgb::new(235, 198, 94),
+            EyeColor::AmberOrange => Rgb::new(137, 46, 1),
+            EyeColor::PineGreen => Rgb::new(0, 78, 56),
+            EyeColor::CornflowerBlue => Rgb::new(18, 66, 90),
         }
     }
 
@@ -563,6 +609,10 @@ impl EyeColor {
             EyeColor::MagicPurple => Rgb::new(110, 3, 143),
             EyeColor::ToxicGreen => Rgb::new(1, 185, 1),
             EyeColor::ExoticPurple => Rgb::new(69, 23, 80),
+            EyeColor::SulfurYellow => Rgb::new(209, 176, 84),
+            EyeColor::AmberOrange => Rgb::new(112, 40, 1),
+            EyeColor::PineGreen => Rgb::new(0, 54, 38),
+            EyeColor::CornflowerBlue => Rgb::new(13, 47, 64),
         }
     }
 
@@ -580,12 +630,12 @@ pub const ALL_ACCESSORIES: [Accessory; 2] = [Accessory::Nothing, Accessory::Some
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Skin {
-    Pale = 0,
-    White = 1,
-    Tanned = 2,
-    Brown = 3,
-    TannedBrown = 4,
-    TannedDarkBrown = 5,
+    Skin1 = 0,
+    Skin2 = 1,
+    Skin3 = 2,
+    Skin4 = 3,
+    Skin5 = 4,
+    Skin6 = 5,
     Iron = 6,
     Steel = 7,
     DanariOne = 8,
@@ -601,16 +651,41 @@ pub enum Skin {
     UndeadOne = 18,
     UndeadTwo = 19,
     UndeadThree = 20,
+    Skin7 = 21,
+    Skin8 = 22,
+    Skin9 = 23,
+    Skin10 = 24,
+    Skin11 = 25,
+    Skin12 = 26,
+    Skin13 = 27,
+    Skin14 = 28,
+    Skin15 = 29,
+    Skin16 = 30,
+    Skin17 = 31,
+    Skin18 = 32,
+    OrcFour = 33,
 }
 impl Skin {
     pub fn rgb(self) -> Rgb<u8> {
         let color = match self {
-            Self::Pale => (252, 211, 179),
-            Self::White => (253, 195, 164),
-            Self::Tanned => (222, 181, 151),
-            Self::Brown => (123, 80, 45),
-            Self::TannedBrown => (135, 70, 50),
-            Self::TannedDarkBrown => (116, 61, 43),
+            Self::Skin1 => (255, 229, 200),
+            Self::Skin2 => (255, 218, 190),
+            Self::Skin3 => (255, 206, 180),
+            Self::Skin4 => (255, 195, 170),
+            Self::Skin5 => (240, 184, 160),
+            Self::Skin6 => (225, 172, 150),
+            Self::Skin7 => (210, 161, 140),
+            Self::Skin8 => (195, 149, 130),
+            Self::Skin9 => (180, 138, 120),
+            Self::Skin10 => (165, 126, 110),
+            Self::Skin11 => (150, 114, 100),
+            Self::Skin12 => (135, 103, 90),
+            Self::Skin13 => (120, 92, 80),
+            Self::Skin14 => (105, 80, 70),
+            Self::Skin15 => (90, 69, 60),
+            Self::Skin16 => (75, 57, 50),
+            Self::Skin17 => (60, 46, 40),
+            Self::Skin18 => (45, 34, 30),
             Self::Iron => (135, 113, 95),
             Self::Steel => (108, 94, 86),
             Self::DanariOne => (104, 168, 196),
@@ -623,6 +698,7 @@ impl Skin {
             Self::OrcOne => (61, 130, 42),
             Self::OrcTwo => (82, 117, 36),
             Self::OrcThree => (71, 94, 42),
+            Self::OrcFour => (97, 54, 29),
             Self::UndeadOne => (240, 243, 239),
             Self::UndeadTwo => (178, 178, 178),
             Self::UndeadThree => (145, 135, 121),
@@ -632,12 +708,24 @@ impl Skin {
 
     pub fn light_rgb(self) -> Rgb<u8> {
         let color = match self {
-            Self::Pale => (255, 227, 193),
-            Self::White => (255, 210, 180),
-            Self::Tanned => (239, 197, 164),
-            Self::Brown => (150, 104, 68),
-            Self::TannedBrown => (148, 85, 64),
-            Self::TannedDarkBrown => (132, 74, 56),
+            Self::Skin1 => (255, 229, 200),
+            Self::Skin2 => (255, 218, 190),
+            Self::Skin3 => (255, 206, 180),
+            Self::Skin4 => (255, 195, 170),
+            Self::Skin5 => (240, 184, 160),
+            Self::Skin6 => (225, 172, 150),
+            Self::Skin7 => (210, 161, 140),
+            Self::Skin8 => (195, 149, 130),
+            Self::Skin9 => (180, 138, 120),
+            Self::Skin10 => (165, 126, 110),
+            Self::Skin11 => (150, 114, 100),
+            Self::Skin12 => (135, 103, 90),
+            Self::Skin13 => (120, 92, 80),
+            Self::Skin14 => (105, 80, 70),
+            Self::Skin15 => (90, 69, 60),
+            Self::Skin16 => (75, 57, 50),
+            Self::Skin17 => (60, 46, 40),
+            Self::Skin18 => (45, 34, 30),
             Self::Iron => (144, 125, 106),
             Self::Steel => (120, 107, 99),
             Self::DanariOne => (116, 176, 208),
@@ -650,6 +738,7 @@ impl Skin {
             Self::OrcOne => (83, 165, 56),
             Self::OrcTwo => (92, 132, 46),
             Self::OrcThree => (84, 110, 54),
+            Self::OrcFour => (97, 54, 29),
             Self::UndeadOne => (254, 252, 251),
             Self::UndeadTwo => (190, 192, 191),
             Self::UndeadThree => (160, 151, 134),
@@ -659,12 +748,24 @@ impl Skin {
 
     pub fn dark_rgb(self) -> Rgb<u8> {
         let color = match self {
-            Self::Pale => (229, 192, 163),
-            Self::White => (239, 179, 150),
-            Self::Tanned => (208, 167, 135),
-            Self::Brown => (106, 63, 30),
-            Self::TannedBrown => (122, 58, 40),
-            Self::TannedDarkBrown => (100, 47, 32),
+            Self::Skin1 => (242, 217, 189),
+            Self::Skin2 => (242, 207, 189),
+            Self::Skin3 => (242, 197, 172),
+            Self::Skin4 => (242, 186, 162),
+            Self::Skin5 => (212, 173, 150),
+            Self::Skin6 => (212, 163, 142),
+            Self::Skin7 => (196, 151, 132),
+            Self::Skin8 => (181, 139, 121),
+            Self::Skin9 => (168, 129, 113),
+            Self::Skin10 => (153, 117, 103),
+            Self::Skin11 => (138, 105, 92),
+            Self::Skin12 => (122, 93, 82),
+            Self::Skin13 => (107, 82, 72),
+            Self::Skin14 => (92, 70, 62),
+            Self::Skin15 => (77, 59, 51),
+            Self::Skin16 => (61, 47, 41),
+            Self::Skin17 => (48, 37, 32),
+            Self::Skin18 => (33, 25, 22),
             Self::Iron => (124, 99, 82),
             Self::Steel => (96, 81, 72),
             Self::DanariOne => (92, 155, 183),
@@ -677,6 +778,7 @@ impl Skin {
             Self::OrcOne => (55, 114, 36),
             Self::OrcTwo => (70, 104, 29),
             Self::OrcThree => (60, 83, 32),
+            Self::OrcFour => (84, 47, 25),
             Self::UndeadOne => (229, 231, 230),
             Self::UndeadTwo => (165, 166, 164),
             Self::UndeadThree => (130, 122, 106),

@@ -1,8 +1,8 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Fonts, Show, TEXT_COLOR,
+    Show, TEXT_COLOR,
 };
-use crate::ui::img_ids;
+use crate::ui::{fonts::ConrodVoxygenFonts, img_ids};
 use client::{self, Client};
 use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
@@ -12,6 +12,7 @@ use conrod_core::{
 };
 use specs::WorldExt;
 use vek::*;
+
 widget_ids! {
     struct Ids {
         map_frame,
@@ -36,7 +37,7 @@ pub struct Map<'a> {
     world_map: &'a (img_ids::Rotations, Vec2<u32>),
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
-    fonts: &'a Fonts,
+    fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     _pulse: f32,
@@ -49,7 +50,7 @@ impl<'a> Map<'a> {
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
-        fonts: &'a Fonts,
+        fonts: &'a ConrodVoxygenFonts,
         pulse: f32,
         velocity: f32,
     ) -> Self {
@@ -149,15 +150,15 @@ impl<'a> Widget for Map<'a> {
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
                 .mid_top_with_margin_on(state.ids.map_bg, 55.0)
-                .font_size(60)
+                .font_size(self.fonts.alkhemi.scale(60))
                 .color(TEXT_COLOR)
-                .font_id(self.fonts.alkhemi)
+                .font_id(self.fonts.alkhemi.conrod_id)
                 .parent(state.ids.map_frame_r)
                 .set(state.ids.location_name, ui),
             None => Text::new(" ")
                 .mid_top_with_margin_on(state.ids.map_bg, 3.0)
-                .font_size(40)
-                .font_id(self.fonts.alkhemi)
+                .font_size(self.fonts.alkhemi.scale(40))
+                .font_id(self.fonts.alkhemi.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.location_name, ui),
         }

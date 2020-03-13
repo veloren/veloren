@@ -1,6 +1,5 @@
-use crate::audio::{channel::ChannelTag, AudioFrontend};
-use client::Client;
-use common::assets;
+use crate::audio::AudioFrontend;
+use common::{assets, state::State};
 use rand::{seq::IteratorRandom, thread_rng};
 use serde::Deserialize;
 use std::time::Instant;
@@ -31,7 +30,6 @@ pub struct MusicMgr {
     soundtrack: SoundtrackCollection,
     began_playing: Instant,
     next_track_change: f64,
-    current_music: Option<usize>,
     last_track: String,
 }
 
@@ -41,24 +39,23 @@ impl MusicMgr {
             soundtrack: Self::load_soundtrack_items(),
             began_playing: Instant::now(),
             next_track_change: 0.0,
-            current_music: None,
             last_track: String::from("None"),
         }
     }
 
-    pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
+    pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State) {
         if audio.music_enabled()
             && self.began_playing.elapsed().as_secs_f64() > self.next_track_change
         {
-            self.current_music = self.play_random_track(audio, client);
+            self.play_random_track(audio, state);
         }
     }
 
-    fn play_random_track(&mut self, audio: &mut AudioFrontend, client: &Client) -> Option<usize> {
+    fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State) {
         const SILENCE_BETWEEN_TRACKS_SECONDS: f64 = 45.0;
 
-        let game_time = (client.state().get_time_of_day() as u64 % 86400) as u32;
-        let current_period_of_day = self.get_current_day_period(game_time);
+        let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
+        let current_period_of_day = Self::get_current_day_period(game_time);
         let mut rng = thread_rng();
 
         let track = self
@@ -79,10 +76,10 @@ impl MusicMgr {
         self.began_playing = Instant::now();
         self.next_track_change = track.length + SILENCE_BETWEEN_TRACKS_SECONDS;
 
-        audio.play_music(&track.path, Some(ChannelTag::Soundtrack))
+        audio.play_exploration_music(&track.path);
     }
 
-    fn get_current_day_period(&self, game_time: u32) -> DayPeriod {
+    fn get_current_day_period(game_time: u32) -> DayPeriod {
         if game_time > DAY_START_SECONDS && game_time < DAY_END_SECONDS {
             DayPeriod::Day
         } else {

@@ -8,7 +8,8 @@ variables:
 stages:
     - optional-builds
     - check-compile
-    - post
+    - build-post
+    - publish
 
 before_script:
     - source $HOME/.cargo/env
@@ -70,7 +71,7 @@ check:
     tags:
         - veloren-docker
     script:
-        - RUSTFLAGS="-D warnings" cargo check
+        - RUSTFLAGS="-D warnings" cargo check --locked
 
 code-quality:
     stage: check-compile
@@ -90,29 +91,30 @@ security:
 
 # --
 
-# -- post build
+# -- build-post
 
 unittests:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     tags:
         - veloren-docker
     script:
         - echo "Workaround, cargo tests fails due some rust files are already deleted, so we just stack cargo test. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
-        - cargo test || cargo test || cargo test || cargo test
+        - cargo test || ( sleep 10 && cargo test ) || ( sleep 10 && cargo test ) || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test
 
 coverage:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     tags:
         - veloren-docker
     script:
-        - cargo tarpaulin -v
+        - echo "Workaround, tarpaulin fails due some rust files are already deleted, so we just stack tarpaulin. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
+        - cargo tarpaulin -v || ( sleep 10 && cargo tarpaulin -v ) || ( sleep 10 && cargo tarpaulin -v ) || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v
 
 benchmarks:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     tags:
@@ -121,14 +123,26 @@ benchmarks:
         - unset DISABLE_GIT_LFS_CHECK
         - cargo bench
 
+localization-status:
+    variables:
+        GIT_DEPTH: 0
+    stage: build-post
+    when: delayed
+    start_in: 5 seconds
+    allow_failure: true
+    tags:
+        - veloren-docker
+    script:
+        - cargo test -q test_all_localizations -- --nocapture --ignored
+
 linux:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     only:
         refs:
             - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+\.[0-9]+/
+            - /^v[0-9]+\.[0-9]+/
             - /^master$/
     tags:
         - veloren-docker
@@ -147,13 +161,13 @@ linux:
         expire_in: 1 week
 
 windows:
-    stage: post
+    stage: build-post
     when: delayed
     start_in: 5 seconds
     only:
         refs:
             - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+\.[0-9]+/
+            - /^v[0-9]+\.[0-9]+/
             - /^master$/
     tags:
         - veloren-docker
@@ -168,5 +182,53 @@ windows:
             - assets/
             - LICENSE
         expire_in: 1 week
+
+macos:
+    stage: build-post
+    when: delayed
+    start_in: 5 seconds
+    only:
+        refs:
+            - /^r[0-9]+\.[0-9]+\.[0-9]+/
+            - /^v[0-9]+\.[0-9]+/
+            - /^master$/
+    tags:
+        - veloren-docker
+    script:
+        - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
+        - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
+        - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
+    artifacts:
+        paths:
+            - veloren-server-cli
+            - veloren-voxygen
+            - assets/
+            - LICENSE
+        expire_in: 1 week
+# --
+
+# -- publish
+
+docker:
+    stage: publish
+    when: delayed
+    start_in: 5 seconds
+    image:
+      name: gcr.io/kaniko-project/executor:debug
+      entrypoint: [""]
+    dependencies:
+        - linux
+    before_script:
+        - ls "$CI_PROJECT_DIR/server-cli/"
+    only:
+      refs:
+          - /^r[0-9]+\.[0-9]+\.[0-9]+/
+          - /^v[0-9]+\.[0-9]+/
+          - /^master$/
+    tags:
+        - veloren-docker
+    script:
+        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-server"
 
 # --

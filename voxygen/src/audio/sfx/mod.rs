@@ -4,11 +4,11 @@
 mod event_mapper;
 
 use crate::audio::AudioFrontend;
-use client::Client;
 use common::{
     assets,
     comp::{Ori, Pos},
     event::{EventBus, SfxEvent, SfxEventItem},
+    state::State,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
@@ -50,23 +50,29 @@ impl SfxMgr {
         }
     }
 
-    pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
+    pub fn maintain(
+        &mut self,
+        audio: &mut AudioFrontend,
+        state: &State,
+        player_entity: specs::Entity,
+    ) {
         if !audio.sfx_enabled() {
             return;
         }
 
-        self.event_mapper.maintain(client, &self.triggers);
+        self.event_mapper
+            .maintain(state, player_entity, &self.triggers);
 
-        let ecs = client.state().ecs();
+        let ecs = state.ecs();
 
         let player_position = ecs
             .read_storage::<Pos>()
-            .get(client.entity())
+            .get(player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
         let player_ori = ecs
             .read_storage::<Ori>()
-            .get(client.entity())
+            .get(player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
         audio.set_listener_pos(&player_position, &player_ori);
@@ -91,7 +97,7 @@ impl SfxMgr {
                     },
                 };
 
-                audio.play_sound(sfx_file, position);
+                audio.play_sfx(sfx_file, position, event.vol);
             }
         }
     }

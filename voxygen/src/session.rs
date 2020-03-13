@@ -3,9 +3,10 @@ use crate::{
     hud::{DebugInfo, Event as HudEvent, Hud},
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
+    menu::char_selection::CharSelectionState,
     render::Renderer,
-    scene::Scene,
-    window::{Event, GameInput},
+    scene::{camera, Scene, SceneData},
+    window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client, Event::Chat};
@@ -13,7 +14,7 @@ use common::{
     assets::{load_watched, watch},
     clock::Clock,
     comp,
-    comp::{Pos, Vel},
+    comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
     msg::ClientState,
     terrain::{Block, BlockKind},
     vol::ReadVol,
@@ -23,6 +24,14 @@ use log::error;
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
+
+/// The action to perform after a tick
+enum TickAction {
+    // Continue executing
+    Continue,
+    // Disconnected (i.e. go to main menu)
+    Disconnect,
+}
 
 pub struct SessionState {
     scene: Scene,
@@ -65,7 +74,7 @@ impl SessionState {
 
 impl SessionState {
     /// Tick the session (and the client attached to it).
-    fn tick(&mut self, dt: Duration) -> Result<(), Error> {
+    fn tick(&mut self, dt: Duration) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
         for event in self.client.borrow_mut().tick(
             self.inputs.clone(),
@@ -79,7 +88,7 @@ impl SessionState {
                 } => {
                     self.hud.new_message(event);
                 },
-                client::Event::Disconnect => {}, // TODO
+                client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
                         0 => String::from("Goodbye!"),
@@ -94,7 +103,7 @@ impl SessionState {
             }
         }
 
-        Ok(())
+        Ok(TickAction::Continue)
     }
 
     /// Clean up the session (and the client attached to it) after a tick.
@@ -108,7 +117,11 @@ impl SessionState {
         renderer.clear();
 
         // Render the screen using the global renderer
-        self.scene.render(renderer, &mut self.client.borrow_mut());
+        {
+            let client = self.client.borrow();
+            self.scene
+                .render(renderer, client.state(), client.entity(), client.get_tick());
+        }
         // Draw the UI to the screen
         self.hud.render(renderer, self.scene.globals());
 
@@ -125,9 +138,6 @@ impl PlayState for SessionState {
         // Set up an fps clock.
         let mut clock = Clock::start();
         self.client.borrow_mut().clear_terrain();
-
-        // Kill the title music if it is still playing
-        global_state.audio.stop_title_music();
 
         // Send startup commands to the server
         if global_state.settings.send_logon_commands {
@@ -148,31 +158,58 @@ impl PlayState for SessionState {
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Character = current_client_state {
             // Compute camera data
-            let (view_mat, _, cam_pos) = self
-                .scene
-                .camera()
-                .compute_dependents(&self.client.borrow());
+            self.scene
+                .camera_mut()
+                .compute_dependents(&*self.client.borrow().state().terrain());
+            let camera::Dependents {
+                view_mat, cam_pos, ..
+            } = self.scene.camera().dependents();
+
+            // Choose a spot above the player's head for item distance checks
+            let player_pos = match self
+                .client
+                .borrow()
+                .state()
+                .read_storage::<comp::Pos>()
+                .get(self.client.borrow().entity())
+            {
+                Some(pos) => pos.0 + (Vec3::unit_z() * 2.0),
+                _ => cam_pos, // Should never happen, but a safe fallback
+            };
+
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
             // Check to see whether we're aiming at anything
             let (build_pos, select_pos) = {
                 let client = self.client.borrow();
                 let terrain = client.state().terrain();
-                let ray = terrain
+
+                let cam_ray = terrain
                     .ray(cam_pos, cam_pos + cam_dir * 100.0)
                     .until(|block| block.is_tangible())
                     .cast();
-                let dist = ray.0;
-                if let Ok(Some(_)) = ray.1 {
-                    // Hit something!
+
+                let cam_dist = cam_ray.0;
+
+                if let Ok(Some(_)) = cam_ray.1 {
+                    // The ray hit something, is it within pickup range?
+                    let select_pos = if player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
+                        <= MAX_PICKUP_RANGE_SQR
+                    {
+                        Some((cam_pos + cam_dir * cam_dist).map(|e| e.floor() as i32))
+                    } else {
+                        None
+                    };
+
                     (
-                        Some((cam_pos + cam_dir * (dist - 0.01)).map(|e| e.floor() as i32)),
-                        Some((cam_pos + cam_dir * dist).map(|e| e.floor() as i32)),
+                        Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
+                        select_pos,
                     )
                 } else {
                     (None, None)
                 }
             };
+
             // Only highlight collectables
             self.scene.set_select_pos(select_pos.filter(|sp| {
                 self.client
@@ -241,7 +278,7 @@ impl PlayState for SessionState {
                             .unwrap_or(false)
                         {
                             self.inputs.secondary.set_state(state);
-                        } else {
+                        } else if state {
                             if let Some(select_pos) = select_pos {
                                 client.collect_block(select_pos);
                             }
@@ -362,6 +399,17 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
                     },
+                    Event::AnalogGameInput(input) => match input {
+                        AnalogGameInput::MovementX(v) => {
+                            self.key_state.analog_matrix.x = v;
+                        },
+                        AnalogGameInput::MovementY(v) => {
+                            self.key_state.analog_matrix.y = v;
+                        },
+                        other => {
+                            self.scene.handle_input_event(Event::AnalogGameInput(other));
+                        },
+                    },
 
                     // Pass all other events to the scene
                     event => {
@@ -382,18 +430,31 @@ impl PlayState for SessionState {
 
             self.inputs.look_dir = cam_dir;
 
-            // Perform an in-game tick.
-            if let Err(err) = self.tick(clock.get_avg_delta()) {
-                global_state.info_message =
-                    Some(localized_strings.get("common.connection_lost").to_owned());
-                error!("[session] Failed to tick the scene: {:?}", err);
+            // Runs if either in a multiplayer server or the singleplayer server is unpaused
+            if global_state.singleplayer.is_none()
+                || !global_state.singleplayer.as_ref().unwrap().is_paused()
+            {
+                // Perform an in-game tick.
+                match self.tick(clock.get_avg_delta()) {
+                    Ok(TickAction::Continue) => {}, // Do nothing
+                    Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
+                    Err(err) => {
+                        global_state.info_message =
+                            Some(localized_strings.get("common.connection_lost").to_owned());
+                        error!("[session] Failed to tick the scene: {:?}", err);
 
-                return PlayStateResult::Pop;
+                        return PlayStateResult::Pop;
+                    },
+                }
             }
 
             // Maintain global state.
             global_state.maintain(clock.get_last_delta().as_secs_f32());
 
+            // Recompute dependents just in case some input modified the camera
+            self.scene
+                .camera_mut()
+                .compute_dependents(&*self.client.borrow().state().terrain());
             // Extract HUD events ensuring the client borrow gets dropped.
             let mut hud_events = self.hud.maintain(
                 &self.client.borrow(),
@@ -553,6 +614,13 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();
                         self.scene.camera_mut().set_fov_deg(new_fov);
+                        self.scene
+                            .camera_mut()
+                            .compute_dependents(&*self.client.borrow().state().terrain());
+                    },
+                    HudEvent::ChangeGamma(new_gamma) => {
+                        global_state.settings.graphics.gamma = new_gamma;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeAaMode(new_aa_mode) => {
                         // Do this first so if it crashes the setting isn't saved :)
@@ -593,6 +661,7 @@ impl PlayState for SessionState {
                         )
                         .unwrap();
                         localized_strings.log_missing_entries();
+                        self.hud.update_language(localized_strings.clone());
                     },
                     HudEvent::ToggleFullscreen => {
                         global_state
@@ -607,12 +676,26 @@ impl PlayState for SessionState {
                 }
             }
 
-            // Maintain the scene.
-            self.scene.maintain(
-                global_state.window.renderer_mut(),
-                &mut global_state.audio,
-                &self.client.borrow(),
-            );
+            // Runs if either in a multiplayer server or the singleplayer server is unpaused
+            if global_state.singleplayer.is_none()
+                || !global_state.singleplayer.as_ref().unwrap().is_paused()
+            {
+                let client = self.client.borrow();
+                let scene_data = SceneData {
+                    state: client.state(),
+                    player_entity: client.entity(),
+                    loaded_distance: client.loaded_distance(),
+                    view_distance: client.view_distance().unwrap_or(1),
+                    tick: client.get_tick(),
+                    thread_pool: client.thread_pool(),
+                };
+                self.scene.maintain(
+                    global_state.window.renderer_mut(),
+                    &mut global_state.audio,
+                    &scene_data,
+                    global_state.settings.graphics.gamma,
+                );
+            }
 
             // Render the session.
             self.render(global_state.window.renderer_mut());
@@ -632,6 +715,13 @@ impl PlayState for SessionState {
             self.cleanup();
 
             current_client_state = self.client.borrow().get_client_state();
+        }
+
+        if let ClientState::Registered = current_client_state {
+            return PlayStateResult::Switch(Box::new(CharSelectionState::new(
+                global_state,
+                self.client.clone(),
+            )));
         }
 
         PlayStateResult::Pop

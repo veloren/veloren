@@ -1,29 +1,29 @@
 pub mod camera;
 pub mod figure;
+pub mod simple;
 pub mod terrain;
 
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
-    music::MusicMgr,
     terrain::Terrain,
 };
 use crate::{
     anim::character::SkeletonAttr,
-    audio::{music, sfx::SfxMgr, AudioFrontend},
+    audio::{music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
     },
-    window::Event,
+    window::{AnalogGameInput, Event},
 };
-use client::Client;
 use common::{
     comp,
+    state::State,
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
-use specs::{Join, WorldExt};
+use specs::{Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 
 // TODO: Don't hard-code this.
@@ -50,6 +50,7 @@ pub struct Scene {
     lights: Consts<Light>,
     shadows: Consts<Shadow>,
     camera: Camera,
+    camera_input_state: Vec2<f32>,
 
     skybox: Skybox,
     postprocess: PostProcess,
@@ -60,6 +61,15 @@ pub struct Scene {
     figure_mgr: FigureMgr,
     sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
+}
+
+pub struct SceneData<'a> {
+    pub state: &'a State,
+    pub player_entity: specs::Entity,
+    pub loaded_distance: f32,
+    pub view_distance: u32,
+    pub tick: u64,
+    pub thread_pool: &'a uvth::ThreadPool,
 }
 
 impl Scene {
@@ -76,6 +86,7 @@ impl Scene {
                 .create_consts(&[Shadow::default(); MAX_SHADOW_COUNT])
                 .unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
+            camera_input_state: Vec2::zero(),
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
@@ -137,6 +148,17 @@ impl Scene {
                     .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01));
                 true
             },
+            Event::AnalogGameInput(input) => match input {
+                AnalogGameInput::CameraX(d) => {
+                    self.camera_input_state.x = d;
+                    true
+                },
+                AnalogGameInput::CameraY(d) => {
+                    self.camera_input_state.y = d;
+                    true
+                },
+                _ => false,
+            },
             // All other events are unhandled
             _ => false,
         }
@@ -148,32 +170,39 @@ impl Scene {
         &mut self,
         renderer: &mut Renderer,
         audio: &mut AudioFrontend,
-        client: &Client,
+        scene_data: &SceneData,
+        gamma: f32,
     ) {
         // Get player position.
-        let player_pos = client
-            .state()
+        let player_pos = scene_data
+            .state
             .ecs()
             .read_storage::<comp::Pos>()
-            .get(client.entity())
+            .get(scene_data.player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        let player_rolling = client
-            .state()
+        let player_rolling = scene_data
+            .state
             .ecs()
             .read_storage::<comp::CharacterState>()
-            .get(client.entity())
+            .get(scene_data.player_entity)
             .map_or(false, |cs| cs.action.is_roll());
 
-        let player_scale = match client
-            .state()
+        let player_scale = match scene_data
+            .state
             .ecs()
             .read_storage::<comp::Body>()
-            .get(client.entity())
+            .get(scene_data.player_entity)
         {
             Some(comp::Body::Humanoid(body)) => SkeletonAttr::calculate_scale(body),
             _ => 1_f32,
         };
+
+        // Add the analog input to camera
+        self.camera
+            .rotate_by(Vec3::from([self.camera_input_state.x, 0.0, 0.0]));
+        self.camera
+            .rotate_by(Vec3::from([0.0, self.camera_input_state.y, 0.0]));
 
         // Alter camera position to match player.
         let tilt = self.camera.get_orientation().y;
@@ -195,25 +224,30 @@ impl Scene {
         );
 
         // Tick camera for interpolation.
-        self.camera.update(client.state().get_time());
+        self.camera.update(scene_data.state.get_time());
 
         // Compute camera matrices.
-        let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
+        self.camera.compute_dependents(&*scene_data.state.terrain());
+        let camera::Dependents {
+            view_mat,
+            proj_mat,
+            cam_pos,
+        } = self.camera.dependents();
 
         // Update chunk loaded distance smoothly for nice shader fog
-        let loaded_distance = client.loaded_distance();
-        self.loaded_distance = (0.98 * self.loaded_distance + 0.02 * loaded_distance).max(0.01);
+        self.loaded_distance =
+            (0.98 * self.loaded_distance + 0.02 * scene_data.loaded_distance).max(0.01);
 
         // Update light constants
         let mut lights = (
-            &client.state().ecs().read_storage::<comp::Pos>(),
-            client.state().ecs().read_storage::<comp::Ori>().maybe(),
-            client
-                .state()
+            &scene_data.state.ecs().read_storage::<comp::Pos>(),
+            scene_data.state.ecs().read_storage::<comp::Ori>().maybe(),
+            scene_data
+                .state
                 .ecs()
                 .read_storage::<crate::ecs::comp::Interpolated>()
                 .maybe(),
-            &client.state().ecs().read_storage::<comp::LightEmitter>(),
+            &scene_data.state.ecs().read_storage::<comp::LightEmitter>(),
         )
             .join()
             .filter(|(pos, _, _, _)| {
@@ -246,15 +280,15 @@ impl Scene {
 
         // Update shadow constants
         let mut shadows = (
-            &client.state().ecs().read_storage::<comp::Pos>(),
-            client
-                .state()
+            &scene_data.state.ecs().read_storage::<comp::Pos>(),
+            scene_data
+                .state
                 .ecs()
                 .read_storage::<crate::ecs::comp::Interpolated>()
                 .maybe(),
-            client.state().ecs().read_storage::<comp::Scale>().maybe(),
-            &client.state().ecs().read_storage::<comp::Body>(),
-            &client.state().ecs().read_storage::<comp::Stats>(),
+            scene_data.state.ecs().read_storage::<comp::Scale>().maybe(),
+            &scene_data.state.ecs().read_storage::<comp::Body>(),
+            &scene_data.state.ecs().read_storage::<comp::Stats>(),
         )
             .join()
             .filter(|(_, _, _, _, stats)| !stats.is_dead)
@@ -284,25 +318,26 @@ impl Scene {
                 cam_pos,
                 self.camera.get_focus_pos(),
                 self.loaded_distance,
-                client.state().get_time_of_day(),
-                client.state().get_time(),
+                scene_data.state.get_time_of_day(),
+                scene_data.state.get_time(),
                 renderer.get_resolution(),
                 lights.len(),
                 shadows.len(),
-                client
-                    .state()
+                scene_data
+                    .state
                     .terrain()
                     .get(cam_pos.map(|e| e.floor() as i32))
                     .map(|b| b.kind())
                     .unwrap_or(BlockKind::Air),
                 self.select_pos,
+                gamma,
             )])
             .expect("Failed to update global constants");
 
         // Maintain the terrain.
         self.terrain.maintain(
             renderer,
-            client,
+            &scene_data,
             self.camera.get_focus_pos(),
             self.loaded_distance,
             view_mat,
@@ -310,22 +345,31 @@ impl Scene {
         );
 
         // Maintain the figures.
-        self.figure_mgr.maintain(renderer, client, &self.camera);
+        self.figure_mgr.maintain(renderer, scene_data, &self.camera);
 
         // Remove unused figures.
-        self.figure_mgr.clean(client.get_tick());
+        self.figure_mgr.clean(scene_data.tick);
 
         // Maintain audio
-        self.sfx_mgr.maintain(audio, client);
-        self.music_mgr.maintain(audio, client);
+        self.sfx_mgr
+            .maintain(audio, scene_data.state, scene_data.player_entity);
+        self.music_mgr.maintain(audio, scene_data.state);
     }
 
     /// Render the scene using the provided `Renderer`.
-    pub fn render(&mut self, renderer: &mut Renderer, client: &mut Client) {
+    pub fn render(
+        &mut self,
+        renderer: &mut Renderer,
+        state: &State,
+        player_entity: EcsEntity,
+        tick: u64,
+    ) {
         // Render terrain and figures.
         self.figure_mgr.render(
             renderer,
-            client,
+            state,
+            player_entity,
+            tick,
             &self.globals,
             &self.lights,
             &self.shadows,

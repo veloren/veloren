@@ -113,6 +113,9 @@ image_ids! {
 ////////////////////////////////////////////////////////////////////////
         <VoxelPixArtGraphic>
 
+         // Esc-Menu
+        fireplace: "voxygen.element.misc_bg.fireplace",
+
         // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",
         twohsword_m2: "voxygen.element.icons.2hsword_m2",
@@ -233,11 +236,6 @@ image_ids! {
         close_button_hover: "voxygen.element.buttons.x_hover",
         close_button_press: "voxygen.element.buttons.x_press",
 
-        // Esc-Menu
-        fireplace: "voxygen.element.misc_bg.fireplace",
-        button: "voxygen.element.buttons.button",
-        button_hover: "voxygen.element.buttons.button_hover",
-        button_press: "voxygen.element.buttons.button_press",
 
         // Items
         potion_red: "voxygen.voxel.object.potion_red",
@@ -263,8 +261,18 @@ image_ids! {
         death_bg: "voxygen.background.death",
         hurt_bg: "voxygen.background.hurt",
 
+        banner_top: "voxygen.element.frames.banner_top",
+
+
+
+        // Buttons
+        button: "voxygen.element.buttons.button",
+        button_hover: "voxygen.element.buttons.button_hover",
+        button_press: "voxygen.element.buttons.button_press",
+
         // Enemy Healthbar
         enemy_health: "voxygen.element.frames.enemybar",
+        enemy_health_bg: "voxygen.element.frames.enemybar_bg",
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.skillbar.enemy_bar_content",
         // Spell Book Window
