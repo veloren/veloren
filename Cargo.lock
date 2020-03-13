@@ -64,6 +64,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "000444226fcff248f2bc4c7625be32c63caccfecc2723a2b9f78a7487a49c407"
 
 [[package]]
+name = "android_log-sys"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8052e2d8aabbb8d556d6abbcce2a22b9590996c5f849b9c7ce4544a2e3b984e"
+
+[[package]]
 name = "ansi_term"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -579,6 +585,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "cocoa"
+version = "0.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c49e86fc36d5704151f5996b7b3795385f50ce09e3be0f47a0cfde869681cf8"
+dependencies = [
+ "bitflags",
+ "block",
+ "core-foundation 0.7.0",
+ "core-graphics 0.19.2",
+ "foreign-types",
+ "libc",
+ "objc",
+]
+
+[[package]]
 name = "conrod_core"
 version = "0.63.0"
 source = "git+https://gitlab.com/veloren/conrod.git#971c7154f268ec52544634b5fde7383073b0a3b4"
@@ -1051,6 +1072,17 @@ checksum = "707b6a7b384888a70c8d2e8650b3e60170dfc6a67bb4aa67b6dfca57af4bedb4"
 dependencies = [
  "adler32",
  "byteorder 1.3.4",
+]
+
+[[package]]
+name = "derivative"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb582b60359da160a9477ee80f15c8d784c477e69c217ef2cdd4169c24ea380f"
+dependencies = [
+ "proc-macro2 1.0.18",
+ "quote 1.0.7",
+ "syn 1.0.33",
 ]
 
 [[package]]
@@ -1765,15 +1797,15 @@ dependencies = [
 
 [[package]]
 name = "glutin"
-version = "0.23.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf22d4e90c55d9be9f2ad52410e7a2c0d7e9c99d93a13df73a672e7ef4e8c7f7"
+checksum = "9a9666c8fd9afd008f6559e2468c35e11aad1d110d525bb3b354e4138ec0e20f"
 dependencies = [
  "android_glue",
  "cgl 0.3.2",
- "cocoa 0.19.1",
- "core-foundation 0.6.4",
- "core-graphics 0.17.3",
+ "cocoa 0.20.2",
+ "core-foundation 0.7.0",
+ "core-graphics 0.19.2",
  "glutin_egl_sys",
  "glutin_emscripten_sys",
  "glutin_gles2_sys",
@@ -1787,7 +1819,7 @@ dependencies = [
  "parking_lot 0.10.2",
  "wayland-client 0.23.6",
  "winapi 0.3.8",
- "winit 0.21.0",
+ "winit 0.22.2",
 ]
 
 [[package]]
@@ -2171,6 +2203,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8b7a7c0c47db5545ed3fef7468ee7bb5b74691498139e4b3f6a20685dc6dd8e"
 
 [[package]]
+name = "jni-sys"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
+
+[[package]]
 name = "jobserver"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2543,6 +2581,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "ndk"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95a356cafe20aee088789830bfea3a61336e84ded9e545e00d3869ce95dcb80c"
+dependencies = [
+ "jni-sys",
+ "ndk-sys",
+ "num_enum",
+]
+
+[[package]]
+name = "ndk-glue"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d1730ee2e3de41c3321160a6da815f008c4006d71b095880ea50e17cf52332b8"
+dependencies = [
+ "android_log-sys",
+ "lazy_static",
+ "libc",
+ "log",
+ "ndk",
+ "ndk-sys",
+]
+
+[[package]]
+name = "ndk-sys"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b2820aca934aba5ed91c79acc72b6a44048ceacc5d36c035ed4e051f12d887d"
+
+[[package]]
 name = "net2"
 version = "0.2.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2733,6 +2802,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_enum"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca565a7df06f3d4b485494f25ba05da1435950f4dc263440eda7a6fa9b8e36e4"
+dependencies = [
+ "derivative",
+ "num_enum_derive",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffa5a33ddddfee04c0283a7653987d634e880347e96b5b2ed64de07efb59db9d"
+dependencies = [
+ "proc-macro-crate",
+ "proc-macro2 1.0.18",
+ "quote 1.0.7",
+ "syn 1.0.33",
+]
+
+[[package]]
 name = "objc"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2778,13 +2869,13 @@ dependencies = [
 
 [[package]]
 name = "old_school_gfx_glutin_ext"
-version = "0.23.0"
+version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7cf32ddfed46b511150abb23d3193d38ec71ffafa561e6c2d82ad06eb51072e"
+checksum = "a0557cea37cc48d238c938ded2873a6cc772704ee1eb01e832b43c2dd99624bc"
 dependencies = [
  "gfx_core",
  "gfx_device_gl",
- "glutin 0.23.0",
+ "glutin 0.24.1",
 ]
 
 [[package]]
@@ -3061,6 +3152,15 @@ name = "ppv-lite86"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "237a5ed80e274dbc66f86bd59c1e25edc039660be53194b5fe0a482e0f2612ea"
+
+[[package]]
+name = "proc-macro-crate"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d6ea3c4595b96363c13943497db34af4460fb474a95c43f4446ad341b8c9785"
+dependencies = [
+ "toml",
+]
 
 [[package]]
 name = "proc-macro-error"
@@ -4621,7 +4721,7 @@ dependencies = [
  "gilrs",
  "git2",
  "glsl-include",
- "glutin 0.23.0",
+ "glutin 0.24.1",
  "guillotiere",
  "hashbrown",
  "image",
@@ -4647,7 +4747,7 @@ dependencies = [
  "veloren-server",
  "veloren-voxygen-anim",
  "veloren-world",
- "winit 0.21.0",
+ "winit 0.22.2",
  "winres",
 ]
 
@@ -5030,15 +5130,14 @@ dependencies = [
 
 [[package]]
 name = "winit"
-version = "0.21.0"
+version = "0.22.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65a5c1a5ef76ac31cc97ad29489acdbed2178f3fc12ca00ee6cb11d60adb5a3a"
+checksum = "1e4ccbf7ddb6627828eace16cacde80fc6bf4dbb3469f88487262a02cf8e7862"
 dependencies = [
- "android_glue",
  "bitflags",
- "cocoa 0.19.1",
- "core-foundation 0.6.4",
- "core-graphics 0.17.3",
+ "cocoa 0.20.2",
+ "core-foundation 0.7.0",
+ "core-graphics 0.19.2",
  "core-video-sys",
  "dispatch 0.2.0",
  "instant",
@@ -5047,6 +5146,9 @@ dependencies = [
  "log",
  "mio",
  "mio-extras",
+ "ndk",
+ "ndk-glue",
+ "ndk-sys",
  "objc",
  "parking_lot 0.10.2",
  "percent-encoding 2.1.0",
