@@ -289,21 +289,21 @@ impl Server {
 
         state.write_component(
             entity,
-            if let Some(comp::Item {
-                kind: comp::ItemKind::Tool(tool),
-                ..
-            }) = main
-            {
+            if let Some(comp::ItemKind::Tool(tool)) = main.as_ref().map(|i| i.kind) {
                 let mut abilities = tool.get_abilities();
                 let mut ability_drain = abilities.drain(..);
-                comp::AbilityPool {
-                    primary: ability_drain.next(),
-                    secondary: ability_drain.next(),
-                    block: Some(comp::CharacterAbility::BasicBlock),
-                    dodge: Some(comp::CharacterAbility::Roll),
+                comp::Loadout {
+                    active_item: main.map(|item| comp::ItemConfig {
+                        item,
+                        primary_ability: ability_drain.next(),
+                        secondary_ability: ability_drain.next(),
+                        block_ability: Some(comp::CharacterAbility::BasicBlock),
+                        dodge_ability: Some(comp::CharacterAbility::Roll),
+                    }),
+                    second_item: None,
                 }
             } else {
-                comp::AbilityPool::default()
+                comp::Loadout::default()
             },
         );
 
@@ -676,7 +676,7 @@ impl StateExt for State {
             .with(comp::Energy::new(500))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
-            .with(comp::AbilityPool::default())
+            .with(comp::Loadout::default()) // TODO Give the poor npc something to do
     }
 
     fn notify_registered_clients(&self, msg: ServerMsg) {

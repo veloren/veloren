@@ -29,9 +29,8 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update);
 
-        // Build up window
+        // Build up
         if self.buildup_duration != Duration::default() {
-            // Start to swing
             update.character = CharacterState::BasicAttack(Data {
                 buildup_duration: self
                     .buildup_duration
@@ -41,12 +40,11 @@ impl CharacterBehavior for Data {
                 exhausted: false,
             });
         }
-        // Hit attempt window
+        // Hit attempt
         else if !self.exhausted {
-            // Swing hits
             if let Some(tool) = unwrap_tool_data(data) {
                 data.updater.insert(data.entity, Attacking {
-                    weapon: Some(tool),
+                    base_damage: tool.base_damage,
                     applied: false,
                     hit_count: 0,
                 });
@@ -58,7 +56,7 @@ impl CharacterBehavior for Data {
                 exhausted: true,
             });
         }
-        // Swing recovery window
+        // Recovery
         else if self.recover_duration != Duration::default() {
             update.character = CharacterState::BasicAttack(Data {
                 buildup_duration: self.buildup_duration,
@@ -79,7 +77,8 @@ impl CharacterBehavior for Data {
                 update.character = CharacterState::Idle;
             }
         }
-        // Subtract energy on successful hit
+
+        // Grant energy on successful hit
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
                 data.updater.remove::<Attacking>(data.entity);

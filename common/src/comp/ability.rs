@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, ToolData},
+    comp::{CharacterState, Item, ToolData},
     states::*,
 };
 use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
@@ -25,12 +25,20 @@ impl Component for CharacterAbility {
     type Storage = DenseVecStorage<Self>;
 }
 
-#[derive(Copy, Clone, Default, Debug, Serialize, Deserialize)]
-pub struct AbilityPool {
-    pub primary: Option<CharacterAbility>,
-    pub secondary: Option<CharacterAbility>,
-    pub block: Option<CharacterAbility>,
-    pub dodge: Option<CharacterAbility>,
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ItemConfig {
+    pub item: Item,
+    pub primary_ability: Option<CharacterAbility>,
+    pub secondary_ability: Option<CharacterAbility>,
+    pub block_ability: Option<CharacterAbility>,
+    pub dodge_ability: Option<CharacterAbility>,
+}
+
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+pub struct Loadout {
+    pub active_item: Option<ItemConfig>,
+    pub second_item: Option<ItemConfig>,
+    // armor
 }
 
 impl From<CharacterAbility> for CharacterState {
@@ -69,6 +77,6 @@ impl From<CharacterAbility> for CharacterState {
     }
 }
 
-impl Component for AbilityPool {
+impl Component for Loadout {
     type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
 }

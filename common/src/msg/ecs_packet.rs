@@ -22,7 +22,7 @@ sum_type! {
         Gravity(comp::Gravity),
         Sticky(comp::Sticky),
         CharacterAbility(comp::CharacterAbility),
-        AbilityPool(comp::AbilityPool),
+        Loadout(comp::Loadout),
         Attacking(comp::Attacking),
         CharacterState(comp::CharacterState),
     }
@@ -46,7 +46,7 @@ sum_type! {
         Gravity(PhantomData<comp::Gravity>),
         Sticky(PhantomData<comp::Sticky>),
         CharacterAbility(PhantomData<comp::CharacterAbility>),
-        AbilityPool(PhantomData<comp::AbilityPool>),
+        Loadout(PhantomData<comp::Loadout>),
         Attacking(PhantomData<comp::Attacking>),
         CharacterState(PhantomData<comp::CharacterState>),
     }
@@ -70,7 +70,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Gravity(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::CharacterAbility(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::AbilityPool(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Loadout(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Attacking(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::CharacterState(comp) => sync::handle_insert(comp, entity, world),
         }
@@ -92,7 +92,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Gravity(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::CharacterAbility(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::AbilityPool(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Loadout(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Attacking(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::CharacterState(comp) => sync::handle_modify(comp, entity, world),
         }
@@ -118,9 +118,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::CharacterAbility(_) => {
                 sync::handle_remove::<comp::CharacterAbility>(entity, world)
             },
-            EcsCompPhantom::AbilityPool(_) => {
-                sync::handle_remove::<comp::AbilityPool>(entity, world)
-            },
+            EcsCompPhantom::Loadout(_) => sync::handle_remove::<comp::Loadout>(entity, world),
             EcsCompPhantom::Attacking(_) => sync::handle_remove::<comp::Attacking>(entity, world),
             EcsCompPhantom::CharacterState(_) => {
                 sync::handle_remove::<comp::CharacterState>(entity, world)

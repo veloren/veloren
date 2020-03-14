@@ -62,7 +62,7 @@ impl CharacterBehavior for Data {
             else if !self.stage_exhausted {
                 // Swing hits
                 data.updater.insert(data.entity, Attacking {
-                    weapon: Some(self.tool),
+                    base_damage: self.tool.base_damage,
                     applied: false,
                     hit_count: 0,
                 });

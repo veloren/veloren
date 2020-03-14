@@ -1659,22 +1659,25 @@ impl Hud {
         // Skillbar
         // Get player stats
         let ecs = client.state().ecs();
-        let stats = ecs.read_storage::<comp::Stats>();
-        let energy = ecs.read_storage::<comp::Energy>();
-        let character_state = ecs.read_storage::<comp::CharacterState>();
         let entity = client.entity();
-        let controller = ecs.read_storage::<comp::Controller>();
-        if let (Some(stats), Some(energy), Some(character_state), Some(controller)) = (
+        let stats = ecs.read_storage::<comp::Stats>();
+        let loadouts = ecs.read_storage::<comp::Loadout>();
+        let energies = ecs.read_storage::<comp::Energy>();
+        let character_states = ecs.read_storage::<comp::CharacterState>();
+        let controllers = ecs.read_storage::<comp::Controller>();
+        if let (Some(stats), Some(loadout), Some(energy), Some(character_state), Some(controller)) = (
             stats.get(entity),
-            energy.get(entity),
-            character_state.get(entity),
-            controller.get(entity).map(|c| &c.inputs),
+            loadouts.get(entity),
+            energies.get(entity),
+            character_states.get(entity),
+            controllers.get(entity).map(|c| &c.inputs),
         ) {
             Skillbar::new(
                 global_state,
                 &self.imgs,
                 &self.fonts,
                 &stats,
+                &loadout,
                 &energy,
                 &character_state,
                 self.pulse,

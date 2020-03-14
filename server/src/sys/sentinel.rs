@@ -1,7 +1,7 @@
 use super::SysTimer;
 use common::{
     comp::{
-        AbilityPool, Body, CanBuild, CharacterState, Energy, Gravity, Item, LightEmitter, Mass,
+        Body, CanBuild, CharacterState, Energy, Gravity, Item, LightEmitter, Loadout, Mass,
         MountState, Mounting, Player, Scale, Stats, Sticky,
     },
     msg::EcsCompPacket,
@@ -51,7 +51,7 @@ pub struct TrackedComps<'a> {
     pub mass: ReadStorage<'a, Mass>,
     pub sticky: ReadStorage<'a, Sticky>,
     pub gravity: ReadStorage<'a, Gravity>,
-    pub ability_pool: ReadStorage<'a, AbilityPool>,
+    pub loadout: ReadStorage<'a, Loadout>,
     pub character_state: ReadStorage<'a, CharacterState>,
 }
 impl<'a> TrackedComps<'a> {
@@ -106,9 +106,9 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .copied()
             .map(|c| comps.push(c.into()));
-        self.ability_pool
+        self.loadout
             .get(entity)
-            .copied()
+            .cloned()
             .map(|c| comps.push(c.into()));
         self.character_state
             .get(entity)
@@ -134,7 +134,7 @@ pub struct ReadTrackers<'a> {
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
-    pub ability_pool: ReadExpect<'a, UpdateTracker<AbilityPool>>,
+    pub loadout: ReadExpect<'a, UpdateTracker<Loadout>>,
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
 }
 impl<'a> ReadTrackers<'a> {
@@ -163,7 +163,7 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
             .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
             .with_component(&comps.uid, &*self.gravity, &comps.gravity, filter)
-            .with_component(&comps.uid, &*self.ability_pool, &comps.ability_pool, filter)
+            .with_component(&comps.uid, &*self.loadout, &comps.loadout, filter)
             .with_component(
                 &comps.uid,
                 &*self.character_state,
@@ -189,7 +189,7 @@ pub struct WriteTrackers<'a> {
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
-    ability_pool: WriteExpect<'a, UpdateTracker<AbilityPool>>,
+    loadout: WriteExpect<'a, UpdateTracker<Loadout>>,
     character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
 }
 
@@ -209,7 +209,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.mass.record_changes(&comps.mass);
     trackers.sticky.record_changes(&comps.sticky);
     trackers.gravity.record_changes(&comps.gravity);
-    trackers.ability_pool.record_changes(&comps.ability_pool);
+    trackers.loadout.record_changes(&comps.loadout);
     trackers
         .character_state
         .record_changes(&comps.character_state);
@@ -230,7 +230,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Mass>();
     world.register_tracker::<Sticky>();
     world.register_tracker::<Gravity>();
-    world.register_tracker::<AbilityPool>();
+    world.register_tracker::<Loadout>();
     world.register_tracker::<CharacterState>();
 }
 

@@ -11,7 +11,7 @@ use common::{
     assets::load_expect,
     comp::{
         item::{DebugKind, ToolData, ToolKind},
-        CharacterState, ControllerInputs, Energy, ItemKind, Stats,
+        CharacterState, ControllerInputs, Energy, ItemKind, Loadout, Stats,
     },
 };
 use conrod_core::{
@@ -111,6 +111,7 @@ pub struct Skillbar<'a> {
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
     stats: &'a Stats,
+    loadout: &'a Loadout,
     energy: &'a Energy,
     character_state: &'a CharacterState,
     controller: &'a ControllerInputs,
@@ -126,6 +127,7 @@ impl<'a> Skillbar<'a> {
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
         stats: &'a Stats,
+        loadout: &'a Loadout,
         energy: &'a Energy,
         character_state: &'a CharacterState,
         pulse: f32,
@@ -136,6 +138,7 @@ impl<'a> Skillbar<'a> {
             imgs,
             fonts,
             stats,
+            loadout,
             energy,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
@@ -580,44 +583,52 @@ impl<'a> Widget for Skillbar<'a> {
         // M1 Slot
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(38.0 * scale, 38.0 * scale)
-            .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Bow => Some(BG_COLOR_2),
-                    ToolKind::Staff => Some(BG_COLOR_2),
+            .color(
+                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                    Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                        ToolKind::Bow => Some(BG_COLOR_2),
+                        ToolKind::Staff => Some(BG_COLOR_2),
+                        _ => Some(BG_COLOR_2),
+                    },
                     _ => Some(BG_COLOR_2),
                 },
-                _ => Some(BG_COLOR_2),
-            })
+            )
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
-        Button::image(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                ToolKind::Sword(_) => self.imgs.twohsword_m1,
-                ToolKind::Hammer => self.imgs.twohhammer_m1,
-                ToolKind::Axe => self.imgs.twohaxe_m1,
-                ToolKind::Bow => self.imgs.bow_m1,
-                ToolKind::Staff => self.imgs.staff_m1,
-                ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m1,
+        Button::image(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    ToolKind::Sword(_) => self.imgs.twohsword_m1,
+                    ToolKind::Hammer => self.imgs.twohhammer_m1,
+                    ToolKind::Axe => self.imgs.twohaxe_m1,
+                    ToolKind::Bow => self.imgs.bow_m1,
+                    ToolKind::Staff => self.imgs.staff_m1,
+                    ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m1,
+                    _ => self.imgs.twohaxe_m1,
+                },
                 _ => self.imgs.twohaxe_m1,
             },
-            _ => self.imgs.twohaxe_m1,
-        }) // Insert Icon here
-        .w(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                ToolKind::Bow => 30.0 * scale,
-                ToolKind::Staff => 32.0 * scale,
+        ) // Insert Icon here
+        .w(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    ToolKind::Bow => 30.0 * scale,
+                    ToolKind::Staff => 32.0 * scale,
+                    _ => 38.0 * scale,
+                },
                 _ => 38.0 * scale,
             },
-            _ => 38.0 * scale,
-        })
-        .h(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                ToolKind::Bow => 30.0 * scale,
-                ToolKind::Staff => 32.0 * scale,
+        )
+        .h(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    ToolKind::Bow => 30.0 * scale,
+                    ToolKind::Staff => 32.0 * scale,
+                    _ => 38.0 * scale,
+                },
                 _ => 38.0 * scale,
             },
-            _ => 38.0 * scale,
-        })
+        )
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
         // M2 Slot
@@ -673,44 +684,52 @@ impl<'a> Widget for Skillbar<'a> {
 
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(38.0 * scale, 38.0 * scale)
-            .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Bow => Some(BG_COLOR_2),
-                    ToolKind::Staff => Some(BG_COLOR_2),
+            .color(
+                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                    Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                        ToolKind::Bow => Some(BG_COLOR_2),
+                        ToolKind::Staff => Some(BG_COLOR_2),
+                        _ => Some(BG_COLOR_2),
+                    },
                     _ => Some(BG_COLOR_2),
                 },
-                _ => Some(BG_COLOR_2),
-            })
+            )
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                ToolKind::Sword(_) => self.imgs.twohsword_m2,
-                ToolKind::Hammer => self.imgs.twohhammer_m2,
-                ToolKind::Axe => self.imgs.twohaxe_m2,
-                ToolKind::Bow => self.imgs.bow_m2,
-                ToolKind::Staff => self.imgs.staff_m2,
-                ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
+        Button::image(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    ToolKind::Sword(_) => self.imgs.twohsword_m2,
+                    ToolKind::Hammer => self.imgs.twohhammer_m2,
+                    ToolKind::Axe => self.imgs.twohaxe_m2,
+                    ToolKind::Bow => self.imgs.bow_m2,
+                    ToolKind::Staff => self.imgs.staff_m2,
+                    ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
+                    _ => self.imgs.twohaxe_m2,
+                },
                 _ => self.imgs.twohaxe_m2,
             },
-            _ => self.imgs.twohaxe_m2,
-        }) // Insert Icon here
-        .w(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                ToolKind::Bow => 30.0 * scale,
-                ToolKind::Staff => 30.0 * scale,
+        ) // Insert Icon here
+        .w(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    ToolKind::Bow => 30.0 * scale,
+                    ToolKind::Staff => 30.0 * scale,
+                    _ => 38.0 * scale,
+                },
                 _ => 38.0 * scale,
             },
-            _ => 38.0 * scale,
-        })
-        .h(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                ToolKind::Bow => 30.0 * scale,
-                ToolKind::Staff => 30.0 * scale,
+        )
+        .h(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    ToolKind::Bow => 30.0 * scale,
+                    ToolKind::Staff => 30.0 * scale,
+                    _ => 38.0 * scale,
+                },
                 _ => 38.0 * scale,
             },
-            _ => 38.0 * scale,
-        })
+        )
         .middle_of(state.ids.m2_slot_bg)
         .set(state.ids.m2_content, ui);
         //Slot 5

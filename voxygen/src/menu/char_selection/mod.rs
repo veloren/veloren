@@ -116,14 +116,11 @@ impl PlayState for CharSelectionState {
                 global_state.window.renderer_mut(),
                 self.client.borrow().get_tick(),
                 humanoid_body.clone(),
-                &comp::Equipment {
-                    main: self
-                        .char_selection_ui
-                        .get_character_data()
-                        .and_then(|data| data.tool)
-                        .and_then(|tool| assets::load_cloned(&tool).ok()),
-                    alt: None,
-                },
+                self.char_selection_ui
+                    .get_character_data()
+                    .and_then(|data| data.tool)
+                    .and_then(|tool| assets::load_cloned::<comp::Item>(&tool).ok())
+                    .map(|i| i.kind),
             );
 
             // Draw the UI to the screen.

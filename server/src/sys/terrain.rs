@@ -180,7 +180,17 @@ impl<'a> System<'a> for Sys {
                         .choose(&mut rand::thread_rng())
                         .expect("SPAWN_NPCS is nonempty")(
                     );
-                    let mut stats = comp::Stats::new(name, body, main);
+                    let mut stats = comp::Stats::new(name, body, main.clone());
+                    let mut loadout = comp::Loadout {
+                        active_item: main.map(|item| comp::ItemConfig {
+                            item,
+                            primary_ability: None,
+                            secondary_ability: None,
+                            block_ability: None,
+                            dodge_ability: None,
+                        }),
+                        second_item: None,
+                    };
 
                     let mut scale = 1.0;
 
@@ -202,6 +212,17 @@ impl<'a> System<'a> for Sys {
                                 Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
                             );
                         }
+                        loadout = comp::Loadout {
+                            active_item: Some(comp::ItemConfig {
+                                item: assets::load_expect_cloned("common.items.weapons.hammer_1"),
+                                primary_ability: None,
+                                secondary_ability: None,
+                                block_ability: None,
+                                dodge_ability: None,
+                            }),
+                            second_item: None,
+                        };
+
                         stats.level.set_level(rand::thread_rng().gen_range(8, 15));
                         scale = 2.0 + rand::random::<f32>();
                     }
@@ -210,12 +231,10 @@ impl<'a> System<'a> for Sys {
                     stats
                         .health
                         .set_to(stats.health.maximum(), comp::HealthSource::Revive);
-                    if let Some(item::Item {
-                        kind: item::ItemKind::Tool(item::ToolData { base_damage, .. }),
-                        ..
-                    }) = &mut stats.equipment.main
+                    if let Some(item::ItemKind::Tool(item::ToolData { base_damage, .. })) =
+                        &mut loadout.active_item.map(|i| i.item.kind)
                     {
-                        *base_damage = stats.level.level() as u64 * 3;
+                        *base_damage = stats.level.level() as u32 * 3;
                     }
                     server_emitter.emit(ServerEvent::CreateNpc {
                         pos: Pos(entity.pos),
