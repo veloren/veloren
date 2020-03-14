@@ -1,12 +1,12 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, ItemKind::Tool, StateUpdate},
-    states::utils::*,
+    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    states::{utils::*, wielding},
     sys::character_behavior::*,
 };
 use std::{collections::VecDeque, time::Duration};
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct State {
+pub struct Data {
     /// How long until state should deal damage
     pub buildup_duration: Duration,
     /// How long the state has until exiting
@@ -15,7 +15,7 @@ pub struct State {
     pub exhausted: bool,
 }
 
-impl CharacterBehavior for State {
+impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *data.pos,
@@ -32,7 +32,7 @@ impl CharacterBehavior for State {
         // Build up window
         if self.buildup_duration != Duration::default() {
             // Start to swing
-            update.character = CharacterState::BasicAttack(State {
+            update.character = CharacterState::BasicAttack(Data {
                 buildup_duration: self
                     .buildup_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
@@ -52,7 +52,7 @@ impl CharacterBehavior for State {
                 });
             }
 
-            update.character = CharacterState::BasicAttack(State {
+            update.character = CharacterState::BasicAttack(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
                 exhausted: true,
@@ -60,7 +60,7 @@ impl CharacterBehavior for State {
         }
         // Swing recovery window
         else if self.recover_duration != Duration::default() {
-            update.character = CharacterState::BasicAttack(State {
+            update.character = CharacterState::BasicAttack(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self
                     .recover_duration
@@ -72,7 +72,7 @@ impl CharacterBehavior for State {
         // Done
         else {
             if let Some(tool) = unwrap_tool_data(data) {
-                update.character = CharacterState::Wielding { tool };
+                update.character = CharacterState::Wielding(wielding::Data { tool });
                 // Make sure attack component is removed
                 data.updater.remove::<Attacking>(data.entity);
             } else {
