@@ -1,7 +1,10 @@
 use crate::{
     comp::{CharacterState, EnergySource, StateUpdate},
     event::LocalEvent,
-    sys::{character_behavior::JoinData, phys::GRAVITY},
+    sys::{
+        character_behavior::{CharacterBehavior, JoinData},
+        phys::GRAVITY,
+    },
 };
 use std::collections::VecDeque;
 use vek::{
@@ -12,84 +15,90 @@ use vek::{
 const HUMANOID_CLIMB_ACCEL: f32 = 5.0;
 const CLIMB_SPEED: f32 = 5.0;
 
-pub fn behavior(data: &JoinData) -> StateUpdate {
-    let mut update = StateUpdate {
-        pos: *data.pos,
-        vel: *data.vel,
-        ori: *data.ori,
-        character: *data.character,
-        energy: *data.energy,
-        local_events: VecDeque::new(),
-        server_events: VecDeque::new(),
-    };
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct Data;
 
-    if let Err(_) = update.energy.try_change_by(-5, EnergySource::Climb) {
-        update.character = CharacterState::Idle {};
-    }
-
-    // If no wall is in front of character ...
-    if data.physics.on_wall.is_none() || data.physics.on_ground {
-        if data.inputs.jump.is_pressed() {
-            // They've climbed atop something, give them a boost
-            update
-                .local_events
-                .push_front(LocalEvent::Jump(data.entity));
-        }
-        update.character = CharacterState::Idle {};
-        return update;
-    }
-
-    // Move player
-    update.vel.0 += Vec2::broadcast(data.dt.0)
-        * data.inputs.move_dir
-        * if update.vel.0.magnitude_squared() < CLIMB_SPEED.powf(2.0) {
-            HUMANOID_CLIMB_ACCEL
-        } else {
-            0.0
+impl CharacterBehavior for Data {
+    fn behavior(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate {
+            pos: *data.pos,
+            vel: *data.vel,
+            ori: *data.ori,
+            character: *data.character,
+            energy: *data.energy,
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
         };
 
-    // Set orientation direction based on wall direction
-    let ori_dir = if let Some(wall_dir) = data.physics.on_wall {
-        if Vec2::<f32>::from(wall_dir).magnitude_squared() > 0.001 {
-            Vec2::from(wall_dir).normalized()
+        if let Err(_) = update.energy.try_change_by(-5, EnergySource::Climb) {
+            update.character = CharacterState::Idle {};
+        }
+
+        // If no wall is in front of character ...
+        if data.physics.on_wall.is_none() || data.physics.on_ground {
+            if data.inputs.jump.is_pressed() {
+                // They've climbed atop something, give them a boost
+                update
+                    .local_events
+                    .push_front(LocalEvent::Jump(data.entity));
+            }
+            update.character = CharacterState::Idle {};
+            return update;
+        }
+
+        // Move player
+        update.vel.0 += Vec2::broadcast(data.dt.0)
+            * data.inputs.move_dir
+            * if update.vel.0.magnitude_squared() < CLIMB_SPEED.powf(2.0) {
+                HUMANOID_CLIMB_ACCEL
+            } else {
+                0.0
+            };
+
+        // Set orientation direction based on wall direction
+        let ori_dir = if let Some(wall_dir) = data.physics.on_wall {
+            if Vec2::<f32>::from(wall_dir).magnitude_squared() > 0.001 {
+                Vec2::from(wall_dir).normalized()
+            } else {
+                Vec2::from(update.vel.0)
+            }
         } else {
             Vec2::from(update.vel.0)
-        }
-    } else {
-        Vec2::from(update.vel.0)
-    };
+        };
 
-    // Smooth orientation
-    if ori_dir.magnitude_squared() > 0.0001
-        && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
-            > 0.001
-    {
-        update.ori.0 = vek::ops::Slerp::slerp(
-            update.ori.0,
-            ori_dir.into(),
-            if data.physics.on_ground { 9.0 } else { 2.0 } * data.dt.0,
-        );
-    }
-
-    // Apply Vertical Climbing Movement
-    if let (true, Some(_wall_dir)) = (
-        (data.inputs.climb.is_pressed() | data.inputs.climb_down.is_pressed())
-            && update.vel.0.z <= CLIMB_SPEED,
-        data.physics.on_wall,
-    ) {
-        if data.inputs.climb_down.is_pressed() && !data.inputs.climb.is_pressed() {
-            update.vel.0 -= data.dt.0 * update.vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
-        } else if data.inputs.climb.is_pressed() && !data.inputs.climb_down.is_pressed() {
-            update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
-        } else {
-            update.vel.0.z = update.vel.0.z + data.dt.0 * GRAVITY * 1.5;
-            update.vel.0 = Lerp::lerp(
-                update.vel.0,
-                Vec3::zero(),
-                30.0 * data.dt.0 / (1.0 - update.vel.0.z.min(0.0) * 5.0),
+        // Smooth orientation
+        if ori_dir.magnitude_squared() > 0.0001
+            && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
+                > 0.001
+        {
+            update.ori.0 = vek::ops::Slerp::slerp(
+                update.ori.0,
+                ori_dir.into(),
+                if data.physics.on_ground { 9.0 } else { 2.0 } * data.dt.0,
             );
         }
-    }
 
-    update
+        // Apply Vertical Climbing Movement
+        if let (true, Some(_wall_dir)) = (
+            (data.inputs.climb.is_pressed() | data.inputs.climb_down.is_pressed())
+                && update.vel.0.z <= CLIMB_SPEED,
+            data.physics.on_wall,
+        ) {
+            if data.inputs.climb_down.is_pressed() && !data.inputs.climb.is_pressed() {
+                update.vel.0 -=
+                    data.dt.0 * update.vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
+            } else if data.inputs.climb.is_pressed() && !data.inputs.climb_down.is_pressed() {
+                update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
+            } else {
+                update.vel.0.z = update.vel.0.z + data.dt.0 * GRAVITY * 1.5;
+                update.vel.0 = Lerp::lerp(
+                    update.vel.0,
+                    Vec3::zero(),
+                    30.0 * data.dt.0 / (1.0 - update.vel.0.z.min(0.0) * 5.0),
+                );
+            }
+        }
+
+        update
+    }
 }
