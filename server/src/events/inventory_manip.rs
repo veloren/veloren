@@ -83,22 +83,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
             if let Some(item) = item_opt {
                 match item.kind {
-                    comp::ItemKind::Tool { .. } => {
-                        if let Some(stats) =
-                            state.ecs().write_storage::<comp::Stats>().get_mut(entity)
-                        {
-                            // Insert old item into inventory
-                            if let Some(old_item) = stats.equipment.main.take() {
-                                state
-                                    .ecs()
-                                    .write_storage::<comp::Inventory>()
-                                    .get_mut(entity)
-                                    .map(|inv| inv.insert(slot, old_item));
-                            }
-
-                            stats.equipment.main = Some(item);
-                        }
-                    },
                     comp::ItemKind::Consumable { kind, effect } => {
                         event = comp::InventoryUpdateEvent::Consumed(kind);
                         state.apply_effect(entity, effect);

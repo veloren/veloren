@@ -127,8 +127,8 @@ pub struct ToolData {
     equip_time_millis: u64,
     attack_buildup_millis: u64,
     attack_recover_millis: u64,
-    range: u64,
-    pub base_damage: u64,
+    range: u32,
+    pub base_damage: u32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

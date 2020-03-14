@@ -104,19 +104,19 @@ impl<'a> System<'a> for Sys {
                     && ori2.angle_between(pos_b2 - pos2) < ATTACK_ANGLE.to_radians() / 2.0 + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // Weapon gives base damage
-                    let mut dmg = attack.weapon.map(|w| w.base_damage as i32).unwrap_or(3);
+                    let mut dmg = attack.base_damage;
 
                     // Block
                     if character_b.is_block()
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
                     {
-                        dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
+                        dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
                     }
 
                     server_bus.emitter().emit(ServerEvent::Damage {
                         uid: *uid_b,
                         change: HealthChange {
-                            amount: -dmg,
+                            amount: -(dmg as i32),
                             cause: HealthSource::Attack { by: *uid },
                         },
                     });

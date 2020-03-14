@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{Body, CharacterState, Equipment},
+    comp::{Body, CharacterState, ItemKind},
 };
 use hashbrown::{hash_map::Entry, HashMap};
 use std::{
@@ -19,7 +19,7 @@ enum FigureKey {
     Simple(Body),
     Complex(
         Body,
-        Option<Equipment>,
+        Option<ItemKind>,
         CameraMode,
         Option<CharacterStateCacheKey>,
     ),
@@ -58,7 +58,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         &mut self,
         renderer: &mut Renderer,
         body: Body,
-        equipment: Option<&Equipment>,
+        item_kind: Option<ItemKind>,
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
@@ -67,10 +67,10 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         for<'a> &'a common::comp::Body: std::convert::TryInto<Skel::Attr>,
         Skel::Attr: Default,
     {
-        let key = if equipment.is_some() {
+        let key = if item_kind.is_some() {
             FigureKey::Complex(
                 body,
-                equipment.cloned(),
+                item_kind,
                 camera_mode,
                 character_state.map(|cs| CharacterStateCacheKey::from(cs)),
             )
@@ -187,7 +187,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                             })
                                             .unwrap_or_default()
                                     {
-                                        Some(mesh_main(equipment.and_then(|e| e.main.as_ref())))
+                                        Some(mesh_main(item_kind))
                                     } else {
                                         None
                                     },

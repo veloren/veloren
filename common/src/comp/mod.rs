@@ -16,7 +16,7 @@ mod stats;
 mod visual;
 
 // Reexports
-pub use ability::{AbilityPool, CharacterAbility};
+pub use ability::{CharacterAbility, ItemConfig, Loadout};
 pub use admin::Admin;
 pub use agent::{Agent, Alignment};
 pub use body::{
@@ -39,5 +39,5 @@ pub use location::{Waypoint, WaypointArea};
 pub use phys::{ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::Player;
 pub use projectile::Projectile;
-pub use stats::{Equipment, Exp, HealthChange, HealthSource, Level, Stats};
+pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};
 pub use visual::LightEmitter;

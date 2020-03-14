@@ -119,7 +119,7 @@ pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
 
 /// If a tool is equipped, goes into Equipping state, otherwise goes to Idle
 pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
+    if let Some(Tool(tool)) = data.loadout.active_item.as_ref().map(|i| i.item.kind) {
         update.character = CharacterState::Equipping(equipping::Data {
             tool,
             time_left: tool.equip_time(),
@@ -192,7 +192,12 @@ pub fn handle_primary_input(data: &JoinData, update: &mut StateUpdate) {
 
 /// Attempts to go into `ability_pool.primary` if is `Some()` on `AbilityPool`
 pub fn attempt_primary_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability) = data.ability_pool.primary {
+    if let Some(ability) = data
+        .loadout
+        .active_item
+        .as_ref()
+        .and_then(|i| i.primary_ability)
+    {
         update.character = ability.into();
     }
 }
@@ -209,7 +214,12 @@ pub fn handle_secondary_input(data: &JoinData, update: &mut StateUpdate) {
 
 /// Attempts to go into `ability_pool.secondary` if is `Some()` on `AbilityPool`
 pub fn attempt_secondary_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability) = data.ability_pool.secondary {
+    if let Some(ability) = data
+        .loadout
+        .active_item
+        .as_ref()
+        .and_then(|i| i.secondary_ability)
+    {
         update.character = ability.into();
     }
 }
@@ -233,13 +243,18 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
 }
 
 pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability) = data.ability_pool.dodge {
+    if let Some(ability) = data
+        .loadout
+        .active_item
+        .as_ref()
+        .and_then(|i| i.dodge_ability)
+    {
         update.character = ability.into();
     }
 }
 
 pub fn unwrap_tool_data(data: &JoinData) -> Option<ToolData> {
-    if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
+    if let Some(Tool(tool)) = data.loadout.active_item.as_ref().map(|i| i.item.kind) {
         Some(tool)
     } else {
         None

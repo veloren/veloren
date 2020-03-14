@@ -20,7 +20,8 @@ use crate::{
 };
 use common::{
     comp::{
-        Body, CharacterState, ItemKind, Last, Ori, PhysicsState, Pos, Scale, Stats, ToolData, Vel,
+        Body, CharacterState, ItemKind, Last, Loadout, Ori, PhysicsState, Pos, Scale, Stats,
+        ToolData, Vel,
     },
     state::State,
     terrain::TerrainChunk,
@@ -112,7 +113,19 @@ impl FigureMgr {
             .get(scene_data.player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, vel, ori, scale, body, character, last_character, physics, stats) in (
+        for (
+            entity,
+            pos,
+            vel,
+            ori,
+            scale,
+            body,
+            character,
+            last_character,
+            physics,
+            stats,
+            loadout,
+        ) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Vel>(),
@@ -123,6 +136,7 @@ impl FigureMgr {
             ecs.read_storage::<Last<CharacterState>>().maybe(),
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Stats>().maybe(),
+            ecs.read_storage::<Loadout>().maybe(),
         )
             .join()
         {
@@ -370,11 +384,11 @@ impl FigureMgr {
 
             let mut state_animation_rate = 1.0;
 
-            let active_tool_kind = if let Some(ItemKind::Tool(ToolData { kind, .. })) = stats
-                .and_then(|s| s.equipment.main.as_ref())
-                .map(|i| &i.kind)
-            {
-                Some(*kind)
+            let active_item_kind = loadout
+                .and_then(|l| l.active_item.as_ref())
+                .map(|i| i.item.kind);
+            let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
+                Some(tool.kind)
             } else {
                 None
             };
@@ -386,7 +400,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -566,7 +580,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -647,7 +661,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -730,7 +744,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -805,7 +819,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -880,7 +894,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -955,7 +969,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -1030,7 +1044,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -1105,7 +1119,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -1180,7 +1194,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            stats.map(|s| &s.equipment),
+                            active_item_kind,
                             tick,
                             CameraMode::default(),
                             None,
@@ -1313,17 +1327,18 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        for (entity, _, _, body, stats, _) in (
+        for (entity, _, _, body, stats, loadout, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Ori>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Stats>().maybe(),
+            ecs.read_storage::<Loadout>().maybe(),
             ecs.read_storage::<Scale>().maybe(),
         )
             .join()
             // Don't render dead entities
-            .filter(|(_, _, _, _, stats, _)| stats.map_or(true, |s| !s.is_dead))
+            .filter(|(_, _, _, _, stats, loadout, _)| stats.map_or(true, |s| !s.is_dead))
         {
             let is_player = entity == player_entity;
             let player_camera_mode = if is_player {
@@ -1331,7 +1346,9 @@ impl FigureMgr {
             } else {
                 CameraMode::default()
             };
-            let stats = stats.map(|s| &s.equipment);
+            let active_item_kind = loadout
+                .and_then(|l| l.active_item.as_ref())
+                .map(|i| i.item.kind);
             let character_state = if is_player { character_state } else { None };
 
             let FigureMgr {
@@ -1369,7 +1386,7 @@ impl FigureMgr {
                                 .get_or_create_model(
                                     renderer,
                                     *body,
-                                    stats,
+                                    active_item_kind,
                                     tick,
                                     player_camera_mode,
                                     character_state,
@@ -1385,7 +1402,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1401,7 +1418,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1417,7 +1434,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1433,7 +1450,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1449,7 +1466,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1465,7 +1482,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1481,7 +1498,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1497,7 +1514,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1513,7 +1530,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1529,7 +1546,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                stats,
+                                active_item_kind,
                                 tick,
                                 player_camera_mode,
                                 character_state,

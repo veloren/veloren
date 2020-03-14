@@ -534,9 +534,9 @@ impl HumArmorFootSpec {
     }
 }
 
-pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
-    if let Some(item) = item {
-        let (name, offset) = match item.kind {
+pub fn mesh_main(item_kind: Option<ItemKind>) -> Mesh<FigurePipeline> {
+    if let Some(item_kind) = item_kind {
+        let (name, offset) = match item_kind {
             ItemKind::Tool(ToolData { kind, .. }) => match kind {
                 ToolKind::Sword(_) => ("weapon.sword.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
                 ToolKind::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -5.0, -4.0)),
