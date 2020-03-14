@@ -16,7 +16,7 @@ mod stats;
 mod visual;
 
 // Reexports
-pub use ability::{AbilityPool, AbilityState};
+pub use ability::{AbilityPool, CharacterAbility};
 pub use admin::Admin;
 pub use agent::{Agent, Alignment};
 pub use body::{

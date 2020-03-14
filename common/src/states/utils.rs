@@ -1,5 +1,5 @@
 use crate::{
-    comp::{AbilityState, CharacterState, EnergySource, ItemKind::Tool, StateUpdate, ToolData},
+    comp::{CharacterAbility, CharacterState, EnergySource, ItemKind::Tool, StateUpdate, ToolData},
     event::LocalEvent,
     sys::{character_behavior::JoinData, phys::GRAVITY},
 };
@@ -191,8 +191,8 @@ pub fn handle_primary_input(data: &JoinData, update: &mut StateUpdate) {
 
 /// Attempts to go into `ability_pool.primary` if is `Some()` on `AbilityPool`
 pub fn attempt_primary_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability_state) = data.ability_pool.primary {
-        update.character = ability_to_character_state(data, update, ability_state);
+    if let Some(ability) = data.ability_pool.primary {
+        update.character = ability.into();
     }
 }
 
@@ -201,15 +201,15 @@ pub fn attempt_primary_ability(data: &JoinData, update: &mut StateUpdate) {
 pub fn handle_secondary_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
         if let CharacterState::Wielding { .. } = update.character {
-            attempt_seconday_ability(data, update);
+            attempt_secondary_ability(data, update);
         }
     }
 }
 
 /// Attempts to go into `ability_pool.secondary` if is `Some()` on `AbilityPool`
-pub fn attempt_seconday_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability_state) = data.ability_pool.secondary {
-        update.character = ability_to_character_state(data, update, ability_state);
+pub fn attempt_secondary_ability(data: &JoinData, update: &mut StateUpdate) {
+    if let Some(ability) = data.ability_pool.secondary {
+        update.character = ability.into();
     }
 }
 
@@ -232,63 +232,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
 }
 
 pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability_state) = data.ability_pool.dodge {
-        update.character = ability_to_character_state(data, update, ability_state);
-    }
-}
-
-// TODO: Might need a fn `CharacterState::new(data, update)` if
-// initialization gets too lengthy.
-
-/// Maps from `AbilityState`s to `CharacterStates`s. Also handles intializing
-/// the new `CharacterState`
-pub fn ability_to_character_state(
-    data: &JoinData,
-    update: &mut StateUpdate,
-    ability_state: AbilityState,
-) -> CharacterState {
-    match ability_state {
-        AbilityState::BasicAttack { cost, .. } => {
-         if let Some(tool) = unwrap_tool_data(data) {
-             if update.energy.try_change_by(cost, EnergySource::HitEnemy).is_ok() {
-                return CharacterState::BasicAttack {
-                    exhausted: false,
-                    remaining_duration: tool.attack_duration(),
-                };
-            }
-        }
-                *data.character
-        },
-        AbilityState::BasicBlock { .. } => CharacterState::BasicBlock {},
-        AbilityState::Roll { .. } => CharacterState::Roll {
-            remaining_duration: Duration::from_millis(600),
-        },
-        AbilityState::ChargeAttack { .. } => CharacterState::ChargeAttack {
-            remaining_duration: Duration::from_millis(600),
-        },
-        AbilityState::TimedCombo { .. } => {
-            if let Some(tool) = unwrap_tool_data(data) {
-                CharacterState::TimedCombo {
-                    tool,
-                    stage: 1,
-                    stage_time_active: Duration::default(),
-                    stage_exhausted: false,
-                    can_transition: false,
-                }
-            } else {
-                *data.character
-            }
-        },
-
-        // Do not use default match
-        // _ => *data.character
-    }
-}
-
-pub fn unwrap_tool_data(data: &JoinData) -> Option<ToolData> {
-    if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
-        Some(tool)
-    } else {
-        None
+    if let Some(ability) = data.ability_pool.dodge {
+        update.character = ability.into();
     }
 }
