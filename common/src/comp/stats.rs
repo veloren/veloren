@@ -42,13 +42,6 @@ pub struct Level {
     amount: u32,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
-pub struct Equipment {
-    pub main: Option<comp::Item>,
-    pub alt: Option<comp::Item>,
-    // TODO: Armor
-}
-
 impl Health {
     pub fn current(&self) -> u32 { self.current }
 
@@ -125,7 +118,6 @@ pub struct Stats {
     pub health: Health,
     pub level: Level,
     pub exp: Exp,
-    pub equipment: Equipment,
     pub endurance: u32,
     pub fitness: u32,
     pub willpower: u32,
@@ -178,7 +170,6 @@ impl Stats {
                 current: 0,
                 maximum: 50,
             },
-            equipment: Equipment { main, alt: None },
             endurance,
             fitness,
             willpower,

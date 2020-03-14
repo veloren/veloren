@@ -95,7 +95,7 @@ impl Component for CharacterState {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Attacking {
-    pub weapon: Option<ToolData>,
+    pub base_damage: u32,
     pub applied: bool,
     pub hit_count: u32,
 }
