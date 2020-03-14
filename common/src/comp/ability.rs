@@ -1,4 +1,7 @@
-use crate::comp::CharacterState;
+use crate::{
+    comp::{CharacterState, ToolData},
+    states::*,
+};
 use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
 use std::time::Duration;
 
@@ -12,8 +15,9 @@ pub enum CharacterAbility {
     Roll,
     ChargeAttack,
     TimedCombo {
-        /// Amount of energy required to use ability
-        cost: i32,
+        tool: ToolData,
+        buildup_duration: Duration,
+        recover_duration: Duration,
     },
 }
 
@@ -35,11 +39,11 @@ impl From<CharacterAbility> for CharacterState {
             CharacterAbility::BasicAttack {
                 buildup_duration,
                 recover_duration,
-            } => CharacterState::BasicAttack {
+            } => CharacterState::BasicAttack(basic_attack::State {
                 exhausted: false,
                 buildup_duration,
                 recover_duration,
-            },
+            }),
             CharacterAbility::BasicBlock { .. } => CharacterState::BasicBlock {},
             CharacterAbility::Roll { .. } => CharacterState::Roll {
                 remaining_duration: Duration::from_millis(600),
@@ -47,12 +51,18 @@ impl From<CharacterAbility> for CharacterState {
             CharacterAbility::ChargeAttack { .. } => CharacterState::ChargeAttack {
                 remaining_duration: Duration::from_millis(600),
             },
-            CharacterAbility::TimedCombo { .. } => CharacterState::TimedCombo {
-                stage: 1,
-                stage_time_active: Duration::default(),
+            CharacterAbility::TimedCombo {
+                tool,
+                buildup_duration,
+                recover_duration,
+            } => CharacterState::TimedCombo(timed_combo::State {
+                tool,
+                buildup_duration,
+                recover_duration,
+                stage: 0,
                 stage_exhausted: false,
-                can_transition: false,
-            },
+                stage_time_active: Duration::default(),
+            }),
         }
     }
 }

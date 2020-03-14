@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         AbilityPool, Attacking, Body, CharacterState, Controller, ControllerInputs, Energy,
-        Mounting, Ori, PhysicsState, Pos, Stats, Vel,
+        Mounting, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -12,6 +12,11 @@ use crate::{
 use specs::{Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
 
 // use std::collections::VecDeque;
+
+pub trait CharacterBehavior {
+    fn behavior(&self, data: &JoinData) -> StateUpdate;
+    // fn init(data: &JoinData) -> CharacterState;
+}
 
 /// Read-Only Data sent from Character Behavior System to bahvior fn's
 pub struct JoinData<'a> {
@@ -173,12 +178,12 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Roll { .. } => states::roll::behavior(&j),
                 CharacterState::Wielding { .. } => states::wielding::behavior(&j),
                 CharacterState::Equipping { .. } => states::equipping::behavior(&j),
-                CharacterState::BasicAttack { .. } => states::basic_attack::behavior(&j),
                 CharacterState::BasicBlock { .. } => states::basic_block::behavior(&j),
                 CharacterState::ChargeAttack { .. } => states::charge_attack::behavior(&j),
                 CharacterState::Sit { .. } => states::sit::behavior(&j),
                 CharacterState::TripleStrike { .. } => states::triple_strike::behavior(&j),
-                CharacterState::TimedCombo { .. } => states::timed_combo::behavior(&j),
+                CharacterState::BasicAttack (state) => state.behavior(&j),
+                CharacterState::TimedCombo(state) => state.behavior(&j),
 
                 // Do not use default match.
                 // _ => StateUpdate {
