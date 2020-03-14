@@ -37,13 +37,12 @@ impl CharacterBehavior for State {
             .checked_add(Duration::from_secs_f32(data.dt.0))
             .unwrap_or(Duration::default());
 
-        println!("Stage {:?}", self.stage);
-
         if self.stage < 3 {
             // Build up window
             if new_stage_time_active < self.buildup_duration {
                 // If the player is pressing primary btn
                 if data.inputs.primary.is_just_pressed() {
+                    println!("Failed");
                     // They failed, go back to `Wielding`
                     update.character = CharacterState::Wielding { tool: self.tool };
                 }
@@ -86,6 +85,7 @@ impl CharacterBehavior for State {
             {
                 // Try to transition to next stage
                 if data.inputs.primary.is_just_pressed() {
+                    println!("Transition");
                     update.character = CharacterState::TimedCombo(State {
                         tool: self.tool,
                         stage: self.stage + 1,
@@ -98,6 +98,7 @@ impl CharacterBehavior for State {
                 // Player didn't click this frame
                 else {
                     // Update state
+                    println!("Missed");
                     update.character = CharacterState::TimedCombo(State {
                         tool: self.tool,
                         stage: self.stage,
@@ -118,6 +119,7 @@ impl CharacterBehavior for State {
         }
         // Made three successful hits!
         else {
+            println!("Success!");
             // Back to `Wielding`
             update.character = CharacterState::Wielding { tool: self.tool };
             // Make sure attack component is removed
@@ -127,6 +129,7 @@ impl CharacterBehavior for State {
         // Subtract energy on successful hit
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
+                println!("Hit");
                 data.updater.remove::<Attacking>(data.entity);
                 update.energy.change_by(100, EnergySource::HitEnemy);
             }

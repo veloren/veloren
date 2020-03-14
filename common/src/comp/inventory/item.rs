@@ -38,8 +38,8 @@ impl ToolData {
 
         match self.kind {
             Sword(_) => vec![TimedCombo {
-                buildup_duration: Duration::from_millis(1000),
-                recover_duration: Duration::from_millis(500),
+                buildup_duration: Duration::from_millis(500),
+                recover_duration: Duration::from_millis(1000),
                 tool: *self,
             }],
             Axe => vec![BasicAttack {
