@@ -5,7 +5,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, HashMapStorage, VecStorage};
-use std::{collections::VecDeque, time::Duration};
+use std::collections::VecDeque;
 
 /// Data returned from character behavior fn's to Character Behavior System.
 pub struct StateUpdate {
@@ -22,54 +22,35 @@ pub struct StateUpdate {
 pub enum CharacterState {
     Idle,
     Climb,
-    Sit {},
-    Equipping {
-        /// The weapon being equipped
-        tool: ToolData,
-        /// Time left before next state
-        time_left: Duration,
-    },
-    Wielding {
-        /// The weapon being wielded
-        tool: ToolData,
-    },
+    Sit,
     Glide,
     /// A basic blocking state
     BasicBlock,
-    ChargeAttack {
-        /// How long the state has until exiting
-        remaining_duration: Duration,
-    },
-    Roll {
-        /// How long the state has until exiting
-        remaining_duration: Duration,
-    },
+    /// Player is busy equipping or unequipping weapons
+    Equipping(equipping::Data),
+    /// Player is holding a weapon and can perform other actions
+    Wielding(wielding::Data),
+    /// Player rushes forward and slams an enemy with their weapon
+    ChargeAttack(charge_attack::Data),
+    /// A dodge where player can roll
+    Roll(roll::Data),
     /// A basic attacking state
-    BasicAttack(basic_attack::State),
+    BasicAttack(basic_attack::Data),
     /// A three-stage attack where play must click at appropriate times
     /// to continue attack chain.
-    TimedCombo(timed_combo::State),
+    TimedCombo(timed_combo::Data),
     /// A three-stage attack where each attack pushes player forward
     /// and successive attacks increase in damage, while player holds button.
-    TripleStrike {
-        /// The tool this state will read to handle damage, etc.
-        tool: ToolData,
-        /// `int` denoting what stage (of 3) the attack is in.
-        stage: i8,
-        /// How long current stage has been active
-        stage_time_active: Duration,
-        /// Whether current stage has exhausted its attack
-        stage_exhausted: bool,
-    },
+    TripleStrike(triple_strike::Data),
 }
 
 impl CharacterState {
     pub fn is_wield(&self) -> bool {
         match self {
-            CharacterState::Wielding { .. }
+            CharacterState::Wielding(_)
             | CharacterState::BasicAttack(_)
             | CharacterState::TimedCombo(_)
-            | CharacterState::BasicBlock { .. } => true,
+            | CharacterState::BasicBlock => true,
             _ => false,
         }
     }
@@ -78,21 +59,21 @@ impl CharacterState {
         match self {
             CharacterState::BasicAttack(_)
             | CharacterState::TimedCombo(_)
-            | CharacterState::ChargeAttack { .. } => true,
+            | CharacterState::ChargeAttack(_) => true,
             _ => false,
         }
     }
 
     pub fn is_block(&self) -> bool {
         match self {
-            CharacterState::BasicBlock { .. } => true,
+            CharacterState::BasicBlock => true,
             _ => false,
         }
     }
 
     pub fn is_dodge(&self) -> bool {
         match self {
-            CharacterState::Roll { .. } => true,
+            CharacterState::Roll(_) => true,
             _ => false,
         }
     }
@@ -105,7 +86,7 @@ impl CharacterState {
 }
 
 impl Default for CharacterState {
-    fn default() -> Self { Self::Idle {} }
+    fn default() -> Self { Self::Idle }
 }
 
 impl Component for CharacterState {

@@ -1,11 +1,11 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate, ToolData},
-    states::utils::*,
+    states::wielding,
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use std::{collections::VecDeque, time::Duration};
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct State {
+pub struct Data {
     /// Denotes what stage (of 3) the attack is in
     pub stage: i8,
     /// Whether current stage has exhausted its attack
@@ -20,7 +20,7 @@ pub struct State {
     pub tool: ToolData,
 }
 
-impl CharacterBehavior for State {
+impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate {
             pos: *data.pos,
@@ -44,11 +44,11 @@ impl CharacterBehavior for State {
                 if data.inputs.primary.is_just_pressed() {
                     println!("Failed");
                     // They failed, go back to `Wielding`
-                    update.character = CharacterState::Wielding { tool: self.tool };
+                    update.character = CharacterState::Wielding(wielding::Data { tool: self.tool });
                 }
                 // Keep updating
                 else {
-                    update.character = CharacterState::TimedCombo(State {
+                    update.character = CharacterState::TimedCombo(Data {
                         tool: self.tool,
                         stage: self.stage,
                         buildup_duration: self.buildup_duration,
@@ -67,7 +67,7 @@ impl CharacterBehavior for State {
                     hit_count: 0,
                 });
 
-                update.character = CharacterState::TimedCombo(State {
+                update.character = CharacterState::TimedCombo(Data {
                     tool: self.tool,
                     stage: self.stage,
                     buildup_duration: self.buildup_duration,
@@ -86,7 +86,7 @@ impl CharacterBehavior for State {
                 // Try to transition to next stage
                 if data.inputs.primary.is_just_pressed() {
                     println!("Transition");
-                    update.character = CharacterState::TimedCombo(State {
+                    update.character = CharacterState::TimedCombo(Data {
                         tool: self.tool,
                         stage: self.stage + 1,
                         buildup_duration: self.buildup_duration,
@@ -99,7 +99,7 @@ impl CharacterBehavior for State {
                 else {
                     // Update state
                     println!("Missed");
-                    update.character = CharacterState::TimedCombo(State {
+                    update.character = CharacterState::TimedCombo(Data {
                         tool: self.tool,
                         stage: self.stage,
                         buildup_duration: self.buildup_duration,
@@ -112,7 +112,7 @@ impl CharacterBehavior for State {
             // Stage expired but missed transition to next stage
             else {
                 // Back to `Wielding`
-                update.character = CharacterState::Wielding { tool: self.tool };
+                update.character = CharacterState::Wielding(wielding::Data { tool: self.tool });
                 // Make sure attack component is removed
                 data.updater.remove::<Attacking>(data.entity);
             }
@@ -121,7 +121,7 @@ impl CharacterBehavior for State {
         else {
             println!("Success!");
             // Back to `Wielding`
-            update.character = CharacterState::Wielding { tool: self.tool };
+            update.character = CharacterState::Wielding(wielding::Data { tool: self.tool });
             // Make sure attack component is removed
             data.updater.remove::<Attacking>(data.entity);
         }

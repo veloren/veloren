@@ -39,23 +39,25 @@ impl From<CharacterAbility> for CharacterState {
             CharacterAbility::BasicAttack {
                 buildup_duration,
                 recover_duration,
-            } => CharacterState::BasicAttack(basic_attack::State {
+            } => CharacterState::BasicAttack(basic_attack::Data {
                 exhausted: false,
                 buildup_duration,
                 recover_duration,
             }),
-            CharacterAbility::BasicBlock { .. } => CharacterState::BasicBlock {},
-            CharacterAbility::Roll { .. } => CharacterState::Roll {
+            CharacterAbility::BasicBlock { .. } => CharacterState::BasicBlock,
+            CharacterAbility::Roll { .. } => CharacterState::Roll(roll::Data {
                 remaining_duration: Duration::from_millis(600),
-            },
-            CharacterAbility::ChargeAttack { .. } => CharacterState::ChargeAttack {
-                remaining_duration: Duration::from_millis(600),
+            }),
+            CharacterAbility::ChargeAttack { .. } => {
+                CharacterState::ChargeAttack(charge_attack::Data {
+                    remaining_duration: Duration::from_millis(600),
+                })
             },
             CharacterAbility::TimedCombo {
                 tool,
                 buildup_duration,
                 recover_duration,
-            } => CharacterState::TimedCombo(timed_combo::State {
+            } => CharacterState::TimedCombo(timed_combo::Data {
                 tool,
                 buildup_duration,
                 recover_duration,

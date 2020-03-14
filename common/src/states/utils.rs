@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterAbility, CharacterState, EnergySource, ItemKind::Tool, StateUpdate, ToolData},
+    comp::{CharacterState, EnergySource, ItemKind::Tool, StateUpdate, ToolData},
     event::LocalEvent,
     states::*,
     sys::{character_behavior::JoinData, phys::GRAVITY},
@@ -120,10 +120,10 @@ pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
 /// If a tool is equipped, goes into Equipping state, otherwise goes to Idle
 pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
     if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
-        update.character = CharacterState::Equipping {
+        update.character = CharacterState::Equipping(equipping::Data {
             tool,
             time_left: tool.equip_time(),
-        };
+        });
     } else {
         update.character = CharacterState::Idle {};
     };

@@ -172,18 +172,18 @@ impl<'a> System<'a> for Sys {
             }
 
             let mut state_update = match j.character {
-                CharacterState::Idle { .. } => states::idle::behavior(&j),
-                CharacterState::Climb { .. } => states::climb::behavior(&j),
-                CharacterState::Glide { .. } => states::glide::behavior(&j),
-                CharacterState::Roll { .. } => states::roll::behavior(&j),
-                CharacterState::Wielding { .. } => states::wielding::behavior(&j),
-                CharacterState::Equipping { .. } => states::equipping::behavior(&j),
-                CharacterState::BasicBlock { .. } => states::basic_block::behavior(&j),
-                CharacterState::ChargeAttack { .. } => states::charge_attack::behavior(&j),
-                CharacterState::Sit { .. } => states::sit::behavior(&j),
-                CharacterState::TripleStrike { .. } => states::triple_strike::behavior(&j),
-                CharacterState::BasicAttack (state) => state.behavior(&j),
-                CharacterState::TimedCombo(state) => state.behavior(&j),
+                CharacterState::Idle => states::idle::Data::behavior(&states::idle::Data, &j),
+                CharacterState::Climb => states::climb::Data::behavior(&states::climb::Data, &j),
+                CharacterState::Glide => states::glide::Data::behavior(&states::glide::Data, &j),
+                CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
+                CharacterState::BasicBlock  => states::basic_block::Data::behavior(&states::basic_block::Data, &j),
+                CharacterState::Roll (data) => data.behavior(&j),
+                CharacterState::Wielding (data) => data.behavior(&j),
+                CharacterState::Equipping (data) => data.behavior(&j),
+                CharacterState::ChargeAttack (data) => data.behavior(&j),
+                CharacterState::TripleStrike (data) => data.behavior(&j),
+                CharacterState::BasicAttack (data) => data.behavior(&j),
+                CharacterState::TimedCombo(data) => data.behavior(&j),
 
                 // Do not use default match.
                 // _ => StateUpdate {
