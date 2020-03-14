@@ -19,8 +19,8 @@ pub struct StateUpdate {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum CharacterState {
-    Idle {},
-    Climb {},
+    Idle,
+    Climb,
     Sit {},
     Equipping {
         /// The weapon being equipped
@@ -32,16 +32,18 @@ pub enum CharacterState {
         /// The weapon being wielded
         tool: ToolData,
     },
-    Glide {},
+    Glide,
     /// A basic attacking state
     BasicAttack {
-        /// How long the state has until exiting
-        remaining_duration: Duration,
+        /// How long till the state deals damage
+        buildup_duration: Duration,
+        /// How long till the state remains after dealing damage
+        recover_duration: Duration,
         /// Whether the attack can deal more damage
         exhausted: bool,
     },
     /// A basic blocking state
-    BasicBlock {},
+    BasicBlock,
     ChargeAttack {
         /// How long the state has until exiting
         remaining_duration: Duration,
@@ -53,8 +55,6 @@ pub enum CharacterState {
     /// A three-stage attack where play must click at appropriate times
     /// to continue attack chain.
     TimedCombo {
-        /// The tool this state will read to handle damage, etc.
-        tool: ToolData,
         /// `int` denoting what stage (of 3) the attack is in.
         stage: i8,
         /// How long current stage has been active

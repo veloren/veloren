@@ -1,10 +1,12 @@
+use crate::comp::CharacterState;
 use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
+use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub enum AbilityState {
+pub enum CharacterAbility {
     BasicAttack {
-        /// Amount of energy required to use ability
-        cost: i32,
+        buildup_duration: Duration,
+        recover_duration: Duration,
     },
     BasicBlock,
     Roll,
@@ -14,30 +16,43 @@ pub enum AbilityState {
         cost: i32,
     },
 }
-impl Default for AbilityState {
-    fn default() -> Self { Self::BasicAttack { cost: -100 } }
-}
 
-impl Component for AbilityState {
+impl Component for CharacterAbility {
     type Storage = DenseVecStorage<Self>;
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Default, Debug, Serialize, Deserialize)]
 pub struct AbilityPool {
-    pub primary: Option<AbilityState>,
-    pub secondary: Option<AbilityState>,
-    pub block: Option<AbilityState>,
-    pub dodge: Option<AbilityState>,
+    pub primary: Option<CharacterAbility>,
+    pub secondary: Option<CharacterAbility>,
+    pub block: Option<CharacterAbility>,
+    pub dodge: Option<CharacterAbility>,
 }
 
-impl Default for AbilityPool {
-    fn default() -> Self {
-        Self {
-            primary: Some(AbilityState::default()),
-            // primary: Some(AbilityState::TimedCombo),
-            secondary: Some(AbilityState::BasicBlock),
-            block: None,
-            dodge: Some(AbilityState::Roll),
+impl From<CharacterAbility> for CharacterState {
+    fn from(ability: CharacterAbility) -> Self {
+        match ability {
+            CharacterAbility::BasicAttack {
+                buildup_duration,
+                recover_duration,
+            } => CharacterState::BasicAttack {
+                exhausted: false,
+                buildup_duration,
+                recover_duration,
+            },
+            CharacterAbility::BasicBlock { .. } => CharacterState::BasicBlock {},
+            CharacterAbility::Roll { .. } => CharacterState::Roll {
+                remaining_duration: Duration::from_millis(600),
+            },
+            CharacterAbility::ChargeAttack { .. } => CharacterState::ChargeAttack {
+                remaining_duration: Duration::from_millis(600),
+            },
+            CharacterAbility::TimedCombo { .. } => CharacterState::TimedCombo {
+                stage: 1,
+                stage_time_active: Duration::default(),
+                stage_exhausted: false,
+                can_transition: false,
+            },
         }
     }
 }
