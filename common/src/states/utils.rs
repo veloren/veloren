@@ -1,6 +1,7 @@
 use crate::{
     comp::{CharacterAbility, CharacterState, EnergySource, ItemKind::Tool, StateUpdate, ToolData},
     event::LocalEvent,
+    states::*,
     sys::{character_behavior::JoinData, phys::GRAVITY},
 };
 use std::time::Duration;
@@ -234,5 +235,13 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
 pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
     if let Some(ability) = data.ability_pool.dodge {
         update.character = ability.into();
+    }
+}
+
+pub fn unwrap_tool_data(data: &JoinData) -> Option<ToolData> {
+    if let Some(Tool(tool)) = data.stats.equipment.main.as_ref().map(|i| i.kind) {
+        Some(tool)
+    } else {
+        None
     }
 }

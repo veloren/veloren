@@ -1,98 +1,137 @@
 use crate::{
-    comp::{Attacking, CharacterState, ItemKind::Tool, StateUpdate},
+    comp::{Attacking, CharacterState, EnergySource, StateUpdate, ToolData},
     states::utils::*,
-    sys::character_behavior::JoinData,
+    sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use std::{collections::VecDeque, time::Duration};
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub struct State {
+    /// Denotes what stage (of 3) the attack is in
+    pub stage: i8,
+    /// Whether current stage has exhausted its attack
+    pub stage_exhausted: bool,
+    /// How long state waits before it should deal damage
+    pub buildup_duration: Duration,
+    /// How long the state waits until exiting
+    pub recover_duration: Duration,
+    /// Tracks how long current stage has been active
+    pub stage_time_active: Duration,
+    /// `ToolData` to be sent to `Attacking` component
+    pub tool: ToolData,
+}
 
-pub fn behavior(data: &JoinData) -> StateUpdate {
-    let mut update = StateUpdate {
-        pos: *data.pos,
-        vel: *data.vel,
-        ori: *data.ori,
-        energy: *data.energy,
-        character: *data.character,
-        local_events: VecDeque::new(),
-        server_events: VecDeque::new(),
-    };
+impl CharacterBehavior for State {
+    fn behavior(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate {
+            pos: *data.pos,
+            vel: *data.vel,
+            ori: *data.ori,
+            energy: *data.energy,
+            character: *data.character,
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
+        };
 
-    if let CharacterState::TimedCombo {
-        stage,
-        stage_time_active,
-        stage_exhausted,
-        can_transition,
-    } = data.character
-    {
-        // Sorry adam, I don't want to fix this rn, check out basic_attack to
-        // see how to do it
-        //
-        /*
-            let mut new_can_transition = *can_transition;
-            let mut new_stage_exhausted = *stage_exhausted;
-            let new_stage_time_active = stage_time_active
-                .checked_add(Duration::from_secs_f32(data.dt.0))
-                .unwrap_or(Duration::default());
+        let new_stage_time_active = self
+            .stage_time_active
+            .checked_add(Duration::from_secs_f32(data.dt.0))
+            .unwrap_or(Duration::default());
 
-            match stage {
-                1 => {
-                    if new_stage_time_active > tool.attack_buildup_duration() {
-                        if !*stage_exhausted {
-                            // Try to deal damage
-                            data.updater.insert(data.entity, Attacking {
-                                weapon: Some(*tool),
-                                applied: false,
-                                hit_count: 0,
-                            });
-                            new_stage_exhausted = true;
-                        } else {
-                            // Make sure to remove Attacking component
-                            data.updater.remove::<Attacking>(data.entity);
-                        }
+        println!("Stage {:?}", self.stage);
 
-                        // Check if player has timed click right
-                        if data.inputs.primary.is_just_pressed() {
-                            println!("Can transition");
-                            new_can_transition = true;
-                        }
-                    }
-
-                    if new_stage_time_active > tool.attack_duration() {
-                        if new_can_transition {
-                            update.character = CharacterState::TimedCombo {
-                                tool: *tool,
-                                stage: 2,
-                                stage_time_active: Duration::default(),
-                                stage_exhausted: false,
-                                can_transition: false,
-                            }
-                        } else {
-                            println!("Failed");
-                            attempt_wield(data, &mut update);
-                        }
-                    } else {
-                        update.character = CharacterState::TimedCombo {
-                            tool: *tool,
-                            stage: 1,
-                            stage_time_active: new_stage_time_active,
-                            stage_exhausted: new_stage_exhausted,
-                            can_transition: new_can_transition,
-                        }
-                    }
-                },
-                2 => {
-                    println!("2");
-                    attempt_wield(data, &mut update);
-                },
-                3 => {
-                    println!("3");
-                    attempt_wield(data, &mut update);
-                },
-                _ => {
-                    // Should never get here.
-                },
+        if self.stage < 3 {
+            // Build up window
+            if new_stage_time_active < self.buildup_duration {
+                // If the player is pressing primary btn
+                if data.inputs.primary.is_just_pressed() {
+                    // They failed, go back to `Wielding`
+                    update.character = CharacterState::Wielding { tool: self.tool };
+                }
+                // Keep updating
+                else {
+                    update.character = CharacterState::TimedCombo(State {
+                        tool: self.tool,
+                        stage: self.stage,
+                        buildup_duration: self.buildup_duration,
+                        recover_duration: self.recover_duration,
+                        stage_exhausted: false,
+                        stage_time_active: new_stage_time_active,
+                    });
+                }
             }
-        */
-    }
+            // Hit attempt window
+            else if !self.stage_exhausted {
+                // Swing hits
+                data.updater.insert(data.entity, Attacking {
+                    weapon: Some(self.tool),
+                    applied: false,
+                    hit_count: 0,
+                });
 
-    update
+                update.character = CharacterState::TimedCombo(State {
+                    tool: self.tool,
+                    stage: self.stage,
+                    buildup_duration: self.buildup_duration,
+                    recover_duration: self.recover_duration,
+                    stage_exhausted: true,
+                    stage_time_active: new_stage_time_active,
+                });
+            }
+            // Swing recovery window
+            else if new_stage_time_active
+                < self
+                    .buildup_duration
+                    .checked_add(self.recover_duration)
+                    .unwrap_or(Duration::default())
+            {
+                // Try to transition to next stage
+                if data.inputs.primary.is_just_pressed() {
+                    update.character = CharacterState::TimedCombo(State {
+                        tool: self.tool,
+                        stage: self.stage + 1,
+                        buildup_duration: self.buildup_duration,
+                        recover_duration: self.recover_duration,
+                        stage_exhausted: true,
+                        stage_time_active: Duration::default(),
+                    });
+                }
+                // Player didn't click this frame
+                else {
+                    // Update state
+                    update.character = CharacterState::TimedCombo(State {
+                        tool: self.tool,
+                        stage: self.stage,
+                        buildup_duration: self.buildup_duration,
+                        recover_duration: self.recover_duration,
+                        stage_exhausted: true,
+                        stage_time_active: new_stage_time_active,
+                    });
+                }
+            }
+            // Stage expired but missed transition to next stage
+            else {
+                // Back to `Wielding`
+                update.character = CharacterState::Wielding { tool: self.tool };
+                // Make sure attack component is removed
+                data.updater.remove::<Attacking>(data.entity);
+            }
+        }
+        // Made three successful hits!
+        else {
+            // Back to `Wielding`
+            update.character = CharacterState::Wielding { tool: self.tool };
+            // Make sure attack component is removed
+            data.updater.remove::<Attacking>(data.entity);
+        }
+
+        // Subtract energy on successful hit
+        if let Some(attack) = data.attacking {
+            if attack.applied && attack.hit_count > 0 {
+                data.updater.remove::<Attacking>(data.entity);
+                update.energy.change_by(100, EnergySource::HitEnemy);
+            }
+        }
+
+        update
+    }
 }
