@@ -18,51 +18,65 @@ pub fn behavior(data: &JoinData) -> StateUpdate {
 
     if let CharacterState::BasicAttack {
         exhausted,
-        remaining_duration,
+        buildup_duration,
+        recover_duration,
     } = data.character
     {
         let tool_kind = data.stats.equipment.main.as_ref().map(|i| i.kind);
-        if let Some(Tool(tool)) = tool_kind {
-            handle_move(data, &mut update);
+        handle_move(data, &mut update);
 
-            let mut new_exhausted = *exhausted;
-
-            if !*exhausted && *remaining_duration < tool.attack_recover_duration() {
+        if buildup_duration != &Duration::default() {
+            // Start to swing
+            update.character = CharacterState::BasicAttack {
+                buildup_duration: buildup_duration
+                    .checked_sub(Duration::from_secs_f32(data.dt.0))
+                    .unwrap_or_default(),
+                recover_duration: *recover_duration,
+                exhausted: false,
+            };
+        } else if !*exhausted {
+            // Swing hits
+            if let Some(Tool(tool)) = tool_kind {
                 data.updater.insert(data.entity, Attacking {
                     weapon: Some(tool),
                     applied: false,
                     hit_count: 0,
                 });
-                new_exhausted = true;
             }
 
-            let new_remaining_duration = remaining_duration
-                .checked_sub(Duration::from_secs_f32(data.dt.0))
-                .unwrap_or_default();
-
-            if let Some(attack) = data.attacking {
-                if attack.applied && attack.hit_count > 0 {
-                    data.updater.remove::<Attacking>(data.entity);
-                    update.energy.change_by(100, EnergySource::HitEnemy);
-                }
-            }
-
-            // Tick down
             update.character = CharacterState::BasicAttack {
-                remaining_duration: new_remaining_duration,
-                exhausted: new_exhausted,
+                buildup_duration: *buildup_duration,
+                recover_duration: *recover_duration,
+                exhausted: true,
             };
-
-            // Check if attack duration has expired
-            if new_remaining_duration == Duration::default() {
+        } else if recover_duration != &Duration::default() {
+            // Recover from swing
+            update.character = CharacterState::BasicAttack {
+                buildup_duration: *buildup_duration,
+                recover_duration: recover_duration
+                    .checked_sub(Duration::from_secs_f32(data.dt.0))
+                    .unwrap_or_default(),
+                exhausted: true,
+            }
+        } else {
+            // Done
+            if let Some(Tool(tool)) = tool_kind {
                 update.character = CharacterState::Wielding { tool };
                 data.updater.remove::<Attacking>(data.entity);
+            } else {
+                update.character = CharacterState::Idle;
             }
-
-            update
-        } else {
-            update
         }
+
+        // More handling
+        if let Some(attack) = data.attacking {
+            if attack.applied && attack.hit_count > 0 {
+                data.updater.remove::<Attacking>(data.entity);
+                update.energy.change_by(100, EnergySource::HitEnemy);
+            }
+        }
+
+        update
     } else {
         update.character = CharacterState::Idle {};
         update

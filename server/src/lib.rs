@@ -272,7 +272,7 @@ impl Server {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
         state.write_component(entity, body);
-        state.write_component(entity, comp::Stats::new(name, body, main));
+        state.write_component(entity, comp::Stats::new(name, body, main.clone()));
         state.write_component(entity, comp::Energy::new(1000));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
@@ -286,7 +286,27 @@ impl Server {
             entity,
             comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
         );
-        state.write_component(entity, comp::AbilityPool::default());
+
+        state.write_component(
+            entity,
+            if let Some(comp::Item {
+                kind: comp::ItemKind::Tool(tool),
+                ..
+            }) = main
+            {
+                let mut abilities = tool.get_abilities();
+                let mut ability_drain = abilities.drain(..);
+                comp::AbilityPool {
+                    primary: ability_drain.next(),
+                    secondary: ability_drain.next(),
+                    block: Some(comp::CharacterAbility::BasicBlock),
+                    dodge: Some(comp::CharacterAbility::Roll),
+                }
+            } else {
+                comp::AbilityPool::default()
+            },
+        );
+
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 

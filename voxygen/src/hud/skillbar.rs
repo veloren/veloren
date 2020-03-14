@@ -10,7 +10,7 @@ use crate::{
 use common::{
     assets::load_expect,
     comp::{
-        item::{Debug, ToolData, ToolKind},
+        item::{DebugKind, ToolData, ToolKind},
         CharacterState, ControllerInputs, Energy, ItemKind, Stats,
     },
 };
@@ -597,7 +597,7 @@ impl<'a> Widget for Skillbar<'a> {
                 ToolKind::Axe => self.imgs.twohaxe_m1,
                 ToolKind::Bow => self.imgs.bow_m1,
                 ToolKind::Staff => self.imgs.staff_m1,
-                ToolKind::Debug(Debug::Boost) => self.imgs.flyingrod_m1,
+                ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m1,
                 _ => self.imgs.twohaxe_m1,
             },
             _ => self.imgs.twohaxe_m1,
@@ -690,7 +690,7 @@ impl<'a> Widget for Skillbar<'a> {
                 ToolKind::Axe => self.imgs.twohaxe_m2,
                 ToolKind::Bow => self.imgs.bow_m2,
                 ToolKind::Staff => self.imgs.staff_m2,
-                ToolKind::Debug(Debug::Boost) => self.imgs.flyingrod_m2,
+                ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
                 _ => self.imgs.twohaxe_m2,
             },
             _ => self.imgs.twohaxe_m2,
