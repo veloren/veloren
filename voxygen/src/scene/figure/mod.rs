@@ -454,7 +454,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicAttack { .. } => {
+                        CharacterState::BasicAttack(_) => {
                             anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
@@ -462,6 +462,22 @@ impl FigureMgr {
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
+                        },
+                        CharacterState::TimedCombo(s) => match s.stage {
+                            0 | 2 => anim::character::AttackAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            ),
+                            _ => anim::character::ChargeAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            ),
                         },
                         CharacterState::BasicBlock { .. } => {
                             anim::character::BlockIdleAnimation::update_skeleton(

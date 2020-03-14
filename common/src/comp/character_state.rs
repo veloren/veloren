@@ -1,6 +1,7 @@
 use crate::{
     comp::{Energy, Ori, Pos, ToolData, Vel},
     event::{LocalEvent, ServerEvent},
+    states::*,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, HashMapStorage, VecStorage};
@@ -33,15 +34,6 @@ pub enum CharacterState {
         tool: ToolData,
     },
     Glide,
-    /// A basic attacking state
-    BasicAttack {
-        /// How long till the state deals damage
-        buildup_duration: Duration,
-        /// How long till the state remains after dealing damage
-        recover_duration: Duration,
-        /// Whether the attack can deal more damage
-        exhausted: bool,
-    },
     /// A basic blocking state
     BasicBlock,
     ChargeAttack {
@@ -52,18 +44,11 @@ pub enum CharacterState {
         /// How long the state has until exiting
         remaining_duration: Duration,
     },
+    /// A basic attacking state
+    BasicAttack(basic_attack::State),
     /// A three-stage attack where play must click at appropriate times
     /// to continue attack chain.
-    TimedCombo {
-        /// `int` denoting what stage (of 3) the attack is in.
-        stage: i8,
-        /// How long current stage has been active
-        stage_time_active: Duration,
-        /// Whether current stage has exhausted its attack
-        stage_exhausted: bool,
-        /// Whether player has clicked at the proper time to go to next stage
-        can_transition: bool,
-    },
+    TimedCombo(timed_combo::State),
     /// A three-stage attack where each attack pushes player forward
     /// and successive attacks increase in damage, while player holds button.
     TripleStrike {
@@ -81,16 +66,19 @@ pub enum CharacterState {
 impl CharacterState {
     pub fn is_wield(&self) -> bool {
         match self {
-            CharacterState::Wielding { .. } => true,
-            CharacterState::BasicAttack { .. } => true,
-            CharacterState::BasicBlock { .. } => true,
+            CharacterState::Wielding { .. }
+            | CharacterState::BasicAttack(_)
+            | CharacterState::TimedCombo(_)
+            | CharacterState::BasicBlock { .. } => true,
             _ => false,
         }
     }
 
     pub fn is_attack(&self) -> bool {
         match self {
-            CharacterState::BasicAttack { .. } | CharacterState::ChargeAttack { .. } => true,
+            CharacterState::BasicAttack(_)
+            | CharacterState::TimedCombo(_)
+            | CharacterState::ChargeAttack { .. } => true,
             _ => false,
         }
     }
