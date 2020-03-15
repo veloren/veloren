@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
                         .choose(&mut rand::thread_rng())
                         .expect("SPAWN_NPCS is nonempty")(
                     );
-                    let mut stats = comp::Stats::new(name, body, main.clone());
+                    let mut stats = comp::Stats::new(name, body);
                     let mut loadout = comp::Loadout {
                         active_item: main.map(|item| comp::ItemConfig {
                             item,
@@ -209,7 +209,6 @@ impl<'a> System<'a> for Sys {
                                     get_npc_name(&NPC_NAMES.humanoid, body_new.race)
                                 ),
                                 body,
-                                Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
                             );
                         }
                         loadout = comp::Loadout {

@@ -459,6 +459,10 @@
             "peacock": {
                 "keyword": "peacock",
                 "generic": "Peacock"
+            },
+            "eagle": {
+                "keyword": "eagle",
+                "generic": "Eagle"
             }
         }
     },

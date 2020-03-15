@@ -32,7 +32,7 @@ pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;
 pub use inventory::{
     item, Inventory, InventoryUpdate, InventoryUpdateEvent, Item, ItemKind, SwordKind, ToolData,
-    ToolKind,
+    ToolKind, MAX_PICKUP_RANGE_SQR,
 };
 pub use last::Last;
 pub use location::{Waypoint, WaypointArea};
