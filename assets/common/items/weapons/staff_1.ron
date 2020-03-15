@@ -5,10 +5,6 @@ Item(
         ToolData (
             kind: Staff,    
             equip_time_millis: 800,
-            attack_buildup_millis: 400,
-            attack_recover_millis: 300,
-            range: 3,
-            base_damage: 10, 
         )
     ),
 )

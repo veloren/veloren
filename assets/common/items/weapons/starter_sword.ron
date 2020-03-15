@@ -5,10 +5,6 @@ Item(
         ToolData (
             kind: Sword(Rapier),    
             equip_time_millis: 800,
-            attack_buildup_millis: 100,
-            attack_recover_millis: 500,
-            range: 3,
-            base_damage: 10, 
         )
     ),
 )

@@ -11,6 +11,8 @@ pub struct Data {
     pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// Base damage
+    pub base_damage: u32,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
 }
@@ -37,6 +39,7 @@ impl CharacterBehavior for Data {
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
                 recover_duration: self.recover_duration,
+                base_damage: self.base_damage,
                 exhausted: false,
             });
         }
@@ -44,7 +47,7 @@ impl CharacterBehavior for Data {
         else if !self.exhausted {
             if let Some(tool) = unwrap_tool_data(data) {
                 data.updater.insert(data.entity, Attacking {
-                    base_damage: tool.base_damage,
+                    base_damage: self.base_damage,
                     applied: false,
                     hit_count: 0,
                 });
@@ -53,6 +56,7 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::BasicAttack(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
+                base_damage: self.base_damage,
                 exhausted: true,
             });
         }
@@ -64,13 +68,14 @@ impl CharacterBehavior for Data {
                     .recover_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
+                base_damage: self.base_damage,
                 exhausted: true,
             });
         }
         // Done
         else {
             if let Some(tool) = unwrap_tool_data(data) {
-                update.character = CharacterState::Wielding(wielding::Data { tool });
+                update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
                 data.updater.remove::<Attacking>(data.entity);
             } else {
