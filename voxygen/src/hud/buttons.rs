@@ -12,8 +12,6 @@ widget_ids! {
         bag_text,
         bag_show_map,
         map_button,
-        qlog_button,
-        qlog_button_bg,
         settings_button,
         social_button,
         social_button_bg,
@@ -63,8 +61,6 @@ pub enum Event {
     ToggleMap,
     ToggleSocial,
     ToggleSpell,
-    ToggleQuest,
-    ToggleCharacter,
 }
 
 impl<'a> Widget for Buttons<'a> {
