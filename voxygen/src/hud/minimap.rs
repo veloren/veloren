@@ -103,11 +103,11 @@ impl<'a> Widget for MiniMap<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
         let zoom = state.zoom;
-        const SCALE: f64 = 1.0;
+        const SCALE: f64 = 1.5;
         if self.show.mini_map {
             Image::new(self.imgs.mmap_frame)
                 .w_h(174.0 * SCALE, 190.0 * SCALE)
-                .top_right_with_margins_on(ui.window, 5.0, 5.0)
+                .top_right_with_margins_on(ui.window, 0.0, 5.0)
                 .set(state.ids.mmap_frame, ui);
 
             Rectangle::fill_with([170.0 * SCALE, 170.0 * SCALE], color::TRANSPARENT)
@@ -296,15 +296,8 @@ impl<'a> Widget for MiniMap<'a> {
         // Title
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(
-                    state.ids.mmap_frame,
-                    if self.show.mini_map { 6.0 } else { 0.0 },
-                )
-                .font_size(
-                    self.fonts
-                        .cyri
-                        .scale(if self.show.mini_map { 20 } else { 18 }),
-                )
+                .mid_top_with_margin_on(state.ids.mmap_frame, 2.0)
+                .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
