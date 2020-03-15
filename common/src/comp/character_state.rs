@@ -29,7 +29,7 @@ pub enum CharacterState {
     /// Player is busy equipping or unequipping weapons
     Equipping(equipping::Data),
     /// Player is holding a weapon and can perform other actions
-    Wielding(wielding::Data),
+    Wielding,
     /// Player rushes forward and slams an enemy with their weapon
     ChargeAttack(charge_attack::Data),
     /// A dodge where player can roll
@@ -47,7 +47,7 @@ pub enum CharacterState {
 impl CharacterState {
     pub fn is_wield(&self) -> bool {
         match self {
-            CharacterState::Wielding(_)
+            CharacterState::Wielding
             | CharacterState::BasicAttack(_)
             | CharacterState::TimedCombo(_)
             | CharacterState::BasicBlock => true,

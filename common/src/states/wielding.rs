@@ -1,14 +1,11 @@
 use super::utils::*;
 use crate::{
-    comp::{StateUpdate, ToolData},
+    comp::StateUpdate,
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use std::collections::VecDeque;
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct Data {
-    /// The weapon being wielded
-    pub tool: ToolData,
-}
+
+pub struct Data;
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
