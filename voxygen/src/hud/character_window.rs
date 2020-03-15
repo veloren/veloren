@@ -98,10 +98,6 @@ impl<'a> CharacterWindow<'a> {
     }
 }
 
-/*pub struct State {
-    ids: Ids,
-}*/
-
 pub enum Event {
     Close,
 }
