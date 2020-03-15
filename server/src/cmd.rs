@@ -504,7 +504,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                                 .state
                                 .create_npc(
                                     pos,
-                                    comp::Stats::new(get_npc_name(id).into(), body, None),
+                                    comp::Stats::new(get_npc_name(id).into(), body),
                                     body,
                                 )
                                 .with(comp::Vel(vel))
@@ -643,7 +643,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
         .read_storage::<comp::Ori>()
         .get(entity)
         .copied();
-    /*let builder = server
+    /*let builder = server.state
     .create_object(pos, ori, obj_type)
     .with(ori);*/
     if let (Some(pos), Some(ori)) = (pos, ori) {
@@ -705,6 +705,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             },
         };
         server
+            .state
             .create_object(pos, obj_type)
             .with(comp::Ori(
                 // converts player orientation into a 90° rotation for the object by using the axis

@@ -6,7 +6,7 @@ pub mod server;
 pub use self::{
     client::ClientMsg,
     ecs_packet::EcsCompPacket,
-    server::{PlayerListUpdate, RequestStateError, ServerError, ServerInfo, ServerMsg},
+    server::{PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

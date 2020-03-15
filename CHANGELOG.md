@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New attack animation
 - weapon control system
 - Game pauses when in singleplayer and pause menu
+- Added authentication system (to play on the official server register on https://account.veloren.net)
+- Added gamepad/controller support
+- Added player feedback when attempting to pickup an item with a full inventory
 
 ### Changed
 
@@ -31,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed highlighting of non-collectible sprites
 - Fixed /give_exp ignoring player argument
 - Extend run sfx to small animals to prevent sneak attacks by geese.
+- Decreased clientside latency of ServerEvent mediated effects (e.g. projectiles, inventory operations, etc)
 
 ### Removed
 
