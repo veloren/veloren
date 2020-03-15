@@ -12,7 +12,7 @@ use crate::{
 };
 use client::Client;
 use common::{
-    assets::load_expect,
+    assets::{load_expect, load_glob},
     comp::{self, humanoid},
 };
 use conrod_core::{
@@ -22,6 +22,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
+use std::{borrow::Borrow, sync::Arc};
 
 const STARTER_HAMMER: &str = "common.items.weapons.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.starter_bow";
@@ -251,6 +252,7 @@ pub enum Mode {
     Create {
         name: String,
         body: humanoid::Body,
+        loadout: comp::Loadout,
         tool: Option<&'static str>,
     },
 }
@@ -263,7 +265,7 @@ pub struct CharSelectionUi {
     fonts: ConrodVoxygenFonts,
     //character_creation: bool,
     info_content: InfoContent,
-    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
+    voxygen_i18n: Arc<VoxygenLocalization>,
     //deletion_confirmation: bool,
     /*
     pub character_name: String,
@@ -317,11 +319,37 @@ impl CharSelectionUi {
     pub fn get_character_data(&self) -> Option<CharacterData> {
         match &self.mode {
             Mode::Select(data) => data.clone(),
-            Mode::Create { name, body, tool } => Some(CharacterData {
+            Mode::Create {
+                name,
+                body,
+                loadout,
+                tool,
+            } => Some(CharacterData {
                 name: name.clone(),
                 body: comp::Body::Humanoid(body.clone()),
                 tool: tool.map(|specifier| specifier.to_string()),
             }),
+        }
+    }
+
+    pub fn get_loadout(&mut self) -> Option<&comp::Loadout> {
+        match &mut self.mode {
+            Mode::Select(_) => None,
+            Mode::Create {
+                name,
+                body,
+                loadout,
+                tool,
+            } => {
+                loadout.active_item = tool.map(|tool| comp::ItemConfig {
+                    item: (*load_expect::<comp::Item>(tool)).clone(),
+                    primary_ability: None,
+                    secondary_ability: None,
+                    block_ability: None,
+                    dodge_ability: None,
+                });
+                Some(loadout)
+            },
         }
     }
 
@@ -646,13 +674,19 @@ impl CharSelectionUi {
                     self.mode = Mode::Create {
                         name: "Character Name".to_string(),
                         body: humanoid::Body::random(),
+                        loadout: comp::Loadout::default(),
                         tool: Some(STARTER_SWORD),
                     };
                 }
             },
             // Character_Creation
             // //////////////////////////////////////////////////////////////////////
-            Mode::Create { name, body, tool } => {
+            Mode::Create {
+                name,
+                body,
+                loadout,
+                tool,
+            } => {
                 let mut to_select = false;
                 // Back Button
                 if Button::image(self.imgs.button)
@@ -1266,20 +1300,27 @@ impl CharSelectionUi {
                         .set(self.ids.beard_slider, ui_widgets);
                 }
                 // Chest
-                let current_chest = body.chest;
+                let armor = load_glob::<comp::Item>("common.items.armor.chest.*")
+                    .expect("Unable to load armor!");
                 if let Some(new_val) = char_slider(
                     self.ids.beard_slider,
                     self.voxygen_i18n.get("char_selection.chest_color"),
                     self.ids.chest_text,
-                    humanoid::ALL_CHESTS.len() - 1,
-                    humanoid::ALL_CHESTS
+                    armor.len() - 1,
+                    armor
                         .iter()
-                        .position(|&c| c == current_chest)
+                        .position(|c| {
+                            loadout
+                                .chest
+                                .as_ref()
+                                .map(|lc| lc == c.borrow())
+                                .unwrap_or_default()
+                        })
                         .unwrap_or(0),
                     self.ids.chest_slider,
                     ui_widgets,
                 ) {
-                    body.chest = humanoid::ALL_CHESTS[new_val];
+                    loadout.chest = Some((*armor[new_val]).clone());
                 }
                 // Pants
                 /*let current_pants = body.pants;

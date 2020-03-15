@@ -400,7 +400,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -580,7 +580,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -661,7 +661,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -744,7 +744,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -819,7 +819,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -894,7 +894,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -969,7 +969,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -1044,7 +1044,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -1119,7 +1119,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -1194,7 +1194,7 @@ impl FigureMgr {
                         .get_or_create_model(
                             renderer,
                             *body,
-                            active_item_kind,
+                            loadout,
                             tick,
                             CameraMode::default(),
                             None,
@@ -1386,7 +1386,7 @@ impl FigureMgr {
                                 .get_or_create_model(
                                     renderer,
                                     *body,
-                                    active_item_kind,
+                                    loadout,
                                     tick,
                                     player_camera_mode,
                                     character_state,
@@ -1402,7 +1402,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1418,7 +1418,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1434,7 +1434,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1450,7 +1450,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1466,7 +1466,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1482,7 +1482,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1498,7 +1498,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1514,7 +1514,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1530,7 +1530,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
@@ -1546,7 +1546,7 @@ impl FigureMgr {
                             .get_or_create_model(
                                 renderer,
                                 *body,
-                                active_item_kind,
+                                loadout,
                                 tick,
                                 player_camera_mode,
                                 character_state,
