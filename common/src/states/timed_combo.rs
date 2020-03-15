@@ -1,6 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate, ToolData},
-    states::wielding,
+    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use std::{collections::VecDeque, time::Duration};
@@ -16,8 +15,8 @@ pub struct Data {
     pub recover_duration: Duration,
     /// Tracks how long current stage has been active
     pub stage_time_active: Duration,
-    /// `ToolData` to be sent to `Attacking` component
-    pub tool: ToolData,
+    /// Base damage
+    pub base_damage: u32,
 }
 
 impl CharacterBehavior for Data {
@@ -43,17 +42,17 @@ impl CharacterBehavior for Data {
                 // If the player is pressing primary btn
                 if data.inputs.primary.is_just_pressed() {
                     // They failed, go back to `Wielding`
-                    update.character = CharacterState::Wielding(wielding::Data { tool: self.tool });
+                    update.character = CharacterState::Wielding;
                 }
                 // Keep updating
                 else {
                     update.character = CharacterState::TimedCombo(Data {
-                        tool: self.tool,
                         stage: self.stage,
                         buildup_duration: self.buildup_duration,
                         recover_duration: self.recover_duration,
                         stage_exhausted: false,
                         stage_time_active: new_stage_time_active,
+                        base_damage: self.base_damage,
                     });
                 }
             }
@@ -61,18 +60,18 @@ impl CharacterBehavior for Data {
             else if !self.stage_exhausted {
                 // Swing hits
                 data.updater.insert(data.entity, Attacking {
-                    base_damage: self.tool.base_damage * (self.stage as u32 + 1),
+                    base_damage: self.base_damage * (self.stage as u32 + 1),
                     applied: false,
                     hit_count: 0,
                 });
 
                 update.character = CharacterState::TimedCombo(Data {
-                    tool: self.tool,
                     stage: self.stage,
                     buildup_duration: self.buildup_duration,
                     recover_duration: self.recover_duration,
                     stage_exhausted: true,
                     stage_time_active: new_stage_time_active,
+                    base_damage: self.base_damage,
                 });
             }
             // Swing recovery window
@@ -85,31 +84,31 @@ impl CharacterBehavior for Data {
                 // Try to transition to next stage
                 if data.inputs.primary.is_just_pressed() {
                     update.character = CharacterState::TimedCombo(Data {
-                        tool: self.tool,
                         stage: self.stage + 1,
                         buildup_duration: self.buildup_duration,
                         recover_duration: self.recover_duration,
                         stage_exhausted: true,
                         stage_time_active: Duration::default(),
+                        base_damage: self.base_damage,
                     });
                 }
                 // Player didn't click this frame
                 else {
                     // Update state
                     update.character = CharacterState::TimedCombo(Data {
-                        tool: self.tool,
                         stage: self.stage,
                         buildup_duration: self.buildup_duration,
                         recover_duration: self.recover_duration,
                         stage_exhausted: true,
                         stage_time_active: new_stage_time_active,
+                        base_damage: self.base_damage,
                     });
                 }
             }
             // Stage expired but missed transition to next stage
             else {
                 // Back to `Wielding`
-                update.character = CharacterState::Wielding(wielding::Data { tool: self.tool });
+                update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
                 data.updater.remove::<Attacking>(data.entity);
             }
@@ -118,12 +117,12 @@ impl CharacterBehavior for Data {
         else {
             println!("Success!");
             // Back to `Wielding`
-            update.character = CharacterState::Wielding(wielding::Data { tool: self.tool });
+            update.character = CharacterState::Wielding;
             // Make sure attack component is removed
             data.updater.remove::<Attacking>(data.entity);
         }
 
-        // Subtract energy on successful hit
+        // Grant energy on successful hit
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
                 data.updater.remove::<Attacking>(data.entity);

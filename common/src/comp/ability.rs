@@ -10,14 +10,15 @@ pub enum CharacterAbility {
     BasicAttack {
         buildup_duration: Duration,
         recover_duration: Duration,
+        base_damage: u32,
     },
     BasicBlock,
     Roll,
     ChargeAttack,
     TimedCombo {
-        tool: ToolData,
         buildup_duration: Duration,
         recover_duration: Duration,
+        base_damage: u32,
     },
 }
 
@@ -47,10 +48,12 @@ impl From<CharacterAbility> for CharacterState {
             CharacterAbility::BasicAttack {
                 buildup_duration,
                 recover_duration,
+                base_damage,
             } => CharacterState::BasicAttack(basic_attack::Data {
                 exhausted: false,
                 buildup_duration,
                 recover_duration,
+                base_damage,
             }),
             CharacterAbility::BasicBlock { .. } => CharacterState::BasicBlock,
             CharacterAbility::Roll { .. } => CharacterState::Roll(roll::Data {
@@ -62,16 +65,16 @@ impl From<CharacterAbility> for CharacterState {
                 })
             },
             CharacterAbility::TimedCombo {
-                tool,
                 buildup_duration,
                 recover_duration,
+                base_damage,
             } => CharacterState::TimedCombo(timed_combo::Data {
-                tool,
                 buildup_duration,
                 recover_duration,
                 stage: 0,
                 stage_exhausted: false,
                 stage_time_active: Duration::default(),
+                base_damage,
             }),
         }
     }
