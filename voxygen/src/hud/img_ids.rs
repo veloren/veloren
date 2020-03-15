@@ -22,16 +22,6 @@ image_ids! {
     pub struct Imgs {
         <VoxelGraphic>
 
-        // Bag
-        bag_contents: "voxygen.element.frames.bag",
-        inv_grid: "voxygen.element.frames.inv_grid",
-        inv_slot: "voxygen.element.buttons.inv_slot",
-        inv_slot_sel: "voxygen.element.buttons.inv_slot_sel",
-        grid_inv: "voxygen.element.buttons.grid_inv",
-        bag_top: "voxygen.element.bag.top",
-        bag_mid: "voxygen.element.bag.mid",
-        bag_bot: "voxygen.element.bag.bot",
-
         // Skillbar
         xp_bar_mid: "voxygen.element.skillbar.xp_bar_mid",
         xp_bar_left: "voxygen.element.skillbar.xp_bar_left",
@@ -142,7 +132,6 @@ image_ids! {
         indicator_mmap_3: "voxygen.element.buttons.indicator_mmap_3",
 
         // Crosshair
-
         crosshair_outer_round: "voxygen.element.misc_bg.crosshair_outer_1",
         crosshair_outer_round_edges: "voxygen.element.misc_bg.crosshair_outer_2",
         crosshair_outer_edges: "voxygen.element.misc_bg.crosshair_outer_3",
@@ -153,7 +142,6 @@ image_ids! {
         crosshair_bg_pressed: "voxygen.element.misc_bg.crosshair_bg_pressed",
 
         // Checkboxes and Radio buttons
-
         check: "voxygen.element.buttons.radio.inactive",
         check_mo: "voxygen.element.buttons.radio.inactive_hover",
         check_press: "voxygen.element.buttons.radio.press",
@@ -257,6 +245,9 @@ image_ids! {
         // Inventory
         inv_bg: "voxygen.element.misc_bg.inv_bg",
         inv_frame: "voxygen.element.misc_bg.inv_frame",
+        char_art: "voxygen.element.icons.character",
+        inv_slot: "voxygen.element.buttons.inv_slot",
+        inv_slot_sel: "voxygen.element.buttons.inv_slot_sel",
 
 
         not_found:"voxygen.element.not_found",

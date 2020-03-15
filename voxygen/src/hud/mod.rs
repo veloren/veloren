@@ -1636,6 +1636,9 @@ impl Hud {
 
         // Bag contents
         if self.show.bag {
+            let ecs = client.state().ecs();
+            let stats = ecs.read_storage::<comp::Stats>();
+            let player_stats = stats.get(client.entity()).unwrap();
             match Bag::new(
                 client,
                 &self.imgs,
@@ -1644,6 +1647,8 @@ impl Hud {
                 &self.rot_imgs,
                 tooltip_manager,
                 self.pulse,
+                &self.voxygen_i18n,
+                &player_stats,
             )
             .set(self.ids.bag, ui_widgets)
             {
