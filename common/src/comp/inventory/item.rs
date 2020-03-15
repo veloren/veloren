@@ -37,41 +37,37 @@ impl ToolData {
         use ToolKind::*;
 
         match self.kind {
-            Sword(_) => vec![TimedCombo {
-                buildup_duration: Duration::from_millis(500),
-                recover_duration: Duration::from_millis(1000),
-                tool: *self,
+            Sword(_) => vec![BasicAttack {
+                buildup_duration: Duration::from_millis(100),
+                recover_duration: Duration::from_millis(500),
+                base_damage: 60,
             }],
             Axe => vec![BasicAttack {
-                buildup_duration: Duration::from_millis(1000),
-                recover_duration: Duration::from_millis(500),
+                buildup_duration: Duration::from_millis(700),
+                recover_duration: Duration::from_millis(100),
+                base_damage: 80,
             }],
             Hammer => vec![BasicAttack {
-                buildup_duration: Duration::from_millis(1000),
-                recover_duration: Duration::from_millis(500),
+                buildup_duration: Duration::from_millis(700),
+                recover_duration: Duration::from_millis(300),
+                base_damage: 100,
             }],
-            Bow => vec![BasicAttack {
-                buildup_duration: Duration::from_millis(1000),
-                recover_duration: Duration::from_millis(500),
-            }],
+            Bow => vec![],
             Dagger => vec![BasicAttack {
-                buildup_duration: Duration::from_millis(1000),
-                recover_duration: Duration::from_millis(500),
+                buildup_duration: Duration::from_millis(100),
+                recover_duration: Duration::from_millis(400),
+                base_damage: 50,
             }],
             Staff => vec![BasicAttack {
-                buildup_duration: Duration::from_millis(1000),
-                recover_duration: Duration::from_millis(500),
+                buildup_duration: Duration::from_millis(400),
+                recover_duration: Duration::from_millis(300),
+                base_damage: 70,
             }],
-            Shield => vec![BasicAttack {
-                buildup_duration: Duration::from_millis(1000),
-                recover_duration: Duration::from_millis(500),
-            }],
+            Shield => vec![],
             Debug(kind) => match kind {
                 Boost => vec![],
                 Possess => vec![],
             },
-
-            _ => vec![],
         }
     }
 }
@@ -125,18 +121,24 @@ pub enum Ingredient {
 pub struct ToolData {
     pub kind: ToolKind,
     equip_time_millis: u64,
-    attack_buildup_millis: u64,
-    attack_recover_millis: u64,
-    range: u32,
-    pub base_damage: u32,
+    // TODO: item specific abilities
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKind {
+    /// Something wieldable
     Tool(ToolData),
-    Armor { kind: Armor, power: u32 },
-    Consumable { kind: Consumable, effect: Effect },
-    Utility { kind: Utility },
+    Armor {
+        kind: Armor,
+        power: u32,
+    },
+    Consumable {
+        kind: Consumable,
+        effect: Effect,
+    },
+    Utility {
+        kind: Utility,
+    },
     Ingredient(Ingredient),
 }
 

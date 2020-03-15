@@ -215,7 +215,9 @@ impl<'a> System<'a> for Sys {
                         loadout = comp::Loadout {
                             active_item: Some(comp::ItemConfig {
                                 item: assets::load_expect_cloned("common.items.weapons.hammer_1"),
-                                primary_ability: None,
+                                primary_ability: None, /* TODO: when implementing this, make sure
+                                                        * to adjust the base damage (see todo
+                                                        * below) */
                                 secondary_ability: None,
                                 block_ability: None,
                                 dodge_ability: None,
@@ -228,14 +230,20 @@ impl<'a> System<'a> for Sys {
                     }
 
                     stats.update_max_hp();
+
                     stats
                         .health
                         .set_to(stats.health.maximum(), comp::HealthSource::Revive);
+
+                    // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
+                    // work because the damage is now saved in an ability
+                    /*
                     if let Some(item::ItemKind::Tool(item::ToolData { base_damage, .. })) =
                         &mut loadout.active_item.map(|i| i.item.kind)
                     {
                         *base_damage = stats.level.level() as u32 * 3;
                     }
+                    */
                     server_emitter.emit(ServerEvent::CreateNpc {
                         pos: Pos(entity.pos),
                         stats,

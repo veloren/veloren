@@ -18,6 +18,7 @@ impl CharacterBehavior for Data {
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         };
+
         handle_move(data, &mut update);
         handle_jump(data, &mut update);
         handle_wield(data, &mut update);
