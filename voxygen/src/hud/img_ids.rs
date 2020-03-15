@@ -248,6 +248,12 @@ image_ids! {
         char_art: "voxygen.element.icons.character",
         inv_slot: "voxygen.element.buttons.inv_slot",
         inv_slot_sel: "voxygen.element.buttons.inv_slot_sel",
+        scrollbar_bg: "voxygen.element.slider.scrollbar",
+        inv_tab_active: "voxygen.element.buttons.inv_tab_active",
+        inv_tab_inactive: "voxygen.element.buttons.inv_tab_inactive",
+        inv_tab_inactive_hover: "voxygen.element.buttons.inv_tab_inactive",
+        inv_tab_inactive_press: "voxygen.element.buttons.inv_tab_inactive",
+
 
 
         not_found:"voxygen.element.not_found",

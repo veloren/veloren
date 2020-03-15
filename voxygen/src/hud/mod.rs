@@ -1611,10 +1611,8 @@ impl Hud {
         {
             Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
             Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
-            Some(buttons::Event::ToggleCharacter) => self.show.toggle_char_window(),
             Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
             Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
-            Some(buttons::Event::ToggleQuest) => self.show.toggle_quest(),
             Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
             None => {},
         }

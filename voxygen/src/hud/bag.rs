@@ -12,15 +12,12 @@ use common::comp::Stats;
 use conrod_core::{
     color, image,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
     struct Ids {
         bag_close,
-        bag_top,
-        bag_mid,
-        bag_bot,
         inv_alignment,
         inv_grid_1,
         inv_grid_2,
@@ -34,6 +31,13 @@ widget_ids! {
         bg_frame,
         char_art,
         inventory_title,
+        inventory_title_bg,
+        scrollbar_bg,
+        stats_button,
+        tab_1,
+        tab_2,
+        tab_3,
+        tab_4,
     }
 }
 
@@ -84,9 +88,8 @@ pub struct State {
     ids: Ids,
     img_id_cache: Vec<Option<(ItemKey, image::Id)>>,
     selected_slot: Option<usize>,
+    stats_show: bool,
 }
-
-const BAG_SCALE: f64 = 4.0;
 
 pub enum Event {
     HudEvent(HudEvent),
@@ -103,6 +106,7 @@ impl<'a> Widget for Bag<'a> {
             ids: Ids::new(id_gen),
             img_id_cache: Vec::new(),
             selected_slot: None,
+            stats_show: false,
         }
     }
 
@@ -121,6 +125,7 @@ impl<'a> Widget for Bag<'a> {
         let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
         let exp_treshold = format!("{}/{}", self.stats.exp.current(), self.stats.exp.maximum());
         let level = (self.stats.level.level()).to_string();
+
         // Tooltips
         let item_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -159,7 +164,17 @@ impl<'a> Widget for Bag<'a> {
         ))
         .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
         .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(24))
+        .font_size(self.fonts.cyri.scale(22))
+        .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+        .set(state.ids.inventory_title_bg, ui);
+        Text::new(&format!(
+            "{}{}",
+            &self.stats.name,
+            &self.localized_strings.get("hud.bag.inventory")
+        ))
+        .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(22))
         .color(TEXT_COLOR)
         .set(state.ids.inventory_title, ui);
 
@@ -174,33 +189,75 @@ impl<'a> Widget for Bag<'a> {
         {
             event = Some(Event::Close);
         }
+        // Tabs
+        if Button::image(self.imgs.inv_tab_active)
+            .w_h(28.0, 44.0)
+            .bottom_left_with_margins_on(state.ids.bg, 172.0, 13.0)
+            .set(state.ids.tab_1, ui)
+            .was_clicked()
+        {}
+        if Button::image(self.imgs.inv_tab_inactive)
+            .w_h(28.0, 44.0)
+            .hover_image(self.imgs.inv_tab_inactive_hover)
+            .press_image(self.imgs.inv_tab_inactive_press)
+            .down_from(state.ids.tab_1, 0.0)
+            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
+            .set(state.ids.tab_2, ui)
+            .was_clicked()
+        {}
+        if Button::image(self.imgs.inv_tab_inactive)
+            .w_h(28.0, 44.0)
+            .hover_image(self.imgs.inv_tab_inactive_hover)
+            .press_image(self.imgs.inv_tab_inactive_press)
+            .down_from(state.ids.tab_2, 0.0)
+            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
+            .set(state.ids.tab_3, ui)
+            .was_clicked()
+        {}
+        if Button::image(self.imgs.inv_tab_inactive)
+            .w_h(28.0, 44.0)
+            .hover_image(self.imgs.inv_tab_inactive_hover)
+            .press_image(self.imgs.inv_tab_inactive_press)
+            .down_from(state.ids.tab_3, 0.0)
+            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
+            .set(state.ids.tab_4, ui)
+            .was_clicked()
+        {}
 
-        // Char Pixel Art
+        // Scrollbar-BG
+        Image::new(self.imgs.scrollbar_bg)
+            .w_h(9.0, 173.0)
+            .bottom_right_with_margins_on(state.ids.bg_frame, 42.0, 3.0)
+            .set(state.ids.scrollbar_bg, ui);
+
+        // Char Pixel-Art
         Image::new(self.imgs.char_art)
             .w_h(40.0, 37.0)
             .top_left_with_margins_on(state.ids.bg, 4.0, 2.0)
             .set(state.ids.char_art, ui);
 
         // Alignment for Grid
-        Rectangle::fill_with([360.0, 200.0], color::TRANSPARENT)
+        Rectangle::fill_with([362.0, 200.0], color::TRANSPARENT)
             .bottom_left_with_margins_on(state.ids.bg_frame, 29.0, 44.0)
             .scroll_kids_vertically()
             .set(state.ids.inv_alignment, ui);
-        /*
-        // Bag parts
-        Image::new(self.imgs.bag_bot)
-            .w_h(58.0 * BAG_SCALE, 9.0 * BAG_SCALE)
-            .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
-            .set(state.ids.bag_bot, ui);
-        let mid_height = ((inventory.len() + 4) / 5) as f64 * 44.0;
-        Image::new(self.imgs.bag_mid)
-            .w_h(58.0 * BAG_SCALE, mid_height)
-            .up_from(state.ids.bag_bot, 0.0)
-            .set(state.ids.bag_mid, ui);
-        Image::new(self.imgs.bag_top)
-            .w_h(58.0 * BAG_SCALE, 9.0 * BAG_SCALE)
-            .up_from(state.ids.bag_mid, 0.0)
-            .set(state.ids.bag_top, ui);*/
+
+        // Stats Button
+        if Button::image(self.imgs.button)
+            .w_h(92.0, 22.0)
+            .mid_top_with_margin_on(state.ids.bg, 435.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label(if state.stats_show { "Armor" } else { "Stats" })
+            .label_y(conrod_core::position::Relative::Scalar(1.0))
+            .label_color(TEXT_COLOR)
+            .label_font_size(self.fonts.cyri.scale(12))
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .set(state.ids.stats_button, ui)
+            .was_clicked()
+        {
+            //state.stats_show = !state.stats_show;
+        };
 
         // Create available inventory slot widgets
         if state.ids.inv_slots.len() < inventory.len() {
@@ -243,7 +300,7 @@ impl<'a> Widget for Bag<'a> {
                 0.0 + y as f64 * (40.0),
                 0.0 + x as f64 * (40.0),
             )
-            .wh(if is_selected { [40.0; 2] } else { [40.0; 2] })
+            .wh([40.0; 2])
             /*.image_color(if is_selected {
                 color::WHITE
             } else {
