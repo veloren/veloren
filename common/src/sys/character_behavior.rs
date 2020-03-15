@@ -172,17 +172,17 @@ impl<'a> System<'a> for Sys {
             }
 
             let mut state_update = match j.character {
-                CharacterState::Idle => states::idle::Data::behavior(&states::idle::Data, &j),
-                CharacterState::Climb => states::climb::Data::behavior(&states::climb::Data, &j),
-                CharacterState::Glide => states::glide::Data::behavior(&states::glide::Data, &j),
+                CharacterState::Idle => states::idle::Data.behavior(&j),
+                CharacterState::Climb => states::climb::Data.behavior(&j),
+                CharacterState::Glide => states::glide::Data.behavior(&j),
                 CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
-                CharacterState::BasicBlock  => states::basic_block::Data::behavior(&states::basic_block::Data, &j),
-                CharacterState::Roll (data) => data.behavior(&j),
-                CharacterState::Wielding (data) => data.behavior(&j),
-                CharacterState::Equipping (data) => data.behavior(&j),
-                CharacterState::ChargeAttack (data) => data.behavior(&j),
-                CharacterState::TripleStrike (data) => data.behavior(&j),
-                CharacterState::BasicAttack (data) => data.behavior(&j),
+                CharacterState::BasicBlock  => states::basic_block::Data.behavior(&j),
+                CharacterState::Roll(data) => data.behavior(&j),
+                CharacterState::Wielding => states::wielding::Data.behavior(&j),
+                CharacterState::Equipping(data) => data.behavior(&j),
+                CharacterState::ChargeAttack(data) => data.behavior(&j),
+                CharacterState::TripleStrike(data) => data.behavior(&j),
+                CharacterState::BasicAttack(data) => data.behavior(&j),
                 CharacterState::TimedCombo(data) => data.behavior(&j),
 
                 // Do not use default match.
