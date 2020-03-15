@@ -47,6 +47,7 @@ pub enum SfxEvent {
 
 pub enum LocalEvent {
     Jump(EcsEntity),
+    Knockback(EcsEntity),
     WallLeap {
         entity: EcsEntity,
         wall_dir: Vec3<f32>,

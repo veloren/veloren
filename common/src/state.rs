@@ -334,11 +334,20 @@ impl State {
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
         for event in events {
             let mut velocities = self.ecs.write_storage::<comp::Vel>();
+            let mut orientations = self.ecs.write_storage::<comp::Ori>();
             let mut controllers = self.ecs.write_storage::<comp::Controller>();
             match event {
                 LocalEvent::Jump(entity) => {
                     if let Some(vel) = velocities.get_mut(entity) {
                         vel.0.z = HUMANOID_JUMP_ACCEL;
+                    }
+                },
+                LocalEvent::Knockback(entity) => {
+                    if let Some(vel) = velocities.get_mut(entity) {
+                        if let Some(ori) = orientations.get_mut(entity) {
+                            vel.0 = -ori.0 * 10.0;
+                            vel.0.z = HUMANOID_JUMP_ACCEL;
+                        }
                     }
                 },
                 LocalEvent::WallLeap { entity, wall_dir } => {
