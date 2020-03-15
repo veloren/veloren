@@ -138,7 +138,7 @@ impl Stats {
 }
 
 impl Stats {
-    pub fn new(name: String, body: Body, main: Option<comp::Item>) -> Self {
+    pub fn new(name: String, body: Body) -> Self {
         let race = if let comp::Body::Humanoid(hbody) = body {
             Some(hbody.race)
         } else {

@@ -4,8 +4,8 @@ use vek::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientMsg {
     Register {
-        player: comp::Player,
-        password: String,
+        view_distance: Option<u32>,
+        token_or_username: String,
     },
     Character {
         name: String,
@@ -35,4 +35,5 @@ pub enum ClientMsg {
         key: Vec2<i32>,
     },
     Disconnect,
+    Terminate,
 }

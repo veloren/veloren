@@ -5,6 +5,7 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
+pub use authc::AuthClientError;
 pub use specs::{
     join::Join,
     saveload::{Marker, MarkerAllocator},
@@ -13,11 +14,13 @@ pub use specs::{
 
 use byteorder::{ByteOrder, LittleEndian};
 use common::{
-    comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
+    comp::{
+        self, ControlEvent, Controller, ControllerInputs, InventoryManip, InventoryUpdateEvent,
+    },
     event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
-        RequestStateError, ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
+        RegisterError, RequestStateError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     net::PostBox,
     state::State,
@@ -86,13 +89,13 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity, server_info, world_map) = match postbox.next_message() {
-            Some(ServerMsg::InitialSync {
+        let (state, entity, server_info, world_map) = match postbox.next_message()? {
+            ServerMsg::InitialSync {
                 entity_package,
                 server_info,
                 time_of_day,
                 world_map: (map_size, world_map),
-            }) => {
+            } => {
                 // TODO: Display that versions don't match in Voxygen
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
                     log::warn!(
@@ -104,6 +107,8 @@ impl Client {
                         common::util::GIT_DATE.to_string(),
                     );
                 }
+
+                log::debug!("Auth Server: {:?}", server_info.auth_provider);
 
                 // Initialize `State`
                 let mut state = State::default();
@@ -129,9 +134,7 @@ impl Client {
 
                 (state, entity, server_info, (world_map, map_size))
             },
-            Some(ServerMsg::Error(ServerError::TooManyPlayers)) => {
-                return Err(Error::TooManyPlayers);
-            },
+            ServerMsg::TooManyPlayers => return Err(Error::TooManyPlayers),
             _ => return Err(Error::ServerWentMad),
         };
 
@@ -172,16 +175,40 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Registered`.
-    pub fn register(&mut self, player: comp::Player, password: String) -> Result<(), Error> {
-        self.postbox
-            .send_message(ClientMsg::Register { player, password });
+    pub fn register(
+        &mut self,
+        username: String,
+        password: String,
+        mut auth_trusted: impl FnMut(&str) -> bool,
+    ) -> Result<(), Error> {
+        // Authentication
+        let token_or_username = self.server_info.auth_provider.as_ref().map(|addr|
+                // Query whether this is a trusted auth server
+                if auth_trusted(&addr) {
+                    Ok(authc::AuthClient::new(addr)
+                        .sign_in(&username, &password)?
+                        .serialize())
+                } else {
+                    Err(Error::AuthServerNotTrusted)
+                }
+        ).unwrap_or(Ok(username))?;
+
+        self.postbox.send_message(ClientMsg::Register {
+            view_distance: self.view_distance,
+            token_or_username,
+        });
         self.client_state = ClientState::Pending;
+
         loop {
-            match self.postbox.next_message() {
-                Some(ServerMsg::StateAnswer(Err((RequestStateError::Denied, _)))) => {
-                    break Err(Error::InvalidAuth);
+            match self.postbox.next_message()? {
+                ServerMsg::StateAnswer(Err((RequestStateError::RegisterDenied(err), state))) => {
+                    self.client_state = state;
+                    break Err(match err {
+                        RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
+                        RegisterError::AuthError(err) => Error::AuthErr(err),
+                    });
                 },
-                Some(ServerMsg::StateAnswer(Ok(ClientState::Registered))) => break Ok(()),
+                ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
                 _ => {},
             }
         }
@@ -195,10 +222,7 @@ impl Client {
     }
 
     /// Send disconnect message to the server
-    pub fn request_logout(&mut self) {
-        self.postbox.send_message(ClientMsg::Disconnect);
-        self.client_state = ClientState::Pending;
-    }
+    pub fn request_logout(&mut self) { self.postbox.send_message(ClientMsg::Disconnect); }
 
     /// Request a state transition to `ClientState::Registered` from an ingame
     /// state.
@@ -385,7 +409,7 @@ impl Client {
         // 3) Update client local data
 
         // 4) Tick the client's LocalState
-        self.state.tick(dt, add_foreign_systems);
+        self.state.tick(dt, add_foreign_systems, true);
 
         // 5) Terrain
         let pos = self
@@ -546,10 +570,8 @@ impl Client {
         if new_msgs.len() > 0 {
             for msg in new_msgs {
                 match msg {
-                    ServerMsg::Error(e) => match e {
-                        ServerError::TooManyPlayers => return Err(Error::ServerWentMad),
-                        ServerError::InvalidAuth => return Err(Error::InvalidAuth),
-                        //TODO: ServerError::InvalidAlias => return Err(Error::InvalidAlias),
+                    ServerMsg::TooManyPlayers => {
+                        return Err(Error::ServerWentMad);
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
@@ -669,7 +691,19 @@ impl Client {
                         }
                     },
                     ServerMsg::InventoryUpdate(inventory, event) => {
-                        self.state.write_component(self.entity, inventory);
+                        match event {
+                            InventoryUpdateEvent::CollectFailed => {
+                                frontend_events.push(Event::Chat {
+                                    message: String::from(
+                                        "Failed to collect item. Your inventory may be full!",
+                                    ),
+                                    chat_type: ChatType::Meta,
+                                })
+                            },
+                            _ => {
+                                self.state.write_component(self.entity, inventory);
+                            },
+                        }
 
                         self.state
                             .ecs()
@@ -692,10 +726,6 @@ impl Client {
                         self.client_state = state;
                     },
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        if error == RequestStateError::Denied {
-                            warn!("Connection denied!");
-                            return Err(Error::InvalidAuth);
-                        }
                         warn!(
                             "StateAnswer: {:?}. Server thinks client is in state {:?}.",
                             error, state
@@ -703,6 +733,7 @@ impl Client {
                     },
                     ServerMsg::Disconnect => {
                         frontend_events.push(Event::Disconnect);
+                        self.postbox.send_message(ClientMsg::Terminate);
                     },
                 }
             }
