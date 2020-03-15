@@ -3,11 +3,15 @@ use super::{
     item_imgs::{ItemImgs, ItemKey},
     Event as HudEvent, TEXT_COLOR,
 };
-use crate::ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable};
+use crate::{
+    i18n::VoxygenLocalization,
+    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+};
 use client::Client;
+use common::comp::Stats;
 use conrod_core::{
     color, image,
-    widget::{self, Button, Image, Rectangle},
+    widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
@@ -28,6 +32,8 @@ widget_ids! {
         tooltip[],
         bg,
         bg_frame,
+        char_art,
+        inventory_title,
     }
 }
 
@@ -43,6 +49,8 @@ pub struct Bag<'a> {
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
     pulse: f32,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    stats: &'a Stats,
 }
 
 impl<'a> Bag<'a> {
@@ -54,6 +62,8 @@ impl<'a> Bag<'a> {
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
         pulse: f32,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        stats: &'a Stats,
     ) -> Self {
         Self {
             client,
@@ -64,6 +74,8 @@ impl<'a> Bag<'a> {
             rot_imgs,
             tooltip_manager,
             pulse,
+            localized_strings,
+            stats,
         }
     }
 }
@@ -106,7 +118,9 @@ impl<'a> Widget for Bag<'a> {
             Some(inv) => inv,
             None => return None,
         };
-
+        let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
+        let exp_treshold = format!("{}/{}", self.stats.exp.current(), self.stats.exp.maximum());
+        let level = (self.stats.level.level()).to_string();
         // Tooltips
         let item_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -128,7 +142,6 @@ impl<'a> Widget for Bag<'a> {
         .desc_text_color(TEXT_COLOR);
 
         // BG
-
         Image::new(self.imgs.inv_bg)
             .w_h(424.0, 708.0)
             .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
@@ -138,6 +151,17 @@ impl<'a> Widget for Bag<'a> {
             .w_h(424.0, 708.0)
             .middle_of(state.ids.bg)
             .set(state.ids.bg_frame, ui);
+        // Title
+        Text::new(&format!(
+            "{}{}",
+            &self.stats.name,
+            &self.localized_strings.get("hud.bag.inventory")
+        ))
+        .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(24))
+        .color(TEXT_COLOR)
+        .set(state.ids.inventory_title, ui);
 
         // Close button
         if Button::image(self.imgs.close_btn)
@@ -151,6 +175,17 @@ impl<'a> Widget for Bag<'a> {
             event = Some(Event::Close);
         }
 
+        // Char Pixel Art
+        Image::new(self.imgs.char_art)
+            .w_h(40.0, 37.0)
+            .top_left_with_margins_on(state.ids.bg, 4.0, 2.0)
+            .set(state.ids.char_art, ui);
+
+        // Alignment for Grid
+        Rectangle::fill_with([360.0, 200.0], color::TRANSPARENT)
+            .bottom_left_with_margins_on(state.ids.bg_frame, 29.0, 44.0)
+            .scroll_kids_vertically()
+            .set(state.ids.inv_alignment, ui);
         /*
         // Bag parts
         Image::new(self.imgs.bag_bot)
@@ -165,13 +200,7 @@ impl<'a> Widget for Bag<'a> {
         Image::new(self.imgs.bag_top)
             .w_h(58.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .up_from(state.ids.bag_mid, 0.0)
-            .set(state.ids.bag_top, ui);
-
-        // Alignment for Grid
-        Rectangle::fill_with([56.0 * BAG_SCALE, mid_height], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.bag_mid, 0.0, 3.0 * BAG_SCALE)
-            .scroll_kids_vertically()
-            .set(state.ids.inv_alignment, ui);
+            .set(state.ids.bag_top, ui);*/
 
         // Create available inventory slot widgets
         if state.ids.inv_slots.len() < inventory.len() {
@@ -197,8 +226,8 @@ impl<'a> Widget for Bag<'a> {
 
         // Display inventory contents
         for (i, item) in inventory.slots().iter().enumerate() {
-            let x = i % 5;
-            let y = i / 5;
+            let x = i % 9;
+            let y = i / 9;
 
             let is_selected = Some(i) == state.selected_slot;
 
@@ -211,15 +240,15 @@ impl<'a> Widget for Bag<'a> {
             })
             .top_left_with_margins_on(
                 state.ids.inv_alignment,
-                0.0 + y as f64 * (40.0 + 2.0),
-                0.0 + x as f64 * (40.0 + 2.0),
+                0.0 + y as f64 * (40.0),
+                0.0 + x as f64 * (40.0),
             )
             .wh(if is_selected { [40.0; 2] } else { [40.0; 2] })
-            .image_color(if is_selected {
+            /*.image_color(if is_selected {
                 color::WHITE
             } else {
                 color::DARK_YELLOW
-            });
+            })*/;
 
             let slot_widget_clicked = if let Some(item) = item {
                 slot_widget
@@ -288,8 +317,6 @@ impl<'a> Widget for Bag<'a> {
                 state.update(|s| s.selected_slot = None);
             }
         }
-
-        */
 
         event
     }

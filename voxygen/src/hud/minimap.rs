@@ -213,7 +213,7 @@ impl<'a> Widget for MiniMap<'a> {
         } else {
             Image::new(self.imgs.mmap_frame_closed)
                 .w_h(174.0 * SCALE, 18.0 * SCALE)
-                .top_right_with_margins_on(ui.window, 0.0, 0.0)
+                .top_right_with_margins_on(ui.window, 0.0, 5.0)
                 .set(state.ids.mmap_frame, ui);
         }
 

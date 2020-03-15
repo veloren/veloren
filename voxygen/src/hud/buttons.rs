@@ -11,8 +11,6 @@ widget_ids! {
         bag,
         bag_text,
         bag_show_map,
-        character_button,
-        character_button_bg,
         map_button,
         qlog_button,
         qlog_button_bg,
@@ -169,15 +167,6 @@ impl<'a> Widget for Buttons<'a> {
             .w_h(28.0, 25.0)
             .left_from(state.ids.map_button, 10.0)
             .set(state.ids.spellbook_button_bg, ui);
-        Image::new(self.imgs.character_button)
-            .w_h(27.0, 25.0)
-            .left_from(state.ids.spellbook_button_bg, 10.0)
-            .set(state.ids.character_button_bg, ui);
-        Image::new(self.imgs.qlog_button)
-            .w_h(23.0, 25.0)
-            .left_from(state.ids.character_button_bg, 10.0)
-            .set(state.ids.qlog_button_bg, ui);
-
         // Other Windows can only be accessed when `Settings` is closed.
         // Opening `Settings` will close all other Windows, including the `Bag`.
         // Opening the `Map` won't close the previously displayed windows.
@@ -216,42 +205,6 @@ impl<'a> Widget for Buttons<'a> {
                 .was_clicked()
             {
                 return Some(Event::ToggleSpell);
-            }
-
-            // 4 Char-Window
-            if Button::image(self.imgs.character_button)
-                .w_h(27.0, 25.0)
-                .left_from(state.ids.spellbook_button, 10.0)
-                .hover_image(self.imgs.character_hover)
-                .press_image(self.imgs.character_press)
-                .label("C")
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_font_size(10)
-                .label_color(TEXT_COLOR)
-                .label_y(conrod_core::position::Relative::Scalar(-7.0))
-                .label_x(conrod_core::position::Relative::Scalar(10.0))
-                .set(state.ids.character_button, ui)
-                .was_clicked()
-            {
-                return Some(Event::ToggleCharacter);
-            }
-
-            // 5 Quest-Log
-            if Button::image(self.imgs.qlog_button)
-                .w_h(23.0, 25.0)
-                .left_from(state.ids.character_button, 10.0)
-                .hover_image(self.imgs.qlog_hover)
-                .press_image(self.imgs.qlog_press)
-                .label("L")
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_font_size(10)
-                .label_color(TEXT_COLOR)
-                .label_y(conrod_core::position::Relative::Scalar(-7.0))
-                .label_x(conrod_core::position::Relative::Scalar(10.0))
-                .set(state.ids.qlog_button, ui)
-                .was_clicked()
-            {
-                return Some(Event::ToggleQuest);
             }
         }
 

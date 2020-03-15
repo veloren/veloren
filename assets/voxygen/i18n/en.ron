@@ -190,6 +190,10 @@ Want to free your cursor to close this window? Press TAB!
 
 Enjoy your stay in the World of Veloren."#,
 
+
+        // Inventory
+	    "hud.bag.inventory": "'s Inventory",	
+        // Settings
         "hud.settings.general": "General",
         "hud.settings.none": "None",
         "hud.settings.help_window": "Help Window",
