@@ -42,7 +42,6 @@ impl CharacterBehavior for Data {
             if new_stage_time_active < self.buildup_duration {
                 // If the player is pressing primary btn
                 if data.inputs.primary.is_just_pressed() {
-                    println!("Failed");
                     // They failed, go back to `Wielding`
                     update.character = CharacterState::Wielding(wielding::Data { tool: self.tool });
                 }
@@ -62,7 +61,7 @@ impl CharacterBehavior for Data {
             else if !self.stage_exhausted {
                 // Swing hits
                 data.updater.insert(data.entity, Attacking {
-                    base_damage: self.tool.base_damage,
+                    base_damage: self.tool.base_damage * (self.stage as u32 + 1),
                     applied: false,
                     hit_count: 0,
                 });
@@ -85,7 +84,6 @@ impl CharacterBehavior for Data {
             {
                 // Try to transition to next stage
                 if data.inputs.primary.is_just_pressed() {
-                    println!("Transition");
                     update.character = CharacterState::TimedCombo(Data {
                         tool: self.tool,
                         stage: self.stage + 1,
@@ -98,7 +96,6 @@ impl CharacterBehavior for Data {
                 // Player didn't click this frame
                 else {
                     // Update state
-                    println!("Missed");
                     update.character = CharacterState::TimedCombo(Data {
                         tool: self.tool,
                         stage: self.stage,
@@ -129,7 +126,6 @@ impl CharacterBehavior for Data {
         // Subtract energy on successful hit
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
-                println!("Hit");
                 data.updater.remove::<Attacking>(data.entity);
                 update.energy.change_by(100, EnergySource::HitEnemy);
             }
