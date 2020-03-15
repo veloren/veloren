@@ -129,48 +129,26 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         if let Some(loadout) =
                             state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
                         {
-                            if let Some(comp::Body::Humanoid(body)) =
-                                state.ecs().write_storage::<comp::Body>().get_mut(entity)
-                            {
-                                use comp::item::Armor::*;
-                                let slot = match kind.clone() {
-                                    Shoulder(shoulder) => {
-                                        body.shoulder = shoulder;
-                                        &mut loadout.shoulder
-                                    },
-                                    Chest(chest) => {
-                                        body.chest = chest;
-                                        &mut loadout.chest
-                                    },
-                                    Belt(belt) => {
-                                        body.belt = belt;
-                                        &mut loadout.belt
-                                    },
-                                    Hand(hand) => {
-                                        body.hand = hand;
-                                        &mut loadout.hand
-                                    },
-                                    Pants(pants) => {
-                                        body.pants = pants;
-                                        &mut loadout.pants
-                                    },
-                                    Foot(foot) => {
-                                        body.foot = foot;
-                                        &mut loadout.foot
-                                    },
-                                };
+                            use comp::item::Armor::*;
+                            let slot = match kind.clone() {
+                                Shoulder(_) => &mut loadout.shoulder,
+                                Chest(_) => &mut loadout.chest,
+                                Belt(_) => &mut loadout.belt,
+                                Hand(_) => &mut loadout.hand,
+                                Pants(_) => &mut loadout.pants,
+                                Foot(_) => &mut loadout.foot,
+                            };
 
-                                // Insert old item into inventory
-                                if let Some(old_item) = slot.take() {
-                                    state
-                                        .ecs()
-                                        .write_storage::<comp::Inventory>()
-                                        .get_mut(entity)
-                                        .map(|inv| inv.insert(slot_idx, old_item));
-                                }
-
-                                *slot = Some(item);
+                            // Insert old item into inventory
+                            if let Some(old_item) = slot.take() {
+                                state
+                                    .ecs()
+                                    .write_storage::<comp::Inventory>()
+                                    .get_mut(entity)
+                                    .map(|inv| inv.insert(slot_idx, old_item));
                             }
+
+                            *slot = Some(item);
                         }
                     },
 

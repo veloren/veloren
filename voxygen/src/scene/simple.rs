@@ -15,7 +15,7 @@ use crate::{
     window::{Event, PressState},
 };
 use common::{
-    comp::{humanoid, Body, ItemKind},
+    comp::{humanoid, Body, ItemKind, Loadout},
     terrain::BlockKind,
     vol::{BaseVol, ReadVol, Vox},
 };
@@ -208,7 +208,7 @@ impl Scene {
         renderer: &mut Renderer,
         tick: u64,
         body: Option<humanoid::Body>,
-        active_item_kind: Option<&ItemKind>,
+        loadout: Option<&Loadout>,
     ) {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
@@ -218,7 +218,7 @@ impl Scene {
                 .get_or_create_model(
                     renderer,
                     Body::Humanoid(body),
-                    active_item_kind,
+                    loadout,
                     tick,
                     CameraMode::default(),
                     None,

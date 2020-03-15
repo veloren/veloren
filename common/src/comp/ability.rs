@@ -26,7 +26,7 @@ impl Component for CharacterAbility {
     type Storage = DenseVecStorage<Self>;
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
     pub item: Item,
     pub primary_ability: Option<CharacterAbility>,
@@ -35,7 +35,7 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Hash, Default, Debug, Serialize, Deserialize)]
 pub struct Loadout {
     pub active_item: Option<ItemConfig>,
     pub second_item: Option<ItemConfig>,
