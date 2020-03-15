@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{Body, CharacterState, ItemKind},
+    comp::{Body, CharacterState, ItemKind, Loadout},
 };
 use hashbrown::{hash_map::Entry, HashMap};
 use std::{
@@ -19,7 +19,7 @@ enum FigureKey {
     Simple(Body),
     Complex(
         Body,
-        Option<ItemKind>,
+        Option<Loadout>,
         CameraMode,
         Option<CharacterStateCacheKey>,
     ),
@@ -58,7 +58,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         &mut self,
         renderer: &mut Renderer,
         body: Body,
-        item_kind: Option<&ItemKind>,
+        loadout: Option<&Loadout>,
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
@@ -67,10 +67,10 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         for<'a> &'a common::comp::Body: std::convert::TryInto<Skel::Attr>,
         Skel::Attr: Default,
     {
-        let key = if item_kind.is_some() {
+        let key = if loadout.is_some() {
             FigureKey::Complex(
                 body,
-                item_kind.cloned(),
+                loadout.cloned(),
                 camera_mode,
                 character_state.map(|cs| CharacterStateCacheKey::from(cs)),
             )
@@ -106,6 +106,10 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                 let humanoid_armor_foot_spec =
                                     HumArmorFootSpec::load_watched(&mut self.manifest_indicator);
 
+                                // TODO: This is bad code, maybe this method should return Option<_>
+                                let default_loadout = Loadout::default();
+                                let loadout = loadout.unwrap_or(&default_loadout);
+
                                 [
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
@@ -124,21 +128,21 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_chest_spec.mesh_chest(&body))
-                                        },
+                                        CameraMode::ThirdPerson => Some(
+                                            humanoid_armor_chest_spec.mesh_chest(&body, loadout),
+                                        ),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_belt_spec.mesh_belt(&body))
+                                            Some(humanoid_armor_belt_spec.mesh_belt(&body, loadout))
                                         },
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_pants_spec.mesh_pants(&body))
-                                        },
+                                        CameraMode::ThirdPerson => Some(
+                                            humanoid_armor_pants_spec.mesh_pants(&body, loadout),
+                                        ),
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode == CameraMode::FirstPerson
@@ -148,34 +152,42 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     {
                                         None
                                     } else {
-                                        Some(humanoid_armor_hand_spec.mesh_left_hand(&body))
+                                        Some(
+                                            humanoid_armor_hand_spec.mesh_left_hand(&body, loadout),
+                                        )
                                     },
                                     if character_state.map(|cs| cs.is_dodge()).unwrap_or_default() {
                                         None
                                     } else {
-                                        Some(humanoid_armor_hand_spec.mesh_right_hand(&body))
-                                    },
-                                    match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_foot_spec.mesh_left_foot(&body))
-                                        },
-                                        CameraMode::FirstPerson => None,
-                                    },
-                                    match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_foot_spec.mesh_right_foot(&body))
-                                        },
-                                        CameraMode::FirstPerson => None,
+                                        Some(
+                                            humanoid_armor_hand_spec
+                                                .mesh_right_hand(&body, loadout),
+                                        )
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_shoulder_spec.mesh_left_shoulder(&body),
+                                            humanoid_armor_foot_spec.mesh_left_foot(&body, loadout),
                                         ),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_shoulder_spec.mesh_right_shoulder(&body),
+                                            humanoid_armor_foot_spec
+                                                .mesh_right_foot(&body, loadout),
+                                        ),
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode {
+                                        CameraMode::ThirdPerson => Some(
+                                            humanoid_armor_shoulder_spec
+                                                .mesh_left_shoulder(&body, loadout),
+                                        ),
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode {
+                                        CameraMode::ThirdPerson => Some(
+                                            humanoid_armor_shoulder_spec
+                                                .mesh_right_shoulder(&body, loadout),
                                         ),
                                         CameraMode::FirstPerson => None,
                                     },
@@ -187,7 +199,9 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                             })
                                             .unwrap_or_default()
                                     {
-                                        Some(mesh_main(item_kind))
+                                        Some(mesh_main(
+                                            loadout.active_item.as_ref().map(|i| &i.item.kind),
+                                        ))
                                     } else {
                                         None
                                     },

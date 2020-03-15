@@ -112,18 +112,12 @@ impl PlayState for CharSelectionState {
             }
 
             // Render the scene.
-            let item = self
-                .char_selection_ui
-                .get_character_data()
-                .and_then(|data| data.tool)
-                .and_then(|tool| assets::load_cloned::<comp::Item>(&tool).ok());
-            let item_kind = item.map(|i| i.kind);
-
+            let loadout = self.char_selection_ui.get_loadout();
             self.scene.render(
                 global_state.window.renderer_mut(),
                 self.client.borrow().get_tick(),
                 humanoid_body.clone(),
-                item_kind.as_ref(),
+                loadout,
             );
 
             // Draw the UI to the screen.
