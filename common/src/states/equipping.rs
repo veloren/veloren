@@ -31,7 +31,7 @@ impl CharacterBehavior for Data {
 
         if self.time_left == Duration::default() {
             // Wield delay has expired
-            update.character = CharacterState::Wielding(wielding::Data { tool: self.tool });
+            update.character = CharacterState::Wielding;
         } else {
             // Wield delay hasn't expired yet
             // Update wield delay
