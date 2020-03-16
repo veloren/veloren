@@ -210,7 +210,7 @@ impl<'a> System<'a> for Sys {
                                     primary_ability: Some(CharacterAbility::BasicMelee {
                                         buildup_duration: Duration::from_millis(50),
                                         recover_duration: Duration::from_millis(50),
-                                        base_damage: 10,
+                                        base_damage: 1,
                                     }),
                                     secondary_ability: None,
                                     block_ability: None,
@@ -251,7 +251,7 @@ impl<'a> System<'a> for Sys {
                                 primary_ability: Some(CharacterAbility::BasicMelee {
                                     buildup_duration: Duration::from_millis(800),
                                     recover_duration: Duration::from_millis(200),
-                                    base_damage: 130,
+                                    base_damage: 13,
                                 }),
                                 secondary_ability: None,
                                 block_ability: None,

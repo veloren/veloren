@@ -34,5 +34,9 @@
     PlateGreen0: (
         vox_spec: ("armor.chest.plate_green-0", (-7.0, -3.5, 2.0)),
         color: None
+    ),
+    None: (
+        vox_spec: ("armor.chest.none", (-7.0, -3.5, 2.0)),
+        color: None
     )
 })
