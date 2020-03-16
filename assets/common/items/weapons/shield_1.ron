@@ -1,0 +1,10 @@
+Item(
+    name: "A Shield",
+    description: "Legends tell this item is useless.",
+    kind: Tool (
+        ToolData (
+            kind: Shield,
+            equip_time_millis: 400,
+        )
+    ),
+)

@@ -632,7 +632,7 @@ pub fn mesh_main(item_kind: Option<&ItemKind>) -> Mesh<FigurePipeline> {
                 ToolKind::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -5.0, -4.0)),
                 ToolKind::Hammer => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
                 ToolKind::Dagger => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-                ToolKind::Shield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
+                ToolKind::Shield => ("weapon.shield.wood-0", Vec3::new(-2.5, -6.5, -2.0)),
                 ToolKind::Bow => ("weapon.bow.simple-bow", Vec3::new(-1.0, -6.0, -2.0)),
                 ToolKind::Staff => ("weapon.staff.wood-fire", Vec3::new(-1.0, -6.0, -3.0)),
                 ToolKind::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),

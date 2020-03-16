@@ -83,7 +83,7 @@ impl ToolData {
                 recover_duration: Duration::from_millis(300),
                 base_damage: 70,
             }],
-            Shield => vec![],
+            Shield => vec![BasicBlock],
             Debug(kind) => match kind {
                 DebugKind::Boost => vec![
                     CharacterAbility::Boost {

@@ -25,7 +25,9 @@ impl CharacterBehavior for Data {
 
         handle_move(&data, &mut update);
 
-        if !data.physics.on_ground || !data.inputs.secondary.is_pressed() {
+        if !data.physics.on_ground
+            || !(data.inputs.secondary.is_pressed() || data.inputs.primary.is_pressed())
+        {
             attempt_wield(data, &mut update);
         }
         update
