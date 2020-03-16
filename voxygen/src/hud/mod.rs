@@ -1,13 +1,11 @@
 mod bag;
 mod buttons;
-mod character_window;
 mod chat;
 mod esc_menu;
 mod img_ids;
 mod item_imgs;
 mod map;
 mod minimap;
-mod quest;
 mod settings_window;
 mod skillbar;
 mod social;
@@ -19,7 +17,6 @@ use std::time::Duration;
 
 use bag::Bag;
 use buttons::Buttons;
-use character_window::CharacterWindow;
 use chat::Chat;
 use chrono::NaiveTime;
 use esc_menu::EscMenu;
@@ -27,7 +24,6 @@ use img_ids::Imgs;
 use item_imgs::ItemImgs;
 use map::Map;
 use minimap::MiniMap;
-use quest::Quest;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
@@ -283,8 +279,6 @@ pub struct Show {
     bag: bool,
     social: bool,
     spell: bool,
-    quest: bool,
-    character_window: bool,
     esc_menu: bool,
     open_windows: Windows,
     map: bool,
@@ -309,38 +303,21 @@ impl Show {
         self.want_grab = true;
     }
 
-    fn character_window(&mut self, open: bool) {
-        self.character_window = open;
-        self.bag = false;
-        self.want_grab = !open;
-    }
-
     fn social(&mut self, open: bool) {
         self.social = open;
         self.spell = false;
-        self.quest = false;
         self.want_grab = !open;
     }
 
     fn spell(&mut self, open: bool) {
         self.social = false;
         self.spell = open;
-        self.quest = false;
-        self.want_grab = !open;
-    }
-
-    fn quest(&mut self, open: bool) {
-        self.social = false;
-        self.spell = false;
-        self.quest = open;
         self.want_grab = !open;
     }
 
     fn toggle_map(&mut self) { self.map(!self.map) }
 
     fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
-
-    fn toggle_char_window(&mut self) { self.character_window = !self.character_window }
 
     fn settings(&mut self, open: bool) {
         self.open_windows = if open {
@@ -351,7 +328,6 @@ impl Show {
         self.bag = false;
         self.social = false;
         self.spell = false;
-        self.quest = false;
         self.want_grab = !open;
     }
 
@@ -371,9 +347,7 @@ impl Show {
             || self.esc_menu
             || self.map
             || self.social
-            || self.quest
             || self.spell
-            || self.character_window
             || match self.open_windows {
                 Windows::None => false,
                 _ => true,
@@ -383,9 +357,7 @@ impl Show {
             self.esc_menu = false;
             self.map = false;
             self.social = false;
-            self.quest = false;
             self.spell = false;
-            self.character_window = false;
             self.open_windows = Windows::None;
             self.want_grab = true;
 
@@ -415,24 +387,15 @@ impl Show {
     fn toggle_social(&mut self) {
         self.social = !self.social;
         self.spell = false;
-        self.quest = false;
     }
 
     fn open_social_tab(&mut self, social_tab: SocialTab) {
         self.social_tab = social_tab;
         self.spell = false;
-        self.quest = false;
     }
 
     fn toggle_spell(&mut self) {
         self.spell = !self.spell;
-        self.social = false;
-        self.quest = false;
-    }
-
-    fn toggle_quest(&mut self) {
-        self.quest = !self.quest;
-        self.spell = false;
         self.social = false;
     }
 }
@@ -508,9 +471,7 @@ impl Hud {
                 map: false,
                 ui: true,
                 social: false,
-                quest: false,
                 spell: false,
-                character_window: false,
                 mini_map: true,
                 settings_tab: SettingsTab::Interface,
                 social_tab: SocialTab::Online,
@@ -1860,28 +1821,6 @@ impl Hud {
             }
         }
 
-        // Character Window
-        if self.show.character_window {
-            let ecs = client.state().ecs();
-            let stats = ecs.read_storage::<comp::Stats>();
-            let player_stats = stats.get(client.entity()).unwrap();
-            match CharacterWindow::new(
-                &self.show,
-                &player_stats,
-                &self.imgs,
-                &self.fonts,
-                &self.voxygen_i18n,
-            )
-            .set(self.ids.character_window, ui_widgets)
-            {
-                Some(character_window::Event::Close) => {
-                    self.show.character_window(false);
-                    self.force_ungrab = true;
-                },
-                None => {},
-            }
-        }
-
         // Spellbook
         if self.show.spell {
             match Spell::new(
@@ -1895,25 +1834,6 @@ impl Hud {
             {
                 Some(spell::Event::Close) => {
                     self.show.spell(false);
-                    self.force_ungrab = true;
-                },
-                None => {},
-            }
-        }
-
-        // Quest Log
-        if self.show.quest {
-            match Quest::new(
-                &self.show,
-                client,
-                &self.imgs,
-                &self.fonts,
-                &self.voxygen_i18n,
-            )
-            .set(self.ids.quest, ui_widgets)
-            {
-                Some(quest::Event::Close) => {
-                    self.show.quest(false);
                     self.force_ungrab = true;
                 },
                 None => {},
@@ -2063,14 +1983,6 @@ impl Hud {
                 },
                 GameInput::Bag => {
                     self.show.toggle_bag();
-                    true
-                },
-                GameInput::QuestLog => {
-                    self.show.toggle_quest();
-                    true
-                },
-                GameInput::CharacterWindow => {
-                    self.show.toggle_char_window();
                     true
                 },
                 GameInput::Social => {
