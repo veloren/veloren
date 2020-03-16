@@ -335,16 +335,6 @@ impl<'a> Widget for CharacterWindow<'a> {
             .top_left_with_margins_on(state.charwindow_tab_bg, 7.0 * 4.0, 4.0 * 4.0)
             .set(state.charwindow_rectangle, ui);
 
-        // TODO: Add this back in when we have multiple tabs.
-        // Tab Button ->
-        // Button::image(self.imgs.charwindow_tab)
-        //.w_h(65.0, 23.0)
-        //.top_left_with_margins_on(state.charwindow_tab_bg, -18.0, 1.8)
-        //.label("Stats")
-        //.label_color(TEXT_COLOR)
-        //.label_font_size(14)
-        //.set(state.charwindow_tab1, ui);
-
         // Level
         Text::new(&level)
             .mid_top_with_margin_on(state.charwindow_rectangle, 10.0)

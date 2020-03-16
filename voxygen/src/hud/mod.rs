@@ -67,6 +67,8 @@ const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
+
+// Chat Colors
 const META_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
 const TELL_COLOR: Color = Color::Rgba(0.98, 0.71, 1.0, 1.0);
 const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0); // Difference between private and tell?
@@ -76,6 +78,12 @@ const SAY_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
+
+// UI Color-Theme
+const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
+//const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark
+const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
+//const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
 
 /// Distance at which nametags are visible
 const NAMETAG_RANGE: f32 = 40.0;
@@ -285,6 +293,7 @@ pub struct Show {
     settings_tab: SettingsTab,
     social_tab: SocialTab,
     want_grab: bool,
+    stats: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -507,6 +516,7 @@ impl Hud {
                 social_tab: SocialTab::Online,
                 want_grab: true,
                 ingame: true,
+                stats: false,
             },
             to_focus: None,
             never_show: false,
@@ -1647,10 +1657,12 @@ impl Hud {
                 self.pulse,
                 &self.voxygen_i18n,
                 &player_stats,
+                &self.show,
             )
             .set(self.ids.bag, ui_widgets)
             {
                 Some(bag::Event::HudEvent(event)) => events.push(event),
+                Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
                 Some(bag::Event::Close) => {
                     self.show.bag(false);
                     self.force_ungrab = true;

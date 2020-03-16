@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{ItemImgs, ItemKey},
-    Event as HudEvent, TEXT_COLOR,
+    Event as HudEvent, Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
@@ -38,6 +38,19 @@ widget_ids! {
         tab_2,
         tab_3,
         tab_4,
+        //Armor Slots
+        slots_bg,
+        //Stats
+        stats_alignment,
+        level,
+        exp_rectangle,
+        exp_progress_rectangle,
+        expbar,
+        exp,
+        divider,
+        statnames,
+        stats,
+
     }
 }
 
@@ -55,6 +68,7 @@ pub struct Bag<'a> {
     pulse: f32,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     stats: &'a Stats,
+    show: &'a Show,
 }
 
 impl<'a> Bag<'a> {
@@ -68,6 +82,7 @@ impl<'a> Bag<'a> {
         pulse: f32,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
         stats: &'a Stats,
+        show: &'a Show,
     ) -> Self {
         Self {
             client,
@@ -80,6 +95,7 @@ impl<'a> Bag<'a> {
             pulse,
             localized_strings,
             stats,
+            show,
         }
     }
 }
@@ -88,11 +104,11 @@ pub struct State {
     ids: Ids,
     img_id_cache: Vec<Option<(ItemKey, image::Id)>>,
     selected_slot: Option<usize>,
-    stats_show: bool,
 }
 
 pub enum Event {
     HudEvent(HudEvent),
+    Stats,
     Close,
 }
 
@@ -106,7 +122,6 @@ impl<'a> Widget for Bag<'a> {
             ids: Ids::new(id_gen),
             img_id_cache: Vec::new(),
             selected_slot: None,
-            stats_show: false,
         }
     }
 
@@ -150,11 +165,12 @@ impl<'a> Widget for Bag<'a> {
         Image::new(self.imgs.inv_bg)
             .w_h(424.0, 708.0)
             .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.97)))
+            .color(Some(UI_MAIN))
             .set(state.ids.bg, ui);
         Image::new(self.imgs.inv_frame)
             .w_h(424.0, 708.0)
             .middle_of(state.ids.bg)
+            .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.bg_frame, ui);
         // Title
         Text::new(&format!(
@@ -189,45 +205,12 @@ impl<'a> Widget for Bag<'a> {
         {
             event = Some(Event::Close);
         }
-        // Tabs
-        if Button::image(self.imgs.inv_tab_active)
-            .w_h(28.0, 44.0)
-            .bottom_left_with_margins_on(state.ids.bg, 172.0, 13.0)
-            .set(state.ids.tab_1, ui)
-            .was_clicked()
-        {}
-        if Button::image(self.imgs.inv_tab_inactive)
-            .w_h(28.0, 44.0)
-            .hover_image(self.imgs.inv_tab_inactive_hover)
-            .press_image(self.imgs.inv_tab_inactive_press)
-            .down_from(state.ids.tab_1, 0.0)
-            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
-            .set(state.ids.tab_2, ui)
-            .was_clicked()
-        {}
-        if Button::image(self.imgs.inv_tab_inactive)
-            .w_h(28.0, 44.0)
-            .hover_image(self.imgs.inv_tab_inactive_hover)
-            .press_image(self.imgs.inv_tab_inactive_press)
-            .down_from(state.ids.tab_2, 0.0)
-            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
-            .set(state.ids.tab_3, ui)
-            .was_clicked()
-        {}
-        if Button::image(self.imgs.inv_tab_inactive)
-            .w_h(28.0, 44.0)
-            .hover_image(self.imgs.inv_tab_inactive_hover)
-            .press_image(self.imgs.inv_tab_inactive_press)
-            .down_from(state.ids.tab_3, 0.0)
-            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
-            .set(state.ids.tab_4, ui)
-            .was_clicked()
-        {}
 
         // Scrollbar-BG
         Image::new(self.imgs.scrollbar_bg)
             .w_h(9.0, 173.0)
             .bottom_right_with_margins_on(state.ids.bg_frame, 42.0, 3.0)
+            .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.scrollbar_bg, ui);
 
         // Char Pixel-Art
@@ -242,23 +225,89 @@ impl<'a> Widget for Bag<'a> {
             .scroll_kids_vertically()
             .set(state.ids.inv_alignment, ui);
 
-        // Stats Button
-        if Button::image(self.imgs.button)
-            .w_h(92.0, 22.0)
-            .mid_top_with_margin_on(state.ids.bg, 435.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label(if state.stats_show { "Armor" } else { "Stats" })
-            .label_y(conrod_core::position::Relative::Scalar(1.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(self.fonts.cyri.scale(12))
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .set(state.ids.stats_button, ui)
-            .was_clicked()
-        {
-            //state.stats_show = !state.stats_show;
-        };
+        if !self.show.stats {
+            //Armor Slots
+            //Slots BG
+            Image::new(self.imgs.inv_runes)
+                .w_h(424.0, 708.0)
+                .middle_of(state.ids.bg)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.slots_bg, ui);
+            Image::new(self.imgs.inv_slots)
+                .w_h(424.0, 708.0)
+                .middle_of(state.ids.bg)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.slots_bg, ui);
+        } else {
+            // Stats
+            // Alignment for Stats
+            Rectangle::fill_with([418.0, 384.0], color::TRANSPARENT)
+                .mid_top_with_margin_on(state.ids.bg_frame, 48.0)
+                .scroll_kids_vertically()
+                .set(state.ids.stats_alignment, ui);
+            // Level
+            Text::new(&level)
+                .mid_top_with_margin_on(state.ids.stats_alignment, 10.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(30))
+                .color(TEXT_COLOR)
+                .set(state.ids.level, ui);
 
+            // Exp-Bar Background
+            Rectangle::fill_with([170.0, 10.0], color::BLACK)
+                .mid_top_with_margin_on(state.ids.stats_alignment, 50.0)
+                .set(state.ids.exp_rectangle, ui);
+
+            // Exp-Bar Progress
+            Rectangle::fill_with([170.0 * (exp_percentage), 6.0], XP_COLOR) // 0.8 = Experience percentage
+                .mid_left_with_margin_on(state.ids.expbar, 1.0)
+                .set(state.ids.exp_progress_rectangle, ui);
+
+            // Exp-Bar Foreground Frame
+            Image::new(self.imgs.progress_frame)
+                .w_h(170.0, 10.0)
+                .middle_of(state.ids.exp_rectangle)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.expbar, ui);
+
+            // Exp-Text
+            Text::new(&exp_treshold)
+                .mid_top_with_margin_on(state.ids.expbar, 10.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(15))
+                .color(TEXT_COLOR)
+                .set(state.ids.exp, ui);
+
+            // Divider
+            /*Image::new(self.imgs.divider)
+            .w_h(50.0, 5.0)
+            .mid_top_with_margin_on(state.ids.exp, 30.0)
+            .color(Some(UI_HIGHLIGHT_0))
+            .set(state.ids.divider, ui);*/
+
+            // Stats
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("character_window.character_stats"),
+            )
+            .top_left_with_margins_on(state.ids.stats_alignment, 120.0, 150.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(16))
+            .color(TEXT_COLOR)
+            .set(state.ids.statnames, ui);
+
+            Text::new(&format!(
+                "{}\n\n{}\n\n{}",
+                self.stats.endurance, self.stats.fitness, self.stats.willpower
+            ))
+            .top_right_with_margins_on(state.ids.stats_alignment, 120.0, 150.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(16))
+            .color(TEXT_COLOR)
+            .set(state.ids.stats, ui);
+        }
+        // Bag Slots
         // Create available inventory slot widgets
         if state.ids.inv_slots.len() < inventory.len() {
             state.update(|s| {
@@ -301,11 +350,7 @@ impl<'a> Widget for Bag<'a> {
                 0.0 + x as f64 * (40.0),
             )
             .wh([40.0; 2])
-            /*.image_color(if is_selected {
-                color::WHITE
-            } else {
-                color::DARK_YELLOW
-            })*/;
+            .image_color(UI_MAIN);
 
             let slot_widget_clicked = if let Some(item) = item {
                 slot_widget
@@ -351,17 +396,10 @@ impl<'a> Widget for Bag<'a> {
                             .unwrap_or(self.imgs.not_found);
                         state.update(|s| s.img_id_cache[i] = Some((kind, id)));
                         id
-                    }
+                    },
                 })
                 .wh(if is_selected { [32.0; 2] } else { [30.0; 2] })
-                .middle_of(state.ids.inv_slots[i]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
-                //.label("5x") // TODO: Quantity goes here...
-                //.label_font_id(self.fonts.opensans)
-                //.label_font_size(12)
-                //.label_x(Relative::Scalar(10.0))
-                //.label_y(Relative::Scalar(-10.0))
-                //.label_color(TEXT_COLOR)
-                //.parent(state.ids.inv_slots[i])
+                .middle_of(state.ids.inv_slots[i])
                 .graphics_for(state.ids.inv_slots[i])
                 .set(state.ids.items[i], ui);
             }
@@ -374,6 +412,60 @@ impl<'a> Widget for Bag<'a> {
                 state.update(|s| s.selected_slot = None);
             }
         }
+        // Stats Button
+        if Button::image(self.imgs.button)
+            .w_h(92.0, 22.0)
+            .mid_top_with_margin_on(state.ids.bg, 435.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label(if self.show.stats { "Armor" } else { "Stats" })
+            .label_y(conrod_core::position::Relative::Scalar(1.0))
+            .label_color(TEXT_COLOR)
+            .label_font_size(self.fonts.cyri.scale(12))
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .set(state.ids.stats_button, ui)
+            .was_clicked()
+        {
+            return Some(Event::Stats);
+        };
+        // Tabs
+        if Button::image(self.imgs.inv_tab_active)
+            .w_h(28.0, 44.0)
+            .bottom_left_with_margins_on(state.ids.bg, 172.0, 13.0)
+            .image_color(UI_HIGHLIGHT_0)
+            .set(state.ids.tab_1, ui)
+            .was_clicked()
+        {}
+        if Button::image(self.imgs.inv_tab_inactive)
+            .w_h(28.0, 44.0)
+            .hover_image(self.imgs.inv_tab_inactive_hover)
+            .press_image(self.imgs.inv_tab_inactive_press)
+            .image_color(UI_HIGHLIGHT_0)
+            .down_from(state.ids.tab_1, 0.0)
+            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
+            .set(state.ids.tab_2, ui)
+            .was_clicked()
+        {}
+        if Button::image(self.imgs.inv_tab_inactive)
+            .w_h(28.0, 44.0)
+            .hover_image(self.imgs.inv_tab_inactive_hover)
+            .press_image(self.imgs.inv_tab_inactive_press)
+            .down_from(state.ids.tab_2, 0.0)
+            .image_color(UI_HIGHLIGHT_0)
+            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
+            .set(state.ids.tab_3, ui)
+            .was_clicked()
+        {}
+        if Button::image(self.imgs.inv_tab_inactive)
+            .w_h(28.0, 44.0)
+            .hover_image(self.imgs.inv_tab_inactive_hover)
+            .press_image(self.imgs.inv_tab_inactive_press)
+            .down_from(state.ids.tab_3, 0.0)
+            .image_color(UI_HIGHLIGHT_0)
+            .with_tooltip(self.tooltip_manager, "Not yet Available", "", &item_tooltip)
+            .set(state.ids.tab_4, ui)
+            .was_clicked()
+        {}
 
         event
     }
