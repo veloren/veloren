@@ -1,16 +1,26 @@
 use crate::{
-    comp::{CharacterState, Item, ToolData},
+    comp::{Body, CharacterState, Item, Projectile, ToolData},
     states::*,
 };
 use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
 use std::time::Duration;
+use vek::vec::Vec3;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbility {
-    BasicAttack {
+    BasicMelee {
         buildup_duration: Duration,
         recover_duration: Duration,
         base_damage: u32,
+    },
+    BasicRanged {
+        recover_duration: Duration,
+        projectile: Projectile,
+        projectile_body: Body,
+    },
+    Boost {
+        duration: Duration,
+        only_up: bool,
     },
     BasicBlock,
     Roll,
@@ -26,7 +36,7 @@ impl Component for CharacterAbility {
     type Storage = DenseVecStorage<Self>;
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
     pub item: Item,
     pub primary_ability: Option<CharacterAbility>,
@@ -35,7 +45,7 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
 pub struct Loadout {
     pub active_item: Option<ItemConfig>,
     pub second_item: Option<ItemConfig>,
@@ -48,39 +58,52 @@ pub struct Loadout {
     pub foot: Option<Item>,
 }
 
-impl From<CharacterAbility> for CharacterState {
-    fn from(ability: CharacterAbility) -> Self {
+impl From<&CharacterAbility> for CharacterState {
+    fn from(ability: &CharacterAbility) -> Self {
         match ability {
-            CharacterAbility::BasicAttack {
+            CharacterAbility::BasicMelee {
                 buildup_duration,
                 recover_duration,
                 base_damage,
-            } => CharacterState::BasicAttack(basic_attack::Data {
+            } => CharacterState::BasicMelee(basic_melee::Data {
                 exhausted: false,
-                buildup_duration,
-                recover_duration,
-                base_damage,
+                buildup_duration: *buildup_duration,
+                recover_duration: *recover_duration,
+                base_damage: *base_damage,
             }),
-            CharacterAbility::BasicBlock { .. } => CharacterState::BasicBlock,
-            CharacterAbility::Roll { .. } => CharacterState::Roll(roll::Data {
+            CharacterAbility::BasicRanged {
+                recover_duration,
+                projectile,
+                projectile_body,
+            } => CharacterState::BasicRanged(basic_ranged::Data {
+                exhausted: false,
+                prepare_timer: Duration::default(),
+                recover_duration: *recover_duration,
+                projectile: projectile.clone(),
+                projectile_body: *projectile_body,
+            }),
+            CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
+                duration: *duration,
+                only_up: *only_up,
+            }),
+            CharacterAbility::BasicBlock => CharacterState::BasicBlock,
+            CharacterAbility::Roll => CharacterState::Roll(roll::Data {
                 remaining_duration: Duration::from_millis(600),
             }),
-            CharacterAbility::ChargeAttack { .. } => {
-                CharacterState::ChargeAttack(charge_attack::Data {
-                    remaining_duration: Duration::from_millis(600),
-                })
-            },
+            CharacterAbility::ChargeAttack => CharacterState::ChargeAttack(charge_attack::Data {
+                remaining_duration: Duration::from_millis(600),
+            }),
             CharacterAbility::TimedCombo {
                 buildup_duration,
                 recover_duration,
                 base_damage,
             } => CharacterState::TimedCombo(timed_combo::Data {
-                buildup_duration,
-                recover_duration,
+                buildup_duration: *buildup_duration,
+                recover_duration: *recover_duration,
                 stage: 0,
                 stage_exhausted: false,
                 stage_time_active: Duration::default(),
-                base_damage,
+                base_damage: *base_damage,
             }),
         }
     }

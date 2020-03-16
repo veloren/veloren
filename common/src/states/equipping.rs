@@ -14,7 +14,7 @@ pub struct Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate {
-            character: *data.character,
+            character: data.character.clone(),
             pos: *data.pos,
             vel: *data.vel,
             ori: *data.ori,

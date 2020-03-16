@@ -1,6 +1,9 @@
 use crate::{
     assets::{self, Asset},
-    comp::{body::humanoid, CharacterAbility},
+    comp::{
+        body::{humanoid, object},
+        projectile, Body, CharacterAbility, HealthChange, HealthSource, Projectile,
+    },
     effect::Effect,
     terrain::{Block, BlockKind},
 };
@@ -37,35 +40,61 @@ impl ToolData {
         use ToolKind::*;
 
         match self.kind {
-            Sword(_) => vec![BasicAttack {
+            Sword(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(500),
                 base_damage: 60,
             }],
-            Axe => vec![BasicAttack {
+            Axe => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(100),
                 base_damage: 80,
             }],
-            Hammer => vec![BasicAttack {
+            Hammer => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(300),
                 base_damage: 100,
             }],
-            Bow => vec![],
-            Dagger => vec![BasicAttack {
+            Bow => vec![BasicRanged {
+                projectile: Projectile {
+                    hit_ground: vec![projectile::Effect::Stick],
+                    hit_wall: vec![projectile::Effect::Stick],
+                    hit_entity: vec![
+                        projectile::Effect::Damage(HealthChange {
+                            // TODO: This should not be fixed (?)
+                            amount: -30,
+                            cause: HealthSource::Item,
+                        }),
+                        projectile::Effect::Vanish,
+                    ],
+                    time_left: Duration::from_secs(15),
+                    owner: None,
+                },
+                projectile_body: Body::Object(object::Body::Arrow),
+                recover_duration: Duration::from_millis(300),
+            }],
+            Dagger => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(400),
                 base_damage: 50,
             }],
-            Staff => vec![BasicAttack {
+            Staff => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(400),
                 recover_duration: Duration::from_millis(300),
                 base_damage: 70,
             }],
             Shield => vec![],
             Debug(kind) => match kind {
-                Boost => vec![],
+                DebugKind::Boost => vec![
+                    CharacterAbility::Boost {
+                        duration: Duration::from_millis(100),
+                        only_up: false,
+                    },
+                    CharacterAbility::Boost {
+                        duration: Duration::from_millis(100),
+                        only_up: true,
+                    },
+                ],
                 Possess => vec![],
             },
         }

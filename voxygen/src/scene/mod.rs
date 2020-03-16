@@ -188,6 +188,13 @@ impl Scene {
             .get(scene_data.player_entity)
             .map_or(false, |cs| cs.is_dodge());
 
+        let player_running = scene_data
+            .state
+            .ecs()
+            .read_storage::<comp::Vel>()
+            .get(scene_data.player_entity)
+            .map_or(false, |v| v.0.magnitude_squared() > 0.5);
+
         let player_scale = match scene_data
             .state
             .ecs()
@@ -211,9 +218,11 @@ impl Scene {
         let up = match self.camera.get_mode() {
             CameraMode::FirstPerson => {
                 if player_rolling {
-                    player_scale * 0.8_f32
+                    player_scale * 0.8
+                } else if player_running {
+                    player_scale * 1.6 + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
                 } else {
-                    player_scale * 1.6_f32
+                    player_scale * 1.6
                 }
             },
             CameraMode::ThirdPerson => 1.2,

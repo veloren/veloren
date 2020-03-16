@@ -1,6 +1,6 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
-    states::{utils::*, wielding},
+    states::utils::*,
     sys::character_behavior::*,
 };
 use std::{collections::VecDeque, time::Duration};
@@ -24,16 +24,16 @@ impl CharacterBehavior for Data {
             vel: *data.vel,
             ori: *data.ori,
             energy: *data.energy,
-            character: *data.character,
+            character: data.character.clone(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         };
 
         handle_move(data, &mut update);
 
-        // Build up
         if self.buildup_duration != Duration::default() {
-            update.character = CharacterState::BasicAttack(Data {
+            // Build up
+            update.character = CharacterState::BasicMelee(Data {
                 buildup_duration: self
                     .buildup_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
@@ -42,9 +42,8 @@ impl CharacterBehavior for Data {
                 base_damage: self.base_damage,
                 exhausted: false,
             });
-        }
-        // Hit attempt
-        else if !self.exhausted {
+        } else if !self.exhausted {
+            // Hit attempt
             if let Some(tool) = unwrap_tool_data(data) {
                 data.updater.insert(data.entity, Attacking {
                     base_damage: self.base_damage,
@@ -53,16 +52,15 @@ impl CharacterBehavior for Data {
                 });
             }
 
-            update.character = CharacterState::BasicAttack(Data {
+            update.character = CharacterState::BasicMelee(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
                 exhausted: true,
             });
-        }
-        // Recovery
-        else if self.recover_duration != Duration::default() {
-            update.character = CharacterState::BasicAttack(Data {
+        } else if self.recover_duration != Duration::default() {
+            // Recovery
+            update.character = CharacterState::BasicMelee(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self
                     .recover_duration
@@ -71,16 +69,11 @@ impl CharacterBehavior for Data {
                 base_damage: self.base_damage,
                 exhausted: true,
             });
-        }
-        // Done
-        else {
-            if let Some(tool) = unwrap_tool_data(data) {
-                update.character = CharacterState::Wielding;
-                // Make sure attack component is removed
-                data.updater.remove::<Attacking>(data.entity);
-            } else {
-                update.character = CharacterState::Idle;
-            }
+        } else {
+            // Done
+            update.character = CharacterState::Wielding;
+            // Make sure attack component is removed
+            data.updater.remove::<Attacking>(data.entity);
         }
 
         // Grant energy on successful hit

@@ -77,8 +77,11 @@ impl<'a> System<'a> for Sys {
                             entity,
                             cause: HealthSource::World,
                         }),
-                        projectile::Effect::Possess => server_emitter
-                            .emit(ServerEvent::Possess(projectile.owner.into(), other)),
+                        projectile::Effect::Possess => {
+                            if let Some(owner) = projectile.owner {
+                                server_emitter.emit(ServerEvent::Possess(owner.into(), other));
+                            }
+                        },
                         _ => {},
                     }
                 }
