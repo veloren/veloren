@@ -283,17 +283,17 @@ impl<'a> System<'a> for Sys {
                     }
                 }
 
-                if let Some(&character_state) = character_state {
+                if let Some(&character_state) = character_state.as_ref() {
                     if last_character_state
                         .get(entity)
-                        .map(|&l| !character_state.equals(&l.0))
+                        .map(|l| !character_state.equals(&l.0))
                         .unwrap_or(true)
                     {
-                        let _ = last_character_state.insert(entity, Last(character_state));
+                        let _ = last_character_state.insert(entity, Last(character_state.clone()));
                         send_msg(
                             ServerMsg::EntityCharacterState {
                                 entity: uid.into(),
-                                character_state,
+                                character_state: character_state.clone(),
                             },
                             entity,
                             pos,
@@ -367,7 +367,7 @@ pub fn send_initial_unsynced_components(
     if let Some(&ori) = ori {
         client.notify(ServerMsg::EntityOri { entity, ori });
     }
-    if let Some(&character_state) = character_state {
+    if let Some(character_state) = character_state.cloned() {
         client.notify(ServerMsg::EntityCharacterState {
             entity,
             character_state,

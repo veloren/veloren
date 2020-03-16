@@ -112,7 +112,7 @@ impl<'a> TrackedComps<'a> {
             .map(|c| comps.push(c.into()));
         self.character_state
             .get(entity)
-            .copied()
+            .cloned()
             .map(|c| comps.push(c.into()));
 
         EntityPackage { uid, comps }

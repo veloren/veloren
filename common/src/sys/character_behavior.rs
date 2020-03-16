@@ -182,7 +182,9 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Equipping(data) => data.behavior(&j),
                 CharacterState::ChargeAttack(data) => data.behavior(&j),
                 CharacterState::TripleStrike(data) => data.behavior(&j),
-                CharacterState::BasicAttack(data) => data.behavior(&j),
+                CharacterState::BasicMelee(data) => data.behavior(&j),
+                CharacterState::BasicRanged(data) => data.behavior(&j),
+                CharacterState::Boost(data) => data.behavior(&j),
                 CharacterState::TimedCombo(data) => data.behavior(&j),
 
                 // Do not use default match.
