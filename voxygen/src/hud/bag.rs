@@ -194,18 +194,6 @@ impl<'a> Widget for Bag<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.inventory_title, ui);
 
-        // Close button
-        if Button::image(self.imgs.close_btn)
-            .w_h(24.0, 25.0)
-            .hover_image(self.imgs.close_btn_hover)
-            .press_image(self.imgs.close_btn_press)
-            .top_right_with_margins_on(state.ids.bg, 0.0, 0.0)
-            .set(state.ids.bag_close, ui)
-            .was_clicked()
-        {
-            event = Some(Event::Close);
-        }
-
         // Scrollbar-BG
         Image::new(self.imgs.scrollbar_bg)
             .w_h(9.0, 173.0)
@@ -229,13 +217,13 @@ impl<'a> Widget for Bag<'a> {
             //Armor Slots
             //Slots BG
             Image::new(self.imgs.inv_runes)
-                .w_h(424.0, 708.0)
-                .middle_of(state.ids.bg)
+                .w_h(424.0, 454.0)
+                .mid_top_with_margin_on(state.ids.bg, 0.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.slots_bg, ui);
             Image::new(self.imgs.inv_slots)
-                .w_h(424.0, 708.0)
-                .middle_of(state.ids.bg)
+                .w_h(424.0, 401.0)
+                .mid_top_with_margin_on(state.ids.bg, 57.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.slots_bg, ui);
         } else {
@@ -466,7 +454,17 @@ impl<'a> Widget for Bag<'a> {
             .set(state.ids.tab_4, ui)
             .was_clicked()
         {}
-
+        // Close button
+        if Button::image(self.imgs.close_btn)
+            .w_h(24.0, 25.0)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
+            .top_right_with_margins_on(state.ids.bg, 0.0, 0.0)
+            .set(state.ids.bag_close, ui)
+            .was_clicked()
+        {
+            event = Some(Event::Close);
+        }
         event
     }
 }
