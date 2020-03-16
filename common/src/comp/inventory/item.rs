@@ -46,23 +46,23 @@ impl ToolData {
                 BasicMelee {
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(500),
-                    base_damage: 60,
+                    base_damage: 6,
                 },
                 DashMelee {
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
-                    base_damage: 200,
+                    base_damage: 20,
                 },
             ],
             Axe => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(100),
-                base_damage: 80,
+                base_damage: 8,
             }],
             Hammer => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(300),
-                base_damage: 100,
+                base_damage: 10,
             }],
             Bow => vec![BasicRanged {
                 projectile: Projectile {
@@ -85,12 +85,12 @@ impl ToolData {
             Dagger => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(400),
-                base_damage: 50,
+                base_damage: 5,
             }],
             Staff => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(400),
                 recover_duration: Duration::from_millis(300),
-                base_damage: 70,
+                base_damage: 7,
             }],
             Shield => vec![BasicBlock],
             Debug(kind) => match kind {
