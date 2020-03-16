@@ -483,6 +483,7 @@ pub enum Chest {
     Kimono = 6,
     Assassin = 7,
     PlateGreen0 = 8,
+    None = 9,
 }
 pub const ALL_CHESTS: [Chest; 9] = [
     Chest::Blue,

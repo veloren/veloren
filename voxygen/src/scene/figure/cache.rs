@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{Body, CharacterState, ItemKind, Loadout, ToolKind},
+    comp::{Body, CharacterState, Item, ItemKind, Loadout, ToolKind},
 };
 use hashbrown::{hash_map::Entry, HashMap};
 use std::{
@@ -17,19 +17,25 @@ use std::{
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
-    Complex(Body, CameraMode, Option<CharacterCacheKey>),
+    Complex(Body, CameraMode, CharacterCacheKey),
 }
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 struct CharacterCacheKey {
-    state: Discriminant<CharacterState>, // TODO: Can this be simplified?
-    active_tool: Option<Discriminant<ToolKind>>, // TODO: Can this be simplified?
+    state: Option<Discriminant<CharacterState>>, // TODO: Can this be simplified?
+    active_tool: Option<Discriminant<ToolKind>>,
+    shoulder: Option<Item>,
+    chest: Option<Item>,
+    belt: Option<Item>,
+    hand: Option<Item>,
+    pants: Option<Item>,
+    foot: Option<Item>,
 }
 
 impl CharacterCacheKey {
-    fn from(cs: &CharacterState, loadout: &Loadout) -> Self {
+    fn from(cs: Option<&CharacterState>, loadout: &Loadout) -> Self {
         Self {
-            state: discriminant(&cs),
+            state: cs.map(|cs| discriminant(cs)),
             active_tool: if let Some(ItemKind::Tool(tool)) =
                 loadout.active_item.as_ref().map(|i| &i.item.kind)
             {
@@ -37,6 +43,12 @@ impl CharacterCacheKey {
             } else {
                 None
             },
+            shoulder: loadout.shoulder.clone(),
+            chest: loadout.chest.clone(),
+            belt: loadout.belt.clone(),
+            hand: loadout.hand.clone(),
+            pants: loadout.pants.clone(),
+            foot: loadout.foot.clone(),
         }
     }
 }
@@ -74,7 +86,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
             FigureKey::Complex(
                 body,
                 camera_mode,
-                character_state.map(|cs| CharacterCacheKey::from(cs, loadout)),
+                CharacterCacheKey::from(character_state, loadout),
             )
         } else {
             FigureKey::Simple(body)

@@ -366,7 +366,7 @@ impl HumArmorChestSpec {
         {
             chest
         } else {
-            &Chest::Blue
+            &Chest::None
         };
 
         let spec = match self.0.get(&chest) {
