@@ -29,6 +29,8 @@ pub enum ToolKind {
     Staff,
     Shield,
     Debug(DebugKind),
+    /// This is an placeholder item, it is used by non-humanoid npcs to attack
+    Empty,
 }
 
 impl ToolData {
@@ -97,6 +99,7 @@ impl ToolData {
                 ],
                 Possess => vec![],
             },
+            Empty => vec![],
         }
     }
 }
@@ -182,6 +185,17 @@ impl Asset for Item {
 }
 
 impl Item {
+    pub fn empty() -> Self {
+        Self {
+            name: "Empty Item".to_owned(),
+            description: "This item may grant abilities, but is invisible".to_owned(),
+            kind: ItemKind::Tool(ToolData {
+                kind: ToolKind::Empty,
+                equip_time_millis: 0,
+            }),
+        }
+    }
+
     pub fn name(&self) -> &str { &self.name }
 
     pub fn description(&self) -> &str { &self.description }
