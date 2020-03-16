@@ -459,7 +459,7 @@ impl MainMenuUi {
                     };
                 }
                 // Info Window
-                Rectangle::fill_with([550.0, 400.0], color::BLACK)
+                Rectangle::fill_with([550.0, 250.0], color::BLACK)
                     .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
                     .set(self.ids.info_frame, ui_widgets);
