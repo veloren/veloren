@@ -88,17 +88,10 @@ impl<'a> Widget for Social<'a> {
 
         let mut events = Vec::new();
 
-        if self.show.character_window {
-            Image::new(self.imgs.window_3)
-                .top_left_with_margins_on(ui.window, 200.0, 658.0)
-                .w_h(103.0 * 4.0, 122.0 * 4.0)
-                .set(ids.social_frame, ui);
-        } else {
-            Image::new(self.imgs.window_3)
-                .top_left_with_margins_on(ui.window, 200.0, 25.0)
-                .w_h(103.0 * 4.0, 122.0 * 4.0)
-                .set(ids.social_frame, ui);
-        }
+        Image::new(self.imgs.window_3)
+            .top_left_with_margins_on(ui.window, 200.0, 25.0)
+            .w_h(103.0 * 4.0, 122.0 * 4.0)
+            .set(ids.social_frame, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)
