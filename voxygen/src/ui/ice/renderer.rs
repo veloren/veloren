@@ -5,7 +5,6 @@ use super::{
     super::{
         cache::Cache,
         graphic::{self, Graphic, TexId},
-        scale::{Scale, ScaleMode},
     },
     widget,
 };
@@ -13,7 +12,6 @@ use crate::{
     render::{
         create_ui_quad, Consts, DynamicModel, Globals, Mesh, Renderer, UiLocals, UiMode, UiPipeline,
     },
-    window::Window,
     Error,
 };
 //use log::warn;
@@ -73,13 +71,8 @@ pub struct IcedRenderer {
     interface_locals: Consts<UiLocals>,
     default_globals: Consts<Globals>,
 
-    // Window size for updating scaling
-    //window_resized: Option<Vec2<f64>>,
     // Used to delay cache resizing until after current frame is drawn
     //need_cache_resize: bool,
-    // Scaling of the ui
-    scale: Scale,
-
     half_res: Vec2<f32>,
     // Pixel perfection alignment
     align: Vec2<f32>,
@@ -95,16 +88,8 @@ pub struct IcedRenderer {
     //current_scissor: Aabr<u16>,
 }
 impl IcedRenderer {
-    pub fn new(window: &mut Window) -> Result<Self, Error> {
-        let scale = Scale::new(window, ScaleMode::Absolute(1.0));
-        // TODO: looks like we can just get this from scale
-        let win_dims = scale.scaled_window_size().map(|e| e as f32);
-
-        let renderer = window.renderer_mut();
-        let res = renderer.get_resolution();
-
-        let half_res = res.map(|e| e as f32 / 2.0);
-        let align = align(res);
+    pub fn new(renderer: &mut Renderer, scaled_dims: Vec2<f32>) -> Result<Self, Error> {
+        let (half_res, align) = Self::calculate_resolution_dependents(renderer.get_resolution());
 
         Ok(Self {
             cache: Cache::new(renderer)?,
@@ -113,35 +98,32 @@ impl IcedRenderer {
             interface_locals: renderer.create_consts(&[UiLocals::default()])?,
             default_globals: renderer.create_consts(&[Globals::default()])?,
             ingame_locals: Vec::new(),
-            //window_resized: None,
-            //need_cache_resize: false,
             mesh: Mesh::new(),
             current_state: State::Plain,
-            scale,
             half_res,
             align,
-            win_dims,
+            win_dims: scaled_dims,
             start: 0,
             //current_scissor: default_scissor(renderer),
         })
     }
 
-    pub fn scaled_window_size(&self) -> Vec2<f64> { self.scale.scaled_window_size() }
-
     pub fn add_graphic(&mut self, graphic: Graphic) -> graphic::Id {
         self.cache.add_graphic(graphic)
     }
 
+    pub fn resize(&mut self, scaled_dims: Vec2<f32>, renderer: &mut Renderer) {
+        self.win_dims = scaled_dims;
+
+        self.update_resolution_dependents(renderer.get_resolution());
+
+        // Resize graphic cache
+        self.cache.resize_graphic_cache(renderer);
+        // Resize glyph cache
+        self.cache.resize_glyph_cache(renderer).unwrap();
+    }
+
     pub fn draw(&mut self, primitive: Primitive, renderer: &mut Renderer) {
-        /*if self.need_cache_resize {
-            // Resize graphic cache
-            self.cache.resize_graphic_cache(renderer).unwrap();
-            // Resize glyph cache
-            self.cache.resize_glyph_cache(renderer).unwrap();
-
-            self.need_cache_resize = false;
-        }*/
-
         // Re-use memory
         self.draw_commands.clear();
         self.mesh.clear();
@@ -201,6 +183,20 @@ impl IcedRenderer {
             let res = renderer.get_resolution();
             self.need_cache_resize = res.x > 0 && res.y > 0 && !(old_w == w && old_h == h);
         }*/
+    }
+
+    // Returns (half_res, align)
+    fn calculate_resolution_dependents(res: Vec2<u16>) -> (Vec2<f32>, Vec2<f32>) {
+        let half_res = res.map(|e| e as f32 / 2.0);
+        let align = align(res);
+
+        (half_res, align)
+    }
+
+    fn update_resolution_dependents(&mut self, res: Vec2<u16>) {
+        let (half_res, align) = Self::calculate_resolution_dependents(res);
+        self.half_res = half_res;
+        self.align = align;
     }
 
     fn gl_aabr(&self, bounds: iced::Rectangle) -> Aabr<f32> {
@@ -360,6 +356,7 @@ impl IcedRenderer {
 
 // Given the the resolution determines the offset needed to align integer
 // offsets from the center of the sceen to pixels
+#[inline(always)]
 fn align(res: Vec2<u16>) -> Vec2<f32> {
     // If the resolution is odd then the center of the screen will be within the
     // middle of a pixel so we need to offset by 0.5 pixels to be on the edge of
