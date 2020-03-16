@@ -263,8 +263,6 @@ image_ids! {
 
         help:"voxygen.element.help",
 
-        charwindow_gradient:"voxygen.element.misc_bg.charwindow",
-
         death_bg: "voxygen.background.death",
         hurt_bg: "voxygen.background.hurt",
 
