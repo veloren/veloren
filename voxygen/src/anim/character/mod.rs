@@ -236,6 +236,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 ToolKind::Bow => 0.0,
                 ToolKind::Dagger => 0.0,
                 ToolKind::Debug(_) => 0.0,
+                ToolKind::Empty => 0.0,
             },
             weapon_y: match ToolKind::Hammer {
                 ToolKind::Sword(_) => -1.25,
@@ -246,6 +247,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 ToolKind::Bow => -2.0,
                 ToolKind::Dagger => -2.0,
                 ToolKind::Debug(_) => 0.0,
+                ToolKind::Empty => 0.0,
             },
         }
     }

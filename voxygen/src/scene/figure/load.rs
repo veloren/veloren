@@ -636,6 +636,7 @@ pub fn mesh_main(item_kind: Option<&ItemKind>) -> Mesh<FigurePipeline> {
                 ToolKind::Bow => ("weapon.bow.simple-bow", Vec3::new(-1.0, -6.0, -2.0)),
                 ToolKind::Staff => ("weapon.staff.wood-fire", Vec3::new(-1.0, -6.0, -3.0)),
                 ToolKind::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
+                ToolKind::Empty => return Mesh::new(),
             },
             _ => return Mesh::new(),
         };
