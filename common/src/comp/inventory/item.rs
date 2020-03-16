@@ -42,11 +42,18 @@ impl ToolData {
         use ToolKind::*;
 
         match self.kind {
-            Sword(_) => vec![BasicMelee {
-                buildup_duration: Duration::from_millis(100),
-                recover_duration: Duration::from_millis(500),
-                base_damage: 60,
-            }],
+            Sword(_) => vec![
+                BasicMelee {
+                    buildup_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(500),
+                    base_damage: 60,
+                },
+                DashMelee {
+                    buildup_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(500),
+                    base_damage: 200,
+                },
+            ],
             Axe => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(100),

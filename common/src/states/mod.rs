@@ -4,6 +4,7 @@ pub mod basic_ranged;
 pub mod boost;
 pub mod charge_attack;
 pub mod climb;
+pub mod dash_melee;
 pub mod equipping;
 pub mod glide;
 pub mod idle;
