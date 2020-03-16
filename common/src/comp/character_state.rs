@@ -40,6 +40,8 @@ pub enum CharacterState {
     BasicRanged(basic_ranged::Data),
     /// A force will boost you into a direction for some duration
     Boost(boost::Data),
+    /// Dash forward and then attack
+    DashMelee(dash_melee::Data),
     /// A three-stage attack where play must click at appropriate times
     /// to continue attack chain.
     TimedCombo(timed_combo::Data),

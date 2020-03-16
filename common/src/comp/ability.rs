@@ -22,6 +22,11 @@ pub enum CharacterAbility {
         duration: Duration,
         only_up: bool,
     },
+    DashMelee {
+        buildup_duration: Duration,
+        recover_duration: Duration,
+        base_damage: u32,
+    },
     BasicBlock,
     Roll,
     ChargeAttack,
@@ -85,6 +90,16 @@ impl From<&CharacterAbility> for CharacterState {
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
                 duration: *duration,
                 only_up: *only_up,
+            }),
+            CharacterAbility::DashMelee {
+                buildup_duration,
+                recover_duration,
+                base_damage,
+            } => CharacterState::DashMelee(dash_melee::Data {
+                exhausted: false,
+                buildup_duration: *buildup_duration,
+                recover_duration: *recover_duration,
+                base_damage: *base_damage,
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
