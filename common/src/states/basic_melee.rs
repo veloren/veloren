@@ -44,13 +44,11 @@ impl CharacterBehavior for Data {
             });
         } else if !self.exhausted {
             // Hit attempt
-            if let Some(tool) = unwrap_tool_data(data) {
-                data.updater.insert(data.entity, Attacking {
-                    base_damage: self.base_damage,
-                    applied: false,
-                    hit_count: 0,
-                });
-            }
+            data.updater.insert(data.entity, Attacking {
+                base_damage: self.base_damage,
+                applied: false,
+                hit_count: 0,
+            });
 
             update.character = CharacterState::BasicMelee(Data {
                 buildup_duration: self.buildup_duration,

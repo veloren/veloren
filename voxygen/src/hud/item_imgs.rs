@@ -19,6 +19,7 @@ pub enum ItemKey {
     Utility(Utility),
     Consumable(Consumable),
     Ingredient(Ingredient),
+    Empty,
 }
 impl From<&Item> for ItemKey {
     fn from(item: &Item) -> Self {

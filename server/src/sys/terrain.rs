@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, Player, Pos},
+    comp::{self, item, CharacterAbility, Item, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::EntityKind,
     msg::ServerMsg,
@@ -12,7 +12,7 @@ use common::{
 };
 use rand::{seq::SliceRandom, Rng};
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 use vek::*;
 
 /// This system will handle loading generated chunks and unloading
@@ -181,22 +181,50 @@ impl<'a> System<'a> for Sys {
                         .expect("SPAWN_NPCS is nonempty")(
                     );
                     let mut stats = comp::Stats::new(name, body);
-                    let mut loadout = comp::Loadout {
-                        active_item: main.map(|item| comp::ItemConfig {
-                            item,
-                            primary_ability: None,
-                            secondary_ability: None,
-                            block_ability: None,
-                            dodge_ability: None,
-                        }),
-                        second_item: None,
-                        shoulder: None,
-                        chest: None,
-                        belt: None,
-                        hand: None,
-                        pants: None,
-                        foot: None,
-                    };
+
+                    let mut loadout =
+                        if let Some(comp::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
+                            let mut abilities = tool.get_abilities();
+                            let mut ability_drain = abilities.drain(..);
+
+                            comp::Loadout {
+                                active_item: main.map(|item| comp::ItemConfig {
+                                    item,
+                                    primary_ability: ability_drain.next(),
+                                    secondary_ability: ability_drain.next(),
+                                    block_ability: Some(comp::CharacterAbility::BasicBlock),
+                                    dodge_ability: Some(comp::CharacterAbility::Roll),
+                                }),
+                                second_item: None,
+                                shoulder: None,
+                                chest: None,
+                                belt: None,
+                                hand: None,
+                                pants: None,
+                                foot: None,
+                            }
+                        } else {
+                            comp::Loadout {
+                                active_item: Some(ItemConfig {
+                                    item: Item::empty(),
+                                    primary_ability: Some(CharacterAbility::BasicMelee {
+                                        buildup_duration: Duration::from_millis(50),
+                                        recover_duration: Duration::from_millis(50),
+                                        base_damage: 10,
+                                    }),
+                                    secondary_ability: None,
+                                    block_ability: None,
+                                    dodge_ability: None,
+                                }),
+                                second_item: None,
+                                shoulder: None,
+                                chest: None,
+                                belt: None,
+                                hand: None,
+                                pants: None,
+                                foot: None,
+                            }
+                        };
 
                     let mut scale = 1.0;
 
@@ -220,9 +248,11 @@ impl<'a> System<'a> for Sys {
                         loadout = comp::Loadout {
                             active_item: Some(comp::ItemConfig {
                                 item: assets::load_expect_cloned("common.items.weapons.hammer_1"),
-                                primary_ability: None, /* TODO: when implementing this, make sure
-                                                        * to adjust the base damage (see todo
-                                                        * below) */
+                                primary_ability: Some(CharacterAbility::BasicMelee {
+                                    buildup_duration: Duration::from_millis(800),
+                                    recover_duration: Duration::from_millis(200),
+                                    base_damage: 130,
+                                }),
                                 secondary_ability: None,
                                 block_ability: None,
                                 dodge_ability: None,
