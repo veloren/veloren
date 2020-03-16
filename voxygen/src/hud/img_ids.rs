@@ -223,6 +223,7 @@ image_ids! {
         <ImageGraphic>
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
+        mmap_frame_2: "voxygen.element.frames.mmap_frame",
         mmap_frame_closed: "voxygen.element.frames.mmap_closed",
         mmap_closed: "voxygen.element.buttons.button_mmap_closed",
         mmap_closed_hover: "voxygen.element.buttons.button_mmap_closed_hover",
@@ -253,6 +254,8 @@ image_ids! {
         inv_tab_inactive: "voxygen.element.buttons.inv_tab_inactive",
         inv_tab_inactive_hover: "voxygen.element.buttons.inv_tab_inactive",
         inv_tab_inactive_press: "voxygen.element.buttons.inv_tab_inactive",
+        inv_slots: "voxygen.element.misc_bg.inv_slots",
+        inv_runes: "voxygen.element.misc_bg.inv_runes",
 
 
 
