@@ -138,7 +138,12 @@ impl<'a> Widget for Bag<'a> {
             None => return None,
         };
         let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
-        let exp_treshold = format!("{}/{}", self.stats.exp.current(), self.stats.exp.maximum());
+        let exp_treshold = format!(
+            "{}/{} {}",
+            self.stats.exp.current(),
+            self.stats.exp.maximum(),
+            &self.localized_strings.get("hud.bag.exp")
+        );
         let level = (self.stats.level.level()).to_string();
 
         // Tooltips
@@ -162,11 +167,15 @@ impl<'a> Widget for Bag<'a> {
         .desc_text_color(TEXT_COLOR);
 
         // BG
-        Image::new(self.imgs.inv_bg)
-            .w_h(424.0, 708.0)
-            .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
-            .color(Some(UI_MAIN))
-            .set(state.ids.bg, ui);
+        Image::new(if self.show.stats {
+            self.imgs.inv_bg_stats
+        } else {
+            self.imgs.inv_bg_armor
+        })
+        .w_h(424.0, 708.0)
+        .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
+        .color(Some(UI_MAIN))
+        .set(state.ids.bg, ui);
         Image::new(self.imgs.inv_frame)
             .w_h(424.0, 708.0)
             .middle_of(state.ids.bg)
@@ -214,12 +223,34 @@ impl<'a> Widget for Bag<'a> {
             .set(state.ids.inv_alignment, ui);
 
         if !self.show.stats {
+            // Title
+            Text::new(&format!(
+                "{}{}",
+                &self.stats.name,
+                &self.localized_strings.get("hud.bag.inventory")
+            ))
+            .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(22))
+            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .set(state.ids.inventory_title_bg, ui);
+            Text::new(&format!(
+                "{}{}",
+                &self.stats.name,
+                &self.localized_strings.get("hud.bag.inventory")
+            ))
+            .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(22))
+            .color(TEXT_COLOR)
+            .set(state.ids.inventory_title, ui);
             //Armor Slots
             //Slots BG
             Image::new(self.imgs.inv_runes)
                 .w_h(424.0, 454.0)
                 .mid_top_with_margin_on(state.ids.bg, 0.0)
                 .color(Some(UI_HIGHLIGHT_0))
+                .floating(true)
                 .set(state.ids.slots_bg, ui);
             Image::new(self.imgs.inv_slots)
                 .w_h(424.0, 401.0)
@@ -228,6 +259,27 @@ impl<'a> Widget for Bag<'a> {
                 .set(state.ids.slots_bg, ui);
         } else {
             // Stats
+            // Title
+            Text::new(&format!(
+                "{}{}",
+                &self.stats.name,
+                &self.localized_strings.get("hud.bag.stats")
+            ))
+            .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(22))
+            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .set(state.ids.inventory_title_bg, ui);
+            Text::new(&format!(
+                "{}{}",
+                &self.stats.name,
+                &self.localized_strings.get("hud.bag.stats")
+            ))
+            .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(22))
+            .color(TEXT_COLOR)
+            .set(state.ids.inventory_title, ui);
             // Alignment for Stats
             Rectangle::fill_with([418.0, 384.0], color::TRANSPARENT)
                 .mid_top_with_margin_on(state.ids.bg_frame, 48.0)
