@@ -18,7 +18,7 @@ impl CharacterBehavior for Data {
             vel: *data.vel,
             ori: *data.ori,
             energy: *data.energy,
-            character: *data.character,
+            character: data.character.clone(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         };

@@ -543,7 +543,7 @@ impl<'a> Widget for Skillbar<'a> {
                 // M1 Slot
 
                 match self.character_state {
-                    CharacterState::BasicAttack { .. } => {
+                    CharacterState::BasicMelee { .. } => {
                         if self.controller.primary.is_pressed() {
                             let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                             Image::new(self.imgs.skillbar_slot_big)
@@ -654,7 +654,7 @@ impl<'a> Widget for Skillbar<'a> {
                         .set(state.ids.m2_slot, ui);
                 }
             },*/
-            CharacterState::BasicAttack { .. } => {
+            CharacterState::BasicMelee { .. } => {
                 let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                 if self.controller.secondary.is_pressed() {
                     Image::new(self.imgs.skillbar_slot_big)

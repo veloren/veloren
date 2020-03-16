@@ -18,7 +18,7 @@ pub struct StateUpdate {
     pub server_events: VecDeque<ServerEvent>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum CharacterState {
     Idle,
     Climb,
@@ -34,8 +34,12 @@ pub enum CharacterState {
     ChargeAttack(charge_attack::Data),
     /// A dodge where player can roll
     Roll(roll::Data),
-    /// A basic attacking state
-    BasicAttack(basic_attack::Data),
+    /// A basic melee attack (e.g. sword)
+    BasicMelee(basic_melee::Data),
+    /// A basic ranged attack (e.g. bow)
+    BasicRanged(basic_ranged::Data),
+    /// A force will boost you into a direction for some duration
+    Boost(boost::Data),
     /// A three-stage attack where play must click at appropriate times
     /// to continue attack chain.
     TimedCombo(timed_combo::Data),
@@ -48,7 +52,7 @@ impl CharacterState {
     pub fn is_wield(&self) -> bool {
         match self {
             CharacterState::Wielding
-            | CharacterState::BasicAttack(_)
+            | CharacterState::BasicMelee(_)
             | CharacterState::TimedCombo(_)
             | CharacterState::BasicBlock => true,
             _ => false,
@@ -57,7 +61,8 @@ impl CharacterState {
 
     pub fn is_attack(&self) -> bool {
         match self {
-            CharacterState::BasicAttack(_)
+            CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
             | CharacterState::TimedCombo(_)
             | CharacterState::ChargeAttack(_) => true,
             _ => false,

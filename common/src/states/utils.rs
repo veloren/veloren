@@ -195,7 +195,7 @@ pub fn attempt_primary_ability(data: &JoinData, update: &mut StateUpdate) {
         .loadout
         .active_item
         .as_ref()
-        .and_then(|i| i.primary_ability)
+        .and_then(|i| i.primary_ability.as_ref())
     {
         update.character = ability.into();
     }
@@ -217,7 +217,7 @@ pub fn attempt_secondary_ability(data: &JoinData, update: &mut StateUpdate) {
         .loadout
         .active_item
         .as_ref()
-        .and_then(|i| i.secondary_ability)
+        .and_then(|i| i.secondary_ability.as_ref())
     {
         update.character = ability.into();
     }
@@ -246,7 +246,7 @@ pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
         .loadout
         .active_item
         .as_ref()
-        .and_then(|i| i.dodge_ability)
+        .and_then(|i| i.dodge_ability.as_ref())
     {
         update.character = ability.into();
     }

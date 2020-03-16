@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{Body, CharacterState, ItemKind, Loadout},
+    comp::{Body, CharacterState, ItemKind, Loadout, ToolKind},
 };
 use hashbrown::{hash_map::Entry, HashMap};
 use std::{
@@ -17,23 +17,26 @@ use std::{
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
-    Complex(
-        Body,
-        Option<Loadout>,
-        CameraMode,
-        Option<CharacterStateCacheKey>,
-    ),
+    Complex(Body, CameraMode, Option<CharacterCacheKey>),
 }
 
 #[derive(PartialEq, Eq, Hash, Clone)]
-struct CharacterStateCacheKey {
+struct CharacterCacheKey {
     state: Discriminant<CharacterState>, // TODO: Can this be simplified?
+    active_tool: Option<Discriminant<ToolKind>>, // TODO: Can this be simplified?
 }
 
-impl From<&CharacterState> for CharacterStateCacheKey {
-    fn from(cs: &CharacterState) -> Self {
+impl CharacterCacheKey {
+    fn from(cs: &CharacterState, loadout: &Loadout) -> Self {
         Self {
             state: discriminant(&cs),
+            active_tool: if let Some(ItemKind::Tool(tool)) =
+                loadout.active_item.as_ref().map(|i| &i.item.kind)
+            {
+                Some(discriminant(&tool.kind))
+            } else {
+                None
+            },
         }
     }
 }
@@ -67,12 +70,11 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         for<'a> &'a common::comp::Body: std::convert::TryInto<Skel::Attr>,
         Skel::Attr: Default,
     {
-        let key = if loadout.is_some() {
+        let key = if let Some(loadout) = loadout {
             FigureKey::Complex(
                 body,
-                loadout.cloned(),
                 camera_mode,
-                character_state.map(|cs| CharacterStateCacheKey::from(cs)),
+                character_state.map(|cs| CharacterCacheKey::from(cs, loadout)),
             )
         } else {
             FigureKey::Simple(body)
