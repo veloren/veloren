@@ -1,4 +1,8 @@
 ({
+    None: (
+        vox_spec: ("armor.pants.pants_none", (-5.0, -3.5, 1.0)),
+        color: Some((28, 66, 109))
+    ),
     Blue: (
         vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
         color: Some((28, 66, 109))
