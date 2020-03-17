@@ -16,7 +16,7 @@ use conrod_core::{
 };
 
 widget_ids! {
-    struct Ids {
+    pub struct Ids {
         test,
         bag_close,
         inv_alignment,
@@ -58,8 +58,8 @@ widget_ids! {
         hands_bg,
         pants_bg,
         belt_bg,
-        ring-r_bg,
-        ring-l_bg,
+        ring_r_bg,
+        ring_l_bg,
         foot_bg,
         back_bg,
         tabard_bg,
@@ -260,24 +260,34 @@ impl<'a> Widget for Bag<'a> {
             .set(state.ids.inventory_title, ui);
             //Armor Slots
             //Slots BG
-            Image::new(self.imgs.inv_runes)
+            /*Image::new(self.imgs.inv_runes)
                 .w_h(424.0, 454.0)
                 .mid_top_with_margin_on(state.ids.bg, 0.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .floating(true)
                 .set(state.ids.slots_bg, ui);
             Image::new(self.imgs.inv_slots)
-                .w_h(424.0, 401.0)
-                .mid_top_with_margin_on(state.ids.bg, 57.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.slots_bg, ui);
+            .w_h(424.0, 401.0)
+            .mid_top_with_margin_on(state.ids.bg, 57.0)
+            .color(Some(UI_HIGHLIGHT_0))
+            .set(state.ids.slots_bg, ui);*/
             // Armor Slots
             //Head
+            Image::new(self.imgs.armor_slot)
+                .w_h(45.0, 45.0)
+                .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.head_bg, ui);
             //Necklace
+            Image::new(self.imgs.armor_slot)
+                .w_h(45.0, 45.0)
+                .mid_bottom_with_margin_on(state.ids.head_bg, -55.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.neck_bg, ui);
             //Chest
             Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
-                .w_h(86.0, 86.0)
-                .mid_top_with_margin_on(state.ids.slots_bg, 162.0)
+                .w_h(85.0, 85.0)
+                .mid_bottom_with_margin_on(state.ids.neck_bg, -95.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.chest_bg, ui);
             Button::image(self.imgs.skull)
@@ -285,17 +295,27 @@ impl<'a> Widget for Bag<'a> {
                 .middle_of(state.ids.chest_bg)
                 .set(state.ids.test, ui);
             //Shoulder
+            Image::new(self.imgs.armor_slot)
+                .w_h(70.0, 70.0)
+                .bottom_left_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.belt_bg, ui);
             //Hands
+            Image::new(self.imgs.armor_slot)
+                .w_h(70.0, 70.0)
+                .bottom_right_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.hands_bg, ui);
             //Belt
             Image::new(self.imgs.armor_slot)
-                .w_h(44.0, 44.0)
-                .down_from(state.ids.chest_bg, 11.0)
+                .w_h(45.0, 45.0)
+                .mid_bottom_with_margin_on(state.ids.chest_bg, -55.0)
                 .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.chest_bg, ui);
+                .set(state.ids.belt_bg, ui);
             //Pants
             Image::new(self.imgs.armor_slot)
-                .w_h(86.0, 86.0)
-                .down_from(state.ids.belt_bg, 11.0)
+                .w_h(85.0, 85.0)
+                .mid_bottom_with_margin_on(state.ids.belt_bg, -95.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.pants_bg, ui);
         //Ring-L
