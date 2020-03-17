@@ -4,11 +4,7 @@ Item(
     kind: Tool(
         ToolData (
             kind: Debug(Possess),
-            equip_time_millis: 0,
-            attack_buildup_millis: 0,
-            attack_recover_millis: 0,
-            range: 3,
-            base_damage: 10,
+            equip_time_millis: 0,            
         )
     ),
 )
