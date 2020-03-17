@@ -11,8 +11,7 @@ pub struct Energy {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum EnergySource {
-    CastSpell,
-    Roll,
+    Ability,
     Climb,
     LevelUp,
     HitEnemy,

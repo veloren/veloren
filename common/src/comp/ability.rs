@@ -1,6 +1,7 @@
 use crate::{
-    comp::{Body, CharacterState, Item, Projectile, ToolData},
+    comp::{Body, CharacterState, EnergySource, Item, Projectile, StateUpdate, ToolData},
     states::*,
+    sys::character_behavior::JoinData,
 };
 use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
 use std::time::Duration;
@@ -35,6 +36,31 @@ pub enum CharacterAbility {
         recover_duration: Duration,
         base_damage: u32,
     },
+}
+
+impl CharacterAbility {
+    pub fn test_requirements(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
+        match self {
+            CharacterAbility::Roll => {
+                data.physics.on_ground
+                    && !data.physics.in_fluid
+                    && data.body.is_humanoid()
+                    && update
+                        .energy
+                        .try_change_by(-200, EnergySource::Ability)
+                        .is_ok()
+            },
+            CharacterAbility::DashMelee { .. } => {
+                data.physics.on_ground
+                    && !data.physics.in_fluid
+                    && update
+                        .energy
+                        .try_change_by(-300, EnergySource::Ability)
+                        .is_ok()
+            },
+            _ => true,
+        }
+    }
 }
 
 impl Component for CharacterAbility {
