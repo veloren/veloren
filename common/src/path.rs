@@ -231,7 +231,7 @@ where
                                 .get(pos + Vec3::unit_z() * 3)
                                 .map(|b| !b.is_solid())
                                 .unwrap_or(true))
-                        && (dir.z > 0
+                        && (dir.z >= 0
                             || vol
                                 .get(pos + *dir + Vec3::unit_z() * 2)
                                 .map(|b| !b.is_solid())
