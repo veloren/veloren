@@ -1,5 +1,6 @@
 mod column;
 mod image;
+mod row;
 
 use super::{
     super::{
@@ -255,7 +256,7 @@ impl IcedRenderer {
                 // let color =
                 //    srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().
                 // into());
-                let color = Rgba::from([1.0, 1.0, 1.0, 1.0]);
+                let color = Rgba::from([1.0, 0.0, 1.0, 0.5]);
 
                 let resolution = Vec2::new(
                     (gl_aabr.size().w * self.half_res.x).round() as u16,

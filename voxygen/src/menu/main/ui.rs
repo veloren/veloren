@@ -4,7 +4,7 @@ use crate::{
     ui::{
         self,
         fonts::ConrodVoxygenFonts,
-        ice::IcedUi,
+        ice::{Element, IcedUi},
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
         Graphic, Ui,
     },
@@ -19,7 +19,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
-use iced::Column;
+use iced::{Column, Row};
 use image::DynamicImage;
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::Duration;
@@ -193,12 +193,19 @@ struct IcedState {
 }
 pub type Message = Event;
 impl IcedState {
-    pub fn view(&mut self) -> iced::Column<Message, ui::ice::IcedRenderer> {
-        Column::new().push(ui::ice::Image::new(
-            (self.imgs.bg, ui::Rotation::None),
-            500.0,
-            500.0,
-        ))
+    pub fn view(&mut self) -> Element<Message> {
+        use iced::Length;
+
+        let image1 = ui::ice::Image::new((self.imgs.bg, ui::Rotation::None));
+        let image2 = ui::ice::Image::new((self.imgs.bg, ui::Rotation::None));
+        let image3 = ui::ice::Image::new((self.imgs.bg, ui::Rotation::None));
+
+        Row::with_children(vec![image1.into(), image2.into(), image3.into()])
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .spacing(20)
+            .padding(20)
+            .into()
     }
 
     pub fn update(message: Message) {

@@ -5,7 +5,7 @@ impl column::Renderer for IcedRenderer {
     fn draw<M>(
         &mut self,
         defaults: &Self::Defaults,
-        content: &[Element<'_, M, Self>],
+        children: &[Element<'_, M, Self>],
         layout: Layout<'_>,
         cursor_position: Point,
     ) -> Self::Output {
@@ -13,7 +13,7 @@ impl column::Renderer for IcedRenderer {
 
         (
             Primitive::Group {
-                primitives: content
+                primitives: children
                     .iter()
                     .zip(layout.children())
                     .map(|(child, layout)| {
