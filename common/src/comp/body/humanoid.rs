@@ -474,18 +474,19 @@ pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Chest {
-    Blue = 0,
-    Brown = 1,
-    Dark = 2,
-    Green = 3,
-    Orange = 4,
-    Midnight = 5,
-    Kimono = 6,
-    Assassin = 7,
-    PlateGreen0 = 8,
-    None = 9,
+    None = 0,
+    Blue = 1,
+    Brown = 2,
+    Dark = 3,
+    Green = 4,
+    Orange = 5,
+    Midnight = 6,
+    Kimono = 7,
+    Assassin = 8,
+    PlateGreen0 = 9,
 }
-pub const ALL_CHESTS: [Chest; 9] = [
+pub const ALL_CHESTS: [Chest; 10] = [
+    Chest::None,
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
@@ -500,14 +501,16 @@ pub const ALL_CHESTS: [Chest; 9] = [
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Belt {
-    Dark = 0,
-    TurqCloth = 1,
-    BloodCloth = 2,
-    BlackCloth = 3,
-    Assassin = 4,
-    Plate0 = 5,
+    None = 0,
+    Dark = 1,
+    TurqCloth = 2,
+    BloodCloth = 3,
+    BlackCloth = 4,
+    Assassin = 5,
+    Plate0 = 6,
 }
-pub const ALL_BELTS: [Belt; 6] = [
+pub const ALL_BELTS: [Belt; 7] = [
+    Belt::None,
     Belt::Dark,
     Belt::TurqCloth,
     Belt::BloodCloth,
@@ -519,16 +522,18 @@ pub const ALL_BELTS: [Belt; 6] = [
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Pants {
-    Blue = 0,
-    Brown = 1,
-    Dark = 2,
-    Green = 3,
-    Orange = 4,
-    Kimono = 5,
-    Assassin = 6,
-    PlateGreen0 = 7,
+    None = 0,
+    Blue = 1,
+    Brown = 2,
+    Dark = 3,
+    Green = 4,
+    Orange = 5,
+    Kimono = 6,
+    Assassin = 7,
+    PlateGreen0 = 8,
 }
-pub const ALL_PANTS: [Pants; 8] = [
+pub const ALL_PANTS: [Pants; 9] = [
+    Pants::None,
     Pants::Blue,
     Pants::Brown,
     Pants::Dark,

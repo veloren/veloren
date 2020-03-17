@@ -1,7 +1,6 @@
-({
-    //This shouldn't be bare, but what is?
+({    
     Bare: (
-        vox_spec: ("armor.foot.cloth_sandals", (-2.5, -3.5, -9.0)),
+        vox_spec: ("armor.foot.foot_none", (-2.5, -3.5, -9.0)),
         color: None
     ),
     Dark: (
