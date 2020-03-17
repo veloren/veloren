@@ -386,7 +386,7 @@ impl HumArmorChestSpec {
             )
         };
 
-        let bare_chest = graceful_load_mat_segment("armor.chest.none");
+        let bare_chest = graceful_load_mat_segment("armor.empty");
 
         let mut chest_armor = graceful_load_mat_segment(&spec.vox_spec.0);
 
@@ -484,7 +484,7 @@ impl HumArmorBeltSpec {
         {
             belt
         } else {
-            &Belt::Dark
+            &Belt::None
         };
 
         let spec = match self.0.get(&belt) {
@@ -540,7 +540,7 @@ impl HumArmorPantsSpec {
             )
         };
 
-        let bare_pants = graceful_load_mat_segment("armor.pants.grayscale");
+        let bare_pants = graceful_load_mat_segment("armor.empty");
 
         let mut pants_armor = graceful_load_mat_segment(&spec.vox_spec.0);
 
