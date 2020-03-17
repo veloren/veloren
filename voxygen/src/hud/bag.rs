@@ -17,6 +17,7 @@ use conrod_core::{
 
 widget_ids! {
     struct Ids {
+        test,
         bag_close,
         inv_alignment,
         inv_grid_1,
@@ -38,8 +39,6 @@ widget_ids! {
         tab_2,
         tab_3,
         tab_4,
-        //Armor Slots
-        slots_bg,
         //Stats
         stats_alignment,
         level,
@@ -50,7 +49,22 @@ widget_ids! {
         divider,
         statnames,
         stats,
-
+        //Armor Slots
+        slots_bg,
+        head_bg,
+        neck_bg,
+        chest_bg,
+        shoulder_bg,
+        hands_bg,
+        pants_bg,
+        belt_bg,
+        ring-r_bg,
+        ring-l_bg,
+        foot_bg,
+        back_bg,
+        tabard_bg,
+        mainhand_bg,
+        offhand_bg,
     }
 }
 
@@ -257,6 +271,40 @@ impl<'a> Widget for Bag<'a> {
                 .mid_top_with_margin_on(state.ids.bg, 57.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.slots_bg, ui);
+            // Armor Slots
+            //Head
+            //Necklace
+            //Chest
+            Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
+                .w_h(86.0, 86.0)
+                .mid_top_with_margin_on(state.ids.slots_bg, 162.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.chest_bg, ui);
+            Button::image(self.imgs.skull)
+                .w_h(80.0, 80.0)
+                .middle_of(state.ids.chest_bg)
+                .set(state.ids.test, ui);
+            //Shoulder
+            //Hands
+            //Belt
+            Image::new(self.imgs.armor_slot)
+                .w_h(44.0, 44.0)
+                .down_from(state.ids.chest_bg, 11.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.chest_bg, ui);
+            //Pants
+            Image::new(self.imgs.armor_slot)
+                .w_h(86.0, 86.0)
+                .down_from(state.ids.belt_bg, 11.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.pants_bg, ui);
+        //Ring-L
+        //Ring-R
+        //Foot
+        //Back
+        //Tabard
+        //Mainhand/Left-Slot
+        //Offhand/Right-Slot
         } else {
             // Stats
             // Title
