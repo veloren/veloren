@@ -243,6 +243,8 @@ pub struct HumArmorBeltSpec(HashMap<Belt, ArmorVoxSpec>);
 pub struct HumArmorPantsSpec(HashMap<Pants, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorFootSpec(HashMap<Foot, ArmorVoxSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
 
 impl Asset for HumArmorShoulderSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
@@ -284,6 +286,13 @@ impl Asset for HumArmorFootSpec {
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor foot spec"))
+    }
+}
+impl Asset for HumMainWeaponSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid main weapon spec"))
     }
 }
 
@@ -624,25 +633,29 @@ impl HumArmorFootSpec {
     }
 }
 
-pub fn mesh_main(item_kind: Option<&ItemKind>) -> Mesh<FigurePipeline> {
-    if let Some(item_kind) = item_kind {
-        let (name, offset) = match item_kind {
-            ItemKind::Tool(ToolData { kind, .. }) => match kind {
-                ToolKind::Sword(_) => ("weapon.sword.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
-                ToolKind::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -5.0, -4.0)),
-                ToolKind::Hammer => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-                ToolKind::Dagger => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-                ToolKind::Shield => ("weapon.shield.wood-0", Vec3::new(-2.5, -6.5, -2.0)),
-                ToolKind::Bow => ("weapon.bow.simple-bow", Vec3::new(-1.0, -6.0, -2.0)),
-                ToolKind::Staff => ("weapon.staff.wood-fire", Vec3::new(-1.0, -6.0, -3.0)),
-                ToolKind::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
-                ToolKind::Empty => return Mesh::new(),
-            },
-            _ => return Mesh::new(),
+impl HumMainWeaponSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_main_weapon_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_main_weapon(&self, item_kind: Option<&ItemKind>) -> Mesh<FigurePipeline> {
+        let tool_kind = if let Some(ItemKind::Tool(ToolData { kind, .. })) = item_kind {
+            kind
+        } else {
+            return Mesh::new();
         };
-        load_mesh(name, offset)
-    } else {
-        Mesh::new()
+
+        let spec = match self.0.get(tool_kind) {
+            Some(spec) => spec,
+            None => {
+                error!("No hand specification exists for {:?}", tool_kind);
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+            },
+        };
+
+        let tool_kind_segment = graceful_load_segment(&spec.vox_spec.0);
+        generate_mesh(&tool_kind_segment, Vec3::from(spec.vox_spec.1))
     }
 }
 

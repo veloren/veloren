@@ -119,6 +119,8 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     HumArmorPantsSpec::load_watched(&mut self.manifest_indicator);
                                 let humanoid_armor_foot_spec =
                                     HumArmorFootSpec::load_watched(&mut self.manifest_indicator);
+                                let humanoid_main_weapon_spec =
+                                    HumMainWeaponSpec::load_watched(&mut self.manifest_indicator);
 
                                 // TODO: This is bad code, maybe this method should return Option<_>
                                 let default_loadout = Loadout::default();
@@ -213,7 +215,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                             })
                                             .unwrap_or_default()
                                     {
-                                        Some(mesh_main(
+                                        Some(humanoid_main_weapon_spec.mesh_main_weapon(
                                             loadout.active_item.as_ref().map(|i| &i.item.kind),
                                         ))
                                     } else {

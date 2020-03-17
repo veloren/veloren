@@ -586,8 +586,8 @@ impl<'a> Widget for Skillbar<'a> {
             .color(
                 match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                     Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                        ToolKind::Bow => Some(BG_COLOR_2),
-                        ToolKind::Staff => Some(BG_COLOR_2),
+                        ToolKind::Bow(_) => Some(BG_COLOR_2),
+                        ToolKind::Staff(_) => Some(BG_COLOR_2),
                         _ => Some(BG_COLOR_2),
                     },
                     _ => Some(BG_COLOR_2),
@@ -599,10 +599,10 @@ impl<'a> Widget for Skillbar<'a> {
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
                     ToolKind::Sword(_) => self.imgs.twohsword_m1,
-                    ToolKind::Hammer => self.imgs.twohhammer_m1,
-                    ToolKind::Axe => self.imgs.twohaxe_m1,
-                    ToolKind::Bow => self.imgs.bow_m1,
-                    ToolKind::Staff => self.imgs.staff_m1,
+                    ToolKind::Hammer(_) => self.imgs.twohhammer_m1,
+                    ToolKind::Axe(_) => self.imgs.twohaxe_m1,
+                    ToolKind::Bow(_) => self.imgs.bow_m1,
+                    ToolKind::Staff(_) => self.imgs.staff_m1,
                     ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m1,
                     _ => self.imgs.twohaxe_m1,
                 },
@@ -612,8 +612,8 @@ impl<'a> Widget for Skillbar<'a> {
         .w(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Bow => 30.0 * scale,
-                    ToolKind::Staff => 32.0 * scale,
+                    ToolKind::Bow(_) => 30.0 * scale,
+                    ToolKind::Staff(_) => 32.0 * scale,
                     _ => 38.0 * scale,
                 },
                 _ => 38.0 * scale,
@@ -622,8 +622,8 @@ impl<'a> Widget for Skillbar<'a> {
         .h(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Bow => 30.0 * scale,
-                    ToolKind::Staff => 32.0 * scale,
+                    ToolKind::Bow(_) => 30.0 * scale,
+                    ToolKind::Staff(_) => 32.0 * scale,
                     _ => 38.0 * scale,
                 },
                 _ => 38.0 * scale,
@@ -687,8 +687,8 @@ impl<'a> Widget for Skillbar<'a> {
             .color(
                 match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                     Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                        ToolKind::Bow => Some(BG_COLOR_2),
-                        ToolKind::Staff => Some(BG_COLOR_2),
+                        ToolKind::Bow(_) => Some(BG_COLOR_2),
+                        ToolKind::Staff(_) => Some(BG_COLOR_2),
                         _ => Some(BG_COLOR_2),
                     },
                     _ => Some(BG_COLOR_2),
@@ -700,10 +700,10 @@ impl<'a> Widget for Skillbar<'a> {
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
                     ToolKind::Sword(_) => self.imgs.twohsword_m2,
-                    ToolKind::Hammer => self.imgs.twohhammer_m2,
-                    ToolKind::Axe => self.imgs.twohaxe_m2,
-                    ToolKind::Bow => self.imgs.bow_m2,
-                    ToolKind::Staff => self.imgs.staff_m2,
+                    ToolKind::Hammer(_) => self.imgs.twohhammer_m2,
+                    ToolKind::Axe(_) => self.imgs.twohaxe_m2,
+                    ToolKind::Bow(_) => self.imgs.bow_m2,
+                    ToolKind::Staff(_) => self.imgs.staff_m2,
                     ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
                     _ => self.imgs.twohaxe_m2,
                 },
@@ -713,8 +713,8 @@ impl<'a> Widget for Skillbar<'a> {
         .w(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Bow => 30.0 * scale,
-                    ToolKind::Staff => 30.0 * scale,
+                    ToolKind::Bow(_) => 30.0 * scale,
+                    ToolKind::Staff(_) => 30.0 * scale,
                     _ => 38.0 * scale,
                 },
                 _ => 38.0 * scale,
@@ -723,8 +723,8 @@ impl<'a> Widget for Skillbar<'a> {
         .h(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Bow => 30.0 * scale,
-                    ToolKind::Staff => 30.0 * scale,
+                    ToolKind::Bow(_) => 30.0 * scale,
+                    ToolKind::Staff(_) => 30.0 * scale,
                     _ => 38.0 * scale,
                 },
                 _ => 38.0 * scale,

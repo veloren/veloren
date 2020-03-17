@@ -161,6 +161,8 @@ impl<'a> System<'a> for Sys {
                                 .copied()
                                 .unwrap_or(Alignment::Owned(*target)),
                         ) {
+                            inputs.look_dir = tgt_pos.0 - pos.0;
+
                             // Don't attack entities we are passive towards
                             // TODO: This is here, it's a bit of a hack
                             if let Some(alignment) = alignment {
@@ -174,7 +176,6 @@ impl<'a> System<'a> for Sys {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             if dist_sqrd < MIN_ATTACK_DIST.powf(2.0) {
                                 // Close-range attack
-                                inputs.look_dir = tgt_pos.0 - pos.0;
                                 inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                     .try_normalized()
                                     .unwrap_or(Vec2::unit_y())
