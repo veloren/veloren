@@ -28,7 +28,11 @@ impl Meta {
         }
     }
 
-    pub fn add_character(&mut self, data: CharacterData) { self.characters.push(data); }
+    pub fn add_character(&mut self, data: CharacterData) -> usize {
+        self.characters.push(data);
+        // return new character's index
+        self.characters.len() - 1
+    }
 
     pub fn load() -> Self {
         let path = Self::get_meta_path();
