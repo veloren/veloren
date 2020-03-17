@@ -183,75 +183,50 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// If `inputs.primary` is pressed and in `Wielding` state,
-/// will attempt to go into `ability_pool.primary`
+/// will attempt to go into `loadout.active_item.primary_ability`
 pub fn handle_primary_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.primary.is_pressed() {
-        if let CharacterState::Wielding { .. } = update.character {
-            attempt_primary_ability(data, update);
+        if let Some(ability) = data
+            .loadout
+            .active_item
+            .as_ref()
+            .and_then(|i| i.primary_ability.as_ref())
+            .filter(|ability| ability.test_requirements(data, update))
+        {
+            update.character = ability.into();
         }
-    }
-}
-
-/// Attempts to go into `ability_pool.primary` if is `Some()` on `AbilityPool`
-pub fn attempt_primary_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability) = data
-        .loadout
-        .active_item
-        .as_ref()
-        .and_then(|i| i.primary_ability.as_ref())
-    {
-        update.character = ability.into();
     }
 }
 
 /// If `inputs.secondary` is pressed and in `Wielding` state,
-/// will attempt to go into `ability_pool.secondary`
+/// will attempt to go into `loadout.active_item.secondary_ability`
 pub fn handle_secondary_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
-        if let CharacterState::Wielding { .. } = update.character {
-            attempt_secondary_ability(data, update);
+        if let Some(ability) = data
+            .loadout
+            .active_item
+            .as_ref()
+            .and_then(|i| i.secondary_ability.as_ref())
+            .filter(|ability| ability.test_requirements(data, update))
+        {
+            update.character = ability.into();
         }
-    }
-}
-
-/// Attempts to go into `ability_pool.secondary` if is `Some()` on `AbilityPool`
-pub fn attempt_secondary_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability) = data
-        .loadout
-        .active_item
-        .as_ref()
-        .and_then(|i| i.secondary_ability.as_ref())
-    {
-        update.character = ability.into();
     }
 }
 
 /// Checks that player can perform a dodge, then
-/// attempts to go into `ability_pool.dodge`
+/// attempts to go into `loadout.active_item.dodge_ability`
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
-    if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {
-        if data.inputs.roll.is_pressed()
-            && data.physics.on_ground
-            && !data.physics.in_fluid
-            && data.body.is_humanoid()
-            && update
-                .energy
-                .try_change_by(-200, EnergySource::Roll)
-                .is_ok()
+    if data.inputs.roll.is_pressed() {
+        if let Some(ability) = data
+            .loadout
+            .active_item
+            .as_ref()
+            .and_then(|i| i.dodge_ability.as_ref())
+            .filter(|ability| ability.test_requirements(data, update))
         {
-            attempt_dodge_ability(data, update);
+            update.character = ability.into();
         }
-    }
-}
-
-pub fn attempt_dodge_ability(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ability) = data
-        .loadout
-        .active_item
-        .as_ref()
-        .and_then(|i| i.dodge_ability.as_ref())
-    {
-        update.character = ability.into();
     }
 }
 
