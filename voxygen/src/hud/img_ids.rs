@@ -257,6 +257,7 @@ image_ids! {
         inv_tab_inactive_press: "voxygen.element.buttons.inv_tab_inactive",
         inv_slots: "voxygen.element.misc_bg.inv_slots",
         inv_runes: "voxygen.element.misc_bg.inv_runes",
+        armor_slot: "voxygen.element.buttons.armor_slot",
 
 
 
