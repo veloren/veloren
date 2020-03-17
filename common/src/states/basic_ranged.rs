@@ -48,12 +48,14 @@ impl CharacterBehavior for Data {
             });
         } else if !self.exhausted {
             // Fire
+            let mut projectile = self.projectile.clone();
+            projectile.owner = Some(*data.uid);
             update.server_events.push_front(ServerEvent::Shoot {
                 entity: data.entity,
                 dir: data.inputs.look_dir,
                 body: self.projectile_body,
                 light: None,
-                projectile: self.projectile.clone(),
+                projectile,
                 gravity: Some(Gravity(0.1)),
             });
 
