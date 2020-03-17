@@ -101,7 +101,7 @@ impl<'a> System<'a> for Sys {
                     && !stats_b.is_dead
                     // Spherical wedge shaped attack field
                     && pos.0.distance_squared(pos_b.0) < (rad_b + scale * ATTACK_RANGE).powi(2)
-                    && ori2.angle_between(pos_b2 - pos2) < ATTACK_ANGLE.to_radians() / 2.0 + (rad_b / pos2.distance(pos_b2)).atan()
+                    && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // Weapon gives base damage
                     let mut dmg = attack.base_damage;
