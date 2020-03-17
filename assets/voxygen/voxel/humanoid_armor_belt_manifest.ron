@@ -1,4 +1,8 @@
 ({
+    None:(
+        vox_spec: ("armor.belt.belt-none", (-5.0, -3.5, 2.0)),
+        color: None
+    ),
     Dark:(
         vox_spec: ("armor.belt.dark", (-4.0, -3.5, 2.0)),
         color: None
@@ -27,4 +31,5 @@
         vox_spec: ("armor.belt.plate-0", (-5.0, -3.5, 2.0)),
         color: None
     ),
+    
 })

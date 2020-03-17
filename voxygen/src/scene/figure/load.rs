@@ -520,7 +520,7 @@ impl HumArmorPantsSpec {
         {
             pants
         } else {
-            &Pants::Dark
+            &Pants::None
         };
 
         let spec = match self.0.get(&pants) {

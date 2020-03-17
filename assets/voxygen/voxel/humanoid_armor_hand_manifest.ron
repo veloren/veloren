@@ -1,11 +1,11 @@
 ({
     Bare: (
         left: (
-            vox_spec: ("armor.hand.bare_left", (-1.5, -1.5, -7.0)),
+            vox_spec: ("armor.hand.hand_left_none", (-1.5, -1.5, -7.0)),
             color: None
         ),
         right: (
-            vox_spec: ("armor.hand.bare_right", (-1.5, -1.5, -7.0)),
+            vox_spec: ("armor.hand.hand_right_none", (-1.5, -1.5, -7.0)),
             color: None
         )
     ),
