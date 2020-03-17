@@ -299,7 +299,7 @@ impl<'a> Widget for Bag<'a> {
                 .w_h(70.0, 70.0)
                 .bottom_left_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
                 .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.belt_bg, ui);
+                .set(state.ids.shoulder_bg, ui);
             //Hands
             Image::new(self.imgs.armor_slot)
                 .w_h(70.0, 70.0)
@@ -318,13 +318,51 @@ impl<'a> Widget for Bag<'a> {
                 .mid_bottom_with_margin_on(state.ids.belt_bg, -95.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.pants_bg, ui);
-        //Ring-L
-        //Ring-R
-        //Foot
-        //Back
-        //Tabard
-        //Mainhand/Left-Slot
-        //Offhand/Right-Slot
+            //Ring-L
+            Image::new(self.imgs.armor_slot)
+                .w_h(45.0, 45.0)
+                .bottom_right_with_margins_on(state.ids.shoulder_bg, -55.0, 0.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.ring_l_bg, ui);
+            //Ring-R
+            Image::new(self.imgs.armor_slot)
+                .w_h(45.0, 45.0)
+                .bottom_left_with_margins_on(state.ids.hands_bg, -55.0, 0.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.ring_r_bg, ui);
+            //Back
+            Image::new(self.imgs.armor_slot)
+                .w_h(45.0, 45.0)
+                .down_from(state.ids.ring_l_bg, 10.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.back_bg, ui);
+            //Foot
+            Image::new(self.imgs.armor_slot)
+                .w_h(45.0, 45.0)
+                .down_from(state.ids.ring_r_bg, 10.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.foot_bg, ui);
+
+            //Tabard
+
+            Image::new(self.imgs.armor_slot)
+                .w_h(70.0, 70.0)
+                .top_right_with_margins_on(state.ids.bg_frame, 80.5, 53.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.tabard_bg, ui);
+
+            //Mainhand/Left-Slot
+            Image::new(self.imgs.armor_slot)
+                .w_h(85.0, 85.0)
+                .bottom_right_with_margins_on(state.ids.back_bg, -95.0, 0.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.mainhand_bg, ui);
+            //Offhand/Right-Slot
+            Image::new(self.imgs.armor_slot)
+                .w_h(85.0, 85.0)
+                .bottom_left_with_margins_on(state.ids.foot_bg, -95.0, 0.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.offhand_bg, ui);
         } else {
             // Stats
             // Title
