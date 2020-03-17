@@ -5,7 +5,7 @@ Item(
     Power: 15",
     kind: Tool(
         ToolData (
-            kind: Bow,    
+            kind: Bow(BasicBow),    
             equip_time_millis: 800,
         )
     ),

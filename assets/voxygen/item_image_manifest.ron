@@ -3,11 +3,11 @@
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
 ({
     // Weapons
-    Tool(Bow): VoxTrans(
+    Tool(Bow(BasicBow)): VoxTrans(
         "voxel.weapon.bow.simple-bow",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool(Dagger): VoxTrans(
+    Tool(Dagger(BasicDagger)): VoxTrans(
         "voxel.weapon.dagger.dagger_rusty",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
@@ -15,19 +15,19 @@
         "voxel.weapon.sword.rusty_2h",
         (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
-    Tool(Axe): VoxTrans(
+    Tool(Axe(BasicAxe)): VoxTrans(
         "voxel.weapon.axe.rusty_2h",
         (0.0, -8.0, 0.0), (-90.0, 90.0, 0.0), 2.0,
     ),
-    Tool(Hammer): VoxTrans(
+    Tool(Hammer(BasicHammer)): VoxTrans(
         "voxel.weapon.hammer.rusty_2h",
         (0.0, -8.0, 0.0), (-90.0, 90.0, 0.0), 2.0,
     ),
-    Tool(Staff): VoxTrans(
+    Tool(Staff(BasicStaff)): VoxTrans(
         "voxel.weapon.staff.wood-fire",
         (0.0, -9.0, 0.0), (90.0, 90.0, 0.0), 2.5,
     ),
-    Tool(Shield): VoxTrans(
+    Tool(Shield(BasicShield)): VoxTrans(
         "voxel.weapon.shield.wood-0",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
