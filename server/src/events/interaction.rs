@@ -77,46 +77,24 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                         e
                     )
                 });
-                // Create inventory if it doesn't exist
-                {
-                    let mut inventories = ecs.write_storage::<comp::Inventory>();
-                    if let Some(inventory) = inventories.get_mut(possesse) {
-                        inventory.push(assets::load_expect_cloned("common.items.debug.possess"));
-                    } else {
-                        inventories
-                            .insert(possesse, comp::Inventory {
-                                slots: vec![
-                                    Some(assets::load_expect_cloned("common.items.debug.possess")),
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                ],
-                            })
-                            .err()
-                            .map(|e| {
-                                error!(
-                                    "Error inserting inventory component during possession: {:?}",
-                                    e
-                                )
-                            });
-                    }
-                }
-                ecs.write_storage::<comp::InventoryUpdate>()
-                    .insert(
-                        possesse,
-                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Possession),
-                    )
-                    .err()
-                    .map(|e| {
-                        error!(
-                            "Error inserting inventory update component during possession: {:?}",
-                            e
-                        )
+                // Put possess item into loadout
+                let mut loadouts = ecs.write_storage::<comp::Loadout>();
+                let loadout = loadouts
+                    .entry(possesse)
+                    .expect("Could not read loadouts component while possessing")
+                    .or_insert(comp::Loadout::default());
+
+                let item = assets::load_expect_cloned::<comp::Item>("common.items.debug.possess");
+                if let comp::ItemKind::Tool(tool) = item.kind {
+                    loadout.active_item = Some(comp::ItemConfig {
+                        item,
+                        primary_ability: tool.get_abilities().get(0).cloned(),
+                        secondary_ability: None,
+                        block_ability: None,
+                        dodge_ability: None,
                     });
+                }
+
                 // Move player component
                 {
                     let mut players = ecs.write_storage::<comp::Player>();

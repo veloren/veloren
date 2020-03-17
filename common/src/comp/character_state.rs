@@ -100,9 +100,10 @@ impl Component for CharacterState {
     type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Attacking {
     pub base_damage: u32,
+    pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
 }

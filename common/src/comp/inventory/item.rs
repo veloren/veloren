@@ -71,7 +71,7 @@ impl ToolData {
                     hit_entity: vec![
                         projectile::Effect::Damage(HealthChange {
                             // TODO: This should not be fixed (?)
-                            amount: -30,
+                            amount: -3,
                             cause: HealthSource::Item,
                         }),
                         projectile::Effect::Vanish,
@@ -104,7 +104,17 @@ impl ToolData {
                         only_up: true,
                     },
                 ],
-                Possess => vec![],
+                Possess => vec![BasicRanged {
+                    projectile: Projectile {
+                        hit_ground: vec![projectile::Effect::Stick],
+                        hit_wall: vec![projectile::Effect::Stick],
+                        hit_entity: vec![projectile::Effect::Stick, projectile::Effect::Possess],
+                        time_left: Duration::from_secs(10),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::ArrowSnake),
+                    recover_duration: Duration::from_millis(300),
+                }],
             },
             Empty => vec![],
         }

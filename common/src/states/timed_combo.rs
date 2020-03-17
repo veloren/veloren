@@ -61,6 +61,7 @@ impl CharacterBehavior for Data {
                 // Swing hits
                 data.updater.insert(data.entity, Attacking {
                     base_damage: self.base_damage * (self.stage as u32 + 1),
+                    max_angle: 75_f32.to_radians(),
                     applied: false,
                     hit_count: 0,
                 });

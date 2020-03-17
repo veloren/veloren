@@ -46,6 +46,7 @@ impl CharacterBehavior for Data {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
                 base_damage: self.base_damage,
+                max_angle: 75_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
             });
