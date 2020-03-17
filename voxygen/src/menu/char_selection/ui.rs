@@ -720,12 +720,12 @@ impl CharSelectionUi {
                     .set(self.ids.create_button, ui_widgets)
                     .was_clicked()
                 {
-                    // TODO: Save character.
-                    global_state.meta.add_character(CharacterData {
-                        name: name.clone(),
-                        body: comp::Body::Humanoid(body.clone()),
-                        tool: tool.map(|tool| tool.to_string()),
-                    });
+                    global_state.meta.selected_character =
+                        global_state.meta.add_character(CharacterData {
+                            name: name.clone(),
+                            body: comp::Body::Humanoid(body.clone()),
+                            tool: tool.map(|tool| tool.to_string()),
+                        });
                     to_select = true;
                 }
                 // Character Name Input
