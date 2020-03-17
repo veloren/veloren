@@ -10,13 +10,29 @@ pub type Handle = (graphic::Id, Rotation);
 
 pub struct Image {
     handle: Handle,
-    size: Size,
+    width: Length,
+    height: Length,
 }
 
 impl Image {
-    pub fn new(handle: Handle, w: f32, h: f32) -> Self {
-        let size = Size::new(w, h);
-        Self { handle, size }
+    pub fn new(handle: Handle) -> Self {
+        let width = Length::Fill;
+        let height = Length::Fill;
+        Self {
+            handle,
+            width,
+            height,
+        }
+    }
+
+    pub fn width(mut self, width: Length) -> Self {
+        self.width = width;
+        self
+    }
+
+    pub fn height(mut self, height: Length) -> Self {
+        self.height = height;
+        self
     }
 }
 
@@ -24,15 +40,15 @@ impl<M, R> Widget<M, R> for Image
 where
     R: self::Renderer,
 {
-    fn width(&self) -> Length { Length::Fill }
+    fn width(&self) -> Length { self.width }
 
-    fn height(&self) -> Length { Length::Fill }
+    fn height(&self) -> Length { self.height }
 
-    fn layout(&self, _renderer: &R, _limits: &layout::Limits) -> layout::Node {
+    fn layout(&self, _renderer: &R, limits: &layout::Limits) -> layout::Node {
         // We don't care about aspect ratios here :p
-        layout::Node::new(self.size)
-        // Infinite sizes confusing
-        //layout::Node::new(limits.resolve(self.size))
+        let size = limits.width(self.width).height(self.height).max();
+
+        layout::Node::new(size)
     }
 
     fn draw(
@@ -46,8 +62,8 @@ where
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
-        self.size.width.to_bits().hash(state);
-        self.size.height.to_bits().hash(state);
+        self.width.hash(state);
+        self.height.hash(state);
     }
 }
 

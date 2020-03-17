@@ -16,8 +16,10 @@ use super::{
 };
 use crate::{render::Renderer, window::Window, Error};
 use clipboard::Clipboard;
-use iced::{Cache, Element, MouseCursor, Size, UserInterface};
+use iced::{Cache, MouseCursor, Size, UserInterface};
 use vek::*;
+
+pub type Element<'a, M> = iced::Element<'a, M, IcedRenderer>;
 
 pub struct IcedUi {
     renderer: IcedRenderer,
@@ -87,7 +89,7 @@ impl IcedUi {
     }
 
     // TODO: produce root internally???
-    pub fn maintain<'a, M, E: Into<Element<'a, M, IcedRenderer>>>(
+    pub fn maintain<'a, M, E: Into<Element<'a, M>>>(
         &mut self,
         root: E,
         renderer: &mut Renderer,
