@@ -82,7 +82,7 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_z(1.4 + slow * 0.5);
                 next.control.scale = Vec3::one();
             },
-            Some(ToolKind::Axe) => {
+            Some(ToolKind::Axe(_)) => {
                 next.l_hand.offset =
                     Vec3::new(-8.0 + accel_slow * 10.0, 8.0 + accel_fast * 3.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_z(-0.8)
@@ -107,7 +107,7 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_y(0.0 + accel_med * -0.4);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::Hammer(_)) => {
                 next.l_hand.offset =
                     Vec3::new(-8.0 + accel_slow * 10.0, 8.0 + accel_fast * 3.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_z(-0.8)
@@ -132,7 +132,7 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_y(0.0 + accel_med * -0.4);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Staff) => {
+            Some(ToolKind::Staff(_)) => {
                 next.l_hand.offset =
                     Vec3::new(-8.0 + accel_slow * 10.0, 8.0 + accel_fast * 3.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_z(-0.8)
@@ -157,7 +157,7 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_y(0.0 + accel_med * -0.4);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Shield) => {
+            Some(ToolKind::Shield(_)) => {
                 next.l_hand.offset =
                     Vec3::new(-8.0 + accel_slow * 10.0, 8.0 + accel_fast * 3.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_z(-0.8)
@@ -182,7 +182,7 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_y(0.0 + accel_med * -0.4);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Bow) => {
+            Some(ToolKind::Bow(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, -2.0 + slow * 5.0, -1.0);
                 next.l_hand.ori = Quaternion::rotation_x(PI / 2.0)
                     * Quaternion::rotation_y(-0.3)
@@ -203,7 +203,7 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Dagger) => {
+            Some(ToolKind::Dagger(_)) => {
                 next.l_hand.offset =
                     Vec3::new(-8.0 + accel_slow * 10.0, 8.0 + accel_fast * 3.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_z(-0.8)

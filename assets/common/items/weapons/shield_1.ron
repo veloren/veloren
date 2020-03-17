@@ -3,7 +3,7 @@ Item(
     description: "Legends tell this item is useless.",
     kind: Tool (
         ToolData (
-            kind: Shield,
+            kind: Shield(BasicShield),
             equip_time_millis: 400,
         )
     ),

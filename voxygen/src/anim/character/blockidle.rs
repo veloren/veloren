@@ -80,7 +80,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(-1.57);
                 next.control.scale = Vec3::one();
             },
-            Some(ToolKind::Axe) => {
+            Some(ToolKind::Axe(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -105,7 +105,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::Hammer(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
@@ -126,7 +126,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(-0.85);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Staff) => {
+            Some(ToolKind::Staff(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -151,7 +151,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Shield) => {
+            Some(ToolKind::Shield(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -176,7 +176,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Bow) => {
+            Some(ToolKind::Bow(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -201,7 +201,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Dagger) => {
+            Some(ToolKind::Dagger(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
