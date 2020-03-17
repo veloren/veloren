@@ -81,7 +81,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.control.scale = Vec3::one();
             },
-            Some(ToolKind::Axe) => {
+            Some(ToolKind::Axe(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.5 + wave_ultra_slow_cos * 1.0,
                     -0.5 + wave_ultra_slow_cos * 0.5,
@@ -108,7 +108,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::Hammer(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27 + wave_ultra_slow * -0.1)
                     * Quaternion::rotation_y(0.0)
@@ -129,7 +129,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(wave_ultra_slow * 0.2);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Staff) => {
+            Some(ToolKind::Staff(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     1.0 + wave_ultra_slow_cos * 0.5,
@@ -154,7 +154,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Shield) => {
+            Some(ToolKind::Shield(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -179,7 +179,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Bow) => {
+            Some(ToolKind::Bow(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -1.0 + wave_ultra_slow_cos * 1.0,
                     3.0 + wave_ultra_slow_cos * 0.5,
@@ -208,7 +208,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(ToolKind::Dagger) => {
+            Some(ToolKind::Dagger(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,

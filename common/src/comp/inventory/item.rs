@@ -7,7 +7,6 @@ use crate::{
     effect::Effect,
     terrain::{Block, BlockKind},
 };
-//use rand::prelude::*;
 use rand::seq::SliceRandom;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
@@ -18,16 +17,40 @@ pub enum SwordKind {
     Scimitar,
     Rapier,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum AxeKind {
+    BasicAxe,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum HammerKind {
+    BasicHammer,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum BowKind {
+    BasicBow,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum DaggerKind {
+    BasicDagger,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum StaffKind {
+    BasicStaff,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ShieldKind {
+    BasicShield,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ToolKind {
     Sword(SwordKind),
-    Axe,
-    Hammer,
-    Bow,
-    Dagger,
-    Staff,
-    Shield,
+    Axe(AxeKind),
+    Hammer(HammerKind),
+    Bow(BowKind),
+    Dagger(DaggerKind),
+    Staff(StaffKind),
+    Shield(ShieldKind),
     Debug(DebugKind),
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
@@ -54,17 +77,17 @@ impl ToolData {
                     base_damage: 20,
                 },
             ],
-            Axe => vec![BasicMelee {
+            Axe(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(100),
                 base_damage: 8,
             }],
-            Hammer => vec![BasicMelee {
+            Hammer(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(300),
                 base_damage: 10,
             }],
-            Bow => vec![BasicRanged {
+            Bow(_) => vec![BasicRanged {
                 projectile: Projectile {
                     hit_ground: vec![projectile::Effect::Stick],
                     hit_wall: vec![projectile::Effect::Stick],
@@ -82,17 +105,17 @@ impl ToolData {
                 projectile_body: Body::Object(object::Body::Arrow),
                 recover_duration: Duration::from_millis(300),
             }],
-            Dagger => vec![BasicMelee {
+            Dagger(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(400),
                 base_damage: 5,
             }],
-            Staff => vec![BasicMelee {
+            Staff(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(400),
                 recover_duration: Duration::from_millis(300),
                 base_damage: 7,
             }],
-            Shield => vec![BasicBlock],
+            Shield(_) => vec![BasicBlock],
             Debug(kind) => match kind {
                 DebugKind::Boost => vec![
                     CharacterAbility::Boost {

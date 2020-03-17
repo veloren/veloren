@@ -5,7 +5,7 @@ Item(
     Power: 15",
     kind: Tool(
         ToolData (
-            kind: Axe,    
+            kind: Axe(BasicAxe),    
             equip_time_millis: 1000,
         )
     ),
