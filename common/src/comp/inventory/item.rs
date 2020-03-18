@@ -14,8 +14,10 @@ use std::{fs::File, io::BufReader, time::Duration, vec::Vec};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum SwordKind {
-    Scimitar,
+    BasicSword,
     Rapier,
+    Zweihander0,
+    WoodTraining,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AxeKind {
