@@ -581,13 +581,15 @@ pub enum Shoulder {
     Chain = 2,
     Assassin = 3,
     Plate0 = 4,
+    Leather0 = 5,
 }
-pub const ALL_SHOULDERS: [Shoulder; 5] = [
+pub const ALL_SHOULDERS: [Shoulder; 6] = [
     Shoulder::None,
     Shoulder::Brown1,
     Shoulder::Chain,
     Shoulder::Assassin,
     Shoulder::Plate0,
+    Shoulder::Leather0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

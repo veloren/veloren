@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, CharacterAbility, Item, ItemConfig, Player, Pos},
+    comp::{self, humanoid, item, CharacterAbility, Item, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::EntityKind,
     msg::ServerMsg,
@@ -126,7 +126,9 @@ impl<'a> System<'a> for Sys {
                                     get_npc_name(&NPC_NAMES.humanoid, body.race)
                                 ),
                                 comp::Body::Humanoid(body),
-                                Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                                Some(assets::load_expect_cloned(
+                                    "common.items.weapons.starter_axe",
+                                )),
                                 comp::Alignment::Npc,
                             )
                         }) as _,
@@ -135,7 +137,9 @@ impl<'a> System<'a> for Sys {
                             (
                                 format!("{} Bandit", get_npc_name(&NPC_NAMES.humanoid, body.race)),
                                 comp::Body::Humanoid(body),
-                                Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                                Some(assets::load_expect_cloned(
+                                    "common.items.weapons.short_sword_0",
+                                )),
                                 comp::Alignment::Enemy,
                             )
                         }) as _,
@@ -196,12 +200,24 @@ impl<'a> System<'a> for Sys {
                                     dodge_ability: Some(comp::CharacterAbility::Roll),
                                 }),
                                 second_item: None,
-                                shoulder: None,
-                                chest: None,
-                                belt: None,
-                                hand: None,
-                                pants: None,
-                                foot: None,
+                                shoulder: Some(assets::load_expect_cloned(
+                                    "common.items.armor.shoulder_plate-0",
+                                )),
+                                chest: Some(assets::load_expect_cloned(
+                                    "common.items.armor.chest.chest_plate_green-0",
+                                )),
+                                belt: Some(assets::load_expect_cloned(
+                                    "common.items.armor.belt_plate-0",
+                                )),
+                                hand: Some(assets::load_expect_cloned(
+                                    "common.items.armor.hand_plate-0",
+                                )),
+                                pants: Some(assets::load_expect_cloned(
+                                    "common.items.armor.pants_plate_green-0",
+                                )),
+                                foot: Some(assets::load_expect_cloned(
+                                    "common.items.armor.foot_plate-0",
+                                )),
                             }
                         } else {
                             comp::Loadout {
@@ -217,12 +233,24 @@ impl<'a> System<'a> for Sys {
                                     dodge_ability: None,
                                 }),
                                 second_item: None,
-                                shoulder: None,
-                                chest: None,
-                                belt: None,
-                                hand: None,
-                                pants: None,
-                                foot: None,
+                                shoulder: Some(assets::load_expect_cloned(
+                                    "common.items.armor.shoulder_leather-0",
+                                )),
+                                chest: Some(assets::load_expect_cloned(
+                                    "common.items.armor.chest.chest_plate_green-0",
+                                )),
+                                belt: Some(assets::load_expect_cloned(
+                                    "common.items.armor.belt_plate-0",
+                                )),
+                                hand: Some(assets::load_expect_cloned(
+                                    "common.items.armor.hand_plate-0",
+                                )),
+                                pants: Some(assets::load_expect_cloned(
+                                    "common.items.armor.pants_plate_green-0",
+                                )),
+                                foot: Some(assets::load_expect_cloned(
+                                    "common.items.armor.foot_plate-0",
+                                )),
                             }
                         };
 
@@ -247,7 +275,9 @@ impl<'a> System<'a> for Sys {
                         }
                         loadout = comp::Loadout {
                             active_item: Some(comp::ItemConfig {
-                                item: assets::load_expect_cloned("common.items.weapons.hammer_1"),
+                                item: assets::load_expect_cloned(
+                                    "common.items.weapons.zweihander_sword_0",
+                                ),
                                 primary_ability: Some(CharacterAbility::BasicMelee {
                                     buildup_duration: Duration::from_millis(800),
                                     recover_duration: Duration::from_millis(200),
@@ -258,12 +288,24 @@ impl<'a> System<'a> for Sys {
                                 dodge_ability: None,
                             }),
                             second_item: None,
-                            shoulder: None,
-                            chest: None,
-                            belt: None,
-                            hand: None,
-                            pants: None,
-                            foot: None,
+                            shoulder: Some(assets::load_expect_cloned(
+                                "common.items.armor.shoulder_plate-0",
+                            )),
+                            chest: Some(assets::load_expect_cloned(
+                                "common.items.armor.chest.chest_plate_green-0",
+                            )),
+                            belt: Some(assets::load_expect_cloned(
+                                "common.items.armor.belt_plate-0",
+                            )),
+                            hand: Some(assets::load_expect_cloned(
+                                "common.items.armor.hand_plate-0",
+                            )),
+                            pants: Some(assets::load_expect_cloned(
+                                "common.items.armor.pants_plate_green-0",
+                            )),
+                            foot: Some(assets::load_expect_cloned(
+                                "common.items.armor.foot_plate-0",
+                            )),
                         };
 
                         stats.level.set_level(rand::thread_rng().gen_range(8, 15));

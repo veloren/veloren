@@ -1,10 +1,10 @@
 Item(
-    name: "Sturdy Bihander",
+    name: "Vicious Gladius",
     description: "    
     Power: 15",
     kind: Tool(
         ToolData (
-            kind: Sword(Zweihander0),    
+            kind: Sword(Short0),    
             equip_time_millis: 800,
         )
     ),

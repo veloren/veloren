@@ -18,6 +18,7 @@ pub enum SwordKind {
     Rapier,
     Zweihander0,
     WoodTraining,
+    Short0,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AxeKind {
