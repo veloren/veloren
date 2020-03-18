@@ -7,11 +7,11 @@
         vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
         color: None
     ),
-    Sword(WoodTraining)
+    Sword(WoodTraining): (
         vox_spec: ("weapon.sword.wood_2h", (-1.5, -6.5, -4.0)),
         color: None
     ),
-    Sword(Zweihander0)
+    Sword(Zweihander0): (
         vox_spec: ("weapon.sword.zweihander_2h-0", (-1.5, -6.5, -4.0)),
         color: None
     ),
