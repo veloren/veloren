@@ -229,6 +229,7 @@ image_ids! {
         close_btn_press: "voxygen.element.buttons.close_btn_press",
 
         // Inventory
+        coin_ico: "voxygen.element.icons.coin",
         inv_bg_armor: "voxygen.element.misc_bg.inv_bg_0",
         inv_bg_stats: "voxygen.element.misc_bg.inv_bg_1",
         inv_frame: "voxygen.element.misc_bg.inv_frame",

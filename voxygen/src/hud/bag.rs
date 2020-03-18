@@ -30,7 +30,9 @@ widget_ids! {
         tooltip[],
         bg,
         bg_frame,
-        char_art,
+        char_ico,
+        coin_ico,
+        currency_txt,
         inventory_title,
         inventory_title_bg,
         scrollbar_bg,
@@ -173,6 +175,7 @@ impl<'a> Widget for Bag<'a> {
             &self.localized_strings.get("hud.bag.exp")
         );
         let level = (self.stats.level.level()).to_string();
+        let currency = 100;
 
         // Tooltips
         let item_tooltip = Tooltip::new({
@@ -242,8 +245,18 @@ impl<'a> Widget for Bag<'a> {
         Image::new(self.imgs.char_art)
             .w_h(40.0, 37.0)
             .top_left_with_margins_on(state.ids.bg, 4.0, 2.0)
-            .set(state.ids.char_art, ui);
-
+            .set(state.ids.char_ico, ui);
+        // Coin Icon and Currency Text
+        Image::new(self.imgs.coin_ico)
+            .w_h(16.0 * 2.0, 17.0 * 2.0)
+            .bottom_left_with_margins_on(state.ids.bg_frame, 2.0, 43.0)
+            .set(state.ids.coin_ico, ui);
+        Text::new(&format!("{}", currency))
+            .right_from(state.ids.coin_ico, 4.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(10))
+            .color(Color::Rgba(0.87, 0.86, 0.55, 1.0))
+            .set(state.ids.currency_txt, ui);
         // Alignment for Grid
         Rectangle::fill_with([362.0, 200.0], color::TRANSPARENT)
             .bottom_left_with_margins_on(state.ids.bg_frame, 29.0, 44.0)
