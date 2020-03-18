@@ -1,6 +1,7 @@
 use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
-    comp::{self, HealthChange, HealthSource, Player, Stats},
+    assets,
+    comp::{self, object, Body, HealthChange, HealthSource, Item, Player, Stats},
     msg::ServerMsg,
     state::BlockChange,
     sync::{Uid, WorldSyncExt},
@@ -90,10 +91,36 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .write_storage::<comp::CharacterState>()
             .insert(entity, comp::CharacterState::default());
     } else {
+        // Replace npc with loot
+        let _ = state
+            .ecs()
+            .write_storage()
+            .insert(entity, Body::Object(object::Body::Pouch));
+        let _ = state.ecs().write_storage().insert(
+            entity,
+            assets::load_expect_cloned::<Item>("common.items.cheese"),
+        );
+        state.ecs().write_storage::<comp::Agent>().remove(entity);
+        state
+            .ecs()
+            .write_storage::<comp::LightEmitter>()
+            .remove(entity);
+        state
+            .ecs()
+            .write_storage::<comp::CharacterState>()
+            .remove(entity);
+        state
+            .ecs()
+            .write_storage::<comp::Controller>()
+            .remove(entity);
+
+        // TODO: Add Delete(time_left: Duration) component
+        /*
         // If not a player delete the entity
         if let Err(err) = state.delete_entity_recorded(entity) {
             error!("Failed to delete destroyed entity: {:?}", err);
         }
+        */
     }
 }
 
