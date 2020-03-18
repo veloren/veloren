@@ -7,7 +7,7 @@ mod winit_conversion;
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
 pub use renderer::IcedRenderer;
-pub use widget::image::Image;
+pub use widget::{background_container::BackgroundContainer, image::Image};
 pub use winit_conversion::window_event;
 
 use super::{

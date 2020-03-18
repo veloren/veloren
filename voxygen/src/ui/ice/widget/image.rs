@@ -1,17 +1,20 @@
-use super::super::super::graphic::{self, Rotation};
-use iced::{layout, Element, Hasher, Layout, Length, Point, Size, Widget};
+use super::super::graphic;
+use iced::{layout, Element, Hasher, Layout, Length, Point, Widget};
 use std::hash::Hash;
+use vek::Rgba;
 
 // TODO: consider iced's approach to images and caching image data
 // Also `Graphic` might be a better name for this is it wasn't already in use
 // elsewhere
 
-pub type Handle = (graphic::Id, Rotation);
+pub type Handle = graphic::Id;
 
 pub struct Image {
     handle: Handle,
     width: Length,
     height: Length,
+    fix_aspect_ratio: bool,
+    color: Rgba<u8>,
 }
 
 impl Image {
@@ -22,6 +25,8 @@ impl Image {
             handle,
             width,
             height,
+            fix_aspect_ratio: false,
+            color: Rgba::broadcast(255),
         }
     }
 
@@ -34,6 +39,16 @@ impl Image {
         self.height = height;
         self
     }
+
+    pub fn fix_aspect_ratio(mut self) -> Self {
+        self.fix_aspect_ratio = true;
+        self
+    }
+
+    pub fn color(mut self, color: Rgba<u8>) -> Self {
+        self.color = color;
+        self
+    }
 }
 
 impl<M, R> Widget<M, R> for Image
@@ -44,9 +59,23 @@ where
 
     fn height(&self) -> Length { self.height }
 
-    fn layout(&self, _renderer: &R, limits: &layout::Limits) -> layout::Node {
-        // We don't care about aspect ratios here :p
-        let size = limits.width(self.width).height(self.height).max();
+    fn layout(&self, renderer: &R, limits: &layout::Limits) -> layout::Node {
+        let mut size = limits.width(self.width).height(self.height).max();
+
+        if self.fix_aspect_ratio {
+            let aspect_ratio = {
+                let (w, h) = renderer.dimensions(self.handle);
+                w as f32 / h as f32
+            };
+
+            let max_aspect_ratio = size.width / size.height;
+
+            if max_aspect_ratio > aspect_ratio {
+                size.width = size.height * aspect_ratio;
+            } else {
+                size.height = size.width / aspect_ratio;
+            }
+        }
 
         layout::Node::new(size)
     }
@@ -54,11 +83,11 @@ where
     fn draw(
         &self,
         renderer: &mut R,
-        _defaults: &R::Defaults,
+        defaults: &R::Defaults,
         layout: Layout<'_>,
         _cursor_position: Point,
     ) -> R::Output {
-        renderer.draw(self.handle, layout)
+        renderer.draw(self.handle, self.color, layout)
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
@@ -68,7 +97,8 @@ where
 }
 
 pub trait Renderer: iced::Renderer {
-    fn draw(&mut self, handle: Handle, layout: Layout<'_>) -> Self::Output;
+    fn dimensions(&self, handle: Handle) -> (u32, u32);
+    fn draw(&mut self, handle: Handle, color: Rgba<u8>, layout: Layout<'_>) -> Self::Output;
 }
 
 impl<'a, M, R> From<Image> for Element<'a, M, R>

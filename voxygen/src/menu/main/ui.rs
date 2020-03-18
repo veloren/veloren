@@ -19,7 +19,6 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
-use iced::{Column, Row};
 use image::DynamicImage;
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::Duration;
@@ -194,17 +193,44 @@ struct IcedState {
 pub type Message = Event;
 impl IcedState {
     pub fn view(&mut self) -> Element<Message> {
-        use iced::Length;
+        use iced::{Align, Column, Container, Length, Row};
+        use ui::ice::Image;
+        use vek::*;
 
-        let image1 = ui::ice::Image::new((self.imgs.bg, ui::Rotation::None));
-        let image2 = ui::ice::Image::new((self.imgs.bg, ui::Rotation::None));
-        let image3 = ui::ice::Image::new((self.imgs.bg, ui::Rotation::None));
+        let buttons = Column::with_children(vec![
+            Image::new(self.imgs.button).fix_aspect_ratio().into(),
+            Image::new(self.imgs.button).fix_aspect_ratio().into(),
+            Image::new(self.imgs.button).fix_aspect_ratio().into(),
+        ])
+        .width(Length::Fill)
+        .max_width(200)
+        .spacing(5)
+        .padding(10);
 
-        Row::with_children(vec![image1.into(), image2.into(), image3.into()])
+        let buttons = Container::new(buttons)
             .width(Length::Fill)
             .height(Length::Fill)
-            .spacing(20)
-            .padding(20)
+            .align_y(Align::End)
+            .padding(20);
+
+        let banner_content =
+            Column::with_children(vec![Image::new(self.imgs.v_logo).fix_aspect_ratio().into()]);
+        let banner = ui::ice::BackgroundContainer::new(self.imgs.banner, banner_content)
+            .color(Rgba::new(255, 255, 255, 230))
+            .fix_aspect_ratio()
+            .width(Length::Fill)
+            .height(Length::Fill);
+
+        let image3 = Image::new(self.imgs.banner_bottom).fix_aspect_ratio();
+
+        let content = Row::with_children(vec![buttons.into(), banner.into(), image3.into()])
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .spacing(10);
+
+        ui::ice::BackgroundContainer::new(self.imgs.bg, content)
+            .width(Length::Fill)
+            .height(Length::Fill)
             .into()
     }
 
@@ -236,6 +262,7 @@ pub struct MainMenuUi {
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
     fonts: ConrodVoxygenFonts,
     tip_no: u16,
+    pub show_iced: bool,
 }
 
 impl<'a> MainMenuUi {
@@ -314,6 +341,7 @@ impl<'a> MainMenuUi {
             voxygen_i18n,
             fonts,
             tip_no: 0,
+            show_iced: false,
         }
     }
 
@@ -975,6 +1003,8 @@ impl<'a> MainMenuUi {
 
     pub fn render(&self, renderer: &mut Renderer) {
         self.ui.render(renderer, None);
-        self.ice_ui.render(renderer);
+        if self.show_iced {
+            self.ice_ui.render(renderer);
+        }
     }
 }
