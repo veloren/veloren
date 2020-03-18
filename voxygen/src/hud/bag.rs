@@ -32,6 +32,7 @@ widget_ids! {
         bg_frame,
         char_ico,
         coin_ico,
+        space_txt,
         currency_txt,
         inventory_title,
         inventory_title_bg,
@@ -174,8 +175,11 @@ impl<'a> Widget for Bag<'a> {
             self.stats.exp.maximum(),
             &self.localized_strings.get("hud.bag.exp")
         );
+        let space_used = 2; // TODO: Add functionality
+        let space_max = 999;
+        let bag_space = format!("{}/{}", space_used, space_max);
         let level = (self.stats.level.level()).to_string();
-        let currency = 100;
+        let currency = 999999; // TODO: Add as a Stat maybe?
 
         // Tooltips
         let item_tooltip = Tooltip::new({
@@ -196,7 +200,6 @@ impl<'a> Widget for Bag<'a> {
         .title_text_color(TEXT_COLOR)
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
-
         // BG
         Image::new(if self.show.stats {
             self.imgs.inv_bg_stats
@@ -233,14 +236,12 @@ impl<'a> Widget for Bag<'a> {
         .font_size(self.fonts.cyri.scale(22))
         .color(TEXT_COLOR)
         .set(state.ids.inventory_title, ui);
-
         // Scrollbar-BG
         Image::new(self.imgs.scrollbar_bg)
             .w_h(9.0, 173.0)
             .bottom_right_with_margins_on(state.ids.bg_frame, 42.0, 3.0)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.scrollbar_bg, ui);
-
         // Char Pixel-Art
         Image::new(self.imgs.char_art)
             .w_h(40.0, 37.0)
@@ -248,15 +249,22 @@ impl<'a> Widget for Bag<'a> {
             .set(state.ids.char_ico, ui);
         // Coin Icon and Currency Text
         Image::new(self.imgs.coin_ico)
-            .w_h(16.0 * 2.0, 17.0 * 2.0)
+            .w_h(16.0, 17.0)
             .bottom_left_with_margins_on(state.ids.bg_frame, 2.0, 43.0)
             .set(state.ids.coin_ico, ui);
         Text::new(&format!("{}", currency))
-            .right_from(state.ids.coin_ico, 4.0)
+            .bottom_left_with_margins_on(state.ids.bg_frame, 6.0, 64.0)
             .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(10))
-            .color(Color::Rgba(0.87, 0.86, 0.55, 1.0))
+            .font_size(self.fonts.cyri.scale(14))
+            .color(Color::Rgba(0.871, 0.863, 0.05, 1.0))
             .set(state.ids.currency_txt, ui);
+        //Free Bag-Space
+        Text::new(&bag_space)
+            .bottom_right_with_margins_on(state.ids.bg_frame, 6.0, 43.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .color(TEXT_COLOR)
+            .set(state.ids.space_txt, ui);
         // Alignment for Grid
         Rectangle::fill_with([362.0, 200.0], color::TRANSPARENT)
             .bottom_left_with_margins_on(state.ids.bg_frame, 29.0, 44.0)
@@ -682,7 +690,7 @@ impl<'a> Widget for Bag<'a> {
         if Button::image(self.imgs.inv_tab_active)
             .w_h(28.0, 44.0)
             .bottom_left_with_margins_on(state.ids.bg, 172.0, 13.0)
-            .image_color(UI_HIGHLIGHT_0)
+            .image_color(UI_MAIN)
             .set(state.ids.tab_1, ui)
             .was_clicked()
         {}
