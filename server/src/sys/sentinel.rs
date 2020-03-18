@@ -2,10 +2,10 @@ use super::SysTimer;
 use common::{
     comp::{
         Body, CanBuild, CharacterState, Energy, Gravity, Item, LightEmitter, Loadout, Mass,
-        MountState, Mounting, Player, Scale, Stats, Sticky,
+        MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
-    sync::{EntityPackage, SyncPackage, Uid, UpdateTracker, WorldSyncExt},
+    sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, Uid, UpdateTracker, WorldSyncExt},
 };
 use hashbrown::HashMap;
 use specs::{
@@ -55,7 +55,13 @@ pub struct TrackedComps<'a> {
     pub character_state: ReadStorage<'a, CharacterState>,
 }
 impl<'a> TrackedComps<'a> {
-    pub fn create_entity_package(&self, entity: EcsEntity) -> EntityPackage<EcsCompPacket> {
+    pub fn create_entity_package(
+        &self,
+        entity: EcsEntity,
+        pos: Option<Pos>,
+        vel: Option<Vel>,
+        ori: Option<Ori>,
+    ) -> EntityPackage<EcsCompPacket> {
         let uid = self
             .uid
             .get(entity)
@@ -114,6 +120,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
+        // Add untracked comps
+        pos.map(|c| comps.push(c.into()));
+        vel.map(|c| comps.push(c.into()));
+        ori.map(|c| comps.push(c.into()));
 
         EntityPackage { uid, comps }
     }
@@ -138,13 +148,15 @@ pub struct ReadTrackers<'a> {
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
 }
 impl<'a> ReadTrackers<'a> {
-    pub fn create_sync_package(
+    pub fn create_sync_packages(
         &self,
         comps: &TrackedComps,
         filter: impl Join + Copy,
         deleted_entities: Vec<u64>,
-    ) -> SyncPackage<EcsCompPacket> {
-        SyncPackage::new(&comps.uid, &self.uid, filter, deleted_entities)
+    ) -> (EntitySyncPackage, CompSyncPackage<EcsCompPacket>) {
+        let entity_sync_package =
+            EntitySyncPackage::new(&comps.uid, &self.uid, filter, deleted_entities);
+        let comp_sync_package = CompSyncPackage::new()
             .with_component(&comps.uid, &*self.body, &comps.body, filter)
             .with_component(&comps.uid, &*self.player, &comps.player, filter)
             .with_component(&comps.uid, &*self.stats, &comps.stats, filter)
@@ -169,7 +181,9 @@ impl<'a> ReadTrackers<'a> {
                 &*self.character_state,
                 &comps.character_state,
                 filter,
-            )
+            );
+
+        (entity_sync_package, comp_sync_package)
     }
 }
 

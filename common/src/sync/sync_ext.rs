@@ -1,5 +1,7 @@
 use super::{
-    packet::{CompPacket, CompUpdateKind, EntityPackage, StatePackage, SyncPackage},
+    packet::{
+        CompPacket, CompSyncPackage, CompUpdateKind, EntityPackage, EntitySyncPackage, StatePackage,
+    },
     track::UpdateTracker,
     uid::{Uid, UidAllocator},
 };
@@ -27,7 +29,8 @@ pub trait WorldSyncExt {
         entity_package: EntityPackage<P>,
     ) -> specs::Entity;
     fn apply_state_package<P: CompPacket>(&mut self, state_package: StatePackage<P>);
-    fn apply_sync_package<P: CompPacket>(&mut self, package: SyncPackage<P>);
+    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage);
+    fn apply_comp_sync_package<P: CompPacket>(&mut self, package: CompSyncPackage<P>);
 }
 
 impl WorldSyncExt for specs::World {
@@ -106,24 +109,30 @@ impl WorldSyncExt for specs::World {
         //self.maintain();
     }
 
-    fn apply_sync_package<P: CompPacket>(&mut self, package: SyncPackage<P>) {
+    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage) {
         // Take ownership of the fields
-        let SyncPackage {
-            comp_updates,
+        let EntitySyncPackage {
             created_entities,
             deleted_entities,
         } = package;
 
         // Attempt to create entities
-        for entity_uid in created_entities {
-            create_entity_with_uid(self, entity_uid);
-        }
+        created_entities.into_iter().for_each(|uid| {
+            create_entity_with_uid(self, uid);
+        });
 
+        // Attempt to delete entities that were marked for deletion
+        deleted_entities.into_iter().for_each(|uid| {
+            self.delete_entity_and_clear_from_uid_allocator(uid);
+        });
+    }
+
+    fn apply_comp_sync_package<P: CompPacket>(&mut self, package: CompSyncPackage<P>) {
         // Update components
-        for (entity_uid, update) in comp_updates {
+        package.comp_updates.into_iter().for_each(|(uid, update)| {
             if let Some(entity) = self
                 .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(entity_uid)
+                .retrieve_entity_internal(uid)
             {
                 match update {
                     CompUpdateKind::Inserted(packet) => {
@@ -137,12 +146,7 @@ impl WorldSyncExt for specs::World {
                     },
                 }
             }
-        }
-
-        // Attempt to delete entities that were marked for deletion
-        for entity_uid in deleted_entities {
-            self.delete_entity_and_clear_from_uid_allocator(entity_uid);
-        }
+        });
     }
 }
 

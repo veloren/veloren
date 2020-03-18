@@ -23,18 +23,22 @@ pub trait CompPacket: Clone + Debug + Send + 'static {
 pub fn handle_insert<C: Component>(comp: C, entity: Entity, world: &World) {
     if let Err(err) = world.write_storage::<C>().insert(entity, comp) {
         error!("Error inserting component: {:?}", err);
-    };
+    }
 }
 /// Useful for implementing CompPacket trait
 pub fn handle_modify<C: Component>(comp: C, entity: Entity, world: &World) {
-    let _ = world
+    if world
         .write_storage::<C>()
         .get_mut(entity)
-        .map(|c| *c = comp);
+        .map(|c| *c = comp)
+        .is_none()
+    {
+        error!("Error modifying synced component, it doesn't seem to exist");
+    }
 }
 /// Useful for implementing CompPacket trait
 pub fn handle_remove<C: Component>(entity: Entity, world: &World) {
-    let _ = world.write_storage::<C>().remove(entity);
+    world.write_storage::<C>().remove(entity);
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -81,12 +85,11 @@ impl<P: CompPacket> StatePackage<P> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SyncPackage<P: CompPacket> {
-    pub comp_updates: Vec<(u64, CompUpdateKind<P>)>,
+pub struct EntitySyncPackage {
     pub created_entities: Vec<u64>,
     pub deleted_entities: Vec<u64>,
 }
-impl<P: CompPacket> SyncPackage<P> {
+impl EntitySyncPackage {
     pub fn new<'a>(
         uids: &ReadStorage<'a, Uid>,
         uid_tracker: &UpdateTracker<Uid>,
@@ -100,10 +103,47 @@ impl<P: CompPacket> SyncPackage<P> {
             .collect();
 
         Self {
-            comp_updates: Vec::new(),
             created_entities,
             deleted_entities,
         }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CompSyncPackage<P: CompPacket> {
+    // TODO: this can be made to take less space by clumping updates for the same entity together
+    pub comp_updates: Vec<(u64, CompUpdateKind<P>)>,
+}
+
+impl<P: CompPacket> CompSyncPackage<P> {
+    pub fn new() -> Self {
+        Self {
+            comp_updates: Vec::new(),
+        }
+    }
+
+    pub fn comp_inserted<C>(&mut self, uid: Uid, comp: C)
+    where
+        P: From<C>,
+    {
+        self.comp_updates
+            .push((uid.into(), CompUpdateKind::Inserted(comp.into())));
+    }
+
+    pub fn comp_modified<C>(&mut self, uid: Uid, comp: C)
+    where
+        P: From<C>,
+    {
+        self.comp_updates
+            .push((uid.into(), CompUpdateKind::Modified(comp.into())));
+    }
+
+    pub fn comp_removed<C>(&mut self, uid: Uid)
+    where
+        P::Phantom: From<PhantomData<C>>,
+    {
+        self.comp_updates
+            .push((uid.into(), CompUpdateKind::Removed(PhantomData::<C>.into())));
     }
 
     pub fn with_component<'a, C: Component + Clone + Send + Sync>(
