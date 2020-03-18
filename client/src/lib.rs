@@ -629,8 +629,15 @@ impl Client {
                     ServerMsg::TimeOfDay(time_of_day) => {
                         *self.state.ecs_mut().write_resource() = time_of_day;
                     },
-                    ServerMsg::EcsSync(sync_package) => {
-                        self.state.ecs_mut().apply_sync_package(sync_package);
+                    ServerMsg::EntitySync(entity_sync_package) => {
+                        self.state
+                            .ecs_mut()
+                            .apply_entity_sync_package(entity_sync_package);
+                    },
+                    ServerMsg::CompSync(comp_sync_package) => {
+                        self.state
+                            .ecs_mut()
+                            .apply_comp_sync_package(comp_sync_package);
                     },
                     ServerMsg::CreateEntity(entity_package) => {
                         self.state.ecs_mut().apply_entity_package(entity_package);
@@ -666,29 +673,6 @@ impl Client {
                             .write_resource::<UidAllocator>()
                             .allocate(entity_builder.entity, Some(client_uid));
                         self.entity = entity_builder.with(uid).build();
-                    },
-                    ServerMsg::EntityPos { entity, pos } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, pos);
-                        }
-                    },
-                    ServerMsg::EntityVel { entity, vel } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, vel);
-                        }
-                    },
-                    ServerMsg::EntityOri { entity, ori } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, ori);
-                        }
-                    },
-                    ServerMsg::EntityCharacterState {
-                        entity,
-                        character_state,
-                    } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, character_state);
-                        }
                     },
                     ServerMsg::InventoryUpdate(inventory, event) => {
                         match event {

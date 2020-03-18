@@ -194,19 +194,16 @@ impl<'a> System<'a> for Sys {
                                 .join()
                                 .filter(|(_, _, _, _, _, _, e)| *e != client_entity)
                             {
-                                // Send message to create entity and tracked components
+                                // Send message to create entity and tracked components and physics
+                                // components
                                 client.notify(ServerMsg::CreateEntity(
-                                    tracked_comps.create_entity_package(entity),
+                                    tracked_comps.create_entity_package(
+                                        entity,
+                                        Some(*pos),
+                                        vel.copied(),
+                                        ori.copied(),
+                                    ),
                                 ));
-                                // Send message to create physics components
-                                super::entity_sync::send_initial_unsynced_components(
-                                    client,
-                                    uid,
-                                    pos,
-                                    vel,
-                                    ori,
-                                    character_state,
-                                );
                             }
                         }
                     }
@@ -253,19 +250,15 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
                 )
                     .join()
                 {
-                    // Send message to create entity and tracked components
+                    // Send message to create entity and tracked components and physics components
                     client.notify(ServerMsg::CreateEntity(
-                        tracked_comps.create_entity_package(entity),
+                        tracked_comps.create_entity_package(
+                            entity,
+                            Some(*pos),
+                            vel.copied(),
+                            ori.copied(),
+                        ),
                     ));
-                    // Send message to create physics components
-                    super::entity_sync::send_initial_unsynced_components(
-                        client,
-                        uid,
-                        pos,
-                        vel,
-                        ori,
-                        character_state,
-                    );
                 }
             }
         }
