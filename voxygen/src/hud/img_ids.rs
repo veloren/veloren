@@ -185,21 +185,6 @@ image_ids! {
         // Charwindow
         xp_charwindow: "voxygen.element.frames.xp_charwindow",
         divider: "voxygen.element.frames.divider_charwindow",
-        head_bg: "voxygen.element.icons.head",
-        shoulders_bg: "voxygen.element.icons.shoulders",
-        hands_bg: "voxygen.element.icons.hands",
-        belt_bg: "voxygen.element.icons.belt",
-        legs_bg: "voxygen.element.icons.legs",
-        feet_bg: "voxygen.element.icons.feet",
-        ring_r_bg: "voxygen.element.icons.ring",
-        ring_l_bg: "voxygen.element.icons.ring",
-        tabard_bg: "voxygen.element.icons.tabard",
-        chest_bg: "voxygen.element.icons.chest",
-        back_bg: "voxygen.element.icons.back",
-        gem_bg: "voxygen.element.icons.gem",
-        necklace_bg: "voxygen.element.icons.necklace",
-        mainhand_bg: "voxygen.element.icons.mainhand",
-        offhand_bg: "voxygen.element.icons.offhand",
 
         // Close button
         close_button: "voxygen.element.buttons.x",
@@ -258,6 +243,20 @@ image_ids! {
         inv_slots: "voxygen.element.misc_bg.inv_slots",
         inv_runes: "voxygen.element.misc_bg.inv_runes",
         armor_slot: "voxygen.element.buttons.armor_slot",
+        head_bg: "voxygen.element.icons.head",
+        shoulders_bg: "voxygen.element.icons.shoulders",
+        hands_bg: "voxygen.element.icons.hands",
+        belt_bg: "voxygen.element.icons.belt",
+        legs_bg: "voxygen.element.icons.legs",
+        feet_bg: "voxygen.element.icons.feet",
+        ring_r_bg: "voxygen.element.icons.ring",
+        ring_l_bg: "voxygen.element.icons.ring",
+        tabard_bg: "voxygen.element.icons.tabard",
+        chest_bg: "voxygen.element.icons.chest",
+        back_bg: "voxygen.element.icons.back",
+        necklace_bg: "voxygen.element.icons.necklace",
+        mainhand_bg: "voxygen.element.icons.mainhand",
+        offhand_bg: "voxygen.element.icons.offhand",
 
 
 

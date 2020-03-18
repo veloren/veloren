@@ -56,7 +56,7 @@ widget_ids! {
         chest_bg,
         shoulder_bg,
         hands_bg,
-        pants_bg,
+        legs_bg,
         belt_bg,
         ring_r_bg,
         ring_l_bg,
@@ -65,6 +65,20 @@ widget_ids! {
         tabard_bg,
         mainhand_bg,
         offhand_bg,
+        head_ico,
+        neck_ico,
+        chest_ico,
+        shoulder_ico,
+        hands_ico,
+        legs_ico,
+        belt_ico,
+        ring_r_ico,
+        ring_l_ico,
+        foot_ico,
+        back_ico,
+        tabard_ico,
+        mainhand_ico,
+        offhand_ico,
     }
 }
 
@@ -278,91 +292,168 @@ impl<'a> Widget for Bag<'a> {
                 .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.head_bg, ui);
+            Button::image(self.imgs.head_bg)
+                .w_h(32.0, 40.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.head_bg)
+                .with_tooltip(self.tooltip_manager, "Helmet", "", &item_tooltip)
+                .set(state.ids.head_ico, ui);
             //Necklace
             Image::new(self.imgs.armor_slot)
                 .w_h(45.0, 45.0)
                 .mid_bottom_with_margin_on(state.ids.head_bg, -55.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.neck_bg, ui);
+            Button::image(self.imgs.necklace_bg)
+                .w_h(40.0, 31.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.neck_bg)
+                .with_tooltip(self.tooltip_manager, "Neck", "", &item_tooltip)
+                .set(state.ids.neck_ico, ui);
             //Chest
             Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
                 .w_h(85.0, 85.0)
                 .mid_bottom_with_margin_on(state.ids.neck_bg, -95.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.chest_bg, ui);
-            Button::image(self.imgs.skull)
-                .w_h(80.0, 80.0)
+            Button::image(self.imgs.chest_bg)
+                .w_h(64.0, 42.0)
+                .image_color(UI_MAIN)
                 .middle_of(state.ids.chest_bg)
-                .set(state.ids.test, ui);
+                .with_tooltip(self.tooltip_manager, "Chest", "", &item_tooltip)
+                .set(state.ids.chest_ico, ui);
             //Shoulder
             Image::new(self.imgs.armor_slot)
                 .w_h(70.0, 70.0)
                 .bottom_left_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.shoulder_bg, ui);
+            Button::image(self.imgs.shoulders_bg)
+                .w_h(60.0, 36.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.shoulder_bg)
+                .with_tooltip(self.tooltip_manager, "Shoulders", "", &item_tooltip)
+                .set(state.ids.shoulder_ico, ui);
             //Hands
             Image::new(self.imgs.armor_slot)
                 .w_h(70.0, 70.0)
                 .bottom_right_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.hands_bg, ui);
+            Button::image(self.imgs.hands_bg)
+                .w_h(55.0, 60.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.hands_bg)
+                .with_tooltip(self.tooltip_manager, "Hands", "", &item_tooltip)
+                .set(state.ids.hands_ico, ui);
             //Belt
             Image::new(self.imgs.armor_slot)
                 .w_h(45.0, 45.0)
                 .mid_bottom_with_margin_on(state.ids.chest_bg, -55.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.belt_bg, ui);
-            //Pants
+            Button::image(self.imgs.belt_bg)
+                .w_h(40.0, 23.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.belt_bg)
+                .with_tooltip(self.tooltip_manager, "Belt", "", &item_tooltip)
+                .set(state.ids.belt_ico, ui);
+            //Legs
             Image::new(self.imgs.armor_slot)
                 .w_h(85.0, 85.0)
                 .mid_bottom_with_margin_on(state.ids.belt_bg, -95.0)
                 .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.pants_bg, ui);
+                .set(state.ids.legs_bg, ui);
+            Button::image(self.imgs.legs_bg)
+                .w_h(48.0, 70.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.legs_bg)
+                .with_tooltip(self.tooltip_manager, "Legs", "", &item_tooltip)
+                .set(state.ids.legs_ico, ui);
             //Ring-L
             Image::new(self.imgs.armor_slot)
                 .w_h(45.0, 45.0)
                 .bottom_right_with_margins_on(state.ids.shoulder_bg, -55.0, 0.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.ring_l_bg, ui);
+            Button::image(self.imgs.ring_l_bg)
+                .w_h(36.0, 40.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.ring_l_bg)
+                .with_tooltip(self.tooltip_manager, "Left Ring", "", &item_tooltip)
+                .set(state.ids.ring_l_ico, ui);
             //Ring-R
             Image::new(self.imgs.armor_slot)
                 .w_h(45.0, 45.0)
                 .bottom_left_with_margins_on(state.ids.hands_bg, -55.0, 0.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.ring_r_bg, ui);
+            Button::image(self.imgs.ring_r_bg)
+                .w_h(36.0, 40.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.ring_r_bg)
+                .with_tooltip(self.tooltip_manager, "Right Ring", "", &item_tooltip)
+                .set(state.ids.ring_r_ico, ui);
             //Back
             Image::new(self.imgs.armor_slot)
                 .w_h(45.0, 45.0)
                 .down_from(state.ids.ring_l_bg, 10.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.back_bg, ui);
+            Button::image(self.imgs.back_bg)
+                .w_h(33.0, 40.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.back_bg)
+                .with_tooltip(self.tooltip_manager, "Back", "", &item_tooltip)
+                .set(state.ids.back_ico, ui);
             //Foot
             Image::new(self.imgs.armor_slot)
                 .w_h(45.0, 45.0)
                 .down_from(state.ids.ring_r_bg, 10.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.foot_bg, ui);
-
+            Button::image(self.imgs.feet_bg)
+                .w_h(32.0, 40.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.foot_bg)
+                .with_tooltip(self.tooltip_manager, "Feet", "", &item_tooltip)
+                .set(state.ids.foot_ico, ui);
             //Tabard
-
             Image::new(self.imgs.armor_slot)
                 .w_h(70.0, 70.0)
                 .top_right_with_margins_on(state.ids.bg_frame, 80.5, 53.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.tabard_bg, ui);
-
+            Button::image(self.imgs.tabard_bg)
+                .w_h(60.0, 60.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.tabard_bg)
+                .with_tooltip(self.tooltip_manager, "Tabard", "", &item_tooltip)
+                .set(state.ids.tabard_ico, ui);
             //Mainhand/Left-Slot
             Image::new(self.imgs.armor_slot)
                 .w_h(85.0, 85.0)
                 .bottom_right_with_margins_on(state.ids.back_bg, -95.0, 0.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.mainhand_bg, ui);
+            Button::image(self.imgs.mainhand_bg)
+                .w_h(75.0, 75.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.mainhand_bg)
+                .with_tooltip(self.tooltip_manager, "Mainhand", "", &item_tooltip)
+                .set(state.ids.mainhand_ico, ui);
             //Offhand/Right-Slot
             Image::new(self.imgs.armor_slot)
                 .w_h(85.0, 85.0)
                 .bottom_left_with_margins_on(state.ids.foot_bg, -95.0, 0.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.offhand_bg, ui);
+            Button::image(self.imgs.offhand_bg)
+                .w_h(75.0, 75.0)
+                .image_color(UI_MAIN)
+                .middle_of(state.ids.offhand_bg)
+                .with_tooltip(self.tooltip_manager, "Offhand", "", &item_tooltip)
+                .set(state.ids.offhand_ico, ui);
         } else {
             // Stats
             // Title
