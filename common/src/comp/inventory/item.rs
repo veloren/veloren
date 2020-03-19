@@ -207,17 +207,17 @@ pub enum ItemKind {
     Consumable {
         kind: Consumable,
         effect: Effect,
-        #[serde(skip, default = "default_amount")]
+        #[serde(default = "default_amount")]
         amount: u32,
     },
     Utility {
         kind: Utility,
-        #[serde(skip, default = "default_amount")]
+        #[serde(default = "default_amount")]
         amount: u32,
     },
     Ingredient {
         kind: Ingredient,
-        #[serde(skip, default = "default_amount")]
+        #[serde(default = "default_amount")]
         amount: u32,
     },
 }
