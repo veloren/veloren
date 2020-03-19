@@ -165,11 +165,6 @@ impl<'a> Widget for Bag<'a> {
 
     fn style(&self) -> Self::Style { () }
 
-    /*fn const_tweaker() {
-        // Initialize the web GUI at 'http://127.0.0.1:9938'
-        const_tweaker::run().expect("Could not run server");
-    }*/
-
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
