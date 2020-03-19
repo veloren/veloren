@@ -504,6 +504,22 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::TripleStrike(s) => match s.stage {
+                            0 | 2 => anim::character::AttackAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            ),
+                            _ => anim::character::ChargeAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            ),
+                        },
                         CharacterState::TimedCombo(s) => match s.stage {
                             0 | 2 => anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
