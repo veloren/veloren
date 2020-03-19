@@ -51,8 +51,7 @@ impl CharacterAbility {
                         .is_ok()
             },
             CharacterAbility::DashMelee { .. } => {
-                data.physics.on_ground
-                    && !data.physics.in_fluid
+                !data.physics.in_fluid
                     && update
                         .energy
                         .try_change_by(-300, EnergySource::Ability)
@@ -122,6 +121,7 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration,
                 base_damage,
             } => CharacterState::DashMelee(dash_melee::Data {
+                initialize: true,
                 exhausted: false,
                 buildup_duration: *buildup_duration,
                 recover_duration: *recover_duration,
