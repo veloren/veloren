@@ -1,6 +1,6 @@
 Item(
-    name: "Green Camo Pants",
-    description: "Perfect for hunting.",
+    name: "Hunting Pants",
+    description: "",
     kind: Armor(
         kind: Pants(Green),
         stats: 20,

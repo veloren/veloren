@@ -31,5 +31,9 @@
         vox_spec: ("armor.belt.plate-0", (-5.0, -3.5, 2.0)),
         color: None
     ),
+    Leather0:(
+        vox_spec: ("armor.belt.leather-0", (-5.0, -3.5, 2.0)),
+        color: None
+    ),
     
 })

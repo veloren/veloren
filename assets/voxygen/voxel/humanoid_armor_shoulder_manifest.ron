@@ -70,4 +70,14 @@
             color: None
         )
     ),
+	 Leather1: (
+        left: (
+            vox_spec: ("armor.shoulder.leather_left-1", (-3.6, -4.5, 1.0)),
+            color: None
+        ),
+        right: (
+            vox_spec: ("armor.shoulder.leather_right-1", (-2.6, -4.5, 1.0)),
+            color: None
+        )
+    ),
 })

@@ -1,0 +1,8 @@
+Item(
+    name: "Swift Chest",
+    description: "",
+    kind: Armor(
+        kind: Chest(Leather0),
+        stats: 20,
+    ),
+)

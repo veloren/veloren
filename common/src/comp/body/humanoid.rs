@@ -484,8 +484,9 @@ pub enum Chest {
     Kimono = 7,
     Assassin = 8,
     PlateGreen0 = 9,
+    Leather0 = 10,
 }
-pub const ALL_CHESTS: [Chest; 10] = [
+pub const ALL_CHESTS: [Chest; 11] = [
     Chest::None,
     Chest::Blue,
     Chest::Brown,
@@ -496,6 +497,7 @@ pub const ALL_CHESTS: [Chest; 10] = [
     Chest::Kimono,
     Chest::Assassin,
     Chest::PlateGreen0,
+    Chest::Leather0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -508,8 +510,9 @@ pub enum Belt {
     BlackCloth = 4,
     Assassin = 5,
     Plate0 = 6,
+    Leather0 = 7,
 }
-pub const ALL_BELTS: [Belt; 7] = [
+pub const ALL_BELTS: [Belt; 8] = [
     Belt::None,
     Belt::Dark,
     Belt::TurqCloth,
@@ -517,6 +520,7 @@ pub const ALL_BELTS: [Belt; 7] = [
     Belt::BlackCloth,
     Belt::Assassin,
     Belt::Plate0,
+    Belt::Leather0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -531,8 +535,9 @@ pub enum Pants {
     Kimono = 6,
     Assassin = 7,
     PlateGreen0 = 8,
+    Leather0 = 9,
 }
-pub const ALL_PANTS: [Pants; 9] = [
+pub const ALL_PANTS: [Pants; 10] = [
     Pants::None,
     Pants::Blue,
     Pants::Brown,
@@ -542,6 +547,7 @@ pub const ALL_PANTS: [Pants; 9] = [
     Pants::Kimono,
     Pants::Assassin,
     Pants::PlateGreen0,
+    Pants::Leather0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -551,8 +557,15 @@ pub enum Hand {
     Cloth = 1,
     Assassin = 2,
     Plate0 = 3,
+    Leather0 = 4,
 }
-pub const ALL_HANDS: [Hand; 4] = [Hand::Bare, Hand::Cloth, Hand::Assassin, Hand::Plate0];
+pub const ALL_HANDS: [Hand; 5] = [
+    Hand::Bare,
+    Hand::Cloth,
+    Hand::Assassin,
+    Hand::Plate0,
+    Hand::Leather0,
+];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
@@ -563,14 +576,16 @@ pub enum Foot {
     Jester = 3,
     Assassin = 4,
     Plate0 = 5,
+    Leather0 = 6,
 }
-pub const ALL_FEET: [Foot; 6] = [
+pub const ALL_FEET: [Foot; 7] = [
     Foot::Bare,
     Foot::Dark,
     Foot::Sandal,
     Foot::Jester,
     Foot::Assassin,
     Foot::Plate0,
+    Foot::Leather0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -582,14 +597,16 @@ pub enum Shoulder {
     Assassin = 3,
     Plate0 = 4,
     Leather0 = 5,
+    Leather1 = 6,
 }
-pub const ALL_SHOULDERS: [Shoulder; 6] = [
+pub const ALL_SHOULDERS: [Shoulder; 7] = [
     Shoulder::None,
     Shoulder::Brown1,
     Shoulder::Chain,
     Shoulder::Assassin,
     Shoulder::Plate0,
     Shoulder::Leather0,
+    Shoulder::Leather1,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

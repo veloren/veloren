@@ -23,4 +23,8 @@
         vox_spec: ("armor.foot.plate-0", (-2.5, -3.5, -9.0)),
         color: None
     ),
+    Leather0: (
+        vox_spec: ("armor.foot.leather-0", (-2.5, -3.5, -9.0)),
+        color: None
+    ),
 })
