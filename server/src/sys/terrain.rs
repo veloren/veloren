@@ -218,44 +218,44 @@ impl<'a> System<'a> for Sys {
                             active_item,
                             second_item: None,
                             shoulder: Some(assets::load_expect_cloned(
-                                "common.items.armor.shoulder_leather-0",
+                                "common.items.armor.shoulder.leather_0",
                             )),
                             chest: Some(assets::load_expect_cloned(
-                                "common.items.armor.chest.chest_leather-0",
+                                "common.items.armor.chest.leather_0",
                             )),
                             belt: Some(assets::load_expect_cloned(
-                                "common.items.armor.belt_plate-0",
+                                "common.items.armor.belt.plate_0",
                             )),
                             hand: Some(assets::load_expect_cloned(
-                                "common.items.armor.hand_plate-0",
+                                "common.items.armor.hand.plate_0",
                             )),
                             pants: Some(assets::load_expect_cloned(
-                                "common.items.armor.pants_plate_green-0",
+                                "common.items.armor.pants.plate_green_0",
                             )),
                             foot: Some(assets::load_expect_cloned(
-                                "common.items.armor.foot_leather-0",
+                                "common.items.armor.foot.leather_0",
                             )),
                         },
                         comp::Alignment::Enemy => comp::Loadout {
                             active_item,
                             second_item: None,
                             shoulder: Some(assets::load_expect_cloned(
-                                "common.items.armor.shoulder_leather-0",
+                                "common.items.armor.shoulder.leather_0",
                             )),
                             chest: Some(assets::load_expect_cloned(
-                                "common.items.armor.chest.chest_plate_green-0",
+                                "common.items.armor.chest.plate_green_0",
                             )),
                             belt: Some(assets::load_expect_cloned(
-                                "common.items.armor.belt_plate-0",
+                                "common.items.armor.belt.plate_0",
                             )),
                             hand: Some(assets::load_expect_cloned(
-                                "common.items.armor.hand_plate-0",
+                                "common.items.armor.hand.plate_0",
                             )),
                             pants: Some(assets::load_expect_cloned(
-                                "common.items.armor.pants_plate_green-0",
+                                "common.items.armor.pants.plate_green_0",
                             )),
                             foot: Some(assets::load_expect_cloned(
-                                "common.items.armor.foot_plate-0",
+                                "common.items.armor.foot.plate_0",
                             )),
                         },
                         _ => comp::Loadout {
@@ -306,22 +306,22 @@ impl<'a> System<'a> for Sys {
                             }),
                             second_item: None,
                             shoulder: Some(assets::load_expect_cloned(
-                                "common.items.armor.shoulder_plate-0",
+                                "common.items.armor.shoulder.plate_0",
                             )),
                             chest: Some(assets::load_expect_cloned(
-                                "common.items.armor.chest.chest_plate_green-0",
+                                "common.items.armor.chest.plate_green_0",
                             )),
                             belt: Some(assets::load_expect_cloned(
-                                "common.items.armor.belt_plate-0",
+                                "common.items.armor.belt.plate_0",
                             )),
                             hand: Some(assets::load_expect_cloned(
-                                "common.items.armor.hand_plate-0",
+                                "common.items.armor.hand.plate_0",
                             )),
                             pants: Some(assets::load_expect_cloned(
-                                "common.items.armor.pants_plate_green-0",
+                                "common.items.armor.pants.plate_green_0",
                             )),
                             foot: Some(assets::load_expect_cloned(
-                                "common.items.armor.foot_plate-0",
+                                "common.items.armor.foot.plate_0",
                             )),
                         };
 
