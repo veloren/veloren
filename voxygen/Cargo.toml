@@ -11,6 +11,7 @@ default-run = "veloren-voxygen"
 [features]
 gl = ["gfx_device_gl"]
 singleplayer = ["server"]
+tweak = ["const_tweaker"]
 
 default = ["gl", "singleplayer", "msgbox"]
 
@@ -67,6 +68,7 @@ bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "65571ade0d954a0e0bd995fdb314854ff146ab97" }
+const_tweaker = { version = "0.2.1", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
