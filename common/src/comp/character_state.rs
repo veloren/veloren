@@ -55,7 +55,10 @@ impl CharacterState {
         match self {
             CharacterState::Wielding
             | CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
+            | CharacterState::DashMelee(_)
             | CharacterState::TimedCombo(_)
+            | CharacterState::ChargeAttack(_)
             | CharacterState::BasicBlock => true,
             _ => false,
         }
@@ -66,6 +69,7 @@ impl CharacterState {
             CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
             | CharacterState::TimedCombo(_)
+            | CharacterState::DashMelee(_)
             | CharacterState::ChargeAttack(_) => true,
             _ => false,
         }
