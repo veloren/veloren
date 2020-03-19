@@ -1,6 +1,6 @@
 Item(
     name: "Swift Gloves",
-    description: "Only the best for a member of the creed.",
+    description: "Swift like the wind.",
     kind: Armor(
         kind: Hand(Leather0),
         stats: 20,

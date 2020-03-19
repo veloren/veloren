@@ -3,34 +3,54 @@
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
 ({
     // Weapons
+    // Bows
     Tool(Bow(BasicBow)): VoxTrans(
         "voxel.weapon.bow.simple-bow",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
+    // Daggers
     Tool(Dagger(BasicDagger)): VoxTrans(
         "voxel.weapon.dagger.dagger_rusty",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
-    Tool(Sword(Rapier)): VoxTrans(
-        "voxel.weapon.sword.rusty_2h",
+    // Swords
+    Tool(Sword(Short0)): VoxTrans(
+        "voxel.weapon.sword.short_2h-0",
         (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
+    Tool(Sword(BasicSword)): VoxTrans(
+        "voxel.weapon.sword.weapon.sword.rusty_2h",
+        (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
+    ),
+    Tool(Sword(Zweihander0)): VoxTrans(
+        "voxel.weapon.sword.zweihander_2h-0",
+        (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
+    ),
+    Tool(Sword(WoodTraining)): VoxTrans(
+        "voxel.weapon.sword.wood_2h",
+        (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
+    ),
+    // Axes
     Tool(Axe(BasicAxe)): VoxTrans(
         "voxel.weapon.axe.rusty_2h",
         (0.0, -8.0, 0.0), (-90.0, 90.0, 0.0), 2.0,
     ),
+    // Hammers
     Tool(Hammer(BasicHammer)): VoxTrans(
         "voxel.weapon.hammer.rusty_2h",
         (0.0, -8.0, 0.0), (-90.0, 90.0, 0.0), 2.0,
     ),
+    // Staffs
     Tool(Staff(BasicStaff)): VoxTrans(
         "voxel.weapon.staff.wood-fire",
         (0.0, -9.0, 0.0), (90.0, 90.0, 0.0), 2.5,
     ),
+    // Shields
     Tool(Shield(BasicShield)): VoxTrans(
         "voxel.weapon.shield.wood-0",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
+    // Other
     Utility(Collar): VoxTrans(
         "element.icons.collar",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 10.0), 1.3,
@@ -86,6 +106,31 @@
         "voxel.armor.shoulder.plate_left-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
+    //Leather0 Armor
+     Armor(Chest(Leather0)): VoxTrans(
+        "voxel.armor.chest.leather-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants(Leather0)): VoxTrans(
+        "voxel.armor.pants.leather-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt(Leather0)): VoxTrans(
+        "voxel.armor.belt.leather-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
+    ),
+    Armor(Foot(Leather0)): VoxTrans(
+        "voxel.armor.foot.leather-0",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand(Leather0)): VoxTrans(
+        "voxel.armor.hand.leather_left-0",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder(Leather1)): VoxTrans(
+        "voxel.armor.shoulder.leather_left-1",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
     // Consumables
     Consumable(Apple): VoxTrans(
         "element.icons.item_apple",
@@ -133,5 +178,3 @@
         (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
     ),
 })
-
-

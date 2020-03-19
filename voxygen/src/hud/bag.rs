@@ -180,8 +180,8 @@ impl<'a> Widget for Bag<'a> {
             self.stats.exp.maximum(),
             &self.localized_strings.get("hud.bag.exp")
         );
-        let space_used = 2; // TODO: Add functionality
-        let space_max = 999;
+        let space_used = 0; // TODO: Add functionality
+        let space_max = 0;
         let bag_space = format!("{}/{}", space_used, space_max);
         let level = (self.stats.level.level()).to_string();
         let currency = 999999; // TODO: Add as a Stat maybe?
