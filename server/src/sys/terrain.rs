@@ -112,6 +112,7 @@ impl<'a> System<'a> for Sys {
                     ) -> &'a str {
                         &body_data.species[&species].generic
                     }
+
                     const SPAWN_NPCS: &'static [fn() -> (
                         String,
                         comp::Body,
@@ -186,73 +187,88 @@ impl<'a> System<'a> for Sys {
                     );
                     let mut stats = comp::Stats::new(name, body);
 
-                    let mut loadout =
+                    let active_item =
                         if let Some(comp::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
                             let mut abilities = tool.get_abilities();
                             let mut ability_drain = abilities.drain(..);
 
-                            comp::Loadout {
-                                active_item: main.map(|item| comp::ItemConfig {
-                                    item,
-                                    primary_ability: ability_drain.next(),
-                                    secondary_ability: ability_drain.next(),
-                                    block_ability: Some(comp::CharacterAbility::BasicBlock),
-                                    dodge_ability: Some(comp::CharacterAbility::Roll),
-                                }),
-                                second_item: None,
-                                shoulder: Some(assets::load_expect_cloned(
-                                    "common.items.armor.shoulder_plate-0",
-                                )),
-                                chest: Some(assets::load_expect_cloned(
-                                    "common.items.armor.chest.chest_plate_green-0",
-                                )),
-                                belt: Some(assets::load_expect_cloned(
-                                    "common.items.armor.belt_plate-0",
-                                )),
-                                hand: Some(assets::load_expect_cloned(
-                                    "common.items.armor.hand_plate-0",
-                                )),
-                                pants: Some(assets::load_expect_cloned(
-                                    "common.items.armor.pants_plate_green-0",
-                                )),
-                                foot: Some(assets::load_expect_cloned(
-                                    "common.items.armor.foot_plate-0",
-                                )),
-                            }
+                            main.map(|item| comp::ItemConfig {
+                                item,
+                                primary_ability: ability_drain.next(),
+                                secondary_ability: ability_drain.next(),
+                                block_ability: Some(comp::CharacterAbility::BasicBlock),
+                                dodge_ability: Some(comp::CharacterAbility::Roll),
+                            })
                         } else {
-                            comp::Loadout {
-                                active_item: Some(ItemConfig {
-                                    item: Item::empty(),
-                                    primary_ability: Some(CharacterAbility::BasicMelee {
-                                        buildup_duration: Duration::from_millis(50),
-                                        recover_duration: Duration::from_millis(50),
-                                        base_damage: 1,
-                                    }),
-                                    secondary_ability: None,
-                                    block_ability: None,
-                                    dodge_ability: None,
+                            Some(ItemConfig {
+                                item: Item::empty(),
+                                primary_ability: Some(CharacterAbility::BasicMelee {
+                                    buildup_duration: Duration::from_millis(50),
+                                    recover_duration: Duration::from_millis(50),
+                                    base_damage: 1,
                                 }),
-                                second_item: None,
-                                shoulder: Some(assets::load_expect_cloned(
-                                    "common.items.armor.shoulder_leather-0",
-                                )),
-                                chest: Some(assets::load_expect_cloned(
-                                    "common.items.armor.chest.chest_plate_green-0",
-                                )),
-                                belt: Some(assets::load_expect_cloned(
-                                    "common.items.armor.belt_plate-0",
-                                )),
-                                hand: Some(assets::load_expect_cloned(
-                                    "common.items.armor.hand_plate-0",
-                                )),
-                                pants: Some(assets::load_expect_cloned(
-                                    "common.items.armor.pants_plate_green-0",
-                                )),
-                                foot: Some(assets::load_expect_cloned(
-                                    "common.items.armor.foot_plate-0",
-                                )),
-                            }
+                                secondary_ability: None,
+                                block_ability: None,
+                                dodge_ability: None,
+                            })
                         };
+
+                    let mut loadout = match alignment {
+                        comp::Alignment::Npc => comp::Loadout {
+                            active_item,
+                            second_item: None,
+                            shoulder: Some(assets::load_expect_cloned(
+                                "common.items.armor.shoulder_plate-0",
+                            )),
+                            chest: Some(assets::load_expect_cloned(
+                                "common.items.armor.chest.chest_plate_green-0",
+                            )),
+                            belt: Some(assets::load_expect_cloned(
+                                "common.items.armor.belt_plate-0",
+                            )),
+                            hand: Some(assets::load_expect_cloned(
+                                "common.items.armor.hand_plate-0",
+                            )),
+                            pants: Some(assets::load_expect_cloned(
+                                "common.items.armor.pants_plate_green-0",
+                            )),
+                            foot: Some(assets::load_expect_cloned(
+                                "common.items.armor.foot_plate-0",
+                            )),
+                        },
+                        comp::Alignment::Enemy => comp::Loadout {
+                            active_item,
+                            second_item: None,
+                            shoulder: Some(assets::load_expect_cloned(
+                                "common.items.armor.shoulder_leather-0",
+                            )),
+                            chest: Some(assets::load_expect_cloned(
+                                "common.items.armor.chest.chest_plate_green-0",
+                            )),
+                            belt: Some(assets::load_expect_cloned(
+                                "common.items.armor.belt_plate-0",
+                            )),
+                            hand: Some(assets::load_expect_cloned(
+                                "common.items.armor.hand_plate-0",
+                            )),
+                            pants: Some(assets::load_expect_cloned(
+                                "common.items.armor.pants_plate_green-0",
+                            )),
+                            foot: Some(assets::load_expect_cloned(
+                                "common.items.armor.foot_plate-0",
+                            )),
+                        },
+                        _ => comp::Loadout {
+                            active_item,
+                            second_item: None,
+                            shoulder: None,
+                            chest: None,
+                            belt: None,
+                            hand: None,
+                            pants: None,
+                            foot: None,
+                        },
+                    };
 
                     let mut scale = 1.0;
 
@@ -260,6 +276,7 @@ impl<'a> System<'a> for Sys {
                     // species instead
                     stats.level.set_level(rand::thread_rng().gen_range(1, 4));
 
+                    // Replace stuff if it's a boss
                     if let EntityKind::Boss = entity.kind {
                         if rand::random::<f32>() < 0.65 {
                             let body_new = comp::humanoid::Body::random();
