@@ -100,6 +100,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             entity,
             assets::load_expect_cloned::<Item>("common.items.cheese"),
         );
+        state.ecs().write_storage::<comp::Stats>().remove(entity);
         state.ecs().write_storage::<comp::Agent>().remove(entity);
         state
             .ecs()

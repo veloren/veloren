@@ -1364,8 +1364,8 @@ impl FigureMgr {
             ecs.read_storage::<Scale>().maybe(),
         )
             .join()
-        // Don't render dead entities // Disabled to render corpses
-        //.filter(|(_, _, _, _, stats, loadout, _)| stats.map_or(true, |s| !s.is_dead))
+        // Don't render dead entities
+        .filter(|(_, _, _, _, stats, loadout, _)| stats.map_or(true, |s| !s.is_dead))
         {
             let is_player = entity == player_entity;
             let player_camera_mode = if is_player {
