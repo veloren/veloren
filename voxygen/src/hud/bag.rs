@@ -583,6 +583,20 @@ impl<'a> Widget for Bag<'a> {
                     .resize(inventory.len(), &mut ui.widget_id_generator());
             });
         }
+        if state.ids.amounts.len() < inventory.len() {
+            state.update(|s| {
+                s.ids
+                    .amounts
+                    .resize(inventory.len(), &mut ui.widget_id_generator());
+            });
+        }
+        if state.ids.amounts_bg.len() < inventory.len() {
+            state.update(|s| {
+                s.ids
+                    .amounts_bg
+                    .resize(inventory.len(), &mut ui.widget_id_generator());
+            });
+        }
         // Expand img id cache to the number of slots
         if state.img_id_cache.len() < inventory.len() {
             state.update(|s| {
