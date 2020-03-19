@@ -27,6 +27,8 @@ widget_ids! {
         map_title,
         inv_slots[],
         items[],
+        amounts[],
+        amounts_bg[],
         tooltip[],
         bg,
         bg_frame,
@@ -646,16 +648,6 @@ impl<'a> Widget for Bag<'a> {
             // Item
             if let Some(kind) = item.as_ref().map(|i| ItemKey::from(i)) {
                 //Stack Size
-                /*if let Some(item) = item {
-                    if let Some(amount) = match item.kind {
-                        ItemKind::Tool { .. } | ItemKind::Armor { .. } => None,
-                        ItemKind::Utility { amount, .. }
-                        | ItemKind::Consumable { amount, .. }
-                        | ItemKind::Ingredient { amount, .. } => Some(amount),
-                    } {
-                        println!("Amount: {}", amount);
-                    }
-                }*/
                 Button::image(match &state.img_id_cache[i] {
                     Some((cached_kind, id)) if cached_kind == &kind => *id,
                     _ => {
@@ -671,6 +663,32 @@ impl<'a> Widget for Bag<'a> {
                 .middle_of(state.ids.inv_slots[i])
                 .graphics_for(state.ids.inv_slots[i])
                 .set(state.ids.items[i], ui);
+            }
+            if let Some(item) = item {
+                if let Some(amount) = match item.kind {
+                    ItemKind::Tool { .. } | ItemKind::Armor { .. } => None,
+                    ItemKind::Utility { amount, .. }
+                    | ItemKind::Consumable { amount, .. }
+                    | ItemKind::Ingredient { amount, .. } => Some(amount),
+                } {
+                    if amount > 0 {
+                        // TODO This should be > 1
+                        Text::new(&format!("{}", &amount))
+                            .top_right_with_margins_on(state.ids.items[i], 10.0, 10.0)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(self.fonts.cyri.scale(10))
+                            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                            .floating(true)
+                            .set(state.ids.amounts_bg[i], ui);
+                        Text::new(&format!("{}", &amount))
+                            .top_right_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(self.fonts.cyri.scale(10))
+                            .color(TEXT_COLOR)
+                            .floating(true)
+                            .set(state.ids.amounts[i], ui);
+                    }
+                }
             }
         }
 
