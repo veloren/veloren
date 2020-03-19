@@ -18,6 +18,7 @@ pub struct Data {
     pub base_damage: u32,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
+    pub initialize: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -31,6 +32,10 @@ impl CharacterBehavior for Data {
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         };
+
+        if self.initialize {
+            update.vel.0 = data.inputs.look_dir * 20.0;
+        }
 
         if self.buildup_duration != Duration::default() && data.physics.touch_entity.is_none() {
             // Build up (this will move you forward)
@@ -49,6 +54,7 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
                 exhausted: false,
+                initialize: false,
             });
         } else if !self.exhausted {
             // Hit attempt
@@ -64,6 +70,7 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
                 exhausted: true,
+                initialize: false,
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
@@ -75,6 +82,7 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 base_damage: self.base_damage,
                 exhausted: true,
+                initialize: false,
             });
         } else {
             // Done
