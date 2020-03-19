@@ -35,4 +35,8 @@
         vox_spec: ("armor.pants.plate_green-0", (-5.0, -3.5, 1.0)),
         color: None
     ),
+    Leather0: (
+        vox_spec: ("armor.pants.leather-0", (-5.0, -3.5, 1.0)),
+        color: None
+    ),
 })
