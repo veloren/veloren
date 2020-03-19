@@ -29,9 +29,105 @@ impl Inventory {
 
     pub fn len(&self) -> usize { self.slots.len() }
 
+    /// Adds a new item to the first fitting group of the inventory or starts a
+    /// new group. Returns the item again if no space was found.
+    pub fn push(&mut self, item: Item) -> Option<Item> {
+        match item.kind {
+            ItemKind::Tool(_) | ItemKind::Armor { .. } => self.add_to_first_empty(item),
+            ItemKind::Utility {
+                kind: item_kind,
+                amount: new_amount,
+            } => {
+                for slot in &mut self.slots {
+                    if slot
+                        .as_ref()
+                        .map(|s| s.name() == item.name())
+                        .unwrap_or(false)
+                        && slot
+                            .as_ref()
+                            .map(|s| s.description() == item.description())
+                            .unwrap_or(false)
+                    {
+                        if let Some(Item {
+                            kind: ItemKind::Utility { kind, amount },
+                            ..
+                        }) = slot
+                        {
+                            if item_kind == *kind {
+                                *amount += new_amount;
+                                return None;
+                            }
+                        }
+                    }
+                }
+                // It didn't work
+                self.add_to_first_empty(item)
+            },
+            ItemKind::Consumable {
+                kind: item_kind,
+                amount: new_amount,
+                ..
+            } => {
+                for slot in &mut self.slots {
+                    if slot
+                        .as_ref()
+                        .map(|s| s.name() == item.name())
+                        .unwrap_or(false)
+                        && slot
+                            .as_ref()
+                            .map(|s| s.description() == item.description())
+                            .unwrap_or(false)
+                    {
+                        if let Some(Item {
+                            kind: ItemKind::Consumable { kind, amount, .. },
+                            ..
+                        }) = slot
+                        {
+                            if item_kind == *kind {
+                                *amount += new_amount;
+                                return None;
+                            }
+                        }
+                    }
+                }
+                // It didn't work
+                self.add_to_first_empty(item)
+            },
+            ItemKind::Ingredient {
+                kind: item_kind,
+                amount: new_amount,
+            } => {
+                for slot in &mut self.slots {
+                    if slot
+                        .as_ref()
+                        .map(|s| s.name() == item.name())
+                        .unwrap_or(false)
+                        && slot
+                            .as_ref()
+                            .map(|s| s.description() == item.description())
+                            .unwrap_or(false)
+                    {
+                        if let Some(Item {
+                            kind: ItemKind::Ingredient { kind, amount },
+                            ..
+                        }) = slot
+                        {
+                            if item_kind == *kind {
+                                *amount += new_amount;
+                                return None;
+                            }
+                        }
+                    }
+                }
+                // It didn't work
+                self.add_to_first_empty(item)
+            },
+        }
+    }
+
     /// Adds a new item to the first empty slot of the inventory. Returns the
     /// item again if no free slot was found.
-    pub fn push(&mut self, item: Item) -> Option<Item> {
+    fn add_to_first_empty(&mut self, item: Item) -> Option<Item> {
         match self.slots.iter_mut().find(|slot| slot.is_none()) {
             Some(slot) => {
                 *slot = Some(item);
@@ -122,6 +218,59 @@ impl Inventory {
     /// Remove an item from the slot
     pub fn remove(&mut self, cell: usize) -> Option<Item> {
         self.slots.get_mut(cell).and_then(|item| item.take())
+    }
+
+    /// Remove just one item from the slot
+    pub fn take(&mut self, cell: usize) -> Option<Item> {
+        if let Some(Some(item)) = self.slots.get_mut(cell) {
+            let mut return_item = item.clone();
+            match &mut item.kind {
+                ItemKind::Tool(_) | ItemKind::Armor { .. } => self.remove(cell),
+                ItemKind::Utility { kind, amount } => {
+                    if *amount <= 1 {
+                        self.remove(cell)
+                    } else {
+                        *amount -= 1;
+                        return_item.kind = ItemKind::Utility {
+                            kind: *kind,
+                            amount: 1,
+                        };
+                        Some(return_item)
+                    }
+                },
+                ItemKind::Consumable {
+                    kind,
+                    amount,
+                    effect,
+                } => {
+                    if *amount <= 1 {
+                        self.remove(cell)
+                    } else {
+                        *amount -= 1;
+                        return_item.kind = ItemKind::Consumable {
+                            kind: *kind,
+                            effect: *effect,
+                            amount: 1,
+                        };
+                        Some(return_item)
+                    }
+                },
+                ItemKind::Ingredient { kind, amount } => {
+                    if *amount <= 1 {
+                        self.remove(cell)
+                    } else {
+                        *amount -= 1;
+                        return_item.kind = ItemKind::Ingredient {
+                            kind: *kind,
+                            amount: 1,
+                        };
+                        Some(return_item)
+                    }
+                },
+            }
+        } else {
+            None
+        }
     }
 }
 
