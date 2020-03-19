@@ -145,10 +145,8 @@ pub enum Event {
     Close,
 }
 
-#[const_tweaker::tweak(min = -10.0, max = 10.0, step = 1.0)]
-const X: f64 = 0.0;
-#[const_tweaker::tweak(min = -10.0, max = 10.0, step = 1.0)]
-const Y: f64 = 0.0;
+//#[const_tweaker::tweak(min = -10.0, max = 10.0, step = 1.0)]
+//const X: f64 = 10.0;
 
 impl<'a> Widget for Bag<'a> {
     type Event = Option<Event>;
@@ -690,19 +688,19 @@ impl<'a> Widget for Bag<'a> {
                     | ItemKind::Consumable { amount, .. }
                     | ItemKind::Ingredient { amount, .. } => Some(amount),
                 } {
-                    if amount > 0 {
-                        // TODO This should be > 1
+                    if amount > 1 {
                         Text::new(&format!("{}", &amount))
-                            .top_right_with_margins_on(state.ids.items[i], *Y, *X)
+                            .top_right_with_margins_on(state.ids.items[i], -4.0, 0.0)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .font_size(self.fonts.cyri.scale(14))
+                            .floating(true)
+                            .font_size(self.fonts.cyri.scale(12))
                             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                             .floating(true)
                             .set(state.ids.amounts_bg[i], ui);
                         Text::new(&format!("{}", &amount))
                             .bottom_left_with_margins_on(state.ids.amounts_bg[i], 2.0, 2.0)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .font_size(self.fonts.cyri.scale(10))
+                            .font_size(self.fonts.cyri.scale(12))
                             .color(TEXT_COLOR)
                             .floating(true)
                             .set(state.ids.amounts[i], ui);
