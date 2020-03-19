@@ -1,0 +1,8 @@
+Item(
+    name: "Swift Shoulderpads",
+    description: "",
+    kind: Armor(
+        kind: Shoulder(Leather1),
+        stats: 20,
+    ),
+)

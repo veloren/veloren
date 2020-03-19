@@ -218,10 +218,10 @@ impl<'a> System<'a> for Sys {
                             active_item,
                             second_item: None,
                             shoulder: Some(assets::load_expect_cloned(
-                                "common.items.armor.shoulder_plate-0",
+                                "common.items.armor.shoulder_leather-0",
                             )),
                             chest: Some(assets::load_expect_cloned(
-                                "common.items.armor.chest.chest_plate_green-0",
+                                "common.items.armor.chest.chest_leather-0",
                             )),
                             belt: Some(assets::load_expect_cloned(
                                 "common.items.armor.belt_plate-0",
@@ -233,7 +233,7 @@ impl<'a> System<'a> for Sys {
                                 "common.items.armor.pants_plate_green-0",
                             )),
                             foot: Some(assets::load_expect_cloned(
-                                "common.items.armor.foot_plate-0",
+                                "common.items.armor.foot_leather-0",
                             )),
                         },
                         comp::Alignment::Enemy => comp::Loadout {
