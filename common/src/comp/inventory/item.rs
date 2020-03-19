@@ -122,11 +122,11 @@ impl ToolData {
             Debug(kind) => match kind {
                 DebugKind::Boost => vec![
                     CharacterAbility::Boost {
-                        duration: Duration::from_millis(100),
+                        duration: Duration::from_millis(50),
                         only_up: false,
                     },
                     CharacterAbility::Boost {
-                        duration: Duration::from_millis(100),
+                        duration: Duration::from_millis(50),
                         only_up: true,
                     },
                 ],
