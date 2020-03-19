@@ -29,9 +29,9 @@ impl CharacterBehavior for Data {
         // Still going
         if self.duration != Duration::default() {
             if self.only_up {
-                update.vel.0.z = 30.0;
+                update.vel.0.z += 500.0 * data.dt.0;
             } else {
-                update.vel.0 = data.inputs.look_dir * 30.0;
+                update.vel.0 += data.inputs.look_dir * 500.0 * data.dt.0;
             }
             update.character = CharacterState::Boost(Data {
                 duration: self
