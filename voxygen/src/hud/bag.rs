@@ -8,7 +8,7 @@ use crate::{
     ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::Client;
-use common::comp::Stats;
+use common::comp::{item, ItemKind, Stats};
 use conrod_core::{
     color, image,
     widget::{self, Button, Image, Rectangle, Text},
@@ -645,6 +645,17 @@ impl<'a> Widget for Bag<'a> {
             }
             // Item
             if let Some(kind) = item.as_ref().map(|i| ItemKey::from(i)) {
+                //Stack Size
+                /*if let Some(item) = item {
+                    if let Some(amount) = match item.kind {
+                        ItemKind::Tool { .. } | ItemKind::Armor { .. } => None,
+                        ItemKind::Utility { amount, .. }
+                        | ItemKind::Consumable { amount, .. }
+                        | ItemKind::Ingredient { amount, .. } => Some(amount),
+                    } {
+                        println!("Amount: {}", amount);
+                    }
+                }*/
                 Button::image(match &state.img_id_cache[i] {
                     Some((cached_kind, id)) if cached_kind == &kind => *id,
                     _ => {
