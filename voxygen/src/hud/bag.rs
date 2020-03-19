@@ -698,7 +698,7 @@ impl<'a> Widget for Bag<'a> {
                             .floating(true)
                             .set(state.ids.amounts_bg[i], ui);
                         Text::new(&format!("{}", &amount))
-                            .bottom_left_with_margins_on(state.ids.amounts_bg[i], 2.0, 2.0)
+                            .bottom_left_with_margins_on(state.ids.amounts_bg[i], 1.0, 1.0)
                             .font_id(self.fonts.cyri.conrod_id)
                             .font_size(self.fonts.cyri.scale(12))
                             .color(TEXT_COLOR)
