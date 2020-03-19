@@ -23,7 +23,7 @@ enum FigureKey {
 #[derive(PartialEq, Eq, Hash, Clone)]
 struct CharacterCacheKey {
     state: Option<Discriminant<CharacterState>>, // TODO: Can this be simplified?
-    active_tool: Option<Discriminant<ToolKind>>,
+    active_tool: Option<ToolKind>,
     shoulder: Option<Item>,
     chest: Option<Item>,
     belt: Option<Item>,
@@ -39,7 +39,7 @@ impl CharacterCacheKey {
             active_tool: if let Some(ItemKind::Tool(tool)) =
                 loadout.active_item.as_ref().map(|i| &i.item.kind)
             {
-                Some(discriminant(&tool.kind))
+                Some(tool.kind)
             } else {
                 None
             },
