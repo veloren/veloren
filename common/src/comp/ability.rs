@@ -36,6 +36,9 @@ pub enum CharacterAbility {
         recover_duration: Duration,
         base_damage: u32,
     },
+    TripleStrike {
+        base_damage: u32,
+    },
 }
 
 impl CharacterAbility {
@@ -146,6 +149,14 @@ impl From<&CharacterAbility> for CharacterState {
                 stage_time_active: Duration::default(),
                 base_damage: *base_damage,
             }),
+            CharacterAbility::TripleStrike { base_damage } => {
+                CharacterState::TripleStrike(triple_strike::Data {
+                    base_damage: *base_damage,
+                    stage: 0,
+                    stage_exhausted: false,
+                    stage_time_active: Duration::default(),
+                })
+            },
         }
     }
 }

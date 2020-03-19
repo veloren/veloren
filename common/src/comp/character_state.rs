@@ -64,6 +64,13 @@ impl CharacterState {
         }
     }
 
+    pub fn can_swap(&self) -> bool {
+        match self {
+            CharacterState::Wielding => true,
+            _ => false,
+        }
+    }
+
     pub fn is_attack(&self) -> bool {
         match self {
             CharacterState::BasicMelee(_)
