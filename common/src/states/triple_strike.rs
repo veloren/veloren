@@ -124,7 +124,6 @@ impl CharacterBehavior for Data {
             if attack.applied && attack.hit_count > 0 {
                 data.updater.remove::<Attacking>(data.entity);
                 update.energy.change_by(100, EnergySource::HitEnemy);
-                4
             }
         }
 
