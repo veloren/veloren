@@ -54,10 +54,7 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate) {
     }
 
     // Set direction based on move direction
-    let ori_dir = if update.character.is_wield()
-        || update.character.is_attack()
-        || update.character.is_block()
-    {
+    let ori_dir = if update.character.is_attack() || update.character.is_block() {
         Vec2::from(data.inputs.look_dir).normalized()
     } else {
         Vec2::from(data.inputs.move_dir)
@@ -84,10 +81,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate) {
         };
 
     // Set direction based on move direction when on the ground
-    let ori_dir = if update.character.is_wield()
-        || update.character.is_attack()
-        || update.character.is_block()
-    {
+    let ori_dir = if update.character.is_attack() || update.character.is_block() {
         Vec2::from(data.inputs.look_dir).normalized()
     } else {
         Vec2::from(update.vel.0)
