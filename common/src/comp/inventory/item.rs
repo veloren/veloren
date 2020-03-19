@@ -194,6 +194,8 @@ pub struct ToolData {
     // TODO: item specific abilities
 }
 
+fn default_amount() -> u32 { 1 }
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
@@ -205,11 +207,19 @@ pub enum ItemKind {
     Consumable {
         kind: Consumable,
         effect: Effect,
+        #[serde(skip, default = "default_amount")]
+        amount: u32,
     },
     Utility {
         kind: Utility,
+        #[serde(skip, default = "default_amount")]
+        amount: u32,
     },
-    Ingredient(Ingredient),
+    Ingredient {
+        kind: Ingredient,
+        #[serde(skip, default = "default_amount")]
+        amount: u32,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

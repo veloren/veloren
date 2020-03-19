@@ -88,7 +88,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .ecs()
                 .write_storage::<comp::Inventory>()
                 .get_mut(entity)
-                .and_then(|inv| inv.remove(slot_idx));
+                .and_then(|inv| inv.take(slot_idx));
 
             let mut event = comp::InventoryUpdateEvent::Used;
 
@@ -120,7 +120,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         }
                     },
 
-                    comp::ItemKind::Consumable { kind, effect } => {
+                    comp::ItemKind::Consumable { kind, effect, .. } => {
                         event = comp::InventoryUpdateEvent::Consumed(*kind);
                         state.apply_effect(entity, *effect);
                     },
@@ -152,7 +152,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         }
                     },
 
-                    comp::ItemKind::Utility { kind } => match kind {
+                    comp::ItemKind::Utility { kind, .. } => match kind {
                         comp::item::Utility::Collar => {
                             let reinsert = if let Some(pos) =
                                 state.read_storage::<comp::Pos>().get(entity)
