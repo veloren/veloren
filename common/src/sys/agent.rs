@@ -252,7 +252,10 @@ impl<'a> System<'a> for Sys {
             if let Some(stats) = stats.get(entity) {
                 // Only if the attack was recent
                 if stats.health.last_change.0 < 5.0 {
-                    if let comp::HealthSource::Attack { by } = stats.health.last_change.1.cause {
+                    if let comp::HealthSource::Attack { by }
+                    | comp::HealthSource::Projectile { owner: Some(by) } =
+                        stats.health.last_change.1.cause
+                    {
                         if !agent.activity.is_attack() {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {

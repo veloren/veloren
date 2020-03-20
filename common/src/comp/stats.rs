@@ -15,6 +15,7 @@ pub struct HealthChange {
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
+    Projectile { owner: Option<Uid> },
     Suicide,
     World,
     Revive,

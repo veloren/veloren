@@ -22,6 +22,26 @@ pub struct Projectile {
     pub owner: Option<Uid>,
 }
 
+impl Projectile {
+    pub fn set_owner(&mut self, new_owner: Uid) {
+        self.owner = Some(new_owner);
+        for e in self
+            .hit_ground
+            .iter_mut()
+            .chain(self.hit_wall.iter_mut())
+            .chain(self.hit_entity.iter_mut())
+        {
+            if let Effect::Damage(comp::HealthChange {
+                cause: comp::HealthSource::Projectile { owner, .. },
+                ..
+            }) = e
+            {
+                *owner = Some(new_owner);
+            }
+        }
+    }
+}
+
 impl Component for Projectile {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
