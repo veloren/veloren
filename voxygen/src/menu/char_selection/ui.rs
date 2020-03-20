@@ -320,10 +320,7 @@ impl CharSelectionUi {
         match &self.mode {
             Mode::Select(data) => data.clone(),
             Mode::Create {
-                name,
-                body,
-                loadout,
-                tool,
+                name, body, tool, ..
             } => Some(CharacterData {
                 name: name.clone(),
                 body: comp::Body::Humanoid(body.clone()),
@@ -335,12 +332,7 @@ impl CharSelectionUi {
     pub fn get_loadout(&mut self) -> Option<&comp::Loadout> {
         match &mut self.mode {
             Mode::Select(_) => None,
-            Mode::Create {
-                name,
-                body,
-                loadout,
-                tool,
-            } => {
+            Mode::Create { loadout, tool, .. } => {
                 loadout.active_item = tool.map(|tool| comp::ItemConfig {
                     item: (*load_expect::<comp::Item>(tool)).clone(),
                     primary_ability: None,

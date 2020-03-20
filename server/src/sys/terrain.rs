@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, humanoid, item, CharacterAbility, Item, ItemConfig, Player, Pos},
+    comp::{self, CharacterAbility, Item, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::EntityKind,
     msg::ServerMsg,

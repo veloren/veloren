@@ -1,6 +1,6 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
-    states::{utils::*, wielding},
+    states::utils::*,
     sys::character_behavior::*,
 };
 use std::{collections::VecDeque, time::Duration};

@@ -23,7 +23,7 @@ impl Animation for AttackAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 1.0;
-        let test = (anim_time as f32 * 16.0 * lab as f32).cos();
+        //let test = (anim_time as f32 * 16.0 * lab as f32).cos();
 
         let accel_med = 1.0 - (anim_time as f32 * 16.0 * lab as f32).cos();
         let accel_slow = 1.0 - (anim_time as f32 * 12.0 * lab as f32).cos();

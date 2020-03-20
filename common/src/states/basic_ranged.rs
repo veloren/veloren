@@ -1,7 +1,7 @@
 use crate::{
-    comp::{Attacking, Body, CharacterState, EnergySource, Gravity, Projectile, StateUpdate},
+    comp::{Body, CharacterState, Gravity, Projectile, StateUpdate},
     event::ServerEvent,
-    states::{utils::*, wielding},
+    states::utils::*,
     sys::character_behavior::*,
 };
 use std::{collections::VecDeque, time::Duration};

@@ -20,8 +20,7 @@ use crate::{
 };
 use common::{
     comp::{
-        Body, CharacterState, ItemKind, Last, Loadout, Ori, PhysicsState, Pos, Scale, Stats,
-        ToolData, Vel,
+        Body, CharacterState, ItemKind, Last, Loadout, Ori, PhysicsState, Pos, Scale, Stats, Vel,
     },
     state::State,
     terrain::TerrainChunk,
@@ -1370,7 +1369,7 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        for (entity, _, _, body, stats, loadout, _) in (
+        for (entity, _, _, body, _, loadout, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Ori>().maybe(),
@@ -1381,7 +1380,7 @@ impl FigureMgr {
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, _, stats, loadout, _)| stats.map_or(true, |s| !s.is_dead))
+        .filter(|(_, _, _, _, stats, _, _)| stats.map_or(true, |s| !s.is_dead))
         {
             let is_player = entity == player_entity;
             let player_camera_mode = if is_player {
@@ -1389,9 +1388,6 @@ impl FigureMgr {
             } else {
                 CameraMode::default()
             };
-            let active_item_kind = loadout
-                .and_then(|l| l.active_item.as_ref())
-                .map(|i| &i.item.kind);
             let character_state = if is_player { character_state } else { None };
 
             let FigureMgr {
