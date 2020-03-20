@@ -62,11 +62,11 @@
     ),
     Leather0: (
         left: (
-            vox_spec: ("armor.shoulder.leather_left-0", (-3.6, -3.5, 1.0)),
+            vox_spec: ("armor.shoulder.leather_left-0", (-3.2, -3.5, 1.0)),
             color: None
         ),
         right: (
-            vox_spec: ("armor.shoulder.leather_right-0", (-2.6, -3.5, 1.0)),
+            vox_spec: ("armor.shoulder.leather_right-0", (-1.8, -3.5, 1.0)),
             color: None
         )
     ),
