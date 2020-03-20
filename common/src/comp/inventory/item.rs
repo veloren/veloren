@@ -114,11 +114,31 @@ impl ToolData {
                 recover_duration: Duration::from_millis(400),
                 base_damage: 5,
             }],
-            Staff(_) => vec![BasicMelee {
-                buildup_duration: Duration::from_millis(400),
-                recover_duration: Duration::from_millis(300),
-                base_damage: 7,
-            }],
+            Staff(_) => vec![
+                BasicMelee {
+                    buildup_duration: Duration::from_millis(400),
+                    recover_duration: Duration::from_millis(300),
+                    base_damage: 7,
+                },
+                BasicRanged {
+                    projectile: Projectile {
+                        hit_ground: vec![projectile::Effect::Vanish],
+                        hit_wall: vec![projectile::Effect::Vanish],
+                        hit_entity: vec![
+                            projectile::Effect::Damage(HealthChange {
+                                // TODO: This should not be fixed (?)
+                                amount: -8,
+                                cause: HealthSource::Item,
+                            }),
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(5),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::BoltFire),
+                    recover_duration: Duration::from_millis(800),
+                },
+            ],
             Shield(_) => vec![BasicBlock],
             Debug(kind) => match kind {
                 DebugKind::Boost => vec![
