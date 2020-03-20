@@ -104,7 +104,7 @@
     ),
     Armor(Shoulder(Plate0)): VoxTrans(
         "voxel.armor.shoulder.plate_left-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     //Leather0 Armor
      Armor(Chest(Leather0)): VoxTrans(
