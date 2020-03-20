@@ -120,6 +120,7 @@ pub struct SkeletonAttr {
     neck_right: f32,
     weapon_x: f32,
     weapon_y: f32,
+
 }
 impl SkeletonAttr {
     pub fn calculate_scale(body: &comp::humanoid::Body) -> f32 {
@@ -151,6 +152,7 @@ impl Default for SkeletonAttr {
             neck_right: 1.0,
             weapon_x: 1.0,
             weapon_y: 1.0,
+
         }
     }
 }
