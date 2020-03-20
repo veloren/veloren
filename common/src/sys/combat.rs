@@ -14,7 +14,6 @@ use vek::*;
 const BLOCK_EFFICIENCY: f32 = 0.9;
 
 const ATTACK_RANGE: f32 = 3.5;
-const ATTACK_ANGLE: f32 = 70.0;
 const BLOCK_ANGLE: f32 = 180.0;
 
 /// This system is responsible for handling accepted inputs like moving or

@@ -18,7 +18,7 @@ use common::{
         object,
         quadruped_medium::{BodyType as QMBodyType, Species as QMSpecies},
         quadruped_small::{BodyType as QSBodyType, Species as QSSpecies},
-        Item, ItemKind, Loadout,
+        ItemKind, Loadout,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
 };

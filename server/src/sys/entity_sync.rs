@@ -7,7 +7,7 @@ use crate::{
     Tick,
 };
 use common::{
-    comp::{CharacterState, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
+    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
     msg::ServerMsg,
     region::{Event as RegionEvent, RegionMap},
     state::TimeOfDay,
@@ -112,7 +112,7 @@ impl<'a> System<'a> for Sys {
                             continue;
                         }
                         let entity = entities.entity(*id);
-                        if let Some((uid, pos, vel, ori)) = uids.get(entity).and_then(|uid| {
+                        if let Some((_uid, pos, vel, ori)) = uids.get(entity).and_then(|uid| {
                             positions.get(entity).map(|pos| {
                                 (uid, pos, velocities.get(entity), orientations.get(entity))
                             })

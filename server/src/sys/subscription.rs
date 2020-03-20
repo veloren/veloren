@@ -4,7 +4,7 @@ use super::{
 };
 use crate::client::{self, Client, RegionSubscription};
 use common::{
-    comp::{CharacterState, Ori, Player, Pos, Vel},
+    comp::{Ori, Player, Pos, Vel},
     msg::ServerMsg,
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
     sync::Uid,
@@ -29,7 +29,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
-        ReadStorage<'a, CharacterState>,
         ReadStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, RegionSubscription>,
@@ -47,7 +46,6 @@ impl<'a> System<'a> for Sys {
             positions,
             velocities,
             orientations,
-            character_states,
             players,
             mut clients,
             mut subscriptions,
@@ -182,17 +180,15 @@ impl<'a> System<'a> for Sys {
                     // already within the set of subscribed regions
                     if subscription.regions.insert(key.clone()) {
                         if let Some(region) = region_map.get(key) {
-                            for (uid, pos, vel, ori, character_state, _, entity) in (
-                                &uids,
+                            for (pos, vel, ori, _, entity) in (
                                 &positions,
                                 velocities.maybe(),
                                 orientations.maybe(),
-                                character_states.maybe(),
                                 region.entities(),
                                 &entities,
                             )
                                 .join()
-                                .filter(|(_, _, _, _, _, _, e)| *e != client_entity)
+                                .filter(|(_, _, _, _, e)| *e != client_entity)
                             {
                                 // Send message to create entity and tracked components and physics
                                 // components
@@ -239,12 +235,10 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         let tracked_comps = TrackedComps::fetch(world);
         for key in &regions {
             if let Some(region) = region_map.get(*key) {
-                for (uid, pos, vel, ori, character_state, _, entity) in (
-                    &tracked_comps.uid,
+                for (pos, vel, ori, _, entity) in (
                     &world.read_storage::<Pos>(), // We assume all these entities have a position
                     world.read_storage::<Vel>().maybe(),
                     world.read_storage::<Ori>().maybe(),
-                    world.read_storage::<CharacterState>().maybe(),
                     region.entities(),
                     &world.entities(),
                 )

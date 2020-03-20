@@ -1,11 +1,10 @@
 use crate::{
-    comp::{Body, CharacterState, EnergySource, Item, Projectile, StateUpdate, ToolData},
+    comp::{Body, CharacterState, EnergySource, Item, Projectile, StateUpdate},
     states::*,
     sys::character_behavior::JoinData,
 };
 use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
 use std::time::Duration;
-use vek::vec::Vec3;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbility {
