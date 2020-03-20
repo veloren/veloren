@@ -23,6 +23,8 @@ impl Animation for AttackAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 1.0;
+        let test = (anim_time as f32 * 16.0 * lab as f32).cos();
+
         let accel_med = 1.0 - (anim_time as f32 * 16.0 * lab as f32).cos();
         let accel_slow = 1.0 - (anim_time as f32 * 12.0 * lab as f32).cos();
         let accel_fast = 1.0 - (anim_time as f32 * 24.0 * lab as f32).cos();
@@ -32,6 +34,10 @@ impl Animation for AttackAnimation {
             / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 12.4).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 12.4).sin());
+        let slower = (((5.0)
+            / (0.1 + 4.9 * ((anim_time as f32 * lab as f32 * 4.0).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * lab as f32 * 4.0).sin());
 
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
@@ -60,7 +66,6 @@ impl Animation for AttackAnimation {
             * Quaternion::rotation_x(0.0 + decel * -0.08)
             * Quaternion::rotation_y(decel * 0.08);
         next.shorts.scale = Vec3::one();
-
 
         match active_tool_kind {
             //TODO: Inventory
@@ -109,29 +114,23 @@ impl Animation for AttackAnimation {
                 next.main.scale = Vec3::one();
             },
             Some(ToolKind::Hammer(_)) => {
-                next.l_hand.offset =
-                    Vec3::new(-8.0 + accel_slow * 10.0, 8.0 + accel_fast * 3.0, 0.0);
-                next.l_hand.ori = Quaternion::rotation_z(-0.8)
-                    * Quaternion::rotation_x(0.0 + accel_med * -0.8)
-                    * Quaternion::rotation_y(0.0 + accel_med * -0.4);
-                next.l_hand.scale = Vec3::one() * 1.01;
-
-                next.r_hand.offset =
-                    Vec3::new(-8.0 + accel_slow * 10.0, 8.0 + accel_fast * 3.0, -2.0);
-                next.r_hand.ori = Quaternion::rotation_z(-0.8)
-                    * Quaternion::rotation_x(0.0 + accel_med * -0.8)
-                    * Quaternion::rotation_y(0.0 + accel_med * -0.4);
-                next.r_hand.scale = Vec3::one() * 1.01;
-
-                next.main.offset = Vec3::new(
-                    -8.0 + accel_slow * 10.0 + skeleton_attr.weapon_x,
-                    8.0 + accel_fast * 3.0,
-                    0.0,
-                );
-                next.main.ori = Quaternion::rotation_z(-0.8)
-                    * Quaternion::rotation_x(0.0 + accel_med * -0.8)
-                    * Quaternion::rotation_y(0.0 + accel_med * -0.4);
+                next.l_hand.offset = Vec3::new(0.0, 1.0, 5.0);
+                next.l_hand.ori = Quaternion::rotation_x(1.27);
+                next.l_hand.scale = Vec3::one() * 1.04;
+                next.r_hand.offset = Vec3::new(0.0, 0.0, -3.0);
+                next.r_hand.ori = Quaternion::rotation_x(1.27);
+                next.r_hand.scale = Vec3::one() * 1.05;
+                next.main.offset = Vec3::new(0.0, 6.0, -1.0);
+                next.main.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
+
+                next.control.offset = Vec3::new(-6.0, 3.0, 5.0 + slower * 5.0);
+                next.control.ori = Quaternion::rotation_x(-0.2 + slower * 2.0)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(1.4 + 1.57);
+                next.control.scale = Vec3::one();
             },
             Some(ToolKind::Staff(_)) => {
                 next.l_hand.offset =
