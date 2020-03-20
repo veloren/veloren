@@ -61,6 +61,7 @@ impl Animation for AttackAnimation {
             * Quaternion::rotation_y(decel * 0.08);
         next.shorts.scale = Vec3::one();
 
+
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
