@@ -30,7 +30,6 @@ pub enum CharacterAbility {
     },
     BasicBlock,
     Roll,
-    ChargeAttack,
     TimedCombo {
         buildup_duration: Duration,
         recover_duration: Duration,
@@ -132,9 +131,6 @@ impl From<&CharacterAbility> for CharacterState {
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
-                remaining_duration: Duration::from_millis(600),
-            }),
-            CharacterAbility::ChargeAttack => CharacterState::ChargeAttack(charge_attack::Data {
                 remaining_duration: Duration::from_millis(600),
             }),
             CharacterAbility::TimedCombo {

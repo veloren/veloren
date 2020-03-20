@@ -55,6 +55,8 @@ impl CharacterBehavior for Data {
             return update;
         }
 
+        handle_move(data, &mut update);
+
         if self.stage < 3 {
             if new_stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
                 // Move player forward while in first third of each stage
@@ -77,9 +79,6 @@ impl CharacterBehavior for Data {
             } else if new_stage_time_active > Duration::from_millis(STAGE_DURATION / 2)
                 && !self.stage_exhausted
             {
-                // Allow player to influence orientation a little
-                handle_move(data, &mut update);
-
                 // Try to deal damage in second half of stage
                 data.updater.insert(data.entity, Attacking {
                     base_damage: self.base_damage * (self.stage as u32 + 1),
@@ -95,9 +94,6 @@ impl CharacterBehavior for Data {
                     stage_exhausted: true,
                 });
             } else if new_stage_time_active > Duration::from_millis(STAGE_DURATION) {
-                // Allow player to influence orientation a little
-                handle_move(data, &mut update);
-
                 update.character = CharacterState::TripleStrike(Data {
                     base_damage: self.base_damage,
                     stage: self.stage + 1,
