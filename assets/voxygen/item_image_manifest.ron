@@ -19,7 +19,7 @@
         (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
     Tool(Sword(BasicSword)): VoxTrans(
-        "voxel.weapon.sword.weapon.sword.rusty_2h",
+        "voxel.weapon.sword.rusty_2h",
         (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
     Tool(Sword(Zweihander0)): VoxTrans(
@@ -67,15 +67,15 @@
     ),
     Armor(Belt(Assassin)): VoxTrans(
         "voxel.armor.belt.assa",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
     ),
     Armor(Foot(Assassin)): VoxTrans(
         "voxel.armor.foot.assa",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand(Assassin)): VoxTrans(
         "voxel.armor.hand.assa_left",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder(Assassin)): VoxTrans(
         "voxel.armor.shoulder.assa_left",
@@ -92,15 +92,15 @@
     ),
     Armor(Belt(Plate0)): VoxTrans(
         "voxel.armor.belt.plate-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
     ),
     Armor(Foot(Plate0)): VoxTrans(
         "voxel.armor.foot.plate-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
     ),
     Armor(Hand(Plate0)): VoxTrans(
         "voxel.armor.hand.plate_left-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder(Plate0)): VoxTrans(
         "voxel.armor.shoulder.plate_left-0",
@@ -129,6 +129,10 @@
     ),
     Armor(Shoulder(Leather1)): VoxTrans(
         "voxel.armor.shoulder.leather_left-1",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+     Armor(Shoulder(Leather0)): VoxTrans(
+        "voxel.armor.shoulder.leather_left-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     // Consumables
