@@ -180,7 +180,6 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Roll(data) => data.behavior(&j),
                 CharacterState::Wielding => states::wielding::Data.behavior(&j),
                 CharacterState::Equipping(data) => data.behavior(&j),
-                CharacterState::ChargeAttack(data) => data.behavior(&j),
                 CharacterState::TripleStrike(data) => data.behavior(&j),
                 CharacterState::BasicMelee(data) => data.behavior(&j),
                 CharacterState::BasicRanged(data) => data.behavior(&j),
