@@ -27,7 +27,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
 
     // Chat message
     if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
-        let msg = if let HealthSource::Attack { by } = cause {
+        let msg = if let HealthSource::Attack { by }
+        | HealthSource::Projectile { owner: Some(by) } = cause
+        {
             state.ecs().entity_from_uid(by.into()).and_then(|attacker| {
                 state
                     .ecs()
@@ -49,7 +51,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         // Give EXP to the killer if entity had stats
         let mut stats = state.ecs().write_storage::<Stats>();
         if let Some(entity_stats) = stats.get(entity).cloned() {
-            if let HealthSource::Attack { by } = cause {
+            if let HealthSource::Attack { by } | HealthSource::Projectile { owner: Some(by) } =
+                cause
+            {
                 state.ecs().entity_from_uid(by.into()).map(|attacker| {
                     if let Some(attacker_stats) = stats.get_mut(attacker) {
                         // TODO: Discuss whether we should give EXP by Player

@@ -99,7 +99,7 @@ impl ToolData {
                         projectile::Effect::Damage(HealthChange {
                             // TODO: This should not be fixed (?)
                             amount: -3,
-                            cause: HealthSource::Item,
+                            cause: HealthSource::Projectile { owner: None },
                         }),
                         projectile::Effect::Vanish,
                     ],
@@ -128,7 +128,7 @@ impl ToolData {
                             projectile::Effect::Damage(HealthChange {
                                 // TODO: This should not be fixed (?)
                                 amount: -8,
-                                cause: HealthSource::Item,
+                                cause: HealthSource::Projectile { owner: None },
                             }),
                             projectile::Effect::Vanish,
                         ],
