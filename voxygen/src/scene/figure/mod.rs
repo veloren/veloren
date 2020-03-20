@@ -477,7 +477,7 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicRanged(_) => {
-                            anim::character::AttackAnimation::update_skeleton(
+                            anim::character::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
                                 state.state_time,
