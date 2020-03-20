@@ -9,7 +9,8 @@ use vek::vec::Vec2;
 // In millis
 const STAGE_DURATION: u64 = 600;
 
-const BASE_ACCEL: f32 = 200.0;
+const INITIAL_ACCEL: f32 = 200.0;
+const SECONDARY_ACCEL: f32 = 100.0;
 const BASE_SPEED: f32 = 25.0;
 /// ### A sequence of 3 incrementally increasing attacks.
 ///
@@ -64,10 +65,16 @@ impl CharacterBehavior for Data {
         if self.stage < 3 {
             // Handling movement
             if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
+                let adjusted_accel = if self.stage == 0 {
+                    INITIAL_ACCEL
+                } else {
+                    SECONDARY_ACCEL
+                };
+
                 // Move player forward while in first third of each stage
                 if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
                     update.vel.0 =
-                        update.vel.0 + Vec2::broadcast(data.dt.0) * data.ori.0 * BASE_ACCEL;
+                        update.vel.0 + Vec2::broadcast(data.dt.0) * data.ori.0 * adjusted_accel;
                     let mag2 = update.vel.0.magnitude_squared();
                     if mag2 > BASE_SPEED.powf(2.0) {
                         update.vel.0 = update.vel.0.normalized() * BASE_SPEED;
