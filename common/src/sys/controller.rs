@@ -1,5 +1,5 @@
 use crate::{
-    comp::{ControlEvent, Controller},
+    comp::{CharacterState, ControlEvent, Controller},
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
     sync::{Uid, UidAllocator},
@@ -22,15 +22,27 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<LocalEvent>>,
         Read<'a, DeltaTime>,
         WriteStorage<'a, Controller>,
+        WriteStorage<'a, CharacterState>,
         ReadStorage<'a, Uid>,
     );
 
     fn run(
         &mut self,
-        (entities, uid_allocator, server_bus, _local_bus, _dt, mut controllers, uids): Self::SystemData,
+        (
+            entities,
+            uid_allocator,
+            server_bus,
+            _local_bus,
+            _dt,
+            mut controllers,
+            mut character_states,
+            uids,
+        ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
-        for (entity, _uid, controller) in (&entities, &uids, &mut controllers).join() {
+        for (entity, _uid, controller, character_state) in
+            (&entities, &uids, &mut controllers, &mut character_states).join()
+        {
             let inputs = &mut controller.inputs;
 
             // Update `inputs.move_dir`.
@@ -59,6 +71,7 @@ impl<'a> System<'a> for Sys {
                     },
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
                     ControlEvent::InventoryManip(manip) => {
+                        *character_state = CharacterState::Idle;
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
                     }, /*ControlEvent::Respawn =>
                         * server_emitter.emit(ServerEvent::Unmount(entity)), */

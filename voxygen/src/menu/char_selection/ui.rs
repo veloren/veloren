@@ -12,7 +12,7 @@ use crate::{
 };
 use client::Client;
 use common::{
-    assets::{load_expect, load_glob},
+    assets::load_expect,
     comp::{self, humanoid},
 };
 use conrod_core::{
@@ -22,7 +22,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
-use std::{borrow::Borrow, sync::Arc};
+use std::sync::Arc;
 
 const STARTER_HAMMER: &str = "common.items.weapons.starter_hammer";
 const STARTER_BOW: &str = "common.items.weapons.starter_bow";
@@ -30,6 +30,10 @@ const STARTER_AXE: &str = "common.items.weapons.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.starter_sword";
 const STARTER_DAGGER: &str = "common.items.weapons.starter_dagger";
+
+// UI Color-Theme
+const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
+//const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
 
 widget_ids! {
     struct Ids {
@@ -383,6 +387,7 @@ impl CharSelectionUi {
             Image::new(self.imgs.info_frame)
                 .w_h(550.0, 150.0)
                 .middle_of(self.ids.info_bg)
+                .color(Some(UI_MAIN))
                 .set(self.ids.info_frame, ui_widgets);
             Rectangle::fill_with([275.0, 150.0], color::TRANSPARENT)
                 .bottom_left_with_margins_on(self.ids.info_frame, 0.0, 0.0)
@@ -450,6 +455,7 @@ impl CharSelectionUi {
                     .set(self.ids.server_frame_bg, ui_widgets);
                 Image::new(self.imgs.server_frame)
                     .w_h(400.0, 100.0)
+                    .color(Some(UI_MAIN))
                     .middle_of(self.ids.server_frame_bg)
                     .set(self.ids.server_frame, ui_widgets);
 
@@ -460,6 +466,7 @@ impl CharSelectionUi {
                 Image::new(self.imgs.charlist_frame)
                     .w_h(400.0, 800.0)
                     .middle_of(self.ids.charlist_bg)
+                    .color(Some(UI_MAIN))
                     .set(self.ids.charlist_frame, ui_widgets);
                 Rectangle::fill_with([386.0, 783.0], color::TRANSPARENT)
                     .middle_of(self.ids.charlist_bg)
@@ -469,7 +476,7 @@ impl CharSelectionUi {
                 Scrollbar::y_axis(self.ids.charlist_alignment)
                     .thickness(5.0)
                     .auto_hide(true)
-                    .rgba(0.0, 0.0, 0., 0.0)
+                    .color(UI_MAIN)
                     .set(self.ids.selection_scrollbar, ui_widgets);
                 // Server Name
                 Text::new(&client.server_info.name)
@@ -757,6 +764,7 @@ impl CharSelectionUi {
                 Image::new(self.imgs.charlist_frame)
                     .w_h(400.0, ui_widgets.win_h - ui_widgets.win_h * 0.19)
                     .middle_of(self.ids.creation_bg)
+                    .color(Some(UI_MAIN))
                     .set(self.ids.charlist_frame, ui_widgets);
                 Rectangle::fill_with(
                     [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.19],
@@ -864,13 +872,6 @@ impl CharSelectionUi {
                     "",
                     &tooltip_human,
                 )
-                /*.tooltip_image(
-                    if let humanoid::BodyType::Male = body.body_type {
-                        self.imgs.human_m
-                    } else {
-                        self.imgs.human_f
-                    },
-                )*/
                 .set(self.ids.race_1, ui_widgets)
                 .was_clicked()
                 {
@@ -1029,10 +1030,6 @@ impl CharSelectionUi {
                 {
                     *tool = Some(STARTER_HAMMER);
                 }
-                // REMOVE THIS AFTER IMPLEMENTATION
-                /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .middle_of(self.ids.hammer)
-                .set(self.ids.hammer_grey, ui_widgets);*/
 
                 // Bow
                 Image::new(self.imgs.bow)
@@ -1292,7 +1289,7 @@ impl CharSelectionUi {
                         .set(self.ids.beard_slider, ui_widgets);
                 }
                 // Chest
-                let armor = load_glob::<comp::Item>("common.items.armor.chest.*")
+                /*let armor = load_glob::<comp::Item>("common.items.armor.chest.*")
                     .expect("Unable to load armor!");
                 if let Some(new_val) = char_slider(
                     self.ids.beard_slider,
@@ -1313,7 +1310,7 @@ impl CharSelectionUi {
                     ui_widgets,
                 ) {
                     loadout.chest = Some((*armor[new_val]).clone());
-                }
+                }*/
                 // Pants
                 /*let current_pants = body.pants;
                 if let Some(new_val) = char_slider(
@@ -1331,7 +1328,7 @@ impl CharSelectionUi {
                     body.pants = humanoid::ALL_PANTS[new_val];
                 }*/
                 Rectangle::fill_with([20.0, 20.0], color::TRANSPARENT)
-                    .down_from(self.ids.chest_slider, 15.0)
+                    .down_from(self.ids.beard_slider, 15.0)
                     .set(self.ids.space, ui_widgets);
 
                 if to_select {
