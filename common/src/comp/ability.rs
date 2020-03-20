@@ -150,6 +150,7 @@ impl From<&CharacterAbility> for CharacterState {
                     stage: 0,
                     stage_exhausted: false,
                     stage_time_active: Duration::default(),
+                    should_transition: true,
                 })
             },
         }
