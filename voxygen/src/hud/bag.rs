@@ -184,7 +184,7 @@ impl<'a> Widget for Bag<'a> {
         let space_max = 0;
         let bag_space = format!("{}/{}", space_used, space_max);
         let level = (self.stats.level.level()).to_string();
-        let currency = 999999; // TODO: Add as a Stat maybe?
+        let currency = 0; // TODO: Add as a Stat maybe?
 
         // Tooltips
         let item_tooltip = Tooltip::new({

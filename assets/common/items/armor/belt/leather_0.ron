@@ -1,6 +1,6 @@
 Item(
     name: "Swift Belt",
-    description: "",
+    description: "Swift like the wind.",
     kind: Armor(
         kind: Belt(Leather0),
         stats: 20,
