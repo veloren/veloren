@@ -53,6 +53,10 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate) {
         }
     }
 
+    handle_orientation(data, update);
+}
+
+pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate) {
     // Set direction based on move direction
     let ori_dir = if update.character.is_attack() || update.character.is_block() {
         Vec2::from(data.inputs.look_dir).normalized()
