@@ -269,7 +269,8 @@ impl PlayState for SessionState {
                         } else {
                             self.inputs.secondary.set_state(state);
 
-                            if let Some(select_pos) = select_pos {
+                            // Check for select_block that is highlighted
+                            if let Some(select_pos) = self.scene.select_pos() {
                                 client.collect_block(select_pos);
                             }
                         }

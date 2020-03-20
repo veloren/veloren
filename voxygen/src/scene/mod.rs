@@ -126,6 +126,8 @@ impl Scene {
     /// Set the block position that the player is interacting with
     pub fn set_select_pos(&mut self, pos: Option<Vec3<i32>>) { self.select_pos = pos; }
 
+    pub fn select_pos(&self) -> Option<Vec3<i32>> { self.select_pos }
+
     /// Handle an incoming user input event (e.g.: cursor moved, key pressed,
     /// window closed).
     ///
