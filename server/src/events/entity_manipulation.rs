@@ -91,29 +91,35 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .write_storage::<comp::CharacterState>()
             .insert(entity, comp::CharacterState::default());
     } else {
-        // Replace npc with loot
-        let _ = state
-            .ecs()
-            .write_storage()
-            .insert(entity, Body::Object(object::Body::Pouch));
-        let _ = state.ecs().write_storage().insert(
-            entity,
-            assets::load_expect_cloned::<Item>("common.items.cheese"),
-        );
-        state.ecs().write_storage::<comp::Stats>().remove(entity);
-        state.ecs().write_storage::<comp::Agent>().remove(entity);
-        state
-            .ecs()
-            .write_storage::<comp::LightEmitter>()
-            .remove(entity);
-        state
-            .ecs()
-            .write_storage::<comp::CharacterState>()
-            .remove(entity);
-        state
-            .ecs()
-            .write_storage::<comp::Controller>()
-            .remove(entity);
+        if state.ecs().read_storage::<comp::Agent>().contains(entity) {
+            // Replace npc with loot
+            let _ = state
+                .ecs()
+                .write_storage()
+                .insert(entity, Body::Object(object::Body::Pouch));
+            let _ = state.ecs().write_storage().insert(
+                entity,
+                assets::load_expect_cloned::<Item>("common.items.cheese"),
+            );
+            state.ecs().write_storage::<comp::Stats>().remove(entity);
+            state.ecs().write_storage::<comp::Agent>().remove(entity);
+            state
+                .ecs()
+                .write_storage::<comp::LightEmitter>()
+                .remove(entity);
+            state
+                .ecs()
+                .write_storage::<comp::CharacterState>()
+                .remove(entity);
+            state
+                .ecs()
+                .write_storage::<comp::Controller>()
+                .remove(entity);
+        } else {
+            if let Err(err) = state.delete_entity_recorded(entity) {
+                error!("Failed to delete destroyed entity: {:?}", err);
+            }
+        }
 
         // TODO: Add Delete(time_left: Duration) component
         /*
