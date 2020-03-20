@@ -187,9 +187,6 @@ image_ids! {
         divider: "voxygen.element.frames.divider_charwindow",
 
         // Close button
-        close_button: "voxygen.element.buttons.x",
-        close_button_hover: "voxygen.element.buttons.x_hover",
-        close_button_press: "voxygen.element.buttons.x_press",
 
 
         // Items
@@ -227,6 +224,9 @@ image_ids! {
         close_btn: "voxygen.element.buttons.close_btn",
         close_btn_hover: "voxygen.element.buttons.close_btn_hover",
         close_btn_press: "voxygen.element.buttons.close_btn_press",
+        close_button: "voxygen.element.buttons.close_btn",
+        close_button_hover: "voxygen.element.buttons.close_btn_hover",
+        close_button_press: "voxygen.element.buttons.close_btn_press",
 
         // Inventory
         coin_ico: "voxygen.element.icons.coin",
@@ -258,8 +258,9 @@ image_ids! {
         necklace_bg: "voxygen.element.icons.necklace",
         mainhand_bg: "voxygen.element.icons.mainhand",
         offhand_bg: "voxygen.element.icons.offhand",
-
-
+        willpower_ico: "voxygen.element.icons.willpower",
+        endurance_ico: "voxygen.element.icons.endurance",
+        fitness_ico: "voxygen.element.icons.fitness",
 
         not_found:"voxygen.element.not_found",
 
