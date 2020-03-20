@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Energy, Ori, Pos, ToolData, Vel},
+    comp::{Energy, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::*,
 };
@@ -30,8 +30,6 @@ pub enum CharacterState {
     Equipping(equipping::Data),
     /// Player is holding a weapon and can perform other actions
     Wielding,
-    /// Player rushes forward and slams an enemy with their weapon
-    ChargeAttack(charge_attack::Data),
     /// A dodge where player can roll
     Roll(roll::Data),
     /// A basic melee attack (e.g. sword)
@@ -57,8 +55,8 @@ impl CharacterState {
             | CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
             | CharacterState::DashMelee(_)
+            | CharacterState::TripleStrike(_)
             | CharacterState::TimedCombo(_)
-            | CharacterState::ChargeAttack(_)
             | CharacterState::BasicBlock => true,
             _ => false,
         }
@@ -77,7 +75,7 @@ impl CharacterState {
             | CharacterState::BasicRanged(_)
             | CharacterState::TimedCombo(_)
             | CharacterState::DashMelee(_)
-            | CharacterState::ChargeAttack(_) => true,
+            | CharacterState::TripleStrike(_) => true,
             _ => false,
         }
     }
