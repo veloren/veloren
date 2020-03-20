@@ -699,7 +699,7 @@ impl<'a> Widget for Skillbar<'a> {
         Button::image(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Sword(_) => self.imgs.twohsword_m2,
+                    ToolKind::Sword(_) => self.imgs.charge,
                     ToolKind::Hammer(_) => self.imgs.twohhammer_m2,
                     ToolKind::Axe(_) => self.imgs.twohaxe_m2,
                     ToolKind::Bow(_) => self.imgs.bow_m2,
@@ -731,6 +731,21 @@ impl<'a> Widget for Skillbar<'a> {
             },
         )
         .middle_of(state.ids.m2_slot_bg)
+        .color(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    ToolKind::Sword(_) => {
+                        if self.energy.current() as f64 >= 200.0 {
+                            Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                        } else {
+                            Color::Rgba(0.4, 0.4, 0.4, 1.0)
+                        }
+                    },
+                    _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+                },
+                _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+            },
+        )
         .set(state.ids.m2_content, ui);
         //Slot 5
         Image::new(self.imgs.skillbar_slot)
@@ -808,15 +823,15 @@ impl<'a> Widget for Skillbar<'a> {
             .middle_of(state.ids.slot1)
             .set(state.ids.slot1_bg, ui);
         // TODO: Changeable slot image
-        Image::new(self.imgs.charge)
-            .w_h(18.0 * scale, 18.0 * scale)
-            .color(if self.energy.current() as f64 >= 200.0 {
-                Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-            } else {
-                Some(Color::Rgba(0.4, 0.4, 0.4, 1.0))
-            })
-            .middle_of(state.ids.slot1_bg)
-            .set(state.ids.slot1_icon, ui);
+        /*Image::new(self.imgs.charge)
+        .w_h(18.0 * scale, 18.0 * scale)
+        .color(if self.energy.current() as f64 >= 200.0 {
+            Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+        } else {
+            Some(Color::Rgba(0.4, 0.4, 0.4, 1.0))
+        })
+        .middle_of(state.ids.slot1_bg)
+        .set(state.ids.slot1_icon, ui);*/
         // Slot 6
         Image::new(self.imgs.skillbar_slot)
             .w_h(20.0 * scale, 20.0 * scale)

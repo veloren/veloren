@@ -290,6 +290,19 @@ impl Item {
                     "common.items.weapons.starter_hammer",
                     "common.items.weapons.starter_bow",
                     "common.items.weapons.starter_staff",
+                    "common.items.armor.belt.plate_0",
+                    "common.items.armor.belt.leather_0",
+                    "common.items.armor.chest.plate_green_0",
+                    "common.items.armor.chest.leather_0",
+                    "common.items.armor.foot.plate_0",
+                    "common.items.armor.foot.leather_0",
+                    "common.items.armor.pants.plate_green_0",
+                    "common.items.armor.belt.leather_0",
+                    "common.items.armor.shoulder.plate_0",
+                    "common.items.armor.shoulder.leather_1",
+                    "common.items.armor.shoulder.leather_0",
+                    "common.items.weapons.wood_sword",
+                    "common.items.weapons.short_sword_0",
                 ]
                 .choose(&mut rand::thread_rng())
                 .unwrap(), // Can't fail
