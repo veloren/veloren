@@ -20,6 +20,10 @@ use conrod_core::{
 use rand::{seq::SliceRandom, thread_rng};
 use std::time::Duration;
 
+// UI Color-Theme
+/*const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
+const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);*/
+
 widget_ids! {
     struct Ids {
         // Background and logo

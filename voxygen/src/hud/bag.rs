@@ -14,6 +14,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+//use const_tweaker::tweak;
 
 widget_ids! {
     pub struct Ids {
@@ -84,6 +85,9 @@ widget_ids! {
         tabard_ico,
         mainhand_ico,
         offhand_ico,
+        end_ico,
+        fit_ico,
+        wp_ico,
     }
 }
 
@@ -144,10 +148,10 @@ pub enum Event {
     Stats,
     Close,
 }
-
-//#[const_tweaker::tweak(min = -10.0, max = 10.0, step = 1.0)]
-//const X: f64 = 10.0;
-
+/*
+#[tweak(min = -100.0, max = 20.0, step = 1.0)]
+const END_X: f64 = 10.0;
+*/
 impl<'a> Widget for Bag<'a> {
     type Event = Option<Event>;
     type State = State;
@@ -559,6 +563,21 @@ impl<'a> Widget for Bag<'a> {
             .font_size(self.fonts.cyri.scale(16))
             .color(TEXT_COLOR)
             .set(state.ids.statnames, ui);
+            Image::new(self.imgs.endurance_ico)
+                .w_h(30.0, 30.0)
+                .top_left_with_margins_on(state.ids.statnames, -10.0, -40.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.end_ico, ui);
+            Image::new(self.imgs.fitness_ico)
+                .w_h(30.0, 30.0)
+                .down_from(state.ids.end_ico, 10.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.fit_ico, ui);
+            Image::new(self.imgs.willpower_ico)
+                .w_h(30.0, 30.0)
+                .down_from(state.ids.fit_ico, 10.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.wp_ico, ui);
 
             Text::new(&format!(
                 "{}\n\n{}\n\n{}",

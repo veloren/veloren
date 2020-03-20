@@ -1,4 +1,4 @@
-use super::{img_ids::Imgs, Show, TEXT_COLOR, TEXT_COLOR_3};
+use super::{img_ids::Imgs, Show, TEXT_COLOR, TEXT_COLOR_3, UI_MAIN};
 
 use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use client::{self, Client};
@@ -90,6 +90,7 @@ impl<'a> Widget for Social<'a> {
 
         Image::new(self.imgs.window_3)
             .top_left_with_margins_on(ui.window, 200.0, 25.0)
+            .color(Some(UI_MAIN))
             .w_h(103.0 * 4.0, 122.0 * 4.0)
             .set(ids.social_frame, ui);
 
@@ -131,6 +132,7 @@ impl<'a> Widget for Social<'a> {
         Image::new(self.imgs.social_frame)
             .w_h(99.0 * 4.0, 100.0 * 4.0)
             .mid_bottom_of(ids.align)
+            .color(Some(UI_MAIN))
             .set(ids.frame, ui);
 
         // Online Tab
@@ -156,6 +158,7 @@ impl<'a> Widget for Social<'a> {
         .label_font_size(self.fonts.cyri.scale(14))
         .label_font_id(self.fonts.cyri.conrod_id)
         .parent(ids.frame)
+        .color(UI_MAIN)
         .label_color(TEXT_COLOR)
         .set(ids.online_tab, ui)
         .was_clicked()
@@ -222,6 +225,7 @@ impl<'a> Widget for Social<'a> {
         .label_font_size(self.fonts.cyri.scale(14))
         .label_font_id(self.fonts.cyri.conrod_id)
         .parent(ids.frame)
+        .color(UI_MAIN)
         .label_color(TEXT_COLOR_3)
         .set(ids.friends_tab, ui)
         .was_clicked()
@@ -253,6 +257,7 @@ impl<'a> Widget for Social<'a> {
             .parent(ids.frame)
             .label_font_size(self.fonts.cyri.scale(14))
             .label_font_id(self.fonts.cyri.conrod_id)
+            .color(UI_MAIN)
             .label_color(TEXT_COLOR_3)
             .set(ids.faction_tab, ui)
             .was_clicked()
