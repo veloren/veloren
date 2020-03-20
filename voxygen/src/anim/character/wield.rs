@@ -46,10 +46,14 @@ impl Animation for WieldAnimation {
             },
             Some(ToolKind::Axe(_)) => {
                 next.l_hand.offset = Vec3::new(-4.0, 3.0, 6.0);
-                next.l_hand.ori = Quaternion::rotation_x(-0.3) * Quaternion::rotation_z(3.14 - 0.3) * Quaternion::rotation_y(-0.8);
+                next.l_hand.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_z(3.14 - 0.3)
+                    * Quaternion::rotation_y(-0.8);
                 next.l_hand.scale = Vec3::one() * 1.08;
                 next.r_hand.offset = Vec3::new(-2.5, 9.0, 4.0);
-                next.r_hand.ori = Quaternion::rotation_x(-0.3) * Quaternion::rotation_z(3.14 - 0.3)* Quaternion::rotation_y(-0.8);
+                next.r_hand.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_z(3.14 - 0.3)
+                    * Quaternion::rotation_y(-0.8);
                 next.r_hand.scale = Vec3::one() * 1.06;
                 next.main.offset = Vec3::new(-6.0, 10.0, -1.0);
                 next.main.ori = Quaternion::rotation_x(1.27)
@@ -58,9 +62,9 @@ impl Animation for WieldAnimation {
                 next.main.scale = Vec3::one();
 
                 next.control.offset = Vec3::new(0.0, 0.0, 0.0);
-                next.control.ori = Quaternion::rotation_x( wave_ultra_slow_cos * 0.1)
+                next.control.ori = Quaternion::rotation_x(wave_ultra_slow_cos * 0.1)
                     * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z( wave_ultra_slow * 0.1);
+                    * Quaternion::rotation_z(wave_ultra_slow * 0.1);
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Hammer(_)) => {
