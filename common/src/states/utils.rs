@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, EnergySource, ItemKind::Tool, StateUpdate, ToolData},
+    comp::{CharacterState, ItemKind::Tool, StateUpdate, ToolData},
     event::LocalEvent,
     states::*,
     sys::{character_behavior::JoinData, phys::GRAVITY},

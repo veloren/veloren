@@ -15,7 +15,7 @@ use crate::{
     window::{Event, PressState},
 };
 use common::{
-    comp::{humanoid, Body, ItemKind, Loadout},
+    comp::{humanoid, Body, Loadout},
     terrain::BlockKind,
     vol::{BaseVol, ReadVol, Vox},
 };
