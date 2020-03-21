@@ -1,0 +1,8 @@
+Item(
+    name: "Purple Silk Wrists",
+   description: "WIP",
+    kind: Armor(
+        kind: Hand(ClothPurple0),
+        stats: 20,
+    ),
+)

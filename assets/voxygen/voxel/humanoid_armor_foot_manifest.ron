@@ -27,4 +27,16 @@
         vox_spec: ("armor.foot.leather-0", (-2.5, -3.5, -9.0)),
         color: None
     ),
+    ClothPurple0:(
+        vox_spec: ("armor.foot.cloth_purple_0", (-2.5, -3.5, -9.0)),
+        color: None
+    ),
+    ClothBlue0:(
+        vox_spec: ("armor.foot.cloth_purple_0", (-2.5, -3.5, -9.0)),
+        color: None
+    ),
+    ClothGreen0:(
+        vox_spec: ("armor.foot.cloth_purple_0", (-2.5, -3.5, -9.0)),
+        color: None
+    ),
 })

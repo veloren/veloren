@@ -1,0 +1,8 @@
+Item(
+    name: "Blue Linen Chest",
+   description: "Soft and warm",
+    kind: Armor(
+        kind: Chest(ClothBlue0),
+        stats: 20,
+    ),
+)
