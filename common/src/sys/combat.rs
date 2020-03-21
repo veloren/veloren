@@ -3,12 +3,10 @@ use crate::{
         Attacking, Body, CharacterState, Controller, HealthChange, HealthSource, Ori, Pos, Scale,
         Stats,
     },
-    event::{EventBus, LocalEvent, ServerEvent},
-    state::DeltaTime,
+    event::{EventBus, ServerEvent},
     sync::Uid,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
-// use std::time::Duration;
 use vek::*;
 
 const BLOCK_EFFICIENCY: f32 = 0.9;
@@ -23,8 +21,6 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
-        Read<'a, EventBus<LocalEvent>>,
-        Read<'a, DeltaTime>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
@@ -41,8 +37,6 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             server_bus,
-            _local_bus,
-            _dt,
             uids,
             positions,
             orientations,

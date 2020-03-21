@@ -112,8 +112,6 @@ impl Default for Input {
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ControllerInputs {
-    // When adding new inputs:
-    // 1. Add to tick() update
     pub primary: Input,
     pub secondary: Input,
     pub sit: Input,
@@ -155,24 +153,6 @@ impl ControllerInputs {
         self.swap_loadout.tick(dt);
         self.charge.tick(dt);
     }
-
-    /*
-    /// Updates `inputs.move_dir`.
-    pub fn update_move_dir(&mut self) {
-        self.move_dir = if self.move_dir.magnitude_squared() > 1.0 {
-            // Cap move_dir to 1
-            self.move_dir.normalized()
-        } else {
-            self.move_dir
-        };
-    }
-
-    /// Updates `inputs.look_dir`
-    pub fn update_look_dir(&mut self) {
-        self.look_dir
-            .try_normalized()
-            .unwrap_or(self.move_dir.into());
-    }*/
 }
 
 impl Controller {

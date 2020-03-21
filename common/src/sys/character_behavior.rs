@@ -77,12 +77,9 @@ impl<'a> JoinData<'a> {
     }
 }
 
-/// /// ## Character State System
-/// #### Calls updates to `CharacterState`s. Acts on tuples of (
-/// `CharacterState`, `Pos`, `Vel`, and `Ori` ).
-///
-/// _System forms `CharacterEntityData` tuples and passes those to `ActionState`
-/// `update()` fn, then does the same for `MoveState` `update`_
+/// ## Character Behavior System
+/// Passes `JoinData` to `CharacterState`'s `behavior` handler fn's. Recieves a
+/// `StateUpdate` in return and performs updates to ECS Components from that.
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
@@ -176,7 +173,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Climb => states::climb::Data.behavior(&j),
                 CharacterState::Glide => states::glide::Data.behavior(&j),
                 CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
-                CharacterState::BasicBlock  => states::basic_block::Data.behavior(&j),
+                CharacterState::BasicBlock => states::basic_block::Data.behavior(&j),
                 CharacterState::Roll(data) => data.behavior(&j),
                 CharacterState::Wielding => states::wielding::Data.behavior(&j),
                 CharacterState::Equipping(data) => data.behavior(&j),
@@ -186,17 +183,6 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Boost(data) => data.behavior(&j),
                 CharacterState::DashMelee(data) => data.behavior(&j),
                 CharacterState::TimedCombo(data) => data.behavior(&j),
-
-                // Do not use default match.
-                // _ => StateUpdate {
-                //     character: *j.character,
-                //     pos: *j.pos,
-                //     vel: *j.vel,
-                //     ori: *j.ori,
-                //     energy: *j.energy,
-                //     local_events: VecDeque::new(),
-                //     server_events: VecDeque::new(),
-                // },
             };
 
             *tuple.2 = state_update.character;
