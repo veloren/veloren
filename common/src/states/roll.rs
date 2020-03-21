@@ -3,7 +3,7 @@ use crate::{
     sys::character_behavior::{CharacterBehavior, JoinData},
     util::safe_slerp,
 };
-use std::{collections::VecDeque, time::Duration};
+use std::time::Duration;
 use vek::Vec3;
 
 const ROLL_SPEED: f32 = 17.0;
@@ -15,15 +15,7 @@ pub struct Data {
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate {
-            character: data.character.clone(),
-            pos: *data.pos,
-            vel: *data.vel,
-            ori: *data.ori,
-            energy: *data.energy,
-            local_events: VecDeque::new(),
-            server_events: VecDeque::new(),
-        };
+        let mut update = StateUpdate::from(data);
 
         // Update velocity
         update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)

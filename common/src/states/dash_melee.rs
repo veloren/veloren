@@ -3,7 +3,7 @@ use crate::{
     sys::character_behavior::*,
     util::safe_slerp,
 };
-use std::{collections::VecDeque, time::Duration};
+use std::time::Duration;
 use vek::Vec3;
 
 const DASH_SPEED: f32 = 19.0;
@@ -23,15 +23,7 @@ pub struct Data {
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate {
-            pos: *data.pos,
-            vel: *data.vel,
-            ori: *data.ori,
-            energy: *data.energy,
-            character: data.character.clone(),
-            local_events: VecDeque::new(),
-            server_events: VecDeque::new(),
-        };
+        let mut update = StateUpdate::from(data);
 
         if self.initialize {
             update.vel.0 = data.inputs.look_dir * 20.0;

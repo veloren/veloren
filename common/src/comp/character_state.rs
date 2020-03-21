@@ -1,7 +1,8 @@
 use crate::{
-    comp::{Energy, Ori, Pos, Vel},
+    comp::{Energy, Loadout, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::*,
+    sys::character_behavior::JoinData,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, HashMapStorage, VecStorage};
@@ -14,10 +15,25 @@ pub struct StateUpdate {
     pub vel: Vel,
     pub ori: Ori,
     pub energy: Energy,
+    pub loadout: Loadout,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
 }
 
+impl From<&JoinData<'_>> for StateUpdate {
+    fn from(data: &JoinData) -> Self {
+        StateUpdate {
+            pos: *data.pos,
+            vel: *data.vel,
+            ori: *data.ori,
+            energy: *data.energy,
+            loadout: data.loadout.clone(),
+            character: data.character.clone(),
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
+        }
+    }
+}
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum CharacterState {
     Idle,
