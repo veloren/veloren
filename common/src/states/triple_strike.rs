@@ -4,7 +4,7 @@ use crate::{
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use std::time::Duration;
-use vek::vec::Vec2;
+use vek::vec::{Vec2, Vec3};
 
 // In millis
 const STAGE_DURATION: u64 = 600;
@@ -59,20 +59,21 @@ impl CharacterBehavior for Data {
 
         if !initialized {
             update.ori.0 = data.inputs.look_dir.normalized();
+            update.vel.0 = Vec3::zero();
             initialized = true;
         }
 
         if self.stage < 3 {
             // Handling movement
             if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
-                let adjusted_accel = if self.stage == 0 {
-                    if data.physics.touch_entity.is_none() {
+                let adjusted_accel = if data.physics.touch_entity.is_none() {
+                    if self.stage == 0 {
                         INITIAL_ACCEL
                     } else {
-                        0.0
+                        SECONDARY_ACCEL
                     }
                 } else {
-                    SECONDARY_ACCEL
+                    0.0
                 };
 
                 // Move player forward while in first third of each stage
