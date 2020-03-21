@@ -1,5 +1,5 @@
 use crate::{comp, sync::Uid};
-use comp::{item::ToolData, InventoryUpdateEvent};
+use comp::{item::ToolKind, InventoryUpdateEvent};
 use parking_lot::Mutex;
 use serde::Deserialize;
 use specs::Entity as EcsEntity;
@@ -40,8 +40,8 @@ pub enum SfxEvent {
     Fall,
     ExperienceGained,
     LevelUp,
-    Wield(ToolData),
-    Unwield(ToolData),
+    Wield(ToolKind),
+    Unwield(ToolKind),
     Inventory(InventoryUpdateEvent),
 }
 
