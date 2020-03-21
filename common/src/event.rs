@@ -46,16 +46,28 @@ pub enum SfxEvent {
 }
 
 pub enum LocalEvent {
+    /// Applies upward force to entity's `Vel`
     Jump(EcsEntity),
-    Knockback(EcsEntity),
+    /// Applies the `force` + implicit upward force, in `dir` direction to
+    /// `entity`'s `Vel`
+    KnockUp {
+        entity: EcsEntity,
+        dir: Vec3<f32>,
+        force: f32,
+    },
+    /// Applies the `force`, in `dir` direction to `entity`'s `Vel`
+    ApplyForce {
+        entity: EcsEntity,
+        dir: Vec3<f32>,
+        force: f32,
+    },
+    /// Applies leaping force to `entity`'s `Vel` away from `wall_dir` direction
     WallLeap {
         entity: EcsEntity,
         wall_dir: Vec3<f32>,
     },
-    Boost {
-        entity: EcsEntity,
-        vel: Vec3<f32>,
-    },
+    /// Applies `vel` velocity to `entity`
+    Boost { entity: EcsEntity, vel: Vec3<f32> },
 }
 
 pub enum ServerEvent {
