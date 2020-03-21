@@ -44,7 +44,7 @@ impl Bone {
         // TODO: Make configurable.
         let factor = (15.0 * dt).min(1.0);
         self.offset += (target.offset - self.offset) * factor;
-        self.ori = vek::ops::Slerp::slerp(self.ori, target.ori, factor);
+        self.ori = vek::Slerp::slerp(self.ori, target.ori, factor);
         self.scale += (target.scale - self.scale) * factor;
     }
 }

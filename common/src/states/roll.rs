@@ -1,6 +1,7 @@
 use crate::{
     comp::{CharacterState, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
+    util::safe_slerp,
 };
 use std::{collections::VecDeque, time::Duration};
 use vek::Vec3;
@@ -33,14 +34,7 @@ impl CharacterBehavior for Data {
                 * ROLL_SPEED;
 
         // Smooth orientation
-        if update.vel.0.magnitude_squared() > 0.0001
-            && (update.ori.0.normalized() - Vec3::from(update.vel.0).normalized())
-                .magnitude_squared()
-                > 0.001
-        {
-            update.ori.0 =
-                vek::ops::Slerp::slerp(update.ori.0, update.vel.0.into(), 9.0 * data.dt.0);
-        }
+        update.ori.0 = safe_slerp(update.ori.0, update.vel.0.into(), 9.0 * data.dt.0);
 
         if self.remaining_duration == Duration::default() {
             // Roll duration has expired
