@@ -125,6 +125,7 @@ pub struct ControllerInputs {
     pub wall_leap: Input,
     pub respawn: Input,
     pub toggle_wield: Input,
+    pub swap_loadout: Input,
     pub charge: Input,
     pub move_dir: Vec2<f32>,
     pub look_dir: Vec3<f32>,
@@ -151,6 +152,7 @@ impl ControllerInputs {
         self.wall_leap.tick(dt);
         self.respawn.tick(dt);
         self.toggle_wield.tick(dt);
+        self.swap_loadout.tick(dt);
         self.charge.tick(dt);
     }
 

@@ -50,6 +50,7 @@ pub struct ControlSettings {
     pub respawn: KeyMouse,
     pub interact: KeyMouse,
     pub toggle_wield: KeyMouse,
+    pub swap_loadout: KeyMouse,
     pub charge: KeyMouse,
 }
 
@@ -100,6 +101,7 @@ impl Default for ControlSettings {
             respawn: KeyMouse::Key(VirtualKeyCode::Space),
             interact: KeyMouse::Mouse(MouseButton::Right),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
+            swap_loadout: KeyMouse::Key(VirtualKeyCode::LAlt),
             charge: KeyMouse::Key(VirtualKeyCode::Key1),
         }
     }
@@ -183,6 +185,7 @@ pub mod con_settings {
         pub respawn: Button,
         pub interact: Button,
         pub toggle_wield: Button,
+        pub swap_loadout: Button,
         pub charge: Button,
     }
 
@@ -268,6 +271,7 @@ pub mod con_settings {
                 respawn: Button::Simple(GilButton::RightTrigger2),
                 interact: Button::Simple(GilButton::LeftTrigger2),
                 toggle_wield: Button::Simple(GilButton::DPadLeft),
+                swap_loadout: Button::Simple(GilButton::Unknown),
                 charge: Button::Simple(GilButton::Unknown),
             }
         }
