@@ -178,25 +178,27 @@ impl Animation for AttackAnimation {
                 next.main.scale = Vec3::one();
             },
             Some(ToolKind::Bow(_)) => {
-                next.l_hand.offset = Vec3::new(-7.0, -2.0 + slow * 5.0, -1.0);
-                next.l_hand.ori = Quaternion::rotation_x(PI / 2.0)
-                    * Quaternion::rotation_y(-0.3)
-                    * Quaternion::rotation_z(0.3);
-                next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.offset = Vec3::new(1.0, 8.0, 2.5);
-                next.r_hand.ori = Quaternion::rotation_x(PI / 2.0)
+                next.l_hand.offset = Vec3::new(1.0, -4.0, -1.0);
+                next.l_hand.ori = Quaternion::rotation_x(1.27)
+                    * Quaternion::rotation_y(-0.6)
+                    * Quaternion::rotation_z(-0.3);
+                next.l_hand.scale = Vec3::one() * 1.05;
+                next.r_hand.offset = Vec3::new(3.0, -1.0, -6.0);
+                next.r_hand.ori = Quaternion::rotation_x(1.27)
+                    * Quaternion::rotation_y(-0.6)
+                    * Quaternion::rotation_z(-0.3);
+                next.r_hand.scale = Vec3::one() * 1.05;
+                next.main.offset = Vec3::new(3.0, 2.0, -13.0);
+                next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.3)
-                    * Quaternion::rotation_z(0.3);
-                next.r_hand.scale = Vec3::one() * 1.01;
-                next.main.offset = Vec3::new(
-                    -4.0 + skeleton_attr.weapon_x,
-                    15.0 + skeleton_attr.weapon_y,
-                    -4.0,
-                );
-                next.main.ori = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.4)
-                    * Quaternion::rotation_z(0.0);
+                    * Quaternion::rotation_z(-0.6);
                 next.main.scale = Vec3::one();
+
+                next.control.offset = Vec3::new(-7.0, 6.0, 6.0);
+                next.control.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.control.scale = Vec3::one();
             },
             Some(ToolKind::Dagger(_)) => {
                 next.l_hand.offset =
