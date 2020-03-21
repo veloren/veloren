@@ -107,7 +107,6 @@ impl State {
         ecs.register_sync_marker();
         // Register server -> all clients synced components.
         ecs.register::<comp::Loadout>();
-        ecs.register::<comp::CharacterAbility>();
         ecs.register::<comp::Projectile>();
         ecs.register::<comp::Body>();
         ecs.register::<comp::Player>();
