@@ -21,6 +21,7 @@ use common::{
         ItemKind, Loadout,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
+    vol::SizedVol,
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
@@ -48,6 +49,9 @@ fn graceful_load_segment(mesh_name: &str) -> Segment {
 }
 fn graceful_load_mat_segment(mesh_name: &str) -> MatSegment {
     MatSegment::from(graceful_load_vox(mesh_name).as_ref())
+}
+fn graceful_load_mat_segment_flipped(mesh_name: &str) -> MatSegment {
+    MatSegment::from_vox(graceful_load_vox(mesh_name).as_ref(), true)
 }
 
 fn generate_mesh(segment: &Segment, offset: Vec3<f32>) -> Mesh<FigurePipeline> {
@@ -302,7 +306,7 @@ impl HumArmorShoulderSpec {
             .unwrap()
     }
 
-    pub fn mesh_left_shoulder(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+    fn mesh_shoulder(&self, body: &Body, loadout: &Loadout, flipped: bool) -> Mesh<FigurePipeline> {
         let shoulder = if let Some(ItemKind::Armor {
             kind: Armor::Shoulder(shoulder),
             ..
@@ -322,42 +326,36 @@ impl HumArmorShoulderSpec {
         };
 
         let shoulder_segment = color_segment(
-            graceful_load_mat_segment(&spec.left.vox_spec.0),
+            if flipped {
+                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0)
+            } else {
+                graceful_load_mat_segment(&spec.right.vox_spec.0)
+            },
             body.race.skin_color(body.skin),
             body.race.hair_color(body.hair_color),
             body.race.eye_color(body.eye_color),
         );
 
-        generate_mesh(&shoulder_segment, Vec3::from(spec.left.vox_spec.1))
+        // TODO: use this if we can
+        /*let mut offset = spec.vox_spec.1;
+        if flipped {
+            offset[0] = -(shoulder_segment.size().x as f32) - offset[0];
+        }*/
+        let offset = if flipped {
+            spec.left.vox_spec.1
+        } else {
+            spec.right.vox_spec.1
+        };
+
+        generate_mesh(&shoulder_segment, Vec3::from(offset))
+    }
+
+    pub fn mesh_left_shoulder(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+        self.mesh_shoulder(body, loadout, true)
     }
 
     pub fn mesh_right_shoulder(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
-        let shoulder = if let Some(ItemKind::Armor {
-            kind: Armor::Shoulder(shoulder),
-            ..
-        }) = loadout.shoulder.as_ref().map(|i| &i.kind)
-        {
-            shoulder
-        } else {
-            &Shoulder::None
-        };
-
-        let spec = match self.0.get(&shoulder) {
-            Some(spec) => spec,
-            None => {
-                error!("No shoulder specification exists for {:?}", shoulder);
-                return load_mesh("not_found", Vec3::new(-2.0, -3.5, 0.1));
-            },
-        };
-
-        let shoulder_segment = color_segment(
-            graceful_load_mat_segment(&spec.right.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
-        );
-
-        generate_mesh(&shoulder_segment, Vec3::from(spec.right.vox_spec.1))
+        self.mesh_shoulder(body, loadout, false)
     }
 }
 
@@ -420,7 +418,7 @@ impl HumArmorHandSpec {
             .unwrap()
     }
 
-    pub fn mesh_left_hand(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+    fn mesh_hand(&self, body: &Body, loadout: &Loadout, flipped: bool) -> Mesh<FigurePipeline> {
         let hand = if let Some(ItemKind::Armor {
             kind: Armor::Hand(hand),
             ..
@@ -440,42 +438,31 @@ impl HumArmorHandSpec {
         };
 
         let hand_segment = color_segment(
-            graceful_load_mat_segment(&spec.left.vox_spec.0),
+            if flipped {
+                graceful_load_mat_segment_flipped(&spec.left.vox_spec.0)
+            } else {
+                graceful_load_mat_segment(&spec.right.vox_spec.0)
+            },
             body.race.skin_color(body.skin),
             body.race.hair_color(body.hair_color),
             body.race.eye_color(body.eye_color),
         );
 
-        generate_mesh(&hand_segment, Vec3::from(spec.left.vox_spec.1))
+        let offset = if flipped {
+            spec.left.vox_spec.1
+        } else {
+            spec.right.vox_spec.1
+        };
+
+        generate_mesh(&hand_segment, Vec3::from(offset))
+    }
+
+    pub fn mesh_left_hand(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+        self.mesh_hand(body, loadout, true)
     }
 
     pub fn mesh_right_hand(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
-        let hand = if let Some(ItemKind::Armor {
-            kind: Armor::Hand(hand),
-            ..
-        }) = loadout.hand.as_ref().map(|i| &i.kind)
-        {
-            hand
-        } else {
-            &Hand::Bare
-        };
-
-        let spec = match self.0.get(&hand) {
-            Some(spec) => spec,
-            None => {
-                error!("No hand specification exists for {:?}", hand);
-                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            },
-        };
-
-        let hand_segment = color_segment(
-            graceful_load_mat_segment(&spec.right.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
-        );
-
-        generate_mesh(&hand_segment, Vec3::from(spec.right.vox_spec.1))
+        self.mesh_hand(body, loadout, false)
     }
 }
 
@@ -574,7 +561,7 @@ impl HumArmorFootSpec {
             .unwrap()
     }
 
-    pub fn mesh_left_foot(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+    fn mesh_foot(&self, body: &Body, loadout: &Loadout, flipped: bool) -> Mesh<FigurePipeline> {
         let foot = if let Some(ItemKind::Armor {
             kind: Armor::Foot(foot),
             ..
@@ -594,7 +581,11 @@ impl HumArmorFootSpec {
         };
 
         let foot_segment = color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0),
+            if flipped {
+                graceful_load_mat_segment_flipped(&spec.vox_spec.0)
+            } else {
+                graceful_load_mat_segment(&spec.vox_spec.0)
+            },
             body.race.skin_color(body.skin),
             body.race.hair_color(body.hair_color),
             body.race.eye_color(body.eye_color),
@@ -603,33 +594,12 @@ impl HumArmorFootSpec {
         generate_mesh(&foot_segment, Vec3::from(spec.vox_spec.1))
     }
 
+    pub fn mesh_left_foot(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+        self.mesh_foot(body, loadout, true)
+    }
+
     pub fn mesh_right_foot(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
-        let foot = if let Some(ItemKind::Armor {
-            kind: Armor::Foot(foot),
-            ..
-        }) = loadout.foot.as_ref().map(|i| &i.kind)
-        {
-            foot
-        } else {
-            &Foot::Bare
-        };
-
-        let spec = match self.0.get(&foot) {
-            Some(spec) => spec,
-            None => {
-                error!("No foot specification exists for {:?}", foot);
-                return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
-            },
-        };
-
-        let foot_segment = color_segment(
-            graceful_load_mat_segment(&spec.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
-        );
-
-        generate_mesh(&foot_segment, Vec3::from(spec.vox_spec.1))
+        self.mesh_foot(body, loadout, false)
     }
 }
 
