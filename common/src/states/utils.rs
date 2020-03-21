@@ -86,7 +86,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.jump.is_pressed() && !data.inputs.jump.is_long_press(Duration::from_millis(600))
     {
         update.vel.0.z =
-            (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(BASE_HUMANOID_WATER_SPEED);
+            (update.vel.0.z + data.dt.0 * GRAVITY * 2.25).min(BASE_HUMANOID_WATER_SPEED);
     }
 }
 
