@@ -138,6 +138,18 @@ pub fn handle_unwield(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+/// Checks that player can Swap Weapons and updates `Loadout` if so
+pub fn handle_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
+    if let CharacterState::Wielding { .. } = update.character {
+        if data.inputs.swap_loadout.is_just_pressed() {
+            let mut new_loadout = data.loadout.clone();
+            new_loadout.active_item = data.loadout.second_item.clone();
+            new_loadout.second_item = data.loadout.active_item.clone();
+            update.loadout = new_loadout;
+        }
+    }
+}
+
 /// Checks that player can glide and updates `CharacterState` if so
 pub fn handle_glide(data: &JoinData, update: &mut StateUpdate) {
     if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {

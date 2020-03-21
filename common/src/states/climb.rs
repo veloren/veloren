@@ -7,7 +7,6 @@ use crate::{
     },
     util::safe_slerp,
 };
-use std::collections::VecDeque;
 use vek::{
     vec::{Vec2, Vec3},
     Lerp,
@@ -21,15 +20,7 @@ pub struct Data;
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate {
-            pos: *data.pos,
-            vel: *data.vel,
-            ori: *data.ori,
-            character: data.character.clone(),
-            energy: *data.energy,
-            local_events: VecDeque::new(),
-            server_events: VecDeque::new(),
-        };
+        let mut update = StateUpdate::from(data);
 
         if let Err(_) = update.energy.try_change_by(-5, EnergySource::Climb) {
             update.character = CharacterState::Idle {};

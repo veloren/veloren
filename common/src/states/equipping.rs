@@ -3,7 +3,7 @@ use crate::{
     comp::{CharacterState, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
-use std::{collections::VecDeque, time::Duration};
+use std::time::Duration;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
@@ -13,15 +13,7 @@ pub struct Data {
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate {
-            character: data.character.clone(),
-            pos: *data.pos,
-            vel: *data.vel,
-            ori: *data.ori,
-            energy: *data.energy,
-            local_events: VecDeque::new(),
-            server_events: VecDeque::new(),
-        };
+        let mut update = StateUpdate::from(data);
 
         handle_move(&data, &mut update);
         handle_jump(&data, &mut update);

@@ -3,7 +3,6 @@ use crate::{
     sys::character_behavior::{CharacterBehavior, JoinData},
     util::safe_slerp,
 };
-use std::collections::VecDeque;
 use vek::Vec2;
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
@@ -16,15 +15,7 @@ pub struct Data;
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate {
-            pos: *data.pos,
-            vel: *data.vel,
-            ori: *data.ori,
-            energy: *data.energy,
-            character: data.character.clone(),
-            local_events: VecDeque::new(),
-            server_events: VecDeque::new(),
-        };
+        let mut update = StateUpdate::from(data);
 
         // If glide button isn't held or player is on ground, end glide
         if !data.inputs.glide.is_pressed() || data.physics.on_ground {

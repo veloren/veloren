@@ -323,21 +323,8 @@ impl PlayState for SessionState {
                         self.inputs.toggle_wield.set_state(state);
                     },
                     Event::InputUpdate(GameInput::SwapLoadout, state) => {
-                        let mut client = self.client.borrow_mut();
-                        let entity = client.entity();
-                        let loadout = client
-                            .state()
-                            .read_storage::<comp::Loadout>()
-                            .get(entity)
-                            .cloned();
-
-                        if let Some(loadout) = loadout {
-                            let mut new_loadout = loadout.clone();
-                            new_loadout.second_item = loadout.active_item;
-                            new_loadout.active_item = loadout.second_item;
-
-                            client.state_mut().write_component(entity, new_loadout);
-                        }
+                        println!("{:?}", state);
+                        self.inputs.swap_loadout.set_state(state);
                     },
                     Event::InputUpdate(GameInput::Mount, true) => {
                         let mut client = self.client.borrow_mut();
