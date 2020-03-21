@@ -151,6 +151,7 @@ impl From<&CharacterAbility> for CharacterState {
                     stage_exhausted: false,
                     stage_time_active: Duration::default(),
                     should_transition: true,
+                    initialized: false,
                 })
             },
         }
