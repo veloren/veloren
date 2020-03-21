@@ -1,9 +1,10 @@
 use crate::{
     comp::{CharacterState, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
+    util::safe_slerp,
 };
 use std::collections::VecDeque;
-use vek::{Vec2, Vec3};
+use vek::Vec2;
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
 const GLIDE_ANTIGRAV: f32 = crate::sys::phys::GRAVITY * 0.96;
@@ -46,12 +47,7 @@ impl CharacterBehavior for Data {
 
         // Determine orientation vector from movement direction vector
         let ori_dir = Vec2::from(update.vel.0);
-        if ori_dir.magnitude_squared() > 0.0001
-            && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
-                > 0.001
-        {
-            update.ori.0 = vek::ops::Slerp::slerp(update.ori.0, ori_dir.into(), 2.0 * data.dt.0);
-        }
+        update.ori.0 = safe_slerp(update.ori.0, ori_dir.into(), 2.0 * data.dt.0);
 
         // Apply Glide antigrav lift
         if Vec2::<f32>::from(update.vel.0).magnitude_squared() < GLIDE_SPEED.powf(2.0)

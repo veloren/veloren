@@ -1,3 +1,5 @@
+mod color;
+
 pub const GIT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 
 lazy_static::lazy_static! {
@@ -5,144 +7,85 @@ lazy_static::lazy_static! {
     pub static ref GIT_DATE: &'static str = GIT_VERSION.split("/").nth(1).expect("failed to retrieve git_date!");
 }
 
-use vek::{Mat3, Rgb, Rgba, Vec3};
+pub use color::*;
 
+/// Begone ye NaN's
+/// Slerp two `Vec3`s skipping the slerp if their directions are very close
+/// This avoids a case where `vek`s slerp produces NaN's
+/// Additionally, it avoids unnecessary calculations if they are near identical
+/// Assumes `from` is normalized and returns a normalized vector, but `to`
+/// doesn't need to be normalized
+// TODO: in some cases we might want to base the slerp rate on the magnitude of
+// `to` for example when `to` is velocity and `from` is orientation
 #[inline(always)]
-pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
-    col.map(|c| {
-        if c <= 0.104 {
-            c * 0.08677088
-        } else {
-            0.012522878 * c + 0.682171111 * c * c + 0.305306011 * c * c * c
+pub fn safe_slerp(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> vek::Vec3<f32> {
+    use vek::Vec3;
+
+    debug_assert!(!to.map(f32::is_nan).reduce_or());
+    debug_assert!(!from.map(f32::is_nan).reduce_or());
+    // Ensure from is normalized
+    #[cfg(debug_assertions)]
+    {
+        if {
+            let len_sq = from.magnitude_squared();
+            len_sq < 0.999 || len_sq > 1.001
+        } {
+            panic!("Called safe_slerp with unnormalized from: {:?}", from);
         }
-    })
-}
+    }
 
-#[inline(always)]
-pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
-    col.map(|c| {
-        if c <= 0.0060 {
-            c * 11.500726
+    let to = if to.magnitude_squared() > 0.001 {
+        to.normalized()
+    } else {
+        return from;
+    };
+
+    let dot = from.dot(to);
+    if dot > 0.999 {
+        // Close together, just use to
+        return to;
+    }
+
+    let (from, to, factor) = if dot < -0.999 {
+        // Not linearly independent (slerp will fail since it doesn't check for this)
+        // Instead we will choose a midpoint and slerp from or to that depending on the
+        // factor
+        let mid_dir = if from.z > 0.999 {
+            // If vec's lie along the z-axis default to (1, 0, 0) as midpoint
+            Vec3::unit_x()
         } else {
-            let s1 = c.sqrt();
-            let s2 = s1.sqrt();
-            let s3 = s2.sqrt();
-            0.585122381 * s1 + 0.783140355 * s2 - 0.368262736 * s3
-        }
-    })
-}
-
-#[inline(always)]
-pub fn srgba_to_linear(col: Rgba<f32>) -> Rgba<f32> {
-    Rgba::from_translucent(srgb_to_linear(Rgb::from(col)), col.a)
-}
-
-#[inline(always)]
-pub fn linear_to_srgba(col: Rgba<f32>) -> Rgba<f32> {
-    Rgba::from_translucent(linear_to_srgb(Rgb::from(col)), col.a)
-}
-
-/// Convert rgb to hsv. Expects rgb to be [0, 1].
-#[inline(always)]
-pub fn rgb_to_hsv(rgb: Rgb<f32>) -> Vec3<f32> {
-    let (r, g, b) = rgb.into_tuple();
-    let (max, min, diff, add) = {
-        let (max, min, diff, add) = if r > g {
-            (r, g, g - b, 0.0)
-        } else {
-            (g, r, b - r, 2.0)
+            // Default to picking midpoint in the xy plane
+            Vec3::new(from.y, -from.x, 0.0).normalized()
         };
-        if b > max {
-            (b, min, r - g, 4.0)
+
+        if factor > 0.5 {
+            (mid_dir, to, factor * 2.0 - 1.0)
         } else {
-            (max, b.min(min), diff, add)
+            (from, mid_dir, factor * 2.0)
         }
+    } else {
+        (from, to, factor)
     };
 
-    let v = max;
-    let h = if max == min {
-        0.0
-    } else {
-        let mut h = 60.0 * (add + diff / (max - min));
-        if h < 0.0 {
-            h += 360.0;
+    let slerped = Vec3::slerp(from, to, factor);
+    let slerped_normalized = slerped.normalized();
+    // Ensure normalization worked
+    // This should not be possible but I will leave it here for now just in case
+    // something was missed
+    #[cfg(debug_assertions)]
+    {
+        if {
+            let len_sq = slerped_normalized.magnitude_squared();
+            len_sq < 0.999 || len_sq > 1.001
+        } || slerped_normalized.map(f32::is_nan).reduce_or()
+        {
+            panic!(
+                "Failed to normalize {:?} produced from:\nslerp(\n    {:?},\n    {:?},\n    \
+                 {:?},\n)\nWith result: {:?})",
+                slerped, from, to, factor, slerped_normalized
+            );
         }
-        h
-    };
-    let s = if max == 0.0 { 0.0 } else { (max - min) / max };
+    }
 
-    Vec3::new(h, s, v)
-}
-
-/// Convert hsv to rgb. Expects h [0, 360], s [0, 1], v [0, 1]
-#[inline(always)]
-pub fn hsv_to_rgb(hsv: Vec3<f32>) -> Rgb<f32> {
-    let (h, s, v) = hsv.into_tuple();
-    let c = s * v;
-    let h = h / 60.0;
-    let x = c * (1.0 - (h % 2.0 - 1.0).abs());
-    let m = v - c;
-
-    let (r, g, b) = if h >= 0.0 && h <= 1.0 {
-        (c, x, 0.0)
-    } else if h <= 2.0 {
-        (x, c, 0.0)
-    } else if h <= 3.0 {
-        (0.0, c, x)
-    } else if h <= 4.0 {
-        (0.0, x, c)
-    } else if h <= 5.0 {
-        (x, 0.0, c)
-    } else {
-        (c, 0.0, x)
-    };
-
-    Rgb::new(r + m, g + m, b + m)
-}
-
-/// Convert linear rgb to CIExyY
-#[inline(always)]
-pub fn rgb_to_xyy(rgb: Rgb<f32>) -> Vec3<f32> {
-    // XYZ
-    let xyz = Mat3::new(
-        0.4124, 0.3576, 0.1805, 0.2126, 0.7152, 0.0722, 0.0193, 0.1192, 0.9504,
-    ) * Vec3::from(rgb);
-
-    let sum = xyz.sum();
-    Vec3::new(xyz.x / sum, xyz.y / sum, xyz.y)
-}
-
-/// Convert to CIExyY to linear rgb
-#[inline(always)]
-pub fn xyy_to_rgb(xyy: Vec3<f32>) -> Rgb<f32> {
-    let xyz = Vec3::new(
-        xyy.z / xyy.y * xyy.x,
-        xyy.z,
-        xyy.z / xyy.y * (1.0 - xyy.x - xyy.y),
-    );
-
-    Rgb::from(
-        Mat3::new(
-            3.2406, -1.5372, -0.4986, -0.9689, 1.8758, 0.0415, 0.0557, -0.2040, 1.0570,
-        ) * xyz,
-    )
-}
-
-// TO-DO: speed this up
-#[inline(always)]
-pub fn saturate_srgb(col: Rgb<f32>, value: f32) -> Rgb<f32> {
-    let mut hsv = rgb_to_hsv(srgb_to_linear(col));
-    hsv.y *= 1.0 + value;
-    linear_to_srgb(hsv_to_rgb(hsv).map(|e| e.min(1.0).max(0.0)))
-}
-
-/// Preserves the luma of one color while changing its chromaticty to match the
-/// other
-#[inline(always)]
-pub fn chromify_srgb(luma: Rgb<f32>, chroma: Rgb<f32>) -> Rgb<f32> {
-    let l = rgb_to_xyy(srgb_to_linear(luma)).z;
-    let mut xyy = rgb_to_xyy(srgb_to_linear(chroma));
-    xyy.z = l;
-
-    linear_to_srgb(xyy_to_rgb(xyy).map(|e| e.min(1.0).max(0.0)))
+    slerped_normalized
 }

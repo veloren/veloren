@@ -2,6 +2,7 @@ use crate::ecs::comp::Interpolated;
 use common::{
     comp::{Ori, Pos, Vel},
     state::DeltaTime,
+    util::safe_slerp,
 };
 use log::warn;
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -29,14 +30,7 @@ impl<'a> System<'a> for Sys {
             // Update interpolation values
             if i.pos.distance_squared(pos.0) < 64.0 * 64.0 {
                 i.pos = Lerp::lerp(i.pos, pos.0 + vel.0 * 0.03, 10.0 * dt.0);
-                let ori_interp = Slerp::slerp(i.ori, ori.0, 5.0 * dt.0);
-                // Check for NaNs
-                // TODO: why are we getting NaNs here! Zero-length ori vectors?
-                i.ori = if !ori_interp.map(|e| e.is_nan()).reduce_or() {
-                    ori_interp
-                } else {
-                    ori.0
-                };
+                i.ori = safe_slerp(i.ori, ori.0, 5.0 * dt.0);
             } else {
                 i.pos = pos.0;
                 i.ori = ori.0;
