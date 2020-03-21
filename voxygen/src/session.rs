@@ -319,11 +319,10 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::WallLeap, state) => {
                         self.inputs.wall_leap.set_state(state)
                     },
-                    // Event::InputUpdate(GameInput::ToggleWield, state) => {
-                    //     self.inputs.toggle_wield.set_state(state);
-                    // },
-                    Event::InputUpdate(GameInput::ToggleWield, state)
-                    | Event::InputUpdate(GameInput::SwapLoadout, state) => {
+                    Event::InputUpdate(GameInput::ToggleWield, state) => {
+                        self.inputs.toggle_wield.set_state(state);
+                    },
+                    Event::InputUpdate(GameInput::SwapLoadout, state) => {
                         let mut client = self.client.borrow_mut();
                         let entity = client.entity();
                         let loadout = client
