@@ -11,6 +11,7 @@ pub mod roll;
 pub mod run;
 pub mod shoot;
 pub mod sit;
+pub mod spin;
 pub mod stand;
 pub mod swim;
 pub mod wield;
@@ -20,7 +21,7 @@ pub use self::{
     attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
     charge::ChargeAnimation, cidle::CidleAnimation, climb::ClimbAnimation,
     gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation,
-    run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation, stand::StandAnimation,
+    run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation,stand::StandAnimation,
     swim::SwimAnimation, wield::WieldAnimation,
 };
 
