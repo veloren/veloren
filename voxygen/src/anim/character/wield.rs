@@ -39,9 +39,9 @@ impl Animation for WieldAnimation {
                 next.main.scale = Vec3::one();
 
                 next.control.offset = Vec3::new(-7.0, 6.0, 6.0);
-                next.control.ori = Quaternion::rotation_x(0.0)
+                next.control.ori = Quaternion::rotation_x(wave_ultra_slow * 0.15)
                     * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.0);
+                    * Quaternion::rotation_z(wave_ultra_slow_cos * 0.08);
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Axe(_)) => {
