@@ -43,5 +43,17 @@
         vox_spec: ("armor.chest.leather-0", (-7.0, -3.5, 2.0)),
         color: None
     ),
+    ClothPurple0:(
+        vox_spec: ("armor.chest.cloth_purple-0", (-7.0, -3.5, 2.0)),
+        color: None
+    ),
+    ClothBlue0:(
+        vox_spec: ("armor.chest.cloth_blue-0", (-7.0, -3.5, 2.0)),
+        color: None
+    ),
+   ClothGreen0:(
+        vox_spec: ("armor.chest.cloth_green-0", (-7.0, -3.5, 2.0)),
+        color: None
+    ),
     
 })
