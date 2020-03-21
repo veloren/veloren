@@ -129,11 +129,21 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// Checks that player can `Glide` and updates `CharacterState` if so
+/// Checks that player can Unwield and updates `CharacterState` if so
 pub fn handle_unwield(data: &JoinData, update: &mut StateUpdate) {
     if let CharacterState::Wielding { .. } = update.character {
         if data.inputs.toggle_wield.is_pressed() {
             update.character = CharacterState::Idle {};
+        }
+    }
+}
+
+/// Checks that player can Swap and updates Loadout
+pub fn handle_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
+    if let CharacterState::Wielding { .. } = update.character {
+        if data.inputs.swap_loadout.is_pressed() {
+            //TODO
+            println!("YAH NAH");
         }
     }
 }
