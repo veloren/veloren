@@ -149,10 +149,8 @@ impl MatSegment {
             _ => None,
         })
     }
-}
 
-impl From<&DotVoxData> for MatSegment {
-    fn from(dot_vox_data: &DotVoxData) -> Self {
+    pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data
                 .palette
@@ -186,7 +184,16 @@ impl From<&DotVoxData> for MatSegment {
                 };
 
                 vol.set(
-                    Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| i32::from(e)),
+                    Vec3::new(
+                        if flipped {
+                            model.size.x as u8 - 1 - voxel.x
+                        } else {
+                            voxel.x
+                        },
+                        voxel.y,
+                        voxel.z,
+                    )
+                    .map(|e| i32::from(e)),
                     block,
                 )
                 .unwrap();
@@ -197,4 +204,8 @@ impl From<&DotVoxData> for MatSegment {
             Dyna::filled(Vec3::zero(), MatCell::empty(), ())
         }
     }
+}
+
+impl From<&DotVoxData> for MatSegment {
+    fn from(dot_vox_data: &DotVoxData) -> Self { Self::from_vox(dot_vox_data, false) }
 }
