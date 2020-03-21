@@ -21,8 +21,8 @@ pub use self::{
     attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
     charge::ChargeAnimation, cidle::CidleAnimation, climb::ClimbAnimation,
     gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation,
-    run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation,stand::StandAnimation,
-    swim::SwimAnimation, wield::WieldAnimation,
+    run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation,
+    stand::StandAnimation, swim::SwimAnimation, wield::WieldAnimation,
 };
 
 use super::{Bone, Skeleton};
