@@ -30,11 +30,13 @@ pub struct Data {
     pub stage_exhausted: bool,
     /// Whether to go to next stage
     pub should_transition: bool,
+    /// Whether state has performed intialization logic
+    pub initialized: bool,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        let mut update= StateUpdate::from(data);
+        let mut update = StateUpdate::from(data);
 
         let stage_time_active = self
             .stage_time_active
@@ -42,6 +44,7 @@ impl CharacterBehavior for Data {
             .unwrap_or(Duration::default());
 
         let mut should_transition = self.should_transition;
+        let mut initialized = self.initialized;
 
         // If player stops holding input,
         if !data.inputs.primary.is_pressed() {
@@ -54,11 +57,20 @@ impl CharacterBehavior for Data {
             should_transition = false;
         }
 
+        if !initialized {
+            update.ori.0 = data.inputs.look_dir.normalized();
+            initialized = true;
+        }
+
         if self.stage < 3 {
             // Handling movement
             if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
                 let adjusted_accel = if self.stage == 0 {
-                    INITIAL_ACCEL
+                    if data.physics.touch_entity.is_none() {
+                        INITIAL_ACCEL
+                    } else {
+                        0.0
+                    }
                 } else {
                     SECONDARY_ACCEL
                 };
@@ -94,6 +106,7 @@ impl CharacterBehavior for Data {
                     stage_time_active,
                     stage_exhausted: true,
                     should_transition,
+                    initialized,
                 });
             } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
                 if should_transition {
@@ -103,6 +116,7 @@ impl CharacterBehavior for Data {
                         stage_time_active: Duration::default(),
                         stage_exhausted: false,
                         should_transition,
+                        initialized,
                     });
                 } else {
                     // Done
@@ -117,6 +131,7 @@ impl CharacterBehavior for Data {
                     stage_time_active,
                     stage_exhausted: self.stage_exhausted,
                     should_transition,
+                    initialized,
                 });
             }
         } else {
