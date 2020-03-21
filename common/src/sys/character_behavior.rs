@@ -31,9 +31,9 @@ pub struct JoinData<'a> {
     pub inputs: &'a ControllerInputs,
     pub stats: &'a Stats,
     pub energy: &'a Energy,
+    pub loadout: &'a Loadout,
     pub body: &'a Body,
     pub physics: &'a PhysicsState,
-    pub loadout: &'a Loadout,
     pub attacking: Option<&'a Attacking>,
     pub updater: &'a LazyUpdate,
 }
@@ -46,11 +46,11 @@ pub type JoinTuple<'a> = (
     &'a mut Vel,
     &'a mut Ori,
     &'a mut Energy,
+    &'a mut Loadout,
     &'a Controller,
     &'a Stats,
     &'a Body,
     &'a PhysicsState,
-    &'a Loadout,
     Option<&'a Attacking>,
 );
 
@@ -64,12 +64,12 @@ impl<'a> JoinData<'a> {
             vel: j.4,
             ori: j.5,
             energy: j.6,
-            controller: j.7,
-            inputs: &j.7.inputs,
-            stats: j.8,
-            body: j.9,
-            physics: j.10,
-            loadout: j.11,
+            loadout: j.7,
+            controller: j.8,
+            inputs: &j.8.inputs,
+            stats: j.9,
+            body: j.10,
+            physics: j.11,
             attacking: j.12,
             updater,
             dt,
@@ -98,11 +98,11 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Energy>,
+        WriteStorage<'a, Loadout>,
         ReadStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
-        ReadStorage<'a, Loadout>,
         ReadStorage<'a, Attacking>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
@@ -122,11 +122,11 @@ impl<'a> System<'a> for Sys {
             mut velocities,
             mut orientations,
             mut energies,
+            mut loadouts,
             controllers,
             stats,
             bodies,
             physics_states,
-            loadouts,
             attacking_storage,
             uids,
             mountings,
@@ -140,11 +140,11 @@ impl<'a> System<'a> for Sys {
             &mut velocities,
             &mut orientations,
             &mut energies,
+            &mut loadouts,
             &controllers,
             &stats,
             &bodies,
             &physics_states,
-            &loadouts,
             attacking_storage.maybe(),
         )
             .join();
@@ -204,6 +204,7 @@ impl<'a> System<'a> for Sys {
             *tuple.4 = state_update.vel;
             *tuple.5 = state_update.ori;
             *tuple.6 = state_update.energy;
+            *tuple.7 = state_update.loadout;
             local_bus.emitter().append(&mut state_update.local_events);
             server_bus.emitter().append(&mut state_update.server_events);
         }

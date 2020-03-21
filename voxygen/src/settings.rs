@@ -101,7 +101,7 @@ impl Default for ControlSettings {
             respawn: KeyMouse::Key(VirtualKeyCode::Space),
             interact: KeyMouse::Mouse(MouseButton::Right),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
-            swap_loadout: KeyMouse::Key(VirtualKeyCode::LAlt),
+            swap_loadout: KeyMouse::Key(VirtualKeyCode::Q),
             charge: KeyMouse::Key(VirtualKeyCode::Key1),
         }
     }

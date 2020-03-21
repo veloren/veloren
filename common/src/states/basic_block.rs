@@ -3,7 +3,6 @@ use crate::{
     comp::StateUpdate,
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
-use std::collections::VecDeque;
 
 // const BLOCK_ACCEL: f32 = 30.0;
 // const BLOCK_SPEED: f32 = 75.0;
@@ -13,15 +12,7 @@ pub struct Data;
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate {
-            pos: *data.pos,
-            vel: *data.vel,
-            ori: *data.ori,
-            energy: *data.energy,
-            character: data.character.clone(),
-            local_events: VecDeque::new(),
-            server_events: VecDeque::new(),
-        };
+        let mut update = StateUpdate::from(data);
 
         handle_move(&data, &mut update);
 

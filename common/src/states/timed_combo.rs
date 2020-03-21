@@ -2,7 +2,7 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
-use std::{collections::VecDeque, time::Duration};
+use std::time::Duration;
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
     /// Denotes what stage (of 3) the attack is in
@@ -21,15 +21,7 @@ pub struct Data {
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate {
-            pos: *data.pos,
-            vel: *data.vel,
-            ori: *data.ori,
-            energy: *data.energy,
-            character: data.character.clone(),
-            local_events: VecDeque::new(),
-            server_events: VecDeque::new(),
-        };
+        let mut update = StateUpdate::from(data);
 
         let new_stage_time_active = self
             .stage_time_active
