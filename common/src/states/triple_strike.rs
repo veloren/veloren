@@ -81,7 +81,7 @@ impl CharacterBehavior for Data {
                     }
                 };
             } else {
-                handle_orientation(data, &mut update);
+                handle_orientation(data, &mut update, 10.0);
             }
 
             // Handling attacking
