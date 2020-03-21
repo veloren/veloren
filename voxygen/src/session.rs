@@ -319,6 +319,27 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::WallLeap, state) => {
                         self.inputs.wall_leap.set_state(state)
                     },
+                    // Event::InputUpdate(GameInput::ToggleWield, state) => {
+                    //     self.inputs.toggle_wield.set_state(state);
+                    // },
+                    Event::InputUpdate(GameInput::ToggleWield, state)
+                    | Event::InputUpdate(GameInput::SwapLoadout, state) => {
+                        let mut client = self.client.borrow_mut();
+                        let entity = client.entity();
+                        let loadout = client
+                            .state()
+                            .read_storage::<comp::Loadout>()
+                            .get(entity)
+                            .cloned();
+
+                        if let Some(loadout) = loadout {
+                            let mut new_loadout = loadout.clone();
+                            new_loadout.second_item = loadout.active_item;
+                            new_loadout.active_item = loadout.second_item;
+
+                            client.state_mut().write_component(entity, new_loadout);
+                        }
+                    },
                     Event::InputUpdate(GameInput::Mount, true) => {
                         let mut client = self.client.borrow_mut();
                         if client.is_mounted() {
@@ -383,9 +404,6 @@ impl PlayState for SessionState {
                                 client.pick_up(entity);
                             }
                         }
-                    },
-                    Event::InputUpdate(GameInput::ToggleWield, state) => {
-                        self.inputs.toggle_wield.set_state(state)
                     },
                     Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);

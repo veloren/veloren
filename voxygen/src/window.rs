@@ -49,6 +49,7 @@ pub enum GameInput {
     Interact,
     ToggleWield,
     Charge,
+    SwapLoadout,
 }
 
 /// Represents a key that the game menus recognise after input mapping
@@ -455,6 +456,9 @@ impl Window {
         map.entry(settings.controls.toggle_wield)
             .or_default()
             .push(GameInput::ToggleWield);
+        map.entry(settings.controls.swap_loadout)
+            .or_default()
+            .push(GameInput::SwapLoadout);
         map.entry(settings.controls.charge)
             .or_default()
             .push(GameInput::Charge);
