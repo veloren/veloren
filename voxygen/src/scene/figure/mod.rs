@@ -12,6 +12,7 @@ use crate::{
         object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
         quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
     },
+    ecs::comp::Interpolated,
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::{
         camera::{Camera, CameraMode},
@@ -115,8 +116,8 @@ impl FigureMgr {
         for (
             entity,
             pos,
+            interpolated,
             vel,
-            ori,
             scale,
             body,
             character,
@@ -127,8 +128,8 @@ impl FigureMgr {
         ) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
+            ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Vel>(),
-            ecs.read_storage::<Ori>().maybe(),
             ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<CharacterState>().maybe(),
@@ -139,7 +140,9 @@ impl FigureMgr {
         )
             .join()
         {
-            let ori = ori.copied().unwrap_or(Ori(Vec3::unit_y()));
+            let (pos, ori) = interpolated
+                .map(|i| (Pos(i.pos), Ori(i.ori)))
+                .unwrap_or((*pos, Ori(Vec3::unit_y())));
 
             // Don't process figures outside the vd
             let vd_frac = Vec2::from(pos.0 - player_pos)
@@ -477,7 +480,7 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicRanged(_) => {
-                            anim::character::AttackAnimation::update_skeleton(
+                            anim::character::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
                                 state.state_time,
@@ -613,7 +616,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -694,7 +696,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -777,7 +778,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -852,7 +852,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -927,7 +926,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -1002,7 +1000,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -1077,7 +1074,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -1152,7 +1148,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -1227,7 +1222,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -1302,7 +1296,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -1322,7 +1315,6 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        vel.0,
                         ori.0,
                         scale,
                         col,
@@ -1678,8 +1670,6 @@ pub struct FigureState<S: Skeleton> {
     locals: Consts<FigureLocals>,
     state_time: f64,
     skeleton: S,
-    pos: Vec3<f32>,
-    ori: Vec3<f32>,
     last_ori: Vec3<f32>,
     lpindex: u8,
     visible: bool,
@@ -1694,8 +1684,6 @@ impl<S: Skeleton> FigureState<S> {
             locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
             state_time: 0.0,
             skeleton,
-            pos: Vec3::zero(),
-            ori: Vec3::zero(),
             last_ori: Vec3::zero(),
             lpindex: 0,
             visible: false,
@@ -1706,7 +1694,6 @@ impl<S: Skeleton> FigureState<S> {
         &mut self,
         renderer: &mut Renderer,
         pos: Vec3<f32>,
-        vel: Vec3<f32>,
         ori: Vec3<f32>,
         scale: f32,
         col: Rgba<f32>,
@@ -1717,23 +1704,14 @@ impl<S: Skeleton> FigureState<S> {
     ) {
         self.visible = visible;
         self.lpindex = lpindex;
+        // What is going on here?
+        // (note: that ori is now the slerped ori)
         self.last_ori = Lerp::lerp(self.last_ori, ori, 15.0 * dt);
-
-        // Update interpolation values
-        // TODO: use values from Interpolated component instead of recalculating
-        if self.pos.distance_squared(pos) < 64.0 * 64.0 {
-            self.pos = Lerp::lerp(self.pos, pos + vel * 0.03, 10.0 * dt);
-            self.ori = Slerp::slerp(self.ori, ori, 5.0 * dt);
-        } else {
-            self.pos = pos;
-            self.ori = ori;
-        }
 
         self.state_time += (dt * state_animation_rate) as f64;
 
-        // TODO: what are the interpolated ori values used for if not here???
         let mat = Mat4::<f32>::identity()
-            * Mat4::translation_3d(self.pos)
+            * Mat4::translation_3d(pos)
             * Mat4::rotation_z(-ori.x.atan2(ori.y))
             * Mat4::rotation_x(ori.z.atan2(Vec2::from(ori).magnitude()))
             * Mat4::scaling_3d(Vec3::from(0.8 * scale));

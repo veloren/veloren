@@ -1,6 +1,7 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     sys::character_behavior::*,
+    util::safe_slerp,
 };
 use std::{collections::VecDeque, time::Duration};
 use vek::Vec3;
@@ -34,7 +35,6 @@ impl CharacterBehavior for Data {
 
         if self.initialize {
             update.vel.0 = data.inputs.look_dir * 20.0;
-            update.ori.0 = update.vel.0;
         }
 
         if self.buildup_duration != Duration::default() && data.physics.touch_entity.is_none() {
@@ -98,6 +98,8 @@ impl CharacterBehavior for Data {
                 update.energy.change_by(100, EnergySource::HitEnemy);
             }
         }
+
+        update.ori.0 = safe_slerp(update.ori.0, update.vel.0, 9.0 * data.dt.0);
 
         update
     }

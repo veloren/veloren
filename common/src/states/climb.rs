@@ -5,6 +5,7 @@ use crate::{
         character_behavior::{CharacterBehavior, JoinData},
         phys::GRAVITY,
     },
+    util::safe_slerp,
 };
 use std::collections::VecDeque;
 use vek::{
@@ -67,16 +68,11 @@ impl CharacterBehavior for Data {
         };
 
         // Smooth orientation
-        if ori_dir.magnitude_squared() > 0.0001
-            && (update.ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
-                > 0.001
-        {
-            update.ori.0 = vek::ops::Slerp::slerp(
-                update.ori.0,
-                ori_dir.into(),
-                if data.physics.on_ground { 9.0 } else { 2.0 } * data.dt.0,
-            );
-        }
+        update.ori.0 = safe_slerp(
+            update.ori.0,
+            ori_dir.into(),
+            if data.physics.on_ground { 9.0 } else { 2.0 } * data.dt.0,
+        );
 
         // Apply Vertical Climbing Movement
         if let (true, Some(_wall_dir)) = (
