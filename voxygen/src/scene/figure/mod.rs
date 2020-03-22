@@ -418,7 +418,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -650,7 +650,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -730,7 +730,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -810,7 +810,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -884,7 +884,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -958,7 +958,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -1032,7 +1032,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -1106,7 +1106,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -1180,7 +1180,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
@@ -1254,7 +1254,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if !character.equals(&last_character.0) {
+                    if !character.same_variant(&last_character.0) {
                         state.state_time = 0.0;
                     }
 
