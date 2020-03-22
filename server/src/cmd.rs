@@ -829,14 +829,18 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
 }
 
 fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let radius = scan_fmt!(&args, action.arg_fmt, f32).unwrap_or(8.0);
+    let power = scan_fmt!(&args, action.arg_fmt, f32).unwrap_or(8.0);
+    let ecs = server.state.ecs();
 
     match server.state.read_component_cloned::<comp::Pos>(entity) {
-        Some(pos) => server
-            .state
-            .ecs()
-            .read_resource::<EventBus<ServerEvent>>()
-            .emit_now(ServerEvent::Explosion { pos: pos.0, radius }),
+        Some(pos) => {
+            ecs.read_resource::<EventBus<ServerEvent>>()
+                .emit_now(ServerEvent::Explosion {
+                    pos: pos.0,
+                    power,
+                    owner: ecs.read_storage::<Uid>().get(entity).copied(),
+                })
+        },
         None => server.notify_client(
             entity,
             ServerMsg::private(String::from("You have no position!")),

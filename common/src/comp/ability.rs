@@ -21,6 +21,11 @@ pub enum CharacterAbility {
         projectile: Projectile,
         projectile_body: Body,
     },
+    CastFireball {
+        recover_duration: Duration,
+        projectile: Projectile,
+        projectile_body: Body,
+    },
     Boost {
         duration: Duration,
         only_up: bool,
@@ -61,6 +66,13 @@ impl CharacterAbility {
                     && update
                         .energy
                         .try_change_by(-300, EnergySource::Ability)
+                        .is_ok()
+            },
+            CharacterAbility::CastFireball { .. } => {
+                !data.physics.in_fluid
+                    && update
+                        .energy
+                        .try_change_by(-500, EnergySource::Ability)
                         .is_ok()
             },
             _ => true,
@@ -112,6 +124,17 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile,
                 projectile_body,
             } => CharacterState::BasicRanged(basic_ranged::Data {
+                exhausted: false,
+                prepare_timer: Duration::default(),
+                recover_duration: *recover_duration,
+                projectile: projectile.clone(),
+                projectile_body: *projectile_body,
+            }),
+            CharacterAbility::CastFireball {
+                recover_duration,
+                projectile,
+                projectile_body,
+            } => CharacterState::CastFireball(cast_fireball::Data {
                 exhausted: false,
                 prepare_timer: Duration::default(),
                 recover_duration: *recover_duration,
