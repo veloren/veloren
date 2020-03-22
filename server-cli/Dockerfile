@@ -7,4 +7,4 @@ COPY ./assets/common /opt/assets/common
 COPY ./assets/world /opt/assets/world
 
 WORKDIR /opt
-CMD ["RUST_LOG=info,common=debug,common::net=info RUST_BACKTRACE=1 /opt/veloren-server-cli"]
+CMD [ "sh", "-c", "RUST_LOG=info,common=debug,common::net=info RUST_BACKTRACE=1 /opt/veloren-server-cli" ]
