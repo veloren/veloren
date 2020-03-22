@@ -144,7 +144,7 @@ impl<E> EventBus<E> {
         }
     }
 
-    pub fn emit(&self, event: E) { self.queue.lock().push_front(event); }
+    pub fn emit_now(&self, event: E) { self.queue.lock().push_back(event); }
 
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = E> {
         std::mem::replace(self.queue.lock().deref_mut(), VecDeque::new()).into_iter()
@@ -157,7 +157,7 @@ pub struct Emitter<'a, E> {
 }
 
 impl<'a, E> Emitter<'a, E> {
-    pub fn emit(&mut self, event: E) { self.events.push_front(event); }
+    pub fn emit(&mut self, event: E) { self.events.push_back(event); }
 
     pub fn append(&mut self, other: &mut VecDeque<E>) { self.events.append(other) }
 }

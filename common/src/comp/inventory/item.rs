@@ -10,7 +10,7 @@ use crate::{
 use rand::seq::SliceRandom;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
-use std::{fs::File, io::BufReader, time::Duration, vec::Vec};
+use std::{fs::File, io::BufReader, time::Duration};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum SwordKind {
@@ -68,28 +68,24 @@ impl ToolData {
         use ToolKind::*;
 
         match self.kind {
-            Sword(_) => vec![
-                // BasicMelee {
-                //     buildup_duration: Duration::from_millis(100),
-                //     recover_duration: Duration::from_millis(500),
-                //     base_damage: 6,
-                // },
-                CharacterAbility::TripleStrike { base_damage: 7 },
-                DashMelee {
-                    buildup_duration: Duration::from_millis(500),
-                    recover_duration: Duration::from_millis(500),
-                    base_damage: 20,
-                },
-            ],
+            Sword(_) => vec![TripleStrike { base_damage: 7 }, DashMelee {
+                buildup_duration: Duration::from_millis(500),
+                recover_duration: Duration::from_millis(500),
+                base_damage: 20,
+            }],
             Axe(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(100),
                 base_damage: 8,
+                range: 3.5,
+                max_angle: 30.0,
             }],
             Hammer(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(300),
                 base_damage: 10,
+                range: 3.5,
+                max_angle: 60.0,
             }],
             Bow(_) => vec![BasicRanged {
                 projectile: Projectile {
@@ -113,12 +109,16 @@ impl ToolData {
                 buildup_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(400),
                 base_damage: 5,
+                range: 3.5,
+                max_angle: 60.0,
             }],
             Staff(_) => vec![
                 BasicMelee {
-                    buildup_duration: Duration::from_millis(400),
+                    buildup_duration: Duration::from_millis(0),
                     recover_duration: Duration::from_millis(300),
-                    base_damage: 7,
+                    base_damage: 3,
+                    range: 10.0,
+                    max_angle: 45.0,
                 },
                 BasicRanged {
                     projectile: Projectile {
@@ -321,8 +321,28 @@ impl Item {
                     "common.items.armor.shoulder.plate_0",
                     "common.items.armor.shoulder.leather_1",
                     "common.items.armor.shoulder.leather_0",
+                    "common.items.armor.hand.leather_0",
+                    "common.items.armor.hand.plate_0",
                     "common.items.weapons.wood_sword",
                     "common.items.weapons.short_sword_0",
+                    "common.items.armor.belt.cloth_blue_0",
+                    "common.items.armor.chest.cloth_blue_0",
+                    "common.items.armor.foot.cloth_blue_0",
+                    "common.items.armor.pants.cloth_blue_0",
+                    "common.items.armor.shoulder.cloth_blue_0",
+                    "common.items.armor.hand.cloth_blue_0",
+                    "common.items.armor.belt.cloth_green_0",
+                    "common.items.armor.chest.cloth_green_0",
+                    "common.items.armor.foot.cloth_green_0",
+                    "common.items.armor.pants.cloth_green_0",
+                    "common.items.armor.shoulder.cloth_green_0",
+                    "common.items.armor.hand.cloth_green_0",
+                    "common.items.armor.belt.cloth_purple_0",
+                    "common.items.armor.chest.cloth_purple_0",
+                    "common.items.armor.foot.cloth_purple_0",
+                    "common.items.armor.pants.cloth_purple_0",
+                    "common.items.armor.shoulder.cloth_purple_0",
+                    "common.items.armor.hand.cloth_purple_0",
                 ]
                 .choose(&mut rand::thread_rng())
                 .unwrap(), // Can't fail

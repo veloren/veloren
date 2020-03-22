@@ -836,7 +836,7 @@ fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action
             .state
             .ecs()
             .read_resource::<EventBus<ServerEvent>>()
-            .emit(ServerEvent::Explosion { pos: pos.0, radius }),
+            .emit_now(ServerEvent::Explosion { pos: pos.0, radius }),
         None => server.notify_client(
             entity,
             ServerMsg::private(String::from("You have no position!")),

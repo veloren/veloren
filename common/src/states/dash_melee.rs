@@ -27,6 +27,7 @@ impl CharacterBehavior for Data {
 
         if self.initialize {
             update.vel.0 = data.inputs.look_dir * 20.0;
+            update.ori.0 = data.vel.0.normalized();
         }
 
         if self.buildup_duration != Duration::default() && data.physics.touch_entity.is_none() {
