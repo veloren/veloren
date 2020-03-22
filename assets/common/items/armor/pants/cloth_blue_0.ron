@@ -2,7 +2,7 @@ Item(
     name: "Blue Linen Skirt",
    description: "WIP",
     kind: Armor(
-        kind: Belt(ClothBlue0),
+        kind: Pants(ClothBlue0),
         stats: 20,
     ),
 )
