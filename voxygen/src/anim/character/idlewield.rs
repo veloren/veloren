@@ -4,9 +4,9 @@ use std::{f32::consts::PI, ops::Mul};
 
 use vek::*;
 
-pub struct WieldAnimation;
+pub struct IdleWieldAnimation;
 
-impl Animation for WieldAnimation {
+impl Animation for IdleWieldAnimation {
     type Dependency = (Option<ToolKind>, f32, f64);
     type Skeleton = CharacterSkeleton;
 
@@ -18,22 +18,11 @@ impl Animation for WieldAnimation {
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let lab = 1.0;
-
-        let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.32).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.32).sin());
-        let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 1.32).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.32).sin());
+        let _lab = 1.0;
+        let wave_slow_cos = (anim_time as f32 * 6.0 + PI).cos();
         let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
-        let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 0.66).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 0.66).sin());
+
         let wave = (anim_time as f32 * 1.0).sin();
         match active_tool_kind {
             //TODO: Inventory
@@ -200,48 +189,50 @@ impl Animation for WieldAnimation {
             _ => {},
         }
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 6.0)
+            ((global_time + anim_time) as f32 / 10.0)
                 .floor()
                 .mul(7331.0)
                 .sin()
                 * 0.2,
-            ((global_time + anim_time) as f32 / 6.0)
+            ((global_time + anim_time) as f32 / 10.0)
                 .floor()
                 .mul(1337.0)
                 .sin()
                 * 0.1,
         );
         next.head.offset = Vec3::new(
-            0.0,
-            -3.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 22.0 + short * 1.3,
+            0.0 + skeleton_attr.neck_right + wave_slow_cos * 0.5,
+            -2.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 21.0 + wave_ultra_slow * 0.6,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x + long * 0.1)
-            * Quaternion::rotation_x(head_look.y + 0.35);
+        next.head.ori =
+            Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y.abs());
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
-        next.chest.offset = Vec3::new(0.0, 0.0, 9.0 + short * 1.1);
-        next.chest.ori = Quaternion::rotation_z(short * 0.2);
+        next.chest.offset = Vec3::new(0.0 + wave_slow_cos * 0.5, 0.0, 7.0 + wave_ultra_slow * 0.5);
+        next.chest.ori =
+            Quaternion::rotation_y(wave_ultra_slow_cos * 0.04) * Quaternion::rotation_z(0.15);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(0.0, 0.0, 7.0 + short * 1.1);
-        next.belt.ori = Quaternion::rotation_z(short * 0.35);
-        next.belt.scale = Vec3::one();
+        next.belt.offset = Vec3::new(0.0 + wave_slow_cos * 0.5, 0.0, 5.0 + wave_ultra_slow * 0.5);
+        next.belt.ori =
+            Quaternion::rotation_y(wave_ultra_slow_cos * 0.03) * Quaternion::rotation_z(0.22);
+        next.belt.scale = Vec3::one() * 1.02;
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, 4.0 + short * 1.1);
-        next.shorts.ori = Quaternion::rotation_z(short * 0.6);
+        next.shorts.offset = Vec3::new(0.0 + wave_slow_cos * 0.5, 0.0, 2.0 + wave_ultra_slow * 0.5);
+        next.shorts.ori = Quaternion::rotation_z(0.3);
         next.shorts.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, foot * 1.0, 9.0);
-        next.l_foot.ori = Quaternion::rotation_x(foot * -1.2);
+        next.l_foot.offset = Vec3::new(-3.4, -2.5, 8.0);
+        next.l_foot.ori = Quaternion::rotation_x(wave_ultra_slow_cos * 0.035 - 0.2);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, foot * -1.0, 9.0);
-        next.r_foot.ori = Quaternion::rotation_x(foot * 1.2);
+        next.r_foot.offset = Vec3::new(3.4, 3.5, 8.0);
+        next.r_foot.ori = Quaternion::rotation_x(wave_ultra_slow * 0.035);
         next.r_foot.scale = Vec3::one();
 
-        next.torso.offset = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(-0.2);
+        next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
+        next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
