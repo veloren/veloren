@@ -1,19 +1,14 @@
 use lazy_static::*;
-use std::{sync::Arc, thread, time::Duration};
+use std::{
+    net::SocketAddr,
+    sync::atomic::{AtomicU16, Ordering},
+    thread,
+    time::Duration,
+};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use uvth::{ThreadPool, ThreadPoolBuilder};
 
-pub fn setup(tracing: bool, mut sleep: u64) -> (Arc<ThreadPool>, u64) {
-    lazy_static! {
-        static ref THREAD_POOL: Arc<ThreadPool> = Arc::new(
-            ThreadPoolBuilder::new()
-                .name("veloren-network-test".into())
-                .num_threads(2)
-                .build(),
-        );
-    }
-
+pub fn setup(tracing: bool, mut sleep: u64) -> (u64, u64) {
     if tracing {
         sleep += 1000
     }
@@ -49,5 +44,13 @@ pub fn setup(tracing: bool, mut sleep: u64) -> (Arc<ThreadPool>, u64) {
         None
     };
 
-    (THREAD_POOL.clone(), 0)
+    (0, 0)
+}
+
+pub fn tcp() -> veloren_network::Address {
+    lazy_static! {
+        static ref PORTS: AtomicU16 = AtomicU16::new(5000);
+    }
+    let port = PORTS.fetch_add(1, Ordering::Relaxed);
+    veloren_network::Address::Tcp(SocketAddr::from(([127, 0, 0, 1], port)))
 }
