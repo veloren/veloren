@@ -16,7 +16,7 @@ pub(crate) struct MessageBuffer {
 pub(crate) struct OutGoingMessage {
     pub buffer: Arc<MessageBuffer>,
     pub cursor: u64,
-    pub mid: Option<Mid>,
+    pub mid: Mid,
     pub sid: Sid,
 }
 
