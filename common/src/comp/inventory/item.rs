@@ -74,7 +74,7 @@ impl ToolData {
                 //     recover_duration: Duration::from_millis(500),
                 //     base_damage: 6,
                 // },
-                CharacterAbility::TripleStrike { base_damage: 7 },
+                TripleStrike { base_damage: 7 },
                 DashMelee {
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
