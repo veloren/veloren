@@ -45,7 +45,9 @@ impl Server {
 
         for event in events {
             match event {
-                ServerEvent::Explosion { pos, radius } => handle_explosion(&self, pos, radius),
+                ServerEvent::Explosion { pos, power, owner } => {
+                    handle_explosion(&self, pos, power, owner)
+                },
                 ServerEvent::Shoot {
                     entity,
                     dir,

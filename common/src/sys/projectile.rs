@@ -1,5 +1,5 @@
 use crate::{
-    comp::{projectile, HealthSource, Ori, PhysicsState, Projectile, Vel},
+    comp::{projectile, HealthSource, Ori, PhysicsState, Pos, Projectile, Vel},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
@@ -13,6 +13,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
+        ReadStorage<'a, Pos>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -25,6 +26,7 @@ impl<'a> System<'a> for Sys {
             entities,
             dt,
             server_bus,
+            positions,
             physics_states,
             velocities,
             mut orientations,
@@ -34,8 +36,9 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
-        for (entity, physics, ori, projectile) in (
+        for (entity, pos, physics, ori, projectile) in (
             &entities,
+            &positions,
             &physics_states,
             &mut orientations,
             &mut projectiles,
@@ -46,6 +49,13 @@ impl<'a> System<'a> for Sys {
             if physics.on_ground {
                 for effect in projectile.hit_ground.drain(..) {
                     match effect {
+                        projectile::Effect::Explode { power } => {
+                            server_emitter.emit(ServerEvent::Explosion {
+                                pos: pos.0,
+                                power,
+                                owner: projectile.owner,
+                            })
+                        },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
@@ -58,6 +68,13 @@ impl<'a> System<'a> for Sys {
             else if physics.on_wall.is_some() {
                 for effect in projectile.hit_wall.drain(..) {
                     match effect {
+                        projectile::Effect::Explode { power } => {
+                            server_emitter.emit(ServerEvent::Explosion {
+                                pos: pos.0,
+                                power,
+                                owner: projectile.owner,
+                            })
+                        },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
@@ -72,6 +89,13 @@ impl<'a> System<'a> for Sys {
                     match effect {
                         projectile::Effect::Damage(change) => {
                             server_emitter.emit(ServerEvent::Damage { uid: other, change })
+                        },
+                        projectile::Effect::Explode { power } => {
+                            server_emitter.emit(ServerEvent::Explosion {
+                                pos: pos.0,
+                                power,
+                                owner: projectile.owner,
+                            })
                         },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,

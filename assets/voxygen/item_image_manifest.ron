@@ -181,7 +181,7 @@
         "voxel.armor.hand.cloth_green_right-0",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-    Armor(Shoulder(Leather1)): VoxTrans(
+    Armor(Shoulder(ClothGreen0)): VoxTrans(
         "voxel.armor.shoulder.cloth_green_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),

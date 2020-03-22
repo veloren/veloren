@@ -52,6 +52,8 @@ pub enum CharacterState {
     BasicMelee(basic_melee::Data),
     /// A basic ranged attack (e.g. bow)
     BasicRanged(basic_ranged::Data),
+    /// Cast a fireball
+    CastFireball(cast_fireball::Data),
     /// A force will boost you into a direction for some duration
     Boost(boost::Data),
     /// Dash forward and then attack
@@ -70,6 +72,7 @@ impl CharacterState {
             CharacterState::Wielding
             | CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
+            | CharacterState::CastFireball(_)
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_)
             | CharacterState::TimedCombo(_)
@@ -89,6 +92,7 @@ impl CharacterState {
         match self {
             CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
+            | CharacterState::CastFireball(_)
             | CharacterState::TimedCombo(_)
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_) => true,
