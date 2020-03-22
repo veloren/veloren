@@ -66,10 +66,6 @@ impl CharacterAbility {
     }
 }
 
-impl Component for CharacterAbility {
-    type Storage = IDVStorage<Self>;
-}
-
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
     pub item: Item,
