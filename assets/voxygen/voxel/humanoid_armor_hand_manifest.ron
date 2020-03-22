@@ -51,7 +51,7 @@
     ),
     ClothPurple0: (
         left: (
-            vox_spec: ("armor.hand.cloth_purple_left-0", (-1.5, -1.5, -7.0)),
+            vox_spec: ("armor.hand.cloth_purple_right-0", (-1.5, -1.5, -7.0)),
             color: None
         ),
         right: (
@@ -61,7 +61,7 @@
     ),
     ClothBlue0: (
         left: (
-            vox_spec: ("armor.hand.cloth_blue_left-0", (-1.5, -1.5, -7.0)),
+            vox_spec: ("armor.hand.cloth_blue_right-0", (-1.5, -1.5, -7.0)),
             color: None
         ),
         right: (
@@ -71,7 +71,7 @@
     ),
     ClothGreen0: (
         left: (
-            vox_spec: ("armor.hand.cloth_green_left-0", (-1.5, -1.5, -7.0)),
+            vox_spec: ("armor.hand.cloth_green_right-0", (-1.5, -1.5, -7.0)),
             color: None
         ),
         right: (
