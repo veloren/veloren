@@ -69,7 +69,7 @@ impl Animation for SpinAnimation {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
                     -2.0 + skeleton_attr.neck_forward + decel * -0.8,
-                    skeleton_attr.neck_height + 21.0,
+                    skeleton_attr.neck_height + 14.0,
                 );
                 next.head.ori = Quaternion::rotation_z(decel * -0.25)
                     * Quaternion::rotation_x(0.0 + decel * -0.1)
@@ -81,16 +81,12 @@ impl Animation for SpinAnimation {
                     * Quaternion::rotation_y(decel * -0.2);
                 next.chest.scale = Vec3::one();
 
-                next.belt.offset = Vec3::new(0.0, 0.0, 5.0);
-                next.belt.ori = Quaternion::rotation_z(decel * 0.1)
-                    * Quaternion::rotation_x(0.0 + decel * 0.1)
-                    * Quaternion::rotation_y(decel * -0.1);
+                next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
+                next.belt.ori = next.chest.ori * -0.1;
                 next.belt.scale = Vec3::one();
 
-                next.shorts.offset = Vec3::new(0.0, 0.0, 2.0);
-                next.belt.ori = Quaternion::rotation_z(decel * 0.08)
-                    * Quaternion::rotation_x(0.0 + decel * 0.08)
-                    * Quaternion::rotation_y(decel * -0.08);
+                next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
+                next.belt.ori = next.chest.ori * -0.08;
                 next.shorts.scale = Vec3::one();
                 next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
                 next.torso.ori = Quaternion::rotation_z((spin * 7.0).max(0.3))

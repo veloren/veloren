@@ -36,7 +36,7 @@ impl Animation for IdleAnimation {
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
             -2.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 21.0 + wave_ultra_slow * 0.1,
+            skeleton_attr.neck_height + 14.0 + wave_ultra_slow * 0.1,
         );
         /*next.head.ori =
         Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y.abs());*/
@@ -47,11 +47,11 @@ impl Animation for IdleAnimation {
         next.chest.ori = Quaternion::rotation_x(0.0);
         next.chest.scale = Vec3::one() + wave_ultra_slow_abs * 0.05;
 
-        next.belt.offset = Vec3::new(0.0, 0.0, 5.0 + wave_ultra_slow * 0.1);
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0 + wave_ultra_slow * 0.1);
         next.belt.ori = Quaternion::rotation_x(0.0);
         next.belt.scale = Vec3::one() + wave_ultra_slow_abs * 0.05;
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, 2.0 + wave_ultra_slow * 0.1);
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0 + wave_ultra_slow * 0.1);
         next.shorts.ori = Quaternion::rotation_x(0.0);
         next.shorts.scale = Vec3::one();
 

@@ -498,7 +498,7 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::DashMelee(_) => {
-                            anim::character::AttackAnimation::update_skeleton(
+                            anim::character::ChargeAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
                                 state.state_time,
@@ -507,7 +507,7 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::TripleStrike(s) => match s.stage {
-                            0 => anim::character::ChargeAnimation::update_skeleton(
+                            0 => anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, time),
                                 state.state_time,
@@ -565,13 +565,23 @@ impl FigureMgr {
                             )
                         }*/
                         CharacterState::Equipping { .. } => {
-                            anim::character::WieldAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                            if vel.0.magnitude_squared() > 0.5 {
+                                anim::character::WieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::character::IdleWieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
                         },
                         CharacterState::Wielding { .. } => {
                             if vel.0.magnitude_squared() > 0.5 {
