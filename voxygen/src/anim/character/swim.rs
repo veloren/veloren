@@ -53,7 +53,7 @@ impl Animation for SwimAnimation {
         next.head.offset = Vec3::new(
             0.0,
             -3.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 21.0 + wave_cos * 1.3,
+            skeleton_attr.neck_height + 14.0 + wave_cos * 1.3,
         );
         next.head.ori = Quaternion::rotation_z(head_look.x + wave * 0.1)
             * Quaternion::rotation_x(head_look.y + 0.35);
@@ -63,11 +63,11 @@ impl Animation for SwimAnimation {
         next.chest.ori = Quaternion::rotation_z(wave * 0.2);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(0.0, 0.0, 5.0 + wave_cos * 1.1);
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0 + wave_cos * 1.1);
         next.belt.ori = Quaternion::rotation_z(wave * 0.35);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, 2.0 + wave_cos * 1.1);
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0 + wave_cos * 1.1);
         next.shorts.ori = Quaternion::rotation_z(wave * 0.6);
         next.shorts.scale = Vec3::one();
 

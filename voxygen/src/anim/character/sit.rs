@@ -40,7 +40,7 @@ impl Animation for SitAnimation {
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
             wave_stop * -3.6 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 21.0 + wave_slow * 0.1 + wave_stop * -0.8,
+            skeleton_attr.neck_height + 14.0 + wave_slow * 0.1 + wave_stop * -0.8,
         );
         next.head.ori =
             Quaternion::rotation_z(head_look.x + wave_ultra_slow * 0.2 - wave_slow * 0.1)
@@ -57,11 +57,11 @@ impl Animation for SitAnimation {
         next.chest.ori = Quaternion::rotation_x(wave_stop * 0.15);
         next.chest.scale = Vec3::one() + wave_slow_abs * 0.05;
 
-        next.belt.offset = Vec3::new(0.0, wave_stop * 1.2, 5.0);
+        next.belt.offset = Vec3::new(0.0, wave_stop * 1.2, -2.0);
         next.belt.ori = Quaternion::rotation_x(wave_stop * 0.3);
         next.belt.scale = (Vec3::one() + wave_slow_abs * 0.05) * 1.02;
 
-        next.shorts.offset = Vec3::new(0.0, wave_stop * 2.5, 2.0 + wave_stop * 0.6);
+        next.shorts.offset = Vec3::new(0.0, wave_stop * 2.5, -5.0 + wave_stop * 0.6);
         next.shorts.ori = Quaternion::rotation_x(wave_stop * 0.6);
         next.shorts.scale = Vec3::one();
 
