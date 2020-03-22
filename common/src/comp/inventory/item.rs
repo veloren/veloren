@@ -68,28 +68,24 @@ impl ToolData {
         use ToolKind::*;
 
         match self.kind {
-            Sword(_) => vec![
-                // BasicMelee {
-                //     buildup_duration: Duration::from_millis(100),
-                //     recover_duration: Duration::from_millis(500),
-                //     base_damage: 6,
-                // },
-                TripleStrike { base_damage: 7 },
-                DashMelee {
-                    buildup_duration: Duration::from_millis(500),
-                    recover_duration: Duration::from_millis(500),
-                    base_damage: 20,
-                },
-            ],
+            Sword(_) => vec![TripleStrike { base_damage: 7 }, DashMelee {
+                buildup_duration: Duration::from_millis(500),
+                recover_duration: Duration::from_millis(500),
+                base_damage: 20,
+            }],
             Axe(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(100),
                 base_damage: 8,
+                range: 3.5,
+                max_angle: 30.0,
             }],
             Hammer(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(300),
                 base_damage: 10,
+                range: 3.5,
+                max_angle: 60.0,
             }],
             Bow(_) => vec![BasicRanged {
                 projectile: Projectile {
@@ -113,12 +109,16 @@ impl ToolData {
                 buildup_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(400),
                 base_damage: 5,
+                range: 3.5,
+                max_angle: 60.0,
             }],
             Staff(_) => vec![
                 BasicMelee {
-                    buildup_duration: Duration::from_millis(400),
+                    buildup_duration: Duration::from_millis(0),
                     recover_duration: Duration::from_millis(300),
-                    base_damage: 7,
+                    base_damage: 3,
+                    range: 10.0,
+                    max_angle: 45.0,
                 },
                 BasicRanged {
                     projectile: Projectile {

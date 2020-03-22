@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Attacking, Body, CharacterState, Controller, HealthChange, HealthSource, Ori, Pos, Scale,
-        Stats,
+        Agent, Attacking, Body, CharacterState, Controller, HealthChange, HealthSource, Ori, Pos,
+        Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     sync::Uid,
@@ -25,6 +25,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
+        ReadStorage<'a, Agent>,
         ReadStorage<'a, Controller>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Stats>,
@@ -41,6 +42,7 @@ impl<'a> System<'a> for Sys {
             positions,
             orientations,
             scales,
+            agents,
             controllers,
             bodies,
             stats,
@@ -50,12 +52,13 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = server_bus.emitter();
         // Attacks
-        for (entity, uid, pos, ori, scale_maybe, _, _attacker_stats, attack) in (
+        for (entity, uid, pos, ori, scale_maybe, agent_maybe, _, _attacker_stats, attack) in (
             &entities,
             &uids,
             &positions,
             &orientations,
             scales.maybe(),
+            agents.maybe(),
             &controllers,
             &stats,
             &mut attacking_storage,
@@ -99,6 +102,15 @@ impl<'a> System<'a> for Sys {
                 {
                     // Weapon gives base damage
                     let mut dmg = attack.base_damage;
+
+                    // NPCs do less damage:
+                    if agent_maybe.is_some() {
+                        dmg = (dmg / 2).max(1);
+                    }
+
+                    if rand::random() {
+                        dmg += 1;
+                    }
 
                     // Block
                     if character_b.is_block()

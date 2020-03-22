@@ -198,16 +198,19 @@ impl<'a> System<'a> for Sys {
                                 item,
                                 primary_ability: ability_drain.next(),
                                 secondary_ability: ability_drain.next(),
-                                block_ability: Some(comp::CharacterAbility::BasicBlock),
+                                block_ability: None,
                                 dodge_ability: Some(comp::CharacterAbility::Roll),
                             })
                         } else {
                             Some(ItemConfig {
+                                // We need the empty item so npcs can attack
                                 item: Item::empty(),
                                 primary_ability: Some(CharacterAbility::BasicMelee {
-                                    buildup_duration: Duration::from_millis(50),
-                                    recover_duration: Duration::from_millis(50),
-                                    base_damage: 1,
+                                    buildup_duration: Duration::from_millis(0),
+                                    recover_duration: Duration::from_millis(300),
+                                    base_damage: 2,
+                                    range: 3.5,
+                                    max_angle: 60.0,
                                 }),
                                 secondary_ability: None,
                                 block_ability: None,
@@ -301,6 +304,8 @@ impl<'a> System<'a> for Sys {
                                     buildup_duration: Duration::from_millis(800),
                                     recover_duration: Duration::from_millis(200),
                                     base_damage: 13,
+                                    range: 3.5,
+                                    max_angle: 60.0,
                                 }),
                                 secondary_ability: None,
                                 block_ability: None,

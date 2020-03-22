@@ -22,7 +22,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        if let Err(_) = update.energy.try_change_by(-5, EnergySource::Climb) {
+        if let Err(_) = update.energy.try_change_by(-8, EnergySource::Climb) {
             update.character = CharacterState::Idle {};
         }
 

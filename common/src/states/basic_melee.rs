@@ -5,7 +5,7 @@ use crate::{
 };
 use std::time::Duration;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// How long until state should deal damage
     pub buildup_duration: Duration,
@@ -13,6 +13,10 @@ pub struct Data {
     pub recover_duration: Duration,
     /// Base damage
     pub base_damage: u32,
+    /// Max range
+    pub range: f32,
+    /// Max angle (45.0 will give you a 90.0 angle window)
+    pub max_angle: f32,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
 }
@@ -32,13 +36,15 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
+                range: self.range,
+                max_angle: self.max_angle,
                 exhausted: false,
             });
         } else if !self.exhausted {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
                 base_damage: self.base_damage,
-                max_angle: 75_f32.to_radians(),
+                max_angle: self.max_angle.to_radians(),
                 applied: false,
                 hit_count: 0,
             });
@@ -47,6 +53,8 @@ impl CharacterBehavior for Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
+                range: self.range,
+                max_angle: self.max_angle,
                 exhausted: true,
             });
         } else if self.recover_duration != Duration::default() {
@@ -58,6 +66,8 @@ impl CharacterBehavior for Data {
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
                 base_damage: self.base_damage,
+                range: self.range,
+                max_angle: self.max_angle,
                 exhausted: true,
             });
         } else {
