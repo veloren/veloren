@@ -10,7 +10,7 @@ use crate::{
 use rand::seq::SliceRandom;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
-use std::{fs::File, io::BufReader, time::Duration, vec::Vec};
+use std::{fs::File, io::BufReader, time::Duration};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum SwordKind {

@@ -38,7 +38,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            server_emitter,
+            server_event_bus,
             tick,
             mut timer,
             mut chunk_generator,
@@ -50,6 +50,8 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         timer.start();
+
+        let mut server_emitter = server_event_bus.emitter();
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.

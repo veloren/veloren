@@ -47,6 +47,9 @@ impl MovementEventMapper {
         const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
         let ecs = state.ecs();
 
+        let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
+        let mut sfx_emitter = sfx_event_bus.emitter();
+
         let player_position = ecs
             .read_storage::<Pos>()
             .get(player_entity)
@@ -86,13 +89,11 @@ impl MovementEventMapper {
 
                 // Check for SFX config entry for this movement
                 if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
-                    ecs.read_resource::<EventBus<SfxEventItem>>()
-                        .emitter()
-                        .emit(SfxEventItem::new(
-                            mapped_event,
-                            Some(pos.0),
-                            Some(Self::get_volume_for_body_type(body)),
-                        ));
+                    sfx_emitter.emit(SfxEventItem::new(
+                        mapped_event,
+                        Some(pos.0),
+                        Some(Self::get_volume_for_body_type(body)),
+                    ));
 
                     // Set the new previous entity state
                     state.event = mapped_event;
