@@ -106,7 +106,7 @@ impl Animation for AttackAnimation {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right + slowax * 2.0,
                     -2.0 + skeleton_attr.neck_forward + slowax * -2.0,
-                    skeleton_attr.neck_height + 19.0,
+                    skeleton_attr.neck_height + 20.0,
                 );
                 next.head.ori = Quaternion::rotation_z(slowax * 0.25)
                     * Quaternion::rotation_x(0.0 + slowax * 0.2)
