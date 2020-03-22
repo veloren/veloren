@@ -48,6 +48,7 @@ impl<'a> System<'a> for Sys {
             character_states,
         ): Self::SystemData,
     ) {
+        let mut server_emitter = server_bus.emitter();
         // Attacks
         for (entity, uid, pos, ori, scale_maybe, _, _attacker_stats, attack) in (
             &entities,
@@ -81,7 +82,7 @@ impl<'a> System<'a> for Sys {
             {
                 // 2D versions
                 let pos2 = Vec2::from(pos.0);
-                let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
+                let pos_b2 = Vec2::<f32>::from(pos_b.0);
                 let ori2 = Vec2::from(ori.0);
 
                 // Scales
@@ -106,7 +107,7 @@ impl<'a> System<'a> for Sys {
                         dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
                     }
 
-                    server_bus.emitter().emit(ServerEvent::Damage {
+                    server_emitter.emit(ServerEvent::Damage {
                         uid: *uid_b,
                         change: HealthChange {
                             amount: -(dmg as i32),

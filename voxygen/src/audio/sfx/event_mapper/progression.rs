@@ -53,8 +53,7 @@ impl ProgressionEventMapper {
 
                 if sfx_trigger_item.is_some() {
                     ecs.read_resource::<EventBus<SfxEventItem>>()
-                        .emitter()
-                        .emit(SfxEventItem::at_player_position(mapped_event));
+                        .emit_now(SfxEventItem::at_player_position(mapped_event));
                 }
             }
 

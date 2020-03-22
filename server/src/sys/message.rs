@@ -45,7 +45,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            server_emitter,
+            server_event_bus,
             time,
             terrain,
             mut timer,
@@ -67,6 +67,8 @@ impl<'a> System<'a> for Sys {
         timer.start();
 
         let time = time.0;
+
+        let mut server_emitter = server_event_bus.emitter();
 
         let mut new_chat_msgs = Vec::new();
 
