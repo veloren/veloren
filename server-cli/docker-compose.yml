@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.5"
 
 services:
   game-server:
@@ -11,7 +11,14 @@ services:
       update_config:
         parallelism: 2
         delay: 10s
-	order: stop-first
+        order: stop-first
         failure_action: rollback
       restart_policy:
         condition: on-failure
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json
+    command: --interval 30 --cleanup
+
