@@ -105,14 +105,14 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
             time_left: tool.equip_time(),
         });
     } else {
-        update.character = CharacterState::Idle {};
+        update.character = CharacterState::Idle;
     };
 }
 
 /// Checks that player can `Sit` and updates `CharacterState` if so
 pub fn handle_sit(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.sit.is_pressed() && data.physics.on_ground && data.body.is_humanoid() {
-        update.character = CharacterState::Sit {};
+        update.character = CharacterState::Sit;
     }
 }
 
@@ -125,7 +125,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
         && data.body.is_humanoid()
         && update.energy.current() > 100
     {
-        update.character = CharacterState::Climb {};
+        update.character = CharacterState::Climb;
     }
 }
 
@@ -133,7 +133,7 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
 pub fn handle_unwield(data: &JoinData, update: &mut StateUpdate) {
     if let CharacterState::Wielding { .. } = update.character {
         if data.inputs.toggle_wield.is_pressed() {
-            update.character = CharacterState::Idle {};
+            update.character = CharacterState::Idle;
         }
     }
 }
@@ -158,7 +158,7 @@ pub fn handle_glide(data: &JoinData, update: &mut StateUpdate) {
             && !data.physics.in_fluid
             && data.body.is_humanoid()
         {
-            update.character = CharacterState::Glide {};
+            update.character = CharacterState::Glide;
         }
     }
 }
@@ -181,7 +181,7 @@ pub fn handle_primary_input(data: &JoinData, update: &mut StateUpdate) {
             .active_item
             .as_ref()
             .and_then(|i| i.primary_ability.as_ref())
-            .filter(|ability| ability.test_requirements(data, update))
+            .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = ability.into();
         }
@@ -197,7 +197,7 @@ pub fn handle_secondary_input(data: &JoinData, update: &mut StateUpdate) {
             .active_item
             .as_ref()
             .and_then(|i| i.secondary_ability.as_ref())
-            .filter(|ability| ability.test_requirements(data, update))
+            .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = ability.into();
         }
@@ -213,7 +213,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             .active_item
             .as_ref()
             .and_then(|i| i.dodge_ability.as_ref())
-            .filter(|ability| ability.test_requirements(data, update))
+            .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = ability.into();
         }

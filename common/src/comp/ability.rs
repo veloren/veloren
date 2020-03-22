@@ -3,7 +3,8 @@ use crate::{
     states::*,
     sys::character_behavior::JoinData,
 };
-use specs::{Component, DenseVecStorage, FlaggedStorage, HashMapStorage};
+use specs::{Component, FlaggedStorage, HashMapStorage};
+use specs_idvs::IDVStorage;
 use std::time::Duration;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -40,7 +41,9 @@ pub enum CharacterAbility {
 }
 
 impl CharacterAbility {
-    pub fn test_requirements(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
+    /// Attempts to fulfill requirements, mutating `update` (taking energy) if
+    /// applicable.
+    pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
             CharacterAbility::Roll => {
                 data.physics.on_ground
@@ -64,7 +67,7 @@ impl CharacterAbility {
 }
 
 impl Component for CharacterAbility {
-    type Storage = DenseVecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -159,5 +162,5 @@ impl From<&CharacterAbility> for CharacterState {
 }
 
 impl Component for Loadout {
-    type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }

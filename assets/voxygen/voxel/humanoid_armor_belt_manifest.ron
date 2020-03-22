@@ -35,5 +35,17 @@
         vox_spec: ("armor.belt.leather-0", (-5.0, -3.5, 2.0)),
         color: None
     ),
+    ClothPurple0:(
+        vox_spec: ("armor.belt.cloth_purple_0", (-5.0, -3.5, 2.0)),
+        color: None
+    ),
+    ClothBlue0:(
+        vox_spec: ("armor.belt.cloth_blue_0", (-5.0, -3.5, 2.0)),
+        color: None
+    ),
+    ClothGreen0:(
+        vox_spec: ("armor.belt.cloth_purple_0", (-5.0, -3.5, 2.0)),
+        color: None
+    ),
     
 })
