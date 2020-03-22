@@ -70,6 +70,7 @@ impl<'a> System<'a> for Sys {
 
             controller.reset();
 
+            //TODO: Make npcs have valid `look_dir` during all activities
             let mut inputs = &mut controller.inputs;
 
             const AVG_FOLLOW_DIST: f32 = 6.0;
