@@ -107,7 +107,6 @@ impl State {
         ecs.register_sync_marker();
         // Register server -> all clients synced components.
         ecs.register::<comp::Loadout>();
-        ecs.register::<comp::CharacterAbility>();
         ecs.register::<comp::Projectile>();
         ecs.register::<comp::Body>();
         ecs.register::<comp::Player>();
@@ -351,7 +350,6 @@ impl State {
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
         for event in events {
             let mut velocities = self.ecs.write_storage::<comp::Vel>();
-            let mut orientations = self.ecs.write_storage::<comp::Ori>();
             let mut controllers = self.ecs.write_storage::<comp::Controller>();
             match event {
                 LocalEvent::Jump(entity) => {
@@ -359,12 +357,15 @@ impl State {
                         vel.0.z = HUMANOID_JUMP_ACCEL;
                     }
                 },
-                LocalEvent::Knockback(entity) => {
+                LocalEvent::KnockUp { entity, dir, force } => {
                     if let Some(vel) = velocities.get_mut(entity) {
-                        if let Some(ori) = orientations.get_mut(entity) {
-                            vel.0 = -ori.0 * 10.0;
-                            vel.0.z = HUMANOID_JUMP_ACCEL;
-                        }
+                        vel.0 = dir * force;
+                        vel.0.z = HUMANOID_JUMP_ACCEL;
+                    }
+                },
+                LocalEvent::ApplyForce { entity, dir, force } => {
+                    if let Some(vel) = velocities.get_mut(entity) {
+                        vel.0 = dir * force;
                     }
                 },
                 LocalEvent::WallLeap { entity, wall_dir } => {

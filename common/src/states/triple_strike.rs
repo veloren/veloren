@@ -48,12 +48,6 @@ impl CharacterBehavior for Data {
 
         // If player stops holding input,
         if !data.inputs.primary.is_pressed() {
-            // // Done
-            // update.character = CharacterState::Wielding;
-            // // Make sure attack component is removed
-            // data.updater.remove::<Attacking>(data.entity);
-            // return update;
-
             should_transition = false;
         }
 
