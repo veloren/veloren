@@ -3,7 +3,7 @@ use crate::{
     states::*,
     sys::character_behavior::JoinData,
 };
-use specs::{Component, FlaggedStorage, HashMapStorage};
+use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
 

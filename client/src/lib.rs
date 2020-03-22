@@ -692,8 +692,7 @@ impl Client {
                         self.state
                             .ecs()
                             .read_resource::<EventBus<SfxEventItem>>()
-                            .emitter()
-                            .emit(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
+                            .emit_now(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
                     },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         if let Ok(chunk) = chunk {
