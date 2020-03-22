@@ -40,15 +40,15 @@
         color: None
     ),
     ClothPurple0:(
-        vox_spec: ("armor.pants.cloth_purple_0", (-5.0, -3.5, 2.0)),
+        vox_spec: ("armor.pants.cloth_purple-0", (-5.0, -3.5, 0.0)),
         color: None
     ),
     ClothBlue0:(
-        vox_spec: ("armor.pants.cloth_blue_0", (-5.0, -3.5, 2.0)),
+        vox_spec: ("armor.pants.cloth_blue-0", (-5.0, -3.5, 0.0)),
         color: None
     ),
     ClothGreen0:(
-        vox_spec: ("armor.pants.cloth_purple_0", (-5.0, -3.5, 2.0)),
+        vox_spec: ("armor.pants.cloth_green-0", (-5.0, -3.5, 0.0)),
         color: None
     ),
 })

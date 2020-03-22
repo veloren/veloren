@@ -277,10 +277,62 @@ impl Inventory {
 impl Default for Inventory {
     fn default() -> Inventory {
         let mut inventory = Inventory {
-            slots: vec![None; 18],
+            slots: vec![None; 45],
         };
-        inventory.push(assets::load_expect_cloned("common.items.cheese"));
-        inventory.push(assets::load_expect_cloned("common.items.apple"));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.chest.cloth_blue_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.belt.cloth_blue_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.foot.cloth_blue_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.hand.cloth_blue_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.pants.cloth_blue_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.shoulder.cloth_blue_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.chest.cloth_green_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.belt.cloth_green_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.foot.cloth_green_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.hand.cloth_green_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.pants.cloth_green_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.shoulder.cloth_green_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.chest.cloth_purple_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.belt.cloth_purple_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.foot.cloth_purple_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.hand.cloth_purple_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.pants.cloth_purple_0",
+        ));
+        inventory.push(assets::load_expect_cloned(
+            "common.items.armor.shoulder.cloth_purple_0",
+        ));
         inventory
     }
 }
