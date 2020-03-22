@@ -393,7 +393,7 @@ impl Client {
                 {
                     if last_character_states
                         .get(entity)
-                        .map(|l| !client_character_state.equals(&l.0))
+                        .map(|l| !client_character_state.same_variant(&l.0))
                         .unwrap_or(true)
                     {
                         let _ = last_character_states
@@ -692,8 +692,7 @@ impl Client {
                         self.state
                             .ecs()
                             .read_resource::<EventBus<SfxEventItem>>()
-                            .emitter()
-                            .emit(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
+                            .emit_now(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
                     },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         if let Ok(chunk) = chunk {

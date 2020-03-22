@@ -129,6 +129,9 @@ impl<'a> System<'a> for Sys {
             mountings,
         ): Self::SystemData,
     ) {
+        let mut server_emitter = server_bus.emitter();
+        let mut local_emitter = local_bus.emitter();
+
         let mut join_iter = (
             &entities,
             &uids,
@@ -191,8 +194,8 @@ impl<'a> System<'a> for Sys {
             *tuple.5 = state_update.ori;
             *tuple.6 = state_update.energy;
             *tuple.7 = state_update.loadout;
-            local_bus.emitter().append(&mut state_update.local_events);
-            server_bus.emitter().append(&mut state_update.server_events);
+            local_emitter.append(&mut state_update.local_events);
+            server_emitter.append(&mut state_update.server_events);
         }
     }
 }

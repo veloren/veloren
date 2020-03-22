@@ -107,7 +107,6 @@ impl State {
         ecs.register_sync_marker();
         // Register server -> all clients synced components.
         ecs.register::<comp::Loadout>();
-        ecs.register::<comp::Projectile>();
         ecs.register::<comp::Body>();
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();
@@ -121,7 +120,6 @@ impl State {
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Gravity>();
-        ecs.register::<comp::Attacking>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -150,6 +148,7 @@ impl State {
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
         ecs.register::<comp::Projectile>();
+        ecs.register::<comp::Attacking>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));

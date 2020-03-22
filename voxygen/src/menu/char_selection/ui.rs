@@ -683,7 +683,7 @@ impl CharSelectionUi {
             Mode::Create {
                 name,
                 body,
-                loadout,
+                loadout: _,
                 tool,
             } => {
                 let mut to_select = false;

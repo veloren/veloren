@@ -82,7 +82,7 @@
     ),
     ClothPurple0: (
         left: (
-            vox_spec: ("armor.shoulder.cloth_purple_left-0", (-3.2, -3.5, 1.0)),
+            vox_spec: ("armor.shoulder.cloth_purple_right-0", (-3.2, -3.5, 1.0)),
             color: None
         ),
         right: (
