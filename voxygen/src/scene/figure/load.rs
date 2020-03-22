@@ -21,7 +21,6 @@ use common::{
         ItemKind, Loadout,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
-    vol::SizedVol,
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
