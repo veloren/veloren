@@ -35,6 +35,10 @@ const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not
 const SHADOW_DIST_RADIUS: f32 = 8.0;
 const SHADOW_MAX_DIST: f32 = 96.0; // The distance beyond which shadows may not be visible
 
+/// Above this speed is considered running
+/// Used for first person camera effects
+const RUNNING_THRESHOLD: f32 = 0.7;
+
 struct Skybox {
     model: Model<SkyboxPipeline>,
     locals: Consts<SkyboxLocals>,
@@ -191,7 +195,7 @@ impl Scene {
         let is_running = ecs
             .read_storage::<comp::Vel>()
             .get(scene_data.player_entity)
-            .map(|v| v.0.magnitude_squared() > 0.5);
+            .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2));
 
         let on_ground = ecs
             .read_storage::<comp::PhysicsState>()

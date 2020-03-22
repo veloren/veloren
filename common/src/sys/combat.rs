@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Attacking, Body, CharacterState, Controller, HealthChange, HealthSource, Ori, Pos, Scale,
-        Stats,
+        Agent, Attacking, Body, CharacterState, Controller, HealthChange, HealthSource, Ori, Pos,
+        Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     sync::Uid,
@@ -25,6 +25,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
+        ReadStorage<'a, Agent>,
         ReadStorage<'a, Controller>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Stats>,
@@ -41,6 +42,7 @@ impl<'a> System<'a> for Sys {
             positions,
             orientations,
             scales,
+            agents,
             controllers,
             bodies,
             stats,
@@ -48,13 +50,15 @@ impl<'a> System<'a> for Sys {
             character_states,
         ): Self::SystemData,
     ) {
+        let mut server_emitter = server_bus.emitter();
         // Attacks
-        for (entity, uid, pos, ori, scale_maybe, _, _attacker_stats, attack) in (
+        for (entity, uid, pos, ori, scale_maybe, agent_maybe, _, _attacker_stats, attack) in (
             &entities,
             &uids,
             &positions,
             &orientations,
             scales.maybe(),
+            agents.maybe(),
             &controllers,
             &stats,
             &mut attacking_storage,
@@ -81,7 +85,7 @@ impl<'a> System<'a> for Sys {
             {
                 // 2D versions
                 let pos2 = Vec2::from(pos.0);
-                let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
+                let pos_b2 = Vec2::<f32>::from(pos_b.0);
                 let ori2 = Vec2::from(ori.0);
 
                 // Scales
@@ -99,6 +103,15 @@ impl<'a> System<'a> for Sys {
                     // Weapon gives base damage
                     let mut dmg = attack.base_damage;
 
+                    // NPCs do less damage:
+                    if agent_maybe.is_some() {
+                        dmg = (dmg / 2).max(1);
+                    }
+
+                    if rand::random() {
+                        dmg += 1;
+                    }
+
                     // Block
                     if character_b.is_block()
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
@@ -106,7 +119,7 @@ impl<'a> System<'a> for Sys {
                         dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
                     }
 
-                    server_bus.emitter().emit(ServerEvent::Damage {
+                    server_emitter.emit(ServerEvent::Damage {
                         uid: *uid_b,
                         change: HealthChange {
                             amount: -(dmg as i32),

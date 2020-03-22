@@ -192,7 +192,7 @@ Enjoy your stay in the World of Veloren."#,
 
 
         // Inventory
-	    "hud.bag.inventory": "'s Inventory",
+        "hud.bag.inventory": "'s Inventory",
         "hud.bag.stats": "'s Stats",
         "hud.bag.exp": "Exp",	
         // Settings

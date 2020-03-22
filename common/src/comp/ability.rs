@@ -3,7 +3,7 @@ use crate::{
     states::*,
     sys::character_behavior::JoinData,
 };
-use specs::{Component, FlaggedStorage, HashMapStorage};
+use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
 
@@ -13,6 +13,8 @@ pub enum CharacterAbility {
         buildup_duration: Duration,
         recover_duration: Duration,
         base_damage: u32,
+        range: f32,
+        max_angle: f32,
     },
     BasicRanged {
         recover_duration: Duration,
@@ -66,10 +68,6 @@ impl CharacterAbility {
     }
 }
 
-impl Component for CharacterAbility {
-    type Storage = IDVStorage<Self>;
-}
-
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
     pub item: Item,
@@ -99,11 +97,15 @@ impl From<&CharacterAbility> for CharacterState {
                 buildup_duration,
                 recover_duration,
                 base_damage,
+                range,
+                max_angle,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 exhausted: false,
                 buildup_duration: *buildup_duration,
                 recover_duration: *recover_duration,
                 base_damage: *base_damage,
+                range: *range,
+                max_angle: *max_angle,
             }),
             CharacterAbility::BasicRanged {
                 recover_duration,
@@ -133,7 +135,7 @@ impl From<&CharacterAbility> for CharacterState {
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
-                remaining_duration: Duration::from_millis(600),
+                remaining_duration: Duration::from_millis(300),
             }),
             CharacterAbility::TimedCombo {
                 buildup_duration,
