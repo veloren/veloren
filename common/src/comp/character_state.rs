@@ -111,7 +111,7 @@ impl CharacterState {
     }
 
     /// Compares for shallow equality (does not check internal struct equality)
-    pub fn equals(&self, other: &Self) -> bool {
+    pub fn same_variant(&self, other: &Self) -> bool {
         // Check if state is the same without looking at the inner data
         std::mem::discriminant(self) == std::mem::discriminant(other)
     }
