@@ -9,8 +9,11 @@ use common::{
     vol::{ReadVol, Vox},
 };
 use log::error;
-use specs::{Entity as EcsEntity, WorldExt};
-use vek::Vec3;
+use specs::{join::Join, Entity as EcsEntity, WorldExt};
+use vek::{Vec3, *};
+
+const BLOCK_EFFICIENCY: f32 = 0.9;
+const BLOCK_ANGLE: f32 = 180.0;
 
 pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
     let state = &server.state;
@@ -189,7 +192,46 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
     }
 }
 
-pub fn handle_explosion(server: &Server, pos: Vec3<f32>, radius: f32) {
+pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Option<Uid>) {
+    // Go through all other entities
+    let ecs = &server.state.ecs();
+    for (b, uid_b, pos_b, ori_b, character_b, stats_b) in (
+        &ecs.entities(),
+        &ecs.read_storage::<Uid>(),
+        &ecs.read_storage::<comp::Pos>(),
+        &ecs.read_storage::<comp::Ori>(),
+        &ecs.read_storage::<comp::CharacterState>(),
+        &mut ecs.write_storage::<comp::Stats>(),
+    )
+        .join()
+    {
+        // Check if it is a hit
+        if !stats_b.is_dead
+            // Spherical wedge shaped attack field
+            // RADIUS
+            && pos.distance_squared(pos_b.0) < 10_f32.powi(2)
+        {
+            // Weapon gives base damage
+            let mut dmg = power as u32 * 2;
+
+            if rand::random() {
+                dmg += 1;
+            }
+
+            // Block
+            if character_b.is_block()
+                && ori_b.0.angle_between(pos - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
+            {
+                dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
+            }
+
+            stats_b.health.change_by(HealthChange {
+                amount: -(dmg as i32),
+                cause: HealthSource::Projectile { owner },
+            });
+        }
+    }
+
     const RAYS: usize = 500;
 
     for _ in 0..RAYS {
@@ -200,12 +242,11 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, radius: f32) {
         )
         .normalized();
 
-        let ecs = server.state.ecs();
         let mut block_change = ecs.write_resource::<BlockChange>();
 
         let _ = ecs
             .read_resource::<TerrainGrid>()
-            .ray(pos, pos + dir * radius)
+            .ray(pos, pos + dir * power)
             .until(|_| rand::random::<f32>() < 0.05)
             .for_each(|pos| block_change.set(pos, Block::empty()))
             .cast();
