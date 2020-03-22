@@ -183,6 +183,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::TripleStrike(data) => data.behavior(&j),
                 CharacterState::BasicMelee(data) => data.behavior(&j),
                 CharacterState::BasicRanged(data) => data.behavior(&j),
+                CharacterState::CastFireball(data) => data.behavior(&j),
                 CharacterState::Boost(data) => data.behavior(&j),
                 CharacterState::DashMelee(data) => data.behavior(&j),
                 CharacterState::TimedCombo(data) => data.behavior(&j),
