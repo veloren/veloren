@@ -201,9 +201,9 @@ impl Animation for IdleWieldAnimation {
                 * 0.1,
         );
         next.head.offset = Vec3::new(
-            0.0 + skeleton_attr.neck_right + wave_slow_cos * 0.5,
+            0.0 + skeleton_attr.neck_right,
             -2.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 21.0 + wave_ultra_slow * 0.6,
+            skeleton_attr.neck_height + 14.0 + wave_ultra_slow * 0.1,
         );
         next.head.ori =
             Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y.abs());
@@ -214,12 +214,12 @@ impl Animation for IdleWieldAnimation {
             Quaternion::rotation_y(wave_ultra_slow_cos * 0.04) * Quaternion::rotation_z(0.15);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(0.0 + wave_slow_cos * 0.5, 0.0, 5.0 + wave_ultra_slow * 0.5);
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
         next.belt.ori =
             Quaternion::rotation_y(wave_ultra_slow_cos * 0.03) * Quaternion::rotation_z(0.22);
         next.belt.scale = Vec3::one() * 1.02;
 
-        next.shorts.offset = Vec3::new(0.0 + wave_slow_cos * 0.5, 0.0, 2.0 + wave_ultra_slow * 0.5);
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
         next.shorts.ori = Quaternion::rotation_z(0.3);
         next.shorts.scale = Vec3::one();
 

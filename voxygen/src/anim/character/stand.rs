@@ -36,7 +36,7 @@ impl Animation for StandAnimation {
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
             -3.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 21.0 + slow * 0.3,
+            skeleton_attr.neck_height + 14.0 + slow * 0.3, //21
         );
         next.head.ori =
             Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y.abs());
@@ -46,11 +46,11 @@ impl Animation for StandAnimation {
         next.chest.ori = Quaternion::rotation_z(head_look.x * 0.6);
         next.chest.scale = Vec3::one() * 1.01;
 
-        next.belt.offset = Vec3::new(0.0, 0.0, 5.0 + slow * 0.3);
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0 + slow * 0.3); //5
         next.belt.ori = Quaternion::rotation_z(head_look.x * 0.4);
         next.belt.scale = Vec3::one() + breathe * 0.05;
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, 2.0 + slow * 0.3);
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0 + slow * 0.3); //2
         next.shorts.ori = Quaternion::rotation_x(0.0);
         next.shorts.scale = Vec3::one();
 

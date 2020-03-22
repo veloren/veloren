@@ -73,10 +73,10 @@ impl Skeleton for CharacterSkeleton {
 
         let head_mat = self.head.compute_base_matrix();
         [
-            FigureBoneData::new(torso_mat * head_mat),
+            FigureBoneData::new(torso_mat * chest_mat * head_mat),
             FigureBoneData::new(torso_mat * chest_mat),
-            FigureBoneData::new(torso_mat * self.belt.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * self.shorts.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.belt.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.shorts.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * l_hand_mat),
             FigureBoneData::new(torso_mat * chest_mat * control_mat * r_control_mat * r_hand_mat),
             FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),

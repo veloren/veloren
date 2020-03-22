@@ -46,8 +46,8 @@ impl Animation for ShootAnimation {
 
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
-            -2.0 + skeleton_attr.neck_forward - quick * 3.5,
-            skeleton_attr.neck_height + 21.0,
+            -2.0 + skeleton_attr.neck_forward - quick * 1.5,
+            skeleton_attr.neck_height + 14.0,
         );
         next.head.ori = Quaternion::rotation_z(quick * 0.15)
             * Quaternion::rotation_x(quick * 0.09)
@@ -55,21 +55,17 @@ impl Animation for ShootAnimation {
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(0.0, 0.0 - quick * 1.5, 7.0);
-        next.chest.ori = Quaternion::rotation_z(quick * 0.15)
+        next.chest.ori = Quaternion::rotation_z(quick * 0.35)
             * Quaternion::rotation_x(quick * 0.09)
             * Quaternion::rotation_y(0.0);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(0.0, 0.0 - quick * 1.0, 5.0);
-        next.belt.ori = Quaternion::rotation_z(quick * 0.2)
-            * Quaternion::rotation_x(quick * 0.12)
-            * Quaternion::rotation_y(0.0);
+        next.belt.offset = Vec3::new(0.0, 0.0 + quick * 1.0, -2.0);
+        next.belt.ori = next.chest.ori;
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(0.0, -quick * 0.5, 2.0);
-        next.shorts.ori = Quaternion::rotation_z(quick * 0.08)
-            * Quaternion::rotation_x(quick * 0.05)
-            * Quaternion::rotation_y(0.0);
+        next.shorts.offset = Vec3::new(0.0, quick * 1.0, -5.0);
+        next.shorts.ori = next.chest.ori;
         next.shorts.scale = Vec3::one();
 
         match active_tool_kind {

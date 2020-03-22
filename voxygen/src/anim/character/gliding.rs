@@ -68,12 +68,12 @@ impl Animation for GlidingAnimation {
         next.chest.ori = Quaternion::rotation_z(wave_very_slow_cos * 0.2);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(0.0, 0.0, -4.0);
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
         next.belt.ori = Quaternion::rotation_z(wave_very_slow_cos * 0.25);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, -7.0);
-        next.shorts.ori = Quaternion::rotation_z(wave_very_slow_cos * 0.25);
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
+        next.shorts.ori = Quaternion::rotation_z(wave_very_slow_cos * 0.35);
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(

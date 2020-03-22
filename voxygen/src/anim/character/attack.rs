@@ -52,31 +52,28 @@ impl Animation for AttackAnimation {
             Some(ToolKind::Sword(_)) => {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
-                    -2.0 + skeleton_attr.neck_forward + decel * 0.8,
-                    skeleton_attr.neck_height + 21.0,
+                    -2.0 + skeleton_attr.neck_forward,
+                    skeleton_attr.neck_height + 14.0,
                 );
-                next.head.ori = Quaternion::rotation_z(decel * 0.25)
-                    * Quaternion::rotation_x(0.0 + decel * 0.1)
-                    * Quaternion::rotation_y(decel * -0.1);
+                next.head.ori = Quaternion::rotation_z(slow * 0.08)
+                    * Quaternion::rotation_x(0.0 + slow * 0.08)
+                    * Quaternion::rotation_y(slow * -0.08);
                 next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
                 next.chest.offset = Vec3::new(0.0, 0.0, 7.0);
-                next.chest.ori = Quaternion::rotation_z(decel * -0.2)
-                    * Quaternion::rotation_x(0.0 + decel * -0.2)
-                    * Quaternion::rotation_y(decel * 0.2);
+                next.chest.ori = Quaternion::rotation_z(slow * -0.2)
+                    * Quaternion::rotation_x(0.0 + slow * -0.2)
+                    * Quaternion::rotation_y(slow * 0.2);
                 next.chest.scale = Vec3::one();
 
-                next.belt.offset = Vec3::new(0.0, 0.0, 5.0);
-                next.belt.ori = Quaternion::rotation_z(decel * -0.1)
-                    * Quaternion::rotation_x(0.0 + decel * -0.1)
-                    * Quaternion::rotation_y(decel * 0.1);
+                next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
+                next.belt.ori = next.chest.ori * -0.2;
                 next.belt.scale = Vec3::one();
 
-                next.shorts.offset = Vec3::new(0.0, 0.0, 2.0);
-                next.belt.ori = Quaternion::rotation_z(decel * -0.08)
-                    * Quaternion::rotation_x(0.0 + decel * -0.08)
-                    * Quaternion::rotation_y(decel * 0.08);
+                next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
+                next.shorts.ori = next.chest.ori * -0.15;
                 next.shorts.scale = Vec3::one();
+
                 next.l_hand.offset = Vec3::new(0.0, 1.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
                 next.l_hand.scale = Vec3::one() * 1.04;
@@ -106,7 +103,7 @@ impl Animation for AttackAnimation {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right + slowax * 2.0,
                     -2.0 + skeleton_attr.neck_forward + slowax * -2.0,
-                    skeleton_attr.neck_height + 20.0,
+                    skeleton_attr.neck_height + 13.0,
                 );
                 next.head.ori = Quaternion::rotation_z(slowax * 0.25)
                     * Quaternion::rotation_x(0.0 + slowax * 0.2)
@@ -119,16 +116,12 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_y(slowax * 0.2);
                 next.chest.scale = Vec3::one();
 
-                next.belt.offset = Vec3::new(0.0, 0.0, 5.0);
-                next.belt.ori = Quaternion::rotation_z(slowax * 0.1)
-                    * Quaternion::rotation_x(0.0 + slowax * 0.1)
-                    * Quaternion::rotation_y(slowax * 0.1);
+                next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
+                next.belt.ori = next.chest.ori * -0.2;
                 next.belt.scale = Vec3::one();
 
-                next.shorts.offset = Vec3::new(0.0, 0.0, 2.0);
-                next.belt.ori = Quaternion::rotation_z(slowax * 0.08)
-                    * Quaternion::rotation_x(0.0 + slowax * 0.08)
-                    * Quaternion::rotation_y(slowax * 0.08);
+                next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
+                next.shorts.ori = next.chest.ori * -0.15;
                 next.shorts.scale = Vec3::one();
 
                 next.l_hand.offset = Vec3::new(-4.0, 3.0, 2.0);
@@ -155,8 +148,6 @@ impl Animation for AttackAnimation {
             },
             Some(ToolKind::Hammer(_)) => {
                 next.l_hand.offset = Vec3::new(0.0, 3.0, 8.0);
-
-                //0,1,5
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
                 next.l_hand.scale = Vec3::one() * 1.05;
                 next.r_hand.offset = Vec3::new(0.0, 0.0, -3.0);
@@ -170,7 +161,7 @@ impl Animation for AttackAnimation {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right + slower * 3.0,
                     -2.0 + skeleton_attr.neck_forward + slower * -3.0,
-                    skeleton_attr.neck_height + 19.0,
+                    skeleton_attr.neck_height + 12.0,
                 );
                 next.head.ori = Quaternion::rotation_z(slower * 0.25)
                     * Quaternion::rotation_x(0.0 + slower * 0.2)
@@ -183,16 +174,12 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_y(slower * 0.2);
                 next.chest.scale = Vec3::one();
 
-                next.belt.offset = Vec3::new(0.0, 0.0, 5.0);
-                next.belt.ori = Quaternion::rotation_z(slower * 0.1)
-                    * Quaternion::rotation_x(0.0 + slower * 0.1)
-                    * Quaternion::rotation_y(slower * 0.1);
+                next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
+                next.belt.ori = next.chest.ori * -0.2;
                 next.belt.scale = Vec3::one();
 
-                next.shorts.offset = Vec3::new(0.0, 0.0, 2.0);
-                next.belt.ori = Quaternion::rotation_z(slower * 0.08)
-                    * Quaternion::rotation_x(0.0 + slower * 0.08)
-                    * Quaternion::rotation_y(slower * 0.08);
+                next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
+                next.shorts.ori = next.chest.ori * -0.15;
                 next.shorts.scale = Vec3::one();
 
                 next.control.offset = Vec3::new(-6.0, 3.0, 8.0 + slower * 5.0);
@@ -205,7 +192,7 @@ impl Animation for AttackAnimation {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
                     -2.0 + skeleton_attr.neck_forward + decel * 0.8,
-                    skeleton_attr.neck_height + 21.0,
+                    skeleton_attr.neck_height + 14.0,
                 );
                 next.head.ori = Quaternion::rotation_z(decel * 0.25)
                     * Quaternion::rotation_x(0.0 + decel * 0.1)
@@ -218,13 +205,13 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_y(decel * 0.2);
                 next.chest.scale = Vec3::one();
 
-                next.belt.offset = Vec3::new(0.0, 0.0, 5.0);
+                next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
                 next.belt.ori = Quaternion::rotation_z(decel * -0.1)
                     * Quaternion::rotation_x(0.0 + decel * -0.1)
                     * Quaternion::rotation_y(decel * 0.1);
                 next.belt.scale = Vec3::one();
 
-                next.shorts.offset = Vec3::new(0.0, 0.0, 2.0);
+                next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
                 next.belt.ori = Quaternion::rotation_z(decel * -0.08)
                     * Quaternion::rotation_x(0.0 + decel * -0.08)
                     * Quaternion::rotation_y(decel * 0.08);
@@ -305,8 +292,8 @@ impl Animation for AttackAnimation {
                     -2.0 + skeleton_attr.neck_forward + decel * 0.8,
                     skeleton_attr.neck_height + 21.0,
                 );
-                next.head.ori = Quaternion::rotation_z(decel * 0.25)
-                    * Quaternion::rotation_x(0.0 + decel * 0.1)
+                next.head.ori = Quaternion::rotation_z(decel * -0.25)
+                    * Quaternion::rotation_x(0.0 + decel * -0.1)
                     * Quaternion::rotation_y(decel * -0.1);
                 next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
