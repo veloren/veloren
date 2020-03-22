@@ -120,19 +120,21 @@ impl ToolData {
                     range: 10.0,
                     max_angle: 45.0,
                 },
-                BasicRanged {
+                CastFireball {
                     projectile: Projectile {
-                        hit_ground: vec![projectile::Effect::Vanish],
-                        hit_wall: vec![projectile::Effect::Vanish],
-                        hit_entity: vec![
-                            projectile::Effect::Damage(HealthChange {
-                                // TODO: This should not be fixed (?)
-                                amount: -8,
-                                cause: HealthSource::Projectile { owner: None },
-                            }),
+                        hit_ground: vec![
+                            projectile::Effect::Explode { power: 5.0 },
                             projectile::Effect::Vanish,
                         ],
-                        time_left: Duration::from_secs(5),
+                        hit_wall: vec![
+                            projectile::Effect::Explode { power: 5.0 },
+                            projectile::Effect::Vanish,
+                        ],
+                        hit_entity: vec![
+                            projectile::Effect::Explode { power: 5.0 },
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(20),
                         owner: None,
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),

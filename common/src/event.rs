@@ -73,7 +73,8 @@ pub enum LocalEvent {
 pub enum ServerEvent {
     Explosion {
         pos: Vec3<f32>,
-        radius: f32,
+        power: f32,
+        owner: Option<Uid>,
     },
     Damage {
         uid: Uid,
