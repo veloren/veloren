@@ -120,12 +120,12 @@ impl State {
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Gravity>();
+        ecs.register::<comp::CharacterState>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
 
         // Register components send directly from server -> all but one client
-        ecs.register::<comp::CharacterState>();
         ecs.register::<comp::PhysicsState>();
 
         // Register components synced from client -> server -> all other clients
@@ -139,7 +139,6 @@ impl State {
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
-        ecs.register::<comp::Last<comp::CharacterState>>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::WaypointArea>();
