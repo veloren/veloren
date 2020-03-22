@@ -10,7 +10,6 @@ use vek::vec::{Vec2, Vec3};
 const STAGE_DURATION: u64 = 600;
 
 const INITIAL_ACCEL: f32 = 200.0;
-const SECONDARY_ACCEL: f32 = 100.0;
 const BASE_SPEED: f32 = 25.0;
 /// ### A sequence of 3 incrementally increasing attacks.
 ///
@@ -57,15 +56,11 @@ impl CharacterBehavior for Data {
             initialized = true;
         }
 
-        if self.stage < 3 {
-            // Handling movement
+        // Handling movement
+        if self.stage == 0 {
             if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
                 let adjusted_accel = if data.physics.touch_entity.is_none() {
-                    if self.stage == 0 {
-                        INITIAL_ACCEL
-                    } else {
-                        SECONDARY_ACCEL
-                    }
+                    INITIAL_ACCEL
                 } else {
                     0.0
                 };
@@ -82,58 +77,59 @@ impl CharacterBehavior for Data {
             } else {
                 handle_orientation(data, &mut update, 10.0);
             }
+        } else {
+            handle_move(data, &mut update);
+        }
 
-            // Handling attacking
-            if stage_time_active > Duration::from_millis(STAGE_DURATION / 2)
-                && !self.stage_exhausted
-            {
-                // Try to deal damage in second half of stage
-                data.updater.insert(data.entity, Attacking {
-                    base_damage: self.base_damage * (self.stage as u32 + 1),
-                    max_angle: 180_f32.to_radians(),
-                    applied: false,
-                    hit_count: 0,
-                });
+        // Handling attacking
+        if stage_time_active > Duration::from_millis(STAGE_DURATION / 2) && !self.stage_exhausted {
+            let dmg = match self.stage {
+                1 => self.base_damage,
+                2 => (self.base_damage as f32 * 1.5) as u32,
+                _ => self.base_damage / 2,
+            };
 
+            // Try to deal damage in second half of stage
+            data.updater.insert(data.entity, Attacking {
+                base_damage: dmg,
+                max_angle: 180_f32.to_radians(),
+                applied: false,
+                hit_count: 0,
+            });
+
+            update.character = CharacterState::TripleStrike(Data {
+                base_damage: self.base_damage,
+                stage: self.stage,
+                stage_time_active,
+                stage_exhausted: true,
+                should_transition,
+                initialized,
+            });
+        } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
+            if should_transition {
                 update.character = CharacterState::TripleStrike(Data {
                     base_damage: self.base_damage,
-                    stage: self.stage,
-                    stage_time_active,
-                    stage_exhausted: true,
+                    stage: self.stage + 1,
+                    stage_time_active: Duration::default(),
+                    stage_exhausted: false,
                     should_transition,
                     initialized,
                 });
-            } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
-                if should_transition {
-                    update.character = CharacterState::TripleStrike(Data {
-                        base_damage: self.base_damage,
-                        stage: self.stage + 1,
-                        stage_time_active: Duration::default(),
-                        stage_exhausted: false,
-                        should_transition,
-                        initialized,
-                    });
-                } else {
-                    // Done
-                    update.character = CharacterState::Wielding;
-                    // Make sure attack component is removed
-                    data.updater.remove::<Attacking>(data.entity);
-                }
             } else {
-                update.character = CharacterState::TripleStrike(Data {
-                    base_damage: self.base_damage,
-                    stage: self.stage,
-                    stage_time_active,
-                    stage_exhausted: self.stage_exhausted,
-                    should_transition,
-                    initialized,
-                });
+                // Done
+                update.character = CharacterState::Wielding;
+                // Make sure attack component is removed
+                data.updater.remove::<Attacking>(data.entity);
             }
         } else {
-            // Done
-            update.character = CharacterState::Wielding;
-            // Make sure attack component is removed
-            data.updater.remove::<Attacking>(data.entity);
+            update.character = CharacterState::TripleStrike(Data {
+                base_damage: self.base_damage,
+                stage: self.stage,
+                stage_time_active,
+                stage_exhausted: self.stage_exhausted,
+                should_transition,
+                initialized,
+            });
         }
 
         // Grant energy on successful hit
