@@ -82,9 +82,8 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate) {
 
     handle_orientation(data, update, if data.physics.on_ground { 9.0 } else { 2.0 });
 
-    // Force players to pulse jump button to swim up
-    if data.inputs.jump.is_pressed() && !data.inputs.jump.is_long_press(Duration::from_millis(600))
-    {
+    // Swim
+    if data.inputs.jump.is_pressed() {
         update.vel.0.z =
             (update.vel.0.z + data.dt.0 * GRAVITY * 2.25).min(BASE_HUMANOID_WATER_SPEED);
     }
