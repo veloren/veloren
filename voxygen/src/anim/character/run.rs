@@ -23,26 +23,26 @@ impl Animation for RunAnimation {
 
         let lab = 1.0;
         let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 0.66).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 0.8).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 0.66).sin());
+            * ((anim_time as f32 * lab as f32 * 0.8).sin());
 
         let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 1.32).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.32).sin());
+            * ((anim_time as f32 * lab as f32 * 1.6).sin());
 
         let shortalt = (((5.0)
             / (1.5
                 + 3.5
-                    * ((anim_time as f32 * lab as f32 * 1.32 + PI / 2.0).sin()).powf(2.0 as f32)))
+                    * ((anim_time as f32 * lab as f32 * 1.6 + PI / 2.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.32 + PI / 2.0).sin());
+            * ((anim_time as f32 * lab as f32 * 1.6 + PI / 2.0).sin());
 
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.32).sin()).powf(2.0 as f32)))
+            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.32).sin());
+            * ((anim_time as f32 * lab as f32 * 1.6).sin());
 
         let wave_stop = (anim_time as f32 * 2.6).min(PI / 2.0 / 2.0).sin();
 
@@ -78,26 +78,26 @@ impl Animation for RunAnimation {
             -3.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 13.0 + short * 0.3,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x + long * 0.1)
+        next.head.ori = Quaternion::rotation_z(head_look.x + long * -0.1 - short * 0.3)
             * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + short * 1.1);
-        next.chest.ori = Quaternion::rotation_z(short * 0.2);
+        next.chest.ori = Quaternion::rotation_z(short * 0.3);
         next.chest.scale = Vec3::one();
 
         next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
-        next.belt.ori = Quaternion::rotation_z(short * 0.35);
+        next.belt.ori = Quaternion::rotation_z(short * 0.25);
         next.belt.scale = Vec3::one();
 
         next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
-        next.shorts.ori = Quaternion::rotation_z(short * 0.6);
+        next.shorts.ori = Quaternion::rotation_z(short * 0.4);
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
             -6.0 + wave_stop * -1.0,
-            -0.25 + short * 2.0,
-            5.0 + short * -1.5,
+            -0.25 + short * 3.0,
+            4.0 + short * -1.5,
         );
         next.l_hand.ori =
             Quaternion::rotation_x(0.8 + short * 1.2) * Quaternion::rotation_y(wave_stop * 0.1);
@@ -105,8 +105,8 @@ impl Animation for RunAnimation {
 
         next.r_hand.offset = Vec3::new(
             6.0 + wave_stop * 1.0,
-            -0.25 + short * -2.0,
-            5.0 + short * 1.5,
+            -0.25 + short * -3.0,
+            4.0 + short * 1.5,
         );
         next.r_hand.ori =
             Quaternion::rotation_x(0.8 + short * -1.2) * Quaternion::rotation_y(wave_stop * -0.1);

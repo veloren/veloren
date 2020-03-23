@@ -21,19 +21,19 @@ impl Animation for WieldAnimation {
         let lab = 1.0;
 
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.32).sin()).powf(2.0 as f32)))
+            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.32).sin());
+            * ((anim_time as f32 * lab as f32 * 1.6).sin());
         let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 1.32).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.32).sin());
+            * ((anim_time as f32 * lab as f32 * 1.6).sin());
         let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
         let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 0.66).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 0.8).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 0.66).sin());
+            * ((anim_time as f32 * lab as f32 * 0.8).sin());
         let wave = (anim_time as f32 * 1.0).sin();
         match active_tool_kind {
             //TODO: Inventory
@@ -216,7 +216,7 @@ impl Animation for WieldAnimation {
             -3.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 13.0 + short * 0.2,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x + long * 0.1)
+        next.head.ori = Quaternion::rotation_z(head_look.x + long * 0.1 - short * 0.2)
             * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
