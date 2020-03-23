@@ -75,7 +75,6 @@ impl SessionState {
 impl SessionState {
     /// Tick the session (and the client attached to it).
     fn tick(&mut self, dt: Duration) -> Result<TickAction, Error> {
-        self.inputs.tick(dt);
         for event in self.client.borrow_mut().tick(
             self.inputs.clone(),
             dt,
@@ -327,7 +326,6 @@ impl PlayState for SessionState {
                         self.inputs.toggle_wield.set_state(state);
                     },
                     Event::InputUpdate(GameInput::SwapLoadout, state) => {
-                        println!("{:?}", state);
                         self.inputs.swap_loadout.set_state(state);
                     },
                     Event::InputUpdate(GameInput::Mount, true) => {

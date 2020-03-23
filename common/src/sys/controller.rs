@@ -8,6 +8,7 @@ use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, ReadStorage, System, WriteStorage,
 };
+use std::time::Duration;
 
 // const CHARGE_COST: i32 = 200;
 // const ROLL_COST: i32 = 30;
@@ -33,15 +34,23 @@ impl<'a> System<'a> for Sys {
             uid_allocator,
             server_bus,
             _local_bus,
-            _dt,
+            read_dt,
             mut controllers,
             mut character_states,
             uids,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
-        for (entity, _uid, controller, character_state) in
-            (&entities, &uids, &mut controllers, &mut character_states).join()
+        let dt = Duration::from_secs_f32(read_dt.0);
+
+        for (entity, _uid, controller, character_state) in (
+            &entities,
+            &uids,
+            &mut controllers,
+            // &last_controllers,
+            &mut character_states,
+        )
+            .join()
         {
             let inputs = &mut controller.inputs;
 
