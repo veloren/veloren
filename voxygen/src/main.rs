@@ -125,7 +125,7 @@ fn main() {
             and the events that led up to the panic as possible.
             \n\
             Voxygen has logged information about the problem (including this \
-            message) to the file {:#?}. Please include the contents of this \
+            message) to the file {}. Please include the contents of this \
             file in your bug report.
             \n\
             > Error information\n\
@@ -133,13 +133,17 @@ fn main() {
             The information below is intended for developers and testers.\n\
             \n\
             Panic Payload: {:?}\n\
-            PanicInfo: {}",
-            // TODO: Verify that this works
-            Settings::get_settings_path()
+            PanicInfo: {}\n\
+            Game version: {} [{}]",
+            Settings::load()
+                .log
+                .logs_path
                 .join("voxygen-<date>.log")
                 .display(),
             reason,
             panic_info,
+            common::util::GIT_HASH.to_string(),
+            common::util::GIT_DATE.to_string()
         );
 
         error!(
