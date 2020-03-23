@@ -123,15 +123,15 @@ impl ToolData {
                 CastFireball {
                     projectile: Projectile {
                         hit_ground: vec![
-                            projectile::Effect::Explode { power: 5.0 },
+                            projectile::Effect::Explode { power: 1.5 },
                             projectile::Effect::Vanish,
                         ],
                         hit_wall: vec![
-                            projectile::Effect::Explode { power: 5.0 },
+                            projectile::Effect::Explode { power: 1.5 },
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
-                            projectile::Effect::Explode { power: 5.0 },
+                            projectile::Effect::Explode { power: 1.5 },
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(20),
