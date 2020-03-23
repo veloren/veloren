@@ -5,7 +5,6 @@ use crate::{
     sys::{character_behavior::JoinData, phys::GRAVITY},
     util::safe_slerp,
 };
-use std::time::Duration;
 use vek::vec::Vec2;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
