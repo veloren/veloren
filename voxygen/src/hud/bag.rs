@@ -184,7 +184,7 @@ impl<'a> Widget for Bag<'a> {
             self.stats.exp.maximum(),
             &self.localized_strings.get("hud.bag.exp")
         );
-        let space_used = 0; // TODO: Add functionality
+        let space_used = inventory.amount;
         let space_max = 0;
         let bag_space = format!("{}/{}", space_used, space_max);
         let level = (self.stats.level.level()).to_string();
