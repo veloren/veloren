@@ -92,6 +92,7 @@ impl CharacterBehavior for Data {
             // Try to deal damage in second half of stage
             data.updater.insert(data.entity, Attacking {
                 base_damage: dmg,
+                range: 3.5,
                 max_angle: 180_f32.to_radians(),
                 applied: false,
                 hit_count: 0,

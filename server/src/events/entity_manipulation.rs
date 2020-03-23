@@ -194,6 +194,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 
 pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Option<Uid>) {
     // Go through all other entities
+    let hit_range = 2.0 * power;
     let ecs = &server.state.ecs();
     for (b, uid_b, pos_b, ori_b, character_b, stats_b) in (
         &ecs.entities(),
@@ -205,14 +206,15 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
     )
         .join()
     {
+        let distance_squared = pos.distance_squared(pos_b.0);
         // Check if it is a hit
         if !stats_b.is_dead
             // Spherical wedge shaped attack field
             // RADIUS
-            && pos.distance_squared(pos_b.0) < 10_f32.powi(2)
+            && distance_squared < hit_range.powi(2)
         {
             // Weapon gives base damage
-            let mut dmg = power as u32 * 2;
+            let mut dmg = ((1.0 - distance_squared / hit_range.powi(2)) * power * 5.0) as u32;
 
             if rand::random() {
                 dmg += 1;

@@ -97,7 +97,7 @@ impl<'a> System<'a> for Sys {
                 if entity != b
                     && !stats_b.is_dead
                     // Spherical wedge shaped attack field
-                    && pos.0.distance_squared(pos_b.0) < (rad_b + scale * ATTACK_RANGE).powi(2)
+                    && pos.0.distance_squared(pos_b.0) < (rad_b + scale * attack.range).powi(2)
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // Weapon gives base damage

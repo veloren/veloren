@@ -1,5 +1,6 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    states::utils::*,
     sys::character_behavior::*,
     util::safe_slerp,
 };
@@ -53,6 +54,7 @@ impl CharacterBehavior for Data {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
                 base_damage: self.base_damage,
+                range: 3.5,
                 max_angle: 180_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
@@ -67,6 +69,7 @@ impl CharacterBehavior for Data {
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
+            handle_move(data, &mut update);
             update.character = CharacterState::DashMelee(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self
