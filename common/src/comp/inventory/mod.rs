@@ -34,14 +34,7 @@ impl Inventory {
         self.amount = 0;
         for item in self.slots.iter() {
             if let Some(item) = item {
-                match item.kind {
-                    ItemKind::Tool(_) | ItemKind::Armor { .. } => self.amount += 1,
-                    ItemKind::Utility { amount, .. }
-                    | ItemKind::Ingredient { amount, .. }
-                    | ItemKind::Consumable { amount, .. } => {
-                        self.amount += amount;
-                    },
-                }
+                self.amount += 1;
             }
         }
     }
