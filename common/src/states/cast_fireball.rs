@@ -47,7 +47,7 @@ impl CharacterBehavior for Data {
                 dir: data.inputs.look_dir,
                 body: self.projectile_body,
                 light: Some(LightEmitter {
-                    col: (0.0, 1.0, 0.3).into(),
+                    col: (0.72, 0.11, 0.11).into(),
                     ..Default::default()
                 }),
                 projectile,
