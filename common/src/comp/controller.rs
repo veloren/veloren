@@ -15,80 +15,72 @@ pub enum ControlEvent {
     //Respawn,
 }
 
-/// The various states an input can be in
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum InputState {
-    Pressed,
-    Unpressed,
-}
-
 /// Whether a key is pressed or unpressed
 /// and how long it has been in that state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Input {
     /// Should not be pub because duration should
     /// always be reset when state is updated
-    state: InputState,
+    state: bool,
     /// Should only be updated by npc agents
     /// through appropriate fn
     duration: Duration,
-    /// Turned off first tick after switching states
-    just_changed: bool,
-    /// Set when `set_state` is called. Needed so
-    /// tick after change doesn't immediately unset `just_changed`
-    dirty: bool,
+    /// How many update ticks the button has been in its current state for
+    ticks_held: u32,
 }
 
 impl Input {
-    fn tick(&mut self, dt: Duration) {
+    fn tick(&mut self, old: Input, dt: Duration) {
         // Increase how long input has been in current state
         self.duration = self.duration.checked_add(dt).unwrap_or_default();
-        if self.dirty {
-            // Unset dirty first tick after changing into current state
-            self.dirty = false;
-        } else {
-            // Otherwise, just changed is always false
-            self.just_changed = false;
-        }
+
+        match (self.is_pressed(), old.is_pressed()) {
+            (false, true) | (true, false) => {
+                println!("{:?}", self);
+                self.duration = Duration::default();
+                self.ticks_held = 1;
+                println!("{:?}", self);
+            },
+            (_, _) => {
+                self.ticks_held += 1;
+                println!("____");
+            },
+        };
     }
 
-    /// Whether input is in `InputState::Pressed` state
-    pub fn is_pressed(&self) -> bool { self.state == InputState::Pressed }
+    /// Whether input is being pressed down
+    pub fn is_pressed(&self) -> bool { self.state == true }
 
-    /// Whether it's the first frame this input has been in
-    /// its current state
-    pub fn is_just_pressed(&self) -> bool { self.just_changed && self.is_pressed() }
+    /// Whether it's the first frame this input has been pressed
+    pub fn is_just_pressed(&self) -> bool { self.is_pressed() && self.ticks_held == 1 }
 
-    /// Whether input has been in current state longer than
+    /// Whether it's the first frame this input has been unpressed
+    pub fn is_just_unpressed(&self) -> bool { !self.is_pressed() && self.ticks_held == 1 }
+
+    /// Whether input has been pressed longer than
     /// `DEFAULT_HOLD_DURATION`
     pub fn is_held_down(&self) -> bool {
         self.is_pressed() && self.duration >= DEFAULT_HOLD_DURATION
     }
 
-    /// Whether input has been pressed for longer than `threshold`
-    pub fn is_long_press(&self, threshold: Duration) -> bool {
+    /// Whether input has been unpressed longer than
+    /// `DEFAULT_HOLD_DURATION`
+    pub fn is_held_up(&self) -> bool {
+        !self.is_pressed() && self.duration >= DEFAULT_HOLD_DURATION
+    }
+
+    /// Whether input has been pressed for longer than `threshold` duration
+    pub fn held_for_dur(&self, threshold: Duration) -> bool {
         self.is_pressed() && self.duration >= threshold
     }
 
-    /// Handles logic of updating state of Input
-    pub fn set_state(&mut self, new_state: bool) {
-        // Only update if state switches
-        match (self.is_pressed(), new_state) {
-            (false, true) => {
-                self.just_changed = true;
-                self.dirty = true;
-                self.state = InputState::Pressed;
-                self.duration = Duration::default();
-            },
-            (true, false) => {
-                self.just_changed = true;
-                self.dirty = true;
-                self.state = InputState::Unpressed;
-                self.duration = Duration::default();
-            },
-            (_, _) => {},
-        };
+    /// Whether input has been pressed for longer than `count` number of ticks
+    pub fn held_for_ticks(&self, count: u32) -> bool {
+        self.is_pressed() && self.ticks_held >= count
     }
+
+    /// Handles logic of updating state of Input
+    pub fn set_state(&mut self, new_state: bool) { self.state = new_state; }
 
     /// Increases `input::duration` by `dur`
     pub fn inc_dur(&mut self, dur: Duration) {
@@ -102,10 +94,9 @@ impl Input {
 impl Default for Input {
     fn default() -> Self {
         Self {
-            state: InputState::Unpressed,
+            state: false,
             duration: Duration::default(),
-            just_changed: false,
-            dirty: false,
+            ticks_held: 0,
         }
     }
 }
@@ -139,21 +130,21 @@ pub struct Controller {
 
 impl ControllerInputs {
     /// Updates all inputs, accounting for delta time
-    pub fn tick(&mut self, dt: Duration) {
-        self.primary.tick(dt);
-        self.secondary.tick(dt);
-        self.ability3.tick(dt);
-        self.sit.tick(dt);
-        self.jump.tick(dt);
-        self.roll.tick(dt);
-        self.glide.tick(dt);
-        self.climb.tick(dt);
-        self.climb_down.tick(dt);
-        self.wall_leap.tick(dt);
-        self.respawn.tick(dt);
-        self.toggle_wield.tick(dt);
-        self.swap_loadout.tick(dt);
-        self.charge.tick(dt);
+    pub fn calculate_change(&mut self, old: ControllerInputs, dt: Duration) {
+        self.primary.tick(old.primary, dt);
+        self.secondary.tick(old.secondary, dt);
+        self.ability3.tick(old.ability3, dt);
+        self.sit.tick(old.sit, dt);
+        self.jump.tick(old.jump, dt);
+        self.roll.tick(old.roll, dt);
+        self.glide.tick(old.glide, dt);
+        self.climb.tick(old.climb, dt);
+        self.climb_down.tick(old.climb_down, dt);
+        self.wall_leap.tick(old.wall_leap, dt);
+        self.respawn.tick(old.respawn, dt);
+        self.toggle_wield.tick(old.toggle_wield, dt);
+        self.swap_loadout.tick(old.swap_loadout, dt);
+        self.charge.tick(old.charge, dt);
     }
 
     pub fn holding_ability_key(&self) -> bool {
