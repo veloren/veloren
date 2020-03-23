@@ -14,6 +14,7 @@ pub const MAX_PICKUP_RANGE_SQR: f32 = 64.0;
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
     pub slots: Vec<Option<Item>>,
+    pub amount: u32,
 }
 
 /// Errors which the methods on `Inventory` produce
@@ -29,10 +30,26 @@ impl Inventory {
 
     pub fn len(&self) -> usize { self.slots.len() }
 
+    pub fn recount_items(&mut self) {
+        self.amount = 0;
+        for item in self.slots.iter() {
+            if let Some(item) = item {
+                match item.kind {
+                    ItemKind::Tool(_) | ItemKind::Armor { .. } => self.amount += 1,
+                    ItemKind::Utility { amount, .. }
+                    | ItemKind::Ingredient { amount, .. }
+                    | ItemKind::Consumable { amount, .. } => {
+                        self.amount += amount;
+                    },
+                }
+            }
+        }
+    }
+
     /// Adds a new item to the first fitting group of the inventory or starts a
     /// new group. Returns the item again if no space was found.
     pub fn push(&mut self, item: Item) -> Option<Item> {
-        match item.kind {
+        let item = match item.kind {
             ItemKind::Tool(_) | ItemKind::Armor { .. } => self.add_to_first_empty(item),
             ItemKind::Utility {
                 kind: item_kind,
@@ -55,6 +72,7 @@ impl Inventory {
                         {
                             if item_kind == *kind {
                                 *amount += new_amount;
+                                self.recount_items();
                                 return None;
                             }
                         }
@@ -85,6 +103,7 @@ impl Inventory {
                         {
                             if item_kind == *kind {
                                 *amount += new_amount;
+                                self.recount_items();
                                 return None;
                             }
                         }
@@ -114,6 +133,7 @@ impl Inventory {
                         {
                             if item_kind == *kind {
                                 *amount += new_amount;
+                                self.recount_items();
                                 return None;
                             }
                         }
@@ -122,19 +142,23 @@ impl Inventory {
                 // It didn't work
                 self.add_to_first_empty(item)
             },
-        }
+        };
+        self.recount_items();
+        item
     }
 
     /// Adds a new item to the first empty slot of the inventory. Returns the
     /// item again if no free slot was found.
     fn add_to_first_empty(&mut self, item: Item) -> Option<Item> {
-        match self.slots.iter_mut().find(|slot| slot.is_none()) {
+        let item = match self.slots.iter_mut().find(|slot| slot.is_none()) {
             Some(slot) => {
                 *slot = Some(item);
                 None
             },
             None => Some(item),
-        }
+        };
+        self.recount_items();
+        item
     }
 
     /// Add a series of items to inventory, returning any which do not fit as an
@@ -150,6 +174,7 @@ impl Inventory {
                 leftovers.push(item);
             }
         }
+        self.recount_items();
         if leftovers.len() > 0 {
             Err(Error::Full(leftovers))
         } else {
@@ -187,6 +212,7 @@ impl Inventory {
             Some(slot) => {
                 let old = slot.take();
                 *slot = Some(item);
+                self.recount_items();
                 Ok(old)
             },
             None => Err(item),
@@ -217,7 +243,9 @@ impl Inventory {
 
     /// Remove an item from the slot
     pub fn remove(&mut self, cell: usize) -> Option<Item> {
-        self.slots.get_mut(cell).and_then(|item| item.take())
+        let item = self.slots.get_mut(cell).and_then(|item| item.take());
+        self.recount_items();
+        item
     }
 
     /// Remove just one item from the slot
@@ -235,6 +263,7 @@ impl Inventory {
                             kind: *kind,
                             amount: 1,
                         };
+                        self.recount_items();
                         Some(return_item)
                     }
                 },
@@ -252,6 +281,7 @@ impl Inventory {
                             effect: *effect,
                             amount: 1,
                         };
+                        self.recount_items();
                         Some(return_item)
                     }
                 },
@@ -264,6 +294,7 @@ impl Inventory {
                             kind: *kind,
                             amount: 1,
                         };
+                        self.recount_items();
                         Some(return_item)
                     }
                 },
@@ -278,6 +309,7 @@ impl Default for Inventory {
     fn default() -> Inventory {
         let mut inventory = Inventory {
             slots: vec![None; 18],
+            amount: 0,
         };
         inventory.push(assets::load_expect_cloned("common.items.cheese"));
         inventory.push(assets::load_expect_cloned("common.items.apple"));
