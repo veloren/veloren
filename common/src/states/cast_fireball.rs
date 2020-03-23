@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Body, CharacterState, Gravity, Projectile, StateUpdate},
+    comp::{Body, CharacterState, LightEmitter, Projectile, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::*,
@@ -46,9 +46,12 @@ impl CharacterBehavior for Data {
                 entity: data.entity,
                 dir: data.inputs.look_dir,
                 body: self.projectile_body,
-                light: None,
+                light: Some(LightEmitter {
+                    col: (0.0, 1.0, 0.3).into(),
+                    ..Default::default()
+                }),
                 projectile,
-                gravity: Some(Gravity(0.1)),
+                gravity: None,
             });
 
             update.character = CharacterState::CastFireball(Data {
