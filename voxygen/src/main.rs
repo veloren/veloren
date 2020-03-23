@@ -133,7 +133,9 @@ fn main() {
             Panic Payload: {:?}\n\
             PanicInfo: {}\n\
             Game version: {} [{}]",
-            Settings::get_settings_path()
+            Settings::load()
+                .log
+                .logs_path
                 .join("voxygen-<date>.log")
                 .display(),
             reason,
