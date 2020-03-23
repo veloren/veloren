@@ -10,7 +10,7 @@ use common::{
 };
 use log::error;
 use specs::{join::Join, Entity as EcsEntity, WorldExt};
-use vek::{Vec3, *};
+use vek::Vec3;
 
 const BLOCK_EFFICIENCY: f32 = 0.9;
 const BLOCK_ANGLE: f32 = 180.0;
@@ -196,9 +196,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
     // Go through all other entities
     let hit_range = 2.0 * power;
     let ecs = &server.state.ecs();
-    for (b, uid_b, pos_b, ori_b, character_b, stats_b) in (
-        &ecs.entities(),
-        &ecs.read_storage::<Uid>(),
+    for (pos_b, ori_b, character_b, stats_b) in (
         &ecs.read_storage::<comp::Pos>(),
         &ecs.read_storage::<comp::Ori>(),
         &ecs.read_storage::<comp::CharacterState>(),
@@ -214,7 +212,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
             && distance_squared < hit_range.powi(2)
         {
             // Weapon gives base damage
-            let mut dmg = ((1.0 - distance_squared / hit_range.powi(2)) * power * 5.0) as u32;
+            let mut dmg = ((1.0 - distance_squared / hit_range.powi(2)) * power * 10.0) as u32;
 
             if rand::random() {
                 dmg += 1;
@@ -236,6 +234,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
 
     const RAYS: usize = 500;
 
+    // Color terrain
+    let mut touched_blocks = Vec::new();
     for _ in 0..RAYS {
         let dir = Vec3::new(
             rand::random::<f32>() - 0.5,
@@ -244,7 +244,35 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
         )
         .normalized();
 
-        let mut block_change = ecs.write_resource::<BlockChange>();
+        let _ = ecs
+            .read_resource::<TerrainGrid>()
+            .ray(pos, pos + dir * power * 2.5)
+            .until(|_| rand::random::<f32>() < 0.05)
+            .for_each(|pos| touched_blocks.push(pos))
+            .cast();
+    }
+
+    let terrain = ecs.read_resource::<TerrainGrid>();
+    let mut block_change = ecs.write_resource::<BlockChange>();
+    for pos in touched_blocks {
+        if let Ok(block) = terrain.get(pos) {
+            if let Some(mut color) = block.get_color() {
+                color[0] /= 2;
+                color[1] /= 3;
+                color[2] /= 3;
+                block_change.set(pos, Block::new(block.kind(), color));
+            }
+        }
+    }
+
+    // Destroy terrain
+    for _ in 0..RAYS {
+        let dir = Vec3::new(
+            rand::random::<f32>() - 0.5,
+            rand::random::<f32>() - 0.5,
+            rand::random::<f32>() - 0.5,
+        )
+        .normalized();
 
         let _ = ecs
             .read_resource::<TerrainGrid>()
