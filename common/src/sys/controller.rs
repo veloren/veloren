@@ -8,7 +8,6 @@ use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, ReadStorage, System, WriteStorage,
 };
-use std::time::Duration;
 
 // const CHARGE_COST: i32 = 200;
 // const ROLL_COST: i32 = 30;
@@ -34,25 +33,27 @@ impl<'a> System<'a> for Sys {
             uid_allocator,
             server_bus,
             _local_bus,
-            read_dt,
+            _dt,
             mut controllers,
             mut character_states,
             uids,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
-        let dt = Duration::from_secs_f32(read_dt.0);
 
-        for (entity, _uid, controller, character_state) in (
-            &entities,
-            &uids,
-            &mut controllers,
-            // &last_controllers,
-            &mut character_states,
-        )
-            .join()
+        for (entity, _uid, controller, character_state) in
+            (&entities, &uids, &mut controllers, &mut character_states).join()
         {
-            let inputs = &mut controller.inputs;
+            let mut inputs = &mut controller.inputs;
+
+            // Note(imbris): I avoided incrementing the duration with inputs.tick() because
+            // this is being done manually in voxygen right now so it would double up on
+            // speed of time.
+            // Perhaphs the duration aspects of inputs could be
+            // calculated exclusively on the server (since the client can't be
+            // trusted anyway). It needs to be considered if these calculations
+            // being on the client are critical for responsiveness/client-side prediction.
+            inputs.tick_freshness();
 
             // Update `inputs.move_dir`.
             inputs.move_dir = if inputs.move_dir.magnitude_squared() > 1.0 {
@@ -82,8 +83,8 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::InventoryManip(manip) => {
                         *character_state = CharacterState::Idle;
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
-                    }, /*ControlEvent::Respawn =>
-                        * server_emitter.emit(ServerEvent::Unmount(entity)), */
+                    },
+                    ControlEvent::Respawn => server_emitter.emit(ServerEvent::Respawn(entity)),
                 }
             }
         }

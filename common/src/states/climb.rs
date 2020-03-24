@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, EnergySource, StateUpdate},
+    comp::{CharacterState, Climb, EnergySource, StateUpdate},
     event::LocalEvent,
     sys::{
         character_behavior::{CharacterBehavior, JoinData},
@@ -22,15 +22,8 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        if let Err(_) = update.energy.try_change_by(-8, EnergySource::Climb) {
-            update.character = CharacterState::Idle {};
-        }
-
-        // If no wall is in front of character or we stopped holding space:
-        if data.physics.on_wall.is_none()
-            || data.physics.on_ground
-            || !data.inputs.jump.is_pressed()
-        {
+        // If no wall is in front of character or we stopped climbing;
+        if data.physics.on_wall.is_none() || data.physics.on_ground || data.inputs.climb.is_none() {
             if data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
                 update
@@ -50,13 +43,35 @@ impl CharacterBehavior for Data {
                 0.0
             };
 
+        // Expend energy if climbing
+        let energy_use = match data.inputs.climb {
+            Some(Climb::Up) | Some(Climb::Down) => 8,
+            Some(Climb::Hold) => data
+                .physics
+                .on_wall
+                .map(|wall_dir| {
+                    // Calculate velocity perpendicular to the wall
+                    let vel = update.vel.0;
+                    let perp_vel =
+                        vel - wall_dir * vel.dot(wall_dir) / wall_dir.magnitude_squared();
+                    // Enegry cost based on magnitude of this velocity
+                    (perp_vel.magnitude() * 8.0) as i32
+                })
+                // Note: this is currently unreachable
+                .unwrap_or(0),
+            // Note: this is currently unreachable
+            None => 0,
+        };
+        if let Err(_) = update
+            .energy
+            .try_change_by(-energy_use, EnergySource::Climb)
+        {
+            update.character = CharacterState::Idle {};
+        }
+
         // Set orientation direction based on wall direction
         let ori_dir = if let Some(wall_dir) = data.physics.on_wall {
-            if Vec2::<f32>::from(wall_dir).magnitude_squared() > 0.001 {
-                Vec2::from(wall_dir).normalized()
-            } else {
-                Vec2::from(update.vel.0)
-            }
+            Vec2::from(wall_dir)
         } else {
             Vec2::from(update.vel.0)
         };
@@ -69,23 +84,27 @@ impl CharacterBehavior for Data {
         );
 
         // Apply Vertical Climbing Movement
-        if let (true, Some(_wall_dir)) = (
-            (data.inputs.climb.is_pressed() | data.inputs.climb_down.is_pressed())
-                && update.vel.0.z <= CLIMB_SPEED,
+        if let (Some(climb), true, Some(_wall_dir)) = (
+            data.inputs.climb,
+            update.vel.0.z <= CLIMB_SPEED,
             data.physics.on_wall,
         ) {
-            if data.inputs.climb_down.is_pressed() && !data.inputs.climb.is_pressed() {
-                update.vel.0 -=
-                    data.dt.0 * update.vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
-            } else if data.inputs.climb.is_pressed() && !data.inputs.climb_down.is_pressed() {
-                update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
-            } else {
-                update.vel.0.z = update.vel.0.z + data.dt.0 * GRAVITY * 1.5;
-                update.vel.0 = Lerp::lerp(
-                    update.vel.0,
-                    Vec3::zero(),
-                    30.0 * data.dt.0 / (1.0 - update.vel.0.z.min(0.0) * 5.0),
-                );
+            match climb {
+                Climb::Down => {
+                    update.vel.0 -=
+                        data.dt.0 * update.vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
+                },
+                Climb::Up => {
+                    update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
+                },
+                Climb::Hold => {
+                    update.vel.0.z = update.vel.0.z + data.dt.0 * GRAVITY * 1.5;
+                    update.vel.0 = Lerp::lerp(
+                        update.vel.0,
+                        Vec3::zero(),
+                        30.0 * data.dt.0 / (1.0 - update.vel.0.z.min(0.0) * 5.0),
+                    );
+                },
             }
         }
 

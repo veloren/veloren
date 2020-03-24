@@ -25,7 +25,8 @@ pub use body::{
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
 pub use controller::{
-    ControlEvent, Controller, ControllerInputs, Input, InventoryManip, MountState, Mounting,
+    Climb, ControlAction, ControlEvent, Controller, ControllerInputs, Input, InventoryManip,
+    MountState, Mounting,
 };
 pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;

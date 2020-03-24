@@ -28,7 +28,7 @@ impl CharacterBehavior for Data {
 
         if self.initialize {
             update.vel.0 = data.inputs.look_dir * 20.0;
-            update.ori.0 = data.vel.0.normalized();
+            update.ori.0 = Vec3::from(data.vel.0.xy()).normalized();
         }
 
         if self.buildup_duration != Duration::default() && data.physics.touch_entity.is_none() {
