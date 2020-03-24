@@ -26,8 +26,11 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::Idle {};
         }
 
-        // If no wall is in front of character ...
-        if data.physics.on_wall.is_none() || data.physics.on_ground {
+        // If no wall is in front of character or we stopped holding space:
+        if data.physics.on_wall.is_none()
+            || data.physics.on_ground
+            || !data.inputs.jump.is_pressed()
+        {
             if data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
                 update
