@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Attacking, Body, CharacterState, Controller, ControllerInputs, Energy, Loadout, Mounting,
-        Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        Attacking, Body, CharacterState, ControlAction, Controller, ControllerInputs, Energy,
+        Loadout, Mounting, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -15,6 +15,17 @@ use specs::{Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System, Write
 
 pub trait CharacterBehavior {
     fn behavior(&self, data: &JoinData) -> StateUpdate;
+    // Impl these to provide behavior for these inputs
+    fn swap_loadout(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn toggle_wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn toggle_sit(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
+        match event {
+            ControlAction::SwapLoadout => self.swap_loadout(data),
+            ControlAction::ToggleWield => self.toggle_wield(data),
+            ControlAction::ToggleSit => self.toggle_sit(data),
+        }
+    }
     // fn init(data: &JoinData) -> CharacterState;
 }
 
@@ -47,12 +58,21 @@ pub type JoinTuple<'a> = (
     &'a mut Ori,
     &'a mut Energy,
     &'a mut Loadout,
-    &'a Controller,
+    &'a mut Controller,
     &'a Stats,
     &'a Body,
     &'a PhysicsState,
     Option<&'a Attacking>,
 );
+
+fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
+    *tuple.2 = state_update.character;
+    *tuple.3 = state_update.pos;
+    *tuple.4 = state_update.vel;
+    *tuple.5 = state_update.ori;
+    *tuple.6 = state_update.energy;
+    *tuple.7 = state_update.loadout;
+}
 
 impl<'a> JoinData<'a> {
     fn new(j: &'a JoinTuple<'a>, updater: &'a LazyUpdate, dt: &'a DeltaTime) -> Self {
@@ -96,7 +116,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Loadout>,
-        ReadStorage<'a, Controller>,
+        WriteStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
@@ -120,7 +140,7 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut energies,
             mut loadouts,
-            controllers,
+            mut controllers,
             stats,
             bodies,
             physics_states,
@@ -141,7 +161,7 @@ impl<'a> System<'a> for Sys {
             &mut orientations,
             &mut energies,
             &mut loadouts,
-            &controllers,
+            &mut controllers,
             &stats,
             &bodies,
             &physics_states,
@@ -149,27 +169,48 @@ impl<'a> System<'a> for Sys {
         )
             .join();
 
-        while let Some(tuple) = join_iter.next() {
-            let j = JoinData::new(&tuple, &updater, &dt);
-            let inputs = &j.inputs;
-
+        while let Some(mut tuple) = join_iter.next() {
             // Being dead overrides all other states
-            if j.stats.is_dead {
-                // Only options: click respawn
-                // prevent instant-respawns (i.e. player was holding attack)
-                // by disallowing while input is held down
-                if inputs.respawn.is_pressed() && !inputs.respawn.is_held_down() {
-                    server_bus.emitter().emit(ServerEvent::Respawn(j.entity));
-                }
-                // Or do nothing
-                return;
+            if tuple.9.is_dead {
+                // Do nothing
+                continue;
             }
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
-            if let Some(Mounting(_)) = mountings.get(j.entity) {
+            if let Some(Mounting(_)) = mountings.get(tuple.0) {
                 *tuple.2 = CharacterState::Sit {};
-                return;
+                continue;
             }
+
+            let actions = std::mem::replace(&mut tuple.8.actions, Vec::new());
+            for action in actions {
+                let j = JoinData::new(&tuple, &updater, &dt);
+                let mut state_update = match j.character {
+                    CharacterState::Idle => states::idle::Data.handle_event(&j, action),
+                    CharacterState::Climb => states::climb::Data.handle_event(&j, action),
+                    CharacterState::Glide => states::glide::Data.handle_event(&j, action),
+                    CharacterState::Sit => {
+                        states::sit::Data::handle_event(&states::sit::Data, &j, action)
+                    },
+                    CharacterState::BasicBlock => {
+                        states::basic_block::Data.handle_event(&j, action)
+                    },
+                    CharacterState::Roll(data) => data.handle_event(&j, action),
+                    CharacterState::Wielding => states::wielding::Data.handle_event(&j, action),
+                    CharacterState::Equipping(data) => data.handle_event(&j, action),
+                    CharacterState::TripleStrike(data) => data.handle_event(&j, action),
+                    CharacterState::BasicMelee(data) => data.handle_event(&j, action),
+                    CharacterState::BasicRanged(data) => data.handle_event(&j, action),
+                    CharacterState::Boost(data) => data.handle_event(&j, action),
+                    CharacterState::DashMelee(data) => data.handle_event(&j, action),
+                    CharacterState::TimedCombo(data) => data.handle_event(&j, action),
+                };
+                local_emitter.append(&mut state_update.local_events);
+                server_emitter.append(&mut state_update.server_events);
+                incorporate_update(&mut tuple, state_update);
+            }
+
+            let j = JoinData::new(&tuple, &updater, &dt);
 
             let mut state_update = match j.character {
                 CharacterState::Idle => states::idle::Data.behavior(&j),
@@ -188,14 +229,9 @@ impl<'a> System<'a> for Sys {
                 CharacterState::TimedCombo(data) => data.behavior(&j),
             };
 
-            *tuple.2 = state_update.character;
-            *tuple.3 = state_update.pos;
-            *tuple.4 = state_update.vel;
-            *tuple.5 = state_update.ori;
-            *tuple.6 = state_update.energy;
-            *tuple.7 = state_update.loadout;
             local_emitter.append(&mut state_update.local_events);
             server_emitter.append(&mut state_update.server_events);
+            incorporate_update(&mut tuple, state_update);
         }
     }
 }
