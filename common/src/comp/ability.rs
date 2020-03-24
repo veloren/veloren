@@ -17,11 +17,13 @@ pub enum CharacterAbility {
         max_angle: f32,
     },
     BasicRanged {
+        prepare_duration: Duration,
         recover_duration: Duration,
         projectile: Projectile,
         projectile_body: Body,
     },
     CastFireball {
+        prepare_duration: Duration,
         recover_duration: Duration,
         projectile: Projectile,
         projectile_body: Body,
@@ -121,23 +123,26 @@ impl From<&CharacterAbility> for CharacterState {
                 max_angle: *max_angle,
             }),
             CharacterAbility::BasicRanged {
+                prepare_duration,
                 recover_duration,
                 projectile,
                 projectile_body,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 exhausted: false,
                 prepare_timer: Duration::default(),
+                prepare_duration: *prepare_duration,
                 recover_duration: *recover_duration,
                 projectile: projectile.clone(),
                 projectile_body: *projectile_body,
             }),
             CharacterAbility::CastFireball {
+                prepare_duration,
                 recover_duration,
                 projectile,
                 projectile_body,
             } => CharacterState::CastFireball(cast_fireball::Data {
                 exhausted: false,
-                prepare_timer: Duration::default(),
+                prepare_duration: *prepare_duration,
                 recover_duration: *recover_duration,
                 projectile: projectile.clone(),
                 projectile_body: *projectile_body,
