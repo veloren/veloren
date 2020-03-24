@@ -488,6 +488,15 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::CastFireball(_) => {
+                            anim::character::ShootAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Boost(_) => {
                             anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
@@ -566,7 +575,7 @@ impl FigureMgr {
                         }*/
                         CharacterState::Equipping { .. } => {
                             if vel.0.magnitude_squared() > 0.5 {
-                                anim::character::WieldAnimation::update_skeleton(
+                                anim::character::EquipAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, vel.0.magnitude(), time),
                                     state.state_time,
@@ -574,7 +583,7 @@ impl FigureMgr {
                                     skeleton_attr,
                                 )
                             } else {
-                                anim::character::IdleWieldAnimation::update_skeleton(
+                                anim::character::IdleEquipAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, vel.0.magnitude(), time),
                                     state.state_time,
