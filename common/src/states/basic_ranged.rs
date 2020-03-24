@@ -8,6 +8,8 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
+    /// How long we have to prepare the weapon
+    pub prepare_duration: Duration,
     /// How long we prepared the weapon already
     pub prepare_timer: Duration,
     /// How long the state has until exiting
@@ -27,10 +29,13 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update);
         handle_jump(data, &mut update);
 
-        if !self.exhausted && data.inputs.holding_ability_key() {
+        if self.prepare_timer < self.prepare_duration
+            || !self.exhausted && data.inputs.holding_ability_key()
+        {
             // Prepare (draw the bow)
             update.character = CharacterState::BasicRanged(Data {
                 prepare_timer: self.prepare_timer + Duration::from_secs_f32(data.dt.0),
+                prepare_duration: self.prepare_duration,
                 recover_duration: self.recover_duration,
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
@@ -51,6 +56,7 @@ impl CharacterBehavior for Data {
 
             update.character = CharacterState::BasicRanged(Data {
                 prepare_timer: self.prepare_timer,
+                prepare_duration: self.prepare_duration,
                 recover_duration: self.recover_duration,
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
@@ -60,6 +66,7 @@ impl CharacterBehavior for Data {
             // Recovery
             update.character = CharacterState::BasicRanged(Data {
                 prepare_timer: self.prepare_timer,
+                prepare_duration: self.prepare_duration,
                 recover_duration: self
                     .recover_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
