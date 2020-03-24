@@ -5,6 +5,12 @@ pub struct KeyState {
     pub left: bool,
     pub up: bool,
     pub down: bool,
+    pub climb_up: bool,
+    pub climb_down: bool,
+    pub toggle_wield: bool,
+    pub toggle_sit: bool,
+    pub swap_loadout: bool,
+    pub respawn: bool,
     pub analog_matrix: Vec2<f32>,
 }
 
@@ -15,6 +21,12 @@ impl KeyState {
             left: false,
             up: false,
             down: false,
+            climb_up: false,
+            climb_down: false,
+            toggle_wield: false,
+            toggle_sit: false,
+            swap_loadout: false,
+            respawn: false,
             analog_matrix: Vec2::zero(),
         }
     }
@@ -33,6 +45,16 @@ impl KeyState {
             dir
         } else {
             dir.normalized()
+        }
+    }
+
+    pub fn climb(&self) -> Option<common::comp::Climb> {
+        use common::comp::Climb;
+        match (self.climb_up, self.climb_down) {
+            (true, false) => Some(Climb::Up),
+            (false, true) => Some(Climb::Down),
+            (true, true) => Some(Climb::Hold),
+            (false, false) => None,
         }
     }
 }

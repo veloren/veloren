@@ -90,7 +90,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate) {
 
 /// First checks whether `primary` input is pressed, then
 /// attempts to go into Equipping state, otherwise Idle
-pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_primary_wield(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.primary.is_pressed() {
         attempt_wield(data, update);
     }
@@ -108,15 +108,15 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can `Sit` and updates `CharacterState` if so
-pub fn handle_sit(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.sit.is_pressed() && data.physics.on_ground && data.body.is_humanoid() {
+pub fn attempt_sit(data: &JoinData, update: &mut StateUpdate) {
+    if data.physics.on_ground && data.body.is_humanoid() {
         update.character = CharacterState::Sit;
     }
 }
 
 /// Checks that player can `Climb` and updates `CharacterState` if so
 pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
-    if (data.inputs.climb.is_pressed() || data.inputs.climb_down.is_pressed())
+    if data.inputs.climb.is_some()
         && data.physics.on_wall.is_some()
         && !data.physics.on_ground
         //&& update.vel.0.z < 0.0
@@ -127,25 +127,12 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// Checks that player can Unwield and updates `CharacterState` if so
-pub fn handle_unwield(data: &JoinData, update: &mut StateUpdate) {
-    if let CharacterState::Wielding { .. } = update.character {
-        if data.inputs.toggle_wield.is_pressed() {
-            update.character = CharacterState::Idle;
-        }
-    }
-}
-
 /// Checks that player can Swap Weapons and updates `Loadout` if so
-pub fn handle_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
-    if let CharacterState::Wielding { .. } = update.character {
-        if data.inputs.swap_loadout.is_just_pressed() {
-            let mut new_loadout = data.loadout.clone();
-            new_loadout.active_item = data.loadout.second_item.clone();
-            new_loadout.second_item = data.loadout.active_item.clone();
-            update.loadout = new_loadout;
-        }
-    }
+pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
+    let mut new_loadout = data.loadout.clone();
+    new_loadout.active_item = data.loadout.second_item.clone();
+    new_loadout.second_item = data.loadout.active_item.clone();
+    update.loadout = new_loadout;
 }
 
 /// Checks that player can glide and updates `CharacterState` if so
