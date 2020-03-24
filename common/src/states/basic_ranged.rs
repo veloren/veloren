@@ -27,9 +27,7 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update);
         handle_jump(data, &mut update);
 
-        if !self.exhausted
-            && (data.inputs.primary.is_pressed() | data.inputs.secondary.is_pressed())
-        {
+        if !self.exhausted && data.inputs.holding_ability_key() {
             // Prepare (draw the bow)
             update.character = CharacterState::BasicRanged(Data {
                 prepare_timer: self.prepare_timer + Duration::from_secs_f32(data.dt.0),

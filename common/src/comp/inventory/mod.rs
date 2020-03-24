@@ -31,12 +31,7 @@ impl Inventory {
     pub fn len(&self) -> usize { self.slots.len() }
 
     pub fn recount_items(&mut self) {
-        self.amount = 0;
-        for item in self.slots.iter() {
-            if let Some(item) = item {
-                self.amount += 1;
-            }
-        }
+        self.amount = self.slots.iter().filter(|i| i.is_some()).count() as u32;
     }
 
     /// Adds a new item to the first fitting group of the inventory or starts a

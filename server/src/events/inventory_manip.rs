@@ -111,8 +111,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             let mut ability_drain = abilities.drain(..);
                             let active_item = comp::ItemConfig {
                                 item,
-                                primary_ability: ability_drain.next(),
-                                secondary_ability: ability_drain.next(),
+                                ability1: ability_drain.next(),
+                                ability2: ability_drain.next(),
+                                ability3: ability_drain.next(),
                                 block_ability: Some(comp::CharacterAbility::BasicBlock),
                                 dodge_ability: Some(comp::CharacterAbility::Roll),
                             };

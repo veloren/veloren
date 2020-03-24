@@ -114,6 +114,7 @@ impl Default for Input {
 pub struct ControllerInputs {
     pub primary: Input,
     pub secondary: Input,
+    pub ability3: Input,
     pub sit: Input,
     pub jump: Input,
     pub roll: Input,
@@ -141,6 +142,7 @@ impl ControllerInputs {
     pub fn tick(&mut self, dt: Duration) {
         self.primary.tick(dt);
         self.secondary.tick(dt);
+        self.ability3.tick(dt);
         self.sit.tick(dt);
         self.jump.tick(dt);
         self.roll.tick(dt);
@@ -152,6 +154,10 @@ impl ControllerInputs {
         self.toggle_wield.tick(dt);
         self.swap_loadout.tick(dt);
         self.charge.tick(dt);
+    }
+
+    pub fn holding_ability_key(&self) -> bool {
+        self.primary.is_pressed() || self.secondary.is_pressed() || self.ability3.is_pressed()
     }
 }
 
