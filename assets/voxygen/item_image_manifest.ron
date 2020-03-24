@@ -45,6 +45,10 @@
         "voxel.weapon.staff.wood-fire",
         (0.0, -9.0, 0.0), (90.0, 90.0, 0.0), 2.5,
     ),
+    Tool(Staff(Sceptre)): VoxTrans(
+        "voxel.weapon.staff.wood-nature",
+        (0.0, -9.0, 0.0), (90.0, 90.0, 0.0), 2.5,
+    ),    
     // Shields
     Tool(Shield(BasicShield)): VoxTrans(
         "voxel.weapon.shield.wood-0",
