@@ -2,7 +2,6 @@ pub mod basic_block;
 pub mod basic_melee;
 pub mod basic_ranged;
 pub mod boost;
-pub mod cast_fireball;
 pub mod climb;
 pub mod dash_melee;
 pub mod equipping;
