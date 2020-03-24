@@ -53,7 +53,7 @@ impl CharacterBehavior for Data {
         } else if !self.exhausted {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
-                base_damage: self.base_damage,
+                base_healthchange: -(self.base_damage as i32),
                 range: 3.5,
                 max_angle: 180_f32.to_radians(),
                 applied: false,

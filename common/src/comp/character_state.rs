@@ -127,7 +127,7 @@ impl Component for CharacterState {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Attacking {
-    pub base_damage: u32,
+    pub base_healthchange: i32,
     pub range: f32,
     pub max_angle: f32,
     pub applied: bool,

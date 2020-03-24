@@ -11,8 +11,8 @@ pub struct Data {
     pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Base damage
-    pub base_damage: u32,
+    /// Base damage (negative) or healing (positive)
+    pub base_healthchange: i32,
     /// Max range
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
@@ -35,7 +35,7 @@ impl CharacterBehavior for Data {
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
                 recover_duration: self.recover_duration,
-                base_damage: self.base_damage,
+                base_healthchange: self.base_healthchange,
                 range: self.range,
                 max_angle: self.max_angle,
                 exhausted: false,
@@ -43,7 +43,7 @@ impl CharacterBehavior for Data {
         } else if !self.exhausted {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
-                base_damage: self.base_damage,
+                base_healthchange: self.base_healthchange,
                 range: self.range,
                 max_angle: self.max_angle.to_radians(),
                 applied: false,
@@ -53,7 +53,7 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::BasicMelee(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
-                base_damage: self.base_damage,
+                base_healthchange: self.base_healthchange,
                 range: self.range,
                 max_angle: self.max_angle,
                 exhausted: true,
@@ -66,7 +66,7 @@ impl CharacterBehavior for Data {
                     .recover_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
-                base_damage: self.base_damage,
+                base_healthchange: self.base_healthchange,
                 range: self.range,
                 max_angle: self.max_angle,
                 exhausted: true,
