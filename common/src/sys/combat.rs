@@ -104,9 +104,8 @@ impl<'a> System<'a> for Sys {
                     // NPCs do less damage:
                     if agent_maybe.is_some() {
                         if healthchange > 0 {
-                            healthchange = (healthchange / 2).max(1);
-                        }
-                        if healthchange < 0 {
+                            healthchange = 0;
+                        } else if healthchange < 0 {
                             healthchange = (healthchange / 2).min(-1);
                         }
                     }
