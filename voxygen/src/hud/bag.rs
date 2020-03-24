@@ -1,7 +1,8 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{ItemImgs, ItemKey},
-    Event as HudEvent, Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
+    Event as HudEvent, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    XP_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
@@ -187,6 +188,7 @@ impl<'a> Widget for Bag<'a> {
         let space_used = inventory.amount;
         let space_max = inventory.slots.len();
         let bag_space = format!("{}/{}", space_used, space_max);
+        let bag_space_percentage = space_used as f32 / space_max as f32;
         let level = (self.stats.level.level()).to_string();
         let currency = 0; // TODO: Add as a Stat maybe?
 
@@ -272,7 +274,13 @@ impl<'a> Widget for Bag<'a> {
             .bottom_right_with_margins_on(state.ids.bg_frame, 6.0, 43.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
-            .color(TEXT_COLOR)
+            .color(if bag_space_percentage < 0.8 {
+                TEXT_COLOR
+            } else if bag_space_percentage < 1.0 {
+                LOW_HP_COLOR
+            } else {
+                CRITICAL_HP_COLOR
+            })
             .set(state.ids.space_txt, ui);
         // Alignment for Grid
         Rectangle::fill_with([362.0, 200.0], color::TRANSPARENT)
