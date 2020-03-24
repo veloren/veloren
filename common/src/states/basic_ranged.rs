@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Body, CharacterState, Gravity, Projectile, StateUpdate},
+    comp::{Body, CharacterState, Gravity, LightEmitter, Projectile, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::*,
@@ -14,10 +14,10 @@ pub struct Data {
     pub prepare_timer: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Projectile
     pub projectile: Projectile,
-    /// Projectile
     pub projectile_body: Body,
+    pub projectile_light: Option<LightEmitter>,
+    pub projectile_gravity: Option<Gravity>,
     /// Whether the attack fired already
     pub exhausted: bool,
 }
@@ -39,6 +39,8 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
+                projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
                 exhausted: false,
             });
         } else if !self.exhausted {
@@ -49,9 +51,9 @@ impl CharacterBehavior for Data {
                 entity: data.entity,
                 dir: data.inputs.look_dir,
                 body: self.projectile_body,
-                light: None,
                 projectile,
-                gravity: Some(Gravity(0.1)),
+                light: self.projectile_light,
+                gravity: self.projectile_gravity,
             });
 
             update.character = CharacterState::BasicRanged(Data {
@@ -60,6 +62,8 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
+                projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
                 exhausted: true,
             });
         } else if self.recover_duration != Duration::default() {
@@ -73,6 +77,8 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
+                projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
                 exhausted: true,
             });
             return update;
