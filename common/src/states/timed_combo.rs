@@ -52,7 +52,7 @@ impl CharacterBehavior for Data {
             else if !self.stage_exhausted {
                 // Swing hits
                 data.updater.insert(data.entity, Attacking {
-                    base_damage: self.base_damage * (self.stage as u32 + 1),
+                    base_healthchange: -((self.base_damage * (self.stage as u32 + 1)) as i32),
                     range: 3.5,
                     max_angle: 75_f32.to_radians(),
                     applied: false,

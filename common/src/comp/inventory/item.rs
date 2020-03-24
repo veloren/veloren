@@ -76,16 +76,18 @@ impl ToolData {
                 base_damage: 20,
             }],
             Axe(_) => vec![BasicMelee {
+                energy_cost: 0,
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(100),
-                base_damage: 8,
+                base_healthchange: -8,
                 range: 3.5,
                 max_angle: 30.0,
             }],
             Hammer(_) => vec![BasicMelee {
+                energy_cost: 0,
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(300),
-                base_damage: 10,
+                base_healthchange: -10,
                 range: 3.5,
                 max_angle: 60.0,
             }],
@@ -112,21 +114,19 @@ impl ToolData {
                 projectile_gravity: Some(Gravity(0.1)),
             }],
             Dagger(_) => vec![BasicMelee {
+                energy_cost: 0,
                 buildup_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(400),
-                base_damage: 5,
+                base_healthchange: -5,
                 range: 3.5,
                 max_angle: 60.0,
             }],
-            Staff(_) => vec![
-                //Intended behaviour for the healing sceptre: M1 -> Heal a single target (not a
-                // projectile, just a heal for the target.) Optional: Green flash of the healed
-                // target. M2: Heal everyone around the caster, including the
-                // caster
+            Staff(StaffKind::BasicStaff) => vec![
                 BasicMelee {
+                    energy_cost: 0,
                     buildup_duration: Duration::from_millis(0),
                     recover_duration: Duration::from_millis(300),
-                    base_damage: 1,
+                    base_healthchange: -1,
                     range: 10.0,
                     max_angle: 45.0,
                 },
@@ -183,6 +183,24 @@ impl ToolData {
                     }),
 
                     projectile_gravity: None,
+                },
+            ],
+            Staff(StaffKind::Sceptre) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(300),
+                    base_healthchange: -1,
+                    range: 10.0,
+                    max_angle: 45.0,
+                },
+                BasicMelee {
+                    energy_cost: 350,
+                    buildup_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(1000),
+                    base_healthchange: 15,
+                    range: 10.0,
+                    max_angle: 45.0,
                 },
             ],
             Shield(_) => vec![BasicBlock],

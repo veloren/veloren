@@ -207,9 +207,10 @@ impl<'a> System<'a> for Sys {
                                 // We need the empty item so npcs can attack
                                 item: Item::empty(),
                                 ability1: Some(CharacterAbility::BasicMelee {
+                                    energy_cost: 0,
                                     buildup_duration: Duration::from_millis(0),
                                     recover_duration: Duration::from_millis(300),
-                                    base_damage: 2,
+                                    base_healthchange: -2,
                                     range: 3.5,
                                     max_angle: 60.0,
                                 }),
@@ -303,9 +304,10 @@ impl<'a> System<'a> for Sys {
                                     "common.items.weapons.zweihander_sword_0",
                                 ),
                                 ability1: Some(CharacterAbility::BasicMelee {
+                                    energy_cost: 0,
                                     buildup_duration: Duration::from_millis(800),
                                     recover_duration: Duration::from_millis(200),
-                                    base_damage: 13,
+                                    base_healthchange: -13,
                                     range: 3.5,
                                     max_angle: 60.0,
                                 }),
