@@ -12,9 +12,10 @@ use std::time::Duration;
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbility {
     BasicMelee {
+        energy_cost: u32,
         buildup_duration: Duration,
         recover_duration: Duration,
-        base_damage: u32,
+        base_healthchange: i32,
         range: f32,
         max_angle: f32,
     },
@@ -69,6 +70,13 @@ impl CharacterAbility {
                         .try_change_by(-300, EnergySource::Ability)
                         .is_ok()
             },
+            CharacterAbility::BasicMelee { energy_cost, .. } => {
+                !data.physics.in_fluid
+                    && update
+                        .energy
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                        .is_ok()
+            },
             CharacterAbility::BasicRanged { energy_cost, .. } => {
                 !data.physics.in_fluid
                     && update
@@ -110,14 +118,15 @@ impl From<&CharacterAbility> for CharacterState {
             CharacterAbility::BasicMelee {
                 buildup_duration,
                 recover_duration,
-                base_damage,
+                base_healthchange,
                 range,
                 max_angle,
+                energy_cost: _,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 exhausted: false,
                 buildup_duration: *buildup_duration,
                 recover_duration: *recover_duration,
-                base_damage: *base_damage,
+                base_healthchange: *base_healthchange,
                 range: *range,
                 max_angle: *max_angle,
             }),

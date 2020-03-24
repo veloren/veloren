@@ -99,28 +99,33 @@ impl<'a> System<'a> for Sys {
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // Weapon gives base damage
-                    let mut dmg = attack.base_damage;
+                    let mut healthchange = attack.base_healthchange;
 
                     // NPCs do less damage:
                     if agent_maybe.is_some() {
-                        dmg = (dmg / 2).max(1);
+                        if healthchange > 0 {
+                            healthchange = (healthchange / 2).max(1);
+                        }
+                        if healthchange < 0 {
+                            healthchange = (healthchange / 2).min(-1);
+                        }
                     }
 
                     if rand::random() {
-                        dmg += 1;
+                        healthchange = (healthchange as f32 * 1.2) as i32;
                     }
 
                     // Block
                     if character_b.is_block()
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
                     {
-                        dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
+                        healthchange = (healthchange as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
                     }
 
                     server_emitter.emit(ServerEvent::Damage {
                         uid: *uid_b,
                         change: HealthChange {
-                            amount: -(dmg as i32),
+                            amount: healthchange,
                             cause: HealthSource::Attack { by: *uid },
                         },
                     });
