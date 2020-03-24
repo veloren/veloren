@@ -17,12 +17,7 @@ pub enum CharacterAbility {
         max_angle: f32,
     },
     BasicRanged {
-        prepare_duration: Duration,
-        recover_duration: Duration,
-        projectile: Projectile,
-        projectile_body: Body,
-    },
-    CastFireball {
+        energy_cost: u32,
         prepare_duration: Duration,
         recover_duration: Duration,
         projectile: Projectile,
@@ -70,11 +65,11 @@ impl CharacterAbility {
                         .try_change_by(-300, EnergySource::Ability)
                         .is_ok()
             },
-            CharacterAbility::CastFireball { .. } => {
+            CharacterAbility::BasicRanged { energy_cost, .. } => {
                 !data.physics.in_fluid
                     && update
                         .energy
-                        .try_change_by(-500, EnergySource::Ability)
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                         .is_ok()
             },
             _ => true,
@@ -127,21 +122,10 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration,
                 projectile,
                 projectile_body,
+                energy_cost: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 exhausted: false,
                 prepare_timer: Duration::default(),
-                prepare_duration: *prepare_duration,
-                recover_duration: *recover_duration,
-                projectile: projectile.clone(),
-                projectile_body: *projectile_body,
-            }),
-            CharacterAbility::CastFireball {
-                prepare_duration,
-                recover_duration,
-                projectile,
-                projectile_body,
-            } => CharacterState::CastFireball(cast_fireball::Data {
-                exhausted: false,
                 prepare_duration: *prepare_duration,
                 recover_duration: *recover_duration,
                 projectile: projectile.clone(),

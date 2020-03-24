@@ -89,6 +89,7 @@ impl ToolData {
                 max_angle: 60.0,
             }],
             Bow(_) => vec![BasicRanged {
+                energy_cost: 0,
                 prepare_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(300),
                 projectile: Projectile {
@@ -127,6 +128,7 @@ impl ToolData {
                     max_angle: 45.0,
                 },
                 BasicRanged {
+                    energy_cost: 0,
                     prepare_duration: Duration::from_millis(300),
                     recover_duration: Duration::from_millis(100),
                     projectile: Projectile {
@@ -145,7 +147,8 @@ impl ToolData {
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
                 },
-                CastFireball {
+                BasicRanged {
+                    energy_cost: 400,
                     prepare_duration: Duration::from_millis(800),
                     recover_duration: Duration::from_millis(300),
                     projectile: Projectile {
@@ -180,6 +183,7 @@ impl ToolData {
                     },
                 ],
                 Possess => vec![BasicRanged {
+                    energy_cost: 0,
                     prepare_duration: Duration::from_millis(300),
                     recover_duration: Duration::from_millis(300),
                     projectile: Projectile {

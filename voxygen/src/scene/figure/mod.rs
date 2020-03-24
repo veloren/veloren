@@ -488,15 +488,6 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::CastFireball(_) => {
-                            anim::character::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
                         CharacterState::Boost(_) => {
                             anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
