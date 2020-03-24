@@ -2,7 +2,8 @@ use crate::{
     assets::{self, Asset},
     comp::{
         body::{humanoid, object},
-        projectile, Body, CharacterAbility, HealthChange, HealthSource, Projectile,
+        projectile, Body, CharacterAbility, Gravity, HealthChange, HealthSource, LightEmitter,
+        Projectile,
     },
     effect::Effect,
     terrain::{Block, BlockKind},
@@ -107,6 +108,8 @@ impl ToolData {
                     owner: None,
                 },
                 projectile_body: Body::Object(object::Body::Arrow),
+                projectile_light: None,
+                projectile_gravity: Some(Gravity(0.1)),
             }],
             Dagger(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(100),
@@ -146,6 +149,12 @@ impl ToolData {
                         owner: None,
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
+                    projectile_light: Some(LightEmitter {
+                        col: (0.72, 0.11, 0.11).into(),
+                        ..Default::default()
+                    }),
+
+                    projectile_gravity: None,
                 },
                 BasicRanged {
                     energy_cost: 400,
@@ -168,6 +177,12 @@ impl ToolData {
                         owner: None,
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
+                    projectile_light: Some(LightEmitter {
+                        col: (0.72, 0.11, 0.11).into(),
+                        ..Default::default()
+                    }),
+
+                    projectile_gravity: None,
                 },
             ],
             Shield(_) => vec![BasicBlock],
@@ -194,6 +209,8 @@ impl ToolData {
                         owner: None,
                     },
                     projectile_body: Body::Object(object::Body::ArrowSnake),
+                    projectile_light: None,
+                    projectile_gravity: None,
                 }],
             },
             Empty => vec![],
