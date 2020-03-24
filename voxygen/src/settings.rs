@@ -18,6 +18,7 @@ use std::{fs, io::prelude::*, path::PathBuf};
 pub struct ControlSettings {
     pub primary: KeyMouse,
     pub secondary: KeyMouse,
+    pub ability3: KeyMouse,
     pub toggle_cursor: KeyMouse,
     pub escape: KeyMouse,
     pub enter: KeyMouse,
@@ -69,6 +70,7 @@ impl Default for ControlSettings {
         Self {
             primary: KeyMouse::Mouse(MouseButton::Left),
             secondary: KeyMouse::Mouse(MouseButton::Right),
+            ability3: KeyMouse::Key(VirtualKeyCode::Key1),
             toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
             escape: KeyMouse::Key(VirtualKeyCode::Escape),
             enter: KeyMouse::Key(VirtualKeyCode::Return),

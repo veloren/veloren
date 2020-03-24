@@ -121,9 +121,27 @@ impl ToolData {
                 BasicMelee {
                     buildup_duration: Duration::from_millis(0),
                     recover_duration: Duration::from_millis(300),
-                    base_damage: 3,
+                    base_damage: 1,
                     range: 10.0,
                     max_angle: 45.0,
+                },
+                BasicRanged {
+                    projectile: Projectile {
+                        hit_ground: vec![projectile::Effect::Vanish],
+                        hit_wall: vec![projectile::Effect::Vanish],
+                        hit_entity: vec![
+                            projectile::Effect::Damage(HealthChange {
+                                // TODO: This should not be fixed (?)
+                                amount: -2,
+                                cause: HealthSource::Projectile { owner: None },
+                            }),
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(20),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::BoltFire),
+                    recover_duration: Duration::from_millis(500),
                 },
                 CastFireball {
                     projectile: Projectile {

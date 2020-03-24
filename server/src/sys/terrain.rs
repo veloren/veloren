@@ -196,8 +196,9 @@ impl<'a> System<'a> for Sys {
 
                             main.map(|item| comp::ItemConfig {
                                 item,
-                                primary_ability: ability_drain.next(),
-                                secondary_ability: ability_drain.next(),
+                                ability1: ability_drain.next(),
+                                ability2: ability_drain.next(),
+                                ability3: ability_drain.next(),
                                 block_ability: None,
                                 dodge_ability: Some(comp::CharacterAbility::Roll),
                             })
@@ -205,14 +206,15 @@ impl<'a> System<'a> for Sys {
                             Some(ItemConfig {
                                 // We need the empty item so npcs can attack
                                 item: Item::empty(),
-                                primary_ability: Some(CharacterAbility::BasicMelee {
+                                ability1: Some(CharacterAbility::BasicMelee {
                                     buildup_duration: Duration::from_millis(0),
                                     recover_duration: Duration::from_millis(300),
                                     base_damage: 2,
                                     range: 3.5,
                                     max_angle: 60.0,
                                 }),
-                                secondary_ability: None,
+                                ability2: None,
+                                ability3: None,
                                 block_ability: None,
                                 dodge_ability: None,
                             })
@@ -300,14 +302,15 @@ impl<'a> System<'a> for Sys {
                                 item: assets::load_expect_cloned(
                                     "common.items.weapons.zweihander_sword_0",
                                 ),
-                                primary_ability: Some(CharacterAbility::BasicMelee {
+                                ability1: Some(CharacterAbility::BasicMelee {
                                     buildup_duration: Duration::from_millis(800),
                                     recover_duration: Duration::from_millis(200),
                                     base_damage: 13,
                                     range: 3.5,
                                     max_angle: 60.0,
                                 }),
-                                secondary_ability: None,
+                                ability2: None,
+                                ability3: None,
                                 block_ability: None,
                                 dodge_ability: None,
                             }),

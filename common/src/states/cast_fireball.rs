@@ -27,10 +27,8 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update);
         handle_jump(data, &mut update);
 
-        if !self.exhausted
-            && (data.inputs.primary.is_pressed() | data.inputs.secondary.is_pressed())
-        {
-            // Prepare (draw the bow)
+        if !self.exhausted && data.inputs.holding_ability_key() {
+            // Prepare
             update.character = CharacterState::CastFireball(Data {
                 prepare_timer: self.prepare_timer + Duration::from_secs_f32(data.dt.0),
                 recover_duration: self.recover_duration,
