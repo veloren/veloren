@@ -35,8 +35,8 @@ impl Animation for ClimbAnimation {
 
         next.head.offset = Vec3::new(
             0.0,
-            -1.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 11.5 + wave_cos * 1.3,
+            -4.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 13.50 + wave_cos * 0.2,
         );
         next.head.ori = Quaternion::rotation_z(wave * 0.1)
             * Quaternion::rotation_x(0.6)
@@ -49,12 +49,12 @@ impl Animation for ClimbAnimation {
             * Quaternion::rotation_y(wave_test * -0.12);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(0.0, 1.0, -3.5 + wave_cos * 1.1);
-        next.belt.ori = Quaternion::rotation_z(wave_test * 0.25) * Quaternion::rotation_x(0.0);
+        next.belt.offset = Vec3::new(0.0, 1.0, -2.0);
+        next.belt.ori = Quaternion::rotation_z(wave_test * 0.0) * Quaternion::rotation_x(0.0);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(0.0, 1.0, -6.0 + wave_cos * 1.1);
-        next.shorts.ori = Quaternion::rotation_z(wave_test * 0.25)
+        next.shorts.offset = Vec3::new(0.0, 1.0, -5.0);
+        next.shorts.ori = Quaternion::rotation_z(wave_test * 0.0)
             * Quaternion::rotation_x(0.1)
             * Quaternion::rotation_y(wave_test * 0.10);
         next.shorts.scale = Vec3::one();

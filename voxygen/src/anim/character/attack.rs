@@ -52,7 +52,7 @@ impl Animation for AttackAnimation {
             Some(ToolKind::Sword(_)) => {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
-                    -2.0 + skeleton_attr.neck_forward,
+                    0.0 + skeleton_attr.neck_forward,
                     skeleton_attr.neck_height + 14.0,
                 );
                 next.head.ori = Quaternion::rotation_z(slow * 0.08)
@@ -102,7 +102,7 @@ impl Animation for AttackAnimation {
             Some(ToolKind::Axe(_)) => {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right + slowax * 2.0,
-                    -2.0 + skeleton_attr.neck_forward + slowax * -2.0,
+                    0.0 + skeleton_attr.neck_forward + slowax * -2.0,
                     skeleton_attr.neck_height + 13.0,
                 );
                 next.head.ori = Quaternion::rotation_z(slowax * 0.25)
@@ -160,7 +160,7 @@ impl Animation for AttackAnimation {
                 next.main.scale = Vec3::one();
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right + slower * 3.0,
-                    -2.0 + skeleton_attr.neck_forward + slower * -3.0,
+                    0.0 + skeleton_attr.neck_forward + slower * -3.0,
                     skeleton_attr.neck_height + 12.0,
                 );
                 next.head.ori = Quaternion::rotation_z(slower * 0.25)
@@ -191,7 +191,7 @@ impl Animation for AttackAnimation {
             Some(ToolKind::Staff(_)) => {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
-                    -2.0 + skeleton_attr.neck_forward + decel * 0.8,
+                    0.0 + skeleton_attr.neck_forward + decel * 0.8,
                     skeleton_attr.neck_height + 14.0,
                 );
                 next.head.ori = Quaternion::rotation_z(decel * 0.25)
@@ -237,7 +237,7 @@ impl Animation for AttackAnimation {
             Some(ToolKind::Shield(_)) => {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
-                    -2.0 + skeleton_attr.neck_forward + decel * 0.8,
+                    0.0 + skeleton_attr.neck_forward + decel * 0.8,
                     skeleton_attr.neck_height + 21.0,
                 );
                 next.head.ori = Quaternion::rotation_z(decel * 0.25)
@@ -289,7 +289,7 @@ impl Animation for AttackAnimation {
             Some(ToolKind::Bow(_)) => {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
-                    -2.0 + skeleton_attr.neck_forward + decel * 0.8,
+                    0.0 + skeleton_attr.neck_forward + decel * 0.8,
                     skeleton_attr.neck_height + 21.0,
                 );
                 next.head.ori = Quaternion::rotation_z(decel * -0.25)
