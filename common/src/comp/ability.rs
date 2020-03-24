@@ -1,5 +1,7 @@
 use crate::{
-    comp::{Body, CharacterState, EnergySource, Item, Projectile, StateUpdate},
+    comp::{
+        Body, CharacterState, EnergySource, Gravity, Item, LightEmitter, Projectile, StateUpdate,
+    },
     states::*,
     sys::character_behavior::JoinData,
 };
@@ -22,6 +24,8 @@ pub enum CharacterAbility {
         recover_duration: Duration,
         projectile: Projectile,
         projectile_body: Body,
+        projectile_light: Option<LightEmitter>,
+        projectile_gravity: Option<Gravity>,
     },
     Boost {
         duration: Duration,
@@ -122,6 +126,8 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration,
                 projectile,
                 projectile_body,
+                projectile_light,
+                projectile_gravity,
                 energy_cost: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 exhausted: false,
@@ -130,6 +136,8 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration: *recover_duration,
                 projectile: projectile.clone(),
                 projectile_body: *projectile_body,
+                projectile_light: *projectile_light,
+                projectile_gravity: *projectile_gravity,
             }),
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
                 duration: *duration,
