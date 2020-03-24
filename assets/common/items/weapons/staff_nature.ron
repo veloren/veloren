@@ -1,0 +1,11 @@
+Item(
+    name: "Sceptre of Regeneration",
+    description: " Infused by the power of Nature.   
+    Power: 25",
+    kind: Tool(
+        ToolData (
+            kind: Staff(Sceptre),    
+            equip_time_millis: 800,
+        )
+    ),
+)

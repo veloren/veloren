@@ -39,6 +39,7 @@ pub enum DaggerKind {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum StaffKind {
     BasicStaff,
+    Sceptre,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ShieldKind {
@@ -113,6 +114,10 @@ impl ToolData {
                 max_angle: 60.0,
             }],
             Staff(_) => vec![
+                //Intended behaviour for the healing sceptre: M1 -> Heal a single target (not a
+                // projectile, just a heal for the target.) Optional: Green flash of the healed
+                // target. M2: Heal everyone around the caster, including the
+                // caster
                 BasicMelee {
                     buildup_duration: Duration::from_millis(0),
                     recover_duration: Duration::from_millis(300),
