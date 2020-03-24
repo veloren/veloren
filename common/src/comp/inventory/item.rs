@@ -89,6 +89,8 @@ impl ToolData {
                 max_angle: 60.0,
             }],
             Bow(_) => vec![BasicRanged {
+                prepare_duration: Duration::from_millis(100),
+                recover_duration: Duration::from_millis(300),
                 projectile: Projectile {
                     hit_ground: vec![projectile::Effect::Stick],
                     hit_wall: vec![projectile::Effect::Stick],
@@ -104,7 +106,6 @@ impl ToolData {
                     owner: None,
                 },
                 projectile_body: Body::Object(object::Body::Arrow),
-                recover_duration: Duration::from_millis(300),
             }],
             Dagger(_) => vec![BasicMelee {
                 buildup_duration: Duration::from_millis(100),
@@ -126,6 +127,8 @@ impl ToolData {
                     max_angle: 45.0,
                 },
                 BasicRanged {
+                    prepare_duration: Duration::from_millis(300),
+                    recover_duration: Duration::from_millis(100),
                     projectile: Projectile {
                         hit_ground: vec![projectile::Effect::Vanish],
                         hit_wall: vec![projectile::Effect::Vanish],
@@ -141,9 +144,10 @@ impl ToolData {
                         owner: None,
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
-                    recover_duration: Duration::from_millis(500),
                 },
                 CastFireball {
+                    prepare_duration: Duration::from_millis(800),
+                    recover_duration: Duration::from_millis(300),
                     projectile: Projectile {
                         hit_ground: vec![
                             projectile::Effect::Explode { power: 1.4 },
@@ -161,7 +165,6 @@ impl ToolData {
                         owner: None,
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
-                    recover_duration: Duration::from_millis(800),
                 },
             ],
             Shield(_) => vec![BasicBlock],
@@ -177,6 +180,8 @@ impl ToolData {
                     },
                 ],
                 Possess => vec![BasicRanged {
+                    prepare_duration: Duration::from_millis(300),
+                    recover_duration: Duration::from_millis(300),
                     projectile: Projectile {
                         hit_ground: vec![projectile::Effect::Stick],
                         hit_wall: vec![projectile::Effect::Stick],
@@ -185,7 +190,6 @@ impl ToolData {
                         owner: None,
                     },
                     projectile_body: Body::Object(object::Body::ArrowSnake),
-                    recover_duration: Duration::from_millis(300),
                 }],
             },
             Empty => vec![],

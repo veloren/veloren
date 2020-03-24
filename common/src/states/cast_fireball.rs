@@ -8,8 +8,8 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
-    /// How long we prepared the weapon already
-    pub prepare_timer: Duration,
+    /// How long we need to wait before we fire
+    pub prepare_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// Projectile
@@ -27,10 +27,13 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update);
         handle_jump(data, &mut update);
 
-        if !self.exhausted && data.inputs.holding_ability_key() {
+        if self.prepare_duration != Duration::default() {
             // Prepare
             update.character = CharacterState::CastFireball(Data {
-                prepare_timer: self.prepare_timer + Duration::from_secs_f32(data.dt.0),
+                prepare_duration: self
+                    .prepare_duration
+                    .checked_sub(Duration::from_secs_f32(data.dt.0))
+                    .unwrap_or_default(),
                 recover_duration: self.recover_duration,
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
@@ -53,7 +56,7 @@ impl CharacterBehavior for Data {
             });
 
             update.character = CharacterState::CastFireball(Data {
-                prepare_timer: self.prepare_timer,
+                prepare_duration: Duration::default(),
                 recover_duration: self.recover_duration,
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
@@ -62,7 +65,7 @@ impl CharacterBehavior for Data {
         } else if self.recover_duration != Duration::default() {
             // Recovery
             update.character = CharacterState::CastFireball(Data {
-                prepare_timer: self.prepare_timer,
+                prepare_duration: Duration::default(),
                 recover_duration: self
                     .recover_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
