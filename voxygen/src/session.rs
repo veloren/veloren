@@ -275,6 +275,10 @@ impl PlayState for SessionState {
                             }
                         }
                     },
+
+                    Event::InputUpdate(GameInput::Ability3, state) => {
+                        self.inputs.ability3.set_state(state);
+                    },
                     Event::InputUpdate(GameInput::Roll, state) => {
                         let client = self.client.borrow();
                         if client

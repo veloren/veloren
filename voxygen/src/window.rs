@@ -16,6 +16,7 @@ use vek::*;
 pub enum GameInput {
     Primary,
     Secondary,
+    Ability3,
     ToggleCursor,
     MoveForward,
     MoveBack,
@@ -360,6 +361,9 @@ impl Window {
         map.entry(settings.controls.secondary)
             .or_default()
             .push(GameInput::Secondary);
+        map.entry(settings.controls.ability3)
+            .or_default()
+            .push(GameInput::Ability3);
         map.entry(settings.controls.toggle_cursor)
             .or_default()
             .push(GameInput::ToggleCursor);

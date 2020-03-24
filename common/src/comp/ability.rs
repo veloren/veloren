@@ -83,8 +83,9 @@ impl CharacterAbility {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
     pub item: Item,
-    pub primary_ability: Option<CharacterAbility>,
-    pub secondary_ability: Option<CharacterAbility>,
+    pub ability1: Option<CharacterAbility>,
+    pub ability2: Option<CharacterAbility>,
+    pub ability3: Option<CharacterAbility>,
     pub block_ability: Option<CharacterAbility>,
     pub dodge_ability: Option<CharacterAbility>,
 }

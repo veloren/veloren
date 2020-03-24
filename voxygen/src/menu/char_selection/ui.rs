@@ -339,8 +339,9 @@ impl CharSelectionUi {
             Mode::Create { loadout, tool, .. } => {
                 loadout.active_item = tool.map(|tool| comp::ItemConfig {
                     item: (*load_expect::<comp::Item>(tool)).clone(),
-                    primary_ability: None,
-                    secondary_ability: None,
+                    ability1: None,
+                    ability2: None,
+                    ability3: None,
                     block_ability: None,
                     dodge_ability: None,
                 });

@@ -17,8 +17,9 @@ impl CharacterBehavior for Data {
         handle_glide(&data, &mut update);
         handle_unwield(&data, &mut update);
         handle_swap_loadout(&data, &mut update);
-        handle_primary_input(&data, &mut update);
-        handle_secondary_input(&data, &mut update);
+        handle_ability1_input(&data, &mut update);
+        handle_ability2_input(&data, &mut update);
+        handle_ability3_input(&data, &mut update);
         handle_dodge_input(&data, &mut update);
 
         update

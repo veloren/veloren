@@ -170,15 +170,14 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// If `inputs.primary` is pressed and in `Wielding` state,
-/// will attempt to go into `loadout.active_item.primary_ability`
-pub fn handle_primary_input(data: &JoinData, update: &mut StateUpdate) {
+/// Will attempt to go into `loadout.active_item.ability1`
+pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.primary.is_pressed() {
         if let Some(ability) = data
             .loadout
             .active_item
             .as_ref()
-            .and_then(|i| i.primary_ability.as_ref())
+            .and_then(|i| i.ability1.as_ref())
             .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = ability.into();
@@ -186,15 +185,29 @@ pub fn handle_primary_input(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// If `inputs.secondary` is pressed and in `Wielding` state,
-/// will attempt to go into `loadout.active_item.secondary_ability`
-pub fn handle_secondary_input(data: &JoinData, update: &mut StateUpdate) {
+/// Will attempt to go into `loadout.active_item.ability2`
+pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
         if let Some(ability) = data
             .loadout
             .active_item
             .as_ref()
-            .and_then(|i| i.secondary_ability.as_ref())
+            .and_then(|i| i.ability2.as_ref())
+            .filter(|ability| ability.requirements_paid(data, update))
+        {
+            update.character = ability.into();
+        }
+    }
+}
+
+/// Will attempt to go into `loadout.active_item.ability3`
+pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
+    if data.inputs.ability3.is_pressed() {
+        if let Some(ability) = data
+            .loadout
+            .active_item
+            .as_ref()
+            .and_then(|i| i.ability3.as_ref())
             .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = ability.into();

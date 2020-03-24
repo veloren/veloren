@@ -86,10 +86,13 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
 
                 let item = assets::load_expect_cloned::<comp::Item>("common.items.debug.possess");
                 if let comp::ItemKind::Tool(tool) = item.kind {
+                    let mut abilities = tool.get_abilities();
+                    let mut ability_drain = abilities.drain(..);
                     loadout.active_item = Some(comp::ItemConfig {
                         item,
-                        primary_ability: tool.get_abilities().get(0).cloned(),
-                        secondary_ability: None,
+                        ability1: ability_drain.next(),
+                        ability2: ability_drain.next(),
+                        ability3: ability_drain.next(),
                         block_ability: None,
                         dodge_ability: None,
                     });
