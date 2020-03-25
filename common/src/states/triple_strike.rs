@@ -11,6 +11,14 @@ const STAGE_DURATION: u64 = 600;
 
 const INITIAL_ACCEL: f32 = 200.0;
 const BASE_SPEED: f32 = 25.0;
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub enum Stage {
+    First,
+    Second,
+    Third,
+}
+
 /// ### A sequence of 3 incrementally increasing attacks.
 ///
 /// While holding down the `primary` button, perform a series of 3 attacks,
@@ -21,8 +29,8 @@ const BASE_SPEED: f32 = 25.0;
 pub struct Data {
     /// The tool this state will read to handle damage, etc.
     pub base_damage: u32,
-    /// `int` denoting what stage (of 3) the attack is in.
-    pub stage: i8,
+    /// What stage (of 3) the attack is in.
+    pub stage: Stage,
     /// How long current stage has been active
     pub stage_time_active: Duration,
     /// Whether current stage has exhausted its attack
@@ -42,22 +50,17 @@ impl CharacterBehavior for Data {
             .checked_add(Duration::from_secs_f32(data.dt.0))
             .unwrap_or(Duration::default());
 
-        let mut should_transition = self.should_transition;
-        let mut initialized = self.initialized;
+        // If player stops holding input, don't go to the next stage
+        let should_transition = data.inputs.primary.is_pressed() && self.should_transition;
 
-        // If player stops holding input,
-        if !data.inputs.primary.is_pressed() {
-            should_transition = false;
-        }
-
-        if !initialized {
+        if !self.initialized {
             update.ori.0 = data.inputs.look_dir.normalized();
             update.vel.0 = Vec3::zero();
-            initialized = true;
         }
+        let initialized = true;
 
         // Handling movement
-        if self.stage == 0 {
+        if let Stage::First = self.stage {
             if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
                 let adjusted_accel = if data.physics.touch_entity.is_none() {
                     INITIAL_ACCEL
@@ -65,7 +68,7 @@ impl CharacterBehavior for Data {
                     0.0
                 };
 
-                // Move player forward while in first third of each stage
+                // Move player forward while in first third of first stage
                 if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
                     update.vel.0 =
                         update.vel.0 + Vec2::broadcast(data.dt.0) * data.ori.0 * adjusted_accel;
@@ -82,11 +85,13 @@ impl CharacterBehavior for Data {
         }
 
         // Handling attacking
-        if stage_time_active > Duration::from_millis(STAGE_DURATION / 2) && !self.stage_exhausted {
+        update.character = if stage_time_active > Duration::from_millis(STAGE_DURATION / 2)
+            && !self.stage_exhausted
+        {
             let dmg = match self.stage {
-                1 => self.base_damage,
-                2 => (self.base_damage as f32 * 1.5) as u32,
-                _ => self.base_damage / 2,
+                Stage::First => self.base_damage / 2,
+                Stage::Second => self.base_damage,
+                Stage::Third => (self.base_damage as f32 * 1.5) as u32,
             };
 
             // Try to deal damage in second half of stage
@@ -98,40 +103,44 @@ impl CharacterBehavior for Data {
                 hit_count: 0,
             });
 
-            update.character = CharacterState::TripleStrike(Data {
+            CharacterState::TripleStrike(Data {
                 base_damage: self.base_damage,
                 stage: self.stage,
                 stage_time_active,
                 stage_exhausted: true,
                 should_transition,
                 initialized,
-            });
+            })
         } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
             if should_transition {
-                update.character = CharacterState::TripleStrike(Data {
+                CharacterState::TripleStrike(Data {
                     base_damage: self.base_damage,
-                    stage: self.stage + 1,
+                    stage: match self.stage {
+                        Stage::First => Stage::Second,
+                        Stage::Second => Stage::Third,
+                        Stage::Third => Stage::First,
+                    },
                     stage_time_active: Duration::default(),
                     stage_exhausted: false,
                     should_transition,
                     initialized,
-                });
+                })
             } else {
-                // Done
-                update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
                 data.updater.remove::<Attacking>(data.entity);
+                // Done
+                CharacterState::Wielding
             }
         } else {
-            update.character = CharacterState::TripleStrike(Data {
+            CharacterState::TripleStrike(Data {
                 base_damage: self.base_damage,
                 stage: self.stage,
                 stage_time_active,
                 stage_exhausted: self.stage_exhausted,
                 should_transition,
                 initialized,
-            });
-        }
+            })
+        };
 
         // Grant energy on successful hit
         if let Some(attack) = data.attacking {

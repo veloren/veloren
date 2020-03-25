@@ -46,19 +46,7 @@ impl CharacterBehavior for Data {
         // Expend energy if climbing
         let energy_use = match data.inputs.climb {
             Some(Climb::Up) | Some(Climb::Down) => 8,
-            Some(Climb::Hold) => data
-                .physics
-                .on_wall
-                .map(|wall_dir| {
-                    // Calculate velocity perpendicular to the wall
-                    let vel = update.vel.0;
-                    let perp_vel =
-                        vel - wall_dir * vel.dot(wall_dir) / wall_dir.magnitude_squared();
-                    // Enegry cost based on magnitude of this velocity
-                    (perp_vel.magnitude() * 8.0) as i32
-                })
-                // Note: this is currently unreachable
-                .unwrap_or(0),
+            Some(Climb::Hold) => 1,
             // Note: this is currently unreachable
             None => 0,
         };
@@ -98,7 +86,8 @@ impl CharacterBehavior for Data {
                     update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
                 },
                 Climb::Hold => {
-                    update.vel.0.z = update.vel.0.z + data.dt.0 * GRAVITY * 1.5;
+                    // Antigrav
+                    update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.5).min(CLIMB_SPEED);
                     update.vel.0 = Lerp::lerp(
                         update.vel.0,
                         Vec3::zero(),
