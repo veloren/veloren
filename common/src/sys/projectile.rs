@@ -110,8 +110,11 @@ impl<'a> System<'a> for Sys {
                     }
                 }
             } else {
-                if let Some(vel) = velocities.get(entity) {
-                    ori.0 = vel.0.normalized();
+                if let Some(dir) = velocities
+                    .get(entity)
+                    .and_then(|vel| vel.0.try_normalized())
+                {
+                    ori.0 = dir;
                 }
             }
 

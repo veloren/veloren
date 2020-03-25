@@ -54,13 +54,14 @@ impl CharacterBehavior for Data {
         let should_transition = data.inputs.primary.is_pressed() && self.should_transition;
 
         if !self.initialized {
-            update.ori.0 = data.inputs.look_dir.normalized();
             update.vel.0 = Vec3::zero();
+            if let Some(dir) = data.inputs.look_dir.try_normalized() {
+                update.ori.0 = dir;
+            }
         }
         let initialized = true;
 
         // Handling movement
-
         if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
             let adjusted_accel = match (self.stage, data.physics.touch_entity.is_none()) {
                 (Stage::First, true) => INITIAL_ACCEL,
@@ -69,7 +70,7 @@ impl CharacterBehavior for Data {
                 (_, _) => 0.0,
             };
 
-            // Move player forward while in first third of first stage
+            // Move player forward while in first third of each stage
             if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
                 update.vel.0 =
                     update.vel.0 + Vec2::broadcast(data.dt.0) * data.ori.0 * adjusted_accel;
@@ -111,26 +112,22 @@ impl CharacterBehavior for Data {
                 initialized,
             })
         } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
-            if should_transition {
-                if let Stage::Third = self.stage {
-                    // Make sure attack component is removed
-                    data.updater.remove::<Attacking>(data.entity);
-                    // Done
-                    CharacterState::Wielding
-                } else {
-                    CharacterState::TripleStrike(Data {
-                        base_damage: self.base_damage,
-                        stage: match self.stage {
-                            Stage::First => Stage::Second,
-                            Stage::Second => Stage::Third,
-                            Stage::Third => Stage::First,
-                        },
-                        stage_time_active: Duration::default(),
-                        stage_exhausted: false,
-                        should_transition,
-                        initialized,
-                    })
-                }
+            let next_stage = match self.stage {
+                _ if !should_transition => None,
+                Stage::First => Some(Stage::Second),
+                Stage::Second => Some(Stage::Third),
+                Stage::Third => None,
+            };
+
+            if let Some(stage) = next_stage {
+                CharacterState::TripleStrike(Data {
+                    base_damage: self.base_damage,
+                    stage,
+                    stage_time_active: Duration::default(),
+                    stage_exhausted: false,
+                    should_transition,
+                    initialized,
+                })
             } else {
                 // Make sure attack component is removed
                 data.updater.remove::<Attacking>(data.entity);
