@@ -557,7 +557,7 @@ dependencies = [
 [[package]]
 name = "conrod_core"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=capucho/hide_text_cursor_fix#e8a5b312ba0e3ab64efe54985d203137a34cd17d"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=capucho/hide_text_cursor_fix#df3a5d8098687fb0addf6fdf7c9ad2ac8794997f"
 dependencies = [
  "conrod_derive",
  "copypasta",
@@ -572,7 +572,7 @@ dependencies = [
 [[package]]
 name = "conrod_derive"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=capucho/hide_text_cursor_fix#e8a5b312ba0e3ab64efe54985d203137a34cd17d"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=capucho/hide_text_cursor_fix#df3a5d8098687fb0addf6fdf7c9ad2ac8794997f"
 dependencies = [
  "proc-macro2 0.4.30",
  "quote 0.6.13",
@@ -582,7 +582,7 @@ dependencies = [
 [[package]]
 name = "conrod_winit"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=capucho/hide_text_cursor_fix#e8a5b312ba0e3ab64efe54985d203137a34cd17d"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=capucho/hide_text_cursor_fix#df3a5d8098687fb0addf6fdf7c9ad2ac8794997f"
 
 [[package]]
 name = "const-random"
