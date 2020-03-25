@@ -12,33 +12,31 @@ impl Animation for EquipAnimation {
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _velocity, global_time): Self::Dependency,
+        (active_tool_kind, velocity, global_time): Self::Dependency,
         anim_time: f64,
-        _rate: &mut f32,
+        rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
+        *rate = 1.0;
         let mut next = (*skeleton).clone();
+
         let lab = 1.0;
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
+            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 10.6).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.6).sin());
+            * ((anim_time as f32 * lab as f32 * 10.6).sin());
         let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 10.6).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.6).sin());
-        let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 0.8).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 0.8).sin());
+            * ((anim_time as f32 * lab as f32 * 10.6).sin());
 
-        let equip_slow = 1.0 + (anim_time as f32 * 1.2 + PI).cos();
-        let equip_slowa = 1.0 + (anim_time as f32 * 1.2 + PI / 4.0).cos();
+        let equip_slow = 1.0 + (anim_time as f32 * 12.0 + PI).cos();
+        let equip_slowa = 1.0 + (anim_time as f32 * 12.0 + PI / 4.0).cos();
 
-        let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
-        let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
+        let wave_ultra_slow = (anim_time as f32 * 10.0 + PI).sin();
+        let wave_ultra_slow_cos = (anim_time as f32 * 30.0 + PI).cos();
 
-        let wave = (anim_time as f32 * 1.0).sin();
+        let wave = (anim_time as f32 * 10.0).sin();
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
@@ -217,15 +215,25 @@ impl Animation for EquipAnimation {
                 .sin()
                 * 0.1,
         );
+
+
+
+        if velocity > 0.5 {
         next.head.offset = Vec3::new(
             0.0,
             -3.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 13.0 + short * 0.2,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x + long * 0.1 - short * 0.2)
+        next.head.ori = Quaternion::rotation_z(head_look.x- short * 0.2)
             * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+            next.l_foot.offset = Vec3::new(-3.4, foot * 1.0, 9.0);
+            next.l_foot.ori = Quaternion::rotation_x(foot * -1.2);
+            next.l_foot.scale = Vec3::one();
 
+            next.r_foot.offset = Vec3::new(3.4, foot * -1.0, 9.0);
+            next.r_foot.ori = Quaternion::rotation_x(foot * 1.2);
+            next.r_foot.scale = Vec3::one();
         next.chest.offset = Vec3::new(0.0, 0.0, 9.0 + short * 1.1);
         next.chest.ori = Quaternion::rotation_z(short * 0.2);
         next.chest.scale = Vec3::one();
@@ -238,17 +246,45 @@ impl Animation for EquipAnimation {
         next.shorts.ori = Quaternion::rotation_z(short * 0.4);
         next.shorts.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, foot * 1.0, 9.0);
-        next.l_foot.ori = Quaternion::rotation_x(foot * -1.2);
-        next.l_foot.scale = Vec3::one();
+            next.torso.offset = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
+            next.torso.ori = Quaternion::rotation_x(-0.2);
+            next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
-        next.r_foot.offset = Vec3::new(3.4, foot * -1.0, 9.0);
-        next.r_foot.ori = Quaternion::rotation_x(foot * 1.2);
-        next.r_foot.scale = Vec3::one();
 
-        next.torso.offset = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(-0.2);
-        next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
-        next
+        } else {
+        next.head.offset = Vec3::new(
+            0.0,
+            -3.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 13.0 + short * 0.2,
+        );
+        next.head.ori = Quaternion::rotation_z(head_look.x)
+            * Quaternion::rotation_x(head_look.y);
+        next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+            next.l_foot.offset = Vec3::new(-3.4, -2.5, 8.0);
+            next.l_foot.ori = Quaternion::rotation_x(wave_ultra_slow_cos * 0.035 - 0.2);
+            next.l_foot.scale = Vec3::one();
+
+            next.r_foot.offset = Vec3::new(3.4, 3.5, 8.0);
+            next.r_foot.ori = Quaternion::rotation_x(wave_ultra_slow * 0.035);
+            next.r_foot.scale = Vec3::one();
+
+
+        next.chest.offset = Vec3::new(0.0, 0.0, 7.0);
+        next.chest.ori = Quaternion::rotation_z(0.0);
+        next.chest.scale = Vec3::one();
+
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
+        next.belt.ori = Quaternion::rotation_z(0.0);
+        next.belt.scale = Vec3::one();
+
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
+        next.shorts.ori = Quaternion::rotation_z(0.0);
+        next.shorts.scale = Vec3::one();
+            next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
+            next.torso.ori = Quaternion::rotation_x(0.0);
+            next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
+        }
+            next
+
     }
 }
