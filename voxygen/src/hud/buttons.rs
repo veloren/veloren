@@ -1,15 +1,17 @@
+use super::{img_ids::Imgs, Windows, BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR};
+use crate::ui::{fonts::ConrodVoxygenFonts, ToggleButton};
+use client::Client;
 use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{img_ids::Imgs, Windows, TEXT_COLOR};
-use crate::ui::{fonts::ConrodVoxygenFonts, ToggleButton};
-
 widget_ids! {
     struct Ids {
         bag,
         bag_text,
+        bag_space_bg,
+        bag_space,
         bag_show_map,
         map_button,
         settings_button,
@@ -22,6 +24,7 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct Buttons<'a> {
+    client: &'a Client,
     open_windows: &'a Windows,
     show_map: bool,
     show_bag: bool,
@@ -34,6 +37,7 @@ pub struct Buttons<'a> {
 
 impl<'a> Buttons<'a> {
     pub fn new(
+        client: &'a Client,
         open_windows: &'a Windows,
         show_map: bool,
         show_bag: bool,
@@ -41,6 +45,7 @@ impl<'a> Buttons<'a> {
         fonts: &'a ConrodVoxygenFonts,
     ) -> Self {
         Self {
+            client,
             open_windows,
             show_map,
             show_bag,
@@ -78,6 +83,11 @@ impl<'a> Widget for Buttons<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
+        let invs = self.client.inventories();
+        let inventory = match invs.get(self.client.entity()) {
+            Some(inv) => inv,
+            None => return None,
+        };
 
         // Bag
         if !self.show_map {
@@ -109,6 +119,30 @@ impl<'a> Widget for Buttons<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.bag_text, ui);
+        }
+        if !self.show_bag {
+            let space_used = inventory.amount;
+            let space_max = inventory.slots.len();
+            let bag_space = format!("{}/{}", space_used, space_max);
+            let bag_space_percentage = space_used as f32 / space_max as f32;
+            Text::new(&bag_space)
+                .mid_top_with_margin_on(state.ids.bag, -15.0)
+                .font_size(12)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(BLACK)
+                .set(state.ids.bag_space_bg, ui);
+            Text::new(&bag_space)
+                .top_left_with_margins_on(state.ids.bag_space_bg, -1.0, -1.0)
+                .font_size(12)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(if bag_space_percentage < 0.8 {
+                    TEXT_COLOR
+                } else if bag_space_percentage < 1.0 {
+                    LOW_HP_COLOR
+                } else {
+                    CRITICAL_HP_COLOR
+                })
+                .set(state.ids.bag_space, ui);
         }
 
         // 0 Settings
