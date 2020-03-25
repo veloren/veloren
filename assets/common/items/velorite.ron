@@ -1,8 +1,10 @@
 Item(
     name: "Velorite",
-    description: "Just a slight touch makes you feel the knowledge of ancient times.",
+    description: "Just a slight touch makes you feel the knowledge of ancient times.
+
+Increases Exp by 20.",
     kind: Consumable(
         kind: Velorite,
-        effect: Xp(50),
+        effect: Xp(20),
     ),
 )

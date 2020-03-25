@@ -375,6 +375,7 @@ impl Item {
                     "common.items.collar",
                     "common.items.weapons.starter_sword",
                     "common.items.weapons.starter_axe",
+                    "common.items.weapons.staff_nature",
                     "common.items.weapons.starter_hammer",
                     "common.items.weapons.starter_bow",
                     "common.items.weapons.starter_staff",
