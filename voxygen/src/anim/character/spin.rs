@@ -29,22 +29,10 @@ impl Animation for SpinAnimation {
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 10.32).sin());
 
-        let accel_med = 1.0 - (anim_time as f32 * 16.0 * lab as f32).cos();
-        let accel_slow = 1.0 - (anim_time as f32 * 12.0 * lab as f32).cos();
-        let accel_fast = 1.0 - (anim_time as f32 * 24.0 * lab as f32).cos();
         let decel = (anim_time as f32 * 16.0 * lab as f32).min(PI / 2.0).sin();
 
         let spin = (anim_time as f32 * 2.8 * lab as f32).sin();
         let spinhalf = (anim_time as f32 * 1.4 * lab as f32).sin();
-
-        let slow = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 12.4).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 12.4).sin());
-        let slower = (((5.0)
-            / (0.1 + 4.9 * ((anim_time as f32 * lab as f32 * 4.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 4.0).sin());
 
         match active_tool_kind {
             //TODO: Inventory
