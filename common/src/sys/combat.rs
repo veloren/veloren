@@ -3,7 +3,7 @@ use crate::{
         Agent, Attacking, Body, CharacterState, Controller, HealthChange, HealthSource, Ori, Pos,
         Scale, Stats,
     },
-    event::{EventBus, ServerEvent},
+    event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -19,6 +19,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<LocalEvent>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
@@ -36,6 +37,7 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             server_bus,
+            local_bus,
             uids,
             positions,
             orientations,
@@ -49,6 +51,7 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
+        let mut local_emitter = local_bus.emitter();
         // Attacks
         for (entity, uid, pos, ori, scale_maybe, agent_maybe, _, _attacker_stats, attack) in (
             &entities,
@@ -128,6 +131,13 @@ impl<'a> System<'a> for Sys {
                             cause: HealthSource::Attack { by: *uid },
                         },
                     });
+                    if attack.knockback != 0.0 {
+                        local_emitter.emit(LocalEvent::KnockUp {
+                            entity: b,
+                            dir: ori.0,
+                            force: attack.knockback,
+                        });
+                    }
                     attack.hit_count += 1;
                 }
             }

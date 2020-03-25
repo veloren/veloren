@@ -48,6 +48,7 @@ impl CharacterBehavior for Data {
                 max_angle: self.max_angle.to_radians(),
                 applied: false,
                 hit_count: 0,
+                knockback: 0.0,
             });
 
             update.character = CharacterState::BasicMelee(Data {

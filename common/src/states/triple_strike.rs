@@ -60,28 +60,26 @@ impl CharacterBehavior for Data {
         let initialized = true;
 
         // Handling movement
-        if let Stage::First = self.stage {
-            if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
-                let adjusted_accel = if data.physics.touch_entity.is_none() {
-                    INITIAL_ACCEL
-                } else {
-                    0.0
-                };
 
-                // Move player forward while in first third of first stage
-                if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
-                    update.vel.0 =
-                        update.vel.0 + Vec2::broadcast(data.dt.0) * data.ori.0 * adjusted_accel;
-                    let mag2 = update.vel.0.magnitude_squared();
-                    if mag2 > BASE_SPEED.powf(2.0) {
-                        update.vel.0 = update.vel.0.normalized() * BASE_SPEED;
-                    }
-                };
-            } else {
-                handle_orientation(data, &mut update, 10.0);
-            }
+        if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
+            let adjusted_accel = match (self.stage, data.physics.touch_entity.is_none()) {
+                (Stage::First, true) => INITIAL_ACCEL,
+                (Stage::Second, true) => INITIAL_ACCEL * 0.75,
+                (Stage::Third, true) => INITIAL_ACCEL * 0.75,
+                (_, _) => 0.0,
+            };
+
+            // Move player forward while in first third of first stage
+            if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
+                update.vel.0 =
+                    update.vel.0 + Vec2::broadcast(data.dt.0) * data.ori.0 * adjusted_accel;
+                let mag2 = update.vel.0.magnitude_squared();
+                if mag2 > BASE_SPEED.powf(2.0) {
+                    update.vel.0 = update.vel.0.normalized() * BASE_SPEED;
+                }
+            };
         } else {
-            handle_move(data, &mut update);
+            handle_orientation(data, &mut update, 10.0);
         }
 
         // Handling attacking
@@ -101,6 +99,7 @@ impl CharacterBehavior for Data {
                 max_angle: 180_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
+                knockback: 7.0,
             });
 
             CharacterState::TripleStrike(Data {
@@ -113,18 +112,25 @@ impl CharacterBehavior for Data {
             })
         } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
             if should_transition {
-                CharacterState::TripleStrike(Data {
-                    base_damage: self.base_damage,
-                    stage: match self.stage {
-                        Stage::First => Stage::Second,
-                        Stage::Second => Stage::Third,
-                        Stage::Third => Stage::First,
-                    },
-                    stage_time_active: Duration::default(),
-                    stage_exhausted: false,
-                    should_transition,
-                    initialized,
-                })
+                if let Stage::Third = self.stage {
+                    // Make sure attack component is removed
+                    data.updater.remove::<Attacking>(data.entity);
+                    // Done
+                    CharacterState::Wielding
+                } else {
+                    CharacterState::TripleStrike(Data {
+                        base_damage: self.base_damage,
+                        stage: match self.stage {
+                            Stage::First => Stage::Second,
+                            Stage::Second => Stage::Third,
+                            Stage::Third => Stage::First,
+                        },
+                        stage_time_active: Duration::default(),
+                        stage_exhausted: false,
+                        should_transition,
+                        initialized,
+                    })
+                }
             } else {
                 // Make sure attack component is removed
                 data.updater.remove::<Attacking>(data.entity);
