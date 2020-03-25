@@ -132,6 +132,7 @@ pub struct Attacking {
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
+    pub knockback: f32,
 }
 
 impl Component for Attacking {
