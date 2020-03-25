@@ -161,7 +161,7 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
 
 /// Will attempt to go into `loadout.active_item.ability1`
 pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.primary.is_just_pressed() {
+    if data.inputs.primary.is_pressed() {
         if let Some(ability) = data
             .loadout
             .active_item
@@ -176,7 +176,7 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
 
 /// Will attempt to go into `loadout.active_item.ability2`
 pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.secondary.is_just_pressed() {
+    if data.inputs.secondary.is_pressed() {
         if let Some(ability) = data
             .loadout
             .active_item
@@ -191,7 +191,7 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
 
 /// Will attempt to go into `loadout.active_item.ability3`
 pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.ability3.is_just_pressed() {
+    if data.inputs.ability3.is_pressed() {
         if let Some(ability) = data
             .loadout
             .active_item
@@ -207,7 +207,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
 /// Checks that player can perform a dodge, then
 /// attempts to go into `loadout.active_item.dodge_ability`
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.roll.is_just_pressed() {
+    if data.inputs.roll.is_pressed() {
         if let Some(ability) = data
             .loadout
             .active_item
