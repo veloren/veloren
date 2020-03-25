@@ -1,6 +1,8 @@
 Item(
     name: "Dwarven Cheese",
-    description: "Aromatic and nutritious.",
+    description: "Aromatic and nutritious.
+    
+Restores 40 Health.",
     kind: Consumable(
         kind: Cheese,
         effect: Health((

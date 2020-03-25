@@ -103,27 +103,11 @@ image_ids! {
         fireplace: "voxygen.element.misc_bg.fireplace",
 
         // Skill Icons
-        twohsword_m1: "voxygen.element.icons.2hsword_m1",
-        twohsword_m2: "voxygen.element.icons.2hsword_m2",
-        twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
-        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
-        twohaxe_m1: "voxygen.element.icons.2haxe_m1",
-        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
-        bow_m1: "voxygen.element.icons.bow_m1",
         bow_m2: "voxygen.element.icons.bow_m2",
-        staff_m1: "voxygen.element.icons.staff_m1",
-        staff_m2: "voxygen.element.icons.staff_m2",
-        flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
-        flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
-        charge: "voxygen.element.icons.skill_charge_3",
 
         // Icons
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
-        apple: "voxygen.element.icons.item_apple",
-        mushroom: "voxygen.element.icons.item_mushroom",
-        skull: "voxygen.element.icons.skull",
-        skull_2: "voxygen.element.icons.skull_2",
 
         // Map
         indicator_mmap: "voxygen.element.buttons.indicator_mmap",
@@ -202,6 +186,25 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+        // Skill Icons
+        twohsword_m1: "voxygen.element.icons.2hsword_m1",
+        twohsword_m2: "voxygen.element.icons.2hsword_m2",
+        twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
+        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
+        twohaxe_m1: "voxygen.element.icons.2haxe_m1",
+        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
+        bow_m1: "voxygen.element.icons.bow_m1",
+        //bow_m2: "voxygen.element.icons.bow_m2",
+        staff_m1: "voxygen.element.icons.staff_m1",
+        staff_m2: "voxygen.element.icons.staff_m2",
+        flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
+        flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
+        charge: "voxygen.element.icons.skill_charge_3",
+
+        // Other Icons
+        skull: "voxygen.element.icons.skull",
+        skull_2: "voxygen.element.icons.skull_2",
+
         // Map
         map_bg: "voxygen.element.misc_bg.map_bg",
         map_frame: "voxygen.element.misc_bg.map_frame",

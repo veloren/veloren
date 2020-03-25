@@ -19,11 +19,12 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-//use const_tweaker::tweak;
-use std::time::{Duration, Instant}; // <- REMOVE THIS BEFORE MERGE!
 
-/*#[tweak(min = 0.5, max = 1.0, step = 0.01)]
-const ALPHA: f32 = 0.90;*/
+use std::time::{Duration, Instant};
+/*
+use const_tweaker::tweak;
+#[tweak(min = 0.0, max = 1.0, step = 0.01)]
+const RGB: f32 = 0.1;*/
 
 widget_ids! {
     struct Ids {
@@ -608,9 +609,9 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Bow(_) => self.imgs.bow_m1,
                     ToolKind::Staff(_) => self.imgs.staff_m1,
                     ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m1,
-                    _ => self.imgs.twohaxe_m1,
+                    _ => self.imgs.nothing,
                 },
-                _ => self.imgs.twohaxe_m1,
+                _ => self.imgs.nothing,
             },
         ) // Insert Icon here
         .w(
@@ -704,21 +705,20 @@ impl<'a> Widget for Skillbar<'a> {
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
                     ToolKind::Sword(_) => self.imgs.charge,
-                    ToolKind::Hammer(_) => self.imgs.twohhammer_m2,
-                    ToolKind::Axe(_) => self.imgs.twohaxe_m2,
-                    ToolKind::Bow(_) => self.imgs.bow_m2,
+                    ToolKind::Hammer(_) => self.imgs.nothing,
+                    ToolKind::Axe(_) => self.imgs.nothing,
+                    ToolKind::Bow(_) => self.imgs.nothing,
                     ToolKind::Staff(StaffKind::Sceptre) => self.imgs.heal_0,
                     ToolKind::Staff(_) => self.imgs.staff_m2,
                     ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
-                    _ => self.imgs.twohaxe_m2,
+                    _ => self.imgs.nothing,
                 },
-                _ => self.imgs.twohaxe_m2,
+                _ => self.imgs.nothing,
             },
         ) // Insert Icon here
         .w(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Bow(_) => 30.0 * scale,
                     ToolKind::Staff(_) => 30.0 * scale,
                     _ => 38.0 * scale,
                 },
@@ -728,7 +728,6 @@ impl<'a> Widget for Skillbar<'a> {
         .h(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
-                    ToolKind::Bow(_) => 30.0 * scale,
                     ToolKind::Staff(_) => 30.0 * scale,
                     _ => 38.0 * scale,
                 },
@@ -736,14 +735,21 @@ impl<'a> Widget for Skillbar<'a> {
             },
         )
         .middle_of(state.ids.m2_slot_bg)
-        .color(
+        .image_color(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
                     ToolKind::Sword(_) => {
                         if self.energy.current() as f64 >= 200.0 {
                             Color::Rgba(1.0, 1.0, 1.0, 1.0)
                         } else {
-                            Color::Rgba(0.4, 0.4, 0.4, 1.0)
+                            Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                        }
+                    },
+                    ToolKind::Staff(StaffKind::Sceptre) => {
+                        if self.energy.current() as f64 >= 400.0 {
+                            Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                        } else {
+                            Color::Rgba(0.3, 0.3, 0.3, 0.8)
                         }
                     },
                     _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
@@ -844,7 +850,7 @@ impl<'a> Widget for Skillbar<'a> {
                         .color(if self.energy.current() as f64 >= 500.0 {
                             Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                         } else {
-                            Some(Color::Rgba(0.4, 0.4, 0.4, 1.0))
+                            Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
                         })
                         .middle_of(state.ids.slot1_bg)
                         .set(state.ids.slot1_icon, ui);
