@@ -117,7 +117,6 @@ image_ids! {
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
         charge: "voxygen.element.icons.skill_charge_3",
 
-
         // Icons
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
@@ -203,6 +202,10 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+        // Map
+        map_bg: "voxygen.element.misc_bg.map_bg",
+        map_frame: "voxygen.element.misc_bg.map_frame",
+
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
         mmap_frame_2: "voxygen.element.frames.mmap_frame",
@@ -271,7 +274,9 @@ image_ids! {
 
         banner_top: "voxygen.element.frames.banner_top",
 
-
+        // Icons
+        fire_spell_1: "voxygen.element.icons.fire_spell_0",
+        heal_0: "voxygen.element.icons.heal_0",
 
         // Buttons
         button: "voxygen.element.buttons.button",
