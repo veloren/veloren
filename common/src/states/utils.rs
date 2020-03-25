@@ -128,11 +128,13 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can Swap Weapons and updates `Loadout` if so
-pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
-    let mut new_loadout = data.loadout.clone();
-    new_loadout.active_item = data.loadout.second_item.clone();
-    new_loadout.second_item = data.loadout.active_item.clone();
-    update.loadout = new_loadout;
+pub fn attempt_swap_loadout(_data: &JoinData, update: &mut StateUpdate) {
+    if update.loadout.second_item.is_some() {
+        std::mem::swap(
+            &mut update.loadout.active_item,
+            &mut update.loadout.second_item,
+        );
+    }
 }
 
 /// Checks that player can glide and updates `CharacterState` if so
