@@ -2,12 +2,10 @@ pub mod attack;
 pub mod block;
 pub mod blockidle;
 pub mod charge;
-pub mod cidle;
 pub mod climb;
 pub mod equip;
 pub mod gliding;
 pub mod idle;
-pub mod idleequip;
 pub mod idlewield;
 pub mod jump;
 pub mod roll;
@@ -22,8 +20,8 @@ pub mod wield;
 // Reexports
 pub use self::{
     attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
-    charge::ChargeAnimation, cidle::CidleAnimation, climb::ClimbAnimation, equip::EquipAnimation,
-    gliding::GlidingAnimation, idle::IdleAnimation, idleequip::IdleEquipAnimation,
+    charge::ChargeAnimation, climb::ClimbAnimation, equip::EquipAnimation,
+    gliding::GlidingAnimation, idle::IdleAnimation,
     idlewield::IdleWieldAnimation, jump::JumpAnimation, roll::RollAnimation, run::RunAnimation,
     shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation,
     swim::SwimAnimation, wield::WieldAnimation,

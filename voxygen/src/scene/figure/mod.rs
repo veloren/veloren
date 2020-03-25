@@ -473,7 +473,7 @@ impl FigureMgr {
                         CharacterState::BasicMelee(_) => {
                             anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, time),
+                                (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -482,7 +482,7 @@ impl FigureMgr {
                         CharacterState::BasicRanged(_) => {
                             anim::character::ShootAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, time),
+                                (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -491,7 +491,7 @@ impl FigureMgr {
                         CharacterState::Boost(_) => {
                             anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, time),
+                                (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -509,7 +509,7 @@ impl FigureMgr {
                         CharacterState::TripleStrike(s) => match s.stage {
                             0 => anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, time),
+                                (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -523,7 +523,7 @@ impl FigureMgr {
                             ),
                             _ => anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, time),
+                                (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -532,7 +532,7 @@ impl FigureMgr {
                         CharacterState::TimedCombo(s) => match s.stage {
                             0 | 2 => anim::character::AttackAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, time),
+                                (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -565,7 +565,6 @@ impl FigureMgr {
                             )
                         }*/
                         CharacterState::Equipping { .. } => {
-                            if vel.0.magnitude_squared() > 0.5 {
                                 anim::character::EquipAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, vel.0.magnitude(), time),
@@ -573,15 +572,6 @@ impl FigureMgr {
                                     &mut state_animation_rate,
                                     skeleton_attr,
                                 )
-                            } else {
-                                anim::character::IdleEquipAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
                         },
                         CharacterState::Wielding { .. } => {
                             if vel.0.magnitude_squared() > 0.5 {
