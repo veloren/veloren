@@ -21,10 +21,10 @@ pub mod wield;
 pub use self::{
     attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
     charge::ChargeAnimation, climb::ClimbAnimation, equip::EquipAnimation,
-    gliding::GlidingAnimation, idle::IdleAnimation,
-    idlewield::IdleWieldAnimation, jump::JumpAnimation, roll::RollAnimation, run::RunAnimation,
-    shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation,
-    swim::SwimAnimation, wield::WieldAnimation,
+    gliding::GlidingAnimation, idle::IdleAnimation, idlewield::IdleWieldAnimation,
+    jump::JumpAnimation, roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation,
+    sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation,
+    wield::WieldAnimation,
 };
 
 use super::{Bone, Skeleton};
