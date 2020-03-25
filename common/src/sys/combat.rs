@@ -72,12 +72,23 @@ impl<'a> System<'a> for Sys {
             attack.applied = true;
 
             // Go through all other entities
-            for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stats_b, body_b) in (
+            for (
+                b,
+                uid_b,
+                pos_b,
+                ori_b,
+                scale_b_maybe,
+                agent_b_maybe,
+                character_b,
+                stats_b,
+                body_b,
+            ) in (
                 &entities,
                 &uids,
                 &positions,
                 &orientations,
                 scales.maybe(),
+                agents.maybe(),
                 &character_states,
                 &stats,
                 &bodies,
@@ -106,11 +117,12 @@ impl<'a> System<'a> for Sys {
 
                     // NPCs do less damage:
                     if agent_maybe.is_some() {
-                        if healthchange > 0 {
-                            healthchange = 0;
-                        } else if healthchange < 0 {
-                            healthchange = (healthchange / 2).min(-1);
-                        }
+                        healthchange = (healthchange / 2).min(-1);
+                    }
+
+                    // Don't heal npc's hp
+                    if agent_b_maybe.is_some() && healthchange > 0 {
+                        healthchange = 0;
                     }
 
                     if rand::random() {
