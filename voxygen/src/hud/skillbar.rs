@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, BarNumbers, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
-    MANA_COLOR, TEXT_COLOR, XP_COLOR,
+    img_ids::Imgs, BarNumbers, ShortcutNumbers, XpBar, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
+    LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
@@ -10,7 +10,7 @@ use crate::{
 use common::{
     assets::load_expect,
     comp::{
-        item::{DebugKind, ToolData, ToolKind},
+        item::{DebugKind, StaffKind, ToolData, ToolKind},
         CharacterState, ControllerInputs, Energy, ItemKind, Loadout, Stats,
     },
 };
@@ -19,7 +19,11 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use std::time::{Duration, Instant};
+//use const_tweaker::tweak;
+use std::time::{Duration, Instant}; // <- REMOVE THIS BEFORE MERGE!
+
+/*#[tweak(min = 0.5, max = 1.0, step = 0.01)]
+const ALPHA: f32 = 0.90;*/
 
 widget_ids! {
     struct Ids {
@@ -703,6 +707,7 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Hammer(_) => self.imgs.twohhammer_m2,
                     ToolKind::Axe(_) => self.imgs.twohaxe_m2,
                     ToolKind::Bow(_) => self.imgs.bow_m2,
+                    ToolKind::Staff(StaffKind::Sceptre) => self.imgs.heal_0,
                     ToolKind::Staff(_) => self.imgs.staff_m2,
                     ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
                     _ => self.imgs.twohaxe_m2,
@@ -819,19 +824,35 @@ impl<'a> Widget for Skillbar<'a> {
         }
         Image::new(self.imgs.skillbar_slot_bg)
             .w_h(19.5 * scale, 19.5 * scale)
-            .color(Some(BG_COLOR))
+            .color(
+                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                    Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                        ToolKind::Staff(StaffKind::BasicStaff) => Some(BLACK),
+                        _ => Some(BG_COLOR),
+                    },
+                    _ => Some(BG_COLOR),
+                },
+            )
             .middle_of(state.ids.slot1)
             .set(state.ids.slot1_bg, ui);
         // TODO: Changeable slot image
-        /*Image::new(self.imgs.charge)
-        .w_h(18.0 * scale, 18.0 * scale)
-        .color(if self.energy.current() as f64 >= 200.0 {
-            Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-        } else {
-            Some(Color::Rgba(0.4, 0.4, 0.4, 1.0))
-        })
-        .middle_of(state.ids.slot1_bg)
-        .set(state.ids.slot1_icon, ui);*/
+        match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                ToolKind::Staff(StaffKind::BasicStaff) => {
+                    Image::new(self.imgs.fire_spell_1)
+                        .w_h(18.0 * scale, 18.0 * scale)
+                        .color(if self.energy.current() as f64 >= 500.0 {
+                            Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                        } else {
+                            Some(Color::Rgba(0.4, 0.4, 0.4, 1.0))
+                        })
+                        .middle_of(state.ids.slot1_bg)
+                        .set(state.ids.slot1_icon, ui);
+                },
+                _ => {},
+            },
+            _ => {},
+        }
         // Slot 6
         Image::new(self.imgs.skillbar_slot)
             .w_h(20.0 * scale, 20.0 * scale)

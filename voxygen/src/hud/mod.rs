@@ -56,6 +56,7 @@ const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
+const BLACK: Color = Color::Rgba(0.0, 0.0, 0.0, 0.98);
 //const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
