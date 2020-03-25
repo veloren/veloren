@@ -34,9 +34,9 @@ impl Animation for AttackAnimation {
         let decel = (anim_time as f32 * 16.0 * lab as f32).min(PI / 2.0).sin();
 
         let slow = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 12.4).sin()).powf(2.0 as f32)))
+            / (0.6 + 4.4 * ((anim_time as f32 * lab as f32 * 11.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 12.4).sin());
+            * ((anim_time as f32 * lab as f32 * 11.0).sin());
         let slower = (((5.0)
             / (0.1 + 4.9 * ((anim_time as f32 * lab as f32 * 4.0).sin()).powf(2.0 as f32)))
         .sqrt())
@@ -462,11 +462,9 @@ impl Animation for AttackAnimation {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
                     -2.0 + skeleton_attr.neck_forward + decel * 0.8,
-                    skeleton_attr.neck_height + 21.0,
+                    skeleton_attr.neck_height + 14.0,
                 );
-                next.head.ori = Quaternion::rotation_z(decel * 0.25)
-                    * Quaternion::rotation_x(0.0 + decel * 0.1)
-                    * Quaternion::rotation_y(decel * -0.1);
+                next.head.ori = Quaternion::rotation_x(0.0);
                 next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
                 next.chest.offset = Vec3::new(0.0, 0.0, 7.0);
@@ -475,17 +473,14 @@ impl Animation for AttackAnimation {
                     * Quaternion::rotation_y(decel * 0.2);
                 next.chest.scale = Vec3::one();
 
-                next.belt.offset = Vec3::new(0.0, 0.0, 5.0);
-                next.belt.ori = Quaternion::rotation_z(decel * -0.1)
-                    * Quaternion::rotation_x(0.0 + decel * -0.1)
-                    * Quaternion::rotation_y(decel * 0.1);
+                next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
+                next.belt.ori = Quaternion::rotation_x(0.0);
                 next.belt.scale = Vec3::one();
 
-                next.shorts.offset = Vec3::new(0.0, 0.0, 2.0);
-                next.belt.ori = Quaternion::rotation_z(decel * -0.08)
-                    * Quaternion::rotation_x(0.0 + decel * -0.08)
-                    * Quaternion::rotation_y(decel * 0.08);
+                next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
+                next.belt.ori = Quaternion::rotation_x(0.0);
                 next.shorts.scale = Vec3::one();
+
                 next.l_hand.offset =
                     Vec3::new(-8.0 + accel_slow * 10.0, 8.0 + accel_fast * 3.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_z(-0.8)

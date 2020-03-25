@@ -454,7 +454,7 @@ impl FigureMgr {
                         // Swim
                         (_, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, vel.0.magnitude(), ori.0.magnitude(), time),
+                            (active_tool_kind, vel.0, ori.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -565,13 +565,13 @@ impl FigureMgr {
                             )
                         }*/
                         CharacterState::Equipping { .. } => {
-                                anim::character::EquipAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
+                            anim::character::EquipAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::Wielding { .. } => {
                             if vel.0.magnitude_squared() > 0.5 {

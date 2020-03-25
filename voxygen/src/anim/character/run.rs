@@ -128,7 +128,7 @@ impl Animation for RunAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(short * -0.15);
         next.r_shoulder.scale = Vec3::one() * 1.1;
 
-        next.glider.offset = Vec3::new(0.0, 5.0, 0.0);
+        next.glider.offset = Vec3::new(0.0, 0.0, 10.0);
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
 

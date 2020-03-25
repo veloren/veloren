@@ -79,7 +79,7 @@ impl Animation for StandAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = (Vec3::one() + breathe * -0.05) * 1.15;
 
-        next.glider.offset = Vec3::new(0.0, 5.0, 0.0);
+        next.glider.offset = Vec3::new(0.0, 0.0, 10.0);
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
 
