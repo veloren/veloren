@@ -182,7 +182,7 @@ impl From<&CharacterAbility> for CharacterState {
             CharacterAbility::TripleStrike { base_damage } => {
                 CharacterState::TripleStrike(triple_strike::Data {
                     base_damage: *base_damage,
-                    stage: 0,
+                    stage: triple_strike::Stage::First,
                     stage_exhausted: false,
                     stage_time_active: Duration::default(),
                     should_transition: true,

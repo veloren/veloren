@@ -24,6 +24,7 @@ use common::{
         Body, CharacterState, ItemKind, Last, Loadout, Ori, PhysicsState, Pos, Scale, Stats, Vel,
     },
     state::State,
+    states::triple_strike,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
@@ -507,27 +508,33 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::TripleStrike(s) => match s.stage {
-                            0 => anim::character::AttackAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            ),
-                            1 => anim::character::SpinAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            ),
-                            _ => anim::character::AttackAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            ),
+                            triple_strike::Stage::First => {
+                                anim::character::AttackAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                            triple_strike::Stage::Second => {
+                                anim::character::SpinAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                            triple_strike::Stage::Third => {
+                                anim::character::AttackAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
                         },
                         CharacterState::TimedCombo(s) => match s.stage {
                             0 | 2 => anim::character::AttackAnimation::update_skeleton(

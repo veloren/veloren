@@ -113,6 +113,11 @@ impl Client {
 
                 // Initialize `State`
                 let mut state = State::default();
+                // Client-only components
+                state
+                    .ecs_mut()
+                    .register::<comp::Last<comp::CharacterState>>();
+
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
 
