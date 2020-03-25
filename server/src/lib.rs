@@ -83,7 +83,6 @@ impl Server {
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
         let mut state = State::default();
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
-        // TODO: anything but this
         state
             .ecs_mut()
             .insert(AuthProvider::new(settings.auth_server_address.clone()));
