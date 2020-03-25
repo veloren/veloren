@@ -1573,6 +1573,7 @@ impl Hud {
 
         // Bag button and nearby icons
         match Buttons::new(
+            client,
             &self.show.open_windows,
             self.show.map,
             self.show.bag,

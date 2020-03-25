@@ -9,7 +9,7 @@
                 "voxygen.audio.sfx.footsteps.stepgrass_5",
                 "voxygen.audio.sfx.footsteps.stepgrass_6",
             ],
-            threshold: 0.4,
+            threshold: 0.25,
         ),
         GliderOpen: (
             files: [
