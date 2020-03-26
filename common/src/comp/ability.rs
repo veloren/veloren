@@ -55,6 +55,11 @@ impl CharacterAbility {
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
+            CharacterAbility::TripleStrike { .. } => {
+                data.physics.on_ground
+                    && data.body.is_humanoid()
+                    && data.inputs.look_dir.xy().magnitude_squared() > 0.01
+            },
             CharacterAbility::Roll => {
                 data.physics.on_ground
                     && data.body.is_humanoid()
