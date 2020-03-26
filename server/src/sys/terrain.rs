@@ -282,7 +282,7 @@ impl<'a> System<'a> for Sys {
 
                     // TODO: Remove this and implement scaling or level depending on stuff like
                     // species instead
-                    stats.level.set_level(rand::thread_rng().gen_range(1, 4));
+                    stats.level.set_level(rand::thread_rng().gen_range(1, 9));
 
                     // Replace stuff if it's a boss
                     if let EntityKind::Boss = entity.kind {
@@ -337,7 +337,7 @@ impl<'a> System<'a> for Sys {
                             )),
                         };
 
-                        stats.level.set_level(rand::thread_rng().gen_range(8, 15));
+                        stats.level.set_level(rand::thread_rng().gen_range(30, 35));
                         scale = 2.0 + rand::random::<f32>();
                     }
 

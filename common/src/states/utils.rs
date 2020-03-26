@@ -28,16 +28,16 @@ const BASE_HUMANOID_WATER_SPEED: f32 = 120.0;
 // const CLIMB_COST: i32 = 5;
 
 /// Handles updating `Components` to move player based on state of `JoinData`
-pub fn handle_move(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     if data.physics.in_fluid {
-        swim_move(data, update);
+        swim_move(data, update, efficiency);
     } else {
-        basic_move(data, update);
+        basic_move(data, update, efficiency);
     }
 }
 
 /// Updates components to move player as if theyre on ground or in air
-fn basic_move(data: &JoinData, update: &mut StateUpdate) {
+fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     let (accel, speed): (f32, f32) = if data.physics.on_ground {
         (BASE_HUMANOID_ACCEL, BASE_HUMANOID_SPEED)
     } else {
@@ -46,7 +46,8 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate) {
 
     // Move player according to move_dir
     if update.vel.0.magnitude_squared() < speed.powf(2.0) {
-        update.vel.0 = update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel;
+        update.vel.0 =
+            update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency;
         let mag2 = update.vel.0.magnitude_squared();
         if mag2 > speed.powf(2.0) {
             update.vel.0 = update.vel.0.normalized() * speed;
@@ -69,7 +70,7 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, strength: f
 }
 
 /// Updates components to move player as if theyre swimming
-fn swim_move(data: &JoinData, update: &mut StateUpdate) {
+fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     // Update velocity
     update.vel.0 += Vec2::broadcast(data.dt.0)
         * data.inputs.move_dir
@@ -77,7 +78,8 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate) {
             BASE_HUMANOID_WATER_ACCEL
         } else {
             0.0
-        };
+        }
+        * efficiency;
 
     handle_orientation(data, update, if data.physics.on_ground { 9.0 } else { 2.0 });
 
