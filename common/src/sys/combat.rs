@@ -113,40 +113,40 @@ impl<'a> System<'a> for Sys {
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // Weapon gives base damage
-                    let mut healthchange = attack.base_healthchange;
+                    let mut healthchange = attack.base_healthchange as f32;
 
-                    // NPCs do less damage:
-                    if agent_maybe.is_some() {
-                        healthchange = (healthchange / 2).min(-1);
-                    }
+                    //// NPCs do less damage:
+                    //if agent_maybe.is_some() {
+                    //    healthchange = (healthchange / 1.5).min(-1.0);
+                    //}
 
                     // Don't heal npc's hp
-                    if agent_b_maybe.is_some() && healthchange > 0 {
-                        healthchange = 0;
+                    if agent_b_maybe.is_some() && healthchange > 0.0 {
+                        healthchange = 0.0;
                     }
 
                     if rand::random() {
-                        healthchange = (healthchange as f32 * 1.2) as i32;
+                        healthchange = healthchange * 1.2;
                     }
 
                     // Block
                     if character_b.is_block()
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
                     {
-                        healthchange = (healthchange as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
+                        healthchange = healthchange * (1.0 - BLOCK_EFFICIENCY)
                     }
 
                     server_emitter.emit(ServerEvent::Damage {
                         uid: *uid_b,
                         change: HealthChange {
-                            amount: healthchange,
+                            amount: healthchange as i32,
                             cause: HealthSource::Attack { by: *uid },
                         },
                     });
                     if attack.knockback != 0.0 {
-                        local_emitter.emit(LocalEvent::KnockUp {
+                        local_emitter.emit(LocalEvent::ApplyForce {
                             entity: b,
-                            dir: ori.0,
+                            dir: Vec3::slerp(ori.0, Vec3::new(0.0, 0.0, 1.0), 0.5),
                             force: attack.knockback,
                         });
                     }

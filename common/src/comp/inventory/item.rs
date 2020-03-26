@@ -70,7 +70,7 @@ impl ToolData {
         use ToolKind::*;
 
         match self.kind {
-            Sword(_) => vec![TripleStrike { base_damage: 7 }, DashMelee {
+            Sword(_) => vec![TripleStrike { base_damage: 5 }, DashMelee {
                 buildup_duration: Duration::from_millis(500),
                 recover_duration: Duration::from_millis(500),
                 base_damage: 20,
