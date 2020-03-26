@@ -6,6 +6,7 @@ use std::time::Duration;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
     Damage(comp::HealthChange),
+    Knockback(f32),
     Explode { power: f32 },
     Vanish,
     Stick,

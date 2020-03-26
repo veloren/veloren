@@ -21,6 +21,7 @@ pub enum CharacterAbility {
     },
     BasicRanged {
         energy_cost: u32,
+        holdable: bool,
         prepare_duration: Duration,
         recover_duration: Duration,
         projectile: Projectile,
@@ -60,7 +61,7 @@ impl CharacterAbility {
                     && data.vel.0.xy().magnitude_squared() > 0.5
                     && update
                         .energy
-                        .try_change_by(-150, EnergySource::Ability)
+                        .try_change_by(-220, EnergySource::Ability)
                         .is_ok()
             },
             CharacterAbility::DashMelee { .. } => update
@@ -122,6 +123,7 @@ impl From<&CharacterAbility> for CharacterState {
                 max_angle: *max_angle,
             }),
             CharacterAbility::BasicRanged {
+                holdable,
                 prepare_duration,
                 recover_duration,
                 projectile,
@@ -132,6 +134,7 @@ impl From<&CharacterAbility> for CharacterState {
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 exhausted: false,
                 prepare_timer: Duration::default(),
+                holdable: *holdable,
                 prepare_duration: *prepare_duration,
                 recover_duration: *recover_duration,
                 projectile: projectile.clone(),
