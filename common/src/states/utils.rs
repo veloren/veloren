@@ -10,6 +10,7 @@ use vek::vec::Vec2;
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 const BASE_HUMANOID_ACCEL: f32 = 100.0;
 const BASE_HUMANOID_SPEED: f32 = 150.0;
+const NPC_HUMANOID_SPEED: f32 = 150.0;
 const BASE_HUMANOID_AIR_ACCEL: f32 = 15.0;
 const BASE_HUMANOID_AIR_SPEED: f32 = 8.0;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 70.0;
@@ -39,7 +40,14 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// Updates components to move player as if theyre on ground or in air
 fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     let (accel, speed): (f32, f32) = if data.physics.on_ground {
-        (BASE_HUMANOID_ACCEL, BASE_HUMANOID_SPEED)
+        (
+            BASE_HUMANOID_ACCEL,
+            if data.agent.is_some() {
+                NPC_HUMANOID_SPEED
+            } else {
+                BASE_HUMANOID_SPEED
+            },
+        )
     } else {
         (BASE_HUMANOID_AIR_ACCEL, BASE_HUMANOID_AIR_SPEED)
     };

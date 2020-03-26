@@ -8,6 +8,8 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
+    /// Can you hold the abilty beyond the prepare duration
+    pub holdable: bool,
     /// How long we have to prepare the weapon
     pub prepare_duration: Duration,
     /// How long we prepared the weapon already
@@ -26,15 +28,16 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update, 0.5);
+        handle_move(data, &mut update, 0.2);
         handle_jump(data, &mut update);
 
         if self.prepare_timer < self.prepare_duration
-            || !self.exhausted && data.inputs.holding_ability_key()
+            || self.holdable && !self.exhausted && data.inputs.holding_ability_key()
         {
             // Prepare (draw the bow)
             update.character = CharacterState::BasicRanged(Data {
                 prepare_timer: self.prepare_timer + Duration::from_secs_f32(data.dt.0),
+                holdable: self.holdable,
                 prepare_duration: self.prepare_duration,
                 recover_duration: self.recover_duration,
                 projectile: self.projectile.clone(),
@@ -58,6 +61,7 @@ impl CharacterBehavior for Data {
 
             update.character = CharacterState::BasicRanged(Data {
                 prepare_timer: self.prepare_timer,
+                holdable: self.holdable,
                 prepare_duration: self.prepare_duration,
                 recover_duration: self.recover_duration,
                 projectile: self.projectile.clone(),
@@ -70,6 +74,7 @@ impl CharacterBehavior for Data {
             // Recovery
             update.character = CharacterState::BasicRanged(Data {
                 prepare_timer: self.prepare_timer,
+                holdable: self.holdable,
                 prepare_duration: self.prepare_duration,
                 recover_duration: self
                     .recover_duration

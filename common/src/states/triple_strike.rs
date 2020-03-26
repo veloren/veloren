@@ -4,10 +4,10 @@ use crate::{
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use std::time::Duration;
-use vek::vec::{Vec2, Vec3};
+use vek::vec::Vec3;
 
 // In millis
-const STAGE_DURATION: u64 = 500;
+const STAGE_DURATION: u64 = 700;
 
 const INITIAL_ACCEL: f32 = 90.0;
 const BASE_SPEED: f32 = 25.0;
