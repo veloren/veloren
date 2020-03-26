@@ -21,13 +21,13 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn toggle_wield(&self, data: &JoinData) -> StateUpdate {
+    fn wield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_wield(data, &mut update);
         update
     }
 
-    fn toggle_sit(&self, data: &JoinData) -> StateUpdate {
+    fn stand(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         // Try to Fall/Stand up/Move
         update.character = CharacterState::Idle;
