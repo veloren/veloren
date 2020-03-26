@@ -41,7 +41,7 @@ pub fn safe_slerp(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> vek:
     };
 
     let dot = from.dot(to);
-    if dot > 0.999 {
+    if dot >= 1.0 - 1E-6 {
         // Close together, just use to
         return to;
     }

@@ -14,7 +14,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(&data, &mut update);
+        handle_move(&data, &mut update, 0.4);
 
         if !data.physics.on_ground
             || !(data.inputs.secondary.is_pressed() || data.inputs.primary.is_pressed())

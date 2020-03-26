@@ -6,7 +6,7 @@ Item(
     kind: Tool(
         ToolData (
             kind: Hammer(BasicHammer),    
-            equip_time_millis: 600,
+            equip_time_millis: 500,
         )
     )
 )

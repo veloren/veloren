@@ -72,7 +72,7 @@ impl CharacterBehavior for Data {
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
-            handle_move(data, &mut update);
+            handle_move(data, &mut update, 0.7);
             update.character = CharacterState::DashMelee(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self
