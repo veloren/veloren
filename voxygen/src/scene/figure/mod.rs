@@ -429,7 +429,7 @@ impl FigureMgr {
                         physics.in_fluid,                // In water
                     ) {
                         // Standing
-                        (true, false, false) => anim::character::StandAnimation::update_skeleton(
+                        (true, false, _) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, time),
                             state.state_time,
@@ -437,7 +437,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Running
-                        (true, true, false) => anim::character::RunAnimation::update_skeleton(
+                        (true, true, _) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, vel.0, ori.0, state.last_ori, time),
                             state.state_time,
@@ -453,7 +453,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Swim
-                        (_, _, true) => anim::character::SwimAnimation::update_skeleton(
+                        (false, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (active_tool_kind, vel.0, ori.0.magnitude(), time),
                             state.state_time,
@@ -581,23 +581,13 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Wielding { .. } => {
-                            if vel.0.magnitude_squared() > 0.5 {
-                                anim::character::WieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else {
-                                anim::character::IdleWieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
+                            anim::character::WieldAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::Glide { .. } => {
                             anim::character::GlidingAnimation::update_skeleton(
