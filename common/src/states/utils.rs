@@ -53,7 +53,7 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate) {
         }
     }
 
-    handle_orientation(data, update, 9.0);
+    handle_orientation(data, update, 20.0);
 }
 
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, strength: f32) {
@@ -215,7 +215,14 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             .and_then(|i| i.dodge_ability.as_ref())
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = ability.into();
+            if data.character.is_wield() {
+                update.character = ability.into();
+                if let CharacterState::Roll(roll) = &mut update.character {
+                    roll.was_wielded = true;
+                }
+            } else {
+                update.character = ability.into();
+            }
         }
     }
 }

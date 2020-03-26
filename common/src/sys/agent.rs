@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
                                 inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                     .try_normalized()
                                     .unwrap_or(Vec2::unit_y())
-                                    * 0.01;
+                                    * 0.7;
                                 inputs.primary.set_state(true);
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
                                 || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)

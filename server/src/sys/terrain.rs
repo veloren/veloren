@@ -209,8 +209,8 @@ impl<'a> System<'a> for Sys {
                                 ability1: Some(CharacterAbility::BasicMelee {
                                     energy_cost: 0,
                                     buildup_duration: Duration::from_millis(0),
-                                    recover_duration: Duration::from_millis(300),
-                                    base_healthchange: -2,
+                                    recover_duration: Duration::from_millis(400),
+                                    base_healthchange: -4,
                                     range: 3.5,
                                     max_angle: 60.0,
                                 }),
