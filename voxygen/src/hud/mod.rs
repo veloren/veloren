@@ -52,6 +52,7 @@ use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 //const TEXT_COLOR_GREY: Color = Color::Rgba(1.0, 1.0, 1.0, 0.5);
 const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
@@ -180,6 +181,10 @@ widget_ids! {
         small_window,
         social_window,
         settings_window,
+
+        // Free look indicator
+        free_look_txt,
+        free_look_bg,
     }
 }
 
@@ -289,6 +294,7 @@ pub struct Show {
     social_tab: SocialTab,
     want_grab: bool,
     stats: bool,
+    free_look: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -479,6 +485,7 @@ impl Hud {
                 want_grab: true,
                 ingame: true,
                 stats: false,
+                free_look: false,
             },
             to_focus: None,
             never_show: false,
@@ -1901,6 +1908,22 @@ impl Hud {
             }
         }
 
+        // Free look indicator
+        if self.show.free_look {
+            Text::new(&self.voxygen_i18n.get("hud.free_look_indicator"))
+                .color(TEXT_BG)
+                .mid_top_with_margin_on(ui_widgets.window, 100.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.free_look_bg, ui_widgets);
+            Text::new(&self.voxygen_i18n.get("hud.free_look_indicator"))
+                .color(KILL_COLOR)
+                .top_left_with_margins_on(self.ids.free_look_bg, -1.0, -1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.free_look_txt, ui_widgets);
+        }
+
         events
     }
 
@@ -2064,4 +2087,6 @@ impl Hud {
             self.ui.render(renderer, Some(globals));
         }
     }
+
+    pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
 }

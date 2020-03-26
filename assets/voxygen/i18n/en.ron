@@ -333,6 +333,8 @@ Chat commands:
         "hud.social.play_online_fmt": "{nb_player} player(s) online",
 
         "hud.spell": "Spell",
+
+        "hud.free_look_indicator": "Free look active",
         /// End HUD section
 
 
