@@ -75,7 +75,7 @@ impl<'a> System<'a> for Sys {
 
             // Accelerate recharging energy if not wielding.
             match character_state {
-                CharacterState::Idle { .. } => {
+                CharacterState::Idle { .. } | CharacterState::Sit { .. } => {
                     if {
                         let energy = energy.get_unchecked();
                         energy.current() < energy.maximum()
