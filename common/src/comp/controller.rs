@@ -18,8 +18,10 @@ pub enum ControlEvent {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlAction {
     SwapLoadout,
-    ToggleWield,
-    ToggleSit,
+    Wield,
+    Unwield,
+    Sit,
+    Stand,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
