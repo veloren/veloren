@@ -25,7 +25,7 @@ impl Animation for JumpAnimation {
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
             -3.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 14.0,
+            skeleton_attr.neck_height + 13.0,
         );
         next.head.ori = Quaternion::rotation_x(0.25 + wave_stop * 0.1 + wave_slow * 0.04);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
@@ -34,11 +34,11 @@ impl Animation for JumpAnimation {
         next.chest.ori = Quaternion::rotation_z(0.0);
         next.chest.scale = Vec3::one() * 1.01;
 
-        next.belt.offset = Vec3::new(0.0, 0.0, -1.0);
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
         next.belt.ori = Quaternion::rotation_z(0.0);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, -4.0);
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
         next.shorts.ori = Quaternion::rotation_z(0.0);
         next.shorts.scale = Vec3::one();
 
