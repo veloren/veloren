@@ -204,6 +204,11 @@ impl Server {
             server_settings: settings.clone(),
         };
         debug!("created veloren server with: {:?}", &settings);
+        log::info!(
+            "Server version: {}[{}]",
+            *common::util::GIT_HASH,
+            *common::util::GIT_DATE
+        );
 
         Ok(this)
     }
