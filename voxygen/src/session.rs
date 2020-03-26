@@ -154,6 +154,9 @@ impl PlayState for SessionState {
         )
         .unwrap();
 
+        let mut ori = self.scene.camera().get_orientation();
+        let mut free_look = false;
+
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Character = current_client_state {
@@ -399,6 +402,10 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
                     },
+                    Event::InputUpdate(GameInput::FreeLook, true) => {
+                        free_look = !free_look;
+                        self.hud.free_look(free_look);
+                    },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
                             self.key_state.analog_matrix.x = v;
@@ -418,17 +425,18 @@ impl PlayState for SessionState {
                 }
             }
 
+            if !free_look {
+                ori = self.scene.camera().get_orientation();
+                self.inputs.look_dir = cam_dir;
+            }
             // Calculate the movement input vector of the player from the current key
             // presses and the camera direction.
-            let ori = self.scene.camera().get_orientation();
             let unit_vecs = (
                 Vec2::new(ori[0].cos(), -ori[0].sin()),
                 Vec2::new(ori[0].sin(), ori[0].cos()),
             );
             let dir_vec = self.key_state.dir_vec();
             self.inputs.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
-
-            self.inputs.look_dir = cam_dir;
 
             // Runs if either in a multiplayer server or the singleplayer server is unpaused
             if global_state.singleplayer.is_none()
