@@ -52,7 +52,7 @@ impl Animation for ChargeAnimation {
                 next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
                 next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + wave_cos * 2.0);
-                next.chest.ori = Quaternion::rotation_x(-0.7) * Quaternion::rotation_z(-0.9);
+                next.chest.ori = Quaternion::rotation_x(-0.5) * Quaternion::rotation_z(-0.7);
                 next.chest.scale = Vec3::one();
 
                 next.belt.offset = Vec3::new(0.0, 1.0, -1.0);
@@ -76,9 +76,9 @@ impl Animation for ChargeAnimation {
                 next.main.scale = Vec3::one();
 
                 next.control.offset = Vec3::new(-8.0 - slow * 0.5, 3.0 - foot * 0.6, 3.0);
-                next.control.ori = Quaternion::rotation_x(0.0)
+                next.control.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(1.4 + slow * 0.2);
+                    * Quaternion::rotation_z(1.1 + slow * 0.2);
                 next.control.scale = Vec3::one();
                 next.l_foot.offset = Vec3::new(-1.4, foot * 3.0, 8.0);
                 next.l_foot.ori = Quaternion::rotation_x(foot * -0.4 - 0.8);
