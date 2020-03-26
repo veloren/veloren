@@ -7,9 +7,9 @@ use std::time::Duration;
 use vek::vec::{Vec2, Vec3};
 
 // In millis
-const STAGE_DURATION: u64 = 600;
+const STAGE_DURATION: u64 = 500;
 
-const INITIAL_ACCEL: f32 = 200.0;
+const INITIAL_ACCEL: f32 = 90.0;
 const BASE_SPEED: f32 = 25.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -87,8 +87,13 @@ impl CharacterBehavior for Data {
 
             // Move player forward while in first third of each stage
             if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
-                update.vel.0 =
-                    update.vel.0 + Vec2::broadcast(data.dt.0) * data.ori.0 * adjusted_accel;
+                update.vel.0 = update.vel.0
+                    + data.dt.0
+                        * (if data.physics.on_ground {
+                            Vec3::new(0.0, 0.0, 500.0) // Jump upwards if on ground
+                        } else {
+                            Vec3::one()
+                        } + adjusted_accel * Vec3::from(data.ori.0.xy()));
                 let mag2 = update.vel.0.magnitude_squared();
                 if mag2 > BASE_SPEED.powf(2.0) {
                     update.vel.0 = update.vel.0.normalized() * BASE_SPEED;
@@ -115,7 +120,7 @@ impl CharacterBehavior for Data {
                 max_angle: 180_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
-                knockback: 7.0,
+                knockback: 20.0,
             });
 
             CharacterState::TripleStrike(Data {

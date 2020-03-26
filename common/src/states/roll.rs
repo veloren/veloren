@@ -6,11 +6,13 @@ use crate::{
 use std::time::Duration;
 use vek::Vec3;
 
-const ROLL_SPEED: f32 = 17.0;
+const ROLL_SPEED: f32 = 15.0;
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
     /// How long the state has until exiting
     pub remaining_duration: Duration,
+    /// Had weapon
+    pub was_wielded: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -31,7 +33,11 @@ impl CharacterBehavior for Data {
         if self.remaining_duration == Duration::default() {
             // Roll duration has expired
             update.vel.0 *= 0.3;
-            update.character = CharacterState::Idle {};
+            if self.was_wielded {
+                update.character = CharacterState::Wielding;
+            } else {
+                update.character = CharacterState::Idle;
+            }
         } else {
             // Otherwise, tick down remaining_duration
             update.character = CharacterState::Roll(Data {
@@ -39,6 +45,7 @@ impl CharacterBehavior for Data {
                     .remaining_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
+                was_wielded: self.was_wielded,
             });
         }
 

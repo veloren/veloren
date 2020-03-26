@@ -2,11 +2,11 @@ Item(
     name: "Dwarven Cheese",
     description: "Aromatic and nutritious.
     
-Restores 40 Health.",
+Restores 15 Health.",
     kind: Consumable(
         kind: Cheese,
         effect: Health((
-            amount: 40,
+            amount: 15,
             cause: Item,
         )),
     ),

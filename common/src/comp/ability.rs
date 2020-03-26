@@ -56,34 +56,24 @@ impl CharacterAbility {
         match self {
             CharacterAbility::Roll => {
                 data.physics.on_ground
-                    && !data.physics.in_fluid
                     && data.body.is_humanoid()
                     && update
                         .energy
-                        .try_change_by(-200, EnergySource::Ability)
+                        .try_change_by(-150, EnergySource::Ability)
                         .is_ok()
             },
-            CharacterAbility::DashMelee { .. } => {
-                !data.physics.in_fluid
-                    && update
-                        .energy
-                        .try_change_by(-300, EnergySource::Ability)
-                        .is_ok()
-            },
-            CharacterAbility::BasicMelee { energy_cost, .. } => {
-                !data.physics.in_fluid
-                    && update
-                        .energy
-                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                        .is_ok()
-            },
-            CharacterAbility::BasicRanged { energy_cost, .. } => {
-                !data.physics.in_fluid
-                    && update
-                        .energy
-                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                        .is_ok()
-            },
+            CharacterAbility::DashMelee { .. } => update
+                .energy
+                .try_change_by(-700, EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::BasicMelee { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::BasicRanged { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
             _ => true,
         }
     }
@@ -165,7 +155,8 @@ impl From<&CharacterAbility> for CharacterState {
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
-                remaining_duration: Duration::from_millis(300),
+                remaining_duration: Duration::from_millis(500),
+                was_wielded: false, // false by default. utils might set it to true
             }),
             CharacterAbility::TimedCombo {
                 buildup_duration,
