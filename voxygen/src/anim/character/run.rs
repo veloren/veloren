@@ -19,32 +19,32 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
 
         let speed = Vec2::<f32>::from(velocity).magnitude();
-        *rate = speed;
+        *rate = 1.0;
 
         let lab = 1.0;
         let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 0.8).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 0.8).sin());
+            * ((anim_time as f32 * lab as f32 * 8.0).sin());
 
         let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.6).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0).sin());
 
         let shortalt = (((5.0)
             / (1.5
                 + 3.5
-                    * ((anim_time as f32 * lab as f32 * 1.6 + PI / 2.0).sin()).powf(2.0 as f32)))
+                    * ((anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.6 + PI / 2.0).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin());
 
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
+            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.6).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0).sin());
 
-        let wave_stop = (anim_time as f32 * 2.6).min(PI / 2.0 / 2.0).sin();
+        let wave_stop = (anim_time as f32 * 26.0).min(PI / 2.0 / 2.0).sin();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 18.0)
