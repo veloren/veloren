@@ -49,6 +49,7 @@ pub enum GameInput {
     Interact,
     ToggleWield,
     Charge,
+    FreeLook,
 }
 
 /// Represents a key that the game menus recognise after input mapping
@@ -458,6 +459,9 @@ impl Window {
         map.entry(settings.controls.charge)
             .or_default()
             .push(GameInput::Charge);
+        map.entry(settings.controls.free_look)
+            .or_default()
+            .push(GameInput::FreeLook);
 
         let keypress_map = HashMap::new();
 
