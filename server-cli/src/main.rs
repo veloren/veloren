@@ -9,9 +9,12 @@ const TPS: u64 = 30;
 
 fn main() {
     // Init logging
+    if let Err(_) = std::env::var("RUST_LOG") {
+        std::env::set_var("RUST_LOG", "info");
+    }
     pretty_env_logger::init();
 
-    info!("Starting server-cli...");
+    info!("Starting server...");
 
     // Set up an fps clock
     let mut clock = Clock::start();
@@ -23,7 +26,7 @@ fn main() {
     // Create server
     let mut server = Server::new(settings).expect("Failed to create server instance!");
 
-    info!("Server is ready to accept connections");
+    info!("Server is ready to accept connections.");
     info!("Metrics port: {}", metrics_port);
 
     loop {
