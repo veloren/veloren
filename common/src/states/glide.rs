@@ -19,12 +19,14 @@ impl CharacterBehavior for Data {
 
         // If glide button isn't held or player is on ground, end glide
         if !data.inputs.glide.is_pressed() || data.physics.on_ground {
-            update.character = CharacterState::Idle {};
+            update.character = CharacterState::Idle;
+            return update;
         }
 
         // If there is a wall in front of character go to climb
         if let Some(_) = data.physics.on_wall {
-            update.character = CharacterState::Climb {};
+            update.character = CharacterState::Climb;
+            return update;
         }
 
         // Move player according to movement direction vector
@@ -38,7 +40,7 @@ impl CharacterBehavior for Data {
 
         // Determine orientation vector from movement direction vector
         let ori_dir = Vec2::from(update.vel.0);
-        update.ori.0 = safe_slerp(update.ori.0, ori_dir.into(), 2.0 * data.dt.0);
+        update.ori.0 = safe_slerp(update.ori.0, ori_dir.into(), 0.1);
 
         // Apply Glide antigrav lift
         if Vec2::<f32>::from(update.vel.0).magnitude_squared() < GLIDE_SPEED.powf(2.0)
@@ -53,6 +55,7 @@ impl CharacterBehavior for Data {
         }
 
         // Otherwise keep gliding
+        update.character = CharacterState::Glide;
         update
     }
 }

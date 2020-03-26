@@ -25,7 +25,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update);
+        handle_move(data, &mut update, 0.7);
         handle_jump(data, &mut update);
 
         if self.buildup_duration != Duration::default() {

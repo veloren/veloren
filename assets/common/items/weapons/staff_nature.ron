@@ -5,7 +5,7 @@ Item(
     kind: Tool(
         ToolData (
             kind: Staff(Sceptre),    
-            equip_time_millis: 800,
+            equip_time_millis: 400,
         )
     ),
 )

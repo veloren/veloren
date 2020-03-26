@@ -57,6 +57,7 @@ impl CharacterAbility {
             CharacterAbility::Roll => {
                 data.physics.on_ground
                     && data.body.is_humanoid()
+                    && data.vel.0.xy().magnitude_squared() > 0.5
                     && update
                         .energy
                         .try_change_by(-150, EnergySource::Ability)

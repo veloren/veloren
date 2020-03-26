@@ -6,7 +6,7 @@ Item(
     kind: Tool(
         ToolData (
             kind: Axe(BasicAxe),    
-            equip_time_millis: 700,
+            equip_time_millis: 400,
         )
     ),
 )
