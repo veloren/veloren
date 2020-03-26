@@ -6,8 +6,8 @@ use crate::{
 use vek::Vec2;
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
-const GLIDE_ANTIGRAV: f32 = crate::sys::phys::GRAVITY * 0.96;
-const GLIDE_ACCEL: f32 = 15.0;
+const GLIDE_ANTIGRAV: f32 = crate::sys::phys::GRAVITY * 0.90;
+const GLIDE_ACCEL: f32 = 12.0;
 const GLIDE_SPEED: f32 = 45.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
