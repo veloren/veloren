@@ -1,10 +1,12 @@
 use crate::{
     comp::{projectile, HealthSource, Ori, PhysicsState, Pos, Projectile, Vel},
-    event::{EventBus, ServerEvent},
+    event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
+    sync::UidAllocator,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
+use vek::*;
 
 /// This system is responsible for handling projectile effect triggers
 pub struct Sys;
@@ -12,6 +14,8 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
+        Read<'a, UidAllocator>,
+        Read<'a, EventBus<LocalEvent>>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, PhysicsState>,
@@ -25,6 +29,8 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             dt,
+            uid_allocator,
+            local_bus,
             server_bus,
             positions,
             physics_states,
@@ -33,6 +39,7 @@ impl<'a> System<'a> for Sys {
             mut projectiles,
         ): Self::SystemData,
     ) {
+        let mut local_emitter = local_bus.emitter();
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
@@ -89,6 +96,17 @@ impl<'a> System<'a> for Sys {
                     match effect {
                         projectile::Effect::Damage(change) => {
                             server_emitter.emit(ServerEvent::Damage { uid: other, change })
+                        },
+                        projectile::Effect::Knockback(knockback) => {
+                            if let Some(entity) =
+                                uid_allocator.retrieve_entity_internal(other.into())
+                            {
+                                local_emitter.emit(LocalEvent::ApplyForce {
+                                    entity,
+                                    dir: Vec3::slerp(ori.0, Vec3::new(0.0, 0.0, 1.0), 0.5),
+                                    force: knockback,
+                                });
+                            }
                         },
                         projectile::Effect::Explode { power } => {
                             server_emitter.emit(ServerEvent::Explosion {

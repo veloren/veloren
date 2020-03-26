@@ -1,7 +1,6 @@
 use crate::{
     comp::{
-        Agent, Attacking, Body, CharacterState, Controller, HealthChange, HealthSource, Ori, Pos,
-        Scale, Stats,
+        Agent, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
@@ -25,7 +24,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Agent>,
-        ReadStorage<'a, Controller>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Stats>,
         WriteStorage<'a, Attacking>,
@@ -43,7 +41,6 @@ impl<'a> System<'a> for Sys {
             orientations,
             scales,
             agents,
-            controllers,
             bodies,
             stats,
             mut attacking_storage,
@@ -53,15 +50,12 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
         // Attacks
-        for (entity, uid, pos, ori, scale_maybe, agent_maybe, _, _attacker_stats, attack) in (
+        for (entity, uid, pos, ori, scale_maybe, attack) in (
             &entities,
             &uids,
             &positions,
             &orientations,
             scales.maybe(),
-            agents.maybe(),
-            &controllers,
-            &stats,
             &mut attacking_storage,
         )
             .join()

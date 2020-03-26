@@ -73,7 +73,7 @@ impl ToolData {
             Sword(_) => vec![TripleStrike { base_damage: 5 }, DashMelee {
                 buildup_duration: Duration::from_millis(500),
                 recover_duration: Duration::from_millis(500),
-                base_damage: 20,
+                base_damage: 10,
             }],
             Axe(_) => vec![BasicMelee {
                 energy_cost: 0,
@@ -93,17 +93,19 @@ impl ToolData {
             }],
             Bow(_) => vec![BasicRanged {
                 energy_cost: 0,
+                holdable: true,
                 prepare_duration: Duration::from_millis(100),
-                recover_duration: Duration::from_millis(300),
+                recover_duration: Duration::from_millis(500),
                 projectile: Projectile {
                     hit_ground: vec![projectile::Effect::Stick],
                     hit_wall: vec![projectile::Effect::Stick],
                     hit_entity: vec![
                         projectile::Effect::Damage(HealthChange {
                             // TODO: This should not be fixed (?)
-                            amount: -3,
+                            amount: -5,
                             cause: HealthSource::Projectile { owner: None },
                         }),
+                        projectile::Effect::Knockback(10.0),
                         projectile::Effect::Vanish,
                     ],
                     time_left: Duration::from_secs(15),
@@ -132,15 +134,16 @@ impl ToolData {
                 },
                 BasicRanged {
                     energy_cost: 0,
-                    prepare_duration: Duration::from_millis(300),
-                    recover_duration: Duration::from_millis(100),
+                    holdable: false,
+                    prepare_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(200),
                     projectile: Projectile {
                         hit_ground: vec![projectile::Effect::Vanish],
                         hit_wall: vec![projectile::Effect::Vanish],
                         hit_entity: vec![
                             projectile::Effect::Damage(HealthChange {
                                 // TODO: This should not be fixed (?)
-                                amount: -2,
+                                amount: -1,
                                 cause: HealthSource::Projectile { owner: None },
                             }),
                             projectile::Effect::Vanish,
@@ -158,6 +161,7 @@ impl ToolData {
                 },
                 BasicRanged {
                     energy_cost: 400,
+                    holdable: false,
                     prepare_duration: Duration::from_millis(800),
                     recover_duration: Duration::from_millis(300),
                     projectile: Projectile {
@@ -217,7 +221,8 @@ impl ToolData {
                 ],
                 Possess => vec![BasicRanged {
                     energy_cost: 0,
-                    prepare_duration: Duration::from_millis(300),
+                    holdable: false,
+                    prepare_duration: Duration::from_millis(0),
                     recover_duration: Duration::from_millis(300),
                     projectile: Projectile {
                         hit_ground: vec![projectile::Effect::Stick],
