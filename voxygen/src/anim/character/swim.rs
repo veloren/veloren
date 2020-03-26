@@ -19,32 +19,17 @@ impl Animation for SwimAnimation {
         let mut next = (*skeleton).clone();
 
         let speed = Vec2::<f32>::from(velocity).magnitude();
-        *rate = speed;
+        *rate = 1.0;
 
         let lab = 1.0;
-        let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 0.8).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 0.8).sin());
 
-        let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.6).sin());
+        let short = (anim_time as f32 * lab as f32 * 2.0).sin();
 
-        let shortalt = (((5.0)
-            / (1.5
-                + 3.5
-                    * ((anim_time as f32 * lab as f32 * 1.6 + PI / 2.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.6 + PI / 2.0).sin());
+        let shortalt = (anim_time as f32 * lab as f32 * 2.0 + PI / 2.0).sin();
 
-        let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.6).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.6).sin());
+        let foot = (anim_time as f32 * lab as f32 * 2.0).sin();
 
-        let wave_stop = (anim_time as f32 * 2.6).min(PI / 2.0 / 2.0).sin();
+        let wave_stop = (anim_time as f32 * 3.0).min(PI / 2.0 / 2.0).sin();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 18.0)
@@ -64,7 +49,7 @@ impl Animation for SwimAnimation {
             -3.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 13.0 + short * 0.3,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x + long * -0.1 - short * 0.3)
+        next.head.ori = Quaternion::rotation_z(head_look.x - short * 0.3)
             * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
@@ -80,30 +65,20 @@ impl Animation for SwimAnimation {
         next.shorts.ori = Quaternion::rotation_z(short * 0.4);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(
-            -6.0 + wave_stop * -1.0,
-            -0.25 + short * 3.0,
-            4.0 + short * -1.5,
-        );
-        next.l_hand.ori =
-            Quaternion::rotation_x(0.8 + short * 1.2) * Quaternion::rotation_y(wave_stop * 0.1);
+        next.l_hand.offset = Vec3::new(-6.0, -0.25 - foot * 1.0, 5.0 + foot * -2.5);
+        next.l_hand.ori = Quaternion::rotation_x(0.8 + foot * -0.5) * Quaternion::rotation_y(0.2);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(
-            6.0 + wave_stop * 1.0,
-            -0.25 + short * -3.0,
-            4.0 + short * 1.5,
-        );
-        next.r_hand.ori =
-            Quaternion::rotation_x(0.8 + short * -1.2) * Quaternion::rotation_y(wave_stop * -0.1);
+        next.r_hand.offset = Vec3::new(6.0, -0.25 + foot * 1.0, 5.0 + foot * 2.5);
+        next.r_hand.ori = Quaternion::rotation_x(0.8 + foot * 0.5) * Quaternion::rotation_y(-0.2);
         next.r_hand.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, foot * 1.0, 6.0);
-        next.l_foot.ori = Quaternion::rotation_x(foot * -1.2);
+        next.l_foot.offset = Vec3::new(-3.4, 6.0 + foot * 1.0, 0.0 + foot * 5.5);
+        next.l_foot.ori = Quaternion::rotation_x(-1.40 + foot * 0.5);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, foot * -1.0, 6.0);
-        next.r_foot.ori = Quaternion::rotation_x(foot * 1.2);
+        next.r_foot.offset = Vec3::new(3.4, 6.0 - foot * 1.0, 0.0 + foot * -5.5);
+        next.r_foot.ori = Quaternion::rotation_x(-1.40 + foot * -0.5);
         next.r_foot.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, -1.0, 4.7);
@@ -140,8 +115,7 @@ impl Animation for SwimAnimation {
 
         next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.4) * skeleton_attr.scaler;
         next.torso.ori =
-            Quaternion::rotation_x(wave_stop * speed * -0.05 + wave_stop * speed * -0.005)
-                * Quaternion::rotation_y(0.0);
+            Quaternion::rotation_x(speed * -0.157 * wave_stop * 1.6) * Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.offset = Vec3::new(0.0, 0.0, 0.0);
