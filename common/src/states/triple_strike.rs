@@ -51,7 +51,7 @@ impl CharacterBehavior for Data {
             .unwrap_or(Duration::default());
 
         // If player stops holding input, don't go to the next stage
-        let should_transition = data.inputs.primary.is_pressed() && self.should_transition;
+        let mut should_transition = data.inputs.primary.is_pressed() && self.should_transition;
 
         if !self.initialized {
             update.vel.0 = Vec3::zero();
@@ -60,6 +60,21 @@ impl CharacterBehavior for Data {
             }
         }
         let initialized = true;
+
+        // Handle hit applied
+        if let Some(attack) = data.attacking {
+            if attack.applied {
+                if attack.hit_count > 0 {
+                    // Take energy on successful hit
+                    update.energy.change_by(100, EnergySource::HitEnemy);
+                } else {
+                    // Prevent transition on failure
+                    should_transition = false;
+                }
+                // Always remove component
+                data.updater.remove::<Attacking>(data.entity);
+            }
+        }
 
         // Handling movement
         if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
