@@ -22,13 +22,13 @@ impl Animation for EquipAnimation {
 
         let lab = 1.0;
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 10.6).sin()).powf(2.0 as f32)))
+            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 10.6).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0).sin());
         let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 10.6).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 10.6).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0).sin());
 
         let equip_slow = 1.0 + (anim_time as f32 * 12.0 + PI).cos();
         let equip_slowa = 1.0 + (anim_time as f32 * 12.0 + PI / 4.0).cos();
@@ -36,7 +36,7 @@ impl Animation for EquipAnimation {
         let wave_ultra_slow = (anim_time as f32 * 10.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 30.0 + PI).cos();
 
-        let wave = (anim_time as f32 * 10.0).sin();
+        let wave = (anim_time as f32 * 16.0).sin();
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
