@@ -65,8 +65,8 @@ use vek::*;
 // don't think we actually cast a chunk id to float, just coordinates... could
 // be wrong though!
 pub const WORLD_SIZE: Vec2<usize> = Vec2 {
-    x: 256 * 1,
-    y: 256 * 1,
+    x: 512 * 1,
+    y: 512 * 1,
 };
 
 /// A structure that holds cached noise values and cumulative distribution
