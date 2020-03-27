@@ -47,6 +47,7 @@ pub enum CharacterAbility {
     },
     TripleStrike {
         base_damage: u32,
+        needs_timing: bool,
     },
 }
 
@@ -55,7 +56,7 @@ impl CharacterAbility {
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
-            CharacterAbility::TripleStrike { .. } => {
+            CharacterAbility::TimedCombo { .. } | CharacterAbility::TripleStrike { .. } => {
                 data.physics.on_ground
                     && data.body.is_humanoid()
                     && data.inputs.look_dir.xy().magnitude_squared() > 0.01
@@ -179,16 +180,20 @@ impl From<&CharacterAbility> for CharacterState {
                 stage_time_active: Duration::default(),
                 base_damage: *base_damage,
             }),
-            CharacterAbility::TripleStrike { base_damage } => {
-                CharacterState::TripleStrike(triple_strike::Data {
-                    base_damage: *base_damage,
-                    stage: triple_strike::Stage::First,
-                    stage_exhausted: false,
-                    stage_time_active: Duration::default(),
-                    should_transition: true,
-                    initialized: false,
-                })
-            },
+            CharacterAbility::TripleStrike {
+                base_damage,
+                needs_timing,
+            } => CharacterState::TripleStrike(triple_strike::Data {
+                base_damage: *base_damage,
+                stage: triple_strike::Stage::First,
+                stage_exhausted: false,
+                stage_time_active: Duration::default(),
+                needs_timing: *needs_timing,
+                // If `needs_timing`, prevent tansitioning by default,
+                // unless pressed at the right time.
+                should_transition: !*needs_timing,
+                initialized: false,
+            }),
         }
     }
 }

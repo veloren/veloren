@@ -70,11 +70,17 @@ impl ToolData {
         use ToolKind::*;
 
         match self.kind {
-            Sword(_) => vec![TripleStrike { base_damage: 5 }, DashMelee {
-                buildup_duration: Duration::from_millis(500),
-                recover_duration: Duration::from_millis(500),
-                base_damage: 10,
-            }],
+            Sword(_) => vec![
+                TripleStrike {
+                    base_damage: 5,
+                    needs_timing: false,
+                },
+                DashMelee {
+                    buildup_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(500),
+                    base_damage: 10,
+                },
+            ],
             Axe(_) => vec![BasicMelee {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(700),
@@ -83,14 +89,20 @@ impl ToolData {
                 range: 3.5,
                 max_angle: 30.0,
             }],
-            Hammer(_) => vec![BasicMelee {
-                energy_cost: 0,
-                buildup_duration: Duration::from_millis(700),
-                recover_duration: Duration::from_millis(300),
-                base_healthchange: -10,
-                range: 3.5,
-                max_angle: 60.0,
-            }],
+            Hammer(_) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(700),
+                    recover_duration: Duration::from_millis(300),
+                    base_healthchange: -10,
+                    range: 3.5,
+                    max_angle: 60.0,
+                },
+                TripleStrike {
+                    base_damage: 7,
+                    needs_timing: true,
+                },
+            ],
             Bow(_) => vec![BasicRanged {
                 energy_cost: 0,
                 holdable: true,
