@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added free look
 - Added Italian translation
 - Added Portuguese translation
+- Added Turkish translation
 
 ### Changed
 
