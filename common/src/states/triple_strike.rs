@@ -68,7 +68,7 @@ impl CharacterBehavior for Data {
         // Check inputs based on whether `needs_timing`
         if self.needs_timing {
             // Player must press at right time
-            if data.inputs.primary.is_pressed()
+            if data.inputs.primary.is_just_pressed()
                 && stage_time_active > Duration::from_millis(TIMING_WINDOW)
             {
                 should_transition = true;
