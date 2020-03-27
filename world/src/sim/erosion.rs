@@ -110,6 +110,14 @@ pub enum RiverKind {
 }
 
 impl RiverKind {
+    pub fn is_ocean(&self) -> bool {
+        if let RiverKind::Ocean = *self {
+            true
+        } else {
+            false
+        }
+    }
+
     pub fn is_river(&self) -> bool {
         if let RiverKind::River { .. } = *self {
             true
@@ -187,6 +195,13 @@ pub struct RiverData {
 }
 
 impl RiverData {
+    pub fn is_ocean(&self) -> bool {
+        self.river_kind
+            .as_ref()
+            .map(RiverKind::is_ocean)
+            .unwrap_or(false)
+    }
+
     pub fn is_river(&self) -> bool {
         self.river_kind
             .as_ref()

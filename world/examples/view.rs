@@ -27,21 +27,21 @@ fn main() {
             for j in 0..H {
                 let pos = focus + Vec2::new(i as i32, j as i32) * scale;
 
-                let (alt, location) = sampler
+                let (alt, place) = sampler
                     .get(pos)
                     .map(|sample| {
                         (
                             sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8,
-                            sample.location,
+                            sample.chunk.place,
                         )
                     })
                     .unwrap_or((0, None));
 
-                let loc_color = location
-                    .map(|l| (l.loc_idx as u8 * 17, l.loc_idx as u8 * 13))
+                let place_color = place
+                    .map(|p| ((p.id() % 256) as u8 * 17, (p.id() % 256) as u8 * 13))
                     .unwrap_or((0, 0));
 
-                buf[j * W + i] = u32::from_le_bytes([loc_color.0, loc_color.1, alt, alt]);
+                buf[j * W + i] = u32::from_le_bytes([place_color.0, place_color.1, alt, alt]);
             }
         }
 

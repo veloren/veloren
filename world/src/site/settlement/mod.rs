@@ -9,10 +9,11 @@ use common::{
     spiral::Spiral2d,
     terrain::{Block, BlockKind},
     vol::{BaseVol, RectSizedVol, WriteVol},
+    store::{Id, Store},
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
-use std::{collections::VecDeque, f32, marker::PhantomData};
+use std::{collections::VecDeque, f32};
 use vek::*;
 
 pub fn gradient(line: [Vec2<f32>; 2]) -> f32 {
@@ -722,38 +723,4 @@ impl Land {
     }
 
     pub fn new_plot(&mut self, plot: Plot) -> Id<Plot> { self.plots.insert(plot) }
-}
-
-#[derive(Hash)]
-pub struct Id<T>(usize, PhantomData<T>);
-
-impl<T> Copy for Id<T> {}
-impl<T> Clone for Id<T> {
-    fn clone(&self) -> Self { Self(self.0, PhantomData) }
-}
-impl<T> Eq for Id<T> {}
-impl<T> PartialEq for Id<T> {
-    fn eq(&self, other: &Self) -> bool { self.0 == other.0 }
-}
-
-pub struct Store<T> {
-    items: Vec<T>,
-}
-
-impl<T> Default for Store<T> {
-    fn default() -> Self { Self { items: Vec::new() } }
-}
-
-impl<T> Store<T> {
-    pub fn get(&self, id: Id<T>) -> &T { self.items.get(id.0).unwrap() }
-
-    pub fn get_mut(&mut self, id: Id<T>) -> &mut T { self.items.get_mut(id.0).unwrap() }
-
-    pub fn iter(&self) -> impl Iterator<Item = &T> { self.items.iter() }
-
-    pub fn insert(&mut self, item: T) -> Id<T> {
-        let id = Id(self.items.len(), PhantomData);
-        self.items.push(item);
-        id
-    }
 }

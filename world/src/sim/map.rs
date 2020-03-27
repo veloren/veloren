@@ -147,7 +147,7 @@ impl MapConfig {
                 let pos =
                     (focus_rect + Vec2::new(i as f64, j as f64) * scale).map(|e: f64| e as i32);
 
-                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind) =
+                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind, place) =
                     sampler
                         .get(pos)
                         .map(|sample| {
@@ -159,6 +159,7 @@ impl MapConfig {
                                 sample.temp,
                                 sample.downhill,
                                 sample.river.river_kind,
+                                sample.place,
                             )
                         })
                         .unwrap_or((
@@ -167,6 +168,7 @@ impl MapConfig {
                             CONFIG.sea_level,
                             0.0,
                             0.0,
+                            None,
                             None,
                             None,
                         ));
@@ -293,6 +295,12 @@ impl MapConfig {
                             * 1.0) as u8,
                         255,
                     ),
+                };
+
+                let rgba = if let Some(place) = place {
+                    (((place.id() * 64) % 256) as u8, 0, 0, 0)
+                } else {
+                    rgba
                 };
 
                 write_pixel(Vec2::new(i, j), rgba);
