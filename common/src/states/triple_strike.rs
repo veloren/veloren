@@ -41,8 +41,8 @@ pub struct Data {
     pub initialized: bool,
     /// Whether player must time button pressed properly to continue combo
     pub needs_timing: bool,
-    /* /// Set to prevent transitioning, true by default when `needs_timing`
-     * pub prevent_transition: bool, */
+    /// Set to prevent transitioning, true by default when `needs_timing`
+    pub prevent_transition: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -64,14 +64,20 @@ impl CharacterBehavior for Data {
 
         // If player stops holding input, don't go to the next stage
         let mut should_transition = self.should_transition;
+        let mut prevent_transition = self.prevent_transition;
 
         // Check inputs based on whether `needs_timing`
         if self.needs_timing {
             // Player must press at right time
-            if data.inputs.primary.is_just_pressed()
-                && stage_time_active > Duration::from_millis(TIMING_WINDOW)
-            {
-                should_transition = true;
+            if data.inputs.primary.is_just_pressed() {
+                if stage_time_active > Duration::from_millis(TIMING_WINDOW) {
+                    // Player pressed at right time, transition
+                    // unless prevent_transition has been set
+                    should_transition = true;
+                } else {
+                    // Player pressed too early
+                    prevent_transition = true;
+                }
             }
         } else {
             // Prevent transitioning if player ever stops holding input
@@ -145,10 +151,11 @@ impl CharacterBehavior for Data {
                 should_transition,
                 initialized,
                 needs_timing: self.needs_timing,
+                prevent_transition,
             })
         } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
             let next_stage = match self.stage {
-                _ if !should_transition => None,
+                _ if !should_transition || prevent_transition => None,
                 Stage::First => Some(Stage::Second),
                 Stage::Second => Some(Stage::Third),
                 Stage::Third => None,
@@ -163,6 +170,7 @@ impl CharacterBehavior for Data {
                     should_transition,
                     initialized,
                     needs_timing: self.needs_timing,
+                    prevent_transition,
                 })
             } else {
                 // Make sure attack component is removed
@@ -179,6 +187,7 @@ impl CharacterBehavior for Data {
                 should_transition,
                 initialized,
                 needs_timing: self.needs_timing,
+                prevent_transition,
             })
         };
 
