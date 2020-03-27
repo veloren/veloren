@@ -8,7 +8,6 @@ use vek::vec::Vec3;
 
 // In millis
 const STAGE_DURATION: u64 = 700;
-
 const INITIAL_ACCEL: f32 = 90.0;
 const BASE_SPEED: f32 = 25.0;
 
@@ -39,6 +38,10 @@ pub struct Data {
     pub should_transition: bool,
     /// Whether state has performed intialization logic
     pub initialized: bool,
+    /// Whether player must time button pressed properly to continue combo
+    pub needs_timing: bool,
+    /* /// Set to prevent transitioning, true by default when `needs_timing`
+     * pub prevent_transition: bool, */
 }
 
 impl CharacterBehavior for Data {
@@ -50,9 +53,6 @@ impl CharacterBehavior for Data {
             .checked_add(Duration::from_secs_f32(data.dt.0))
             .unwrap_or(Duration::default());
 
-        // If player stops holding input, don't go to the next stage
-        let should_transition = data.inputs.primary.is_pressed() && self.should_transition;
-
         if !self.initialized {
             update.vel.0 = Vec3::zero();
             if let Some(dir) = data.inputs.look_dir.try_normalized() {
@@ -60,6 +60,24 @@ impl CharacterBehavior for Data {
             }
         }
         let initialized = true;
+
+        // If player stops holding input, don't go to the next stage
+        let mut should_transition = self.should_transition;
+
+        // Check inputs based on whether `needs_timing`
+        if self.needs_timing {
+            // Player must press at right time
+            if data.inputs.primary.is_pressed()
+                && stage_time_active > Duration::from_millis(STAGE_DURATION * 0.7)
+            {
+                should_transition = true;
+            }
+        } else {
+            // Prevent transitioning if player ever stops holding input
+            if !data.inputs.primary.is_pressed() {
+                should_transition = false;
+            }
+        }
 
         // Handle hit applied
         if let Some(attack) = data.attacking {
@@ -125,6 +143,7 @@ impl CharacterBehavior for Data {
                 stage_exhausted: true,
                 should_transition,
                 initialized,
+                needs_timing: self.needs_timing,
             })
         } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
             let next_stage = match self.stage {
@@ -142,6 +161,7 @@ impl CharacterBehavior for Data {
                     stage_exhausted: false,
                     should_transition,
                     initialized,
+                    needs_timing: self.needs_timing,
                 })
             } else {
                 // Make sure attack component is removed
@@ -157,6 +177,7 @@ impl CharacterBehavior for Data {
                 stage_exhausted: self.stage_exhausted,
                 should_transition,
                 initialized,
+                needs_timing: self.needs_timing,
             })
         };
 
