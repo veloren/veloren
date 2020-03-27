@@ -9,12 +9,11 @@ rotation_image_ids! {
         tt_side: "voxygen/element/frames/tt_test_edge",
         tt_corner: "voxygen/element/frames/tt_test_corner_tr",
 
+        <ImageGraphic>
+        indicator_mmap_small: "voxygen.element.buttons.indicator_mmap_small",
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <VoxelPixArtGraphic>
-
-        // Minimap
-        indicator_mmap_small: "voxygen.element.buttons.indicator_mmap_small",
     }
 }
 
@@ -79,28 +78,15 @@ image_ids! {
         slider_indicator: "voxygen.element.slider.indicator",
         esc_frame: "voxygen.element.frames.esc_menu",
 
-        // Map Window
-        map_frame_l: "voxygen.element.frames.map_l",
-        map_frame_r: "voxygen.element.frames.map_r",
-        map_frame_bl: "voxygen.element.frames.map_bl",
-        map_frame_br: "voxygen.element.frames.map_br",
-        pos_indicator: "voxygen.element.buttons.qlog",
-
         // Chat-Arrows
         chat_arrow: "voxygen.element.buttons.arrow_down",
         chat_arrow_mo: "voxygen.element.buttons.arrow_down_hover",
         chat_arrow_press: "voxygen.element.buttons.arrow_down_press",
 
-        // Crosshair
-        crosshair_inner: "voxygen.element.misc_bg.crosshair_inner",
-
 
 
 ////////////////////////////////////////////////////////////////////////
         <VoxelPixArtGraphic>
-
-         // Esc-Menu
-        fireplace: "voxygen.element.misc_bg.fireplace",
 
         // Skill Icons
         bow_m2: "voxygen.element.icons.bow_m2",
@@ -109,20 +95,11 @@ image_ids! {
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
 
+        // Minimap
+
         // Map
-        indicator_mmap: "voxygen.element.buttons.indicator_mmap",
         indicator_mmap_2: "voxygen.element.buttons.indicator_mmap_2",
         indicator_mmap_3: "voxygen.element.buttons.indicator_mmap_3",
-
-        // Crosshair
-        crosshair_outer_round: "voxygen.element.misc_bg.crosshair_outer_1",
-        crosshair_outer_round_edges: "voxygen.element.misc_bg.crosshair_outer_2",
-        crosshair_outer_edges: "voxygen.element.misc_bg.crosshair_outer_3",
-
-        crosshair_bg: "voxygen.element.misc_bg.crosshair_bg",
-        crosshair_bg_hover: "voxygen.element.misc_bg.crosshair_bg_hover",
-        crosshair_bg_press: "voxygen.element.misc_bg.crosshair_bg_press",
-        crosshair_bg_pressed: "voxygen.element.misc_bg.crosshair_bg_pressed",
 
         // Checkboxes and Radio buttons
         check: "voxygen.element.buttons.radio.inactive",
@@ -157,19 +134,9 @@ image_ids! {
         spellbook_hover: "voxygen.element.buttons.spellbook_hover",
         spellbook_press: "voxygen.element.buttons.spellbook_press",
 
-        character_button: "voxygen.element.buttons.character",
-        character_hover: "voxygen.element.buttons.character_hover",
-        character_press: "voxygen.element.buttons.character_press",
-
-        qlog_button: "voxygen.element.buttons.qlog",
-        qlog_hover: "voxygen.element.buttons.qlog_hover",
-        qlog_press: "voxygen.element.buttons.qlog_press",
-
         // Charwindow
         xp_charwindow: "voxygen.element.frames.xp_charwindow",
         divider: "voxygen.element.frames.divider_charwindow",
-
-        // Close button
 
 
         // Items
@@ -180,12 +147,10 @@ image_ids! {
         key_gold: "voxygen.voxel.object.key_gold",
 
 
-
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+
         // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",
         twohsword_m2: "voxygen.element.icons.2hsword_m2",
@@ -201,13 +166,28 @@ image_ids! {
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
         charge: "voxygen.element.icons.skill_charge_3",
 
-        // Other Icons
+        // Other Icons/Art
         skull: "voxygen.element.icons.skull",
         skull_2: "voxygen.element.icons.skull_2",
+        fireplace: "voxygen.element.misc_bg.fireplace",
+
+        // Crosshair
+        crosshair_inner: "voxygen.element.misc_bg.crosshair_inner",
+
+        crosshair_outer_round: "voxygen.element.misc_bg.crosshair_outer_1",
+        crosshair_outer_round_edges: "voxygen.element.misc_bg.crosshair_outer_2",
+        crosshair_outer_edges: "voxygen.element.misc_bg.crosshair_outer_3",
+
+        crosshair_bg: "voxygen.element.misc_bg.crosshair_bg",
+        crosshair_bg_hover: "voxygen.element.misc_bg.crosshair_bg_hover",
+        crosshair_bg_press: "voxygen.element.misc_bg.crosshair_bg_press",
+        crosshair_bg_pressed: "voxygen.element.misc_bg.crosshair_bg_pressed",
 
         // Map
         map_bg: "voxygen.element.misc_bg.map_bg",
         map_frame: "voxygen.element.misc_bg.map_frame",
+        map_frame_art: "voxygen.element.misc_bg.map_frame_art",
+        indicator_mmap: "voxygen.element.buttons.indicator_mmap",
 
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
@@ -291,8 +271,6 @@ image_ids! {
         enemy_health_bg: "voxygen.element.frames.enemybar_bg",
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.skillbar.enemy_bar_content",
-        // Spell Book Window
-        spellbook_icon: "voxygen.element.icons.spellbook",
         // Bag
         bag: "voxygen.element.buttons.bag.closed",
         bag_hover: "voxygen.element.buttons.bag.closed_hover",
@@ -311,13 +289,6 @@ image_ids! {
         // Char Window
         progress_frame: "voxygen.element.frames.progress_bar",
         progress: "voxygen.element.misc_bg.progress",
-
-        // Quest-Log Window
-        questlog_icon: "voxygen.element.icons.questlog",
-
-
-        // Social Window
-        social_icon: "voxygen.element.icons.social",
 
         <BlankGraphic>
         nothing: (),

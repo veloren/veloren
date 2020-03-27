@@ -214,7 +214,7 @@ impl<'a> Widget for MiniMap<'a> {
             Image::new(self.rot_imgs.indicator_mmap_small.none)
                 .middle_of(state.ids.grid)
                 .w_h(32.0 * ind_scale, 37.0 * ind_scale)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                .color(Some(UI_HIGHLIGHT_0))
                 .floating(true)
                 .parent(ui.window)
                 .set(state.ids.indicator, ui);

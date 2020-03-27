@@ -1,32 +1,40 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, TEXT_COLOR,
+    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
-use crate::ui::{fonts::ConrodVoxygenFonts, img_ids};
+use crate::{
+    i18n::VoxygenLocalization,
+    ui::{fonts::ConrodVoxygenFonts, img_ids},
+};
 use client::{self, Client};
 use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+//use const_tweaker::tweak;
 use specs::WorldExt;
 use vek::*;
+/*#[tweak(min = 0.0, max = 40.0, step = 1.0)]
+const X: f64 = 10.0;
+#[tweak(min = 0.0, max = 40.0, step = 1.0)]
+const Y: f64 = 10.0;*/
 
 widget_ids! {
     struct Ids {
-        map_frame,
-        map_bg,
-        map_icon,
-        map_close,
-        map_title,
-        map_frame_l,
-        map_frame_r,
-        map_frame_bl,
-        map_frame_br,
+        frame,
+        bg,
+        icon,
+        close,
+        title,
+        map_align,
+        qlog_align,
         location_name,
         indicator,
         grid,
+        map_title,
+        qlog_title,
     }
 }
 
@@ -41,7 +49,7 @@ pub struct Map<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     _pulse: f32,
-    velocity: f32,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 }
 impl<'a> Map<'a> {
     pub fn new(
@@ -52,7 +60,7 @@ impl<'a> Map<'a> {
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
         fonts: &'a ConrodVoxygenFonts,
         pulse: f32,
-        velocity: f32,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
             _show: show,
@@ -63,7 +71,7 @@ impl<'a> Map<'a> {
             fonts,
             common: widget::CommonBuilder::default(),
             _pulse: pulse,
-            velocity,
+            localized_strings,
         }
     }
 }
@@ -91,87 +99,96 @@ impl<'a> Widget for Map<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-        // Set map transparency to 0.5 when player is moving
-        let mut fade = 1.0;
-        if self.velocity > 2.5 {
-            fade = 0.7
-        };
-
-        // BG
-        Rectangle::fill_with([824.0, 976.0], color::TRANSPARENT)
-            .mid_top_with_margin_on(ui.window, 15.0)
-            .scroll_kids()
-            .scroll_kids_vertically()
-            .set(state.ids.map_bg, ui);
 
         // Frame
-        Image::new(self.imgs.map_frame_l)
-            .top_left_with_margins_on(state.ids.map_bg, 0.0, 0.0)
-            .w_h(412.0, 488.0)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-            .set(state.ids.map_frame_l, ui);
-        Image::new(self.imgs.map_frame_r)
-            .right_from(state.ids.map_frame_l, 0.0)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-            .w_h(412.0, 488.0)
-            .set(state.ids.map_frame_r, ui);
-        Image::new(self.imgs.map_frame_br)
-            .down_from(state.ids.map_frame_r, 0.0)
-            .w_h(412.0, 488.0)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-            .set(state.ids.map_frame_br, ui);
-        Image::new(self.imgs.map_frame_bl)
-            .down_from(state.ids.map_frame_l, 0.0)
-            .w_h(412.0, 488.0)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-            .set(state.ids.map_frame_bl, ui);
+        Image::new(self.imgs.map_bg)
+            .w_h(1052.0, 886.0)
+            .mid_top_with_margin_on(ui.window, 5.0)
+            .color(Some(UI_MAIN))
+            .set(state.ids.bg, ui);
+
+        Image::new(self.imgs.map_frame)
+            .w_h(1052.0, 886.0)
+            .middle_of(state.ids.bg)
+            .color(Some(UI_HIGHLIGHT_0))
+            .set(state.ids.frame, ui);
+
+        // Map Content Alignment
+        Rectangle::fill_with([814.0, 834.0], color::TRANSPARENT)
+            .top_right_with_margins_on(state.ids.frame, 46.0, 2.0)
+            .set(state.ids.map_align, ui);
+
+        // Questlog Content Alignment
+        Rectangle::fill_with([232.0, 814.0], color::TRANSPARENT)
+            .top_left_with_margins_on(state.ids.frame, 44.0, 2.0)
+            .set(state.ids.qlog_align, ui);
 
         // Icon
         Image::new(self.imgs.map_icon)
-            .w_h(224.0 / 3.0, 224.0 / 3.0)
-            .top_left_with_margins_on(state.ids.map_frame, -10.0, -10.0)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
-            .set(state.ids.map_icon, ui);
+            .w_h(30.0, 30.0)
+            .top_left_with_margins_on(state.ids.frame, 6.0, 8.0)
+            .set(state.ids.icon, ui);
+
+        // Map Title
+        Text::new(&self.localized_strings.get("hud.map.map_title"))
+            .mid_top_with_margin_on(state.ids.frame, 3.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(29))
+            .color(TEXT_COLOR)
+            .set(state.ids.map_title, ui);
+
+        // Questlog Title
+        Text::new(&format!(
+            "{}",
+            &self.localized_strings.get("hud.map.qlog_title")
+        ))
+        .mid_top_with_margin_on(state.ids.qlog_align, 6.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(21))
+        .color(TEXT_COLOR)
+        .set(state.ids.qlog_title, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)
-            .w_h(28.0, 28.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
-            .color(Color::Rgba(1.0, 1.0, 1.0, fade - 0.5))
-            .top_right_with_margins_on(state.ids.map_frame_r, 0.0, 0.0)
-            .set(state.ids.map_close, ui)
+            .w_h(24.0, 25.0)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
+            .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
+            .set(state.ids.close, ui)
             .was_clicked()
         {
             return Some(Event::Close);
         }
 
         // Location Name
-        match self.client.current_chunk() {
+        /*match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(state.ids.map_bg, 55.0)
+                .mid_top_with_margin_on(state.ids.bg, 55.0)
                 .font_size(self.fonts.alkhemi.scale(60))
                 .color(TEXT_COLOR)
                 .font_id(self.fonts.alkhemi.conrod_id)
-                .parent(state.ids.map_frame_r)
+                .parent(state.ids.frame)
                 .set(state.ids.location_name, ui),
             None => Text::new(" ")
-                .mid_top_with_margin_on(state.ids.map_bg, 3.0)
+                .mid_top_with_margin_on(state.ids.bg, 3.0)
                 .font_size(self.fonts.alkhemi.scale(40))
                 .font_id(self.fonts.alkhemi.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.location_name, ui),
-        }
-
+        }*/
+        Image::new(self.imgs.map_frame_art)
+            .mid_top_with_margin_on(state.ids.map_align, 5.0)
+            .w_h(765.0, 765.0)
+            .parent(state.ids.bg)
+            .set(state.ids.grid, ui);
         // Map Image
         let (world_map, worldsize) = self.world_map;
         let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
 
         Image::new(world_map.none)
-            .middle_of(state.ids.map_bg)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade + 0.5)))
-            .w_h(700.0, 700.0)
-            .parent(state.ids.map_bg)
+            .mid_top_with_margin_on(state.ids.map_align, 10.0)
+            .w_h(760.0, 760.0)
+            .parent(state.ids.bg)
             .set(state.ids.grid, ui);
         // Coordinates
         let player_pos = self
@@ -182,8 +199,8 @@ impl<'a> Widget for Map<'a> {
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        let x = player_pos.x as f64 / worldsize.x * 700.0;
-        let y = player_pos.y as f64 / worldsize.y * 700.0;
+        let x = player_pos.x as f64 / worldsize.x * 760.0;
+        let y = player_pos.y as f64 / worldsize.y * 760.0;
         let indic_scale = 0.6;
         Image::new(self.rot_imgs.indicator_mmap_small.target_north)
             .bottom_left_with_margins_on(
@@ -192,7 +209,7 @@ impl<'a> Widget for Map<'a> {
                 x - 32.0 * indic_scale / 2.0,
             )
             .w_h(32.0 * indic_scale, 37.0 * indic_scale)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .color(Some(UI_HIGHLIGHT_0))
             .floating(true)
             .parent(ui.window)
             .set(state.ids.indicator, ui);

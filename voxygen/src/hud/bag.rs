@@ -15,7 +15,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-//use const_tweaker::tweak;
+//
 
 widget_ids! {
     pub struct Ids {
@@ -150,8 +150,7 @@ pub enum Event {
     Close,
 }
 /*
-#[tweak(min = -100.0, max = 20.0, step = 1.0)]
-const END_X: f64 = 10.0;
+
 */
 impl<'a> Widget for Bag<'a> {
     type Event = Option<Event>;
@@ -498,7 +497,7 @@ impl<'a> Widget for Bag<'a> {
             Text::new(&format!(
                 "{}{}",
                 &self.stats.name,
-                &self.localized_strings.get("hud.bag.stats")
+                &self.localized_strings.get("hud.bag.stats_title")
             ))
             .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
@@ -508,7 +507,7 @@ impl<'a> Widget for Bag<'a> {
             Text::new(&format!(
                 "{}{}",
                 &self.stats.name,
-                &self.localized_strings.get("hud.bag.stats")
+                &self.localized_strings.get("hud.bag.stats_title")
             ))
             .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
@@ -749,7 +748,11 @@ impl<'a> Widget for Bag<'a> {
             .mid_top_with_margin_on(state.ids.bg, 435.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label(if self.show.stats { "Armor" } else { "Stats" })
+            .label(if self.show.stats {
+                &self.localized_strings.get("hud.bag.armor")
+            } else {
+                &self.localized_strings.get("hud.bag.stats")
+            })
             .label_y(conrod_core::position::Relative::Scalar(1.0))
             .label_color(TEXT_COLOR)
             .label_font_size(self.fonts.cyri.scale(12))
