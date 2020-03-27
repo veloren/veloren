@@ -1,4 +1,4 @@
-use common::{assets, comp};
+use common::comp;
 use gfx_window_glutin::init_headless;
 use vek::*;
 use veloren_voxygen::{render, scene::simple as scene};
@@ -27,10 +27,16 @@ fn main() {
 
     // Create character
     let body = comp::humanoid::Body::random();
-    const STARTER_BOW: &str = "common.items.weapons.starter_bow";
-    let equipment = comp::Equipment {
-        main: assets::load_cloned(STARTER_BOW).ok(),
-        alt: None,
+
+    let loadout = comp::Loadout {
+        active_item: None,
+        second_item: None,
+        shoulder: None,
+        chest: None,
+        belt: None,
+        hand: None,
+        pants: None,
+        foot: None,
     };
 
     // Setup scene (using the character selection screen `Scene`)
@@ -49,7 +55,7 @@ fn main() {
 
     // Render
     renderer.clear();
-    scene.render(&mut renderer, 0, Some(body), &equipment);
+    scene.render(&mut renderer, 0, Some(body), Some(&loadout));
 
     renderer.flush();
     // Get image

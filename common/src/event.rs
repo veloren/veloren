@@ -32,7 +32,6 @@ pub enum SfxEvent {
     Run,
     Roll,
     Climb,
-    Swim,
     GliderOpen,
     Glide,
     GliderClose,
