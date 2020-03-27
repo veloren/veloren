@@ -2,11 +2,11 @@ Item(
     name: "Apple",
     description: "Red and juicy.
     
-Restores 2 Health.",
+Restores 20 Health.",
     kind: Consumable(
         kind: Apple,
         effect: Health((
-            amount: 2,
+            amount: 20,
             cause: Item,
         )),
     ),
