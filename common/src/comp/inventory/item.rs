@@ -165,7 +165,7 @@ impl ToolData {
                     energy_cost: 400,
                     holdable: false,
                     prepare_duration: Duration::from_millis(800),
-                    recover_duration: Duration::from_millis(300),
+                    recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
                         hit_ground: vec![
                             projectile::Effect::Explode { power: 1.4 },

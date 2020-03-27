@@ -194,7 +194,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 
 pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Option<Uid>) {
     // Go through all other entities
-    let hit_range = 2.0 * power;
+    let hit_range = 3.0 * power;
     let ecs = &server.state.ecs();
     for (pos_b, ori_b, character_b, stats_b) in (
         &ecs.read_storage::<comp::Pos>(),
