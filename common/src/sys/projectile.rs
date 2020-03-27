@@ -1,5 +1,7 @@
 use crate::{
-    comp::{projectile, HealthSource, Ori, PhysicsState, Pos, Projectile, Vel},
+    comp::{
+        projectile, Energy, EnergySource, HealthSource, Ori, PhysicsState, Pos, Projectile, Vel,
+    },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
     sync::UidAllocator,
@@ -22,6 +24,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
+        WriteStorage<'a, Energy>,
     );
 
     fn run(
@@ -37,6 +40,7 @@ impl<'a> System<'a> for Sys {
             velocities,
             mut orientations,
             mut projectiles,
+            mut energies,
         ): Self::SystemData,
     ) {
         let mut local_emitter = local_bus.emitter();
@@ -106,6 +110,15 @@ impl<'a> System<'a> for Sys {
                                     dir: Vec3::slerp(ori.0, Vec3::new(0.0, 0.0, 1.0), 0.5),
                                     force: knockback,
                                 });
+                            }
+                        },
+                        projectile::Effect::RewardEnergy(energy) => {
+                            if let Some(energy_mut) = projectile
+                                .owner
+                                .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
+                                .and_then(|o| energies.get_mut(o))
+                            {
+                                energy_mut.change_by(energy as i32, EnergySource::HitEnemy);
                             }
                         },
                         projectile::Effect::Explode { power } => {

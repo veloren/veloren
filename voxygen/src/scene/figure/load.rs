@@ -1869,7 +1869,8 @@ pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
         Body::Pouch => ("object.pouch", Vec3::new(-5.5, -4.5, 0.0)),
         Body::CraftingBench => ("object.crafting_bench", Vec3::new(-9.5, -7.0, 0.0)),
         Body::ArrowSnake => ("weapon.projectile.snake-arrow", Vec3::new(-1.5, -6.5, 0.0)),
-        Body::BoltFire => ("weapon.projectile.fire-bolt", Vec3::new(-3.0, -5.5, -3.0)),
+        Body::BoltFire => ("weapon.projectile.fire-bolt-0", Vec3::new(-3.0, -5.5, -3.0)),
+        Body::BoltFireBig => ("weapon.projectile.fire-bolt-1", Vec3::new(-6.0, -6.0, -6.0)),
     };
     load_mesh(name, offset)
 }
