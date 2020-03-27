@@ -231,6 +231,7 @@ pub enum Event {
     Logout,
     Quit,
     ChangeLanguage(LanguageMetadata),
+    ChangeFreeLookBehavior(PressBehavior),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -270,6 +271,11 @@ pub enum BarNumbers {
 pub enum ShortcutNumbers {
     On,
     Off,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum PressBehavior {
+    Toggle = 0,
+    Hold = 1,
 }
 
 pub struct Show {
@@ -1824,6 +1830,9 @@ impl Hud {
                     },
                     settings_window::Event::AdjustWindowSize(new_size) => {
                         events.push(Event::AdjustWindowSize(new_size));
+                    },
+                    settings_window::Event::ChangeFreeLookBehavior(behavior) => {
+                        events.push(Event::ChangeFreeLookBehavior(behavior));
                     },
                 }
             }
