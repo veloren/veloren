@@ -1391,6 +1391,7 @@ impl WorldSim {
         // Place the locations onto the world
         let gen = StructureGen2d::new(self.seed, cell_size as u32, cell_size as u32 / 2);
 
+        /*
         self.chunks
             .par_iter_mut()
             .enumerate()
@@ -1447,6 +1448,7 @@ impl WorldSim {
                     }
                 }
             });
+        */
 
         // Stage 2 - towns!
         let chunk_idx_center = |e: Vec2<i32>| {
@@ -1767,6 +1769,7 @@ impl WorldSim {
     }
 }
 
+#[derive(Debug)]
 pub struct SimChunk {
     pub chaos: f32,
     pub alt: f32,
@@ -1782,7 +1785,6 @@ pub struct SimChunk {
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
-    pub location: Option<LocationInfo>,
     pub river: RiverData,
 
     pub sites: Vec<Site>,
@@ -1796,12 +1798,6 @@ pub struct RegionInfo {
     pub block_pos: Vec2<i32>,
     pub dist: f32,
     pub seed: u32,
-}
-
-#[derive(Clone)]
-pub struct LocationInfo {
-    pub loc_idx: usize,
-    pub near: Vec<RegionInfo>,
 }
 
 impl SimChunk {
@@ -2023,7 +2019,6 @@ impl SimChunk {
                 }
             },
             spawn_rate: 1.0,
-            location: None,
             river,
 
             sites: Vec::new(),
@@ -2037,11 +2032,16 @@ impl SimChunk {
     pub fn get_base_z(&self) -> f32 { self.alt - self.chaos * 50.0 - 16.0 }
 
     pub fn get_name(&self, world: &WorldSim) -> Option<String> {
+        // TODO
+        None
+
+        /*
         if let Some(loc) = &self.location {
             Some(world.locations[loc.loc_idx].name().to_string())
         } else {
             None
         }
+        */
     }
 
     pub fn get_biome(&self) -> BiomeKind {

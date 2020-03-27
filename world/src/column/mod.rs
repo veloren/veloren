@@ -2,7 +2,7 @@ use crate::{
     all::ForestKind,
     block::StructureMeta,
     sim::{
-        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, LocationInfo, RiverKind, SimChunk,
+        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, RiverKind, SimChunk,
         WorldSim,
     },
     util::{RandomPerm, Sampler, UnitChooser},
@@ -1097,7 +1097,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             temp,
             humidity,
             spawn_rate,
-            location: sim_chunk.location.as_ref(),
             stone_col,
 
             chunk: sim_chunk,
@@ -1129,7 +1128,6 @@ pub struct ColumnSample<'a> {
     pub temp: f32,
     pub humidity: f32,
     pub spawn_rate: f32,
-    pub location: Option<&'a LocationInfo>,
     pub stone_col: Rgb<u8>,
 
     pub chunk: &'a SimChunk,

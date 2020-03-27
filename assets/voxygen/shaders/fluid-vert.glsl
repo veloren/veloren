@@ -40,6 +40,8 @@ void main() {
 
 	f_pos_norm = v_pos_norm;
 
+	f_pos.z -= 0.2;
+
     gl_Position =
 		all_mat *
 		vec4(f_pos, 1);
