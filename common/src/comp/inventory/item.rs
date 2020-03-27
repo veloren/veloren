@@ -182,7 +182,7 @@ impl ToolData {
                         time_left: Duration::from_secs(20),
                         owner: None,
                     },
-                    projectile_body: Body::Object(object::Body::BoltFire),
+                    projectile_body: Body::Object(object::Body::BoltFireBig),
                     projectile_light: Some(LightEmitter {
                         col: (0.72, 0.11, 0.11).into(),
                         ..Default::default()
