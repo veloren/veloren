@@ -416,12 +416,6 @@ impl Window {
         map.entry(settings.controls.bag)
             .or_default()
             .push(GameInput::Bag);
-        map.entry(settings.controls.quest_log)
-            .or_default()
-            .push(GameInput::QuestLog);
-        map.entry(settings.controls.character_window)
-            .or_default()
-            .push(GameInput::CharacterWindow);
         map.entry(settings.controls.social)
             .or_default()
             .push(GameInput::Social);

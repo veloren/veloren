@@ -1358,15 +1358,11 @@ impl<'a> Widget for SettingsWindow<'a> {
                  {}\n\
                  {}\n\
                  {}\n\
-                 {}\n\
-                 {}\n\
                  \n\
                  \n\
                  \n\
                  {}\n\
                  {}\n\
-                 \n\
-                 \n\
                  \n\
                  \n\
                  \n\
@@ -1412,8 +1408,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 controls.social,
                 controls.map,
                 controls.spellbook,
-                controls.character_window,
-                controls.quest_log,
+                //controls.character_window,
+                //controls.quest_log,
                 controls.bag,
                 controls.enter,
                 "Mouse Wheel", // Scroll chat
