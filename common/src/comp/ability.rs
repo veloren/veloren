@@ -193,6 +193,7 @@ impl From<&CharacterAbility> for CharacterState {
                 // unless pressed at the right time.
                 should_transition: !*needs_timing,
                 initialized: false,
+                prevent_transition: false,
             }),
         }
     }
