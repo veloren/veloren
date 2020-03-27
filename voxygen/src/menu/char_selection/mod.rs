@@ -117,7 +117,7 @@ impl PlayState for CharSelectionState {
                 global_state.window.renderer_mut(),
                 self.client.borrow().get_tick(),
                 humanoid_body.clone(),
-                loadout,
+                loadout.as_ref(),
             );
 
             // Draw the UI to the screen.
