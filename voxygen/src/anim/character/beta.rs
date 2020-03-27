@@ -1,6 +1,5 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
-use std::f32::consts::PI;
 use vek::*;
 
 pub struct BetaAnimation;
@@ -11,7 +10,7 @@ impl Animation for BetaAnimation {
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, velocity, _global_time): Self::Dependency,
+        (active_tool_kind, _velocity, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -21,28 +20,22 @@ impl Animation for BetaAnimation {
 
         let lab = 1.0;
 
+        let fast = (((5.0)
+            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 28.0).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * lab as f32 * 28.0).sin());
+        let footquick = (((5.0)
+            / (0.4 + 4.6 * ((anim_time as f32 * lab as f32 * 14.0).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * lab as f32 * 14.0).sin());
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 1.3 * velocity).sin()).powf(2.0 as f32)))
+            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 14.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 1.3 * velocity).sin());
-
-        let accel_med = 1.0 - (anim_time as f32 * 16.0 * lab as f32).cos();
-        let accel_slow = 1.0 - (anim_time as f32 * 12.0 * lab as f32).cos();
-        let accel_fast = 1.0 - (anim_time as f32 * 24.0 * lab as f32).cos();
-        let decel = (anim_time as f32 * 16.0 * lab as f32).min(PI / 2.0).sin();
-
+            * ((anim_time as f32 * lab as f32 * 14.0).sin());
         let slow = (((5.0)
-            / (0.6 + 4.4 * ((anim_time as f32 * lab as f32 * 11.0).sin()).powf(2.0 as f32)))
+            / (0.6 + 4.4 * ((anim_time as f32 * lab as f32 * 14.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 11.0).sin());
-        let slower = (((5.0)
-            / (0.1 + 4.9 * ((anim_time as f32 * lab as f32 * 4.0).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 4.0).sin());
-        let slowax = (((5.0)
-            / (0.1 + 4.9 * ((anim_time as f32 * lab as f32 * 4.0 + 1.9).cos()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 4.0 + 1.9).cos());
+            * ((anim_time as f32 * lab as f32 * 14.0).sin());
 
         match active_tool_kind {
             //TODO: Inventory
@@ -52,23 +45,27 @@ impl Animation for BetaAnimation {
                     -2.0 + skeleton_attr.neck_forward,
                     skeleton_attr.neck_height + 14.0,
                 );
-                next.head.ori = Quaternion::rotation_z(slow * 0.08)
-                    * Quaternion::rotation_x(0.0 + slow * 0.08)
-                    * Quaternion::rotation_y(slow * -0.08);
+                next.head.ori = Quaternion::rotation_z(slow * -0.18)
+                    * Quaternion::rotation_x(-0.1 + slow * -0.28)
+                    * Quaternion::rotation_y(0.2 + slow * 0.18);
                 next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
-                next.chest.offset = Vec3::new(0.0, 0.0, 7.0);
-                next.chest.ori = Quaternion::rotation_z(slow * -0.2)
-                    * Quaternion::rotation_x(0.0 + slow * -0.2)
-                    * Quaternion::rotation_y(slow * 0.2);
+                next.chest.offset = Vec3::new(0.0 + foot * 2.0, 0.0, 7.0);
+                next.chest.ori = Quaternion::rotation_z(slow * 0.2)
+                    * Quaternion::rotation_x(0.0 + slow * 0.2)
+                    * Quaternion::rotation_y(slow * -0.1);
                 next.chest.scale = Vec3::one();
 
                 next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
-                next.belt.ori = next.chest.ori * -0.2;
+                next.belt.ori = Quaternion::rotation_z(slow * 0.1)
+                    * Quaternion::rotation_x(0.0 + slow * 0.1)
+                    * Quaternion::rotation_y(slow * -0.04);
                 next.belt.scale = Vec3::one();
 
                 next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
-                next.shorts.ori = next.chest.ori * -0.15;
+                next.shorts.ori = Quaternion::rotation_z(slow * 0.1)
+                    * Quaternion::rotation_x(0.0 + slow * 0.1)
+                    * Quaternion::rotation_y(slow * -0.05);
                 next.shorts.scale = Vec3::one();
 
                 next.l_hand.offset = Vec3::new(0.0, 1.0, 0.0);
@@ -83,17 +80,19 @@ impl Animation for BetaAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
 
-                next.control.offset = Vec3::new(-8.0 - slow * 1.0, 3.0 - slow * 5.0, 0.0);
+                next.control.offset = Vec3::new(-8.0 + slow * 1.5, 1.5 + slow * 1.0, 0.0);
                 next.control.ori = Quaternion::rotation_x(-1.4)
-                    * Quaternion::rotation_y(slow * 1.5 + 0.7)
-                    * Quaternion::rotation_z(1.4 + slow * 0.5);
+                    * Quaternion::rotation_y(slow * 2.0 + 0.7)
+                    * Quaternion::rotation_z(1.7 - slow * 0.4 + fast * 0.6);
                 next.control.scale = Vec3::one();
-                next.l_foot.offset = Vec3::new(-3.4, foot * 3.0 + slow * -5.0, 8.0);
-                next.l_foot.ori = Quaternion::rotation_x(foot * -0.6);
+                next.l_foot.offset = Vec3::new(-3.4, footquick * -9.5, 8.0);
+                next.l_foot.ori = Quaternion::rotation_x(footquick * 0.3)
+                    * Quaternion::rotation_y(footquick * -0.6);
                 next.l_foot.scale = Vec3::one();
 
-                next.r_foot.offset = Vec3::new(3.4, foot * -3.0 + slow * 5.0, 8.0);
-                next.r_foot.ori = Quaternion::rotation_x(foot * 0.6);
+                next.r_foot.offset = Vec3::new(3.4, footquick * 9.5, 8.0);
+                next.r_foot.ori = Quaternion::rotation_x(footquick * -0.3)
+                    * Quaternion::rotation_y(footquick * 0.2);
                 next.r_foot.scale = Vec3::one();
                 next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
                 next.torso.ori = Quaternion::rotation_z(0.0)

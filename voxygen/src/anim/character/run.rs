@@ -82,7 +82,7 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
-        next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + short * 1.1);
+        next.chest.offset = Vec3::new(0.0, 0.0, 10.5 + short * 1.1);
         next.chest.ori = Quaternion::rotation_z(short * 0.3);
         next.chest.scale = Vec3::one();
 
@@ -97,7 +97,7 @@ impl Animation for RunAnimation {
         next.l_hand.offset = Vec3::new(
             -6.0 + wave_stop * -1.0,
             -0.25 + short * 3.0,
-            4.0 + short * -1.5,
+            5.0 + short * -1.5,
         );
         next.l_hand.ori =
             Quaternion::rotation_x(0.8 + short * 1.2) * Quaternion::rotation_y(wave_stop * 0.1);
@@ -106,17 +106,17 @@ impl Animation for RunAnimation {
         next.r_hand.offset = Vec3::new(
             6.0 + wave_stop * 1.0,
             -0.25 + short * -3.0,
-            4.0 + short * 1.5,
+            5.0 + short * 1.5,
         );
         next.r_hand.ori =
             Quaternion::rotation_x(0.8 + short * -1.2) * Quaternion::rotation_y(wave_stop * -0.1);
         next.r_hand.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, foot * 1.0, 6.0);
+        next.l_foot.offset = Vec3::new(-3.4, foot * 1.0, 9.5);
         next.l_foot.ori = Quaternion::rotation_x(foot * -1.2);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, foot * -1.0, 6.0);
+        next.r_foot.offset = Vec3::new(3.4, foot * -1.0, 9.5);
         next.r_foot.ori = Quaternion::rotation_x(foot * 1.2);
         next.r_foot.scale = Vec3::one();
 
@@ -152,7 +152,7 @@ impl Animation for RunAnimation {
         next.lantern.ori = Quaternion::rotation_y(0.0);
         next.lantern.scale = Vec3::one() * 0.0;
 
-        next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.4) * skeleton_attr.scaler;
+        next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.0) * skeleton_attr.scaler;
         next.torso.ori =
             Quaternion::rotation_x(wave_stop * speed * -0.05 + wave_stop * speed * -0.005)
                 * Quaternion::rotation_y(tilt);

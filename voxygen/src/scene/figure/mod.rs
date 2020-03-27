@@ -527,7 +527,7 @@ impl FigureMgr {
                                 )
                             },
                             triple_strike::Stage::Third => {
-                                anim::character::AlphaAnimation::update_skeleton(
+                                anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, vel.0.magnitude(), time),
                                     state.state_time,
