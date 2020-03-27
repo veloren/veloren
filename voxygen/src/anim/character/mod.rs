@@ -1,4 +1,4 @@
-pub mod attack;
+pub mod alpha;
 pub mod block;
 pub mod blockidle;
 pub mod charge;
@@ -18,7 +18,7 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
+    alpha::AlphaAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
     charge::ChargeAnimation, climb::ClimbAnimation, equip::EquipAnimation,
     gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation,
     run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation,
