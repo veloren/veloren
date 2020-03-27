@@ -3,12 +3,9 @@ use common::comp::item::ToolKind;
 use std::f32::consts::PI;
 use vek::*;
 
-pub struct Input {
-    pub attack: bool,
-}
-pub struct AttackAnimation;
+pub struct AlphaAnimation;
 
-impl Animation for AttackAnimation {
+impl Animation for AlphaAnimation {
     type Dependency = (Option<ToolKind>, f32, f64);
     type Skeleton = CharacterSkeleton;
 
@@ -25,9 +22,12 @@ impl Animation for AttackAnimation {
         let lab = 1.0;
 
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 13.0).sin()).powf(2.0 as f32)))
+            / (1.1
+                + 3.9
+                    * ((anim_time as f32 * lab as f32 * 1.3 * velocity).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 13.0).sin());
+            * ((anim_time as f32 * lab as f32 * 1.3 * velocity).sin());
+
         let accel_med = 1.0 - (anim_time as f32 * 16.0 * lab as f32).cos();
         let accel_slow = 1.0 - (anim_time as f32 * 12.0 * lab as f32).cos();
         let accel_fast = 1.0 - (anim_time as f32 * 24.0 * lab as f32).cos();
@@ -86,8 +86,8 @@ impl Animation for AttackAnimation {
                 next.main.scale = Vec3::one();
 
                 next.control.offset = Vec3::new(-8.0 - slow * 1.0, 3.0 - slow * 5.0, 0.0);
-                next.control.ori = Quaternion::rotation_x(-1.2)
-                    * Quaternion::rotation_y(slow * 1.5)
+                next.control.ori = Quaternion::rotation_x(-1.4)
+                    * Quaternion::rotation_y(slow * 1.5 + 0.7)
                     * Quaternion::rotation_z(1.4 + slow * 0.5);
                 next.control.scale = Vec3::one();
                 next.l_foot.offset = Vec3::new(-3.4, foot * 3.0 + slow * -5.0, 8.0);

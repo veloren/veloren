@@ -472,7 +472,7 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicMelee(_) => {
-                            anim::character::AttackAnimation::update_skeleton(
+                            anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
@@ -490,7 +490,7 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Boost(_) => {
-                            anim::character::AttackAnimation::update_skeleton(
+                            anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
@@ -509,7 +509,7 @@ impl FigureMgr {
                         },
                         CharacterState::TripleStrike(s) => match s.stage {
                             triple_strike::Stage::First => {
-                                anim::character::AttackAnimation::update_skeleton(
+                                anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, vel.0.magnitude(), time),
                                     state.state_time,
@@ -527,7 +527,7 @@ impl FigureMgr {
                                 )
                             },
                             triple_strike::Stage::Third => {
-                                anim::character::AttackAnimation::update_skeleton(
+                                anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, vel.0.magnitude(), time),
                                     state.state_time,
@@ -537,7 +537,7 @@ impl FigureMgr {
                             },
                         },
                         CharacterState::TimedCombo(s) => match s.stage {
-                            0 | 2 => anim::character::AttackAnimation::update_skeleton(
+                            0 | 2 => anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
