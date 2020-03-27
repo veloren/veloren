@@ -847,7 +847,7 @@ impl Hud {
                                 .color(if floater.hp_change < 0 {
                                     Color::Rgba(0.0, 0.0, 0.0, fade)
                                 } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, 0.0)
+                                    Color::Rgba(0.0, 0.0, 0.0, 1.0)
                                 })
                                 .x_y(0.0, y - 3.0)
                                 .position_ingame(ingame_pos)
@@ -859,7 +859,7 @@ impl Hud {
                                 .color(if floater.hp_change < 0 {
                                     Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
                                 } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, 0.0)
+                                    Color::Rgba(0.1, 1.0, 0.1, 1.0)
                                 })
                                 .position_ingame(ingame_pos)
                                 .set(sct_id, ui_widgets);
@@ -1858,7 +1858,7 @@ impl Hud {
                 &self.world_map,
                 &self.fonts,
                 self.pulse,
-                self.velocity,
+                &self.voxygen_i18n,
             )
             .set(self.ids.map, ui_widgets)
             {
