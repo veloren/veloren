@@ -1,5 +1,5 @@
 use crate::{
-    hud::{BarNumbers, CrosshairType, Intro, ShortcutNumbers, XpBar},
+    hud::{BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, XpBar},
     i18n,
     render::{AaMode, CloudMode, FluidMode},
     ui::ScaleMode,
@@ -69,7 +69,7 @@ impl Default for ControlSettings {
         Self {
             primary: KeyMouse::Mouse(MouseButton::Left),
             secondary: KeyMouse::Mouse(MouseButton::Right),
-            toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
+            toggle_cursor: KeyMouse::Key(VirtualKeyCode::L),
             escape: KeyMouse::Key(VirtualKeyCode::Escape),
             enter: KeyMouse::Key(VirtualKeyCode::Return),
             command: KeyMouse::Key(VirtualKeyCode::Slash),
@@ -346,6 +346,7 @@ pub struct GameplaySettings {
     pub shortcut_numbers: ShortcutNumbers,
     pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
+    pub free_look_behavior: PressBehavior,
 }
 
 impl Default for GameplaySettings {
@@ -367,6 +368,7 @@ impl Default for GameplaySettings {
             shortcut_numbers: ShortcutNumbers::On,
             bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
+            free_look_behavior: PressBehavior::Toggle,
         }
     }
 }
