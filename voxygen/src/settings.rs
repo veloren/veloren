@@ -36,8 +36,6 @@ pub struct ControlSettings {
     pub mount: KeyMouse,
     pub map: KeyMouse,
     pub bag: KeyMouse,
-    pub quest_log: KeyMouse,
-    pub character_window: KeyMouse,
     pub social: KeyMouse,
     pub spellbook: KeyMouse,
     pub settings: KeyMouse,
@@ -89,8 +87,6 @@ impl Default for ControlSettings {
             mount: KeyMouse::Key(VirtualKeyCode::F),
             map: KeyMouse::Key(VirtualKeyCode::M),
             bag: KeyMouse::Key(VirtualKeyCode::B),
-            quest_log: KeyMouse::Key(VirtualKeyCode::L),
-            character_window: KeyMouse::Key(VirtualKeyCode::C),
             social: KeyMouse::Key(VirtualKeyCode::O),
             spellbook: KeyMouse::Key(VirtualKeyCode::P),
             settings: KeyMouse::Key(VirtualKeyCode::N),
@@ -106,7 +102,7 @@ impl Default for ControlSettings {
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
             swap_loadout: KeyMouse::Key(VirtualKeyCode::Q),
             charge: KeyMouse::Key(VirtualKeyCode::Key1),
-            free_look: KeyMouse::Key(VirtualKeyCode::LAlt),
+            free_look: KeyMouse::Key(VirtualKeyCode::L),
         }
     }
 }

@@ -115,12 +115,6 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.bag)
                     .or_default()
                     .push(GameInput::Bag);
-                map.entry(settings.game_buttons.quest_log)
-                    .or_default()
-                    .push(GameInput::QuestLog);
-                map.entry(settings.game_buttons.character_window)
-                    .or_default()
-                    .push(GameInput::CharacterWindow);
                 map.entry(settings.game_buttons.social)
                     .or_default()
                     .push(GameInput::Social);
