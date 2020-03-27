@@ -23,13 +23,13 @@
             ],
             threshold: 0.5,
         ),
-        Wield(Sword(Rapier)): (
+        Wield(Sword(BasicSword)): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",
             ],
             threshold: 1.0,
         ),
-        Unwield(Sword(Rapier)): (
+        Unwield(Sword(BasicSword)): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_in",
             ],

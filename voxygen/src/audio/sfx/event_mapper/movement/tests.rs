@@ -2,10 +2,12 @@ use super::*;
 use common::{
     assets,
     comp::{
-        bird_small, humanoid, item::ToolKind, quadruped_medium, quadruped_small, Body,
-        CharacterState, PhysicsState, Stats,
+        bird_small, humanoid,
+        item::{AxeKind, BowKind, ToolKind},
+        quadruped_medium, quadruped_small, Body, CharacterState, ItemConfig, Loadout, PhysicsState,
     },
     event::SfxEvent,
+    states,
 };
 use std::time::{Duration, Instant};
 
@@ -40,8 +42,6 @@ fn config_but_played_since_threshold_no_emit() {
 
 #[test]
 fn config_and_not_played_since_threshold_emits() {
-    let event = SfxEvent::Run;
-
     let trigger_item = SfxTriggerItem {
         files: vec![String::from("some.path.to.sfx.file")],
         threshold: 0.5,
@@ -84,12 +84,6 @@ fn same_previous_event_elapsed_emits() {
 
 #[test]
 fn maps_idle() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
@@ -105,7 +99,7 @@ fn maps_idle() {
             on_ground: true,
         },
         Vec3::zero(),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -113,12 +107,6 @@ fn maps_idle() {
 
 #[test]
 fn maps_run_with_sufficient_velocity() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
@@ -134,7 +122,7 @@ fn maps_run_with_sufficient_velocity() {
             on_ground: true,
         },
         Vec3::new(0.5, 0.8, 0.0),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::Run);
@@ -142,12 +130,6 @@ fn maps_run_with_sufficient_velocity() {
 
 #[test]
 fn does_not_map_run_with_insufficient_velocity() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
@@ -163,7 +145,7 @@ fn does_not_map_run_with_insufficient_velocity() {
             on_ground: true,
         },
         Vec3::new(0.02, 0.0001, 0.0),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -171,12 +153,6 @@ fn does_not_map_run_with_insufficient_velocity() {
 
 #[test]
 fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
@@ -192,7 +168,7 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
             on_ground: false,
         },
         Vec3::new(0.5, 0.8, 0.0),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -200,14 +176,11 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
 
 #[test]
 fn maps_roll() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Roll {},
+        &CharacterState::Roll(states::roll::Data {
+            remaining_duration: Duration::from_millis(300),
+            was_wielded: true,
+        }),
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -221,7 +194,7 @@ fn maps_roll() {
             on_ground: true,
         },
         Vec3::zero(),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::Roll);
@@ -229,12 +202,6 @@ fn maps_roll() {
 
 #[test]
 fn maps_land_on_ground_to_run() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
@@ -250,7 +217,7 @@ fn maps_land_on_ground_to_run() {
             on_ground: false,
         },
         Vec3::zero(),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::Run);
@@ -258,12 +225,6 @@ fn maps_land_on_ground_to_run() {
 
 #[test]
 fn maps_glider_open() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Glide {},
         &PhysicsState {
@@ -279,7 +240,7 @@ fn maps_glider_open() {
             on_ground: false,
         },
         Vec3::zero(),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::GliderOpen);
@@ -287,12 +248,6 @@ fn maps_glider_open() {
 
 #[test]
 fn maps_glide() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Glide {},
         &PhysicsState {
@@ -308,7 +263,7 @@ fn maps_glide() {
             on_ground: false,
         },
         Vec3::zero(),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::Glide);
@@ -316,12 +271,6 @@ fn maps_glide() {
 
 #[test]
 fn maps_glider_close_when_closing_mid_flight() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
@@ -337,20 +286,15 @@ fn maps_glider_close_when_closing_mid_flight() {
             on_ground: false,
         },
         Vec3::zero(),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::GliderClose);
 }
 
 #[test]
+#[ignore]
 fn maps_glider_close_when_landing() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
         &PhysicsState {
@@ -366,24 +310,29 @@ fn maps_glider_close_when_landing() {
             on_ground: false,
         },
         Vec3::zero(),
-        &stats,
+        None,
     );
 
     assert_eq!(result, SfxEvent::GliderClose);
 }
 
 #[test]
-fn maps_wield() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        Some(assets::load_expect_cloned(
-            "common.items.weapons.starter_axe",
-        )),
-    );
+fn maps_wield_while_equipping() {
+    let mut loadout = Loadout::default();
+
+    loadout.active_item = Some(ItemConfig {
+        item: assets::load_expect_cloned("common.items.weapons.starter_axe"),
+        ability1: None,
+        ability2: None,
+        ability3: None,
+        block_ability: None,
+        dodge_ability: None,
+    });
 
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Equipping {},
+        &CharacterState::Equipping(states::equipping::Data {
+            time_left: Duration::from_millis(10),
+        }),
         &PhysicsState {
             on_ground: true,
             on_wall: None,
@@ -397,21 +346,24 @@ fn maps_wield() {
             on_ground: true,
         },
         Vec3::zero(),
-        &stats,
+        Some(&loadout),
     );
 
-    assert_eq!(result, SfxEvent::Wield(ToolKind::Axe));
+    assert_eq!(result, SfxEvent::Wield(ToolKind::Axe(AxeKind::BasicAxe)));
 }
 
 #[test]
 fn maps_unwield() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        Some(assets::load_expect_cloned(
-            "common.items.weapons.starter_bow",
-        )),
-    );
+    let mut loadout = Loadout::default();
+
+    loadout.active_item = Some(ItemConfig {
+        item: assets::load_expect_cloned("common.items.weapons.starter_bow"),
+        ability1: None,
+        ability2: None,
+        ability3: None,
+        block_ability: None,
+        dodge_ability: None,
+    });
 
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::default(),
@@ -428,39 +380,10 @@ fn maps_unwield() {
             on_ground: true,
         },
         Vec3::zero(),
-        &stats,
+        Some(&loadout),
     );
 
-    assert_eq!(result, SfxEvent::Unwield(ToolKind::Bow));
-}
-
-#[test]
-fn does_not_map_wield_when_no_main_weapon() {
-    let stats = Stats::new(
-        String::from("test"),
-        Body::Humanoid(humanoid::Body::random()),
-        None,
-    );
-
-    let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Wielding {},
-        &PhysicsState {
-            on_ground: true,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: false,
-        },
-        &PreviousEntityState {
-            event: SfxEvent::Idle,
-            time: Instant::now(),
-            weapon_drawn: false,
-            on_ground: true,
-        },
-        Vec3::new(0.5, 0.8, 0.0),
-        &stats,
-    );
-
-    assert_eq!(result, SfxEvent::Run);
+    assert_eq!(result, SfxEvent::Unwield(ToolKind::Bow(BowKind::BasicBow)));
 }
 
 #[test]

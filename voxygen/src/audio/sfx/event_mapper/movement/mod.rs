@@ -4,7 +4,10 @@
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use common::{
-    comp::{Body, CharacterState, PhysicsState, Pos, Stats, Vel},
+    comp::{
+        item::{Item, ItemKind},
+        Body, CharacterState, ItemConfig, Loadout, PhysicsState, Pos, Vel,
+    },
     event::{EventBus, SfxEvent, SfxEventItem},
     state::State,
 };
@@ -55,13 +58,13 @@ impl MovementEventMapper {
             .get(player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, vel, body, stats, physics, character) in (
+        for (entity, pos, vel, body, physics, loadout, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Body>(),
-            &ecs.read_storage::<Stats>(),
             &ecs.read_storage::<PhysicsState>(),
+            ecs.read_storage::<Loadout>().maybe(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
@@ -77,7 +80,7 @@ impl MovementEventMapper {
 
                 let mapped_event = match body {
                     Body::Humanoid(_) => {
-                        Self::map_movement_event(character, physics, state, vel.0, stats)
+                        Self::map_movement_event(character, physics, state, vel.0, loadout)
                     },
                     Body::QuadrupedMedium(_)
                     | Body::QuadrupedSmall(_)
@@ -157,10 +160,37 @@ impl MovementEventMapper {
         physics_state: &PhysicsState,
         previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
-        _stats: &Stats,
+        loadout: Option<&Loadout>,
     ) -> SfxEvent {
+        // Handle wield state changes
+        if let Some(active_loadout) = loadout {
+            if let Some(ItemConfig {
+                item:
+                    Item {
+                        kind: ItemKind::Tool(data),
+                        ..
+                    },
+                ..
+            }) = active_loadout.active_item
+            {
+                if let Some(wield_event) = match (
+                    previous_state.weapon_drawn,
+                    character_state.is_dodge(),
+                    Self::weapon_drawn(character_state),
+                ) {
+                    (false, false, true) => Some(SfxEvent::Wield(data.kind)),
+                    (true, false, false) => Some(SfxEvent::Unwield(data.kind)),
+                    _ => None,
+                } {
+                    return wield_event;
+                }
+            }
+        }
+
         // Match run state
-        if physics_state.on_ground && vel.magnitude() > 0.1 {
+        if physics_state.on_ground && vel.magnitude() > 0.1
+            || !previous_state.on_ground && physics_state.on_ground
+        {
             return SfxEvent::Run;
         }
 
