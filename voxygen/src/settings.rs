@@ -69,7 +69,7 @@ impl Default for ControlSettings {
         Self {
             primary: KeyMouse::Mouse(MouseButton::Left),
             secondary: KeyMouse::Mouse(MouseButton::Right),
-            toggle_cursor: KeyMouse::Key(VirtualKeyCode::L),
+            toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
             escape: KeyMouse::Key(VirtualKeyCode::Escape),
             enter: KeyMouse::Key(VirtualKeyCode::Return),
             command: KeyMouse::Key(VirtualKeyCode::Slash),
@@ -102,7 +102,7 @@ impl Default for ControlSettings {
             interact: KeyMouse::Mouse(MouseButton::Right),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
             charge: KeyMouse::Key(VirtualKeyCode::Key1),
-            free_look: KeyMouse::Key(VirtualKeyCode::LAlt),
+            free_look: KeyMouse::Key(VirtualKeyCode::L),
         }
     }
 }
