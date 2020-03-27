@@ -21,6 +21,8 @@ const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
 const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.004, 0.004);
 const vec3 NIGHT_LIGHT   = vec3(0.002, 0.01, 0.03);
 
+const float UNDERWATER_MIST_DIST = 100.0;
+
 vec3 get_sun_dir(float time_of_day) {
 	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
 
@@ -202,7 +204,7 @@ float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
 	float max_fog = 1.0;
 
 	if (medium == 1u) {
-		mist_radius = 96.0;
+		mist_radius = UNDERWATER_MIST_DIST;
 		min_fog = 0.0;
 	}
 
