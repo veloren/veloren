@@ -237,15 +237,15 @@ impl Animation for WieldAnimation {
             next.shorts.ori = Quaternion::rotation_z(0.3);
             next.shorts.scale = Vec3::one();
 
-            next.l_foot.offset = Vec3::new(-3.4, -2.5, 8.0);
+            next.l_foot.offset = Vec3::new(-3.4, -2.5, 9.0);
             next.l_foot.ori = Quaternion::rotation_x(ultra_slow_cos * 0.035 - 0.2);
             next.l_foot.scale = Vec3::one();
 
-            next.r_foot.offset = Vec3::new(3.4, 3.5, 8.0);
+            next.r_foot.offset = Vec3::new(3.4, 3.5, 9.0);
             next.r_foot.ori = Quaternion::rotation_x(ultra_slow * 0.035);
             next.r_foot.scale = Vec3::one();
 
-            next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
+            next.torso.offset = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
             next.torso.ori = Quaternion::rotation_x(0.0);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
