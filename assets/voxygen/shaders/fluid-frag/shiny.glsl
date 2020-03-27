@@ -68,16 +68,6 @@ void main() {
 	vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
 	float frag_dist = length(f_pos - cam_pos.xyz);
 
-	/*
-	// Round the position to the nearest triangular grid cell
-	vec3 hex_pos = f_pos * 2.0;
-	hex_pos = hex_pos + vec3(hex_pos.y * 1.4 / 3.0, hex_pos.y * 0.1, 0);
-	if (fract(hex_pos.x) > fract(hex_pos.y)) {
-		hex_pos += vec3(1.0, 1.0, 0);
-	}
-	hex_pos = floor(hex_pos);
-	*/
-
 	vec3 b_norm;
 	if (f_norm.z > 0.0) {
 		b_norm = vec3(1, 0, 0);
@@ -111,7 +101,7 @@ void main() {
 	vec3 point_light = light_at(f_pos, norm);
 	light += point_light;
 	diffuse_light += point_light;
-	vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
+	vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
@@ -119,7 +109,7 @@ void main() {
 
 	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
-	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
+	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.01);
 
 	vec4 _clouds;
 	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
