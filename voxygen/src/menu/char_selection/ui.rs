@@ -333,9 +333,31 @@ impl CharSelectionUi {
         }
     }
 
-    pub fn get_loadout(&mut self) -> Option<&comp::Loadout> {
+    pub fn get_loadout(&mut self) -> Option<comp::Loadout> {
         match &mut self.mode {
-            Mode::Select(_) => None,
+            Mode::Select(characterdata) => {
+                let loadout = comp::Loadout {
+                    active_item: characterdata
+                        .as_ref()
+                        .and_then(|d| d.tool.as_ref())
+                        .map(|tool| comp::ItemConfig {
+                            item: (*load_expect::<comp::Item>(&tool)).clone(),
+                            ability1: None,
+                            ability2: None,
+                            ability3: None,
+                            block_ability: None,
+                            dodge_ability: None,
+                        }),
+                    second_item: None,
+                    shoulder: None,
+                    chest: None,
+                    belt: None,
+                    hand: None,
+                    pants: None,
+                    foot: None,
+                };
+                Some(loadout)
+            },
             Mode::Create { loadout, tool, .. } => {
                 loadout.active_item = tool.map(|tool| comp::ItemConfig {
                     item: (*load_expect::<comp::Item>(tool)).clone(),
@@ -345,7 +367,7 @@ impl CharSelectionUi {
                     block_ability: None,
                     dodge_ability: None,
                 });
-                Some(loadout)
+                Some(loadout.clone())
             },
         }
     }
