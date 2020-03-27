@@ -96,10 +96,10 @@ impl ToolData {
                 },
             ],
             Hammer(_) => vec![BasicMelee {
-                energy_cost: 0,
+                energy_cost: 50,
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(300),
-                base_healthchange: -10,
+                base_healthchange: -15,
                 range: 3.5,
                 max_angle: 60.0,
             }],
