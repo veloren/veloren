@@ -80,11 +80,11 @@ impl Animation for ChargeAnimation {
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(1.1 + slow * 0.2);
                 next.control.scale = Vec3::one();
-                next.l_foot.offset = Vec3::new(-1.4, foot * 3.0, 8.0);
+                next.l_foot.offset = Vec3::new(-1.4, foot * 3.0 + 2.0, 8.0);
                 next.l_foot.ori = Quaternion::rotation_x(foot * -0.4 - 0.8);
                 next.l_foot.scale = Vec3::one();
 
-                next.r_foot.offset = Vec3::new(5.4, foot * -3.0 - 3.0, 8.0);
+                next.r_foot.offset = Vec3::new(5.4, foot * -3.0 - 1.0, 8.0);
                 next.r_foot.ori = Quaternion::rotation_x(foot * 0.4 - 0.8);
                 next.r_foot.scale = Vec3::one();
             },

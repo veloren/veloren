@@ -1,4 +1,5 @@
 pub mod alpha;
+pub mod beta;
 pub mod block;
 pub mod blockidle;
 pub mod charge;
@@ -18,11 +19,11 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
-    charge::ChargeAnimation, climb::ClimbAnimation, equip::EquipAnimation,
-    gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation,
-    run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation,
-    stand::StandAnimation, swim::SwimAnimation, wield::WieldAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, block::BlockAnimation,
+    blockidle::BlockIdleAnimation, charge::ChargeAnimation, climb::ClimbAnimation,
+    equip::EquipAnimation, gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation,
+    spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation, wield::WieldAnimation,
 };
 
 use super::{Bone, Skeleton};
