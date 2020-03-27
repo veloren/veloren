@@ -39,7 +39,8 @@ const INITIAL_CIV_COUNT: usize = 20;
 pub struct Civs {
     civs: Store<Civ>,
     places: Store<Place>,
-    routes: HashMap<(Id<Place>, Id<Place>), Route>,
+    tracks: Store<Track>,
+    track_map: HashMap<Id<Place>, HashMap<Id<Place>, Id<Track>>>,
 }
 
 struct GenCtx<'a, R: Rng> {
@@ -62,13 +63,42 @@ impl Civs {
         }
 
         // Temporary!
-        for route in this.routes.values() {
-            for loc in route.path.iter() {
+        for track in this.tracks.iter() {
+            for loc in track.path.iter() {
                 sim.get_mut(*loc).unwrap().place = Some(this.civs.iter().next().unwrap().homeland);
             }
         }
 
         this
+    }
+
+    /// Return the direct track between two places
+    fn track_between(&self, a: Id<Place>, b: Id<Place>) -> Option<Id<Track>> {
+        self.track_map
+            .get(&a)
+            .and_then(|dests| dests.get(&b))
+            .or_else(|| self.track_map
+                .get(&b)
+                .and_then(|dests| dests.get(&a)))
+            .copied()
+    }
+
+    /// Find the cheapest route between two places
+    fn route_between(&self, a: Id<Place>, b: Id<Place>) -> Option<(Path<Id<Place>>, f32)> {
+        let heuristic = move |p: &Id<Place>| (self.places.get(*p).center.distance_squared(self.places.get(b).center) as f32).sqrt();
+        let neighbors = |p: &Id<Place>| {
+            let p = *p;
+            let to = self.track_map.get(&p).map(|dests| dests.keys()).into_iter().flatten();
+            let fro = self.track_map.iter().filter(move |(_, dests)| dests.contains_key(&p)).map(|(p, _)| p);
+            to.chain(fro).filter(|p| **p != a).copied()
+        };
+        let transition = |a: &Id<Place>, b: &Id<Place>| self.tracks.get(self.track_between(*a, *b).unwrap()).cost;
+        let satisfied = |p: &Id<Place>| *p == b;
+        let mut astar = Astar::new(100, a, heuristic);
+        astar
+            .poll(100, heuristic, neighbors, transition, satisfied)
+            .into_path()
+            .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
     }
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
@@ -112,34 +142,39 @@ impl Civs {
             return None;
         }
 
+        let place = self.places.insert(Place {
+            center: loc,
+        });
+
         // Find neighbors
-        const MAX_NEIGHBOR_DISTANCE: f32 = 100.0;
+        const MAX_NEIGHBOR_DISTANCE: f32 = 250.0;
         let mut nearby = self.places
             .iter_ids()
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
             .filter(|(p, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
             .collect::<Vec<_>>();
-        nearby.sort_by_key(|(_, dist)| -*dist as i32);
-        let route_count = ctx.rng.gen_range(1, 3);
-        let neighbors = nearby
-            .into_iter()
-            .map(|(p, _)| p)
-            .filter_map(|p| if let Some(path) = find_path(ctx, loc, self.places.get(p).center) {
-                Some((p, path))
-            } else {
-                None
-            })
-            .take(route_count)
-            .collect::<Vec<_>>();
+        nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        let place = self.places.insert(Place {
-            center: loc,
-            neighbors: neighbors.iter().map(|(p, _)| *p).collect(),
-        });
-
-        // Insert routes to neighbours into route list
-        for (p, path) in neighbors {
-            self.routes.insert((place, p), Route { path });
+        for (nearby, _) in nearby.into_iter().take(ctx.rng.gen_range(3, 5)) {
+            // Find a novel path
+            if let Some((path, cost)) = find_path(ctx, loc, self.places.get(nearby).center) {
+                // Find a path using existing paths
+                if self
+                    .route_between(place, nearby)
+                    // If the novel path isn't efficient compared to existing routes, don't use it
+                    .filter(|(_, route_cost)| *route_cost < cost * 3.0)
+                    .is_none()
+                {
+                    let track = self.tracks.insert(Track {
+                        cost,
+                        path,
+                    });
+                    self.track_map
+                        .entry(place)
+                        .or_default()
+                        .insert(nearby, track);
+                }
+            }
         }
 
         // Write place to map
@@ -154,7 +189,7 @@ impl Civs {
 }
 
 /// Attempt to find a path between two locations
-fn find_path(ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) -> Option<Path<Vec2<i32>>> {
+fn find_path(ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) -> Option<(Path<Vec2<i32>>, f32)> {
     let sim = &ctx.sim;
     let heuristic = move |l: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
     let neighbors = |l: &Vec2<i32>| {
@@ -163,9 +198,11 @@ fn find_path(ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) -> Option<P
     };
     let transition = |a: &Vec2<i32>, b: &Vec2<i32>| 1.0 + walk_in_dir(sim, *a, *b - *a).unwrap_or(10000.0);
     let satisfied = |l: &Vec2<i32>| *l == b;
-    Astar::new(5000, a, heuristic)
-        .poll(5000, heuristic, neighbors, transition, satisfied)
+    let mut astar = Astar::new(20000, a, heuristic);
+    astar
+        .poll(20000, heuristic, neighbors, transition, satisfied)
         .into_path()
+        .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
 }
 
 /// Return true if travel between a location and a chunk next to it is permitted (TODO: by whom?)
@@ -175,7 +212,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
     {
         let a_alt = sim.get(a)?.alt;
         let b_alt = sim.get(a + dir)?.alt;
-        Some((b_alt - a_alt).max(0.0).powf(2.0).abs() / 50.0)
+        Some(0.5 + (b_alt - a_alt).max(-0.5).abs() / 5.0)
     } else {
         None
     }
@@ -240,9 +277,11 @@ pub struct Civ {
 
 pub struct Place {
     center: Vec2<i32>,
-    neighbors: Vec<Id<Place>>,
 }
 
-pub struct Route {
+pub struct Track {
+    /// Cost of using this track relative to other paths. This cost is an arbitrary unit and
+    /// doesn't make sense unless compared to other track costs.
+    cost: f32,
     path: Path<Vec2<i32>>,
 }
