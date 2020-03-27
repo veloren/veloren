@@ -332,7 +332,8 @@ mod tests {
 
     #[test]
     fn connect() {
-        let (mut postoffice, sock) = create_postoffice::<(), ()>(0).unwrap();
+        let (mut postoffice, bound) = create_postoffice::<(), ()>(0).unwrap();
+        let sock = (std::net::Ipv4Addr::LOCALHOST, bound.port());
 
         let _client0 = PostBox::<(), ()>::to(sock).unwrap();
         let _client1 = PostBox::<(), ()>::to(sock).unwrap();
@@ -364,7 +365,8 @@ mod tests {
 
     #[test]
     fn send_recv() {
-        let (mut postoffice, sock) = create_postoffice::<(), i32>(2).unwrap();
+        let (mut postoffice, bound) = create_postoffice::<(), i32>(2).unwrap();
+        let sock = (std::net::Ipv4Addr::LOCALHOST, bound.port());
         let test_msgs = vec![1, 1337, 42, -48];
 
         let mut client = PostBox::<i32, ()>::to(sock).unwrap();
@@ -386,7 +388,8 @@ mod tests {
     #[test]
     #[ignore]
     fn send_recv_huge() {
-        let (mut postoffice, sock) = create_postoffice::<(), Vec<i32>>(3).unwrap();
+        let (mut postoffice, bound) = create_postoffice::<(), Vec<i32>>(3).unwrap();
+        let sock = (std::net::Ipv4Addr::LOCALHOST, bound.port());
         let test_msgs: Vec<Vec<i32>> = (0..5)
             .map(|i| (0..100000).map(|j| i * 2 + j).collect())
             .collect();
@@ -410,7 +413,8 @@ mod tests {
 
     #[test]
     fn send_recv_both() {
-        let (mut postoffice, sock) = create_postoffice::<u32, u32>(4).unwrap();
+        let (mut postoffice, bound) = create_postoffice::<u32, u32>(4).unwrap();
+        let sock = (std::net::Ipv4Addr::LOCALHOST, bound.port());
         let mut client = PostBox::<u32, u32>::to(sock).unwrap();
         loop_for(Duration::from_millis(250), || ());
         let mut server = postoffice.new_postboxes().next().unwrap();
