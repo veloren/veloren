@@ -39,7 +39,7 @@ impl Animation for BetaAnimation {
 
         match active_tool_kind {
             //TODO: Inventory
-            Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Axe(_)) | Some(ToolKind::Hammer(_)) | Some(ToolKind::Sword(_)) => {
                 next.head.offset = Vec3::new(
                     0.0 + skeleton_attr.neck_right,
                     -2.0 + skeleton_attr.neck_forward,

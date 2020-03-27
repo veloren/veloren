@@ -81,28 +81,28 @@ impl ToolData {
                     base_damage: 10,
                 },
             ],
-            Axe(_) => vec![BasicMelee {
-                energy_cost: 0,
-                buildup_duration: Duration::from_millis(700),
-                recover_duration: Duration::from_millis(100),
-                base_healthchange: -8,
-                range: 3.5,
-                max_angle: 30.0,
-            }],
-            Hammer(_) => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(700),
-                    recover_duration: Duration::from_millis(300),
-                    base_healthchange: -10,
-                    range: 3.5,
-                    max_angle: 60.0,
-                },
+            Axe(_) => vec![
                 TripleStrike {
                     base_damage: 7,
                     needs_timing: true,
                 },
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(700),
+                    recover_duration: Duration::from_millis(100),
+                    base_healthchange: -8,
+                    range: 3.5,
+                    max_angle: 30.0,
+                },
             ],
+            Hammer(_) => vec![BasicMelee {
+                energy_cost: 0,
+                buildup_duration: Duration::from_millis(700),
+                recover_duration: Duration::from_millis(300),
+                base_healthchange: -10,
+                range: 3.5,
+                max_angle: 60.0,
+            }],
             Bow(_) => vec![BasicRanged {
                 energy_cost: 0,
                 holdable: true,
