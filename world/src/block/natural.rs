@@ -56,7 +56,7 @@ pub fn structure_gen<'a>(
             ForestKind::Palm => &PALMS,
             ForestKind::Savannah => &ACACIAS,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 7 => &OAK_STUMPS,
-            ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 8 == 7 => &FRUIT_TREES,
+            ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 19 == 7 => &FRUIT_TREES,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 14 == 7 => &BIRCHES,
             ForestKind::Oak => &OAKS,
             ForestKind::Pine => &PINES,
