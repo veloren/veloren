@@ -9,6 +9,7 @@ pub mod config;
 pub mod sim;
 pub mod site;
 pub mod util;
+pub mod civ;
 
 // Reexports
 pub use crate::config::CONFIG;
@@ -34,13 +35,14 @@ pub enum Error {
 
 pub struct World {
     sim: sim::WorldSim,
+    civs: civ::Civs,
 }
 
 impl World {
     pub fn generate(seed: u32, opts: sim::WorldOpts) -> Self {
-        Self {
-            sim: sim::WorldSim::generate(seed, opts),
-        }
+        let mut sim = sim::WorldSim::generate(seed, opts);
+        let civs = civ::Civs::generate(seed, &mut sim);
+        Self { sim, civs }
     }
 
     pub fn sim(&self) -> &sim::WorldSim { &self.sim }
