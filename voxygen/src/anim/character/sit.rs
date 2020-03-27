@@ -39,7 +39,7 @@ impl Animation for SitAnimation {
         );
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
-            wave_stop * -3.6 + skeleton_attr.neck_forward,
+            -3.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 14.0 + wave_slow * 0.1 + wave_stop * -0.8,
         );
         next.head.ori =

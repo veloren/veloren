@@ -23,13 +23,15 @@ impl Animation for SwimAnimation {
 
         let lab = 1.0;
 
-        let short = (anim_time as f32 * lab as f32 * 2.0).sin();
+        let short = (anim_time as f32 * lab as f32 * 2.0 * speed / 5.0).sin();
 
-        let shortalt = (anim_time as f32 * lab as f32 * 2.0 + PI / 2.0).sin();
+        let shortalt = (anim_time as f32 * lab as f32 * 2.0 * speed / 5.0 + PI / 2.0).sin();
 
-        let foot = (anim_time as f32 * lab as f32 * 2.0).sin();
+        let foot = (anim_time as f32 * lab as f32 * 2.0 * speed / 5.0).sin();
 
-        let wave_stop = (anim_time as f32 * 3.0).min(PI / 2.0 / 2.0).sin();
+        let wave_stop = (anim_time as f32 * 3.0 * speed / 5.0)
+            .min(PI / 2.0 / 2.0)
+            .sin();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 18.0)
@@ -115,7 +117,7 @@ impl Animation for SwimAnimation {
 
         next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.4) * skeleton_attr.scaler;
         next.torso.ori =
-            Quaternion::rotation_x(speed * -0.157 * wave_stop * 1.6) * Quaternion::rotation_y(0.0);
+            Quaternion::rotation_x(speed * -0.190 * wave_stop * 1.6) * Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.offset = Vec3::new(0.0, 0.0, 0.0);
