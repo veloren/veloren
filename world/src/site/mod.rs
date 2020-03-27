@@ -11,7 +11,7 @@ use common::{
     terrain::Block,
     vol::{BaseVol, RectSizedVol, WriteVol},
 };
-use std::sync::Arc;
+use std::{fmt, sync::Arc};
 use vek::*;
 
 #[derive(Clone)]
@@ -46,4 +46,12 @@ impl Site {
 
 impl From<Settlement> for Site {
     fn from(settlement: Settlement) -> Self { Site::Settlement(Arc::new(settlement)) }
+}
+
+impl fmt::Debug for Site {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Site::Settlement(_) => write!(f, "Settlement"),
+        }
+    }
 }

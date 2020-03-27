@@ -45,6 +45,8 @@ impl<T> Store<T> {
 
     pub fn iter(&self) -> impl Iterator<Item = &T> { self.items.iter() }
 
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> { self.items.iter_mut() }
+
     pub fn iter_ids(&self) -> impl Iterator<Item = (Id<T>, &T)> {
         self
             .items
