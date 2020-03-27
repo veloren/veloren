@@ -8,6 +8,7 @@ use vek::vec::Vec3;
 
 // In millis
 const STAGE_DURATION: u64 = 700;
+const TIMING_WINDOW: u64 = 500;
 const INITIAL_ACCEL: f32 = 90.0;
 const BASE_SPEED: f32 = 25.0;
 
@@ -68,7 +69,7 @@ impl CharacterBehavior for Data {
         if self.needs_timing {
             // Player must press at right time
             if data.inputs.primary.is_pressed()
-                && stage_time_active > Duration::from_millis(STAGE_DURATION * 0.7)
+                && stage_time_active > Duration::from_millis(TIMING_WINDOW)
             {
                 should_transition = true;
             }
