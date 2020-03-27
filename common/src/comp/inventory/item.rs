@@ -118,6 +118,7 @@ impl ToolData {
                             cause: HealthSource::Projectile { owner: None },
                         }),
                         projectile::Effect::Knockback(10.0),
+                        projectile::Effect::RewardEnergy(100),
                         projectile::Effect::Vanish,
                     ],
                     time_left: Duration::from_secs(15),
@@ -158,6 +159,7 @@ impl ToolData {
                                 amount: -1,
                                 cause: HealthSource::Projectile { owner: None },
                             }),
+                            projectile::Effect::RewardEnergy(100),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(20),
@@ -175,7 +177,7 @@ impl ToolData {
                     energy_cost: 400,
                     holdable: false,
                     prepare_duration: Duration::from_millis(800),
-                    recover_duration: Duration::from_millis(300),
+                    recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
                         hit_ground: vec![
                             projectile::Effect::Explode { power: 1.4 },
@@ -192,7 +194,7 @@ impl ToolData {
                         time_left: Duration::from_secs(20),
                         owner: None,
                     },
-                    projectile_body: Body::Object(object::Body::BoltFire),
+                    projectile_body: Body::Object(object::Body::BoltFireBig),
                     projectile_light: Some(LightEmitter {
                         col: (0.72, 0.11, 0.11).into(),
                         ..Default::default()

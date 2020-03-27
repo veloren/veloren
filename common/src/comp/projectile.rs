@@ -7,6 +7,7 @@ use std::time::Duration;
 pub enum Effect {
     Damage(comp::HealthChange),
     Knockback(f32),
+    RewardEnergy(u32),
     Explode { power: f32 },
     Vanish,
     Stick,
