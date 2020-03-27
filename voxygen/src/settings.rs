@@ -365,7 +365,7 @@ impl Default for GameplaySettings {
             chat_transp: 0.4,
             crosshair_type: CrosshairType::Round,
             intro_show: Intro::Show,
-            xp_bar: XpBar::OnGain,
+            xp_bar: XpBar::Always,
             shortcut_numbers: ShortcutNumbers::On,
             bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
