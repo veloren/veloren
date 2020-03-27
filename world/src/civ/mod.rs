@@ -9,7 +9,7 @@ use common::{
     path::Path,
     astar::Astar,
 };
-use crate::sim::WorldSim;
+use crate::sim::{WorldSim, SimChunk};
 
 const CARDINALS: [Vec2<i32>; 4] = [
     Vec2::new(1, 0),
@@ -39,8 +39,11 @@ const INITIAL_CIV_COUNT: usize = 20;
 pub struct Civs {
     civs: Store<Civ>,
     places: Store<Place>,
+
     tracks: Store<Track>,
-    track_map: HashMap<Id<Place>, HashMap<Id<Place>, Id<Track>>>,
+    track_map: HashMap<Id<Site>, HashMap<Id<Site>, Id<Track>>>,
+
+    sites: Store<Site>,
 }
 
 struct GenCtx<'a, R: Rng> {
@@ -55,11 +58,16 @@ impl Civs {
         let mut ctx = GenCtx { sim, rng: &mut rng };
 
         for _ in 0..INITIAL_CIV_COUNT {
-            if let Some(civ) = this.birth_civ(&mut ctx) {
-                println!("Initial civilisation: {:#?}", this.civs.get(civ));
-            } else {
-                println!("Failed to find starting site");
+            println!("Creating civilisation...");
+            if let None = this.birth_civ(&mut ctx) {
+                println!("Failed to find starting site for civilisation.");
             }
+        }
+
+        // Tick
+        const SIM_YEARS: usize = 100;
+        for _ in 0..SIM_YEARS {
+            this.tick(1.0);
         }
 
         // Temporary!
@@ -69,11 +77,28 @@ impl Civs {
             }
         }
 
+        this.display_info();
+
         this
     }
 
+    pub fn place(&self, id: Id<Place>) -> &Place { self.places.get(id) }
+
+    fn display_info(&self) {
+        for (id, civ) in self.civs.iter_ids() {
+            println!("# Civilisation {:?}", id);
+            println!("Name: {}", "<unnamed>");
+            println!("Homeland: {:#?}", self.places.get(civ.homeland));
+        }
+
+        for (id, site) in self.sites.iter_ids() {
+            println!("# Site {:?}", id);
+            println!("{:?}", site);
+        }
+    }
+
     /// Return the direct track between two places
-    fn track_between(&self, a: Id<Place>, b: Id<Place>) -> Option<Id<Track>> {
+    fn track_between(&self, a: Id<Site>, b: Id<Site>) -> Option<Id<Track>> {
         self.track_map
             .get(&a)
             .and_then(|dests| dests.get(&b))
@@ -83,17 +108,19 @@ impl Civs {
             .copied()
     }
 
+    /// Return an iterator over a site's neighbors
+    fn neighbors(&self, site: Id<Site>) -> impl Iterator<Item=Id<Site>> + '_ {
+        let to = self.track_map.get(&site).map(|dests| dests.keys()).into_iter().flatten();
+        let fro = self.track_map.iter().filter(move |(_, dests)| dests.contains_key(&site)).map(|(p, _)| p);
+        to.chain(fro).filter(move |p| **p != site).copied()
+    }
+
     /// Find the cheapest route between two places
-    fn route_between(&self, a: Id<Place>, b: Id<Place>) -> Option<(Path<Id<Place>>, f32)> {
-        let heuristic = move |p: &Id<Place>| (self.places.get(*p).center.distance_squared(self.places.get(b).center) as f32).sqrt();
-        let neighbors = |p: &Id<Place>| {
-            let p = *p;
-            let to = self.track_map.get(&p).map(|dests| dests.keys()).into_iter().flatten();
-            let fro = self.track_map.iter().filter(move |(_, dests)| dests.contains_key(&p)).map(|(p, _)| p);
-            to.chain(fro).filter(|p| **p != a).copied()
-        };
-        let transition = |a: &Id<Place>, b: &Id<Place>| self.tracks.get(self.track_between(*a, *b).unwrap()).cost;
-        let satisfied = |p: &Id<Place>| *p == b;
+    fn route_between(&self, a: Id<Site>, b: Id<Site>) -> Option<(Path<Id<Site>>, f32)> {
+        let heuristic = move |p: &Id<Site>| (self.sites.get(*p).center.distance_squared(self.sites.get(b).center) as f32).sqrt();
+        let neighbors = |p: &Id<Site>| self.neighbors(*p);
+        let transition = |a: &Id<Site>, b: &Id<Site>| self.tracks.get(self.track_between(*a, *b).unwrap()).cost;
+        let satisfied = |p: &Id<Site>| *p == b;
         let mut astar = Astar::new(100, a, heuristic);
         astar
             .poll(100, heuristic, neighbors, transition, satisfied)
@@ -102,14 +129,17 @@ impl Civs {
     }
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
-        const CIV_BIRTHPLACE_AREA: Range<usize> = 64..256;
-        let place = attempt(5, || {
+        let site = attempt(5, || {
             let loc = find_site_loc(ctx, None)?;
-            self.establish_place(ctx, loc, CIV_BIRTHPLACE_AREA)
+            self.establish_site(ctx, loc, SiteKind::Settlement(Settlement {
+                stocks: Stocks::default(),
+                population: 24,
+            }))
         })?;
 
         let civ = self.civs.insert(Civ {
-            homeland: place,
+            capital: site,
+            homeland: self.sites.get(site).place,
         });
 
         Some(civ)
@@ -144,11 +174,37 @@ impl Civs {
 
         let place = self.places.insert(Place {
             center: loc,
+            nat_res: NaturalResources::default(),
+        });
+
+        // Write place to map
+        for cell in dead.union(&alive) {
+            if let Some(chunk) = ctx.sim.get_mut(*cell) {
+                chunk.place = Some(place);
+                self.places.get_mut(place).nat_res.include_chunk(ctx, *cell);
+            }
+        }
+
+        Some(place)
+    }
+
+    fn establish_site(&mut self, ctx: &mut GenCtx<impl Rng>, loc: Vec2<i32>, kind: SiteKind) -> Option<Id<Site>> {
+        const SITE_AREA: Range<usize> = 64..256;
+
+        let place = match ctx.sim.get(loc).and_then(|site| site.place) {
+            Some(place) => place,
+            None => self.establish_place(ctx, loc, SITE_AREA)?,
+        };
+
+        let site = self.sites.insert(Site {
+            kind,
+            center: loc,
+            place: place,
         });
 
         // Find neighbors
         const MAX_NEIGHBOR_DISTANCE: f32 = 250.0;
-        let mut nearby = self.places
+        let mut nearby = self.sites
             .iter_ids()
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
             .filter(|(p, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
@@ -157,10 +213,10 @@ impl Civs {
 
         for (nearby, _) in nearby.into_iter().take(ctx.rng.gen_range(3, 5)) {
             // Find a novel path
-            if let Some((path, cost)) = find_path(ctx, loc, self.places.get(nearby).center) {
+            if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {
                 // Find a path using existing paths
                 if self
-                    .route_between(place, nearby)
+                    .route_between(site, nearby)
                     // If the novel path isn't efficient compared to existing routes, don't use it
                     .filter(|(_, route_cost)| *route_cost < cost * 3.0)
                     .is_none()
@@ -170,21 +226,25 @@ impl Civs {
                         path,
                     });
                     self.track_map
-                        .entry(place)
+                        .entry(site)
                         .or_default()
                         .insert(nearby, track);
                 }
             }
         }
 
-        // Write place to map
-        for cell in dead.union(&alive) {
-            if let Some(chunk) = ctx.sim.get_mut(*cell) {
-                chunk.place = Some(place);
+        Some(site)
+    }
+
+    pub fn tick(&mut self, years: f32) {
+        for site in self.sites.iter_mut() {
+            match &mut site.kind {
+                SiteKind::Settlement(s) => {
+                    s.collect_stocks(years, &self.places.get(site.place).nat_res);
+                    s.consume_stocks(years);
+                },
             }
         }
-
-        Some(place)
     }
 }
 
@@ -212,7 +272,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
     {
         let a_alt = sim.get(a)?.alt;
         let b_alt = sim.get(a + dir)?.alt;
-        Some(0.5 + (b_alt - a_alt).max(-0.5).abs() / 5.0)
+        Some((b_alt - a_alt).abs() / 2.5)
     } else {
         None
     }
@@ -236,7 +296,8 @@ fn site_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> bool {
 /// Return true if a position is suitable for site construction (TODO: criteria?)
 fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if let Some(chunk) = sim.get(loc) {
-        !chunk.is_underwater() &&
+        !chunk.river.is_ocean() &&
+        !chunk.river.is_lake() &&
         sim.get_gradient_approx(loc).map(|grad| grad < 1.0).unwrap_or(false)
     } else {
         false
@@ -272,11 +333,39 @@ fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>) -> 
 
 #[derive(Debug)]
 pub struct Civ {
+    capital: Id<Site>,
     homeland: Id<Place>,
 }
 
+#[derive(Debug)]
 pub struct Place {
     center: Vec2<i32>,
+    nat_res: NaturalResources,
+}
+
+// Productive capacity per year
+#[derive(Default, Debug)]
+pub struct NaturalResources {
+    wood: f32,
+    stone: f32,
+    river: f32,
+    farmland: f32,
+}
+
+impl NaturalResources {
+    fn include_chunk(&mut self, ctx: &mut GenCtx<impl Rng>, loc: Vec2<i32>) {
+        let chunk = if let Some(chunk) = ctx.sim.get(loc) { chunk } else { return };
+
+        self.wood += chunk.tree_density;
+        self.stone += chunk.rockiness;
+        self.river += if chunk.river.is_river() { 1.0 } else { 0.0 };
+        self.farmland += if
+            chunk.humidity > 0.35 &&
+            chunk.temp > -0.3 && chunk.temp < 0.75 &&
+            chunk.chaos < 0.5 &&
+            ctx.sim.get_gradient_approx(loc).map(|grad| grad < 0.7).unwrap_or(false)
+        { 1.0 } else { 0.0 };
+    }
 }
 
 pub struct Track {
@@ -284,4 +373,67 @@ pub struct Track {
     /// doesn't make sense unless compared to other track costs.
     cost: f32,
     path: Path<Vec2<i32>>,
+}
+
+#[derive(Debug)]
+pub struct Site {
+    kind: SiteKind,
+    center: Vec2<i32>,
+    place: Id<Place>,
+}
+
+#[derive(Debug)]
+pub enum SiteKind {
+    Settlement(Settlement),
+}
+
+#[derive(Default, Debug)]
+pub struct Settlement {
+    stocks: Stocks,
+    population: u32,
+}
+
+impl Settlement {
+    pub fn collect_stocks(&mut self, years: f32, nat_res: &NaturalResources) {
+        // Per labourer, per year
+        const LUMBER_RATE: f32 = 0.5;
+        const MINE_RATE: f32 = 0.3;
+        const FARM_RATE: f32 = 0.4;
+
+        // No more that 1.0 in total
+        let lumberjacks = 0.2 * self.population as f32;
+        let miners = 0.15 * self.population as f32;
+        let farmers = 0.4 * self.population as f32;
+
+        self.stocks.logs += years * nat_res.wood.min(lumberjacks * LUMBER_RATE);
+        self.stocks.rocks += years * nat_res.stone.min(miners * MINE_RATE);
+        self.stocks.food += years * nat_res.farmland.min(farmers * FARM_RATE);
+    }
+
+    pub fn consume_stocks(&mut self, years: f32) {
+        const EAT_RATE: f32 = 0.15;
+        // Food required to give birth
+        const BIRTH_FOOD: f32 = 0.25;
+        const MAX_ANNUAL_BABIES: f32 = 0.15;
+
+        let needed_food = self.population as f32 * EAT_RATE;
+        let food_surplus = (self.stocks.food - needed_food).max(0.0);
+        let food_deficit = -(self.stocks.food - needed_food).min(0.0);
+
+        self.stocks.food = (self.stocks.food - needed_food).max(0.0);
+
+        self.population -= (food_deficit * EAT_RATE).round() as u32;
+        self.population += (food_surplus / BIRTH_FOOD).round().min(self.population as f32 * MAX_ANNUAL_BABIES) as u32;
+    }
+
+    pub fn happiness(&self) -> f32 {
+        self.stocks.food / self.population as f32
+    }
+}
+
+#[derive(Default, Debug)]
+pub struct Stocks {
+    logs: f32,
+    rocks: f32,
+    food: f32,
 }

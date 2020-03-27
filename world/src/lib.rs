@@ -47,6 +47,8 @@ impl World {
 
     pub fn sim(&self) -> &sim::WorldSim { &self.sim }
 
+    pub fn civs(&self) -> &civ::Civs { &self.civs }
+
     pub fn tick(&self, _dt: Duration) {
         // TODO
     }
