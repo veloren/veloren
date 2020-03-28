@@ -3,6 +3,6 @@ Item(
    description: "Soft and warm",
     kind: Armor(
         kind: Foot(ClothGreen0),
-        stats: 20,
+        stats: (20),
     ),
 )

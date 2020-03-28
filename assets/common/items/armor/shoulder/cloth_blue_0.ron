@@ -3,6 +3,6 @@ Item(
    description: "WIP",
     kind: Armor(
         kind: Shoulder(ClothBlue0),
-        stats: 20,
+        stats: (20),
     ),
 )

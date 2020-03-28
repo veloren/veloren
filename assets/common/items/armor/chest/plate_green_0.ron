@@ -3,6 +3,6 @@ Item(
     description: "Arrows to the stomach are soooo last update.",
     kind: Armor(
         kind: Chest(PlateGreen0),
-        stats: 20,
+        stats: (20),
     ),
 )
