@@ -1,6 +1,7 @@
 use crate::{client::Client, settings::ServerSettings, sys::sentinel::DeletedEntities, SpawnPoint};
 use common::{
-    assets, comp,
+    assets,
+    comp::{self, item},
     effect::Effect,
     msg::{ClientState, ServerMsg},
     state::State,
@@ -164,7 +165,7 @@ impl StateExt for State {
 
         self.write_component(
             entity,
-            if let Some(comp::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
+            if let Some(item::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
                 let mut abilities = tool.get_abilities();
                 let mut ability_drain = abilities.drain(..);
                 comp::Loadout {

@@ -9,7 +9,7 @@ use crate::{
     ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::Client;
-use common::comp::{ItemKind, Stats};
+use common::comp::{item::ItemKind, Stats};
 use conrod_core::{
     color, image,
     widget::{self, Button, Image, Rectangle, Text},
