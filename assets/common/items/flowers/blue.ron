@@ -1,5 +1,7 @@
 Item(
     name: "Blue Flower",
     description: "Matches the color of the sky.",
-    kind: Ingredient,
+    kind: Ingredient(
+        kind: Flower,
+    )
 )
