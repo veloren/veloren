@@ -238,11 +238,8 @@ impl AudioFrontend {
 
 /// Returns the default audio device.
 /// Does not return rodio Device struct in case our audio backend changes.
-pub fn get_default_device() -> String {
-    rodio::default_output_device()
-        .expect("No audio output devices detected.")
-        .name()
-        .expect("Unable to get device name")
+pub fn get_default_device() -> Option<String> {
+    rodio::default_output_device().map(|dev| dev.name().expect("Unable to get device name"))
 }
 
 /// Returns a vec of the audio devices available.
