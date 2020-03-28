@@ -63,12 +63,6 @@ impl<'a> System<'a> for Sys {
                 inputs.move_dir
             };
 
-            // Update `inputs.look_dir`
-            inputs
-                .look_dir
-                .try_normalized()
-                .unwrap_or(inputs.move_dir.into());
-
             // Process other controller events
             for event in controller.events.drain(..) {
                 match event {

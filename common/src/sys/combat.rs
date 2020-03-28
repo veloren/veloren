@@ -4,6 +4,7 @@ use crate::{
     },
     event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
+    util::Dir,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -92,7 +93,7 @@ impl<'a> System<'a> for Sys {
                 // 2D versions
                 let pos2 = Vec2::from(pos.0);
                 let pos_b2 = Vec2::<f32>::from(pos_b.0);
-                let ori2 = Vec2::from(ori.0);
+                let ori2 = Vec2::from(*ori.0);
 
                 // Scales
                 let scale = scale_maybe.map_or(1.0, |s| s.0);
@@ -140,8 +141,8 @@ impl<'a> System<'a> for Sys {
                     if attack.knockback != 0.0 {
                         local_emitter.emit(LocalEvent::ApplyForce {
                             entity: b,
-                            dir: Vec3::slerp(ori.0, Vec3::new(0.0, 0.0, 1.0), 0.5),
-                            force: attack.knockback,
+                            force: attack.knockback
+                                * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
                         });
                     }
                     attack.hit_count += 1;

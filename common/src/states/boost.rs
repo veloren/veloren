@@ -23,7 +23,7 @@ impl CharacterBehavior for Data {
             if self.only_up {
                 update.vel.0.z += 500.0 * data.dt.0;
             } else {
-                update.vel.0 += data.inputs.look_dir * 500.0 * data.dt.0;
+                update.vel.0 += *data.inputs.look_dir * 500.0 * data.dt.0;
             }
             update.character = CharacterState::Boost(Data {
                 duration: self

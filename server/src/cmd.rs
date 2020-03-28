@@ -12,6 +12,7 @@ use common::{
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
     terrain::TerrainChunkSize,
+    util::Dir,
     vol::RectVolSize,
 };
 use rand::Rng;
@@ -711,15 +712,14 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             .with(comp::Ori(
                 // converts player orientation into a 90° rotation for the object by using the axis
                 // with the highest value
-                ori.0
-                    .map(|e| {
-                        if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
-                            e
-                        } else {
-                            0.0
-                        }
-                    })
-                    .normalized(),
+                Dir::from_unnormalized(ori.0.map(|e| {
+                    if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
+                        e
+                    } else {
+                        0.0
+                    }
+                }))
+                .unwrap_or_default(),
             ))
             .build();
         server.notify_client(
