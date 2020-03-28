@@ -4,6 +4,7 @@ pub mod block;
 pub mod blockidle;
 pub mod charge;
 pub mod climb;
+pub mod dash;
 pub mod equip;
 pub mod gliding;
 pub mod idle;
@@ -21,9 +22,10 @@ pub mod wield;
 pub use self::{
     alpha::AlphaAnimation, beta::BetaAnimation, block::BlockAnimation,
     blockidle::BlockIdleAnimation, charge::ChargeAnimation, climb::ClimbAnimation,
-    equip::EquipAnimation, gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation, sit::SitAnimation,
-    spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation, wield::WieldAnimation,
+    dash::DashAnimation, equip::EquipAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation,
+    sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation,
+    wield::WieldAnimation,
 };
 
 use super::{Bone, Skeleton};
