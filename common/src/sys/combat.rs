@@ -141,8 +141,8 @@ impl<'a> System<'a> for Sys {
                     if attack.knockback != 0.0 {
                         local_emitter.emit(LocalEvent::ApplyForce {
                             entity: b,
-                            dir: *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
-                            force: attack.knockback,
+                            force: attack.knockback
+                                * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
                         });
                     }
                     attack.hit_count += 1;
