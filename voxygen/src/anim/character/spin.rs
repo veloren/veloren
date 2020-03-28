@@ -37,6 +37,7 @@ impl Animation for SpinAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Axe(_)) | Some(ToolKind::Hammer(_)) | Some(ToolKind::Sword(_)) => {
+                //INTENTION: SWORD
                 next.l_hand.offset = Vec3::new(0.0, 1.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
                 next.l_hand.scale = Vec3::one() * 1.04;
