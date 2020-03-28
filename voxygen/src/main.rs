@@ -44,15 +44,16 @@ fn main() {
         panic!("Failed to save settings: {:?}", err);
     }
 
-    let audio_device = || match &settings.audio.audio_device {
-        Some(d) => d.to_string(),
-        None => audio::get_default_device(),
-    };
+    let audio_device = settings
+        .audio
+        .audio_device
+        .as_ref()
+        .map(|s| s.clone())
+        .or_else(audio::get_default_device);
 
-    let mut audio = if settings.audio.audio_on {
-        AudioFrontend::new(audio_device(), settings.audio.max_sfx_channels)
-    } else {
-        AudioFrontend::no_audio()
+    let mut audio = match (audio_device, settings.audio.audio_on) {
+        (Some(dev), true) => AudioFrontend::new(dev, settings.audio.max_sfx_channels),
+        _ => AudioFrontend::no_audio()
     };
 
     audio.set_music_volume(settings.audio.music_volume);
