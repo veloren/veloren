@@ -5,6 +5,7 @@ use crate::{
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
     sync::UidAllocator,
+    util::Dir,
 };
 use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -107,7 +108,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 local_emitter.emit(LocalEvent::ApplyForce {
                                     entity,
-                                    dir: Vec3::slerp(ori.0, Vec3::new(0.0, 0.0, 1.0), 0.5),
+                                    dir: *Dir::slerp(ori.0, Dir::new(Vec3::unit_z()), 0.5),
                                     force: knockback,
                                 });
                             }
@@ -145,7 +146,7 @@ impl<'a> System<'a> for Sys {
                     .get(entity)
                     .and_then(|vel| vel.0.try_normalized())
                 {
-                    ori.0 = dir;
+                    ori.0 = dir.into();
                 }
             }
 

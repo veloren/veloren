@@ -5,6 +5,7 @@ use common::{
     msg::{ClientState, ServerMsg},
     state::State,
     sync::{Uid, WorldSyncExt},
+    util::Dir,
 };
 use log::warn;
 use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
@@ -89,7 +90,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori(Vec3::unit_y()))
+            .with(comp::Ori::default())
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
@@ -106,7 +107,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori(Vec3::unit_y()))
+            .with(comp::Ori::default())
             .with(comp::Body::Object(object))
             .with(comp::Mass(100.0))
             .with(comp::Gravity(1.0))
@@ -125,7 +126,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(vel)
-            .with(comp::Ori(vel.0.normalized()))
+            .with(comp::Ori(Dir::from_unnormalized(vel.0).unwrap_or_default()))
             .with(comp::Mass(0.0))
             .with(body)
             .with(projectile)
@@ -151,7 +152,7 @@ impl StateExt for State {
         self.write_component(entity, comp::Controller::default());
         self.write_component(entity, comp::Pos(spawn_point));
         self.write_component(entity, comp::Vel(Vec3::zero()));
-        self.write_component(entity, comp::Ori(Vec3::unit_y()));
+        self.write_component(entity, comp::Ori::default());
         self.write_component(entity, comp::Gravity(1.0));
         self.write_component(entity, comp::CharacterState::default());
         self.write_component(entity, comp::Alignment::Owned(entity));
