@@ -1,4 +1,4 @@
-use crate::{comp, sync::Uid};
+use crate::{comp, sync::Uid, util::Dir};
 use comp::{item::ToolKind, InventoryUpdateEvent};
 use parking_lot::Mutex;
 use serde::Deserialize;
@@ -47,19 +47,11 @@ pub enum SfxEvent {
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
     Jump(EcsEntity),
-    /// Applies the `force` + implicit upward force, in `dir` direction to
+    /// Applies the `force` + implicit upward force to
     /// `entity`'s `Vel`
-    KnockUp {
-        entity: EcsEntity,
-        dir: Vec3<f32>,
-        force: f32,
-    },
-    /// Applies the `force`, in `dir` direction to `entity`'s `Vel`
-    ApplyForce {
-        entity: EcsEntity,
-        dir: Vec3<f32>,
-        force: f32,
-    },
+    KnockUp { entity: EcsEntity, force: Vec3<f32> },
+    /// Applies the `force` to `entity`'s `Vel`
+    ApplyForce { entity: EcsEntity, force: Vec3<f32> },
     /// Applies leaping force to `entity`'s `Vel` away from `wall_dir` direction
     WallLeap {
         entity: EcsEntity,
@@ -87,7 +79,7 @@ pub enum ServerEvent {
     Respawn(EcsEntity),
     Shoot {
         entity: EcsEntity,
-        dir: Vec3<f32>,
+        dir: Dir,
         body: comp::Body,
         light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,

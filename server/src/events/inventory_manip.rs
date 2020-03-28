@@ -256,7 +256,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         .read_storage::<comp::Ori>()
                         .get(entity)
                         .copied()
-                        .unwrap_or(comp::Ori(Vec3::unit_y())),
+                        .unwrap_or_default(),
                     item,
                 ));
             }
@@ -269,7 +269,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
     // Drop items
     for (pos, ori, item) in dropped_items {
-        let vel = ori.0.normalized() * 5.0
+        let vel = *ori.0 * 5.0
             + Vec3::unit_z() * 10.0
             + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
 

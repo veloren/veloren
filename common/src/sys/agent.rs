@@ -1,9 +1,10 @@
 use crate::{
-    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Pos, Stats},
+    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Ori, Pos, Stats},
     path::Chaser,
     state::Time,
     sync::UidAllocator,
     terrain::TerrainGrid,
+    util::Dir,
     vol::ReadVol,
 };
 use rand::{thread_rng, Rng};
@@ -21,6 +22,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Time>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
+        ReadStorage<'a, Ori>,
         ReadStorage<'a, Stats>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
@@ -36,6 +38,7 @@ impl<'a> System<'a> for Sys {
             time,
             entities,
             positions,
+            orientations,
             stats,
             terrain,
             alignments,
@@ -44,9 +47,10 @@ impl<'a> System<'a> for Sys {
             mount_states,
         ): Self::SystemData,
     ) {
-        for (entity, pos, alignment, agent, controller, mount_state) in (
+        for (entity, pos, ori, alignment, agent, controller, mount_state) in (
             &entities,
             &positions,
+            &orientations,
             alignments.maybe(),
             &mut agents,
             &mut controllers,
@@ -70,8 +74,10 @@ impl<'a> System<'a> for Sys {
 
             controller.reset();
 
-            //TODO: Make npcs have valid `look_dir` during all activities
             let mut inputs = &mut controller.inputs;
+
+            // Default to looking in orientation direction
+            inputs.look_dir = ori.0;
 
             const AVG_FOLLOW_DIST: f32 = 6.0;
             const MAX_FOLLOW_DIST: f32 = 12.0;
@@ -162,7 +168,9 @@ impl<'a> System<'a> for Sys {
                                 .copied()
                                 .unwrap_or(Alignment::Owned(*target)),
                         ) {
-                            inputs.look_dir = tgt_pos.0 - pos.0;
+                            if let Some(dir) = Dir::from_unnormalized(tgt_pos.0 - pos.0) {
+                                inputs.look_dir = dir;
+                            }
 
                             // Don't attack entities we are passive towards
                             // TODO: This is here, it's a bit of a hack

@@ -17,13 +17,17 @@ pub trait CharacterBehavior {
     fn behavior(&self, data: &JoinData) -> StateUpdate;
     // Impl these to provide behavior for these inputs
     fn swap_loadout(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn toggle_wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn toggle_sit(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn unwield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn sit(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn stand(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
             ControlAction::SwapLoadout => self.swap_loadout(data),
-            ControlAction::ToggleWield => self.toggle_wield(data),
-            ControlAction::ToggleSit => self.toggle_sit(data),
+            ControlAction::Wield => self.wield(data),
+            ControlAction::Unwield => self.unwield(data),
+            ControlAction::Sit => self.sit(data),
+            ControlAction::Stand => self.stand(data),
         }
     }
     // fn init(data: &JoinData) -> CharacterState;

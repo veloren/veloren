@@ -2,7 +2,7 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::*,
-    util::safe_slerp,
+    util::Dir,
 };
 use std::time::Duration;
 use vek::Vec3;
@@ -27,9 +27,9 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         if self.initialize {
-            update.vel.0 = data.inputs.look_dir * 20.0;
+            update.vel.0 = *data.inputs.look_dir * 20.0;
             if let Some(dir) = Vec3::from(data.vel.0.xy()).try_normalized() {
-                update.ori.0 = dir;
+                update.ori.0 = dir.into();
             }
         }
 
@@ -98,7 +98,7 @@ impl CharacterBehavior for Data {
             }
         }
 
-        update.ori.0 = safe_slerp(update.ori.0, update.vel.0, 9.0 * data.dt.0);
+        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, update.vel.0, 9.0 * data.dt.0);
 
         update
     }
