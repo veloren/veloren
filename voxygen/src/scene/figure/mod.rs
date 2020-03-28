@@ -21,7 +21,8 @@ use crate::{
 };
 use common::{
     comp::{
-        Body, CharacterState, ItemKind, Last, Loadout, Ori, PhysicsState, Pos, Scale, Stats, Vel,
+        item::ItemKind, Body, CharacterState, Last, Loadout, Ori, PhysicsState, Pos, Scale, Stats,
+        Vel,
     },
     state::State,
     states::triple_strike,
@@ -35,6 +36,8 @@ use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
+const MOVING_THRESHOLD: f32 = 0.7;
+const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
 
 pub struct FigureMgr {
     model_cache: FigureModelCache,
@@ -425,8 +428,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, _) => anim::character::StandAnimation::update_skeleton(
@@ -673,8 +676,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => {
@@ -753,8 +756,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => {
@@ -833,8 +836,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::bird_medium::IdleAnimation::update_skeleton(
@@ -907,8 +910,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::fish_medium::IdleAnimation::update_skeleton(
@@ -981,8 +984,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::dragon::IdleAnimation::update_skeleton(
@@ -1055,8 +1058,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::critter::IdleAnimation::update_skeleton(
@@ -1129,8 +1132,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::bird_small::IdleAnimation::update_skeleton(
@@ -1203,8 +1206,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::fish_small::IdleAnimation::update_skeleton(
@@ -1277,8 +1280,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > 0.5, // Moving
-                        physics.in_fluid,                // In water
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
                     ) {
                         // Standing
                         (true, false, false) => anim::biped_large::IdleAnimation::update_skeleton(

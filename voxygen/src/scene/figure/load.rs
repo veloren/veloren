@@ -10,15 +10,16 @@ use common::{
         bird_small,
         critter::{BodyType as CBodyType, Species as CSpecies},
         dragon, fish_medium, fish_small,
-        humanoid::{
-            Belt, Body, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder,
-            Skin,
+        humanoid::{Body, BodyType, EyeColor, Eyebrows, Race, Skin},
+        item::{
+            armor::{Armor, Belt, Chest, Foot, Hand, Pants, Shoulder},
+            tool::{Tool, ToolKind},
+            ItemKind,
         },
-        item::{Armor, ToolData, ToolKind},
         object,
         quadruped_medium::{BodyType as QMBodyType, Species as QMSpecies},
         quadruped_small::{BodyType as QSBodyType, Species as QSSpecies},
-        ItemKind, Loadout,
+        Loadout,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
 };
@@ -609,7 +610,7 @@ impl HumMainWeaponSpec {
     }
 
     pub fn mesh_main_weapon(&self, item_kind: Option<&ItemKind>) -> Mesh<FigurePipeline> {
-        let tool_kind = if let Some(ItemKind::Tool(ToolData { kind, .. })) = item_kind {
+        let tool_kind = if let Some(ItemKind::Tool(Tool { kind, .. })) = item_kind {
             kind
         } else {
             return Mesh::new();

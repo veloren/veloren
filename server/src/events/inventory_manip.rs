@@ -1,6 +1,6 @@
 use crate::{Server, StateExt};
 use common::{
-    comp::{self, Pos, MAX_PICKUP_RANGE_SQR},
+    comp::{self, item, Pos, MAX_PICKUP_RANGE_SQR},
     sync::WorldSyncExt,
     terrain::block::Block,
     vol::{ReadVol, Vox},
@@ -94,7 +94,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
             if let Some(item) = item_opt {
                 match &item.kind {
-                    comp::ItemKind::Tool(tool) => {
+                    item::ItemKind::Tool(tool) => {
                         if let Some(loadout) =
                             state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
                         {
@@ -121,16 +121,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         }
                     },
 
-                    comp::ItemKind::Consumable { kind, effect, .. } => {
+                    item::ItemKind::Consumable { kind, effect, .. } => {
                         event = comp::InventoryUpdateEvent::Consumed(*kind);
                         state.apply_effect(entity, *effect);
                     },
 
-                    comp::ItemKind::Armor { kind, .. } => {
+                    item::ItemKind::Armor { kind, .. } => {
                         if let Some(loadout) =
                             state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
                         {
-                            use comp::item::Armor::*;
+                            use comp::item::armor::Armor::*;
                             let slot = match kind.clone() {
                                 Shoulder(_) => &mut loadout.shoulder,
                                 Chest(_) => &mut loadout.chest,
@@ -153,7 +153,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         }
                     },
 
-                    comp::ItemKind::Utility { kind, .. } => match kind {
+                    item::ItemKind::Utility { kind, .. } => match kind {
                         comp::item::Utility::Collar => {
                             let reinsert = if let Some(pos) =
                                 state.read_storage::<comp::Pos>().get(entity)

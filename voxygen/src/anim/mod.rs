@@ -12,7 +12,7 @@ pub mod quadruped_medium;
 pub mod quadruped_small;
 
 use crate::render::FigureBoneData;
-use common::comp::{self, ToolKind};
+use common::comp::{self, item::tool::ToolKind};
 use vek::*;
 
 #[derive(Copy, Clone, Debug)]

@@ -6,7 +6,10 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{Body, CharacterState, Item, ItemKind, Loadout, ToolKind},
+    comp::{
+        item::{tool::ToolKind, ItemKind},
+        Body, CharacterState, Item, Loadout,
+    },
 };
 use hashbrown::{hash_map::Entry, HashMap};
 use std::{
