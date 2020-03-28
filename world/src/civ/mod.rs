@@ -1,3 +1,5 @@
+mod econ;
+
 use std::ops::Range;
 use hashbrown::{HashMap, HashSet};
 use vek::*;
@@ -33,7 +35,7 @@ fn attempt<T>(max_iters: usize, mut f: impl FnMut() -> Option<T>) -> Option<T> {
     (0..max_iters).find_map(|_| f())
 }
 
-const INITIAL_CIV_COUNT: usize = 20;
+const INITIAL_CIV_COUNT: usize = 32;
 
 #[derive(Default)]
 pub struct Civs {
@@ -46,7 +48,7 @@ pub struct Civs {
     sites: Store<Site>,
 }
 
-struct GenCtx<'a, R: Rng> {
+pub struct GenCtx<'a, R: Rng> {
     sim: &'a mut WorldSim,
     rng: &'a mut R,
 }
@@ -65,9 +67,9 @@ impl Civs {
         }
 
         // Tick
-        const SIM_YEARS: usize = 100;
+        const SIM_YEARS: usize = 1000;
         for _ in 0..SIM_YEARS {
-            this.tick(1.0);
+            this.tick(&mut ctx, 1.0);
         }
 
         // Temporary!
@@ -84,6 +86,10 @@ impl Civs {
 
     pub fn place(&self, id: Id<Place>) -> &Place { self.places.get(id) }
 
+    pub fn sites(&self) -> impl Iterator<Item=&Site> + '_ {
+        self.sites.iter()
+    }
+
     fn display_info(&self) {
         for (id, civ) in self.civs.iter_ids() {
             println!("# Civilisation {:?}", id);
@@ -93,7 +99,7 @@ impl Civs {
 
         for (id, site) in self.sites.iter_ids() {
             println!("# Site {:?}", id);
-            println!("{:?}", site);
+            println!("{:#?}", site);
         }
     }
 
@@ -131,10 +137,7 @@ impl Civs {
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         let site = attempt(5, || {
             let loc = find_site_loc(ctx, None)?;
-            self.establish_site(ctx, loc, SiteKind::Settlement(Settlement {
-                stocks: Stocks::default(),
-                population: 24,
-            }))
+            self.establish_site(ctx, loc, SiteKind::Settlement(Settlement::civ_birthplace()))
         })?;
 
         let civ = self.civs.insert(Civ {
@@ -211,7 +214,7 @@ impl Civs {
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        for (nearby, _) in nearby.into_iter().take(ctx.rng.gen_range(3, 5)) {
+        for (nearby, _) in nearby.into_iter() {
             // Find a novel path
             if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {
                 // Find a path using existing paths
@@ -236,13 +239,125 @@ impl Civs {
         Some(site)
     }
 
-    pub fn tick(&mut self, years: f32) {
+    fn tick(&mut self, ctx: &mut GenCtx<impl Rng>, years: f32) {
+        // Collect stocks
         for site in self.sites.iter_mut() {
-            match &mut site.kind {
-                SiteKind::Settlement(s) => {
-                    s.collect_stocks(years, &self.places.get(site.place).nat_res);
-                    s.consume_stocks(years);
-                },
+            if let SiteKind::Settlement(s) = &mut site.kind {
+                s.collect_stocks(years, &self.places.get(site.place).nat_res);
+            }
+        }
+
+        // Trade stocks
+        let mut stocks = [FOOD, WOOD, ROCK];
+        stocks.shuffle(ctx.rng); // Give each stock a chance to be traded first
+        for stock in stocks.iter().copied() {
+            let mut sell_orders = self.sites
+                .iter_ids()
+                .filter_map(|(id, site)| site.as_settlement().map(|s| (id, s)))
+                .map(|(id, settlement)| (id, econ::SellOrder {
+                    quantity: settlement.trade_states[stock].surplus.min(settlement.stocks[stock]),
+                    price: settlement.trade_states[stock].sell_belief.choose_price(ctx),
+                    q_sold: 0.0,
+                }))
+                .filter(|(_, order)| order.quantity > 0.0)
+                .collect::<Vec<_>>();
+
+            let mut sites = self.sites
+                .ids()
+                .filter(|id| self.sites.get(*id).as_settlement().is_some())
+                .collect::<Vec<_>>();
+            sites.shuffle(ctx.rng); // Give all sites a chance to buy first
+            for site in sites {
+                let (max_spend, max_price) = {
+                    let settlement = self.sites.get(site).as_settlement().unwrap();
+                    (
+                        settlement.trade_states[stock].purchase_priority * settlement.coin,
+                        settlement.trade_states[stock].buy_belief.price,
+                    )
+                };
+                let (quantity, spent) = econ::buy_units(ctx, sell_orders
+                    .iter_mut()
+                    .filter(|(id, _)| site != *id && self.track_between(site, *id).is_some())
+                    .map(|(_, order)| order),
+                    1000000.0, // Max quantity TODO
+                    1000000.0, // Max price TODO
+                    max_spend,
+                );
+                let mut settlement = self.sites.get_mut(site).as_settlement_mut().unwrap();
+                settlement.coin -= spent;
+                if quantity > 0.0 {
+                    settlement.stocks[stock] += quantity;
+                    settlement.trade_states[stock].buy_belief.update_buyer(years, spent / quantity);
+                    println!("Belief: {:?}", settlement.trade_states[stock].buy_belief);
+                }
+            }
+
+            for (site, order) in sell_orders {
+                let mut settlement = self.sites.get_mut(site).as_settlement_mut().unwrap();
+                settlement.coin += order.q_sold * order.price;
+                if order.q_sold > 0.0 {
+                    settlement.stocks[stock] -= order.q_sold;
+                    settlement.trade_states[stock].sell_belief.update_seller(order.q_sold / order.quantity);
+                }
+            }
+        }
+
+        // Trade stocks
+        /*
+        let mut sites = self.sites.ids().collect::<Vec<_>>();
+        sites.shuffle(ctx.rng); // Give all sites a chance to buy first
+        for site in sites {
+            let mut stocks = [FOOD, WOOD, ROCK];
+            stocks.shuffle(ctx.rng); // Give each stock a chance to be traded first
+            for stock in stocks.iter().copied() {
+                if self.sites.get(site).as_settlement().is_none() {
+                    continue;
+                }
+
+                let settlement = self.sites.get(site).as_settlement().unwrap();
+                let quantity_to_buy = settlement.trade_states[stock].buy_q;
+                let mut bought_quantity = 0.0;
+                let mut coin = settlement.coin;
+                drop(settlement);
+                let mut sell_orders = self
+                    .neighbors(site)
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .filter_map(|n| self.sites.get(n).as_settlement().map(|s| (n, s)))
+                    .map(|(n, neighbor)| {
+                        // TODO: Add speculation, don't use the domestic value to rationalise price
+                        let trade_state = &neighbor.trade_states[stock];
+                        let sell_q = trade_state.sell_q.min(neighbor.stocks[stock]);
+                        (n, trade_state.domestic_value, sell_q)
+                    })
+                    .collect::<Vec<_>>();
+                sell_orders.sort_by_key(|(_, price, _)| (*price * 1000.0) as i64);
+
+                for (n, price, sell_q) in sell_orders {
+                    if bought_quantity >= quantity_to_buy {
+                        break;
+                    } else {
+                        let buy_quantity = (quantity_to_buy - bought_quantity).min(sell_q).min(coin / price);
+                        let payment = buy_quantity * price;
+                        bought_quantity += buy_quantity;
+                        coin -= payment;
+                        let mut neighbor = self.sites.get_mut(n).as_settlement_mut().unwrap();
+                        neighbor.stocks[stock] -= buy_quantity;
+                        neighbor.coin += payment;
+                    }
+                }
+
+                let mut settlement = self.sites.get_mut(site).as_settlement_mut().unwrap();
+                settlement.stocks[stock] += bought_quantity;
+                settlement.coin = coin;
+            }
+        }
+        */
+
+        // Consume stocks
+        for site in self.sites.iter_mut() {
+            if let SiteKind::Settlement(s) = &mut site.kind {
+                s.consume_stocks(years);
             }
         }
     }
@@ -379,7 +494,25 @@ pub struct Track {
 pub struct Site {
     kind: SiteKind,
     center: Vec2<i32>,
-    place: Id<Place>,
+    pub place: Id<Place>,
+}
+
+impl Site {
+    pub fn as_settlement(&self) -> Option<&Settlement> {
+        if let SiteKind::Settlement(s) = &self.kind {
+            Some(s)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_settlement_mut(&mut self) -> Option<&mut Settlement> {
+        if let SiteKind::Settlement(s) = &mut self.kind {
+            Some(s)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -387,53 +520,182 @@ pub enum SiteKind {
     Settlement(Settlement),
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Settlement {
-    stocks: Stocks,
-    population: u32,
+    population: f32,
+    stocks: Stocks<f32>,
+    trade_states: Stocks<TradeState>,
+    coin: f32,
 }
 
 impl Settlement {
+    pub fn civ_birthplace() -> Self {
+        Self {
+            population: 24.0,
+            stocks: Stocks::default(),
+            trade_states: Stocks::default(),
+            coin: 1000.0,
+        }
+    }
+
     pub fn collect_stocks(&mut self, years: f32, nat_res: &NaturalResources) {
         // Per labourer, per year
-        const LUMBER_RATE: f32 = 0.5;
-        const MINE_RATE: f32 = 0.3;
-        const FARM_RATE: f32 = 0.4;
+        let collection_rate = Stocks::from_list(&[
+            (FOOD, 2.0),
+            (ROCK, 0.6),
+            (WOOD, 1.5),
+        ]);
 
-        // No more that 1.0 in total
-        let lumberjacks = 0.2 * self.population as f32;
-        let miners = 0.15 * self.population as f32;
-        let farmers = 0.4 * self.population as f32;
+        // Proportion of the population dedicated to each task
+        let workforce_ratios = Stocks::from_list(&[
+            (FOOD, self.trade_states[FOOD].domestic_value),
+            (ROCK, self.trade_states[ROCK].domestic_value),
+            (WOOD, self.trade_states[WOOD].domestic_value),
+        ]);
+        // Normalise workforce proportions
+        let wf_total = workforce_ratios.iter().map(|(_, r)| *r).sum::<f32>();
+        let workforce = workforce_ratios.map(|stock, r| r / wf_total * self.population);
 
-        self.stocks.logs += years * nat_res.wood.min(lumberjacks * LUMBER_RATE);
-        self.stocks.rocks += years * nat_res.stone.min(miners * MINE_RATE);
-        self.stocks.food += years * nat_res.farmland.min(farmers * FARM_RATE);
+        self.stocks[FOOD] += years * (workforce[FOOD] * collection_rate[FOOD] + nat_res.farmland * 0.01).min(nat_res.farmland);
+        self.stocks[ROCK] += years * (workforce[ROCK] * collection_rate[ROCK] + nat_res.stone * 0.01).min(nat_res.stone);
+        self.stocks[WOOD] += years * (workforce[WOOD] * collection_rate[WOOD] + nat_res.wood * 0.01).min(nat_res.wood);
+
+        println!("{:?}", nat_res);
+        println!("{:?}", self.stocks);
     }
 
     pub fn consume_stocks(&mut self, years: f32) {
-        const EAT_RATE: f32 = 0.15;
-        // Food required to give birth
-        const BIRTH_FOOD: f32 = 0.25;
-        const MAX_ANNUAL_BABIES: f32 = 0.15;
+        const EAT_RATE: f32 = 0.5;
+        const USE_WOOD_RATE: f32 = 0.75;
+        const BIRTH_RATE: f32 = 0.1;
 
-        let needed_food = self.population as f32 * EAT_RATE;
-        let food_surplus = (self.stocks.food - needed_food).max(0.0);
-        let food_deficit = -(self.stocks.food - needed_food).min(0.0);
+        self.population += years * BIRTH_RATE;
 
-        self.stocks.food = (self.stocks.food - needed_food).max(0.0);
+        let required = Stocks::from_list(&[
+            (FOOD, self.population as f32 * years * EAT_RATE),
+            (WOOD, self.population as f32 * years * USE_WOOD_RATE),
+        ]);
 
-        self.population -= (food_deficit * EAT_RATE).round() as u32;
-        self.population += (food_surplus / BIRTH_FOOD).round().min(self.population as f32 * MAX_ANNUAL_BABIES) as u32;
-    }
+        // Calculate surplus and deficit of each stock
+        let surplus = required.clone().map(|stock, required| (self.stocks[stock] - required).max(0.0));
+        let deficit = required.clone().map(|stock, required| (required - self.stocks[stock]).max(0.0));
 
-    pub fn happiness(&self) -> f32 {
-        self.stocks.food / self.population as f32
+        // Deplete stocks
+        self.stocks.iter_mut().for_each(|(stock, v)| *v = (*v - required[stock]).max(0.0));
+
+        // Kill people
+        self.population = (self.population - deficit[FOOD] * years * EAT_RATE).max(0.0);
+
+        // If in deficit, value the stock more
+        deficit.iter().for_each(|(stock, deficit)| {
+            if *deficit > 0.0 {
+                let mut trade_state = &mut self.trade_states[stock];
+                trade_state.domestic_value += *deficit * 0.01;
+                trade_state.surplus = -*deficit;
+                trade_state.purchase_priority *= 1.1;
+            }
+        });
+
+        // If in surplus, value the stock less
+        surplus.iter().for_each(|(stock, surplus)| {
+            if *surplus > 0.0 {
+                let mut trade_state = &mut self.trade_states[stock];
+                trade_state.domestic_value /= 1.0 + *surplus * 0.01;
+                trade_state.surplus = *surplus;
+            }
+        });
+
+        // Normalise purchasing priorities
+        let pp_avg = self.trade_states.iter().map(|(_, ts)| ts.purchase_priority).sum::<f32>() / self.trade_states.iter().count() as f32;
+        self.trade_states.iter_mut().for_each(|(_, ts)| ts.purchase_priority /= pp_avg);
     }
 }
 
-#[derive(Default, Debug)]
-pub struct Stocks {
-    logs: f32,
-    rocks: f32,
-    food: f32,
+type Stock = &'static str;
+const FOOD: Stock = "food";
+const WOOD: Stock = "wood";
+const ROCK: Stock = "rock";
+
+#[derive(Debug, Clone)]
+struct TradeState {
+    buy_belief: econ::Belief,
+    sell_belief: econ::Belief,
+    /// The price/value assigned to the stock by the host settlement
+    domestic_value: f32,
+    surplus: f32,
+    purchase_priority: f32,
 }
+
+impl Default for TradeState {
+    fn default() -> Self {
+        Self {
+            buy_belief: econ::Belief {
+                price: 1.0,
+                confidence: 0.25,
+            },
+            sell_belief: econ::Belief {
+                price: 1.0,
+                confidence: 0.25,
+            },
+            domestic_value: 1.0,
+            surplus: 0.0,
+            purchase_priority: 1.0,
+        }
+    }
+}
+
+#[derive(Default, Clone, Debug)]
+pub struct Stocks<T> {
+    stocks: HashMap<Stock, T>,
+    zero: T,
+}
+
+impl<T: Default + Clone> Stocks<T> {
+    pub fn from_list<'a>(i: impl IntoIterator<Item=&'a (Stock, T)>) -> Self
+        where T: 'a
+    {
+        Self {
+            stocks: i.into_iter().cloned().collect(),
+            zero: T::default(),
+        }
+    }
+
+    pub fn get_mut(&mut self, stock: Stock) -> &mut T {
+        self
+            .stocks
+            .entry(stock)
+            .or_default()
+    }
+
+    pub fn get(&self, stock: Stock) -> &T {
+        self.stocks.get(&stock).unwrap_or(&self.zero)
+    }
+
+    pub fn map(mut self, mut f: impl FnMut(Stock, T) -> T) -> Self {
+        self.stocks.iter_mut().for_each(|(s, v)| *v = f(*s, std::mem::take(v)));
+        self
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item=(Stock, &T)> + '_ {
+        self.stocks.iter().map(|(s, v)| (*s, v))
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item=(Stock, &mut T)> + '_ {
+        self.stocks.iter_mut().map(|(s, v)| (*s, v))
+    }
+}
+
+impl<T: Default + Clone> std::ops::Index<Stock> for Stocks<T> {
+    type Output = T;
+    fn index(&self, stock: Stock) -> &Self::Output { self.get(stock) }
+}
+
+impl<T: Default + Clone> std::ops::IndexMut<Stock> for Stocks<T> {
+    fn index_mut(&mut self, stock: Stock) -> &mut Self::Output { self.get_mut(stock) }
+}
+
+
+
+
+
+
