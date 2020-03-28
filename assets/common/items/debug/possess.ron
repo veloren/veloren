@@ -2,7 +2,7 @@ Item(
     name: "Rod of Possession",
     description: "It's fixed on my branch.",
     kind: Tool(
-        ToolData (
+        (
             kind: Debug(Possess),
             equip_time_millis: 0,            
         )
