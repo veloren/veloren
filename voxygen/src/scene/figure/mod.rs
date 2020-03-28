@@ -142,8 +142,8 @@ impl FigureMgr {
             .join()
         {
             let (pos, ori) = interpolated
-                .map(|i| (Pos(i.pos), Ori(i.ori)))
-                .unwrap_or((*pos, Ori(Vec3::unit_y())));
+                .map(|i| (Pos(i.pos), *i.ori))
+                .unwrap_or((*pos, Vec3::unit_y()));
 
             // Don't process figures outside the vd
             let vd_frac = Vec2::from(pos.0 - player_pos)
@@ -439,7 +439,7 @@ impl FigureMgr {
                         // Running
                         (true, true, _) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, vel.0, ori.0, state.last_ori, time),
+                            (active_tool_kind, vel.0, ori, state.last_ori, time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -455,7 +455,7 @@ impl FigureMgr {
                         // Swim
                         (false, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, vel.0, ori.0.magnitude(), time),
+                            (active_tool_kind, vel.0, ori.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -465,7 +465,7 @@ impl FigureMgr {
                         CharacterState::Roll { .. } => {
                             anim::character::RollAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, ori.0, state.last_ori, time),
+                                (active_tool_kind, ori, state.last_ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -592,7 +592,7 @@ impl FigureMgr {
                         CharacterState::Glide { .. } => {
                             anim::character::GlidingAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, vel.0, ori.0, state.last_ori, time),
+                                (active_tool_kind, vel.0, ori, state.last_ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -601,7 +601,7 @@ impl FigureMgr {
                         CharacterState::Climb { .. } => {
                             anim::character::ClimbAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),
-                                (active_tool_kind, vel.0, ori.0, time),
+                                (active_tool_kind, vel.0, ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -623,7 +623,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -703,7 +703,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -785,7 +785,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -859,7 +859,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -933,7 +933,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -1007,7 +1007,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -1081,7 +1081,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -1155,7 +1155,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -1229,7 +1229,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -1303,7 +1303,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,
@@ -1322,7 +1322,7 @@ impl FigureMgr {
                     state.update(
                         renderer,
                         pos.0,
-                        ori.0,
+                        ori,
                         scale,
                         col,
                         dt,

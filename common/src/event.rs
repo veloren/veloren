@@ -1,4 +1,4 @@
-use crate::{comp, sync::Uid};
+use crate::{comp, sync::Uid, util::Dir};
 use comp::{item::ToolKind, InventoryUpdateEvent};
 use parking_lot::Mutex;
 use serde::Deserialize;
@@ -87,7 +87,7 @@ pub enum ServerEvent {
     Respawn(EcsEntity),
     Shoot {
         entity: EcsEntity,
-        dir: Vec3<f32>,
+        dir: Dir,
         body: comp::Body,
         light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,
