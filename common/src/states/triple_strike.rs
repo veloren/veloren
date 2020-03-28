@@ -8,7 +8,7 @@ use vek::vec::Vec3;
 
 // In millis
 const STAGE_DURATION: u64 = 700;
-const TIMING_WINDOW: u64 = 500;
+const TIMING_WINDOW: u64 = 600;
 const INITIAL_ACCEL: f32 = 90.0;
 const BASE_SPEED: f32 = 25.0;
 
@@ -120,7 +120,7 @@ impl CharacterBehavior for Data {
                 }
             };
         } else {
-            handle_orientation(data, &mut update, 20.0);
+            handle_orientation(data, &mut update, 50.0);
         }
 
         // Handling attacking
