@@ -156,8 +156,11 @@ fn main() {
                 println!("Block: ({}, {}), Chunk: ({}, {})", block_pos.x, block_pos.y, chunk_pos.x, chunk_pos.y);
                 if let Some(chunk) = sampler.get(chunk_pos) {
                     //println!("Chunk info: {:#?}", chunk);
-                    if let Some(place) = &chunk.place {
-                        println!("Place {} info: {:#?}", place.id(), world.civs().place(*place));
+                    if let Some(id) = &chunk.place {
+                        let place = world.civs().place(*id);
+                        println!("Place {} info: {:#?}", id.id(), place);
+
+                        println!("Site: {:#?}", world.civs().sites().find(|site| site.place == *id));
                     }
                 }
             }
