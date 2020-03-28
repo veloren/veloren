@@ -4,7 +4,7 @@ Item(
     \n
     Power: 20",
     kind: Tool(
-        ToolData (
+        (
             kind: Hammer(BasicHammer),    
             equip_time_millis: 500,
         )

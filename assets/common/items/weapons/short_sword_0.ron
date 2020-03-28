@@ -3,7 +3,7 @@ Item(
     description: "    
     Power: 15",
     kind: Tool(
-        ToolData (
+        (
             kind: Sword(Short0),    
             equip_time_millis: 400,
         )

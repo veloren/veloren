@@ -1,54 +1,56 @@
-({
-    None: (
+((
+    default: (
         vox_spec: ("armor.pants.pants_none", (-5.0, -3.5, 1.0)),
         color: Some((28, 66, 109))
     ),
-    Blue: (
-        vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
-        color: Some((28, 66, 109))
-    ),
-    Brown: (
-        vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
-        color: Some((54, 30, 26))
-    ),
-    Dark: (
-        vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
-        color: Some((24, 19, 17))
-    ),
-    Green: (
-        vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
-        color: Some((49, 95, 59))
-    ),
-    Orange: (
-        vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
-        color: Some((148, 52, 33))
-    ),
-    Assassin: (
-        vox_spec: ("armor.pants.assa", (-5.0, -3.5, 1.0)),
-        color: None
-    ),
-    Kimono: (
-        vox_spec: ("armor.pants.cloth_red_kimono", (-5.0, -3.5, 0.0)),
-        color: None
-    ),    
-    PlateGreen0: (
-        vox_spec: ("armor.pants.plate_green-0", (-5.0, -3.5, 1.0)),
-        color: None
-    ),
-    Leather0: (
-        vox_spec: ("armor.pants.leather-0", (-5.0, -3.5, 1.0)),
-        color: None
-    ),
-    ClothPurple0:(
-        vox_spec: ("armor.pants.cloth_purple-0", (-5.0, -3.5, 0.0)),
-        color: None
-    ),
-    ClothBlue0:(
-        vox_spec: ("armor.pants.cloth_blue-0", (-5.0, -3.5, 0.0)),
-        color: None
-    ),
-    ClothGreen0:(
-        vox_spec: ("armor.pants.cloth_green-0", (-5.0, -3.5, 0.0)),
-        color: None
-    ),
-})
+    map: {
+        Blue: (
+            vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
+            color: Some((28, 66, 109))
+        ),
+        Brown: (
+            vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
+            color: Some((54, 30, 26))
+        ),
+        Dark: (
+            vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
+            color: Some((24, 19, 17))
+        ),
+        Green: (
+            vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
+            color: Some((49, 95, 59))
+        ),
+        Orange: (
+            vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
+            color: Some((148, 52, 33))
+        ),
+        Assassin: (
+            vox_spec: ("armor.pants.assa", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
+        Kimono: (
+            vox_spec: ("armor.pants.cloth_red_kimono", (-5.0, -3.5, 0.0)),
+            color: None
+        ),    
+        PlateGreen0: (
+            vox_spec: ("armor.pants.plate_green-0", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
+        Leather0: (
+            vox_spec: ("armor.pants.leather-0", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
+        ClothPurple0:(
+            vox_spec: ("armor.pants.cloth_purple-0", (-5.0, -3.5, 0.0)),
+            color: None
+        ),
+        ClothBlue0:(
+            vox_spec: ("armor.pants.cloth_blue-0", (-5.0, -3.5, 0.0)),
+            color: None
+        ),
+        ClothGreen0:(
+            vox_spec: ("armor.pants.cloth_green-0", (-5.0, -3.5, 0.0)),
+            color: None
+        ),
+    },
+))

@@ -3,6 +3,6 @@ Item(
     description: "",
     kind: Armor(
         kind: Shoulder(Leather0),
-        stats: 20,
+        stats: (20),
     ),
 )

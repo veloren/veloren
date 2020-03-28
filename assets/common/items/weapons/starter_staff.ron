@@ -4,7 +4,7 @@ Item(
     
     Power: 20",
     kind: Tool(
-        ToolData (
+        (
             kind: Staff(BasicStaff),    
             equip_time_millis: 300,
         )

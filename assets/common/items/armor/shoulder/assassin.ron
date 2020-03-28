@@ -3,6 +3,6 @@ Item(
     description: "Only the best for a member of the creed.",
     kind: Armor(
         kind: Shoulder(Assassin),
-        stats: 20,
+        stats: (20),
     ),
 )

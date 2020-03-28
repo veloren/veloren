@@ -234,19 +234,26 @@ impl HumHeadSpec {
 // Armor spects should be in the same order, top to bottom.
 // These seem overly split up, but wanted to keep the armor seperated
 // unlike head which is done above.
-
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorShoulderSpec(HashMap<Shoulder, SidedArmorVoxSpec>);
+pub struct ArmorVoxSpecMap<K, S>
+where
+    K: std::hash::Hash + std::cmp::Eq,
+{
+    default: S,
+    map: HashMap<K, S>,
+}
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorChestSpec(HashMap<Chest, ArmorVoxSpec>);
+pub struct HumArmorShoulderSpec(ArmorVoxSpecMap<Shoulder, SidedArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorHandSpec(HashMap<Hand, SidedArmorVoxSpec>);
+pub struct HumArmorChestSpec(ArmorVoxSpecMap<Chest, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorBeltSpec(HashMap<Belt, ArmorVoxSpec>);
+pub struct HumArmorHandSpec(ArmorVoxSpecMap<Hand, SidedArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorPantsSpec(HashMap<Pants, ArmorVoxSpec>);
+pub struct HumArmorBeltSpec(ArmorVoxSpecMap<Belt, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorFootSpec(HashMap<Foot, ArmorVoxSpec>);
+pub struct HumArmorPantsSpec(ArmorVoxSpecMap<Pants, ArmorVoxSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorFootSpec(ArmorVoxSpecMap<Foot, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
 
@@ -307,22 +314,20 @@ impl HumArmorShoulderSpec {
     }
 
     fn mesh_shoulder(&self, body: &Body, loadout: &Loadout, flipped: bool) -> Mesh<FigurePipeline> {
-        let shoulder = if let Some(ItemKind::Armor {
+        let spec = if let Some(ItemKind::Armor {
             kind: Armor::Shoulder(shoulder),
             ..
         }) = loadout.shoulder.as_ref().map(|i| &i.kind)
         {
-            shoulder
+            match self.0.map.get(&shoulder) {
+                Some(spec) => spec,
+                None => {
+                    error!("No shoulder specification exists for {:?}", shoulder);
+                    return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1));
+                },
+            }
         } else {
-            &Shoulder::None
-        };
-
-        let spec = match self.0.get(&shoulder) {
-            Some(spec) => spec,
-            None => {
-                error!("No shoulder specification exists for {:?}", shoulder);
-                return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1));
-            },
+            &self.0.default
         };
 
         let shoulder_segment = color_segment(
@@ -366,22 +371,20 @@ impl HumArmorChestSpec {
     }
 
     pub fn mesh_chest(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
-        let chest = if let Some(ItemKind::Armor {
+        let spec = if let Some(ItemKind::Armor {
             kind: Armor::Chest(chest),
             ..
         }) = loadout.chest.as_ref().map(|i| &i.kind)
         {
-            chest
+            match self.0.map.get(&chest) {
+                Some(spec) => spec,
+                None => {
+                    error!("No chest specification exists for {:?}", loadout.chest);
+                    return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0));
+                },
+            }
         } else {
-            &Chest::None
-        };
-
-        let spec = match self.0.get(&chest) {
-            Some(spec) => spec,
-            None => {
-                error!("No chest specification exists for {:?}", loadout.chest);
-                return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0));
-            },
+            &self.0.default
         };
 
         let color = |mat_segment| {
@@ -419,22 +422,20 @@ impl HumArmorHandSpec {
     }
 
     fn mesh_hand(&self, body: &Body, loadout: &Loadout, flipped: bool) -> Mesh<FigurePipeline> {
-        let hand = if let Some(ItemKind::Armor {
+        let spec = if let Some(ItemKind::Armor {
             kind: Armor::Hand(hand),
             ..
         }) = loadout.hand.as_ref().map(|i| &i.kind)
         {
-            hand
+            match self.0.map.get(&hand) {
+                Some(spec) => spec,
+                None => {
+                    error!("No hand specification exists for {:?}", hand);
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
         } else {
-            &Hand::Bare
-        };
-
-        let spec = match self.0.get(&hand) {
-            Some(spec) => spec,
-            None => {
-                error!("No hand specification exists for {:?}", hand);
-                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            },
+            &self.0.default
         };
 
         let hand_segment = color_segment(
@@ -473,22 +474,20 @@ impl HumArmorBeltSpec {
     }
 
     pub fn mesh_belt(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
-        let belt = if let Some(ItemKind::Armor {
+        let spec = if let Some(ItemKind::Armor {
             kind: Armor::Belt(belt),
             ..
         }) = loadout.belt.as_ref().map(|i| &i.kind)
         {
-            belt
+            match self.0.map.get(&belt) {
+                Some(spec) => spec,
+                None => {
+                    error!("No belt specification exists for {:?}", belt);
+                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
+                },
+            }
         } else {
-            &Belt::None
-        };
-
-        let spec = match self.0.get(&belt) {
-            Some(spec) => spec,
-            None => {
-                error!("No belt specification exists for {:?}", belt);
-                return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
-            },
+            &self.0.default
         };
 
         let belt_segment = color_segment(
@@ -509,22 +508,20 @@ impl HumArmorPantsSpec {
     }
 
     pub fn mesh_pants(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
-        let pants = if let Some(ItemKind::Armor {
+        let spec = if let Some(ItemKind::Armor {
             kind: Armor::Pants(pants),
             ..
         }) = loadout.pants.as_ref().map(|i| &i.kind)
         {
-            pants
+            match self.0.map.get(&pants) {
+                Some(spec) => spec,
+                None => {
+                    error!("No pants specification exists for {:?}", pants);
+                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
+                },
+            }
         } else {
-            &Pants::None
-        };
-
-        let spec = match self.0.get(&pants) {
-            Some(spec) => spec,
-            None => {
-                error!("No pants specification exists for {:?}", pants);
-                return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
-            },
+            &self.0.default
         };
 
         let color = |mat_segment| {
@@ -562,22 +559,20 @@ impl HumArmorFootSpec {
     }
 
     fn mesh_foot(&self, body: &Body, loadout: &Loadout, flipped: bool) -> Mesh<FigurePipeline> {
-        let foot = if let Some(ItemKind::Armor {
+        let spec = if let Some(ItemKind::Armor {
             kind: Armor::Foot(foot),
             ..
         }) = loadout.foot.as_ref().map(|i| &i.kind)
         {
-            foot
+            match self.0.map.get(&foot) {
+                Some(spec) => spec,
+                None => {
+                    error!("No foot specification exists for {:?}", foot);
+                    return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
+                },
+            }
         } else {
-            &Foot::Bare
-        };
-
-        let spec = match self.0.get(&foot) {
-            Some(spec) => spec,
-            None => {
-                error!("No foot specification exists for {:?}", foot);
-                return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
-            },
+            &self.0.default
         };
 
         let foot_segment = color_segment(
