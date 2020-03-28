@@ -43,6 +43,10 @@ impl<T> Store<T> {
 
     pub fn get_mut(&mut self, id: Id<T>) -> &mut T { self.items.get_mut(id.0).unwrap() }
 
+    pub fn ids(&self) -> impl Iterator<Item = Id<T>> {
+        (0..self.items.len()).map(|i| Id(i, PhantomData))
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = &T> { self.items.iter() }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> { self.items.iter_mut() }
