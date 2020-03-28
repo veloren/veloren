@@ -108,8 +108,8 @@ impl<'a> System<'a> for Sys {
                             {
                                 local_emitter.emit(LocalEvent::ApplyForce {
                                     entity,
-                                    dir: *Dir::slerp(ori.0, Dir::new(Vec3::unit_z()), 0.5),
-                                    force: knockback,
+                                    force: knockback
+                                        * *Dir::slerp(ori.0, Dir::new(Vec3::unit_z()), 0.5),
                                 });
                             }
                         },
