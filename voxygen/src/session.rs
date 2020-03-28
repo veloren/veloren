@@ -17,6 +17,7 @@ use common::{
     comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
     msg::ClientState,
     terrain::{Block, BlockKind},
+    util::Dir,
     vol::ReadVol,
     ChatType,
 };
@@ -446,7 +447,7 @@ impl PlayState for SessionState {
 
             if !free_look {
                 ori = self.scene.camera().get_orientation();
-                self.inputs.look_dir = cam_dir;
+                self.inputs.look_dir = Dir::from_unnormalized(cam_dir).unwrap();
             }
             // Calculate the movement input vector of the player from the current key
             // presses and the camera direction.

@@ -1,7 +1,7 @@
 use crate::{
     comp::{CharacterState, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
-    util::safe_slerp,
+    util::Dir,
 };
 use vek::Vec2;
 
@@ -40,7 +40,7 @@ impl CharacterBehavior for Data {
 
         // Determine orientation vector from movement direction vector
         let ori_dir = Vec2::from(update.vel.0);
-        update.ori.0 = safe_slerp(update.ori.0, ori_dir.into(), 0.1);
+        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, ori_dir.into(), 2.0 * data.dt.0);
 
         // Apply Glide antigrav lift
         if Vec2::<f32>::from(update.vel.0).magnitude_squared() < GLIDE_SPEED.powf(2.0)
