@@ -3,6 +3,6 @@ Item(
     description: "Swift like the wind.",
     kind: Armor(
         kind: Chest(Leather0),
-        stats: 20,
+        stats: (20),
     ),
 )
