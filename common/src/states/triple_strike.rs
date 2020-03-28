@@ -57,7 +57,7 @@ impl CharacterBehavior for Data {
         if !self.initialized {
             update.vel.0 = Vec3::zero();
             if let Some(dir) = data.inputs.look_dir.try_normalized() {
-                update.ori.0 = dir;
+                update.ori.0 = dir.into();
             }
         }
         let initialized = true;

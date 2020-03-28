@@ -307,11 +307,49 @@ impl Client {
         }
     }
 
-    pub fn swap_loadout(&mut self) { self.control_action(ControlAction::SwapLoadout); }
+    pub fn swap_loadout(&mut self) {
+        let can_swap = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| cs.can_swap());
+        match can_swap {
+            Some(true) => self.control_action(ControlAction::SwapLoadout),
+            Some(false) => {},
+            None => warn!("Can't swap, client entity doesn't have a `CharacterState`"),
+        }
+    }
 
-    pub fn toggle_wield(&mut self) { self.control_action(ControlAction::ToggleWield); }
+    pub fn toggle_wield(&mut self) {
+        let is_wielding = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| cs.is_wield());
 
-    pub fn toggle_sit(&mut self) { self.control_action(ControlAction::ToggleSit); }
+        match is_wielding {
+            Some(true) => self.control_action(ControlAction::Unwield),
+            Some(false) => self.control_action(ControlAction::Wield),
+            None => warn!("Can't toggle wield, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn toggle_sit(&mut self) {
+        let is_sitting = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| matches!(cs, comp::CharacterState::Sit));
+
+        match is_sitting {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => self.control_action(ControlAction::Sit),
+            None => warn!("Can't toggle sit, client entity doesn't have a `CharacterState`"),
+        }
+    }
 
     fn control_action(&mut self, control_action: ControlAction) {
         if let Some(controller) = self

@@ -5,7 +5,7 @@ use crate::{
         character_behavior::{CharacterBehavior, JoinData},
         phys::GRAVITY,
     },
-    util::safe_slerp,
+    util::Dir,
 };
 use vek::{
     vec::{Vec2, Vec3},
@@ -23,7 +23,13 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         // If no wall is in front of character or we stopped climbing;
-        if data.physics.on_wall.is_none() || data.physics.on_ground || data.inputs.climb.is_none() {
+        let (wall_dir, climb) = if let (Some(wall_dir), Some(climb), false) = (
+            data.physics.on_wall,
+            data.inputs.climb,
+            data.physics.on_ground,
+        ) {
+            (wall_dir, climb)
+        } else {
             if data.inputs.jump.is_pressed() {
                 // They've climbed atop something, give them a boost
                 update
@@ -32,7 +38,7 @@ impl CharacterBehavior for Data {
             }
             update.character = CharacterState::Idle {};
             return update;
-        }
+        };
 
         // Move player
         update.vel.0 += Vec2::broadcast(data.dt.0)
@@ -44,11 +50,9 @@ impl CharacterBehavior for Data {
             };
 
         // Expend energy if climbing
-        let energy_use = match data.inputs.climb {
-            Some(Climb::Up) | Some(Climb::Down) => 8,
-            Some(Climb::Hold) => 1,
-            // Note: this is currently unreachable
-            None => 0,
+        let energy_use = match climb {
+            Climb::Up | Climb::Down => 8,
+            Climb::Hold => 1,
         };
         if let Err(_) = update
             .energy
@@ -58,25 +62,17 @@ impl CharacterBehavior for Data {
         }
 
         // Set orientation direction based on wall direction
-        let ori_dir = if let Some(wall_dir) = data.physics.on_wall {
-            Vec2::from(wall_dir)
-        } else {
-            Vec2::from(update.vel.0)
-        };
+        let ori_dir = Vec2::from(wall_dir);
 
         // Smooth orientation
-        update.ori.0 = safe_slerp(
+        update.ori.0 = Dir::slerp_to_vec3(
             update.ori.0,
             ori_dir.into(),
             if data.physics.on_ground { 9.0 } else { 2.0 } * data.dt.0,
         );
 
         // Apply Vertical Climbing Movement
-        if let (Some(climb), true, Some(_wall_dir)) = (
-            data.inputs.climb,
-            update.vel.0.z <= CLIMB_SPEED,
-            data.physics.on_wall,
-        ) {
+        if update.vel.0.z <= CLIMB_SPEED {
             match climb {
                 Climb::Down => {
                     update.vel.0 -=

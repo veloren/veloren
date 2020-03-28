@@ -2,7 +2,7 @@ use crate::ecs::comp::Interpolated;
 use common::{
     comp::{Ori, Pos, Vel},
     state::DeltaTime,
-    util::safe_slerp,
+    util::Dir,
 };
 use log::warn;
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -30,7 +30,7 @@ impl<'a> System<'a> for Sys {
             // Update interpolation values
             if i.pos.distance_squared(pos.0) < 64.0 * 64.0 {
                 i.pos = Lerp::lerp(i.pos, pos.0 + vel.0 * 0.03, 10.0 * dt.0);
-                i.ori = safe_slerp(i.ori, ori.0, 5.0 * dt.0);
+                i.ori = Dir::slerp(i.ori, ori.0, 5.0 * dt.0);
             } else {
                 i.pos = pos.0;
                 i.ori = ori.0;

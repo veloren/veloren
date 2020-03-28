@@ -1,4 +1,4 @@
-use crate::sync::Uid;
+use crate::{sync::Uid, util::Dir};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
@@ -18,8 +18,10 @@ pub enum ControlEvent {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlAction {
     SwapLoadout,
-    ToggleWield,
-    ToggleSit,
+    Wield,
+    Unwield,
+    Sit,
+    Stand,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -144,7 +146,7 @@ pub struct ControllerInputs {
     pub charge: Input,
     pub climb: Option<Climb>,
     pub move_dir: Vec2<f32>,
-    pub look_dir: Vec3<f32>,
+    pub look_dir: Dir,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
