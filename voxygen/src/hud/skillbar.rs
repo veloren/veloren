@@ -10,8 +10,11 @@ use crate::{
 use common::{
     assets::load_expect,
     comp::{
-        item::{DebugKind, StaffKind, ToolData, ToolKind},
-        CharacterState, ControllerInputs, Energy, ItemKind, Loadout, Stats,
+        item::{
+            tool::{DebugKind, StaffKind, Tool, ToolKind},
+            ItemKind,
+        },
+        CharacterState, ControllerInputs, Energy, Loadout, Stats,
     },
 };
 use conrod_core::{
@@ -590,7 +593,7 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(38.0 * scale, 38.0 * scale)
             .color(
                 match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                    Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                         ToolKind::Bow(_) => Some(BG_COLOR_2),
                         ToolKind::Staff(_) => Some(BG_COLOR_2),
                         _ => Some(BG_COLOR_2),
@@ -602,7 +605,7 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.m1_slot_bg, ui);
         Button::image(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Sword(_) => self.imgs.twohsword_m1,
                     ToolKind::Hammer(_) => self.imgs.twohhammer_m1,
                     ToolKind::Axe(_) => self.imgs.twohaxe_m1,
@@ -616,7 +619,7 @@ impl<'a> Widget for Skillbar<'a> {
         ) // Insert Icon here
         .w(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Bow(_) => 30.0 * scale,
                     ToolKind::Staff(_) => 32.0 * scale,
                     _ => 38.0 * scale,
@@ -626,7 +629,7 @@ impl<'a> Widget for Skillbar<'a> {
         )
         .h(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Bow(_) => 30.0 * scale,
                     ToolKind::Staff(_) => 32.0 * scale,
                     _ => 38.0 * scale,
@@ -691,7 +694,7 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(38.0 * scale, 38.0 * scale)
             .color(
                 match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                    Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                         ToolKind::Bow(_) => Some(BG_COLOR_2),
                         ToolKind::Staff(_) => Some(BG_COLOR_2),
                         _ => Some(BG_COLOR_2),
@@ -703,7 +706,7 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.m2_slot_bg, ui);
         Button::image(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Sword(_) => self.imgs.charge,
                     ToolKind::Hammer(_) => self.imgs.nothing,
                     ToolKind::Axe(_) => self.imgs.nothing,
@@ -718,7 +721,7 @@ impl<'a> Widget for Skillbar<'a> {
         ) // Insert Icon here
         .w(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Staff(_) => 30.0 * scale,
                     _ => 38.0 * scale,
                 },
@@ -727,7 +730,7 @@ impl<'a> Widget for Skillbar<'a> {
         )
         .h(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Staff(_) => 30.0 * scale,
                     _ => 38.0 * scale,
                 },
@@ -737,7 +740,7 @@ impl<'a> Widget for Skillbar<'a> {
         .middle_of(state.ids.m2_slot_bg)
         .image_color(
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Sword(_) => {
                         if self.energy.current() as f64 >= 200.0 {
                             Color::Rgba(1.0, 1.0, 1.0, 1.0)
@@ -832,7 +835,7 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(19.5 * scale, 19.5 * scale)
             .color(
                 match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                    Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                         ToolKind::Staff(StaffKind::BasicStaff) => Some(BLACK),
                         _ => Some(BG_COLOR),
                     },
@@ -843,7 +846,7 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.slot1_bg, ui);
         // TODO: Changeable slot image
         match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-            Some(ItemKind::Tool(ToolData { kind, .. })) => match kind {
+            Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                 ToolKind::Staff(StaffKind::BasicStaff) => {
                     Image::new(self.imgs.fire_spell_1)
                         .w_h(18.0 * scale, 18.0 * scale)

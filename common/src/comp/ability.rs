@@ -1,6 +1,7 @@
 use crate::{
     comp::{
-        Body, CharacterState, EnergySource, Gravity, Item, LightEmitter, Projectile, StateUpdate,
+        item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile,
+        StateUpdate,
     },
     states::*,
     sys::character_behavior::JoinData,

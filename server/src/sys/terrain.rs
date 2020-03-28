@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, CharacterAbility, Item, ItemConfig, Player, Pos},
+    comp::{self, item, CharacterAbility, Item, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::EntityKind,
     msg::ServerMsg,
@@ -190,7 +190,7 @@ impl<'a> System<'a> for Sys {
                     let mut stats = comp::Stats::new(name, body);
 
                     let active_item =
-                        if let Some(comp::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
+                        if let Some(item::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
                             let mut abilities = tool.get_abilities();
                             let mut ability_drain = abilities.drain(..);
 

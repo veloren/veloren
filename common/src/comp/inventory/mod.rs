@@ -1,9 +1,7 @@
 pub mod item;
 
-// Reexports
-pub use item::{Consumable, DebugKind, Item, ItemKind, SwordKind, ToolData, ToolKind};
-
 use crate::assets;
+use item::{Consumable, Item, ItemKind};
 use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs_idvs::IDVStorage;
 use std::ops::Not;

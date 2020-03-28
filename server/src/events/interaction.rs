@@ -3,7 +3,8 @@ use crate::{
     Server,
 };
 use common::{
-    assets, comp,
+    assets,
+    comp::{self, item},
     msg::ServerMsg,
     sync::{Uid, WorldSyncExt},
 };
@@ -85,7 +86,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     .or_insert(comp::Loadout::default());
 
                 let item = assets::load_expect_cloned::<comp::Item>("common.items.debug.possess");
-                if let comp::ItemKind::Tool(tool) = item.kind {
+                if let item::ItemKind::Tool(tool) = item.kind {
                     let mut abilities = tool.get_abilities();
                     let mut ability_drain = abilities.drain(..);
                     loadout.active_item = Some(comp::ItemConfig {
