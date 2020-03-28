@@ -2,7 +2,7 @@ Item(
     name: "Weightless Rod",
     description: "The sky is the limit.",
     kind: Tool(
-        ToolData (
+        (
             kind: Debug(Boost),
             equip_time_millis: 0,            
         )
