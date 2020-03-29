@@ -549,22 +549,6 @@ impl FigureMgr {
                                 )
                             },
                         },
-                        CharacterState::TimedCombo(s) => match s.stage {
-                            0 | 2 => anim::character::AlphaAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            ),
-                            _ => anim::character::DashAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            ),
-                        },
                         CharacterState::BasicBlock { .. } => {
                             anim::character::BlockIdleAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),
