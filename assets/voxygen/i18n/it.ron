@@ -1,0 +1,559 @@
+/// Translation document instructions
+///
+/// In order to keep localization documents readible please follow the following
+/// rules:
+/// - separate the string map sections using a commentary describing the purpose
+///   of the next section
+/// - prepend multi-line strings with a commentary
+/// - append one blank lines after a multi-line strings and two after sections
+///
+/// To add a new language in Veloren, just write an additional `.ron` file in
+/// `assets/voxygen/i18n` and that's it!
+
+
+
+
+/// Localization for "global" Italian
+VoxygenLocalization(
+            metadata: (
+                language_name: "Italiano",
+                language_identifier: "it",
+            ),
+            convert_utf8_to_ascii: false,
+			 fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
+            string_map: {
+                /// Start Common section
+                // Texts used in multiple locations with the same formatting
+                "common.username": "Nome Utente",
+                "common.singleplayer": "Giocatore Singolo",
+                "common.multiplayer": "Multigiocatore",
+                "common.servers": "Server",
+                "common.quit": "Esci",
+                "common.settings": "Impostazioni",
+                "common.languages": "Lingue",
+                "common.interface": "Interfaccia",
+                "common.gameplay": "Gameplay",
+                "common.controls": "Controlli",
+                "common.video": "Video",
+                "common.sound": "Audio",
+                "common.resume": "Riprendi",
+                "common.characters": "Personaggi",
+                "common.close": "Chiudi",
+                "common.yes": "Si",
+                "common.no": "No",
+                "common.back": "Indietro",
+                "common.create": "Crea",
+                "common.okay": "Ok",
+                "common.disclaimer": "Disclaimer",
+                "common.cancel": "Cancella",
+                "common.none": "Nessuno",
+                "common.error": "Errore",
+                "common.fatal_error": "Errore Fatale",
+
+
+
+
+
+                // Message when connection to the server is lost
+                "common.connection_lost": r#"Connessione persa!
+Si è riavviato il server?
+Il client è aggiornato?"#,
+
+
+
+
+
+
+
+
+                "common.races.orc": "Orco",
+                "common.races.human": "Umano",
+                "common.races.dwarf": "Nano",
+                "common.races.elf": "Elfo",
+                "common.races.undead": "Non-Morto",
+                "common.races.danari": "Danari",
+
+
+
+
+                "common.weapons.axe": "Ascia",
+                "common.weapons.sword": "Spada",
+                "common.weapons.staff": "Bastone",
+                "common.weapons.bow": "Arco",
+                "common.weapons.hammer": "Martello",
+                /// End Common section
+
+
+
+
+
+
+
+
+                /// Start Main screen section
+                "main.connecting": "Connessione in corso",
+                "main.creating_world": "Creazione del mondo",
+
+
+
+
+                // Welcome notice that appears the first time Veloren is started
+                "main.notice": r#"Benvenuto nella versione Alpha di Veloren!
+
+
+
+
+Prima di tuffarti nel divertimento, ti preghiamo di tenere a mente che:
+
+
+
+
+- Questa è un’Alpha molto prematura. Aspettati errori, gameplay non completo, meccaniche non rifinite, e funzioni mancanti.
+- Se hai critiche costruttive o errori da segnalare, ci puoi contattare tramite Reddit, GitLab, o il server Discord della nostra community.
+- Veloren è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare, e ridistribuire il gioco come tu desideri (purché il lavoro che ne derivi sia sempre sotto licenza GPL 3).
+- Veloren è un progetto comunitario no-profit, e chiunque ci lavori sopra è un volontario.
+Se ti piace ciò che vedi, sei il benvenuto ad unirti ai team di sviluppo e artistico!
+- 'Voxel RPG' è un genere a sé stante. Gli sparatutto-in-prima-persona venivano considerati cloni di Doom.
+
+
+
+
+Come loro, stiamo cercando di costruire una nicchia. Il gioco non è un clone, e il suo sviluppo divergerà dai giochi esistenti in futuro.
+
+
+
+
+Grazie per aver dedicato del tempo a leggere questo avviso, speriamo che ti divertirai col gioco!
+
+
+
+
+~ Il team di sviluppo di Veloren"#,
+
+
+
+
+                // Login process description
+                "main.login_process": r#"Informazioni sul processo del Login:
+
+
+Se stai avendo problemi nell'accedere:
+
+Notare che hai bisogno di un account
+per giocare su server con autenticazione abilitata.
+
+Puoi creare un account su
+
+https://account.veloren.net."#,
+        "main.login.server_not_found": "Server non trovato",
+        "main.login.authentication_error": "Errore di autenticazione server",
+        "main.login.server_full": "Il server è pieno",
+        "main.login.untrusted_auth_server": "Server di autenticazione non affidabile",
+        "main.login.outdated_client_or_server": "Il server è impazzito: Probabilmente le versioni sono incompatibili, controlla per degli aggiornamenti",
+        "main.login.timeout": "Tempo scaduto: Il server non ha risposto in tempo. (In sovraccarico o problemi di rete)",
+        "main.login.server_shut_down": "Il server è stato chiuso",
+        "main.login.already_logged_in": "Hai già effettuato l'accesso al server",
+        "main.login.network_error": "Errore di rete",
+        "main.login.failed_sending_request": "Richiesta ai server di autenticazione fallita",
+        "main.login.client_crashed": "Il client si è arrestato",
+
+
+
+
+
+
+
+
+
+                /// End Main screen section
+
+
+
+
+
+
+
+
+                /// Start HUD Section
+                "hud.do_not_show_on_startup": "Non mostrare all’avvio",
+                "hud.show_tips": "Mostra consigli",
+                "hud.quests": "Missioni",
+                "hud.you_died": "Sei Morto",
+                
+                "hud.press_key_to_show_keybindings_fmt": "Premi {key} per mostrare le scorciatoie da tastiera",
+                "hud.press_key_to_show_debug_info_fmt": "Premi {key} per mostrare le informazioni di debug",
+                "hud.press_key_to_toggle_keybindings_fmt": "Premi {key} per attivare/disattivare le scorciatoie da tastiera",
+                "hud.press_key_to_toggle_debug_info_fmt": "Premi {key} per attivare/disattivare le informazioni di debug",
+
+
+
+
+                // Respawn message
+                "hud.press_key_to_respawn": r#"Premi {key} per rinascere al tuo Waypoint.
+
+
+
+
+Premi Invio, scrivi /waypoint e conferma per impostarlo qui."#,
+
+
+
+
+                // Welcome message
+                "hud.welcome": r#"Benvenuto nell’Alpha di Veloren!
+
+
+
+
+Alcuni consigli prima di cominciare:
+
+
+MOLTO IMPORTANTE: Per impostare il tuo punto di rinascita scrivi /waypoint
+
+
+nella chat.
+
+
+Ciò può essere fatto anche se sei già morto!
+
+
+
+
+Premi F1 per vedere i comandi chiave disponibili.
+
+
+Scrivi /help nella chat per vedere i comandi della chat.
+
+
+
+
+Ci sono forzieri e altri oggetti che appaiono casualmente nel Mondo!
+
+
+Clicca col tasto destro del mouse per raccoglierli.
+
+
+Per usare qualsiasi cosa tu ottenga da quei forzieri apri il tuo inventario con 'B'.
+
+
+Fai doppio click sugli oggetti nella tua borsa per usarli o equipaggiarli.
+
+
+Gettali via cliccandoci una volta sopra e una volta fuori dall’inventario.
+
+
+
+
+Le notti possono essere molto buie in Veloren.
+
+
+Accendi la tua lanterna scrivendo /lantern nella chat.
+
+
+
+
+Vuoi sbloccare il cursore per chiudere questa finestra? Premi TAB!
+
+
+
+
+Goditi il tuo soggiorno nel Mondo di Veloren."#,
+
+
+
+
+                "hud.settings.general": "Generale",
+                "hud.settings.none": "Nessuno",
+                "hud.settings.press_behavior.toggle": "Attiva/Disattiva"
+                "hud.settings.press_behavior.hold": "Tieni Premuto",
+                "hud.settings.help_window": "Finestra di Aiuto",
+                "hud.settings.debug_info": "Informazioni di Debug",
+                "hud.settings.tips_on_startup": "Consigli all’Avvio",
+                "hud.settings.ui_scale": "Proporzione Interfaccia",
+                "hud.settings.relative_scaling": "Proporzione Relativa",
+                "hud.settings.custom_scaling": "Proporzione Person.",
+                "hud.settings.crosshair": "Mirino",
+                "hud.settings.transparency": "Trasparenza",
+                "hud.settings.hotbar": "Barra Veloce",
+                "hud.settings.toggle_shortcuts": "Attivare/Disattivare Scorciatoie",
+                "hud.settings.toggle_bar_experience": "Attivare/Disattivare Barra dell’Esperienza",
+                "hud.settings.scrolling_combat_text": "Testo di Combattimento Scorrevole",
+                "hud.settings.single_damage_number": "Danno Nemico (Singolo)",
+                "hud.settings.cumulated_damage": "Danno Nemico (Cumulativo)",
+                "hud.settings.incoming_damage": "Danno Giocatore (Singolo)",
+                "hud.settings.cumulated_incoming_damage": "Danno Giocatore (Cumulativo)",
+                "hud.settings.energybar_numbers": "Numeri Barra dell’Energia",
+                "hud.settings.values": "Valori",
+                "hud.settings.percentages": "Percentuali",
+                "hud.settings.chat": "Chat",
+                "hud.settings.background_transparency": "Trasparenza dello Sfondo",
+                "hud.settings.none": "Nessuno",
+
+
+
+
+                "hud.settings.pan_sensitivity": "Sensibilità Camera",
+                "hud.settings.zoom_sensitivity": "Sensibilità Zoom",
+                "hud.settings.invert_scroll_zoom": "Zoom Invertito",
+                "hud.settings.invert_mouse_y_axis": "Asse Y del Mouse Invertito",
+                "hud.settings.free_look_behavior": "Comportamento Visuale Libera"
+
+
+
+
+                "hud.settings.view_distance": "Distanza Oggetto",
+                "hud.settings.maximum_fps": "FPS Massimi",
+                "hud.settings.fov": "Campo Visivo (gradi)",
+                "hud.settings.gamma": "Gamma",
+                "hud.settings.antialiasing_mode": "Modalità AntiAliasing",
+                "hud.settings.cloud_rendering_mode": "Modalità Renderizzazione Nuvole",
+                "hud.settings.fluid_rendering_mode": "Modalità Renderizzazione Fluido",
+                "hud.settings.fluid_rendering_mode.cheap": "Economico",
+                "hud.settings.fluid_rendering_mode.shiny": "Lucente",
+                "hud.settings.cloud_rendering_mode.regular": "Regolare",
+                    "hud.settings.fullscreen": "Schermo Intero",
+                    "hud.settings.save_window_size": "Salva dimensione finestra",
+
+
+
+
+                "hud.settings.music_volume": "Volume Musica",
+                "hud.settings.sound_effect_volume": "Volume Effetti Sonori",
+                "hud.settings.audio_device": "Dispositivo Audio",
+
+
+
+
+                // Control list
+                "hud.settings.control_names": r#"Cursore Libero
+Attiva/Disattiva Finestra di Aiuto
+Attiva/Disattiva Interfaccia
+Attiva/Disattiva FPS e Informazioni di Debug
+Scatta Screenshot
+Attiva/Disattiva Nomi
+Attiva/Disattiva Schermo Intero
+
+
+
+
+Movimento in Avanti
+Movimento a Sinistra
+Movimento a Destra
+Movimento all’Indietro
+
+
+Salto
+
+
+Aliante
+
+
+Schivata
+
+
+Rotolata
+
+
+Scalata
+
+
+Discesa
+
+
+Camminata Automatica
+
+
+Riporre/Sfoderare Armi
+
+
+Mettere/Rimuovere Elmo
+
+
+Sedersi
+
+
+Cavalcatura
+
+
+Interagire
+
+
+
+
+Attacco Base
+Attacco Secondario/Parata/Mira
+
+
+
+
+Slot 1 Barra delle Abilità
+Slot 2 Barra delle Abilità
+Slot 3 Barra delle Abilità
+Slot 4 Barra delle Abilità
+Slot 5 Barra delle Abilità
+Slot 6 Barra delle Abilità
+Slot 7 Barra delle Abilità
+Slot 8 Barra delle Abilità
+Slot 9 Barra delle Abilità
+Slot 10 Barra delle Abilità
+
+
+
+
+Menù di Pausa
+Impostazioni
+Social
+Mappa
+Libro degli Incantesimi
+Personaggio
+Diario delle Missioni
+Borsa
+
+
+
+
+
+
+Invia Messaggio nella Chat
+Scorrimento della Chat
+
+
+
+Camera Libera
+
+
+
+Comandi della Chat:  
+
+
+
+
+/alias [Name] - Cambia il tuo Nome nella Chat   
+/tp [Name] - Ti teleporta da un altro giocatore    
+/jump <dx> <dy> <dz> - Devia la tua posizione
+/goto <x> <y> <z> - Ti teleporta in una posizione  
+/kill - Suicidati   
+/pig - Fai apparire un maiale PNG    
+/wolf - Fai apparire un lupo PNG  
+/help - Mostra comandi della Chat
+
+
+"#,
+
+
+
+
+                "hud.social": "Social",
+                "hud.social.online": "Online",
+                "hud.social.friends": "Amici",
+                "hud.social.not_yet_available": "Non ancora disponibile",
+                "hud.social.Faction": "Fazione",
+                "hud.social.play_online_fmt": "{nb_player} giocatore/i online",
+
+
+
+
+                "hud.spell": "Incantesimo",
+                
+                "hud.free_look_indicator": "Visuale Libera Attiva"
+                /// End HUD section
+
+
+
+
+
+
+
+
+                /// Start character selection section
+                "char_selection.delete_permanently": "Eliminare permanente questo Personaggio?",
+                "char_selection.change_server": "Cambia Server",
+                "char_selection.enter_world": "Unisciti al Mondo",
+                "char_selection.logout": "Disconnettiti",
+                "char_selection.create_new_charater": "Crea un nuovo Personaggio",
+                "char_selection.character_creation": "Creazione Personaggio",
+
+
+
+
+                "char_selection.human_default": "Umano Predefinito",
+                "char_selection.level_fmt": "Livello {level_nb}",
+                "char_selection.uncanny_valley": "Valle Perturbante",
+                "char_selection.plains_of_uncertainty": "Pianure dell'Incertezza",
+                "char_selection.beard": "Barba",
+                "char_selection.hair_style": "Stile Capelli",
+                "char_selection.hair_color": "Colore Capelli",
+                "char_selection.chest_color": "Colore Torace",
+                "char_selection.eye_color": "Colore Occhi",
+                "char_selection.skin": "Pelle",
+                "char_selection.eyebrows": "Sopracciglia",
+                "char_selection.accessories": "Accessori",
+
+
+
+
+                /// End chracter selection section
+
+
+
+
+
+
+
+
+                /// Start character window section
+                "character_window.character_name": "Nome Personaggio",
+                // Charater stats
+                "character_window.character_stats": r#"Stamina
+
+
+
+
+Vitalità
+
+
+
+
+Volontà
+"#,
+
+
+
+
+
+
+
+
+                /// Start character window section
+                
+
+
+
+
+                /// Start Escape Menu Section
+                "esc_menu.logout": "Disconnettiti",
+                "esc_menu.quit_game": "Esci dal Gioco",
+                /// End Escape Menu Section
+            }
+)
