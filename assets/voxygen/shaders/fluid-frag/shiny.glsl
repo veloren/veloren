@@ -104,7 +104,6 @@ void main() {
 	vec3 point_light = light_at(f_pos, norm);
 	light += point_light;
 	diffuse_light += point_light;
-	vec3 surf_color = srgb_to_linear(vec3(0.1)) * light * diffuse_light * ambient_light;
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
@@ -117,11 +116,11 @@ void main() {
 	vec4 _clouds;
 	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
 	// Tint
-	reflect_color = mix(reflect_color, surf_color, 0.6);
+	reflect_color = reflect_color * 0.5 * (diffuse_light + ambient_light);
 	// 0 = 100% reflection, 1 = translucent water
-	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 1.0);
+	float passthrough = dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag);
 
-	vec4 color = mix(vec4(reflect_color, 1.0), vec4(surf_color, 1.0 / (1.0 + diffuse_light * 0.25)), passthrough);
+	vec4 color = mix(vec4(reflect_color, 1.0), vec4(vec3(0), 1.0 / (1.0 + diffuse_light * 0.25)), passthrough);
 
     tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
 }
