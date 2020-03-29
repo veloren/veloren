@@ -41,11 +41,6 @@ pub enum CharacterAbility {
     },
     BasicBlock,
     Roll,
-    TimedCombo {
-        buildup_duration: Duration,
-        recover_duration: Duration,
-        base_damage: u32,
-    },
     TripleStrike {
         base_damage: u32,
         needs_timing: bool,
@@ -57,7 +52,7 @@ impl CharacterAbility {
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
-            CharacterAbility::TimedCombo { .. } | CharacterAbility::TripleStrike { .. } => {
+            CharacterAbility::TripleStrike { .. } => {
                 data.physics.on_ground
                     && data.body.is_humanoid()
                     && data.inputs.look_dir.xy().magnitude_squared() > 0.01
@@ -168,18 +163,6 @@ impl From<&CharacterAbility> for CharacterState {
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
                 remaining_duration: Duration::from_millis(500),
                 was_wielded: false, // false by default. utils might set it to true
-            }),
-            CharacterAbility::TimedCombo {
-                buildup_duration,
-                recover_duration,
-                base_damage,
-            } => CharacterState::TimedCombo(timed_combo::Data {
-                buildup_duration: *buildup_duration,
-                recover_duration: *recover_duration,
-                stage: 0,
-                stage_exhausted: false,
-                stage_time_active: Duration::default(),
-                base_damage: *base_damage,
             }),
             CharacterAbility::TripleStrike {
                 base_damage,

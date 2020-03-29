@@ -56,9 +56,6 @@ pub enum CharacterState {
     Boost(boost::Data),
     /// Dash forward and then attack
     DashMelee(dash_melee::Data),
-    /// A three-stage attack where play must click at appropriate times
-    /// to continue attack chain.
-    TimedCombo(timed_combo::Data),
     /// A three-stage attack where each attack pushes player forward
     /// and successive attacks increase in damage, while player holds button.
     TripleStrike(triple_strike::Data),
@@ -72,7 +69,6 @@ impl CharacterState {
             | CharacterState::BasicRanged(_)
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_)
-            | CharacterState::TimedCombo(_)
             | CharacterState::BasicBlock => true,
             _ => false,
         }
@@ -89,7 +85,6 @@ impl CharacterState {
         match self {
             CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
-            | CharacterState::TimedCombo(_)
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_) => true,
             _ => false,
