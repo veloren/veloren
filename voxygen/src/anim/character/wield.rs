@@ -1,7 +1,6 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
-
 use vek::*;
 
 pub struct WieldAnimation;
@@ -96,15 +95,15 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(0.5)
                     * Quaternion::rotation_z(-0.27);
                 next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.offset = Vec3::new(11.0, 9.0, 10.0);
+                next.main.offset = Vec3::new(9.2, 8.4, 13.2);
                 next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(3.14 + 0.3)
                     * Quaternion::rotation_z(0.9);
                 next.main.scale = Vec3::one();
 
-                next.control.offset = Vec3::new(-7.0, 6.0, 6.0);
+                next.control.offset = Vec3::new(-14.0, 1.8, 3.0);
                 next.control.ori = Quaternion::rotation_x(ultra_slow * 0.2)
-                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_y(-0.2)
                     * Quaternion::rotation_z(ultra_slow_cos * 0.1);
                 next.control.scale = Vec3::one();
             },
