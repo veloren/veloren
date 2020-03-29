@@ -1,6 +1,9 @@
 mod econ;
 
-use std::ops::Range;
+use std::{
+    ops::Range,
+    hash::Hash,
+};
 use hashbrown::{HashMap, HashSet};
 use vek::*;
 use rand::prelude::*;
@@ -137,7 +140,7 @@ impl Civs {
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         let site = attempt(5, || {
             let loc = find_site_loc(ctx, None)?;
-            self.establish_site(ctx, loc, SiteKind::Settlement(Settlement::civ_birthplace()))
+            self.establish_site(ctx, loc)
         })?;
 
         let civ = self.civs.insert(Civ {
@@ -191,7 +194,7 @@ impl Civs {
         Some(place)
     }
 
-    fn establish_site(&mut self, ctx: &mut GenCtx<impl Rng>, loc: Vec2<i32>, kind: SiteKind) -> Option<Id<Site>> {
+    fn establish_site(&mut self, ctx: &mut GenCtx<impl Rng>, loc: Vec2<i32>) -> Option<Id<Site>> {
         const SITE_AREA: Range<usize> = 64..256;
 
         let place = match ctx.sim.get(loc).and_then(|site| site.place) {
@@ -200,9 +203,16 @@ impl Civs {
         };
 
         let site = self.sites.insert(Site {
-            kind,
+            kind: SiteKind::Settlement,
             center: loc,
             place: place,
+
+            population: 24.0,
+            labor: MapVec::default(),
+            output: MapVec::default(),
+            stocks: Stocks::default(),
+            trade_states: Stocks::default(),
+            coin: 1000.0,
         });
 
         // Find neighbors
@@ -214,7 +224,7 @@ impl Civs {
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        for (nearby, _) in nearby.into_iter() {
+        for (nearby, _) in nearby.into_iter().take(5) {
             // Find a novel path
             if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {
                 // Find a path using existing paths
@@ -242,9 +252,7 @@ impl Civs {
     fn tick(&mut self, ctx: &mut GenCtx<impl Rng>, years: f32) {
         // Collect stocks
         for site in self.sites.iter_mut() {
-            if let SiteKind::Settlement(s) = &mut site.kind {
-                s.collect_stocks(years, &self.places.get(site.place).nat_res);
-            }
+            site.collect_stocks(years, &self.places.get(site.place).nat_res);
         }
 
         // Trade stocks
@@ -253,10 +261,9 @@ impl Civs {
         for stock in stocks.iter().copied() {
             let mut sell_orders = self.sites
                 .iter_ids()
-                .filter_map(|(id, site)| site.as_settlement().map(|s| (id, s)))
-                .map(|(id, settlement)| (id, econ::SellOrder {
-                    quantity: settlement.trade_states[stock].surplus.min(settlement.stocks[stock]),
-                    price: settlement.trade_states[stock].sell_belief.choose_price(ctx),
+                .map(|(id, site)| (id, econ::SellOrder {
+                    quantity: site.trade_states[stock].surplus.min(site.stocks[stock]),
+                    price: site.trade_states[stock].sell_belief.choose_price(ctx) * 1.5, // Transport cost of 1.5x
                     q_sold: 0.0,
                 }))
                 .filter(|(_, order)| order.quantity > 0.0)
@@ -264,15 +271,15 @@ impl Civs {
 
             let mut sites = self.sites
                 .ids()
-                .filter(|id| self.sites.get(*id).as_settlement().is_some())
                 .collect::<Vec<_>>();
             sites.shuffle(ctx.rng); // Give all sites a chance to buy first
             for site in sites {
                 let (max_spend, max_price) = {
-                    let settlement = self.sites.get(site).as_settlement().unwrap();
+                    let site = self.sites.get(site);
+                    let budget = site.coin * 0.5;
                     (
-                        settlement.trade_states[stock].purchase_priority * settlement.coin,
-                        settlement.trade_states[stock].buy_belief.price,
+                        (site.trade_states[stock].purchase_priority * budget).min(budget),
+                        site.trade_states[stock].buy_belief.price,
                     )
                 };
                 let (quantity, spent) = econ::buy_units(ctx, sell_orders
@@ -283,82 +290,28 @@ impl Civs {
                     1000000.0, // Max price TODO
                     max_spend,
                 );
-                let mut settlement = self.sites.get_mut(site).as_settlement_mut().unwrap();
-                settlement.coin -= spent;
+                let mut site = self.sites.get_mut(site);
+                site.coin -= spent;
                 if quantity > 0.0 {
-                    settlement.stocks[stock] += quantity;
-                    settlement.trade_states[stock].buy_belief.update_buyer(years, spent / quantity);
-                    println!("Belief: {:?}", settlement.trade_states[stock].buy_belief);
+                    site.stocks[stock] += quantity;
+                    site.trade_states[stock].buy_belief.update_buyer(years, spent / quantity);
+                    println!("Belief: {:?}", site.trade_states[stock].buy_belief);
                 }
             }
 
             for (site, order) in sell_orders {
-                let mut settlement = self.sites.get_mut(site).as_settlement_mut().unwrap();
-                settlement.coin += order.q_sold * order.price;
+                let mut site = self.sites.get_mut(site);
+                site.coin += order.q_sold * order.price;
                 if order.q_sold > 0.0 {
-                    settlement.stocks[stock] -= order.q_sold;
-                    settlement.trade_states[stock].sell_belief.update_seller(order.q_sold / order.quantity);
+                    site.stocks[stock] -= order.q_sold;
+                    site.trade_states[stock].sell_belief.update_seller(order.q_sold / order.quantity);
                 }
             }
         }
-
-        // Trade stocks
-        /*
-        let mut sites = self.sites.ids().collect::<Vec<_>>();
-        sites.shuffle(ctx.rng); // Give all sites a chance to buy first
-        for site in sites {
-            let mut stocks = [FOOD, WOOD, ROCK];
-            stocks.shuffle(ctx.rng); // Give each stock a chance to be traded first
-            for stock in stocks.iter().copied() {
-                if self.sites.get(site).as_settlement().is_none() {
-                    continue;
-                }
-
-                let settlement = self.sites.get(site).as_settlement().unwrap();
-                let quantity_to_buy = settlement.trade_states[stock].buy_q;
-                let mut bought_quantity = 0.0;
-                let mut coin = settlement.coin;
-                drop(settlement);
-                let mut sell_orders = self
-                    .neighbors(site)
-                    .collect::<Vec<_>>()
-                    .into_iter()
-                    .filter_map(|n| self.sites.get(n).as_settlement().map(|s| (n, s)))
-                    .map(|(n, neighbor)| {
-                        // TODO: Add speculation, don't use the domestic value to rationalise price
-                        let trade_state = &neighbor.trade_states[stock];
-                        let sell_q = trade_state.sell_q.min(neighbor.stocks[stock]);
-                        (n, trade_state.domestic_value, sell_q)
-                    })
-                    .collect::<Vec<_>>();
-                sell_orders.sort_by_key(|(_, price, _)| (*price * 1000.0) as i64);
-
-                for (n, price, sell_q) in sell_orders {
-                    if bought_quantity >= quantity_to_buy {
-                        break;
-                    } else {
-                        let buy_quantity = (quantity_to_buy - bought_quantity).min(sell_q).min(coin / price);
-                        let payment = buy_quantity * price;
-                        bought_quantity += buy_quantity;
-                        coin -= payment;
-                        let mut neighbor = self.sites.get_mut(n).as_settlement_mut().unwrap();
-                        neighbor.stocks[stock] -= buy_quantity;
-                        neighbor.coin += payment;
-                    }
-                }
-
-                let mut settlement = self.sites.get_mut(site).as_settlement_mut().unwrap();
-                settlement.stocks[stock] += bought_quantity;
-                settlement.coin = coin;
-            }
-        }
-        */
 
         // Consume stocks
         for site in self.sites.iter_mut() {
-            if let SiteKind::Settlement(s) = &mut site.kind {
-                s.consume_stocks(years);
-            }
+            site.consume_stocks(years);
         }
     }
 }
@@ -473,7 +426,7 @@ impl NaturalResources {
 
         self.wood += chunk.tree_density;
         self.stone += chunk.rockiness;
-        self.river += if chunk.river.is_river() { 1.0 } else { 0.0 };
+        self.river += if chunk.river.is_river() { 5.0 } else { 0.0 };
         self.farmland += if
             chunk.humidity > 0.35 &&
             chunk.temp > -0.3 && chunk.temp < 0.75 &&
@@ -495,81 +448,63 @@ pub struct Site {
     kind: SiteKind,
     center: Vec2<i32>,
     pub place: Id<Place>,
-}
 
-impl Site {
-    pub fn as_settlement(&self) -> Option<&Settlement> {
-        if let SiteKind::Settlement(s) = &self.kind {
-            Some(s)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_settlement_mut(&mut self) -> Option<&mut Settlement> {
-        if let SiteKind::Settlement(s) = &mut self.kind {
-            Some(s)
-        } else {
-            None
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum SiteKind {
-    Settlement(Settlement),
-}
-
-#[derive(Debug)]
-pub struct Settlement {
     population: f32,
+    labor: MapVec<Occupation, f32>,
+    output: MapVec<Occupation, f32>,
     stocks: Stocks<f32>,
     trade_states: Stocks<TradeState>,
     coin: f32,
 }
 
-impl Settlement {
-    pub fn civ_birthplace() -> Self {
-        Self {
-            population: 24.0,
-            stocks: Stocks::default(),
-            trade_states: Stocks::default(),
-            coin: 1000.0,
-        }
-    }
+#[derive(Debug)]
+pub enum SiteKind {
+    Settlement,
+}
 
+impl Site {
     pub fn collect_stocks(&mut self, years: f32, nat_res: &NaturalResources) {
         // Per labourer, per year
         let collection_rate = Stocks::from_list(&[
-            (FOOD, 2.0),
-            (ROCK, 0.6),
-            (WOOD, 1.5),
+            (FARMER, 2.0),
+            (LUMBERJACK, 1.5),
+            (MINER, 0.6),
+            (FISHER, 5.0),
         ]);
 
-        // Proportion of the population dedicated to each task
-        let workforce_ratios = Stocks::from_list(&[
-            (FOOD, self.trade_states[FOOD].domestic_value),
-            (ROCK, self.trade_states[ROCK].domestic_value),
-            (WOOD, self.trade_states[WOOD].domestic_value),
+        // Proportion of the population dedicated to each task (output * price)
+        let labor_ratios = Stocks::from_list(&[
+            (FARMER, self.output[FARMER] * self.trade_states[FOOD].domestic_value),
+            (LUMBERJACK, self.output[LUMBERJACK] * self.trade_states[WOOD].domestic_value),
+            (MINER, self.output[MINER] * self.trade_states[ROCK].domestic_value),
+            (FISHER, self.output[FISHER] * self.trade_states[FOOD].domestic_value),
         ]);
-        // Normalise workforce proportions
-        let wf_total = workforce_ratios.iter().map(|(_, r)| *r).sum::<f32>();
-        let workforce = workforce_ratios.map(|stock, r| r / wf_total * self.population);
 
-        self.stocks[FOOD] += years * (workforce[FOOD] * collection_rate[FOOD] + nat_res.farmland * 0.01).min(nat_res.farmland);
-        self.stocks[ROCK] += years * (workforce[ROCK] * collection_rate[ROCK] + nat_res.stone * 0.01).min(nat_res.stone);
-        self.stocks[WOOD] += years * (workforce[WOOD] * collection_rate[WOOD] + nat_res.wood * 0.01).min(nat_res.wood);
+        // Normalise workforce proportions (so we aren't over-allocating our workforce)
+        let wf_total = labor_ratios.iter().map(|(_, r)| *r).sum::<f32>();
+        if wf_total == 0.0 { // 0 output doesn't mean NaNs
+            let n = labor_ratios.iter().count() as f32;
+            self.labor = labor_ratios.map(|stock, _| self.population / n);
+        } else {
+            self.labor = labor_ratios.map(|stock, r| r / wf_total * self.population);
+        }
 
-        println!("{:?}", nat_res);
-        println!("{:?}", self.stocks);
+        self.output[FARMER] = (self.labor[FARMER] * collection_rate[FARMER] + nat_res.farmland * 0.01).min(nat_res.farmland);
+        self.output[LUMBERJACK] = (self.labor[LUMBERJACK] * collection_rate[LUMBERJACK] + nat_res.wood * 0.01).min(nat_res.wood);
+        self.output[MINER] = (self.labor[MINER] * collection_rate[MINER] + nat_res.stone * 0.01).min(nat_res.stone);
+        self.output[FISHER] = (self.labor[FISHER] * collection_rate[FISHER] + nat_res.river * 0.01).min(nat_res.river);
+
+        self.stocks[FOOD] += years * self.output[FARMER];
+        self.stocks[WOOD] += years * self.output[LUMBERJACK];
+        self.stocks[ROCK] += years * self.output[MINER];
+        self.stocks[FOOD] += years * self.output[FISHER];
     }
 
     pub fn consume_stocks(&mut self, years: f32) {
-        const EAT_RATE: f32 = 0.5;
+        const EAT_RATE: f32 = 1.0;
         const USE_WOOD_RATE: f32 = 0.75;
-        const BIRTH_RATE: f32 = 0.1;
-
-        self.population += years * BIRTH_RATE;
+        const BIRTH_RATE: f32 = 0.15;
+        const DEATH_RATE: f32 = 0.05;
 
         let required = Stocks::from_list(&[
             (FOOD, self.population as f32 * years * EAT_RATE),
@@ -583,8 +518,12 @@ impl Settlement {
         // Deplete stocks
         self.stocks.iter_mut().for_each(|(stock, v)| *v = (*v - required[stock]).max(0.0));
 
+        // Births
+        self.population += years * self.population * BIRTH_RATE;
+
         // Kill people
-        self.population = (self.population - deficit[FOOD] * years * EAT_RATE).max(0.0);
+        self.population -= years * self.population * DEATH_RATE; // Natural death rate
+        self.population = (self.population - deficit[FOOD] * years * EAT_RATE).max(0.0); // Starvation
 
         // If in deficit, value the stock more
         deficit.iter().for_each(|(stock, deficit)| {
@@ -610,6 +549,12 @@ impl Settlement {
         self.trade_states.iter_mut().for_each(|(_, ts)| ts.purchase_priority /= pp_avg);
     }
 }
+
+type Occupation = &'static str;
+const FARMER: Occupation = "farmer";
+const LUMBERJACK: Occupation = "lumberjack";
+const MINER: Occupation = "miner";
+const FISHER: Occupation = "fisher";
 
 type Stock = &'static str;
 const FOOD: Stock = "food";
@@ -644,15 +589,17 @@ impl Default for TradeState {
     }
 }
 
+pub type Stocks<T> = MapVec<Stock, T>;
+
 #[derive(Default, Clone, Debug)]
-pub struct Stocks<T> {
-    stocks: HashMap<Stock, T>,
+pub struct MapVec<K, T> {
+    stocks: HashMap<K, T>,
     zero: T,
 }
 
-impl<T: Default + Clone> Stocks<T> {
-    pub fn from_list<'a>(i: impl IntoIterator<Item=&'a (Stock, T)>) -> Self
-        where T: 'a
+impl<K: Copy + Eq + Hash, T: Default + Clone> MapVec<K, T> {
+    pub fn from_list<'a>(i: impl IntoIterator<Item=&'a (K, T)>) -> Self
+        where K: 'a, T: 'a
     {
         Self {
             stocks: i.into_iter().cloned().collect(),
@@ -660,38 +607,38 @@ impl<T: Default + Clone> Stocks<T> {
         }
     }
 
-    pub fn get_mut(&mut self, stock: Stock) -> &mut T {
+    pub fn get_mut(&mut self, stock: K) -> &mut T {
         self
             .stocks
             .entry(stock)
             .or_default()
     }
 
-    pub fn get(&self, stock: Stock) -> &T {
+    pub fn get(&self, stock: K) -> &T {
         self.stocks.get(&stock).unwrap_or(&self.zero)
     }
 
-    pub fn map(mut self, mut f: impl FnMut(Stock, T) -> T) -> Self {
+    pub fn map(mut self, mut f: impl FnMut(K, T) -> T) -> Self {
         self.stocks.iter_mut().for_each(|(s, v)| *v = f(*s, std::mem::take(v)));
         self
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=(Stock, &T)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item=(K, &T)> + '_ {
         self.stocks.iter().map(|(s, v)| (*s, v))
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=(Stock, &mut T)> + '_ {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item=(K, &mut T)> + '_ {
         self.stocks.iter_mut().map(|(s, v)| (*s, v))
     }
 }
 
-impl<T: Default + Clone> std::ops::Index<Stock> for Stocks<T> {
+impl<K: Copy + Eq + Hash, T: Default + Clone> std::ops::Index<K> for MapVec<K, T> {
     type Output = T;
-    fn index(&self, stock: Stock) -> &Self::Output { self.get(stock) }
+    fn index(&self, stock: K) -> &Self::Output { self.get(stock) }
 }
 
-impl<T: Default + Clone> std::ops::IndexMut<Stock> for Stocks<T> {
-    fn index_mut(&mut self, stock: Stock) -> &mut Self::Output { self.get_mut(stock) }
+impl<K: Copy + Eq + Hash, T: Default + Clone> std::ops::IndexMut<K> for MapVec<K, T> {
+    fn index_mut(&mut self, stock: K) -> &mut Self::Output { self.get_mut(stock) }
 }
 
 
