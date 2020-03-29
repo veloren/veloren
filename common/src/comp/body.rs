@@ -16,7 +16,7 @@ use crate::{
 };
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
-use std::{fs::File, io::BufReader, sync::Arc};
+use std::{fs::File, io::BufReader};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
@@ -84,7 +84,7 @@ impl<
     const ENDINGS: &'static [&'static str] = &["json"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        serde_json::de::from_reader(buf_reader).map_err(|e| assets::Error::Internal(Arc::new(e)))
+        serde_json::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 

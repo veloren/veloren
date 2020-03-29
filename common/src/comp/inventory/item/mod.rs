@@ -75,7 +75,7 @@ impl Asset for Item {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).unwrap())
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
