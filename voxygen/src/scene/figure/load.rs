@@ -139,7 +139,7 @@ impl Asset for HumHeadSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid head spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -261,49 +261,49 @@ impl Asset for HumArmorShoulderSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor shoulder spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 impl Asset for HumArmorChestSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor chest spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 impl Asset for HumArmorHandSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor hand spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 impl Asset for HumArmorBeltSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor belt spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 impl Asset for HumArmorPantsSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor pants spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 impl Asset for HumArmorFootSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid armor foot spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 impl Asset for HumMainWeaponSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid main weapon spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -667,7 +667,7 @@ impl Asset for QuadrupedSmallCentralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing quad_small central spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -675,7 +675,7 @@ impl Asset for QuadrupedSmallLateralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped small lateral spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -828,7 +828,7 @@ impl Asset for QuadrupedMediumCentralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped medium central spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -836,7 +836,7 @@ impl Asset for QuadrupedMediumLateralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing quadruped medium lateral spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -1074,7 +1074,7 @@ impl Asset for BirdMediumCenterSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing bird medium center spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -1082,7 +1082,7 @@ impl Asset for BirdMediumLateralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing bird medium lateral spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -1232,7 +1232,7 @@ impl Asset for CritterCenterSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing critter center spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -1587,7 +1587,7 @@ impl Asset for BipedLargeCenterSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing biped large center spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
@@ -1595,7 +1595,7 @@ impl Asset for BipedLargeLateralSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing biped large lateral spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 

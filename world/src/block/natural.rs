@@ -87,7 +87,7 @@ impl Asset for StructuresSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing structure specs"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 
