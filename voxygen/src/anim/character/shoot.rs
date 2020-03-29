@@ -67,7 +67,7 @@ impl Animation for ShootAnimation {
                     * Quaternion::rotation_y(0.5)
                     * Quaternion::rotation_z(-0.27);
                 next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.offset = Vec3::new(11.0, 9.0, 10.0);
+                next.main.offset = Vec3::new(9.2, 8.4, 13.2);
                 next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(3.14 + 0.3)
                     * Quaternion::rotation_z(0.9);
