@@ -68,7 +68,7 @@ bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "65571ade0d954a0e0bd995fdb314854ff146ab97" }
-const-tweaker = { version = "0.2.4", optional = true }
+const-tweaker = { version = "0.2.5", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"

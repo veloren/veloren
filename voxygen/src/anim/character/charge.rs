@@ -1,5 +1,6 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
+use std::f32::consts::PI;
 use vek::*;
 
 pub struct ChargeAnimation;
@@ -30,15 +31,21 @@ impl Animation for ChargeAnimation {
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
         let stress = (((5.0)
-            / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 10.0).cos()).powf(2.0 as f32)))
+            / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 20.0).cos()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 20.0).cos());
         let quick = (((5.0)
-            / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 2.0).cos()).powf(2.0 as f32)))
+            / (3.5 + 1.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 2.0).cos());
-
+            * ((anim_time as f32 * lab as f32 * 8.0).sin());
+        let quicka = (((5.0)
+            / (3.5
+                + 1.5
+                    * ((anim_time as f32 * lab as f32 * 8.0 + PI / 2.0).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * lab as f32 * 8.0 + PI / 2.0).sin());
         let stop = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
+        let stopa = ((anim_time as f32).powf(0.9 as f32)).min(5.0);
 
         next.head.offset = Vec3::new(
             0.0 + stop * -2.0 + skeleton_attr.neck_right,
@@ -75,16 +82,20 @@ impl Animation for ChargeAnimation {
                     * Quaternion::rotation_y(0.5)
                     * Quaternion::rotation_z(-0.27);
                 next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.offset = Vec3::new(11.0, 9.0, 10.0);
+                next.main.offset = Vec3::new(9.2, 8.4, 13.2);
                 next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(3.14 + 0.3)
                     * Quaternion::rotation_z(0.9);
                 next.main.scale = Vec3::one();
 
-                next.control.offset = Vec3::new(-7.0, 6.0, 6.0 - quick * 5.0);
-                next.control.ori = Quaternion::rotation_x(quick * 1.3)
+                next.control.offset = Vec3::new(
+                    -7.0 + quick * 3.5 * (1.0 / (stopa + 0.1)),
+                    6.0 + quicka * 3.5 * (1.0 / (stopa + 0.1)),
+                    6.0 - stop * 3.0,
+                );
+                next.control.ori = Quaternion::rotation_x(stop * -0.2)
                     * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(quick * 1.5);
+                    * Quaternion::rotation_z(stop * 0.2);
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Bow(_)) => {
