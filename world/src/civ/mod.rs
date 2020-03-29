@@ -593,7 +593,7 @@ pub type Stocks<T> = MapVec<Stock, T>;
 
 #[derive(Default, Clone, Debug)]
 pub struct MapVec<K, T> {
-    stocks: HashMap<K, T>,
+    entries: HashMap<K, T>,
     zero: T,
 }
 
@@ -602,43 +602,43 @@ impl<K: Copy + Eq + Hash, T: Default + Clone> MapVec<K, T> {
         where K: 'a, T: 'a
     {
         Self {
-            stocks: i.into_iter().cloned().collect(),
+            entries: i.into_iter().cloned().collect(),
             zero: T::default(),
         }
     }
 
-    pub fn get_mut(&mut self, stock: K) -> &mut T {
+    pub fn get_mut(&mut self, entry: K) -> &mut T {
         self
-            .stocks
-            .entry(stock)
+            .entries
+            .entry(entry)
             .or_default()
     }
 
-    pub fn get(&self, stock: K) -> &T {
-        self.stocks.get(&stock).unwrap_or(&self.zero)
+    pub fn get(&self, entry: K) -> &T {
+        self.entries.get(&entry).unwrap_or(&self.zero)
     }
 
     pub fn map(mut self, mut f: impl FnMut(K, T) -> T) -> Self {
-        self.stocks.iter_mut().for_each(|(s, v)| *v = f(*s, std::mem::take(v)));
+        self.entries.iter_mut().for_each(|(s, v)| *v = f(*s, std::mem::take(v)));
         self
     }
 
     pub fn iter(&self) -> impl Iterator<Item=(K, &T)> + '_ {
-        self.stocks.iter().map(|(s, v)| (*s, v))
+        self.entries.iter().map(|(s, v)| (*s, v))
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item=(K, &mut T)> + '_ {
-        self.stocks.iter_mut().map(|(s, v)| (*s, v))
+        self.entries.iter_mut().map(|(s, v)| (*s, v))
     }
 }
 
 impl<K: Copy + Eq + Hash, T: Default + Clone> std::ops::Index<K> for MapVec<K, T> {
     type Output = T;
-    fn index(&self, stock: K) -> &Self::Output { self.get(stock) }
+    fn index(&self, entry: K) -> &Self::Output { self.get(entry) }
 }
 
 impl<K: Copy + Eq + Hash, T: Default + Clone> std::ops::IndexMut<K> for MapVec<K, T> {
-    fn index_mut(&mut self, stock: K) -> &mut Self::Output { self.get_mut(stock) }
+    fn index_mut(&mut self, entry: K) -> &mut Self::Output { self.get_mut(entry) }
 }
 
 
