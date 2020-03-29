@@ -285,7 +285,9 @@ impl Settlement {
                     .map(|tile| tile.tower = Some(Tower::Wall));
             }
         }
-        wall_path.push(wall_path[0]);
+        if wall_path.len() > 0 {
+            wall_path.push(wall_path[0]);
+        }
         self.land
             .write_path(&wall_path, WayKind::Wall, buildable, true);
     }
