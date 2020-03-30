@@ -62,6 +62,7 @@ VoxygenLocalization(
         "common.back": "Back",
         "common.create": "Create",
         "common.okay": "Okay",
+        "common.accept": "Accept",
         "common.disclaimer": "Disclaimer",
         "common.cancel": "Cancel",
         "common.none": "None",
