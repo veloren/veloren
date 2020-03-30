@@ -682,9 +682,9 @@ dependencies = [
 
 [[package]]
 name = "const-tweaker"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b51e91181af416a58123da1cebf00d2e600296f358d0d69aa14df63956d2753e"
+checksum = "8a7081900ff8f4b89046f8898eb8af6ed26be5a47299c56147d5a7dac74298b0"
 dependencies = [
  "anyhow",
  "async-std",
@@ -698,9 +698,9 @@ dependencies = [
 
 [[package]]
 name = "const-tweaker-attribute"
-version = "0.3.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55cef233d59741e1a93f0363145fe412bd13f64df1827c6c5d709c9403e081fc"
+checksum = "1a43d28ffebd3bb949c8c274de94fb84826134a023c5e6dac528c38a0f1cf1ba"
 dependencies = [
  "darling",
  "proc-macro2 1.0.9",
@@ -4847,7 +4847,8 @@ checksum = "05c78687fb1a80548ae3250346c3db86a80a7cdd77bda190189f2d0a0987c81a"
 [[package]]
 name = "vek"
 version = "0.9.12"
-source = "git+https://github.com/Imberflur/vek?branch=is_normalized#7442254deb67ad6930bedc671057d14ea8e885eb"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b833a133490ae98e9e3db1c77fc28e844f8e51b12eb35b4ab8a2082cb7cb441a"
 dependencies = [
  "approx 0.1.1",
  "num-integer",
@@ -5442,3 +5443,8 @@ name = "xml-rs"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "541b12c998c5b56aa2b4e6f18f03664eef9a4fd0a246a55594efae6cc2d964b5"
+
+[[patch.unused]]
+name = "vek"
+version = "0.10.0"
+source = "git+https://github.com/Imberflur/vek?branch=is_normalized#43bef0a9e953fbf6b00a073aef914c48b784c995"
