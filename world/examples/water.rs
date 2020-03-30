@@ -160,7 +160,9 @@ fn main() {
                         let place = world.civs().place(*id);
                         println!("Place {} info: {:#?}", id.id(), place);
 
-                        println!("Site: {:#?}", world.civs().sites().find(|site| site.place == *id));
+                        if let Some(site) = world.civs().sites().find(|site| site.place == *id) {
+                            println!("Site: {}", site);
+                        }
                     }
                 }
             }
