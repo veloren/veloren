@@ -1948,8 +1948,8 @@ impl Hud {
                 },
                 Some(esc_menu::Event::Close) => {
                     self.show.esc_menu = false;
-                    self.show.want_grab = false;
-                    self.force_ungrab = true;
+                    self.show.want_grab = true;
+                    self.force_ungrab = false;
 
                     // Unpause the game if we are on singleplayer
                     if let Some(singleplayer) = global_state.singleplayer.as_ref() {
