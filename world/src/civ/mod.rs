@@ -211,13 +211,14 @@ impl Civs {
             population: 24.0,
 
             stocks: Stocks::from_default(100.0),
+            surplus: Stocks::from_default(0.0),
             values: Stocks::from_default(None),
 
             labors: MapVec::from_default(0.01),
             yields: MapVec::from_default(1.0),
 
-            //trade_states: Stocks::default(),
-            //coin: 1000.0,
+            trade_states: Stocks::default(),
+            coin: 1000.0,
         });
 
         // Find neighbors
@@ -261,63 +262,67 @@ impl Civs {
         }
 
         // Trade stocks
-        // let mut stocks = [FOOD, WOOD, ROCK];
-        // stocks.shuffle(ctx.rng); // Give each stock a chance to be traded first
-        // for stock in stocks.iter().copied() {
-        //     let mut sell_orders = self.sites
-        //         .iter_ids()
-        //         .map(|(id, site)| (id, econ::SellOrder {
-        //             quantity: site.trade_states[stock].surplus.min(site.stocks[stock]),
-        //             price: site.trade_states[stock].sell_belief.choose_price(ctx) * 1.2, // Transport cost of 1.2x
-        //             q_sold: 0.0,
-        //         }))
-        //         .filter(|(_, order)| order.quantity > 0.0)
-        //         .collect::<Vec<_>>();
+        let mut stocks = TRADE_STOCKS;
+        stocks.shuffle(ctx.rng); // Give each stock a chance to be traded first
+        for stock in stocks.iter().copied() {
+            let mut sell_orders = self.sites
+                .iter_ids()
+                .map(|(id, site)| (id, {
+                    let total_value = site.values.iter().map(|(_, v)| (*v).unwrap_or(0.0)).sum::<f32>();
+                    let quantity = if let Some(val) = site.values[stock] {
+                        ((total_value / val) * site.surplus[stock].max(0.0)).min(site.stocks[stock])
+                    } else {
+                        0.0
+                    };
+                    econ::SellOrder {
+                        quantity,
+                        price: site.trade_states[stock].sell_belief.choose_price(ctx) * 1.25, // Trade cost
+                        q_sold: 0.0,
+                    }
+                }))
+                .filter(|(_, order)| order.quantity > 0.0)
+                .collect::<Vec<_>>();
 
-        //     let mut sites = self.sites
-        //         .ids()
-        //         .collect::<Vec<_>>();
-        //     sites.shuffle(ctx.rng); // Give all sites a chance to buy first
-        //     for site in sites {
-        //         let (max_spend, max_price) = {
-        //             let site = self.sites.get(site);
-        //             let budget = site.coin * 0.5;
-        //             (
-        //                 (site.trade_states[stock].purchase_priority * budget).min(budget),
-        //                 site.trade_states[stock].buy_belief.price,
-        //             )
-        //         };
-        //         let (quantity, spent) = econ::buy_units(ctx, sell_orders
-        //             .iter_mut()
-        //             .filter(|(id, _)| site != *id && self.track_between(site, *id).is_some())
-        //             .map(|(_, order)| order),
-        //             1000000.0, // Max quantity TODO
-        //             1000000.0, // Max price TODO
-        //             max_spend,
-        //         );
-        //         let mut site = self.sites.get_mut(site);
-        //         site.coin -= spent;
-        //         if quantity > 0.0 {
-        //             site.stocks[stock] += quantity;
-        //             site.trade_states[stock].buy_belief.update_buyer(years, spent / quantity);
-        //             println!("Belief: {:?}", site.trade_states[stock].buy_belief);
-        //         }
-        //     }
+            let mut sites = self.sites
+                .ids()
+                .collect::<Vec<_>>();
+            sites.shuffle(ctx.rng); // Give all sites a chance to buy first
+            for site in sites {
+                let (max_spend, max_price) = {
+                    let site = self.sites.get(site);
+                    let budget = site.coin * 0.5;
+                    let total_value = site.values.iter().map(|(_, v)| (*v).unwrap_or(0.0)).sum::<f32>();
+                    (
+                        (site.values[stock].unwrap_or(0.1) / total_value * budget).min(budget),
+                        site.trade_states[stock].buy_belief.price,
+                    )
+                };
+                let (quantity, spent) = econ::buy_units(ctx, sell_orders
+                    .iter_mut()
+                    .filter(|(id, _)| site != *id && self.track_between(site, *id).is_some())
+                    .map(|(_, order)| order),
+                    1000000.0, // Max quantity TODO
+                    1000000.0, // Max price TODO
+                    max_spend,
+                );
+                let mut site = self.sites.get_mut(site);
+                site.coin -= spent;
+                if quantity > 0.0 {
+                    site.stocks[stock] += quantity;
+                    site.trade_states[stock].buy_belief.update_buyer(years, spent / quantity);
+                    println!("Belief: {:?}", site.trade_states[stock].buy_belief);
+                }
+            }
 
-        //     for (site, order) in sell_orders {
-        //         let mut site = self.sites.get_mut(site);
-        //         site.coin += order.q_sold * order.price;
-        //         if order.q_sold > 0.0 {
-        //             site.stocks[stock] -= order.q_sold;
-        //             site.trade_states[stock].sell_belief.update_seller(order.q_sold / order.quantity);
-        //         }
-        //     }
-        // }
-
-        // Consume stocks
-        //for site in self.sites.iter_mut() {
-        //    site.consume_stocks(years);
-        //}
+            for (site, order) in sell_orders {
+                let mut site = self.sites.get_mut(site);
+                site.coin += order.q_sold * order.price;
+                if order.q_sold > 0.0 {
+                    site.stocks[stock] -= order.q_sold;
+                    site.trade_states[stock].sell_belief.update_seller(order.q_sold / order.quantity);
+                }
+            }
+        }
     }
 }
 
@@ -458,6 +463,8 @@ pub struct Site {
 
     // Total amount of each stock
     stocks: Stocks<f32>,
+    // Surplus stock compared to demand orders
+    surplus: Stocks<f32>,
     // For some goods, such a goods without any supply, it doesn't make sense to talk about value
     values: Stocks<Option<f32>>,
 
@@ -466,8 +473,8 @@ pub struct Site {
     // Per worker, per year, of their output good
     yields: MapVec<Occupation, f32>,
 
-    //trade_states: Stocks<TradeState>,
-    //coin: f32,
+    trade_states: Stocks<TradeState>,
+    coin: f32,
 }
 
 impl fmt::Display for Site {
@@ -476,6 +483,7 @@ impl fmt::Display for Site {
             SiteKind::Settlement => writeln!(f, "Settlement")?,
         }
         writeln!(f, "- population: {}", self.population.floor() as u32)?;
+        writeln!(f, "- coin: {}", self.coin.floor() as u32)?;
         writeln!(f, "Stocks")?;
         for (stock, q) in self.stocks.iter() {
             writeln!(f, "- {}: {}", stock, q.floor())?;
@@ -539,16 +547,17 @@ impl Site {
             }
         }
 
-        let surplus = demand.clone().map(|stock, tgt| {
+        self.surplus = demand.clone().map(|stock, tgt| {
             debug_assert!(!self.stocks[stock].is_nan());
             debug_assert!(!demand[stock].is_nan());
             self.stocks[stock] - demand[stock]
         });
 
         // Update values according to the surplus of each stock
-        surplus.iter().for_each(|(stock, surplus)| {
-            let val = 2.5f32.powf(-*surplus / demand[stock]);
-            self.values[stock] = if val > 0.01 && val < 10000.0 { Some(val) } else { None };
+        let values = &mut self.values;
+        self.surplus.iter().for_each(|(stock, surplus)| {
+            let val = 3.5f32.powf(-*surplus / demand[stock]);
+            values[stock] = if val > 0.001 && val < 1000.0 { Some(val) } else { None };
         });
 
         // Per labourer, per year
@@ -580,7 +589,6 @@ impl Site {
 
         // Production
         let stocks_before = self.stocks.clone();
-        self.stocks = Stocks::from_default(0.0);
         for (labor, orders) in orders.iter() {
             let scale = if let Some(labor) = labor { self.labors[*labor] } else { 1.0 } * population;
 
@@ -607,7 +615,7 @@ impl Site {
                 let used = quantity * min_satisfaction;
 
                 // Deplete stocks accordingly
-                //self.stocks[*stock] = (self.stocks[*stock] - used).max(0.0);
+                self.stocks[*stock] = (self.stocks[*stock] - used).max(0.0);
             }
 
             // Industries produce things
@@ -615,16 +623,20 @@ impl Site {
                 let (stock, rate) = production[*labor];
                 let yield_per_worker = min_satisfaction * rate;
                 self.yields[*labor] = yield_per_worker;
-                self.stocks[stock] += yield_per_worker * self.labors[*labor] * population;
+                let workers = self.labors[*labor] * population;
+                self.stocks[stock] += yield_per_worker * workers.powf(1.1);
             }
         }
+
+        // Denature stocks
+        self.stocks.iter_mut().for_each(|(_, v)| *v *= 0.9);
 
         // Births/deaths
         const NATURAL_BIRTH_RATE: f32 = 0.15;
         const DEATH_RATE: f32 = 0.05;
-        debug_assert!(!surplus[FOOD].is_nan());
-        debug_assert!(!surplus[FOOD].is_infinite());
-        let birth_rate = if surplus[FOOD] > 0.0 { NATURAL_BIRTH_RATE } else { 0.0 };
+        debug_assert!(!self.surplus[FOOD].is_nan());
+        debug_assert!(!self.surplus[FOOD].is_infinite());
+        let birth_rate = if self.surplus[FOOD] > 0.0 { NATURAL_BIRTH_RATE } else { 0.0 };
         self.population += years * self.population * (birth_rate - DEATH_RATE);
     }
 }
@@ -648,15 +660,18 @@ const LOGS: Stock = "logs";
 const WOOD: Stock = "wood";
 const ROCK: Stock = "rock";
 const STONE: Stock = "stone";
+const TRADE_STOCKS: [Stock; 5] = [
+    FLOUR,
+    MEAT,
+    FOOD,
+    WOOD,
+    STONE,
+];
 
 #[derive(Debug, Clone)]
 struct TradeState {
     buy_belief: econ::Belief,
     sell_belief: econ::Belief,
-    /// The price/value assigned to the stock by the host settlement
-    domestic_value: f32,
-    surplus: f32,
-    purchase_priority: f32,
 }
 
 impl Default for TradeState {
@@ -670,9 +685,6 @@ impl Default for TradeState {
                 price: 1.0,
                 confidence: 0.25,
             },
-            domestic_value: 1.0,
-            surplus: 0.0,
-            purchase_priority: 1.0,
         }
     }
 }
