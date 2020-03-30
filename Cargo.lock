@@ -1227,7 +1227,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c20f6684a8420df7c300a36bed7cb0b2387b2bc385d4940282399b5df0c08ebd"
 dependencies = [
- "vek",
+ "vek 0.9.12",
 ]
 
 [[package]]
@@ -4243,6 +4243,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c19be23126415861cb3a23e501d34a708f7f9b2183c5252d690941c2e69199d5"
 
 [[package]]
+name = "static_assertions"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
 name = "stb_truetype"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4854,8 +4860,20 @@ dependencies = [
  "num-integer",
  "num-traits 0.1.43",
  "rustc_version",
+ "static_assertions 0.2.5",
+]
+
+[[package]]
+name = "vek"
+version = "0.10.0"
+source = "git+https://github.com/Imberflur/vek?branch=is_normalized#43bef0a9e953fbf6b00a073aef914c48b784c995"
+dependencies = [
+ "approx 0.3.2",
+ "num-integer",
+ "num-traits 0.2.11",
+ "rustc_version",
  "serde",
- "static_assertions",
+ "static_assertions 1.1.0",
 ]
 
 [[package]]
@@ -4880,7 +4898,7 @@ dependencies = [
  "num_cpus",
  "specs",
  "uvth",
- "vek",
+ "vek 0.10.0",
  "veloren-common",
 ]
 
@@ -4913,7 +4931,7 @@ dependencies = [
  "specs",
  "specs-idvs",
  "sum_type",
- "vek",
+ "vek 0.10.0",
 ]
 
 [[package]]
@@ -4938,7 +4956,7 @@ dependencies = [
  "specs",
  "specs-idvs",
  "uvth",
- "vek",
+ "vek 0.10.0",
  "veloren-common",
  "veloren-world",
 ]
@@ -4996,7 +5014,7 @@ dependencies = [
  "specs-idvs",
  "treeculler",
  "uvth",
- "vek",
+ "vek 0.10.0",
  "veloren-client",
  "veloren-common",
  "veloren-server",
@@ -5030,7 +5048,7 @@ dependencies = [
  "roots",
  "serde",
  "serde_derive",
- "vek",
+ "vek 0.10.0",
  "veloren-common",
 ]
 
@@ -5443,8 +5461,3 @@ name = "xml-rs"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "541b12c998c5b56aa2b4e6f18f03664eef9a4fd0a246a55594efae6cc2d964b5"
-
-[[patch.unused]]
-name = "vek"
-version = "0.10.0"
-source = "git+https://github.com/Imberflur/vek?branch=is_normalized#43bef0a9e953fbf6b00a073aef914c48b784c995"
