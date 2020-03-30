@@ -17,6 +17,12 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
+        let anim = assets::load::<Animation<QuadrupedSmallState>>("anims.quadruped_small.run");
+
+
+
+
+
         let slow = (anim_time as f32 * 14.0).sin();
         let fast = (anim_time as f32 * 20.0).sin();
         let fast_alt = (anim_time as f32 * 20.0 + PI / 2.0).sin();
