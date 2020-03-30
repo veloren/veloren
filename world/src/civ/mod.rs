@@ -556,7 +556,7 @@ impl Site {
         // Update values according to the surplus of each stock
         let values = &mut self.values;
         self.surplus.iter().for_each(|(stock, surplus)| {
-            let val = 3.5f32.powf(-*surplus / demand[stock]);
+            let val = 3.5f32.powf(1.0 - *surplus / demand[stock]);
             values[stock] = if val > 0.001 && val < 1000.0 { Some(val) } else { None };
         });
 
