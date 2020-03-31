@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
 use veloren_voxygen::{
@@ -44,17 +45,20 @@ fn main() {
         panic!("Failed to save settings: {:?}", err);
     }
 
-    let audio_device = settings
+    let mut audio = settings
         .audio
-        .audio_device
-        .as_ref()
-        .map(|s| s.clone())
-        .or_else(audio::get_default_device);
-
-    let mut audio = match (audio_device, settings.audio.audio_on) {
-        (Some(dev), true) => AudioFrontend::new(dev, settings.audio.max_sfx_channels),
-        _ => AudioFrontend::no_audio()
-    };
+        .audio_on
+        .then(|| {
+            settings
+                .audio
+                .audio_device
+                .as_ref()
+                .map(Clone::clone)
+                .or_else(audio::get_default_device)
+        })
+        .flatten()
+        .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
+        .unwrap_or_else(AudioFrontend::no_audio);
 
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);

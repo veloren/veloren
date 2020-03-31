@@ -474,6 +474,11 @@ pub struct AudioSettings {
 
     /// Audio Device that Voxygen will use to play audio.
     pub audio_device: Option<String>,
+    /// Veloren's audio system wont work on some systems,
+    /// so you can use this to disable it, and allow the
+    /// game to function
+    // If this option is disabled, functions in the rodio
+    // library MUST NOT be called.
     pub audio_on: bool,
 }
 
