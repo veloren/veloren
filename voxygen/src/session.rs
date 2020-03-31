@@ -6,6 +6,7 @@ use crate::{
     menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, Scene, SceneData},
+    settings::AudioOutput,
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -613,7 +614,7 @@ impl PlayState for SessionState {
                     HudEvent::ChangeAudioDevice(name) => {
                         global_state.audio.set_device(name.clone());
 
-                        global_state.settings.audio.audio_device = Some(name);
+                        global_state.settings.audio.output = AudioOutput::Device(name);
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeMaxFPS(fps) => {

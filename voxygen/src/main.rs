@@ -8,7 +8,7 @@ use veloren_voxygen::{
     logging,
     menu::main::MainMenuState,
     meta::Meta,
-    settings::Settings,
+    settings::{AudioOutput, Settings},
     window::Window,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
@@ -45,20 +45,13 @@ fn main() {
         panic!("Failed to save settings: {:?}", err);
     }
 
-    let mut audio = settings
-        .audio
-        .audio_on
-        .then(|| {
-            settings
-                .audio
-                .audio_device
-                .as_ref()
-                .map(Clone::clone)
-                .or_else(audio::get_default_device)
-        })
-        .flatten()
-        .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
-        .unwrap_or_else(AudioFrontend::no_audio);
+    let mut audio = match settings.audio.output {
+        AudioOutput::Off => None,
+        AudioOutput::Automatic => audio::get_default_device(),
+        AudioOutput::Device(ref dev) => Some(dev.clone()),
+    }
+    .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
+    .unwrap_or_else(AudioFrontend::no_audio);
 
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);
