@@ -173,7 +173,7 @@ impl CharacterBehavior for Data {
                 transition_style,
             })
         } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
-            let next_stage = 
+            let next_stage =
             // Determine whether stage can transition based on TransitionStyle
             if let Hold(Holding) | Timed(Success) = transition_style {
                 // Determine what stage to transition to
@@ -196,7 +196,7 @@ impl CharacterBehavior for Data {
                     transition_style: match transition_style {
                         Hold(_) => Hold(Holding),
                         Timed(_) => Timed(NotPressed),
-                   },
+                    },
                 })
             } else {
                 // Make sure attack component is removed
