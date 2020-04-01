@@ -70,10 +70,12 @@ impl SfxMgr {
             .get(player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        let player_ori = ecs
+        let player_ori = *ecs
             .read_storage::<Ori>()
             .get(player_entity)
-            .map_or(Vec3::zero(), |pos| pos.0);
+            .copied()
+            .unwrap_or_default()
+            .0;
 
         audio.set_listener_pos(&player_position, &player_ori);
 

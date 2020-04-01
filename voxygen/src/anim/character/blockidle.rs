@@ -1,5 +1,5 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::Tool;
+use common::comp::item::ToolKind;
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
@@ -9,7 +9,7 @@ pub struct Input {
 pub struct BlockIdleAnimation;
 
 impl Animation for BlockIdleAnimation {
-    type Dependency = (Option<Tool>, f64);
+    type Dependency = (Option<ToolKind>, f64);
     type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
@@ -61,7 +61,7 @@ impl Animation for BlockIdleAnimation {
 
         match active_tool_kind {
             //TODO: Inventory
-            Some(Tool::Sword) => {
+            Some(ToolKind::Sword(_)) => {
                 next.l_hand.offset = Vec3::new(0.0, -5.0, -5.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
                 next.l_hand.scale = Vec3::one() * 1.04;
@@ -80,7 +80,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(-1.57);
                 next.control.scale = Vec3::one();
             },
-            Some(Tool::Axe) => {
+            Some(ToolKind::Axe(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -105,7 +105,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(Tool::Hammer) => {
+            Some(ToolKind::Hammer(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
@@ -126,7 +126,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(-0.85);
                 next.main.scale = Vec3::one();
             },
-            Some(Tool::Staff) => {
+            Some(ToolKind::Staff(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -151,7 +151,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(Tool::Shield) => {
+            Some(ToolKind::Shield(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -176,7 +176,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(Tool::Bow) => {
+            Some(ToolKind::Bow(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -201,7 +201,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(Tool::Dagger) => {
+            Some(ToolKind::Dagger(_)) => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -222,7 +222,7 @@ impl Animation for BlockIdleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
             },
-            Some(Tool::Debug(_)) => {
+            Some(ToolKind::Debug(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 3.5 + wave_ultra_slow * 2.0, 6.5);
                 next.l_hand.ori = Quaternion::rotation_x(2.07)
                     * Quaternion::rotation_y(0.0)
@@ -273,6 +273,13 @@ impl Animation for BlockIdleAnimation {
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
+        next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.l_control.ori = Quaternion::rotation_x(0.0);
+        next.l_control.scale = Vec3::one();
+
+        next.r_control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.r_control.ori = Quaternion::rotation_x(0.0);
+        next.r_control.scale = Vec3::one();
         next
     }
 }

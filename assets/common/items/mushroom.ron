@@ -1,6 +1,8 @@
 Item(
     name: "Mushroom",
-    description: "Hopefully this one is not poisonous.",
+    description: "Hopefully this one is not poisonous.
+
+Restores 10 Health.",
     kind: Consumable(
         kind: Mushroom,
         effect: Health((

@@ -1,3 +1,4 @@
+mod ability;
 mod admin;
 pub mod agent;
 mod body;
@@ -15,26 +16,27 @@ mod stats;
 mod visual;
 
 // Reexports
+pub use ability::{CharacterAbility, ItemConfig, Loadout};
 pub use admin::Admin;
 pub use agent::{Agent, Alignment};
 pub use body::{
     biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, humanoid,
     object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
-pub use character_state::{ActionState, CharacterState, MovementState};
+pub use character_state::{Attacking, CharacterState, StateUpdate};
 pub use controller::{
-    ControlEvent, Controller, ControllerInputs, Input, InputState, InventoryManip, MountState,
-    Mounting,
+    Climb, ControlAction, ControlEvent, Controller, ControllerInputs, Input, InventoryManip,
+    MountState, Mounting,
 };
 pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;
 pub use inventory::{
-    item, Inventory, InventoryUpdate, InventoryUpdateEvent, Item, ItemKind, MAX_PICKUP_RANGE_SQR,
+    item, item::Item, Inventory, InventoryUpdate, InventoryUpdateEvent, MAX_PICKUP_RANGE_SQR,
 };
 pub use last::Last;
 pub use location::{Waypoint, WaypointArea};
 pub use phys::{ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::Player;
 pub use projectile::Projectile;
-pub use stats::{Equipment, Exp, HealthChange, HealthSource, Level, Stats};
+pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};
 pub use visual::LightEmitter;

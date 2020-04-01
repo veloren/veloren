@@ -83,12 +83,6 @@ impl<'a> Widget for EscMenu<'a> {
             .mid_top_with_margin_on(state.ids.esc_bg, -34.0)
             .set(state.ids.banner_top, ui);
 
-        /*Image::new(self.imgs.fireplace)
-        .w_h(210.0, 60.0)
-        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
-        .mid_top_with_margin_on(state.ids.esc_bg, 5.0)
-        .set(state.ids.fireplace, ui);*/
-
         // Resume
         if Button::image(self.imgs.button)
             .mid_bottom_with_margin_on(state.ids.banner_top, -60.0)

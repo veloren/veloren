@@ -45,7 +45,9 @@ impl Server {
 
         for event in events {
             match event {
-                ServerEvent::Explosion { pos, radius } => handle_explosion(&self, pos, radius),
+                ServerEvent::Explosion { pos, power, owner } => {
+                    handle_explosion(&self, pos, power, owner)
+                },
                 ServerEvent::Shoot {
                     entity,
                     dir,
@@ -76,11 +78,12 @@ impl Server {
                 ServerEvent::CreateNpc {
                     pos,
                     stats,
+                    loadout,
                     body,
                     agent,
                     alignment,
                     scale,
-                } => handle_create_npc(self, pos, stats, body, agent, alignment, scale),
+                } => handle_create_npc(self, pos, stats, loadout, body, agent, alignment, scale),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
                 ServerEvent::ClientDisconnect(entity) => {
                     frontend_events.push(handle_client_disconnect(self, entity))

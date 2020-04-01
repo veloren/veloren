@@ -57,10 +57,30 @@ impl Vert {
     }
 }
 
+#[derive(Clone, Copy)]
+struct VsOut(Rgba<f32>);
+impl euc::Interpolate for VsOut {
+    #[inline(always)]
+    fn lerp2(a: Self, b: Self, x: f32, y: f32) -> Self {
+        //a * x + b * y
+        Self(a.0.map2(b.0, |a, b| a.mul_add(x, b * y)))
+    }
+
+    #[inline(always)]
+    fn lerp3(a: Self, b: Self, c: Self, x: f32, y: f32, z: f32) -> Self {
+        //a * x + b * y + c * z
+        Self(
+            a.0.map2(b.0.map2(c.0, |b, c| b.mul_add(y, c * z)), |a, bc| {
+                a.mul_add(x, bc)
+            }),
+        )
+    }
+}
+
 impl<'a> Pipeline for Voxel {
     type Pixel = [u8; 4];
     type Vertex = Vert;
-    type VsOut = Rgba<f32>;
+    type VsOut = VsOut;
 
     #[inline(always)]
     fn vert(
@@ -75,12 +95,12 @@ impl<'a> Pipeline for Voxel {
         let light = Rgba::from_opaque(Rgb::from(*ao_level as f32 / 4.0 + 0.25));
         let color = light * srgba_to_linear(Rgba::from_opaque(*col));
         let position = (self.mvp * Vec4::from_point(*pos)).xyz().into_array();
-        (position, color)
+        (position, VsOut(color))
     }
 
     #[inline(always)]
     fn frag(&self, color: &Self::VsOut) -> Self::Pixel {
-        linear_to_srgba(*color)
+        linear_to_srgba(color.0)
             .map(|e| (e * 255.0) as u8)
             .into_array()
     }

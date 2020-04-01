@@ -1,9 +1,10 @@
 use crate::{
-    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Pos, Stats},
+    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Ori, Pos, Stats},
     path::Chaser,
     state::Time,
     sync::UidAllocator,
     terrain::TerrainGrid,
+    util::Dir,
     vol::ReadVol,
 };
 use rand::{thread_rng, Rng};
@@ -21,6 +22,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Time>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
+        ReadStorage<'a, Ori>,
         ReadStorage<'a, Stats>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
@@ -36,6 +38,7 @@ impl<'a> System<'a> for Sys {
             time,
             entities,
             positions,
+            orientations,
             stats,
             terrain,
             alignments,
@@ -44,9 +47,10 @@ impl<'a> System<'a> for Sys {
             mount_states,
         ): Self::SystemData,
     ) {
-        for (entity, pos, alignment, agent, controller, mount_state) in (
+        for (entity, pos, ori, alignment, agent, controller, mount_state) in (
             &entities,
             &positions,
+            &orientations,
             alignments.maybe(),
             &mut agents,
             &mut controllers,
@@ -71,6 +75,9 @@ impl<'a> System<'a> for Sys {
             controller.reset();
 
             let mut inputs = &mut controller.inputs;
+
+            // Default to looking in orientation direction
+            inputs.look_dir = ori.0;
 
             const AVG_FOLLOW_DIST: f32 = 6.0;
             const MAX_FOLLOW_DIST: f32 = 12.0;
@@ -161,6 +168,10 @@ impl<'a> System<'a> for Sys {
                                 .copied()
                                 .unwrap_or(Alignment::Owned(*target)),
                         ) {
+                            if let Some(dir) = Dir::from_unnormalized(tgt_pos.0 - pos.0) {
+                                inputs.look_dir = dir;
+                            }
+
                             // Don't attack entities we are passive towards
                             // TODO: This is here, it's a bit of a hack
                             if let Some(alignment) = alignment {
@@ -174,11 +185,10 @@ impl<'a> System<'a> for Sys {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             if dist_sqrd < MIN_ATTACK_DIST.powf(2.0) {
                                 // Close-range attack
-                                inputs.look_dir = tgt_pos.0 - pos.0;
                                 inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                     .try_normalized()
                                     .unwrap_or(Vec2::unit_y())
-                                    * 0.01;
+                                    * 0.7;
                                 inputs.primary.set_state(true);
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
                                 || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
@@ -251,7 +261,10 @@ impl<'a> System<'a> for Sys {
             if let Some(stats) = stats.get(entity) {
                 // Only if the attack was recent
                 if stats.health.last_change.0 < 5.0 {
-                    if let comp::HealthSource::Attack { by } = stats.health.last_change.1.cause {
+                    if let comp::HealthSource::Attack { by }
+                    | comp::HealthSource::Projectile { owner: Some(by) } =
+                        stats.health.last_change.1.cause
+                    {
                         if !agent.activity.is_attack() {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {

@@ -18,6 +18,7 @@ pub enum ClientMsg {
     Spectate,
     ControllerInputs(comp::ControllerInputs),
     ControlEvent(comp::ControlEvent),
+    ControlAction(comp::ControlAction),
     SetViewDistance(u32),
     BreakBlock(Vec3<i32>),
     PlaceBlock(Vec3<i32>, Block),

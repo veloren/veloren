@@ -1,10 +1,12 @@
 use crate::{client::Client, settings::ServerSettings, sys::sentinel::DeletedEntities, SpawnPoint};
 use common::{
-    assets, comp,
+    assets,
+    comp::{self, item},
     effect::Effect,
     msg::{ClientState, ServerMsg},
     state::State,
     sync::{Uid, WorldSyncExt},
+    util::Dir,
 };
 use log::warn;
 use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
@@ -17,6 +19,7 @@ pub trait StateExt {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder;
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder;
@@ -81,13 +84,14 @@ impl StateExt for State {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder {
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori(Vec3::unit_y()))
+            .with(comp::Ori::default())
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
@@ -95,6 +99,7 @@ impl StateExt for State {
             .with(comp::Energy::new(500))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
+            .with(loadout)
     }
 
     /// Build a static object entity
@@ -103,7 +108,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori(Vec3::unit_y()))
+            .with(comp::Ori::default())
             .with(comp::Body::Object(object))
             .with(comp::Mass(100.0))
             .with(comp::Gravity(1.0))
@@ -122,7 +127,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(vel)
-            .with(comp::Ori(vel.0.normalized()))
+            .with(comp::Ori(Dir::from_unnormalized(vel.0).unwrap_or_default()))
             .with(comp::Mass(0.0))
             .with(body)
             .with(projectile)
@@ -138,17 +143,17 @@ impl StateExt for State {
         server_settings: &ServerSettings,
     ) {
         // Give no item when an invalid specifier is given
-        let main = main.and_then(|specifier| assets::load_cloned(&specifier).ok());
+        let main = main.and_then(|specifier| assets::load_cloned::<comp::Item>(&specifier).ok());
 
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
         self.write_component(entity, body);
-        self.write_component(entity, comp::Stats::new(name, body, main));
+        self.write_component(entity, comp::Stats::new(name, body));
         self.write_component(entity, comp::Energy::new(1000));
         self.write_component(entity, comp::Controller::default());
         self.write_component(entity, comp::Pos(spawn_point));
         self.write_component(entity, comp::Vel(Vec3::zero()));
-        self.write_component(entity, comp::Ori(Vec3::unit_y()));
+        self.write_component(entity, comp::Ori::default());
         self.write_component(entity, comp::Gravity(1.0));
         self.write_component(entity, comp::CharacterState::default());
         self.write_component(entity, comp::Alignment::Owned(entity));
@@ -157,6 +162,34 @@ impl StateExt for State {
             entity,
             comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
         );
+
+        self.write_component(
+            entity,
+            if let Some(item::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
+                let mut abilities = tool.get_abilities();
+                let mut ability_drain = abilities.drain(..);
+                comp::Loadout {
+                    active_item: main.map(|item| comp::ItemConfig {
+                        item,
+                        ability1: ability_drain.next(),
+                        ability2: ability_drain.next(),
+                        ability3: ability_drain.next(),
+                        block_ability: Some(comp::CharacterAbility::BasicBlock),
+                        dodge_ability: Some(comp::CharacterAbility::Roll),
+                    }),
+                    second_item: None,
+                    shoulder: None,
+                    chest: None,
+                    belt: None,
+                    hand: None,
+                    pants: None,
+                    foot: None,
+                }
+            } else {
+                comp::Loadout::default()
+            },
+        );
+
         // Make sure physics are accepted.
         self.write_component(entity, comp::ForceUpdate);
 

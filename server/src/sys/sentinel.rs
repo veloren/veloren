@@ -1,11 +1,11 @@
 use super::SysTimer;
 use common::{
     comp::{
-        Body, CanBuild, Energy, Gravity, Item, LightEmitter, Mass, MountState, Mounting, Player,
-        Scale, Stats, Sticky,
+        Body, CanBuild, CharacterState, Energy, Gravity, Item, LightEmitter, Loadout, Mass,
+        MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
-    sync::{EntityPackage, SyncPackage, Uid, UpdateTracker, WorldSyncExt},
+    sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, Uid, UpdateTracker, WorldSyncExt},
 };
 use hashbrown::HashMap;
 use specs::{
@@ -51,9 +51,17 @@ pub struct TrackedComps<'a> {
     pub mass: ReadStorage<'a, Mass>,
     pub sticky: ReadStorage<'a, Sticky>,
     pub gravity: ReadStorage<'a, Gravity>,
+    pub loadout: ReadStorage<'a, Loadout>,
+    pub character_state: ReadStorage<'a, CharacterState>,
 }
 impl<'a> TrackedComps<'a> {
-    pub fn create_entity_package(&self, entity: EcsEntity) -> EntityPackage<EcsCompPacket> {
+    pub fn create_entity_package(
+        &self,
+        entity: EcsEntity,
+        pos: Option<Pos>,
+        vel: Option<Vel>,
+        ori: Option<Ori>,
+    ) -> EntityPackage<EcsCompPacket> {
         let uid = self
             .uid
             .get(entity)
@@ -104,6 +112,18 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .copied()
             .map(|c| comps.push(c.into()));
+        self.loadout
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
+        self.character_state
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
+        // Add untracked comps
+        pos.map(|c| comps.push(c.into()));
+        vel.map(|c| comps.push(c.into()));
+        ori.map(|c| comps.push(c.into()));
 
         EntityPackage { uid, comps }
     }
@@ -124,15 +144,19 @@ pub struct ReadTrackers<'a> {
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
+    pub loadout: ReadExpect<'a, UpdateTracker<Loadout>>,
+    pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
 }
 impl<'a> ReadTrackers<'a> {
-    pub fn create_sync_package(
+    pub fn create_sync_packages(
         &self,
         comps: &TrackedComps,
         filter: impl Join + Copy,
         deleted_entities: Vec<u64>,
-    ) -> SyncPackage<EcsCompPacket> {
-        SyncPackage::new(&comps.uid, &self.uid, filter, deleted_entities)
+    ) -> (EntitySyncPackage, CompSyncPackage<EcsCompPacket>) {
+        let entity_sync_package =
+            EntitySyncPackage::new(&comps.uid, &self.uid, filter, deleted_entities);
+        let comp_sync_package = CompSyncPackage::new()
             .with_component(&comps.uid, &*self.body, &comps.body, filter)
             .with_component(&comps.uid, &*self.player, &comps.player, filter)
             .with_component(&comps.uid, &*self.stats, &comps.stats, filter)
@@ -151,6 +175,15 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
             .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
             .with_component(&comps.uid, &*self.gravity, &comps.gravity, filter)
+            .with_component(&comps.uid, &*self.loadout, &comps.loadout, filter)
+            .with_component(
+                &comps.uid,
+                &*self.character_state,
+                &comps.character_state,
+                filter,
+            );
+
+        (entity_sync_package, comp_sync_package)
     }
 }
 
@@ -170,6 +203,8 @@ pub struct WriteTrackers<'a> {
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
+    loadout: WriteExpect<'a, UpdateTracker<Loadout>>,
+    character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -188,6 +223,10 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.mass.record_changes(&comps.mass);
     trackers.sticky.record_changes(&comps.sticky);
     trackers.gravity.record_changes(&comps.gravity);
+    trackers.loadout.record_changes(&comps.loadout);
+    trackers
+        .character_state
+        .record_changes(&comps.character_state);
 }
 
 pub fn register_trackers(world: &mut World) {
@@ -205,6 +244,8 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Mass>();
     world.register_tracker::<Sticky>();
     world.register_tracker::<Gravity>();
+    world.register_tracker::<Loadout>();
+    world.register_tracker::<CharacterState>();
 }
 
 /// Deleted entities grouped by region

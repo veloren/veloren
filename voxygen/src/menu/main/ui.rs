@@ -20,6 +20,10 @@ use conrod_core::{
 use rand::{seq::SliceRandom, thread_rng};
 use std::time::Duration;
 
+// UI Color-Theme
+/*const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
+const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);*/
+
 widget_ids! {
     struct Ids {
         // Background and logo
@@ -172,6 +176,7 @@ impl MainMenuUi {
             "voxygen.background.bg_6",
             "voxygen.background.bg_7",
             "voxygen.background.bg_8",
+            "voxygen.background.bg_9",
         ];
         let mut rng = thread_rng();
 
@@ -459,7 +464,7 @@ impl MainMenuUi {
                     };
                 }
                 // Info Window
-                Rectangle::fill_with([550.0, 400.0], color::BLACK)
+                Rectangle::fill_with([550.0, 250.0], color::BLACK)
                     .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
                     .set(self.ids.info_frame, ui_widgets);

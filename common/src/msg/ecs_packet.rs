@@ -21,6 +21,11 @@ sum_type! {
         Mass(comp::Mass),
         Gravity(comp::Gravity),
         Sticky(comp::Sticky),
+        Loadout(comp::Loadout),
+        CharacterState(comp::CharacterState),
+        Pos(comp::Pos),
+        Vel(comp::Vel),
+        Ori(comp::Ori),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -41,6 +46,11 @@ sum_type! {
         Mass(PhantomData<comp::Mass>),
         Gravity(PhantomData<comp::Gravity>),
         Sticky(PhantomData<comp::Sticky>),
+        Loadout(PhantomData<comp::Loadout>),
+        CharacterState(PhantomData<comp::CharacterState>),
+        Pos(PhantomData<comp::Pos>),
+        Vel(PhantomData<comp::Vel>),
+        Ori(PhantomData<comp::Ori>),
     }
 }
 impl sync::CompPacket for EcsCompPacket {
@@ -61,6 +71,11 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Mass(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Gravity(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Loadout(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::CharacterState(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Pos(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Vel(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Ori(comp) => sync::handle_insert(comp, entity, world),
         }
     }
 
@@ -79,6 +94,11 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Mass(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Gravity(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Loadout(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::CharacterState(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Pos(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Vel(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Ori(comp) => sync::handle_modify(comp, entity, world),
         }
     }
 
@@ -99,6 +119,13 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Mass(_) => sync::handle_remove::<comp::Mass>(entity, world),
             EcsCompPhantom::Gravity(_) => sync::handle_remove::<comp::Gravity>(entity, world),
             EcsCompPhantom::Sticky(_) => sync::handle_remove::<comp::Sticky>(entity, world),
+            EcsCompPhantom::Loadout(_) => sync::handle_remove::<comp::Loadout>(entity, world),
+            EcsCompPhantom::CharacterState(_) => {
+                sync::handle_remove::<comp::CharacterState>(entity, world)
+            },
+            EcsCompPhantom::Pos(_) => sync::handle_remove::<comp::Pos>(entity, world),
+            EcsCompPhantom::Vel(_) => sync::handle_remove::<comp::Vel>(entity, world),
+            EcsCompPhantom::Ori(_) => sync::handle_remove::<comp::Ori>(entity, world),
         }
     }
 }

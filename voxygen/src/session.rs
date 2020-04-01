@@ -18,6 +18,7 @@ use common::{
     comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
     msg::ClientState,
     terrain::{Block, BlockKind},
+    util::Dir,
     vol::ReadVol,
     ChatType,
 };
@@ -77,6 +78,7 @@ impl SessionState {
     /// Tick the session (and the client attached to it).
     fn tick(&mut self, dt: Duration) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
+
         for event in self.client.borrow_mut().tick(
             self.inputs.clone(),
             dt,
@@ -270,23 +272,18 @@ impl PlayState for SessionState {
                             if let Some(select_pos) = select_pos {
                                 client.remove_block(select_pos);
                             }
-                        } else if client
-                            .state()
-                            .read_storage::<comp::CharacterState>()
-                            .get(client.entity())
-                            .map(|cs| {
-                                cs.action.is_wield()
-                                    || cs.action.is_block()
-                                    || cs.action.is_attack()
-                            })
-                            .unwrap_or(false)
-                        {
+                        } else {
                             self.inputs.secondary.set_state(state);
-                        } else if state {
-                            if let Some(select_pos) = select_pos {
+
+                            // Check for select_block that is highlighted
+                            if let Some(select_pos) = self.scene.select_pos() {
                                 client.collect_block(select_pos);
                             }
                         }
+                    },
+
+                    Event::InputUpdate(GameInput::Ability3, state) => {
+                        self.inputs.ability3.set_state(state);
                     },
                     Event::InputUpdate(GameInput::Roll, state) => {
                         let client = self.client.borrow();
@@ -307,15 +304,25 @@ impl PlayState for SessionState {
                             self.inputs.roll.set_state(state);
                         }
                     },
-                    Event::InputUpdate(GameInput::Respawn, state) => {
-                        self.inputs.respawn.set_state(state);
-                    },
+                    Event::InputUpdate(GameInput::Respawn, state)
+                        if state != self.key_state.respawn =>
+                    {
+                        self.key_state.respawn = state;
+                        if state {
+                            self.client.borrow_mut().respawn();
+                        }
+                    }
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.inputs.jump.set_state(state);
                     },
-                    Event::InputUpdate(GameInput::Sit, state) => {
-                        self.inputs.sit.set_state(state);
-                    },
+                    Event::InputUpdate(GameInput::Sit, state)
+                        if state != self.key_state.toggle_sit =>
+                    {
+                        self.key_state.toggle_sit = state;
+                        if state {
+                            self.client.borrow_mut().toggle_sit();
+                        }
+                    }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
@@ -324,14 +331,30 @@ impl PlayState for SessionState {
                         self.inputs.glide.set_state(state);
                     },
                     Event::InputUpdate(GameInput::Climb, state) => {
-                        self.inputs.climb.set_state(state)
+                        self.key_state.climb_up = state;
                     },
                     Event::InputUpdate(GameInput::ClimbDown, state) => {
-                        self.inputs.climb_down.set_state(state)
+                        self.key_state.climb_down = state;
                     },
                     Event::InputUpdate(GameInput::WallLeap, state) => {
                         self.inputs.wall_leap.set_state(state)
                     },
+                    Event::InputUpdate(GameInput::ToggleWield, state)
+                        if state != self.key_state.toggle_wield =>
+                    {
+                        self.key_state.toggle_wield = state;
+                        if state {
+                            self.client.borrow_mut().toggle_wield();
+                        }
+                    }
+                    Event::InputUpdate(GameInput::SwapLoadout, state)
+                        if state != self.key_state.swap_loadout =>
+                    {
+                        self.key_state.swap_loadout = state;
+                        if state {
+                            self.client.borrow_mut().swap_loadout();
+                        }
+                    }
                     Event::InputUpdate(GameInput::Mount, true) => {
                         let mut client = self.client.borrow_mut();
                         if client.is_mounted() {
@@ -397,9 +420,6 @@ impl PlayState for SessionState {
                             }
                         }
                     },
-                    Event::InputUpdate(GameInput::ToggleWield, state) => {
-                        self.inputs.toggle_wield.set_state(state)
-                    },
                     Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
                     },
@@ -437,7 +457,7 @@ impl PlayState for SessionState {
 
             if !free_look {
                 ori = self.scene.camera().get_orientation();
-                self.inputs.look_dir = cam_dir;
+                self.inputs.look_dir = Dir::from_unnormalized(cam_dir).unwrap();
             }
             // Calculate the movement input vector of the player from the current key
             // presses and the camera direction.
@@ -447,6 +467,8 @@ impl PlayState for SessionState {
             );
             let dir_vec = self.key_state.dir_vec();
             self.inputs.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
+
+            self.inputs.climb = self.key_state.climb();
 
             // Runs if either in a multiplayer server or the singleplayer server is unpaused
             if global_state.singleplayer.is_none()

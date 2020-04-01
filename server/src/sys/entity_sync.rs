@@ -7,11 +7,11 @@ use crate::{
     Tick,
 };
 use common::{
-    comp::{CharacterState, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
+    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
     msg::ServerMsg,
     region::{Event as RegionEvent, RegionMap},
     state::TimeOfDay,
-    sync::Uid,
+    sync::{CompSyncPackage, Uid},
 };
 use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
@@ -30,13 +30,11 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
-        ReadStorage<'a, CharacterState>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, RegionSubscription>,
         WriteStorage<'a, Last<Pos>>,
         WriteStorage<'a, Last<Vel>>,
         WriteStorage<'a, Last<Ori>>,
-        WriteStorage<'a, Last<CharacterState>>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
@@ -57,13 +55,11 @@ impl<'a> System<'a> for Sys {
             positions,
             velocities,
             orientations,
-            character_states,
             inventories,
             subscriptions,
             mut last_pos,
             mut last_vel,
             mut last_ori,
-            mut last_character_state,
             mut clients,
             mut force_updates,
             mut inventory_updates,
@@ -116,22 +112,18 @@ impl<'a> System<'a> for Sys {
                             continue;
                         }
                         let entity = entities.entity(*id);
-                        if let Some((uid, pos, vel, ori, character_state)) =
-                            uids.get(entity).and_then(|uid| {
-                                positions.get(entity).map(|pos| {
-                                    (
-                                        uid,
-                                        pos,
-                                        velocities.get(entity),
-                                        orientations.get(entity),
-                                        character_states.get(entity),
-                                    )
-                                })
+                        if let Some((_uid, pos, vel, ori)) = uids.get(entity).and_then(|uid| {
+                            positions.get(entity).map(|pos| {
+                                (uid, pos, velocities.get(entity), orientations.get(entity))
                             })
-                        {
-                            let create_msg = ServerMsg::CreateEntity(
-                                tracked_comps.create_entity_package(entity),
-                            );
+                        }) {
+                            let create_msg =
+                                ServerMsg::CreateEntity(tracked_comps.create_entity_package(
+                                    entity,
+                                    Some(*pos),
+                                    vel.copied(),
+                                    ori.copied(),
+                                ));
                             for (client, regions, client_entity, _) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()
@@ -141,14 +133,6 @@ impl<'a> System<'a> for Sys {
                                     && *client_entity != entity
                                 {
                                     client.notify(create_msg.clone());
-                                    send_initial_unsynced_components(
-                                        client,
-                                        uid,
-                                        pos,
-                                        vel,
-                                        ori,
-                                        character_state,
-                                    );
                                 }
                             }
                         }
@@ -172,18 +156,19 @@ impl<'a> System<'a> for Sys {
 
             // Sync tracked components
             // Get deleted entities in this region from DeletedEntities
-            let sync_msg = ServerMsg::EcsSync(
-                trackers.create_sync_package(
-                    &tracked_comps,
-                    region.entities(),
-                    deleted_entities
-                        .take_deleted_in_region(key)
-                        .unwrap_or_else(|| Vec::new()),
-                ),
+            let (entity_sync_package, comp_sync_package) = trackers.create_sync_packages(
+                &tracked_comps,
+                region.entities(),
+                deleted_entities
+                    .take_deleted_in_region(key)
+                    .unwrap_or_else(|| Vec::new()),
             );
-            for (client, _, _, _) in &mut subscribers {
-                client.notify(sync_msg.clone());
-            }
+            let entity_sync_msg = ServerMsg::EntitySync(entity_sync_package);
+            let comp_sync_msg = ServerMsg::CompSync(comp_sync_package);
+            subscribers.iter_mut().for_each(move |(client, _, _, _)| {
+                client.notify(entity_sync_msg.clone());
+                client.notify(comp_sync_msg.clone());
+            });
 
             let mut send_msg = |msg: ServerMsg,
                                 entity: EcsEntity,
@@ -191,117 +176,112 @@ impl<'a> System<'a> for Sys {
                                 force_update: Option<&ForceUpdate>,
                                 throttle: bool| {
                 for (client, _, client_entity, client_pos) in &mut subscribers {
-                    let update = if client_entity == &entity {
+                    if if client_entity == &entity {
                         // Don't send client physics updates about itself unless force update is set
                         force_update.is_some()
                     } else if !throttle {
-                        // Update rate not thottled by distance
+                        // Send the message if not throttling
                         true
                     } else {
                         // Throttle update rate based on distance to client
                         let distance_sq = client_pos.0.distance_squared(pos.0);
+                        let id_staggered_tick = tick + entity.id() as u64;
                         // More entities farther away so checks start there
                         if distance_sq > 300.0f32.powi(2) {
-                            (tick + entity.id() as u64) % 32 == 0
+                            id_staggered_tick % 32 == 0
                         } else if distance_sq > 250.0f32.powi(2) {
-                            (tick + entity.id() as u64) % 16 == 0
+                            id_staggered_tick % 16 == 0
                         } else if distance_sq > 200.0f32.powi(2) {
-                            (tick + entity.id() as u64) % 8 == 0
+                            id_staggered_tick % 8 == 0
                         } else if distance_sq > 150.0f32.powi(2) {
-                            (tick + entity.id() as u64) % 4 == 0
+                            id_staggered_tick % 4 == 0
                         } else if distance_sq > 100.0f32.powi(2) {
-                            (tick + entity.id() as u64) % 2 == 0
+                            id_staggered_tick % 2 == 0
                         } else {
                             true // Closer than 100 blocks
                         }
-                    };
-
-                    if update {
+                    } {
                         client.notify(msg.clone());
                     }
                 }
             };
 
             // Sync physics components
-            for (_, entity, &uid, &pos, maybe_vel, maybe_ori, character_state, force_update) in (
+            for (_, entity, &uid, &pos, maybe_vel, maybe_ori, force_update) in (
                 region.entities(),
                 &entities,
                 &uids,
                 &positions,
                 velocities.maybe(),
                 orientations.maybe(),
-                character_states.maybe(),
                 force_updates.maybe(),
             )
                 .join()
             {
+                let mut comp_sync_package = CompSyncPackage::new();
+                let mut throttle = true;
                 // TODO: An entity that stoppped moving on a tick that it wasn't sent to the
                 // player will never have it's position updated
-                if last_pos.get(entity).map(|&l| l.0 != pos).unwrap_or(true) {
-                    let _ = last_pos.insert(entity, Last(pos));
-                    send_msg(
-                        ServerMsg::EntityPos {
-                            entity: uid.into(),
-                            pos,
-                        },
-                        entity,
-                        pos,
-                        force_update,
-                        true,
-                    );
+                match last_pos.get(entity).map(|&l| l.0 != pos) {
+                    Some(false) => {},
+                    Some(true) => {
+                        let _ = last_pos.insert(entity, Last(pos));
+                        comp_sync_package.comp_modified(uid, pos);
+                    },
+                    None => {
+                        let _ = last_pos.insert(entity, Last(pos));
+                        throttle = false;
+                        comp_sync_package.comp_inserted(uid, pos);
+                    },
                 }
 
                 if let Some(&vel) = maybe_vel {
-                    if last_vel.get(entity).map(|&l| l.0 != vel).unwrap_or(true) {
-                        let _ = last_vel.insert(entity, Last(vel));
-                        send_msg(
-                            ServerMsg::EntityVel {
-                                entity: uid.into(),
-                                vel,
-                            },
-                            entity,
-                            pos,
-                            force_update,
-                            true,
-                        );
+                    match last_vel.get(entity).map(|&l| l.0 != vel) {
+                        Some(false) => {},
+                        Some(true) => {
+                            let _ = last_vel.insert(entity, Last(vel));
+                            comp_sync_package.comp_modified(uid, vel);
+                        },
+                        None => {
+                            let _ = last_vel.insert(entity, Last(vel));
+                            throttle = false;
+                            comp_sync_package.comp_inserted(uid, vel);
+                        },
                     }
+                } else if last_vel.remove(entity).is_some() {
+                    // Send removal message if Vel was removed
+                    // Note: we don't have to handle this for position because the entity will be
+                    // removed from the client by the region system
+                    throttle = false;
+                    comp_sync_package.comp_removed::<Vel>(uid);
                 }
 
                 if let Some(&ori) = maybe_ori {
-                    if last_ori.get(entity).map(|&l| l.0 != ori).unwrap_or(true) {
-                        let _ = last_ori.insert(entity, Last(ori));
-                        send_msg(
-                            ServerMsg::EntityOri {
-                                entity: uid.into(),
-                                ori,
-                            },
-                            entity,
-                            pos,
-                            force_update,
-                            true,
-                        );
+                    match last_ori.get(entity).map(|&l| l.0 != ori) {
+                        Some(false) => {},
+                        Some(true) => {
+                            let _ = last_ori.insert(entity, Last(ori));
+                            comp_sync_package.comp_modified(uid, ori);
+                        },
+                        None => {
+                            let _ = last_ori.insert(entity, Last(ori));
+                            throttle = false;
+                            comp_sync_package.comp_inserted(uid, ori);
+                        },
                     }
+                } else if last_ori.remove(entity).is_some() {
+                    // Send removal message if Ori was removed
+                    throttle = false;
+                    comp_sync_package.comp_removed::<Ori>(uid);
                 }
 
-                if let Some(&character_state) = character_state {
-                    if last_character_state
-                        .get(entity)
-                        .map(|&l| !character_state.is_same_state(&l.0))
-                        .unwrap_or(true)
-                    {
-                        let _ = last_character_state.insert(entity, Last(character_state));
-                        send_msg(
-                            ServerMsg::EntityCharacterState {
-                                entity: uid.into(),
-                                character_state,
-                            },
-                            entity,
-                            pos,
-                            force_update,
-                            false,
-                        );
-                    }
-                }
+                send_msg(
+                    ServerMsg::CompSync(comp_sync_package),
+                    entity,
+                    pos,
+                    force_update,
+                    throttle,
+                );
             }
         }
 
@@ -348,29 +328,5 @@ impl<'a> System<'a> for Sys {
         }
 
         timer.end();
-    }
-}
-
-pub fn send_initial_unsynced_components(
-    client: &mut Client,
-    uid: &Uid,
-    pos: &Pos,
-    vel: Option<&Vel>,
-    ori: Option<&Ori>,
-    character_state: Option<&CharacterState>,
-) {
-    let entity = (*uid).into();
-    client.notify(ServerMsg::EntityPos { entity, pos: *pos });
-    if let Some(&vel) = vel {
-        client.notify(ServerMsg::EntityVel { entity, vel });
-    }
-    if let Some(&ori) = ori {
-        client.notify(ServerMsg::EntityOri { entity, ori });
-    }
-    if let Some(&character_state) = character_state {
-        client.notify(ServerMsg::EntityCharacterState {
-            entity,
-            character_state,
-        });
     }
 }

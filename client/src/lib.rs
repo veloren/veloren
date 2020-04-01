@@ -15,7 +15,8 @@ pub use specs::{
 use byteorder::{ByteOrder, LittleEndian};
 use common::{
     comp::{
-        self, ControlEvent, Controller, ControllerInputs, InventoryManip, InventoryUpdateEvent,
+        self, ControlAction, ControlEvent, Controller, ControllerInputs, InventoryManip,
+        InventoryUpdateEvent,
     },
     event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
@@ -31,7 +32,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use image::DynamicImage;
-use log::warn;
+use log::{error, warn};
 use std::{
     net::SocketAddr,
     sync::Arc,
@@ -112,6 +113,11 @@ impl Client {
 
                 // Initialize `State`
                 let mut state = State::default();
+                // Client-only components
+                state
+                    .ecs_mut()
+                    .register::<comp::Last<comp::CharacterState>>();
+
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
 
@@ -288,6 +294,78 @@ impl Client {
             .send_message(ClientMsg::ControlEvent(ControlEvent::Unmount));
     }
 
+    pub fn respawn(&mut self) {
+        if self
+            .state
+            .ecs()
+            .read_storage::<comp::Stats>()
+            .get(self.entity)
+            .map_or(false, |s| s.is_dead)
+        {
+            self.postbox
+                .send_message(ClientMsg::ControlEvent(ControlEvent::Respawn));
+        }
+    }
+
+    /// Checks whether a player can swap their weapon+ability `Loadout` settings
+    /// and sends the `ControlAction` event that signals to do the swap.
+    pub fn swap_loadout(&mut self) {
+        let can_swap = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| cs.can_swap());
+        match can_swap {
+            Some(true) => self.control_action(ControlAction::SwapLoadout),
+            Some(false) => {},
+            None => warn!("Can't swap, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn toggle_wield(&mut self) {
+        let is_wielding = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| cs.is_wield());
+
+        match is_wielding {
+            Some(true) => self.control_action(ControlAction::Unwield),
+            Some(false) => self.control_action(ControlAction::Wield),
+            None => warn!("Can't toggle wield, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn toggle_sit(&mut self) {
+        let is_sitting = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| matches!(cs, comp::CharacterState::Sit));
+
+        match is_sitting {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => self.control_action(ControlAction::Sit),
+            None => warn!("Can't toggle sit, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    fn control_action(&mut self, control_action: ControlAction) {
+        if let Some(controller) = self
+            .state
+            .ecs()
+            .write_storage::<Controller>()
+            .get_mut(self.entity)
+        {
+            controller.actions.push(control_action);
+        }
+        self.postbox
+            .send_message(ClientMsg::ControlAction(control_action));
+    }
+
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
 
     pub fn loaded_distance(&self) -> f32 { self.loaded_distance }
@@ -371,10 +449,26 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if let ClientState::Character = self.client_state {
-            self.state.write_component(self.entity, Controller {
-                inputs: inputs.clone(),
-                events: Vec::new(),
-            });
+            if let Err(err) = self
+                .state
+                .ecs()
+                .write_storage::<Controller>()
+                .entry(self.entity)
+                .map(|entry| {
+                    entry
+                        .or_insert_with(|| Controller {
+                            inputs: inputs.clone(),
+                            events: Vec::new(),
+                            actions: Vec::new(),
+                        })
+                        .inputs = inputs.clone();
+                })
+            {
+                error!(
+                    "Couldn't access controller component on client entity: {:?}",
+                    err
+                );
+            }
             self.postbox
                 .send_message(ClientMsg::ControllerInputs(inputs));
         }
@@ -393,11 +487,11 @@ impl Client {
                 {
                     if last_character_states
                         .get(entity)
-                        .map(|&l| !client_character_state.is_same_state(&l.0))
+                        .map(|l| !client_character_state.same_variant(&l.0))
                         .unwrap_or(true)
                     {
                         let _ = last_character_states
-                            .insert(entity, comp::Last(*client_character_state));
+                            .insert(entity, comp::Last(client_character_state.clone()));
                     }
                 }
             }
@@ -629,8 +723,15 @@ impl Client {
                     ServerMsg::TimeOfDay(time_of_day) => {
                         *self.state.ecs_mut().write_resource() = time_of_day;
                     },
-                    ServerMsg::EcsSync(sync_package) => {
-                        self.state.ecs_mut().apply_sync_package(sync_package);
+                    ServerMsg::EntitySync(entity_sync_package) => {
+                        self.state
+                            .ecs_mut()
+                            .apply_entity_sync_package(entity_sync_package);
+                    },
+                    ServerMsg::CompSync(comp_sync_package) => {
+                        self.state
+                            .ecs_mut()
+                            .apply_comp_sync_package(comp_sync_package);
                     },
                     ServerMsg::CreateEntity(entity_package) => {
                         self.state.ecs_mut().apply_entity_package(entity_package);
@@ -667,29 +768,6 @@ impl Client {
                             .allocate(entity_builder.entity, Some(client_uid));
                         self.entity = entity_builder.with(uid).build();
                     },
-                    ServerMsg::EntityPos { entity, pos } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, pos);
-                        }
-                    },
-                    ServerMsg::EntityVel { entity, vel } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, vel);
-                        }
-                    },
-                    ServerMsg::EntityOri { entity, ori } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, ori);
-                        }
-                    },
-                    ServerMsg::EntityCharacterState {
-                        entity,
-                        character_state,
-                    } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, character_state);
-                        }
-                    },
                     ServerMsg::InventoryUpdate(inventory, event) => {
                         match event {
                             InventoryUpdateEvent::CollectFailed => {
@@ -708,8 +786,7 @@ impl Client {
                         self.state
                             .ecs()
                             .read_resource::<EventBus<SfxEventItem>>()
-                            .emitter()
-                            .emit(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
+                            .emit_now(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
                     },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         if let Ok(chunk) = chunk {
