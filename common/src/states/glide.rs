@@ -54,8 +54,6 @@ impl CharacterBehavior for Data {
                     .max(0.2);
         }
 
-        // Otherwise keep gliding
-        update.character = CharacterState::Glide;
         update
     }
 }
