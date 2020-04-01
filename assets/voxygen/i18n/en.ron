@@ -62,6 +62,7 @@ VoxygenLocalization(
         "common.back": "Back",
         "common.create": "Create",
         "common.okay": "Okay",
+        "common.accept": "Accept",
         "common.disclaimer": "Disclaimer",
         "common.cancel": "Cancel",
         "common.none": "None",
@@ -205,6 +206,8 @@ Enjoy your stay in the World of Veloren."#,
         // Settings
         "hud.settings.general": "General",
         "hud.settings.none": "None",
+        "hud.settings.press_behavior.toggle": "Toggle",
+        "hud.settings.press_behavior.hold": "Hold",
         "hud.settings.help_window": "Help Window",
         "hud.settings.debug_info": "Debug Info",
         "hud.settings.tips_on_startup": "Tips-On-Startup",
@@ -232,6 +235,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
         "hud.settings.invert_scroll_zoom": "Invert Scroll Zoom",
         "hud.settings.invert_mouse_y_axis": "Invert Mouse Y Axis",
+        "hud.settings.free_look_behavior": "Free look behavior",
 
         "hud.settings.view_distance": "View Distance",
         "hud.settings.maximum_fps": "Maximum FPS",
@@ -319,6 +323,9 @@ Bag
 
 Send Chat Message
 Scroll Chat
+
+
+Free look
 
 
 Chat commands:  

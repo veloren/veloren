@@ -236,6 +236,7 @@ pub enum Event {
     Logout,
     Quit,
     ChangeLanguage(LanguageMetadata),
+    ChangeFreeLookBehavior(PressBehavior),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -275,6 +276,11 @@ pub enum BarNumbers {
 pub enum ShortcutNumbers {
     On,
     Off,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum PressBehavior {
+    Toggle = 0,
+    Hold = 1,
 }
 
 pub struct Show {
@@ -1806,6 +1812,9 @@ impl Hud {
                     settings_window::Event::AdjustWindowSize(new_size) => {
                         events.push(Event::AdjustWindowSize(new_size));
                     },
+                    settings_window::Event::ChangeFreeLookBehavior(behavior) => {
+                        events.push(Event::ChangeFreeLookBehavior(behavior));
+                    },
                 }
             }
         }
@@ -1879,8 +1888,8 @@ impl Hud {
                 },
                 Some(esc_menu::Event::Close) => {
                     self.show.esc_menu = false;
-                    self.show.want_grab = false;
-                    self.force_ungrab = true;
+                    self.show.want_grab = true;
+                    self.force_ungrab = false;
 
                     // Unpause the game if we are on singleplayer
                     if let Some(singleplayer) = global_state.singleplayer.as_ref() {
