@@ -10,7 +10,7 @@ common = { package = "veloren-common", path = "../common" }
 bitvec = "0.15.2"
 image = "0.22.3"
 itertools = "0.8.2"
-vek = "0.9.9"
+vek = "0.10.0"
 noise = { version = "0.6.0", default-features = false }
 num = "0.2.0"
 ordered-float = "1.0"

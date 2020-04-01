@@ -40,7 +40,7 @@ pub struct DeltaTime(pub f32);
 /// this value, the game's physics will begin to produce time lag. Ideally, we'd
 /// avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
-const HUMANOID_JUMP_ACCEL: f32 = 26.0;
+const HUMANOID_JUMP_ACCEL: f32 = 16.0;
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -106,6 +106,7 @@ impl State {
         // Uids for sync
         ecs.register_sync_marker();
         // Register server -> all clients synced components.
+        ecs.register::<comp::Loadout>();
         ecs.register::<comp::Body>();
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();
@@ -119,12 +120,12 @@ impl State {
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Gravity>();
+        ecs.register::<comp::CharacterState>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
 
         // Register components send directly from server -> all but one client
-        ecs.register::<comp::CharacterState>();
         ecs.register::<comp::PhysicsState>();
 
         // Register components synced from client -> server -> all other clients
@@ -138,7 +139,6 @@ impl State {
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
-        ecs.register::<comp::Last<comp::CharacterState>>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::WaypointArea>();
@@ -147,6 +147,7 @@ impl State {
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
         ecs.register::<comp::Projectile>();
+        ecs.register::<comp::Attacking>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));
@@ -352,6 +353,13 @@ impl State {
                 LocalEvent::Jump(entity) => {
                     if let Some(vel) = velocities.get_mut(entity) {
                         vel.0.z = HUMANOID_JUMP_ACCEL;
+                    }
+                },
+                LocalEvent::ApplyForce { entity, force } => {
+                    // TODO: this sets the velocity directly to the value of `force`, consider
+                    // renaming the event or changing the behavior
+                    if let Some(vel) = velocities.get_mut(entity) {
+                        vel.0 = force;
                     }
                 },
                 LocalEvent::WallLeap { entity, wall_dir } => {

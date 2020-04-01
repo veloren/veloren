@@ -1,0 +1,8 @@
+Item(
+    name: "Assassin Boots",
+    description: "Only the best for a member of the creed.",
+    kind: Armor(
+        kind: Foot(Assassin),
+        stats: (20),
+    ),
+)

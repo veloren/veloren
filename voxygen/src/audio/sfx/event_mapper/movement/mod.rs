@@ -4,7 +4,10 @@
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use common::{
-    comp::{ActionState, Body, CharacterState, Item, ItemKind, MovementState, Pos, Stats, Vel},
+    comp::{
+        item::{Item, ItemKind},
+        Body, CharacterState, ItemConfig, Loadout, PhysicsState, Pos, Vel,
+    },
     event::{EventBus, SfxEvent, SfxEventItem},
     state::State,
 };
@@ -14,14 +17,26 @@ use std::time::{Duration, Instant};
 use vek::*;
 
 #[derive(Clone)]
-struct LastSfxEvent {
+struct PreviousEntityState {
     event: SfxEvent,
-    weapon_drawn: bool,
     time: Instant,
+    weapon_drawn: bool,
+    on_ground: bool,
+}
+
+impl Default for PreviousEntityState {
+    fn default() -> Self {
+        Self {
+            event: SfxEvent::Idle,
+            time: Instant::now(),
+            weapon_drawn: false,
+            on_ground: true,
+        }
+    }
 }
 
 pub struct MovementEventMapper {
-    event_history: HashMap<EcsEntity, LastSfxEvent>,
+    event_history: HashMap<EcsEntity, PreviousEntityState>,
 }
 
 impl MovementEventMapper {
@@ -35,17 +50,21 @@ impl MovementEventMapper {
         const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
         let ecs = state.ecs();
 
+        let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
+        let mut sfx_emitter = sfx_event_bus.emitter();
+
         let player_position = ecs
             .read_storage::<Pos>()
             .get(player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, vel, body, stats, character) in (
+        for (entity, pos, vel, body, physics, loadout, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Body>(),
-            &ecs.read_storage::<Stats>(),
+            &ecs.read_storage::<PhysicsState>(),
+            ecs.read_storage::<Loadout>().maybe(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
@@ -57,42 +76,38 @@ impl MovementEventMapper {
                 let state = self
                     .event_history
                     .entry(entity)
-                    .or_insert_with(|| LastSfxEvent {
-                        event: SfxEvent::Idle,
-                        weapon_drawn: false,
-                        time: Instant::now(),
-                    });
+                    .or_insert_with(|| PreviousEntityState::default());
 
                 let mapped_event = match body {
-                    Body::Humanoid(_) => Self::map_movement_event(character, state, vel.0, stats),
+                    Body::Humanoid(_) => {
+                        Self::map_movement_event(character, physics, state, vel.0, loadout)
+                    },
                     Body::QuadrupedMedium(_)
                     | Body::QuadrupedSmall(_)
                     | Body::BirdMedium(_)
                     | Body::BirdSmall(_)
-                    | Body::BipedLarge(_) => {
-                        Self::map_non_humanoid_movement_event(character, vel.0)
-                    },
+                    | Body::BipedLarge(_) => Self::map_non_humanoid_movement_event(physics, vel.0),
                     _ => SfxEvent::Idle, // Ignore fish, critters, etc...
                 };
 
                 // Check for SFX config entry for this movement
                 if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
-                    ecs.read_resource::<EventBus<SfxEventItem>>()
-                        .emitter()
-                        .emit(SfxEventItem::new(
-                            mapped_event,
-                            Some(pos.0),
-                            Some(Self::get_volume_for_body_type(body)),
-                        ));
+                    sfx_emitter.emit(SfxEventItem::new(
+                        mapped_event,
+                        Some(pos.0),
+                        Some(Self::get_volume_for_body_type(body)),
+                    ));
 
-                    // Update the last play time
+                    // Set the new previous entity state
                     state.event = mapped_event;
                     state.time = Instant::now();
-                    state.weapon_drawn = Self::has_weapon_drawn(character.action);
+                    state.weapon_drawn = Self::weapon_drawn(character);
+                    state.on_ground = physics.on_ground;
                 } else {
-                    // Keep the last event, it may not have an SFX trigger but it helps us determine
-                    // the next one
+                    // If we don't dispatch the event, store this data as we can use it to determine
+                    // the next event
                     state.event = mapped_event;
+                    state.on_ground = physics.on_ground;
                 }
             }
         }
@@ -121,12 +136,12 @@ impl MovementEventMapper {
     /// file(s) to play) 2. The sfx has not been played since it's timeout
     /// threshold has elapsed, which prevents firing every tick
     fn should_emit(
-        last_play_entry: &LastSfxEvent,
+        previous_state: &PreviousEntityState,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
-            if &last_play_entry.event == event {
-                last_play_entry.time.elapsed().as_secs_f64() >= item.threshold
+            if &previous_state.event == event {
+                previous_state.time.elapsed().as_secs_f64() >= item.threshold
             } else {
                 true
             }
@@ -135,89 +150,85 @@ impl MovementEventMapper {
         }
     }
 
-    /// Voxygen has an existing list of character states via `MovementState::*`
-    /// and `ActionState::*` however that list does not provide enough
-    /// resolution to target specific entity events, such as opening or
-    /// closing the glider. These methods translate those entity states with
-    /// some additional data into more specific `SfxEvent`'s which we attach
-    /// sounds to
+    /// Voxygen has an existing list of character states however that list does
+    /// not provide enough resolution to target specific entity events, such
+    /// as opening or closing the glider. These methods translate those
+    /// entity states with some additional data into more specific
+    /// `SfxEvent`'s which we attach sounds to
     fn map_movement_event(
-        current_event: &CharacterState,
-        previous_event: &LastSfxEvent,
+        character_state: &CharacterState,
+        physics_state: &PhysicsState,
+        previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
-        stats: &Stats,
+        loadout: Option<&Loadout>,
     ) -> SfxEvent {
-        // Handle any weapon wielding changes up front. Doing so here first simplifies
-        // handling the movement/action state later, since they don't require querying
-        // stats or previous wield state.
-        if let Some(Item {
-            kind: ItemKind::Tool { kind, .. },
-            ..
-        }) = stats.equipment.main
-        {
-            if let Some(wield_event) = match (
-                previous_event.weapon_drawn,
-                current_event.action.is_roll(),
-                Self::has_weapon_drawn(current_event.action),
-            ) {
-                (false, false, true) => Some(SfxEvent::Wield(kind)),
-                (true, false, false) => Some(SfxEvent::Unwield(kind)),
-                _ => None,
-            } {
-                return wield_event;
+        // Handle wield state changes
+        if let Some(active_loadout) = loadout {
+            if let Some(ItemConfig {
+                item:
+                    Item {
+                        kind: ItemKind::Tool(data),
+                        ..
+                    },
+                ..
+            }) = active_loadout.active_item
+            {
+                if let Some(wield_event) = match (
+                    previous_state.weapon_drawn,
+                    character_state.is_dodge(),
+                    Self::weapon_drawn(character_state),
+                ) {
+                    (false, false, true) => Some(SfxEvent::Wield(data.kind)),
+                    (true, false, false) => Some(SfxEvent::Unwield(data.kind)),
+                    _ => None,
+                } {
+                    return wield_event;
+                }
             }
         }
 
+        // Match run state
+        if physics_state.on_ground && vel.magnitude() > 0.1
+            || !previous_state.on_ground && physics_state.on_ground
+        {
+            return SfxEvent::Run;
+        }
+
         // Match all other Movemement and Action states
-        match (
-            current_event.movement,
-            current_event.action,
-            previous_event.event.clone(),
-        ) {
-            (_, ActionState::Roll { .. }, _) => SfxEvent::Roll,
-            (MovementState::Climb, ..) => SfxEvent::Climb,
-            (MovementState::Swim, ..) => SfxEvent::Swim,
-            (MovementState::Run, ..) => {
-                // If the entitys's velocity is very low, they may be stuck, or walking into a
-                // solid object. We should not trigger the run SFX in this case,
-                // even if their move state indicates running. The 0.1 value is
-                // an approximation from playtesting scenarios where this can occur.
-                if vel.magnitude() > 0.1 {
-                    SfxEvent::Run
-                } else {
-                    SfxEvent::Idle
-                }
-            },
-            (MovementState::Jump, ..) => SfxEvent::Jump,
-            (MovementState::Fall, _, SfxEvent::Glide) => SfxEvent::GliderClose,
-            (MovementState::Stand, _, SfxEvent::Fall) => SfxEvent::Run,
-            (MovementState::Fall, _, SfxEvent::Jump) => SfxEvent::Idle,
-            (MovementState::Fall, _, _) => SfxEvent::Fall,
-            (MovementState::Glide, _, previous_event) => {
+        match (previous_state.event, character_state) {
+            (_, CharacterState::Roll { .. }) => SfxEvent::Roll,
+            (_, CharacterState::Climb { .. }) => SfxEvent::Climb,
+            (SfxEvent::Glide, CharacterState::Idle { .. }) => SfxEvent::GliderClose,
+            (previous_event, CharacterState::Glide { .. }) => {
                 if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
                     SfxEvent::GliderOpen
                 } else {
                     SfxEvent::Glide
                 }
             },
-            (MovementState::Stand, _, SfxEvent::Glide) => SfxEvent::GliderClose,
             _ => SfxEvent::Idle,
         }
     }
 
     /// Maps a limited set of movements for other non-humanoid entities
-    fn map_non_humanoid_movement_event(current_event: &CharacterState, vel: Vec3<f32>) -> SfxEvent {
-        if current_event.movement == MovementState::Run && vel.magnitude() > 0.1 {
+    fn map_non_humanoid_movement_event(physics_state: &PhysicsState, vel: Vec3<f32>) -> SfxEvent {
+        if physics_state.on_ground && vel.magnitude() > 0.1 {
             SfxEvent::Run
         } else {
             SfxEvent::Idle
         }
     }
 
-    /// Returns true for any state where the player has their weapon drawn. This
-    /// helps us manage the wield/unwield sfx events
-    fn has_weapon_drawn(state: ActionState) -> bool {
-        state.is_wield() | state.is_attack() | state.is_block() | state.is_charge()
+    /// This helps us determine whether we should be emitting the Wield/Unwield
+    /// events. For now, consider either CharacterState::Wielding or
+    /// ::Equipping to mean the weapon is drawn. This will need updating if the
+    /// animations change to match the wield_duration associated with the weapon
+    fn weapon_drawn(character: &CharacterState) -> bool {
+        character.is_wield()
+            || match character {
+                CharacterState::Equipping { .. } => true,
+                _ => false,
+            }
     }
 
     /// Returns a relative volume value for a body type. This helps us emit sfx

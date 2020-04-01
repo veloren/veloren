@@ -1,6 +1,6 @@
 use crate::{Server, StateExt};
 use common::{
-    comp::{self, Pos, MAX_PICKUP_RANGE_SQR},
+    comp::{self, item, Pos, MAX_PICKUP_RANGE_SQR},
     sync::WorldSyncExt,
     terrain::block::Block,
     vol::{ReadVol, Vox},
@@ -83,38 +83,77 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         },
 
-        comp::InventoryManip::Use(slot) => {
+        comp::InventoryManip::Use(slot_idx) => {
             let item_opt = state
                 .ecs()
                 .write_storage::<comp::Inventory>()
                 .get_mut(entity)
-                .and_then(|inv| inv.remove(slot));
+                .and_then(|inv| inv.take(slot_idx));
 
             let mut event = comp::InventoryUpdateEvent::Used;
 
             if let Some(item) = item_opt {
-                match item.kind {
-                    comp::ItemKind::Tool { .. } => {
-                        if let Some(stats) =
-                            state.ecs().write_storage::<comp::Stats>().get_mut(entity)
+                match &item.kind {
+                    item::ItemKind::Tool(tool) => {
+                        if let Some(loadout) =
+                            state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
                         {
                             // Insert old item into inventory
-                            if let Some(old_item) = stats.equipment.main.take() {
+                            if let Some(old_item) = loadout.active_item.take() {
                                 state
                                     .ecs()
                                     .write_storage::<comp::Inventory>()
                                     .get_mut(entity)
-                                    .map(|inv| inv.insert(slot, old_item));
+                                    .map(|inv| inv.insert(slot_idx, old_item.item));
                             }
 
-                            stats.equipment.main = Some(item);
+                            let mut abilities = tool.get_abilities();
+                            let mut ability_drain = abilities.drain(..);
+                            let active_item = comp::ItemConfig {
+                                item,
+                                ability1: ability_drain.next(),
+                                ability2: ability_drain.next(),
+                                ability3: ability_drain.next(),
+                                block_ability: Some(comp::CharacterAbility::BasicBlock),
+                                dodge_ability: Some(comp::CharacterAbility::Roll),
+                            };
+                            loadout.active_item = Some(active_item);
                         }
                     },
-                    comp::ItemKind::Consumable { kind, effect } => {
-                        event = comp::InventoryUpdateEvent::Consumed(kind);
-                        state.apply_effect(entity, effect);
+
+                    item::ItemKind::Consumable { kind, effect, .. } => {
+                        event = comp::InventoryUpdateEvent::Consumed(*kind);
+                        state.apply_effect(entity, *effect);
                     },
-                    comp::ItemKind::Utility { kind } => match kind {
+
+                    item::ItemKind::Armor { kind, .. } => {
+                        if let Some(loadout) =
+                            state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
+                        {
+                            use comp::item::armor::Armor::*;
+                            let slot = match kind.clone() {
+                                Shoulder(_) => &mut loadout.shoulder,
+                                Chest(_) => &mut loadout.chest,
+                                Belt(_) => &mut loadout.belt,
+                                Hand(_) => &mut loadout.hand,
+                                Pants(_) => &mut loadout.pants,
+                                Foot(_) => &mut loadout.foot,
+                            };
+
+                            // Insert old item into inventory
+                            if let Some(old_item) = slot.take() {
+                                state
+                                    .ecs()
+                                    .write_storage::<comp::Inventory>()
+                                    .get_mut(entity)
+                                    .map(|inv| inv.insert(slot_idx, old_item));
+                            }
+
+                            *slot = Some(item);
+                        }
+                    },
+
+                    item::ItemKind::Utility { kind, .. } => match kind {
                         comp::item::Utility::Collar => {
                             let reinsert = if let Some(pos) =
                                 state.read_storage::<comp::Pos>().get(entity)
@@ -171,7 +210,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     .ecs()
                                     .write_storage::<comp::Inventory>()
                                     .get_mut(entity)
-                                    .map(|inv| inv.insert(slot, item));
+                                    .map(|inv| inv.insert(slot_idx, item));
                             }
                         },
                     },
@@ -180,7 +219,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             .ecs()
                             .write_storage::<comp::Inventory>()
                             .get_mut(entity)
-                            .map(|inv| inv.insert(slot, item));
+                            .map(|inv| inv.insert(slot_idx, item));
                     },
                 }
             }
@@ -217,7 +256,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         .read_storage::<comp::Ori>()
                         .get(entity)
                         .copied()
-                        .unwrap_or(comp::Ori(Vec3::unit_y())),
+                        .unwrap_or_default(),
                     item,
                 ));
             }
@@ -230,7 +269,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
     // Drop items
     for (pos, ori, item) in dropped_items {
-        let vel = ori.0.normalized() * 5.0
+        let vel = *ori.0 * 5.0
             + Vec3::unit_z() * 10.0
             + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
 

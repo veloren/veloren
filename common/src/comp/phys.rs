@@ -1,4 +1,4 @@
-use crate::sync::Uid;
+use crate::{sync::Uid, util::Dir};
 use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IDVStorage;
 use vek::*;
@@ -21,7 +21,7 @@ impl Component for Vel {
 
 // Orientation
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Ori(pub Vec3<f32>);
+pub struct Ori(pub Dir);
 
 impl Component for Ori {
     type Storage = IDVStorage<Self>;

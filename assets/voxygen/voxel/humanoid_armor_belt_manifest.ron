@@ -1,10 +1,52 @@
-({
-    Dark:(
-        vox_spec: ("armor.belt.dark", (-4.0, -3.5, 2.0)),
+((
+    default:(
+        vox_spec: ("armor.belt.belt_none", (-5.0, -3.5, 2.0)),
         color: None
     ),
-    Cloth:(
-        vox_spec: ("armor.belt.cloth_turq", (-4.0, -3.5, -6.0)),
-        color: None
-    )
-})
+    map: {
+        Dark:(
+            vox_spec: ("armor.belt.dark", (-4.0, -3.5, 2.0)),
+            color: None
+        ),
+        TurqCloth:(
+            vox_spec: ("armor.belt.cloth_turq", (-4.0, -3.5, -6.0)),
+            color: None
+        ),
+         BloodCloth:(
+            vox_spec: ("armor.belt.cloth_blood", (-4.0, -3.5, -6.0)),
+            color: Some((29, 26, 33))
+        ),
+        BlackCloth:(
+            vox_spec: ("armor.belt.cloth_black", (-4.0, -3.5, -6.0)),
+            color: Some((29, 26, 33))
+        ),
+        Assassin:(
+            vox_spec: ("armor.belt.assa", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        Dark:(
+            vox_spec: ("armor.belt.dark", (-4.0, -3.5, 2.0)),
+            color: None
+        ),
+        Plate0:(
+            vox_spec: ("armor.belt.plate-0", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        Leather0:(
+            vox_spec: ("armor.belt.leather-0", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        ClothPurple0:(
+            vox_spec: ("armor.belt.cloth_purple-0", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        ClothBlue0:(
+            vox_spec: ("armor.belt.cloth_blue-0", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        ClothGreen0:(
+            vox_spec: ("armor.belt.cloth_green-0", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+    },
+))

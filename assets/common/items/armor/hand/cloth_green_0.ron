@@ -1,0 +1,8 @@
+Item(
+    name: "Green Linen Wrists",
+   description: "WIP",
+    kind: Armor(
+        kind: Hand(ClothGreen0),
+        stats: (20),
+    ),
+)

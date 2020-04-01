@@ -1,0 +1,8 @@
+Item(
+    name: "Iron Shoulderguards",
+    description: "A strong shoulder to lean on.",
+    kind: Armor(
+        kind: Shoulder(Plate0),
+        stats: (20),
+    ),
+)

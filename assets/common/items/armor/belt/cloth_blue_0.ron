@@ -1,0 +1,8 @@
+Item(
+    name: "Blue Linen Belt",
+   description: "Soft and warm",
+    kind: Armor(
+        kind: Belt(ClothBlue0),
+        stats: (20),
+    ),
+)

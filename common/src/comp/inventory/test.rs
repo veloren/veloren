@@ -15,6 +15,7 @@ fn create_default_count() { assert_eq!(Inventory::default().count(), 2) }
 fn push_full() {
     let mut inv = Inventory {
         slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect(),
+        amount: 0,
     };
     assert_eq!(
         inv.push(TEST_ITEMS[0].clone()).unwrap(),
@@ -27,6 +28,7 @@ fn push_full() {
 fn push_all_full() {
     let mut inv = Inventory {
         slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect(),
+        amount: 0,
     };
     let Error::Full(leftovers) = inv
         .push_all(TEST_ITEMS.iter().map(|a| a.clone()))
@@ -40,6 +42,7 @@ fn push_all_full() {
 fn push_unique_all_full() {
     let mut inv = Inventory {
         slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect(),
+        amount: 0,
     };
     inv.push_all_unique(TEST_ITEMS.iter().map(|a| a.clone()))
         .expect("Pushing unique items into an inventory that already contains them didn't work!");
@@ -51,6 +54,7 @@ fn push_unique_all_full() {
 fn push_all_empty() {
     let mut inv = Inventory {
         slots: vec![None, None],
+        amount: 0,
     };
     inv.push_all(TEST_ITEMS.iter().map(|a| a.clone()))
         .expect("Pushing items into an empty inventory didn't work!");
@@ -62,6 +66,7 @@ fn push_all_empty() {
 fn push_all_unique_empty() {
     let mut inv = Inventory {
         slots: vec![None, None],
+        amount: 0,
     };
     inv.push_all_unique(TEST_ITEMS.iter().map(|a| a.clone()))
         .expect(

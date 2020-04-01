@@ -6,7 +6,7 @@ use vek::*;
 const NEAR_PLANE: f32 = 0.5;
 const FAR_PLANE: f32 = 100000.0;
 
-const FIRST_PERSON_INTERP_TIME: f32 = 0.05;
+const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
 pub const MIN_ZOOM: f32 = 0.1;
 
