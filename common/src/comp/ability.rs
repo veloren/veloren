@@ -161,7 +161,7 @@ impl From<&CharacterAbility> for CharacterState {
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
-                remaining_duration: Duration::from_millis(500),
+                remaining_duration: Duration::from_millis(700),
                 was_wielded: false, // false by default. utils might set it to true
             }),
             CharacterAbility::TripleStrike {
