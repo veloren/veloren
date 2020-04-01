@@ -80,6 +80,8 @@ impl Asset for Item {
 }
 
 impl Item {
+    // TODO: consider alternatives such as default abilities that can be added to a
+    // loadout when no weapon is present
     pub fn empty() -> Self {
         Self {
             name: "Empty Item".to_owned(),

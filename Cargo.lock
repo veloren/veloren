@@ -4866,7 +4866,8 @@ dependencies = [
 [[package]]
 name = "vek"
 version = "0.10.0"
-source = "git+https://github.com/Imberflur/vek?branch=is_normalized#43bef0a9e953fbf6b00a073aef914c48b784c995"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c98f7e1c1400d5b1704baee82cbc56a3fde406769555ead0f2306e43ebab967"
 dependencies = [
  "approx 0.3.2",
  "num-integer",
