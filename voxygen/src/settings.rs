@@ -1,5 +1,5 @@
 use crate::{
-    hud::{BarNumbers, CrosshairType, Intro, ShortcutNumbers, XpBar},
+    hud::{BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, XpBar},
     i18n,
     render::{AaMode, CloudMode, FluidMode},
     ui::ScaleMode,
@@ -348,6 +348,7 @@ pub struct GameplaySettings {
     pub shortcut_numbers: ShortcutNumbers,
     pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
+    pub free_look_behavior: PressBehavior,
 }
 
 impl Default for GameplaySettings {
@@ -369,6 +370,7 @@ impl Default for GameplaySettings {
             shortcut_numbers: ShortcutNumbers::On,
             bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
+            free_look_behavior: PressBehavior::Toggle,
         }
     }
 }
@@ -461,7 +463,26 @@ impl Default for GraphicsSettings {
         }
     }
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum AudioOutput {
+    /// Veloren's audio system wont work on some systems,
+    /// so you can use this to disable it, and allow the
+    /// game to function
+    // If this option is disabled, functions in the rodio
+    // library MUST NOT be called.
+    Off,
+    Automatic,
+    Device(String),
+}
 
+impl AudioOutput {
+    pub fn is_enabled(&self) -> bool {
+        match self {
+            Self::Off => false,
+            _ => true,
+        }
+    }
+}
 /// `AudioSettings` controls the volume of different audio subsystems and which
 /// device is used.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -473,8 +494,7 @@ pub struct AudioSettings {
     pub max_sfx_channels: usize,
 
     /// Audio Device that Voxygen will use to play audio.
-    pub audio_device: Option<String>,
-    pub audio_on: bool,
+    pub output: AudioOutput,
 }
 
 impl Default for AudioSettings {
@@ -484,8 +504,7 @@ impl Default for AudioSettings {
             music_volume: 0.4,
             sfx_volume: 0.6,
             max_sfx_channels: 10,
-            audio_device: None,
-            audio_on: true,
+            output: AudioOutput::Automatic,
         }
     }
 }

@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added gamepad/controller support
 - Added player feedback when attempting to pickup an item with a full inventory
 - Added free look
+- Added Italian translation
+- Added Portuguese translation
+- Added Turkish translation
 - Complete rewrite of the combat system into a state machine
 - Abilities like Dash and Triplestrike
 - Armor can now be eqipped as items

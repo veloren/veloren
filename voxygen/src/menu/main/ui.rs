@@ -433,7 +433,7 @@ impl MainMenuUi {
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
-                    .label("Accept")
+                    .label(&self.voxygen_i18n.get("common.accept"))
                     .label_font_size(self.fonts.cyri.scale(22))
                     .label_color(TEXT_COLOR)
                     .label_font_id(self.fonts.cyri.conrod_id)

@@ -1,11 +1,12 @@
 use crate::{
     ecs::MyEntity,
-    hud::{DebugInfo, Event as HudEvent, Hud},
+    hud::{DebugInfo, Event as HudEvent, Hud, PressBehavior},
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, Scene, SceneData},
+    settings::AudioOutput,
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -422,9 +423,18 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
                     },
-                    Event::InputUpdate(GameInput::FreeLook, true) => {
-                        free_look = !free_look;
-                        self.hud.free_look(free_look);
+                    Event::InputUpdate(GameInput::FreeLook, state) => {
+                        match (global_state.settings.gameplay.free_look_behavior, state) {
+                            (PressBehavior::Toggle, true) => {
+                                free_look = !free_look;
+                                self.hud.free_look(free_look);
+                            },
+                            (PressBehavior::Hold, state) => {
+                                free_look = state;
+                                self.hud.free_look(free_look);
+                            },
+                            _ => {},
+                        };
                     },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
@@ -626,7 +636,7 @@ impl PlayState for SessionState {
                     HudEvent::ChangeAudioDevice(name) => {
                         global_state.audio.set_device(name.clone());
 
-                        global_state.settings.audio.audio_device = Some(name);
+                        global_state.settings.audio.output = AudioOutput::Device(name);
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeMaxFPS(fps) => {
@@ -702,6 +712,9 @@ impl PlayState for SessionState {
                         global_state.window.set_size(new_size.into());
                         global_state.settings.graphics.window_size = new_size;
                         global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ChangeFreeLookBehavior(behavior) => {
+                        global_state.settings.gameplay.free_look_behavior = behavior;
                     },
                 }
             }
