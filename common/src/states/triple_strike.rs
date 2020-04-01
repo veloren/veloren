@@ -8,7 +8,7 @@ use vek::vec::Vec3;
 
 // In millis
 const STAGE_DURATION: u64 = 700;
-const TIMING_WINDOW: u64 = 600;
+const TIMING_WINDOW: u64 = 400;
 const INITIAL_ACCEL: f32 = 90.0;
 const BASE_SPEED: f32 = 25.0;
 
