@@ -68,6 +68,3 @@ debug = false
 [profile.releasedebuginfo]
 inherits =  'release'
 debug = 1
-
-[patch.crates-io]
-vek = {git = "https://github.com/Imberflur/vek", branch = "is_normalized"}
