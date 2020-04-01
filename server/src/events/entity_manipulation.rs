@@ -5,15 +5,13 @@ use common::{
     msg::ServerMsg,
     state::BlockChange,
     sync::{Uid, WorldSyncExt},
+    sys::combat::{BLOCK_ANGLE, BLOCK_EFFICIENCY},
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
 };
 use log::error;
 use specs::{join::Join, Entity as EcsEntity, WorldExt};
 use vek::Vec3;
-
-const BLOCK_EFFICIENCY: f32 = 0.9;
-const BLOCK_ANGLE: f32 = 180.0;
 
 pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
     let state = &server.state;
