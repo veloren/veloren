@@ -3,7 +3,7 @@ use common::{
     assets,
     comp::{
         bird_small, humanoid,
-        item::{AxeKind, BowKind, ToolKind},
+        item::tool::{AxeKind, BowKind, ToolKind},
         quadruped_medium, quadruped_small, Body, CharacterState, ItemConfig, Loadout, PhysicsState,
     },
     event::SfxEvent,
