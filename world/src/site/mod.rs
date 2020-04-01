@@ -14,6 +14,10 @@ use common::{
 use std::{fmt, sync::Arc};
 use vek::*;
 
+pub struct SpawnRules {
+    pub trees: bool,
+}
+
 #[derive(Clone)]
 pub enum Site {
     Settlement(Arc<Settlement>),
@@ -26,9 +30,9 @@ impl Site {
         }
     }
 
-    pub fn get_surface(&self, wpos: Vec2<i32>) -> Option<Block> {
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         match self {
-            Site::Settlement(settlement) => settlement.get_surface(wpos),
+            Site::Settlement(s) => s.spawn_rules(wpos)
         }
     }
 

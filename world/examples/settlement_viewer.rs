@@ -1,6 +1,6 @@
 use rand::thread_rng;
 use vek::*;
-use veloren_world::generator::settlement::Settlement;
+use veloren_world::site::Settlement;
 
 const W: usize = 640;
 const H: usize = 480;
