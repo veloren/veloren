@@ -67,6 +67,16 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         ecs.entity_from_uid(possessor_uid.into()),
         ecs.entity_from_uid(possesse_uid.into()),
     ) {
+        // Check that entities still exist
+        if !(possessor.gen().is_alive() && ecs.is_alive(possessor))
+            || !(possesse.gen().is_alive() && ecs.is_alive(possesse))
+        {
+            error!(
+                "Error possessing! either the possessor entity or possesse entity no longer exists"
+            );
+            return;
+        }
+
         // You can't possess other players
         let mut clients = ecs.write_storage::<Client>();
         if clients.get_mut(possesse).is_none() {
@@ -89,14 +99,16 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                 if let item::ItemKind::Tool(tool) = item.kind {
                     let mut abilities = tool.get_abilities();
                     let mut ability_drain = abilities.drain(..);
-                    loadout.active_item = Some(comp::ItemConfig {
+                    let debug_item = comp::ItemConfig {
                         item,
                         ability1: ability_drain.next(),
                         ability2: ability_drain.next(),
                         ability3: ability_drain.next(),
                         block_ability: None,
                         dodge_ability: None,
-                    });
+                    };
+                    std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
+                    loadout.active_item = Some(debug_item);
                 }
 
                 // Move player component

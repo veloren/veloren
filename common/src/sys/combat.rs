@@ -110,11 +110,14 @@ impl<'a> System<'a> for Sys {
                     // Weapon gives base damage
                     let mut healthchange = attack.base_healthchange as f32;
 
-                    //// NPCs do less damage:
+                    // TODO: remove this, either it will remain unused or be used as a temporary
+                    // gameplay balance
+                    //// NPCs do less damage
                     //if agent_maybe.is_some() {
                     //    healthchange = (healthchange / 1.5).min(-1.0);
                     //}
 
+                    // TODO: remove this when there is a better way to target healing
                     // Don't heal npc's hp
                     if agent_b_maybe.is_some() && healthchange > 0.0 {
                         healthchange = 0.0;

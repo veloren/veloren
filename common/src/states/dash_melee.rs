@@ -2,7 +2,6 @@ use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
     states::utils::*,
     sys::character_behavior::*,
-    util::Dir,
 };
 use std::time::Duration;
 use vek::Vec3;
@@ -97,8 +96,6 @@ impl CharacterBehavior for Data {
                 update.energy.change_by(100, EnergySource::HitEnemy);
             }
         }
-
-        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, update.vel.0, 9.0 * data.dt.0);
 
         update
     }

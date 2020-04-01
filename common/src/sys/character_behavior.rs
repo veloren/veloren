@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Agent, Attacking, Body, CharacterState, ControlAction, Controller, ControllerInputs,
-        Energy, Loadout, Mounting, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        Attacking, Body, CharacterState, ControlAction, Controller, ControllerInputs, Energy,
+        Loadout, Mounting, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -50,7 +50,6 @@ pub struct JoinData<'a> {
     pub body: &'a Body,
     pub physics: &'a PhysicsState,
     pub attacking: Option<&'a Attacking>,
-    pub agent: Option<&'a Agent>,
     pub updater: &'a LazyUpdate,
 }
 
@@ -68,7 +67,6 @@ pub type JoinTuple<'a> = (
     &'a Body,
     &'a PhysicsState,
     Option<&'a Attacking>,
-    Option<&'a Agent>,
 );
 
 fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
@@ -97,7 +95,6 @@ impl<'a> JoinData<'a> {
             body: j.10,
             physics: j.11,
             attacking: j.12,
-            agent: j.13,
             updater,
             dt,
         }
@@ -128,7 +125,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Attacking>,
-        ReadStorage<'a, Agent>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
     );
@@ -153,7 +149,6 @@ impl<'a> System<'a> for Sys {
             bodies,
             physics_states,
             attacking_storage,
-            agent_storage,
             uids,
             mountings,
         ): Self::SystemData,
@@ -175,7 +170,6 @@ impl<'a> System<'a> for Sys {
             &bodies,
             &physics_states,
             attacking_storage.maybe(),
-            agent_storage.maybe(),
         )
             .join();
 
