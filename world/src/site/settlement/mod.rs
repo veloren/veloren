@@ -3,12 +3,13 @@ use crate::{
     sim::{SimChunk, WorldSim},
     util::{Grid, RandomField, Sampler, StructureGen2d},
 };
+use super::SpawnRules;
 use common::{
     astar::Astar,
     path::Path,
     spiral::Spiral2d,
     terrain::{Block, BlockKind},
-    vol::{BaseVol, RectSizedVol, WriteVol},
+    vol::{BaseVol, RectSizedVol, WriteVol, Vox},
     store::{Id, Store},
 };
 use hashbrown::{HashMap, HashSet};
@@ -357,6 +358,12 @@ impl Settlement {
 
     pub fn radius(&self) -> f32 { 1200.0 }
 
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
+        SpawnRules {
+            trees: self.land.get_at_block(wpos - self.origin).plot.is_none(),
+        }
+    }
+
     pub fn apply_to<'a>(
         &'a self,
         wpos2d: Vec2<i32>,
@@ -369,50 +376,79 @@ impl Settlement {
             for x in 0..vol.size_xy().x as i32 {
                 let offs = Vec2::new(x, y);
 
+                let wpos2d = wpos2d + offs;
+                let rpos = wpos2d - self.origin;
+
+                // Sample terrain
                 let col_sample = if let Some(col_sample) = get_column(offs) {
                     col_sample
                 } else {
                     continue;
                 };
+                let surface_z = col_sample.alt.floor() as i32;
 
-                let wpos2d = wpos2d + offs;
+                // Sample settlement
+                let sample = self.land.get_at_block(rpos);
 
-                match self.land.get_at_block(wpos2d - self.origin) {
-                    Sample::Way(WayKind::Wall, dist) => {
-                        let color = Lerp::lerp(
-                            Rgb::new(130i32, 100, 0),
-                            Rgb::new(90, 70, 50),
-                            (rand_field.get(wpos2d.into()) % 256) as f32 / 256.0,
-                        )
-                        .map(|e| (e % 256) as u8);
-                        for z in 0..12 {
-                            if dist / WayKind::Wall.width()
-                                < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0)
-                            {
-                                vol.set(
-                                    Vec3::new(offs.x, offs.y, col_sample.alt.floor() as i32 + z),
-                                    Block::new(BlockKind::Normal, color),
-                                );
-                            }
-                        }
-                    },
-                    Sample::Tower(Tower::Wall, _pos) => {
-                        for z in 0..16 {
+                // Ground color
+                if let Some(color) = self.get_color(rpos) {
+                    for z in -3..3 {
+                        vol.set(
+                            Vec3::new(offs.x, offs.y, surface_z + z),
+                            if z >= 0 { Block::empty() } else { Block::new(BlockKind::Normal, color) },
+                        );
+                    }
+                }
+
+                // Walls
+                if let Some((WayKind::Wall, dist)) = sample.way {
+                    let color = Lerp::lerp(
+                        Rgb::new(130i32, 100, 0),
+                        Rgb::new(90, 70, 50),
+                        (rand_field.get(wpos2d.into()) % 256) as f32 / 256.0,
+                    )
+                    .map(|e| (e % 256) as u8);
+                    for z in 0..12 {
+                        if dist / WayKind::Wall.width()
+                            < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0)
+                        {
                             vol.set(
-                                Vec3::new(offs.x, offs.y, col_sample.alt.floor() as i32 + z),
-                                Block::new(BlockKind::Normal, Rgb::new(50, 50, 50)),
+                                Vec3::new(offs.x, offs.y, surface_z + z),
+                                Block::new(BlockKind::Normal, color),
                             );
                         }
-                    },
-                    _ => {},
+                    }
+                }
+
+                // Towers
+                if let Some((Tower::Wall, _pos)) = sample.tower {
+                    for z in 0..16 {
+                        vol.set(
+                            Vec3::new(offs.x, offs.y, surface_z + z),
+                            Block::new(BlockKind::Normal, Rgb::new(50, 50, 50)),
+                        );
+                    }
+                }
+
+                // Paths
+                if let Some((WayKind::Path, dist)) = sample.way {
+                    let inset = -1;
+                    for z in -3..inset {
+                        vol.set(
+                            Vec3::new(offs.x, offs.y, surface_z + z),
+                            Block::new(BlockKind::Normal, Rgb::new(90, 70, 50)),
+                        );
+                    }
+                    let head_space = (6 - (dist * 0.4).powf(6.0).round() as i32).max(1);
+                    for z in inset..inset + head_space {
+                        vol.set(
+                            Vec3::new(offs.x, offs.y, surface_z + z),
+                            Block::empty(),
+                        );
+                    }
                 }
             }
         }
-    }
-
-    pub fn get_surface(&self, wpos: Vec2<i32>) -> Option<Block> {
-        self.get_color(wpos - self.origin)
-            .map(|col| Block::new(BlockKind::Normal, col))
     }
 
     pub fn get_color(&self, pos: Vec2<i32>) -> Option<Rgb<u8>> {
@@ -426,24 +462,30 @@ impl Settlement {
             });
         }
 
-        Some(match self.land.get_at_block(pos) {
-            Sample::Wilderness => return None,
-            Sample::Plot(Plot::Hazard) => return None,
-            Sample::Way(WayKind::Path, _) => Rgb::new(90, 70, 50),
-            Sample::Way(WayKind::Hedge, _) => Rgb::new(0, 150, 0),
-            Sample::Way(WayKind::Wall, _) => Rgb::new(60, 60, 60),
-            Sample::Tower(Tower::Wall, _) => Rgb::new(50, 50, 50),
-            Sample::Plot(Plot::Dirt) => Rgb::new(90, 70, 50),
-            Sample::Plot(Plot::Grass) => Rgb::new(100, 200, 0),
-            Sample::Plot(Plot::Water) => Rgb::new(100, 150, 250),
-            Sample::Plot(Plot::Town) => {
-                if pos.map(|e| e.rem_euclid(4) < 2).reduce(|x, y| x ^ y) {
-                    Rgb::new(200, 130, 120)
-                } else {
-                    Rgb::new(160, 150, 120)
-                }
-            },
-            Sample::Plot(Plot::Field { seed, .. }) => {
+        let sample = self.land.get_at_block(pos);
+
+        match sample.tower {
+            Some((Tower::Wall, _)) => return Some(Rgb::new(50, 50, 50)),
+            _ => {},
+        }
+
+        match sample.way {
+            Some((WayKind::Path, _)) => return Some(Rgb::new(90, 70, 50)),
+            Some((WayKind::Hedge, _)) => return Some(Rgb::new(0, 150, 0)),
+            Some((WayKind::Wall, _)) => return Some(Rgb::new(60, 60, 60)),
+            _ => {},
+        }
+
+        match sample.plot {
+            Some(Plot::Dirt) => return Some(Rgb::new(90, 70, 50)),
+            Some(Plot::Grass) => return Some(Rgb::new(100, 200, 0)),
+            Some(Plot::Water) => return Some(Rgb::new(100, 150, 250)),
+            Some(Plot::Town) => return Some(if pos.map(|e| e.rem_euclid(4) < 2).reduce(|x, y| x ^ y) {
+                Rgb::new(200, 130, 120)
+            } else {
+                Rgb::new(160, 150, 120)
+            }),
+            Some(Plot::Field { seed, .. }) => {
                 let furrow_dirs = [
                     Vec2::new(1, 0),
                     Vec2::new(0, 1),
@@ -452,7 +494,7 @@ impl Settlement {
                 ];
                 let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
                 let furrow = (pos * furrow_dir).sum().rem_euclid(6) < 3;
-                Rgb::new(
+                return Some(Rgb::new(
                     if furrow {
                         100
                     } else {
@@ -460,9 +502,12 @@ impl Settlement {
                     },
                     64 + seed.to_le_bytes()[1] % 128,
                     16 + seed.to_le_bytes()[2] % 32,
-                )
+                ));
             },
-        })
+            _ => {},
+        }
+
+        None
     }
 }
 
@@ -523,11 +568,11 @@ impl Tile {
     pub fn contains(&self, kind: WayKind) -> bool { self.ways.iter().any(|way| way == &Some(kind)) }
 }
 
-pub enum Sample<'a> {
-    Wilderness,
-    Plot(&'a Plot),
-    Way(&'a WayKind, f32),
-    Tower(&'a Tower, Vec2<i32>),
+#[derive(Default)]
+pub struct Sample<'a> {
+    plot: Option<&'a Plot>,
+    way: Option<(&'a WayKind, f32)>,
+    tower: Option<(&'a Tower, Vec2<i32>)>,
 }
 
 pub struct Land {
@@ -546,6 +591,8 @@ impl Land {
     }
 
     pub fn get_at_block(&self, pos: Vec2<i32>) -> Sample {
+        let mut sample = Sample::default();
+
         let neighbors = self.sampler_warp.get(pos);
         let closest = neighbors
             .iter()
@@ -557,7 +604,7 @@ impl Land {
 
         if let Some(tower) = center_tile.and_then(|tile| tile.tower.as_ref()) {
             if (neighbors[4].0.distance_squared(pos) as f32) < tower.radius().powf(2.0) {
-                return Sample::Tower(tower, neighbors[4].0);
+                sample.tower = Some((tower, neighbors[4].0));
             }
         }
 
@@ -570,15 +617,14 @@ impl Land {
             if let Some(way) = center_tile.and_then(|tile| tile.ways[i].as_ref()) {
                 let dist = dist_to_line(line, pos.map(|e| e as f32));
                 if dist < way.width() {
-                    return Sample::Way(way, dist);
+                    sample.way = Some((way, dist));
                 }
             }
         }
 
-        let plot = self.plot_at(closest.map(to_tile));
+        sample.plot = self.plot_at(closest.map(to_tile));
 
-        plot.map(|plot| Sample::Plot(plot))
-            .unwrap_or(Sample::Wilderness)
+        sample
     }
 
     pub fn tile_at(&self, pos: Vec2<i32>) -> Option<&Tile> { self.tiles.get(&pos) }

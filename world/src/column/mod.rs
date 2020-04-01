@@ -999,13 +999,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             humidity.sub(CONFIG.jungle_hum).mul(1.0),
         );
 
-        let ground = sim_chunk.sites.iter().fold(ground, |ground, site| {
-            site.get_surface(wpos)
-                .and_then(|block| block.get_color())
-                .map(|col| col.map(|e| e as f32 / 255.0))
-                .unwrap_or(ground)
-        });
-
         // Snow covering
         let snow_cover = temp
             .sub(CONFIG.snow_temp)
@@ -1082,7 +1075,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             ),
             sub_surface_color,
             // No growing directly on bedrock.
-            tree_density: Lerp::lerp(0.0, tree_density, alt.sub(2.0).sub(basement).mul(0.5)),
+            // And, no growing on sites that don't want them TODO: More precise than this when we apply trees as a post-processing layer
+            tree_density: if sim_chunk.sites.iter().all(|site| site.spawn_rules(wpos).trees) {
+                Lerp::lerp(0.0, tree_density, alt.sub(2.0).sub(basement).mul(0.5))
+            } else {
+                0.0
+            },
             forest_kind: sim_chunk.forest_kind,
             close_structures: self.gen_close_structures(wpos),
             cave_xy,
