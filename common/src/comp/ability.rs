@@ -3,7 +3,7 @@ use crate::{
         item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile,
         StateUpdate,
     },
-    states::*,
+    states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
 };
 use specs::{Component, FlaggedStorage};
@@ -172,12 +172,11 @@ impl From<&CharacterAbility> for CharacterState {
                 stage: triple_strike::Stage::First,
                 stage_exhausted: false,
                 stage_time_active: Duration::default(),
-                needs_timing: *needs_timing,
-                // If `needs_timing`, prevent tansitioning by default,
-                // unless pressed at the right time.
-                should_transition: !*needs_timing,
                 initialized: false,
-                prevent_transition: false,
+                transition_style: match *needs_timing {
+                    true => TransitionStyle::Timed(TimingState::NotPressed),
+                    false => TransitionStyle::Hold(HoldingState::Holding),
+                },
             }),
         }
     }

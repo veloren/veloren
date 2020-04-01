@@ -5,6 +5,9 @@ use crate::{
 };
 use std::time::Duration;
 use vek::vec::Vec3;
+use HoldingState::*;
+use TimingState::*;
+use TransitionStyle::*;
 
 // In millis
 const STAGE_DURATION: u64 = 700;
@@ -19,6 +22,27 @@ pub enum Stage {
     Third,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub enum TimingState {
+    NotPressed,
+    PressedEarly,
+    Success,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub enum HoldingState {
+    Holding,
+    Released,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+pub enum TransitionStyle {
+    /// Player must time a button press properly to transition
+    Timed(TimingState),
+    /// Player must hold button for whole move
+    Hold(HoldingState),
+}
+
 /// ### A sequence of 3 incrementally increasing attacks.
 ///
 /// While holding down the `primary` button, perform a series of 3 attacks,
@@ -29,20 +53,16 @@ pub enum Stage {
 pub struct Data {
     /// The tool this state will read to handle damage, etc.
     pub base_damage: u32,
-    /// What stage (of 3) the attack is in.
+    /// What stage (of 3) the attack is in
     pub stage: Stage,
     /// How long current stage has been active
     pub stage_time_active: Duration,
     /// Whether current stage has exhausted its attack
     pub stage_exhausted: bool,
-    /// Whether to go to next stage
-    pub should_transition: bool,
     /// Whether state has performed intialization logic
     pub initialized: bool,
-    /// Whether player must time button pressed properly to continue combo
-    pub needs_timing: bool,
-    /// Set to prevent transitioning, true by default when `needs_timing`
-    pub prevent_transition: bool,
+    /// What this instance's current transition stat is
+    pub transition_style: TransitionStyle,
 }
 
 impl CharacterBehavior for Data {
@@ -62,29 +82,30 @@ impl CharacterBehavior for Data {
         }
         let initialized = true;
 
-        // If player stops holding input, don't go to the next stage
-        let mut should_transition = self.should_transition;
-        let mut prevent_transition = self.prevent_transition;
-
-        // Check inputs based on whether `needs_timing`
-        if self.needs_timing {
-            // Player must press at right time
-            if data.inputs.primary.is_just_pressed() {
-                if stage_time_active > Duration::from_millis(TIMING_WINDOW) {
-                    // Player pressed at right time, transition
-                    // unless prevent_transition has been set
-                    should_transition = true;
+        // Update transition
+        let transition_style = match self.transition_style {
+            Timed(state) => match state {
+                NotPressed => {
+                    if data.inputs.primary.is_just_pressed() {
+                        if stage_time_active > Duration::from_millis(TIMING_WINDOW) {
+                            Timed(Success)
+                        } else {
+                            Timed(PressedEarly)
+                        }
+                    } else {
+                        self.transition_style
+                    }
+                },
+                _ => self.transition_style,
+            },
+            Hold(_) => {
+                if !data.inputs.primary.is_pressed() {
+                    Hold(Released)
                 } else {
-                    // Player pressed too early
-                    prevent_transition = true;
+                    self.transition_style
                 }
-            }
-        } else {
-            // Prevent transitioning if player ever stops holding input
-            if !data.inputs.primary.is_pressed() {
-                should_transition = false;
-            }
-        }
+            },
+        };
 
         // Handle hit applied
         if let Some(attack) = data.attacking {
@@ -148,18 +169,22 @@ impl CharacterBehavior for Data {
                 stage: self.stage,
                 stage_time_active,
                 stage_exhausted: true,
-                should_transition,
                 initialized,
-                needs_timing: self.needs_timing,
-                prevent_transition,
+                transition_style,
             })
         } else if stage_time_active > Duration::from_millis(STAGE_DURATION) {
-            let next_stage = match self.stage {
-                _ if !should_transition || prevent_transition => None,
-                Stage::First => Some(Stage::Second),
-                Stage::Second => Some(Stage::Third),
-                Stage::Third => None,
-            };
+            let next_stage = 
+            // Determine whether stage can transition based on TransitionStyle
+            if let Hold(Holding) | Timed(Success) = transition_style {
+                // Determine what stage to transition to
+                match self.stage {
+                    Stage::First => Some(Stage::Second),
+                    Stage::Second => Some(Stage::Third),
+                    Stage::Third => None,
+                }
+            }
+            // Player messed up inputs, don't transition
+            else { None };
 
             if let Some(stage) = next_stage {
                 CharacterState::TripleStrike(Data {
@@ -167,10 +192,11 @@ impl CharacterBehavior for Data {
                     stage,
                     stage_time_active: Duration::default(),
                     stage_exhausted: false,
-                    should_transition,
                     initialized,
-                    needs_timing: self.needs_timing,
-                    prevent_transition,
+                    transition_style: match transition_style {
+                        Hold(_) => Hold(Holding),
+                        Timed(_) => Timed(NotPressed),
+                   },
                 })
             } else {
                 // Make sure attack component is removed
@@ -184,10 +210,8 @@ impl CharacterBehavior for Data {
                 stage: self.stage,
                 stage_time_active,
                 stage_exhausted: self.stage_exhausted,
-                should_transition,
                 initialized,
-                needs_timing: self.needs_timing,
-                prevent_transition,
+                transition_style,
             })
         };
 
