@@ -6,7 +6,7 @@ use crate::{
 use std::time::Duration;
 use vek::Vec3;
 
-const ROLL_SPEED: f32 = 15.0;
+const ROLL_SPEED: f32 = 25.0;
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
     /// How long the state has until exiting
