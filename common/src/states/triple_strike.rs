@@ -11,7 +11,7 @@ use TransitionStyle::*;
 
 // In millis
 const STAGE_DURATION: u64 = 700;
-const TIMING_WINDOW: u64 = 400;
+const TIMING_DELAY: u64 = 350;
 const INITIAL_ACCEL: f32 = 90.0;
 const BASE_SPEED: f32 = 25.0;
 
@@ -87,7 +87,7 @@ impl CharacterBehavior for Data {
             Timed(state) => match state {
                 NotPressed => {
                     if data.inputs.primary.is_just_pressed() {
-                        if stage_time_active > Duration::from_millis(TIMING_WINDOW) {
+                        if stage_time_active > Duration::from_millis(TIMING_DELAY) {
                             Timed(Success)
                         } else {
                             Timed(PressedEarly)
