@@ -1,6 +1,6 @@
 pub mod agent;
 pub mod character_behavior;
-mod combat;
+pub mod combat;
 pub mod controller;
 mod mount;
 pub mod phys;

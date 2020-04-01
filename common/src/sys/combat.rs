@@ -9,8 +9,8 @@ use crate::{
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use vek::*;
 
-const BLOCK_EFFICIENCY: f32 = 0.9;
-const BLOCK_ANGLE: f32 = 180.0;
+pub const BLOCK_EFFICIENCY: f32 = 0.9;
+pub const BLOCK_ANGLE: f32 = 180.0;
 
 /// This system is responsible for handling accepted inputs like moving or
 /// attacking
