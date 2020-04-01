@@ -461,7 +461,26 @@ impl Default for GraphicsSettings {
         }
     }
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum AudioOutput {
+    /// Veloren's audio system wont work on some systems,
+    /// so you can use this to disable it, and allow the
+    /// game to function
+    // If this option is disabled, functions in the rodio
+    // library MUST NOT be called.
+    Off,
+    Automatic,
+    Device(String),
+}
 
+impl AudioOutput {
+    pub fn is_enabled(&self) -> bool {
+        match self {
+            Self::Off => false,
+            _ => true,
+        }
+    }
+}
 /// `AudioSettings` controls the volume of different audio subsystems and which
 /// device is used.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -473,8 +492,7 @@ pub struct AudioSettings {
     pub max_sfx_channels: usize,
 
     /// Audio Device that Voxygen will use to play audio.
-    pub audio_device: Option<String>,
-    pub audio_on: bool,
+    pub output: AudioOutput,
 }
 
 impl Default for AudioSettings {
@@ -484,8 +502,7 @@ impl Default for AudioSettings {
             music_volume: 0.4,
             sfx_volume: 0.6,
             max_sfx_channels: 10,
-            audio_device: None,
-            audio_on: true,
+            output: AudioOutput::Automatic,
         }
     }
 }
