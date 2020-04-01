@@ -34,16 +34,6 @@ void main() {
 
 	vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
 
-	/*
-	// Round the position to the nearest triangular grid cell
-	vec3 hex_pos = f_pos * 2.0;
-	hex_pos = hex_pos + vec3(hex_pos.y * 1.4 / 3.0, hex_pos.y * 0.1, 0);
-	if (fract(hex_pos.x) > fract(hex_pos.y)) {
-		hex_pos += vec3(1.0, 1.0, 0);
-	}
-	hex_pos = floor(hex_pos);
-	*/
-
 	vec3 light, diffuse_light, ambient_light;
 	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
 	float point_shadow = shadow_at(f_pos,f_norm);
@@ -52,7 +42,7 @@ void main() {
 	vec3 point_light = light_at(f_pos, f_norm);
 	light += point_light;
 	diffuse_light += point_light;
-	vec3 surf_color = illuminate(srgb_to_linear(vec3(0.2, 0.2, 1.0)), light, diffuse_light, ambient_light);
+	vec3 surf_color = srgb_to_linear(vec3(0.4, 0.7, 2.0)) * light * diffuse_light * ambient_light;
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
