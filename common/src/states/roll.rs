@@ -22,7 +22,7 @@ impl CharacterBehavior for Data {
         // Update velocity
         update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)
             + (update.vel.0 * Vec3::new(1.0, 1.0, 0.0)
-                + 1.5 * data.inputs.move_dir.try_normalized().unwrap_or_default())
+                + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
             .try_normalized()
             .unwrap_or_default()
                 * ROLL_SPEED;
