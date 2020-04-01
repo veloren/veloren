@@ -2,7 +2,7 @@ use common::comp;
 use directories::ProjectDirs;
 use log::warn;
 use serde_derive::{Deserialize, Serialize};
-use std::{fs, io, path::PathBuf};
+use std::{fs, io::Write, path::PathBuf};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[repr(C)]
@@ -28,20 +28,24 @@ impl Meta {
         }
     }
 
-    pub fn add_character(&mut self, data: CharacterData) { self.characters.push(data); }
+    pub fn add_character(&mut self, data: CharacterData) -> usize {
+        self.characters.push(data);
+        // return new character's index
+        self.characters.len() - 1
+    }
 
     pub fn load() -> Self {
         let path = Self::get_meta_path();
 
         if let Ok(file) = fs::File::open(&path) {
-            match bincode::deserialize_from(file) {
+            match ron::de::from_reader(file) {
                 Ok(s) => return s,
                 Err(e) => {
                     log::warn!("Failed to parse meta file! Fallback to default. {}", e);
                     // Rename the corrupted settings file
                     let mut new_path = path.to_owned();
                     new_path.pop();
-                    new_path.push("meta.invalid.dat");
+                    new_path.push("meta.invalid.ron");
                     if let Err(err) = std::fs::rename(path, new_path) {
                         log::warn!("Failed to rename meta file. {}", err);
                     }
@@ -67,14 +71,16 @@ impl Meta {
         if let Some(dir) = path.parent() {
             fs::create_dir_all(dir)?;
         }
-        bincode::serialize_into(fs::File::create(path)?, self)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        let mut meta_file = fs::File::create(path)?;
+
+        let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
+        meta_file.write_all(s.as_bytes()).unwrap();
         Ok(())
     }
 
     pub fn get_meta_path() -> PathBuf {
         if let Some(val) = std::env::var_os("VOXYGEN_CONFIG") {
-            let meta = PathBuf::from(val).join("meta.dat");
+            let meta = PathBuf::from(val).join("meta.ron");
             if meta.exists() || meta.parent().map(|x| x.exists()).unwrap_or(false) {
                 return meta;
             }
@@ -83,6 +89,6 @@ impl Meta {
 
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
             .expect("System's $HOME directory path not found!");
-        proj_dirs.config_dir().join("meta").with_extension("dat")
+        proj_dirs.config_dir().join("meta").with_extension("ron")
     }
 }

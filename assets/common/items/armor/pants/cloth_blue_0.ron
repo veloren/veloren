@@ -1,0 +1,8 @@
+Item(
+    name: "Blue Linen Skirt",
+   description: "WIP",
+    kind: Armor(
+        kind: Pants(ClothBlue0),
+        stats: (20),
+    ),
+)

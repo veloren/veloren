@@ -1,31 +1,36 @@
-pub mod attack;
+pub mod alpha;
+pub mod beta;
 pub mod block;
 pub mod blockidle;
 pub mod charge;
-pub mod cidle;
 pub mod climb;
+pub mod dash;
+pub mod equip;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod roll;
 pub mod run;
+pub mod shoot;
 pub mod sit;
+pub mod spin;
 pub mod stand;
 pub mod swim;
 pub mod wield;
 
 // Reexports
 pub use self::{
-    attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
-    charge::ChargeAnimation, cidle::CidleAnimation, climb::ClimbAnimation,
-    gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation,
-    run::RunAnimation, sit::SitAnimation, stand::StandAnimation, swim::SwimAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, block::BlockAnimation,
+    blockidle::BlockIdleAnimation, charge::ChargeAnimation, climb::ClimbAnimation,
+    dash::DashAnimation, equip::EquipAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation,
+    sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation,
     wield::WieldAnimation,
 };
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
-use common::comp::{self, item::Tool};
+use common::comp::{self, item::ToolKind};
 
 #[derive(Clone, Default)]
 pub struct CharacterSkeleton {
@@ -69,10 +74,10 @@ impl Skeleton for CharacterSkeleton {
 
         let head_mat = self.head.compute_base_matrix();
         [
-            FigureBoneData::new(torso_mat * head_mat),
+            FigureBoneData::new(torso_mat * chest_mat * head_mat),
             FigureBoneData::new(torso_mat * chest_mat),
-            FigureBoneData::new(torso_mat * self.belt.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * self.shorts.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.belt.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.shorts.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * l_hand_mat),
             FigureBoneData::new(torso_mat * chest_mat * control_mat * r_control_mat * r_hand_mat),
             FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
@@ -227,27 +232,27 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Male) => 0.0,
                 (Danari, Female) => 0.0,
             },
-            weapon_x: match Tool::Hammer {
-                // TODO: Inventory
-                Tool::Sword => 0.0,
-                Tool::Axe => 3.0,
-                Tool::Hammer => 0.0,
-                Tool::Shield => 3.0,
-                Tool::Staff => 3.0,
-                Tool::Bow => 0.0,
-                Tool::Dagger => 0.0,
-                Tool::Debug(_) => 0.0,
+            weapon_x: match ToolKind::Empty {
+                ToolKind::Sword(_) => 0.0,
+                ToolKind::Axe(_) => 3.0,
+                ToolKind::Hammer(_) => 0.0,
+                ToolKind::Shield(_) => 3.0,
+                ToolKind::Staff(_) => 3.0,
+                ToolKind::Bow(_) => 0.0,
+                ToolKind::Dagger(_) => 0.0,
+                ToolKind::Debug(_) => 0.0,
+                ToolKind::Empty => 0.0,
             },
-            weapon_y: match Tool::Hammer {
-                // TODO: Inventory
-                Tool::Sword => -1.25,
-                Tool::Axe => 0.0,
-                Tool::Hammer => -2.0,
-                Tool::Shield => 0.0,
-                Tool::Staff => 0.0,
-                Tool::Bow => -2.0,
-                Tool::Dagger => -2.0,
-                Tool::Debug(_) => 0.0,
+            weapon_y: match ToolKind::Empty {
+                ToolKind::Sword(_) => -1.25,
+                ToolKind::Axe(_) => 0.0,
+                ToolKind::Hammer(_) => -2.0,
+                ToolKind::Shield(_) => 0.0,
+                ToolKind::Staff(_) => 0.0,
+                ToolKind::Bow(_) => -2.0,
+                ToolKind::Dagger(_) => -2.0,
+                ToolKind::Debug(_) => 0.0,
+                ToolKind::Empty => 0.0,
             },
         }
     }

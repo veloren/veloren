@@ -1,8 +1,12 @@
 Item(
     name: "Humble Stick",
-    description: "Walking stick with a sharpened end.",
+    description: "Walking stick with a sharpened end.
+    
+    Power: 6",
     kind: Tool(
-        kind: Hammer,
-        power: 6,
+        (
+            kind: Staff(BasicStaff),    
+            equip_time_millis: 200,
+        )
     ),
 )

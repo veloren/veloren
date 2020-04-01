@@ -1,0 +1,8 @@
+Item(
+    name: "Swift Gloves",
+    description: "Swift like the wind.",
+    kind: Armor(
+        kind: Hand(Leather0),
+        stats: (20),
+    ),
+)

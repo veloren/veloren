@@ -1,0 +1,11 @@
+Item(
+    name: "Wooden Training Sword",
+    description: "    
+    Power: 15",
+    kind: Tool(
+        (
+            kind: Sword(WoodTraining),    
+            equip_time_millis: 400,
+        )
+    ),
+)

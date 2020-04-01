@@ -1,8 +1,12 @@
 Item(
     name: "Sharp Kitchen Knife",
-    description: "Great for cutting meat.",
+    description: "Great for cutting meat.
+    
+    Power: 15",
     kind: Tool(
-        kind: Dagger,
-        power: 15,
+        (
+            kind: Dagger(BasicDagger),    
+            equip_time_millis: 300,
+        )
     ),
 )

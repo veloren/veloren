@@ -1,7 +1,10 @@
 use crate::{sys, Server, StateExt};
-use common::comp::{
-    self, Agent, Alignment, Body, Gravity, LightEmitter, Pos, Projectile, Scale, Stats, Vel,
-    WaypointArea,
+use common::{
+    comp::{
+        self, Agent, Alignment, Body, Gravity, LightEmitter, Loadout, Pos, Projectile, Scale,
+        Stats, Vel, WaypointArea,
+    },
+    util::Dir,
 };
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
@@ -24,6 +27,7 @@ pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,
     stats: Stats,
+    loadout: Loadout,
     body: Body,
     agent: Agent,
     alignment: Alignment,
@@ -31,7 +35,7 @@ pub fn handle_create_npc(
 ) {
     server
         .state
-        .create_npc(pos, stats, body)
+        .create_npc(pos, stats, loadout, body)
         .with(agent)
         .with(scale)
         .with(alignment)
@@ -41,7 +45,7 @@ pub fn handle_create_npc(
 pub fn handle_shoot(
     server: &mut Server,
     entity: EcsEntity,
-    dir: Vec3<f32>,
+    dir: Dir,
     body: Body,
     light: Option<LightEmitter>,
     projectile: Projectile,
@@ -59,7 +63,7 @@ pub fn handle_shoot(
     // TODO: Player height
     pos.z += 1.2;
 
-    let mut builder = state.create_projectile(Pos(pos), Vel(dir * 100.0), body, projectile);
+    let mut builder = state.create_projectile(Pos(pos), Vel(*dir * 100.0), body, projectile);
     if let Some(light) = light {
         builder = builder.with(light)
     }

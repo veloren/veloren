@@ -18,6 +18,7 @@ use std::{fs, io::prelude::*, path::PathBuf};
 pub struct ControlSettings {
     pub primary: KeyMouse,
     pub secondary: KeyMouse,
+    pub ability3: KeyMouse,
     pub toggle_cursor: KeyMouse,
     pub escape: KeyMouse,
     pub enter: KeyMouse,
@@ -35,8 +36,6 @@ pub struct ControlSettings {
     pub mount: KeyMouse,
     pub map: KeyMouse,
     pub bag: KeyMouse,
-    pub quest_log: KeyMouse,
-    pub character_window: KeyMouse,
     pub social: KeyMouse,
     pub spellbook: KeyMouse,
     pub settings: KeyMouse,
@@ -50,6 +49,7 @@ pub struct ControlSettings {
     pub respawn: KeyMouse,
     pub interact: KeyMouse,
     pub toggle_wield: KeyMouse,
+    pub swap_loadout: KeyMouse,
     pub charge: KeyMouse,
     pub free_look: KeyMouse,
 }
@@ -69,6 +69,7 @@ impl Default for ControlSettings {
         Self {
             primary: KeyMouse::Mouse(MouseButton::Left),
             secondary: KeyMouse::Mouse(MouseButton::Right),
+            ability3: KeyMouse::Key(VirtualKeyCode::Key1),
             toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
             escape: KeyMouse::Key(VirtualKeyCode::Escape),
             enter: KeyMouse::Key(VirtualKeyCode::Return),
@@ -86,8 +87,6 @@ impl Default for ControlSettings {
             mount: KeyMouse::Key(VirtualKeyCode::F),
             map: KeyMouse::Key(VirtualKeyCode::M),
             bag: KeyMouse::Key(VirtualKeyCode::B),
-            quest_log: KeyMouse::Key(VirtualKeyCode::L),
-            character_window: KeyMouse::Key(VirtualKeyCode::C),
             social: KeyMouse::Key(VirtualKeyCode::O),
             spellbook: KeyMouse::Key(VirtualKeyCode::P),
             settings: KeyMouse::Key(VirtualKeyCode::N),
@@ -101,6 +100,7 @@ impl Default for ControlSettings {
             respawn: KeyMouse::Key(VirtualKeyCode::Space),
             interact: KeyMouse::Mouse(MouseButton::Right),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
+            swap_loadout: KeyMouse::Key(VirtualKeyCode::Q),
             charge: KeyMouse::Key(VirtualKeyCode::Key1),
             free_look: KeyMouse::Key(VirtualKeyCode::L),
         }
@@ -185,6 +185,7 @@ pub mod con_settings {
         pub respawn: Button,
         pub interact: Button,
         pub toggle_wield: Button,
+        pub swap_loadout: Button,
         pub charge: Button,
     }
 
@@ -270,6 +271,7 @@ pub mod con_settings {
                 respawn: Button::Simple(GilButton::RightTrigger2),
                 interact: Button::Simple(GilButton::LeftTrigger2),
                 toggle_wield: Button::Simple(GilButton::DPadLeft),
+                swap_loadout: Button::Simple(GilButton::Unknown),
                 charge: Button::Simple(GilButton::Unknown),
             }
         }
@@ -364,7 +366,7 @@ impl Default for GameplaySettings {
             chat_transp: 0.4,
             crosshair_type: CrosshairType::Round,
             intro_show: Intro::Show,
-            xp_bar: XpBar::OnGain,
+            xp_bar: XpBar::Always,
             shortcut_numbers: ShortcutNumbers::On,
             bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),

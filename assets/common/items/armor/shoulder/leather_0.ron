@@ -1,0 +1,8 @@
+Item(
+    name: "Leather Pauldrons",
+    description: "",
+    kind: Armor(
+        kind: Shoulder(Leather0),
+        stats: (20),
+    ),
+)

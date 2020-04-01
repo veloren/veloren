@@ -1,12 +1,12 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::Tool;
+use common::comp::item::ToolKind;
 use std::ops::Mul;
 use vek::*;
 
 pub struct StandAnimation;
 
 impl Animation for StandAnimation {
-    type Dependency = (Option<Tool>, f64);
+    type Dependency = (Option<ToolKind>, f64);
     type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
@@ -36,23 +36,23 @@ impl Animation for StandAnimation {
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
             -3.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 21.0 + slow * 0.3,
+            skeleton_attr.neck_height + 14.0 + slow * 0.3 + breathe * -0.05,
         );
         next.head.ori =
             Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y.abs());
-        next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+        next.head.scale = Vec3::one() * skeleton_attr.head_scale + breathe * -0.05;
 
         next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + slow * 0.3);
         next.chest.ori = Quaternion::rotation_z(head_look.x * 0.6);
-        next.chest.scale = Vec3::one() * 1.01;
+        next.chest.scale = Vec3::one() * 1.01 + breathe * 0.05;
 
-        next.belt.offset = Vec3::new(0.0, 0.0, 5.0 + slow * 0.3);
-        next.belt.ori = Quaternion::rotation_z(head_look.x * 0.4);
-        next.belt.scale = Vec3::one() + breathe * 0.05;
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0); //5
+        next.belt.ori = Quaternion::rotation_z(head_look.x * -0.1);
+        next.belt.scale = Vec3::one() + breathe * -0.05;
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, 2.0 + slow * 0.3);
-        next.shorts.ori = Quaternion::rotation_x(0.0);
-        next.shorts.scale = Vec3::one();
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0); //2
+        next.shorts.ori = Quaternion::rotation_x(head_look.x * -0.2);
+        next.shorts.scale = Vec3::one() + breathe * -0.05;
 
         next.l_hand.offset = Vec3::new(-7.0, -0.25 + slow * 0.15, 5.0 + slow * 0.5);
 
@@ -79,14 +79,14 @@ impl Animation for StandAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = (Vec3::one() + breathe * -0.05) * 1.15;
 
-        next.glider.offset = Vec3::new(0.0, 5.0, 0.0);
+        next.glider.offset = Vec3::new(0.0, 0.0, 10.0);
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
 
         next.main.offset = Vec3::new(
             -7.0 + skeleton_attr.weapon_x,
             -5.0 + skeleton_attr.weapon_y,
-            18.0,
+            15.0,
         );
         next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         next.main.scale = Vec3::one();

@@ -1,10 +1,15 @@
 use crate::{
-    comp::{projectile, HealthSource, Ori, PhysicsState, Projectile, Vel},
-    event::{EventBus, ServerEvent},
+    comp::{
+        projectile, Energy, EnergySource, HealthSource, Ori, PhysicsState, Pos, Projectile, Vel,
+    },
+    event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
+    sync::UidAllocator,
+    util::Dir,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
+use vek::*;
 
 /// This system is responsible for handling projectile effect triggers
 pub struct Sys;
@@ -12,11 +17,15 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
+        Read<'a, UidAllocator>,
+        Read<'a, EventBus<LocalEvent>>,
         Read<'a, EventBus<ServerEvent>>,
+        ReadStorage<'a, Pos>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
+        WriteStorage<'a, Energy>,
     );
 
     fn run(
@@ -24,18 +33,24 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             dt,
+            uid_allocator,
+            local_bus,
             server_bus,
+            positions,
             physics_states,
             velocities,
             mut orientations,
             mut projectiles,
+            mut energies,
         ): Self::SystemData,
     ) {
+        let mut local_emitter = local_bus.emitter();
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
-        for (entity, physics, ori, projectile) in (
+        for (entity, pos, physics, ori, projectile) in (
             &entities,
+            &positions,
             &physics_states,
             &mut orientations,
             &mut projectiles,
@@ -46,6 +61,13 @@ impl<'a> System<'a> for Sys {
             if physics.on_ground {
                 for effect in projectile.hit_ground.drain(..) {
                     match effect {
+                        projectile::Effect::Explode { power } => {
+                            server_emitter.emit(ServerEvent::Explosion {
+                                pos: pos.0,
+                                power,
+                                owner: projectile.owner,
+                            })
+                        },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
@@ -58,6 +80,13 @@ impl<'a> System<'a> for Sys {
             else if physics.on_wall.is_some() {
                 for effect in projectile.hit_wall.drain(..) {
                     match effect {
+                        projectile::Effect::Explode { power } => {
+                            server_emitter.emit(ServerEvent::Explosion {
+                                pos: pos.0,
+                                power,
+                                owner: projectile.owner,
+                            })
+                        },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
@@ -73,18 +102,51 @@ impl<'a> System<'a> for Sys {
                         projectile::Effect::Damage(change) => {
                             server_emitter.emit(ServerEvent::Damage { uid: other, change })
                         },
+                        projectile::Effect::Knockback(knockback) => {
+                            if let Some(entity) =
+                                uid_allocator.retrieve_entity_internal(other.into())
+                            {
+                                local_emitter.emit(LocalEvent::ApplyForce {
+                                    entity,
+                                    force: knockback
+                                        * *Dir::slerp(ori.0, Dir::new(Vec3::unit_z()), 0.5),
+                                });
+                            }
+                        },
+                        projectile::Effect::RewardEnergy(energy) => {
+                            if let Some(energy_mut) = projectile
+                                .owner
+                                .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
+                                .and_then(|o| energies.get_mut(o))
+                            {
+                                energy_mut.change_by(energy as i32, EnergySource::HitEnemy);
+                            }
+                        },
+                        projectile::Effect::Explode { power } => {
+                            server_emitter.emit(ServerEvent::Explosion {
+                                pos: pos.0,
+                                power,
+                                owner: projectile.owner,
+                            })
+                        },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
                         }),
-                        projectile::Effect::Possess => server_emitter
-                            .emit(ServerEvent::Possess(projectile.owner.into(), other)),
+                        projectile::Effect::Possess => {
+                            if let Some(owner) = projectile.owner {
+                                server_emitter.emit(ServerEvent::Possess(owner.into(), other));
+                            }
+                        },
                         _ => {},
                     }
                 }
             } else {
-                if let Some(vel) = velocities.get(entity) {
-                    ori.0 = vel.0.normalized();
+                if let Some(dir) = velocities
+                    .get(entity)
+                    .and_then(|vel| vel.0.try_normalized())
+                {
+                    ori.0 = dir.into();
                 }
             }
 

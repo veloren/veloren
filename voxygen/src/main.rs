@@ -18,6 +18,8 @@ use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
 fn main() {
+    #[cfg(feature = "tweak")]
+    const_tweaker::run().expect("Could not run server");
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
         .and_then(|env| env.to_str().map(|s| s.to_owned()))

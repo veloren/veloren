@@ -1,0 +1,11 @@
+Item(
+    name: "Sturdy Bihander",
+    description: "    
+    Power: 15",
+    kind: Tool(
+       (
+            kind: Sword(Zweihander0),    
+            equip_time_millis: 500,
+        )
+    ),
+)

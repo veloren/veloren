@@ -1,21 +1,22 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::Tool;
+use common::comp::item::ToolKind;
 use std::f32::consts::PI;
 use vek::*;
 
 pub struct RollAnimation;
 
 impl Animation for RollAnimation {
-    type Dependency = (Option<Tool>, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
-        _rate: &mut f32,
+        rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
+        *rate = 1.0;
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 5.5).sin();
@@ -41,7 +42,7 @@ impl Animation for RollAnimation {
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
             -2.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 17.0 + wave_dub * -8.0,
+            skeleton_attr.neck_height + 12.0 + wave_dub * -8.0,
         );
         next.head.ori = Quaternion::rotation_x(wave_dub * 0.4);
         next.head.scale = Vec3::one();
@@ -50,11 +51,11 @@ impl Animation for RollAnimation {
         next.chest.ori = Quaternion::rotation_x(wave_dub * 0.4);
         next.chest.scale = Vec3::one() * 1.01;
 
-        next.belt.offset = Vec3::new(0.0, 0.0, 5.0 + wave_dub * -3.0);
+        next.belt.offset = Vec3::new(0.0, 0.0, -2.0 + wave_dub * -3.0);
         next.belt.ori = Quaternion::rotation_x(0.0 + wave_dub * 0.4);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, 2.0 + wave_dub * -2.0);
+        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0 + wave_dub * -2.0);
         next.shorts.ori = Quaternion::rotation_x(0.0 + wave_dub * 0.4);
         next.shorts.scale = Vec3::one();
 

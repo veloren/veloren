@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, Player, Pos},
+    comp::{self, item, CharacterAbility, Item, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::EntityKind,
     msg::ServerMsg,
@@ -12,7 +12,7 @@ use common::{
 };
 use rand::{seq::SliceRandom, Rng};
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 use vek::*;
 
 /// This system will handle loading generated chunks and unloading
@@ -38,7 +38,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            server_emitter,
+            server_event_bus,
             tick,
             mut timer,
             mut chunk_generator,
@@ -50,6 +50,8 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         timer.start();
+
+        let mut server_emitter = server_event_bus.emitter();
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
@@ -112,6 +114,7 @@ impl<'a> System<'a> for Sys {
                     ) -> &'a str {
                         &body_data.species[&species].generic
                     }
+
                     const SPAWN_NPCS: &'static [fn() -> (
                         String,
                         comp::Body,
@@ -126,7 +129,9 @@ impl<'a> System<'a> for Sys {
                                     get_npc_name(&NPC_NAMES.humanoid, body.race)
                                 ),
                                 comp::Body::Humanoid(body),
-                                Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                                Some(assets::load_expect_cloned(
+                                    "common.items.weapons.starter_axe",
+                                )),
                                 comp::Alignment::Npc,
                             )
                         }) as _,
@@ -135,7 +140,9 @@ impl<'a> System<'a> for Sys {
                             (
                                 format!("{} Bandit", get_npc_name(&NPC_NAMES.humanoid, body.race)),
                                 comp::Body::Humanoid(body),
-                                Some(assets::load_expect_cloned("common.items.weapons.staff_1")),
+                                Some(assets::load_expect_cloned(
+                                    "common.items.weapons.short_sword_0",
+                                )),
                                 comp::Alignment::Enemy,
                             )
                         }) as _,
@@ -180,14 +187,104 @@ impl<'a> System<'a> for Sys {
                         .choose(&mut rand::thread_rng())
                         .expect("SPAWN_NPCS is nonempty")(
                     );
-                    let mut stats = comp::Stats::new(name, body, main);
+                    let mut stats = comp::Stats::new(name, body);
+
+                    let active_item =
+                        if let Some(item::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
+                            let mut abilities = tool.get_abilities();
+                            let mut ability_drain = abilities.drain(..);
+
+                            main.map(|item| comp::ItemConfig {
+                                item,
+                                ability1: ability_drain.next(),
+                                ability2: ability_drain.next(),
+                                ability3: ability_drain.next(),
+                                block_ability: None,
+                                dodge_ability: Some(comp::CharacterAbility::Roll),
+                            })
+                        } else {
+                            Some(ItemConfig {
+                                // We need the empty item so npcs can attack
+                                item: Item::empty(),
+                                ability1: Some(CharacterAbility::BasicMelee {
+                                    energy_cost: 0,
+                                    buildup_duration: Duration::from_millis(0),
+                                    recover_duration: Duration::from_millis(400),
+                                    base_healthchange: -4,
+                                    range: 3.5,
+                                    max_angle: 60.0,
+                                }),
+                                ability2: None,
+                                ability3: None,
+                                block_ability: None,
+                                dodge_ability: None,
+                            })
+                        };
+
+                    let mut loadout = match alignment {
+                        comp::Alignment::Npc => comp::Loadout {
+                            active_item,
+                            second_item: None,
+                            shoulder: Some(assets::load_expect_cloned(
+                                "common.items.armor.shoulder.leather_0",
+                            )),
+                            chest: Some(assets::load_expect_cloned(
+                                "common.items.armor.chest.leather_0",
+                            )),
+                            belt: Some(assets::load_expect_cloned(
+                                "common.items.armor.belt.plate_0",
+                            )),
+                            hand: Some(assets::load_expect_cloned(
+                                "common.items.armor.hand.plate_0",
+                            )),
+                            pants: Some(assets::load_expect_cloned(
+                                "common.items.armor.pants.plate_green_0",
+                            )),
+                            foot: Some(assets::load_expect_cloned(
+                                "common.items.armor.foot.leather_0",
+                            )),
+                        },
+                        comp::Alignment::Enemy => comp::Loadout {
+                            active_item,
+                            second_item: None,
+                            shoulder: Some(assets::load_expect_cloned(
+                                "common.items.armor.shoulder.leather_0",
+                            )),
+                            chest: Some(assets::load_expect_cloned(
+                                "common.items.armor.chest.plate_green_0",
+                            )),
+                            belt: Some(assets::load_expect_cloned(
+                                "common.items.armor.belt.plate_0",
+                            )),
+                            hand: Some(assets::load_expect_cloned(
+                                "common.items.armor.hand.plate_0",
+                            )),
+                            pants: Some(assets::load_expect_cloned(
+                                "common.items.armor.pants.plate_green_0",
+                            )),
+                            foot: Some(assets::load_expect_cloned(
+                                "common.items.armor.foot.plate_0",
+                            )),
+                        },
+                        _ => comp::Loadout {
+                            active_item,
+                            second_item: None,
+                            shoulder: None,
+                            chest: None,
+                            belt: None,
+                            hand: None,
+                            pants: None,
+                            foot: None,
+                        },
+                    };
 
                     let mut scale = 1.0;
 
                     // TODO: Remove this and implement scaling or level depending on stuff like
                     // species instead
-                    stats.level.set_level(rand::thread_rng().gen_range(1, 4));
+                    stats.level.set_level(rand::thread_rng().gen_range(1, 9));
 
+                    // Replace stuff if it's a boss
                     if let EntityKind::Boss = entity.kind {
                         if rand::random::<f32>() < 0.65 {
                             let body_new = comp::humanoid::Body::random();
@@ -199,27 +296,70 @@ impl<'a> System<'a> for Sys {
                                     get_npc_name(&NPC_NAMES.humanoid, body_new.race)
                                 ),
                                 body,
-                                Some(assets::load_expect_cloned("common.items.weapons.hammer_1")),
                             );
                         }
-                        stats.level.set_level(rand::thread_rng().gen_range(8, 15));
+                        loadout = comp::Loadout {
+                            active_item: Some(comp::ItemConfig {
+                                item: assets::load_expect_cloned(
+                                    "common.items.weapons.zweihander_sword_0",
+                                ),
+                                ability1: Some(CharacterAbility::BasicMelee {
+                                    energy_cost: 0,
+                                    buildup_duration: Duration::from_millis(800),
+                                    recover_duration: Duration::from_millis(200),
+                                    base_healthchange: -13,
+                                    range: 3.5,
+                                    max_angle: 60.0,
+                                }),
+                                ability2: None,
+                                ability3: None,
+                                block_ability: None,
+                                dodge_ability: None,
+                            }),
+                            second_item: None,
+                            shoulder: Some(assets::load_expect_cloned(
+                                "common.items.armor.shoulder.plate_0",
+                            )),
+                            chest: Some(assets::load_expect_cloned(
+                                "common.items.armor.chest.plate_green_0",
+                            )),
+                            belt: Some(assets::load_expect_cloned(
+                                "common.items.armor.belt.plate_0",
+                            )),
+                            hand: Some(assets::load_expect_cloned(
+                                "common.items.armor.hand.plate_0",
+                            )),
+                            pants: Some(assets::load_expect_cloned(
+                                "common.items.armor.pants.plate_green_0",
+                            )),
+                            foot: Some(assets::load_expect_cloned(
+                                "common.items.armor.foot.plate_0",
+                            )),
+                        };
+
+                        stats.level.set_level(rand::thread_rng().gen_range(30, 35));
                         scale = 2.0 + rand::random::<f32>();
                     }
 
                     stats.update_max_hp();
+
                     stats
                         .health
                         .set_to(stats.health.maximum(), comp::HealthSource::Revive);
-                    if let Some(item::Item {
-                        kind: item::ItemKind::Tool { power, .. },
-                        ..
-                    }) = &mut stats.equipment.main
+
+                    // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
+                    // work because the damage is now saved in an ability
+                    /*
+                    if let Some(item::ItemKind::Tool(item::ToolData { base_damage, .. })) =
+                        &mut loadout.active_item.map(|i| i.item.kind)
                     {
-                        *power = stats.level.level() * 3;
+                        *base_damage = stats.level.level() as u32 * 3;
                     }
+                    */
                     server_emitter.emit(ServerEvent::CreateNpc {
                         pos: Pos(entity.pos),
                         stats,
+                        loadout,
                         body,
                         alignment,
                         agent: comp::Agent::default().with_patrol_origin(entity.pos),

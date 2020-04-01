@@ -46,25 +46,10 @@ pub enum ServerMsg {
     },
     SetPlayerEntity(u64),
     TimeOfDay(state::TimeOfDay),
-    EcsSync(sync::SyncPackage<EcsCompPacket>),
+    EntitySync(sync::EntitySyncPackage),
+    CompSync(sync::CompSyncPackage<EcsCompPacket>),
     CreateEntity(sync::EntityPackage<EcsCompPacket>),
     DeleteEntity(u64),
-    EntityPos {
-        entity: u64,
-        pos: comp::Pos,
-    },
-    EntityVel {
-        entity: u64,
-        vel: comp::Vel,
-    },
-    EntityOri {
-        entity: u64,
-        ori: comp::Ori,
-    },
-    EntityCharacterState {
-        entity: u64,
-        character_state: comp::CharacterState,
-    },
     InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
     TerrainChunkUpdate {
         key: Vec2<i32>,
