@@ -47,9 +47,6 @@ pub enum SfxEvent {
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
     Jump(EcsEntity),
-    /// Applies the `force` + implicit upward force to
-    /// `entity`'s `Vel`
-    KnockUp { entity: EcsEntity, force: Vec3<f32> },
     /// Applies the `force` to `entity`'s `Vel`
     ApplyForce { entity: EcsEntity, force: Vec3<f32> },
     /// Applies leaping force to `entity`'s `Vel` away from `wall_dir` direction
