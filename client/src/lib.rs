@@ -307,6 +307,8 @@ impl Client {
         }
     }
 
+    /// Checks whether a player can swap their weapon+ability `Loadout` settings
+    /// and sends the `ControlAction` event that signals to do the swap.
     pub fn swap_loadout(&mut self) {
         let can_swap = self
             .state
