@@ -392,6 +392,10 @@ pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
     to_angle: impl Fn(F) -> A + Sync,
     to_height: impl Fn(F) -> H + Sync,
 ) -> Result<[(Vec<A>, Vec<H>); 2], ()> {
+    if maxh < minh {
+        // maxh must be greater than minh
+        return Err(());
+    }
     let map_size = Vec2::<i32>::from(bounds.size()).map(|e| e as usize);
     let map_len = map_size.product();
 
@@ -421,9 +425,11 @@ pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
                 // March in the given direction.
                 let maxdx = maxdx(wposi.x as isize);
                 let mut slope = F::zero();
-                let mut max_height = F::zero();
                 let h0 = h(posi);
-                if h0 >= minh {
+                let h = if h0 < minh {
+                    F::zero()
+                } else {
+                    let mut max_height = F::zero();
                     let maxdz = maxh - h0;
                     let posi = posi as isize;
                     for deltax in 1..maxdx {
@@ -441,9 +447,9 @@ pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
                             max_height = h_j_act;
                         }
                     }
-                }
+                    h0 - minh + max_height
+                };
                 let a = slope * lgain;
-                let h = h0 + max_height;
                 (to_angle(a), to_height(h))
             })
             .unzip_into_vecs(&mut angles, &mut heights);

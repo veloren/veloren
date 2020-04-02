@@ -1314,9 +1314,8 @@ impl WorldSim {
         // Build a horizon map.
         let scale_angle =
             |angle: Alt| (angle.atan() * <Alt as FloatConst>::FRAC_2_PI() * 255.0).floor() as u8;
-        let scale_height = |height: Alt| {
-            ((height - CONFIG.sea_level as Alt) * 255.0 / self.max_height as Alt).floor() as u8
-        };
+        let scale_height =
+            |height: Alt| (height as Alt * 255.0 / self.max_height as Alt).floor() as u8;
         let horizons = get_horizon_map(
             map_config.lgain,
             Aabr {

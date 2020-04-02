@@ -30,9 +30,6 @@ use common::{
     vol::RectVolSize,
     ChatType,
 };
-// TODO: remove CONFIG dependency by passing CONFIG.sea_level explicitly.
-// In general any WORLD dependencies need to go away ASAP... we should see if we
-// can pull out map drawing into common somehow.
 use hashbrown::HashMap;
 use image::DynamicImage;
 use log::{error, warn};
@@ -44,10 +41,9 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{
-    sim::{neighbors, Alt},
-    CONFIG,
-};
+// TODO: remove world dependencies.  We should see if we
+// can pull out map drawing into common somehow.
+use world::sim::{neighbors, Alt};
 
 // The duration of network inactivity until the player is kicked
 // @TODO: in the future, this should be configurable on the server
@@ -135,9 +131,8 @@ impl Client {
                 assert_eq!(rgba.len(), (map_size.x * map_size.y) as usize);
                 let [west, east] = world_map.horizons;
                 let scale_angle =
-                    |a: u8| (a as Alt / 255.0 / <Alt as FloatConst>::FRAC_2_PI()).tan();
-                let scale_height =
-                    |h: u8| h as Alt * max_height as Alt / 255.0 + CONFIG.sea_level as Alt;
+                    |a: u8| (a as Alt / 255.0 * <Alt as FloatConst>::FRAC_PI_2()).tan();
+                let scale_height = |h: u8| h as Alt / 255.0 * max_height as Alt;
 
                 log::debug!("Preparing image...");
                 let unzip_horizons = |(angles, heights): (Vec<_>, Vec<_>)| {
@@ -154,8 +149,8 @@ impl Client {
                 map_config.lgain = 1.0;
                 map_config.gain = max_height;
                 map_config.horizons = Some(&horizons);
-                let rescale_height =
-                    |h: Alt| (h as f32 - map_config.focus.z as f32) / map_config.gain as f32;
+                map_config.focus.z = 0.0;
+                let rescale_height = |h: Alt| (h / max_height as Alt) as f32;
                 let bounds_check = |pos: Vec2<i32>| {
                     pos.reduce_partial_min() >= 0
                         && pos.x < map_size.x as i32
@@ -211,7 +206,7 @@ impl Client {
                             let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
                             scale_height(rgba[posi].to_le_bytes()[3])
                         } else {
-                            CONFIG.sea_level as Alt
+                            0.0
                         })
                     },
                     |pos, (r, g, b, a)| {
