@@ -108,7 +108,8 @@ impl Asset for VoxygenLocalization {
     /// Load the translations located in the input buffer and convert them
     /// into a `VoxygenLocalization` object.
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        let mut asked_localization: VoxygenLocalization = from_reader(buf_reader).unwrap();
+        let mut asked_localization: VoxygenLocalization =
+            from_reader(buf_reader).map_err(assets::Error::parse_error)?;
 
         // Update the text if UTF-8 to ASCII conversion is enabled
         if asked_localization.convert_utf8_to_ascii {
