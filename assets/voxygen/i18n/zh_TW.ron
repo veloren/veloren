@@ -7,23 +7,23 @@ VoxygenLocalization(
     convert_utf8_to_ascii: false,
     fonts: {
         "opensans": Font (
-            asset_key: "voxygen.font.OpenSans-Regular",
+            asset_key: "voxygen.font.Zpix",
             scale_ratio: 1.0,
         ),
         "metamorph": Font (
-            asset_key: "voxygen.font.Metamorphous-Regular",
+            asset_key: "voxygen.font.Zpix",
             scale_ratio: 1.0,
         ),
         "alkhemi": Font (
-            asset_key: "voxygen.font.Alkhemikal",
+            asset_key: "voxygen.font.Zpix",
             scale_ratio: 1.0,
         ),
         "wizard": Font (
-            asset_key: "voxygen.font.wizard",
+            asset_key: "voxygen.font.Zpix",
             scale_ratio: 1.0,
         ),
         "cyri": Font (
-            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            asset_key: "voxygen.font.Zpix",
             scale_ratio: 0.9,
         ),
     },
