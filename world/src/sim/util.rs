@@ -294,6 +294,52 @@ pub fn downhill<F: Float>(
         .into_boxed_slice()
 }
 
+/* /// Bilinear interpolation.
+///
+/// Linear interpolation in both directions (i.e. quadratic interpolation).
+fn get_interpolated_bilinear<T, F>(&self, pos: Vec2<i32>, mut f: F) -> Option<T>
+    where
+        T: Copy + Default + Signed + Float + Add<Output = T> + Mul<f32, Output = T>,
+        F: FnMut(Vec2<i32>) -> Option<T>,
+{
+    // (i) Find downhill for all four points.
+    // (ii) Compute distance from each downhill point and do linear interpolation on
+    // their heights. (iii) Compute distance between each neighboring point
+    // and do linear interpolation on       their distance-interpolated
+    // heights.
+
+    // See http://articles.adsabs.harvard.edu/cgi-bin/nph-iarticle_query?1990A%26A...239..443S&defaultprint=YES&page_ind=0&filetype=.pdf
+    //
+    // Note that these are only guaranteed monotone in one dimension; fortunately,
+    // that is sufficient for our purposes.
+    let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+        e as f64 / sz as f64
+    });
+
+    // Orient the chunk in the direction of the most downhill point of the four.  If
+    // there is no "most downhill" point, then we don't care.
+    let x0 = pos.map2(Vec2::new(0, 0), |e, q| e.max(0.0) as i32 + q);
+    let y0 = f(x0)?;
+
+    let x1 = pos.map2(Vec2::new(1, 0), |e, q| e.max(0.0) as i32 + q);
+    let y1 = f(x1)?;
+
+    let x2 = pos.map2(Vec2::new(0, 1), |e, q| e.max(0.0) as i32 + q);
+    let y2 = f(x2)?;
+
+    let x3 = pos.map2(Vec2::new(1, 1), |e, q| e.max(0.0) as i32 + q);
+    let y3 = f(x3)?;
+
+    let z0 = y0
+        .mul(1.0 - pos.x.fract() as f32)
+        .mul(1.0 - pos.y.fract() as f32);
+    let z1 = y1.mul(pos.x.fract() as f32).mul(1.0 - pos.y.fract() as f32);
+    let z2 = y2.mul(1.0 - pos.x.fract() as f32).mul(pos.y.fract() as f32);
+    let z3 = y3.mul(pos.x.fract() as f32).mul(pos.y.fract() as f32);
+
+    Some(z0 + z1 + z2 + z3)
+} */
+
 /// Find all ocean tiles from a height map, using an inductive definition of
 /// ocean as one of:
 /// - posi is at the side of the world (map_edge_factor(posi) == 0.0)
@@ -333,6 +379,78 @@ pub fn get_oceans<F: Float>(oldh: impl Fn(usize) -> F + Sync) -> BitBox {
         }));
     }
     is_ocean
+}
+
+/// Finds the horizon map for sunlight for the given chunks.
+pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
+    lgain: F,
+    bounds: Aabr<i32>,
+    minh: F,
+    maxh: F,
+    h: impl Fn(usize) -> F + Sync,
+    to_angle: impl Fn(F) -> A + Sync,
+    to_height: impl Fn(F) -> H + Sync,
+) -> Result<[(Vec<A>, Vec<H>); 2], ()> {
+    let map_size = Vec2::<i32>::from(bounds.size()).map(|e| e as usize);
+    let map_len = map_size.product();
+
+    // Now, do the raymarching.
+    let chunk_x = if let Vec2 { x: Some(x), .. } = TerrainChunkSize::RECT_SIZE.map(F::from) {
+        x
+    } else {
+        return Err(());
+    };
+    // let epsilon = F::epsilon() * if let x = F::from(map_size.x) { x } else {
+    // return Err(()) };
+    let march = |dx: isize, maxdx: fn(isize) -> isize| {
+        let mut angles = Vec::with_capacity(map_len);
+        let mut heights = Vec::with_capacity(map_len);
+        (0..map_len)
+            .into_par_iter()
+            .map(|posi| {
+                let wposi =
+                    bounds.min + Vec2::new((posi % map_size.x) as i32, (posi / map_size.x) as i32);
+                if wposi.reduce_partial_min() < 0
+                    || wposi.y as usize >= WORLD_SIZE.x
+                    || wposi.y as usize >= WORLD_SIZE.y
+                {
+                    return (to_angle(F::zero()), to_height(F::zero()));
+                }
+                let posi = vec2_as_uniform_idx(wposi);
+                // March in the given direction.
+                let maxdx = maxdx(wposi.x as isize);
+                let mut slope = F::zero();
+                let mut max_height = F::zero();
+                let h0 = h(posi);
+                if h0 >= minh {
+                    let maxdz = maxh - h0;
+                    let posi = posi as isize;
+                    for deltax in 1..maxdx {
+                        let posj = (posi + deltax * dx) as usize;
+                        let deltax = chunk_x * F::from(deltax).unwrap();
+                        let h_j_est = slope * deltax;
+                        if h_j_est > maxdz {
+                            break;
+                        }
+                        let h_j_act = h(posj) - h0;
+                        if
+                        /* h_j_est - h_j_act <= epsilon */
+                        h_j_est <= h_j_act {
+                            slope = h_j_act / deltax;
+                            max_height = h_j_act;
+                        }
+                    }
+                }
+                let a = slope * lgain;
+                let h = h0 + max_height;
+                (to_angle(a), to_height(h))
+            })
+            .unzip_into_vecs(&mut angles, &mut heights);
+        (angles, heights)
+    };
+    let west = march(-1, |x| x);
+    let east = march(1, |x| (WORLD_SIZE.x - x as usize) as isize);
+    Ok([west, east])
 }
 
 /// A 2-dimensional vector, for internal use.

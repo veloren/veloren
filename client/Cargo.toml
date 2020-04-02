@@ -6,10 +6,12 @@ edition = "2018"
 
 [dependencies]
 common = { package = "veloren-common", path = "../common", features = ["no-assets"] }
+world = { package = "veloren-world", path = "../world" }
 
 byteorder = "1.3.2"
 uvth = "3.1.1"
 image = "0.22.3"
+num = "0.2.0"
 num_cpus = "1.10.1"
 log = "0.4.8"
 specs = "0.15.1"

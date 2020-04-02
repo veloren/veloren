@@ -30,9 +30,13 @@ use common::{
     vol::RectVolSize,
     ChatType,
 };
+// TODO: remove CONFIG dependency by passing CONFIG.sea_level explicitly.
+// In general any WORLD dependencies need to go away ASAP... we should see if we
+// can pull out map drawing into common somehow.
 use hashbrown::HashMap;
 use image::DynamicImage;
 use log::{error, warn};
+use num::traits::FloatConst;
 use std::{
     net::SocketAddr,
     sync::Arc,
@@ -40,6 +44,10 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
+use world::{
+    sim::{neighbors, Alt},
+    CONFIG,
+};
 
 // The duration of network inactivity until the player is kicked
 // @TODO: in the future, this should be configurable on the server
@@ -95,7 +103,7 @@ impl Client {
                 entity_package,
                 server_info,
                 time_of_day,
-                world_map: (map_size, world_map),
+                world_map,
             } => {
                 // TODO: Display that versions don't match in Voxygen
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
@@ -121,10 +129,98 @@ impl Client {
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
 
-                assert_eq!(world_map.len(), (map_size.x * map_size.y) as usize);
+                let map_size = world_map.dimensions;
+                let max_height = world_map.max_height;
+                let rgba = world_map.rgba;
+                assert_eq!(rgba.len(), (map_size.x * map_size.y) as usize);
+                let [west, east] = world_map.horizons;
+                let scale_angle =
+                    |a: u8| (a as Alt / 255.0 / <Alt as FloatConst>::FRAC_2_PI()).tan();
+                let scale_height =
+                    |h: u8| h as Alt * max_height as Alt / 255.0 + CONFIG.sea_level as Alt;
+
+                log::debug!("Preparing image...");
+                let unzip_horizons = |(angles, heights): (Vec<_>, Vec<_>)| {
+                    (
+                        angles.into_iter().map(scale_angle).collect::<Vec<_>>(),
+                        heights.into_iter().map(scale_height).collect::<Vec<_>>(),
+                    )
+                };
+                let horizons = [unzip_horizons(west), unzip_horizons(east)];
+
+                // Redraw map (with shadows this time).
+                let mut world_map = vec![0u32; rgba.len()];
+                let mut map_config = world::sim::MapConfig::default();
+                map_config.lgain = 1.0;
+                map_config.gain = max_height;
+                map_config.horizons = Some(&horizons);
+                let rescale_height =
+                    |h: Alt| (h as f32 - map_config.focus.z as f32) / map_config.gain as f32;
+                let bounds_check = |pos: Vec2<i32>| {
+                    pos.reduce_partial_min() >= 0
+                        && pos.x < map_size.x as i32
+                        && pos.y < map_size.y as i32
+                };
+                map_config.generate(
+                    |pos| {
+                        let (rgba, downhill_wpos) = if bounds_check(pos) {
+                            let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
+                            let [r, g, b, a] = rgba[posi].to_le_bytes();
+                            // Compute downhill.
+                            let downhill = {
+                                let mut best = -1;
+                                let mut besth = a;
+                                // TODO: Fix to work for dynamic WORLD_SIZE (i.e. map_size).
+                                for nposi in neighbors(posi) {
+                                    let nbh = rgba[nposi].to_le_bytes()[3];
+                                    if nbh < besth {
+                                        besth = nbh;
+                                        best = nposi as isize;
+                                    }
+                                }
+                                best
+                            };
+                            let downhill_wpos = if downhill < 0 {
+                                None
+                            } else {
+                                Some(
+                                    Vec2::new(
+                                        (downhill as usize % map_size.x as usize) as i32,
+                                        (downhill as usize / map_size.x as usize) as i32,
+                                    ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                )
+                            };
+                            (Rgba::new(r, g, b, a), downhill_wpos)
+                        } else {
+                            (Rgba::zero(), None)
+                        };
+                        let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                        let downhill_wpos = downhill_wpos
+                            .unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
+                        let alt = rescale_height(scale_height(rgba.a));
+                        world::sim::MapSample {
+                            rgb: Rgb::from(rgba),
+                            alt: alt as Alt,
+                            downhill_wpos,
+                            connections: None,
+                        }
+                    },
+                    |wpos| {
+                        let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                        rescale_height(if bounds_check(pos) {
+                            let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
+                            scale_height(rgba[posi].to_le_bytes()[3])
+                        } else {
+                            CONFIG.sea_level as Alt
+                        })
+                    },
+                    |pos, (r, g, b, a)| {
+                        world_map[pos.y * map_size.x as usize + pos.x] =
+                            u32::from_le_bytes([r, g, b, a]);
+                    },
+                );
                 let mut world_map_raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
                 LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
-                log::debug!("Preparing image...");
                 let world_map = Arc::new(
                     image::DynamicImage::ImageRgba8({
                         // Should not fail if the dimensions are correct.
