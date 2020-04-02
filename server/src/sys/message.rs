@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
-    comp::{Admin, CanBuild, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
+    comp::{Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
@@ -45,7 +45,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            server_emitter,
+            server_event_bus,
             time,
             terrain,
             mut timer,
@@ -67,6 +67,8 @@ impl<'a> System<'a> for Sys {
         timer.start();
 
         let time = time.0;
+
+        let mut server_emitter = server_event_bus.emitter();
 
         let mut new_chat_msgs = Vec::new();
 
@@ -206,7 +208,7 @@ impl<'a> System<'a> for Sys {
                         },
                         ClientState::Character => {
                             if let Some(controller) = controllers.get_mut(entity) {
-                                controller.inputs = inputs;
+                                controller.inputs.update_with_new(inputs);
                             }
                         },
                         ClientState::Pending => {},
@@ -218,8 +220,27 @@ impl<'a> System<'a> for Sys {
                             client.error_state(RequestStateError::Impossible)
                         },
                         ClientState::Character => {
+                            // Skip respawn if client entity is alive
+                            if let &ControlEvent::Respawn = &event {
+                                if stats.get(entity).map_or(true, |s| !s.is_dead) {
+                                    continue;
+                                }
+                            }
                             if let Some(controller) = controllers.get_mut(entity) {
                                 controller.events.push(event);
+                            }
+                        },
+                        ClientState::Pending => {},
+                    },
+                    ClientMsg::ControlAction(event) => match client.client_state {
+                        ClientState::Connected
+                        | ClientState::Registered
+                        | ClientState::Spectator => {
+                            client.error_state(RequestStateError::Impossible)
+                        },
+                        ClientState::Character => {
+                            if let Some(controller) = controllers.get_mut(entity) {
+                                controller.actions.push(event);
                             }
                         },
                         ClientState::Pending => {},

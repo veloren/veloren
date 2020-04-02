@@ -1,5 +1,5 @@
 use crate::{
-    hud::{BarNumbers, CrosshairType, Intro, ShortcutNumbers, XpBar},
+    hud::{BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, XpBar},
     i18n,
     render::{AaMode, CloudMode, FluidMode},
     ui::ScaleMode,
@@ -18,6 +18,7 @@ use std::{fs, io::prelude::*, path::PathBuf};
 pub struct ControlSettings {
     pub primary: KeyMouse,
     pub secondary: KeyMouse,
+    pub ability3: KeyMouse,
     pub toggle_cursor: KeyMouse,
     pub escape: KeyMouse,
     pub enter: KeyMouse,
@@ -35,8 +36,6 @@ pub struct ControlSettings {
     pub mount: KeyMouse,
     pub map: KeyMouse,
     pub bag: KeyMouse,
-    pub quest_log: KeyMouse,
-    pub character_window: KeyMouse,
     pub social: KeyMouse,
     pub spellbook: KeyMouse,
     pub settings: KeyMouse,
@@ -50,7 +49,9 @@ pub struct ControlSettings {
     pub respawn: KeyMouse,
     pub interact: KeyMouse,
     pub toggle_wield: KeyMouse,
+    pub swap_loadout: KeyMouse,
     pub charge: KeyMouse,
+    pub free_look: KeyMouse,
 }
 
 /// Since Macbook trackpads lack middle click, on OS X we default to LShift
@@ -68,6 +69,7 @@ impl Default for ControlSettings {
         Self {
             primary: KeyMouse::Mouse(MouseButton::Left),
             secondary: KeyMouse::Mouse(MouseButton::Right),
+            ability3: KeyMouse::Key(VirtualKeyCode::Key1),
             toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
             escape: KeyMouse::Key(VirtualKeyCode::Escape),
             enter: KeyMouse::Key(VirtualKeyCode::Return),
@@ -85,8 +87,6 @@ impl Default for ControlSettings {
             mount: KeyMouse::Key(VirtualKeyCode::F),
             map: KeyMouse::Key(VirtualKeyCode::M),
             bag: KeyMouse::Key(VirtualKeyCode::B),
-            quest_log: KeyMouse::Key(VirtualKeyCode::L),
-            character_window: KeyMouse::Key(VirtualKeyCode::C),
             social: KeyMouse::Key(VirtualKeyCode::O),
             spellbook: KeyMouse::Key(VirtualKeyCode::P),
             settings: KeyMouse::Key(VirtualKeyCode::N),
@@ -100,7 +100,9 @@ impl Default for ControlSettings {
             respawn: KeyMouse::Key(VirtualKeyCode::Space),
             interact: KeyMouse::Mouse(MouseButton::Right),
             toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
+            swap_loadout: KeyMouse::Key(VirtualKeyCode::Q),
             charge: KeyMouse::Key(VirtualKeyCode::Key1),
+            free_look: KeyMouse::Key(VirtualKeyCode::L),
         }
     }
 }
@@ -183,6 +185,7 @@ pub mod con_settings {
         pub respawn: Button,
         pub interact: Button,
         pub toggle_wield: Button,
+        pub swap_loadout: Button,
         pub charge: Button,
     }
 
@@ -268,6 +271,7 @@ pub mod con_settings {
                 respawn: Button::Simple(GilButton::RightTrigger2),
                 interact: Button::Simple(GilButton::LeftTrigger2),
                 toggle_wield: Button::Simple(GilButton::DPadLeft),
+                swap_loadout: Button::Simple(GilButton::Unknown),
                 charge: Button::Simple(GilButton::Unknown),
             }
         }
@@ -344,6 +348,7 @@ pub struct GameplaySettings {
     pub shortcut_numbers: ShortcutNumbers,
     pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
+    pub free_look_behavior: PressBehavior,
 }
 
 impl Default for GameplaySettings {
@@ -361,10 +366,11 @@ impl Default for GameplaySettings {
             chat_transp: 0.4,
             crosshair_type: CrosshairType::Round,
             intro_show: Intro::Show,
-            xp_bar: XpBar::OnGain,
+            xp_bar: XpBar::Always,
             shortcut_numbers: ShortcutNumbers::On,
             bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
+            free_look_behavior: PressBehavior::Toggle,
         }
     }
 }
@@ -457,7 +463,26 @@ impl Default for GraphicsSettings {
         }
     }
 }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum AudioOutput {
+    /// Veloren's audio system wont work on some systems,
+    /// so you can use this to disable it, and allow the
+    /// game to function
+    // If this option is disabled, functions in the rodio
+    // library MUST NOT be called.
+    Off,
+    Automatic,
+    Device(String),
+}
 
+impl AudioOutput {
+    pub fn is_enabled(&self) -> bool {
+        match self {
+            Self::Off => false,
+            _ => true,
+        }
+    }
+}
 /// `AudioSettings` controls the volume of different audio subsystems and which
 /// device is used.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -469,8 +494,7 @@ pub struct AudioSettings {
     pub max_sfx_channels: usize,
 
     /// Audio Device that Voxygen will use to play audio.
-    pub audio_device: Option<String>,
-    pub audio_on: bool,
+    pub output: AudioOutput,
 }
 
 impl Default for AudioSettings {
@@ -480,8 +504,7 @@ impl Default for AudioSettings {
             music_volume: 0.4,
             sfx_volume: 0.6,
             max_sfx_channels: 10,
-            audio_device: None,
-            audio_on: true,
+            output: AudioOutput::Automatic,
         }
     }
 }

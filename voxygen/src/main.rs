@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
 use veloren_voxygen::{
@@ -7,7 +8,7 @@ use veloren_voxygen::{
     logging,
     menu::main::MainMenuState,
     meta::Meta,
-    settings::Settings,
+    settings::{AudioOutput, Settings},
     window::Window,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
@@ -17,6 +18,8 @@ use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
 fn main() {
+    #[cfg(feature = "tweak")]
+    const_tweaker::run().expect("Could not run server");
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
         .and_then(|env| env.to_str().map(|s| s.to_owned()))
@@ -44,16 +47,13 @@ fn main() {
         panic!("Failed to save settings: {:?}", err);
     }
 
-    let audio_device = || match &settings.audio.audio_device {
-        Some(d) => d.to_string(),
-        None => audio::get_default_device(),
-    };
-
-    let mut audio = if settings.audio.audio_on {
-        AudioFrontend::new(audio_device(), settings.audio.max_sfx_channels)
-    } else {
-        AudioFrontend::no_audio()
-    };
+    let mut audio = match settings.audio.output {
+        AudioOutput::Off => None,
+        AudioOutput::Automatic => audio::get_default_device(),
+        AudioOutput::Device(ref dev) => Some(dev.clone()),
+    }
+    .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
+    .unwrap_or_else(AudioFrontend::no_audio);
 
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);
@@ -123,7 +123,7 @@ fn main() {
             and the events that led up to the panic as possible.
             \n\
             Voxygen has logged information about the problem (including this \
-            message) to the file {:#?}. Please include the contents of this \
+            message) to the file {}. Please include the contents of this \
             file in your bug report.
             \n\
             > Error information\n\
@@ -131,13 +131,17 @@ fn main() {
             The information below is intended for developers and testers.\n\
             \n\
             Panic Payload: {:?}\n\
-            PanicInfo: {}",
-            // TODO: Verify that this works
-            Settings::get_settings_path()
+            PanicInfo: {}\n\
+            Game version: {} [{}]",
+            Settings::load()
+                .log
+                .logs_path
                 .join("voxygen-<date>.log")
                 .display(),
             reason,
             panic_info,
+            common::util::GIT_HASH.to_string(),
+            common::util::GIT_DATE.to_string()
         );
 
         error!(

@@ -36,7 +36,7 @@ impl PlayState for MainMenuState {
         let mut client_init: Option<ClientInit> = None;
 
         // Kick off title music
-        if global_state.settings.audio.audio_on && global_state.audio.music_enabled() {
+        if global_state.settings.audio.output.is_enabled() && global_state.audio.music_enabled() {
             global_state.audio.play_title_music();
         }
 

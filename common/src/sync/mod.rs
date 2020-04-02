@@ -7,8 +7,8 @@ mod uid;
 
 // Reexports
 pub use packet::{
-    handle_insert, handle_modify, handle_remove, CompPacket, EntityPackage, StatePackage,
-    SyncPackage,
+    handle_insert, handle_modify, handle_remove, CompPacket, CompSyncPackage, EntityPackage,
+    EntitySyncPackage, StatePackage,
 };
 pub use sync_ext::WorldSyncExt;
 pub use track::UpdateTracker;

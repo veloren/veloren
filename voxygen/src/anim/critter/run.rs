@@ -44,7 +44,7 @@ impl Animation for RunAnimation {
 
         next.tail.offset =
             Vec3::new(0.0, skeleton_attr.tail.0 + wave * 1.0, skeleton_attr.tail.1) / 18.0;
-        next.tail.ori = Quaternion::rotation_y(wave_slow * 0.25);
+        next.tail.ori = Quaternion::rotation_y(wave_slow * 0.08);
         next.tail.scale = Vec3::one() / 18.0;
 
         next

@@ -1,4 +1,4 @@
-use super::{img_ids::Imgs, Show, TEXT_COLOR};
+use super::{img_ids::Imgs, Show, TEXT_COLOR, UI_MAIN};
 use crate::ui::fonts::ConrodVoxygenFonts;
 use conrod_core::{
     color,
@@ -74,17 +74,11 @@ impl<'a> Widget for Spell<'a> {
             id: _, state, ui, ..
         } = args;
 
-        if self._show.character_window {
-            Image::new(self.imgs.window_3)
-                .top_left_with_margins_on(ui.window, 200.0, 658.0)
-                .w_h(103.0 * 4.0, 122.0 * 4.0)
-                .set(state.spell_frame, ui);
-        } else {
-            Image::new(self.imgs.window_3)
-                .top_left_with_margins_on(ui.window, 200.0, 25.0)
-                .w_h(103.0 * 4.0, 122.0 * 4.0)
-                .set(state.spell_frame, ui);
-        }
+        Image::new(self.imgs.window_3)
+            .top_left_with_margins_on(ui.window, 200.0, 25.0)
+            .w_h(103.0 * 4.0, 122.0 * 4.0)
+            .color(Some(UI_MAIN))
+            .set(state.spell_frame, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)

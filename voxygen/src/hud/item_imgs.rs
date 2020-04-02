@@ -1,7 +1,11 @@
 use crate::ui::{Graphic, SampleStrat, Transform, Ui};
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
-    comp::item::{Armor, Consumable, Ingredient, Item, ItemKind, Tool, Utility},
+    comp::item::{
+        armor::Armor,
+        tool::{Tool, ToolKind},
+        Consumable, Ingredient, Item, ItemKind, Utility,
+    },
 };
 use conrod_core::image::Id;
 use dot_vox::DotVoxData;
@@ -14,20 +18,21 @@ use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKey {
-    Tool(Tool),
+    Tool(ToolKind),
     Armor(Armor),
     Utility(Utility),
     Consumable(Consumable),
     Ingredient(Ingredient),
+    Empty,
 }
 impl From<&Item> for ItemKey {
     fn from(item: &Item) -> Self {
         match &item.kind {
-            ItemKind::Tool { kind, .. } => ItemKey::Tool(kind.clone()),
+            ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),
             ItemKind::Armor { kind, .. } => ItemKey::Armor(kind.clone()),
-            ItemKind::Utility { kind } => ItemKey::Utility(kind.clone()),
+            ItemKind::Utility { kind, .. } => ItemKey::Utility(kind.clone()),
             ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
-            ItemKind::Ingredient(kind) => ItemKey::Ingredient(kind.clone()),
+            ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(kind.clone()),
         }
     }
 }
@@ -73,7 +78,7 @@ impl Asset for ItemImagesSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing item images spec"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 

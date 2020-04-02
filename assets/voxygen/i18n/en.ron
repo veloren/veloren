@@ -1,5 +1,5 @@
 /// Translation document instructions
-/// 
+///
 /// In order to keep localization documents readible please follow the following
 /// rules:
 /// - separate the string map sections using a commentary describing the purpose
@@ -7,7 +7,7 @@
 /// - prepend multi-line strings with a commentary
 /// - append one blank lines after a multi-line strings and two after sections
 ///
-/// To add a new language in Veloren, just write an additional `.ron` file in 
+/// To add a new language in Veloren, just write an additional `.ron` file in
 /// `assets/voxygen/i18n` and that's it!
 
 /// Localization for "global" English
@@ -62,6 +62,7 @@ VoxygenLocalization(
         "common.back": "Back",
         "common.create": "Create",
         "common.okay": "Okay",
+        "common.accept": "Accept",
         "common.disclaimer": "Disclaimer",
         "common.cancel": "Cancel",
         "common.none": "None",
@@ -98,7 +99,7 @@ Is the client up to date?"#,
 
 Before you dive into the fun, please keep a few things in mind:
 
-- This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features. 
+- This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features.
 - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
 - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
  you wish (provided derived work is also under GPL 3).
@@ -143,7 +144,7 @@ https://account.veloren.net."#,
         "hud.show_tips": "Show Tips",
         "hud.quests": "Quests",
         "hud.you_died": "You Died",
-        
+
         "hud.press_key_to_show_keybindings_fmt": "Press {key} to show keybindings",
         "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
         "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toogle keybindings",
@@ -190,8 +191,23 @@ Want to free your cursor to close this window? Press TAB!
 
 Enjoy your stay in the World of Veloren."#,
 
+
+        // Inventory
+        "hud.bag.inventory": "'s Inventory",
+        "hud.bag.stats_title": "'s Stats",
+        "hud.bag.exp": "Exp",
+        "hud.bag.armor": "Armor",
+        "hud.bag.stats": "Stats",
+
+        // Map and Questlog
+        "hud.map.map_title": "Map",
+        "hud.map.qlog_title": "Quests",
+
+        // Settings
         "hud.settings.general": "General",
         "hud.settings.none": "None",
+        "hud.settings.press_behavior.toggle": "Toggle",
+        "hud.settings.press_behavior.hold": "Hold",
         "hud.settings.help_window": "Help Window",
         "hud.settings.debug_info": "Debug Info",
         "hud.settings.tips_on_startup": "Tips-On-Startup",
@@ -219,6 +235,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
         "hud.settings.invert_scroll_zoom": "Invert Scroll Zoom",
         "hud.settings.invert_mouse_y_axis": "Invert Mouse Y Axis",
+        "hud.settings.free_look_behavior": "Free look behavior",
 
         "hud.settings.view_distance": "View Distance",
         "hud.settings.maximum_fps": "Maximum FPS",
@@ -308,11 +325,14 @@ Send Chat Message
 Scroll Chat
 
 
+Free look
+
+
 Chat commands:  
 
 /alias [Name] - Change your Chat Name   
 /tp [Name] - Teleports you to another player    
-/jump <dx> <dy> <dz> - Offset your position 
+/jump <dx> <dy> <dz> - Offset your position
 /goto <x> <y> <z> - Teleport to a position  
 /kill - Kill yourself   
 /pig - Spawn pig NPC    
@@ -327,6 +347,8 @@ Chat commands:
         "hud.social.play_online_fmt": "{nb_player} player(s) online",
 
         "hud.spell": "Spell",
+
+        "hud.free_look_indicator": "Free look active",
         /// End HUD section
 
 
@@ -366,7 +388,7 @@ Willpower
 
 
         /// Start character window section
-        
+
 
         /// Start Escape Menu Section
         "esc_menu.logout": "Logout",

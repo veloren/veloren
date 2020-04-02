@@ -16,6 +16,7 @@ use vek::*;
 pub enum GameInput {
     Primary,
     Secondary,
+    Ability3,
     ToggleCursor,
     MoveForward,
     MoveBack,
@@ -49,6 +50,8 @@ pub enum GameInput {
     Interact,
     ToggleWield,
     Charge,
+    SwapLoadout,
+    FreeLook,
 }
 
 /// Represents a key that the game menus recognise after input mapping
@@ -359,6 +362,9 @@ impl Window {
         map.entry(settings.controls.secondary)
             .or_default()
             .push(GameInput::Secondary);
+        map.entry(settings.controls.ability3)
+            .or_default()
+            .push(GameInput::Ability3);
         map.entry(settings.controls.toggle_cursor)
             .or_default()
             .push(GameInput::ToggleCursor);
@@ -410,12 +416,6 @@ impl Window {
         map.entry(settings.controls.bag)
             .or_default()
             .push(GameInput::Bag);
-        map.entry(settings.controls.quest_log)
-            .or_default()
-            .push(GameInput::QuestLog);
-        map.entry(settings.controls.character_window)
-            .or_default()
-            .push(GameInput::CharacterWindow);
         map.entry(settings.controls.social)
             .or_default()
             .push(GameInput::Social);
@@ -455,9 +455,15 @@ impl Window {
         map.entry(settings.controls.toggle_wield)
             .or_default()
             .push(GameInput::ToggleWield);
+        map.entry(settings.controls.swap_loadout)
+            .or_default()
+            .push(GameInput::SwapLoadout);
         map.entry(settings.controls.charge)
             .or_default()
             .push(GameInput::Charge);
+        map.entry(settings.controls.free_look)
+            .or_default()
+            .push(GameInput::FreeLook);
 
         let keypress_map = HashMap::new();
 

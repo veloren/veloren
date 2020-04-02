@@ -1,3 +1,4 @@
+use common::util::Dir;
 use specs::Component;
 use specs_idvs::IDVStorage;
 use vek::*;
@@ -32,7 +33,7 @@ impl Component for HpFloaterList {
 #[derive(Copy, Clone, Debug)]
 pub struct Interpolated {
     pub pos: Vec3<f32>,
-    pub ori: Vec3<f32>,
+    pub ori: Dir,
 }
 impl Component for Interpolated {
     type Storage = IDVStorage<Self>;

@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, BarNumbers, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
-    MANA_COLOR, TEXT_COLOR, XP_COLOR,
+    img_ids::Imgs, BarNumbers, ShortcutNumbers, XpBar, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
+    LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
@@ -10,8 +10,11 @@ use crate::{
 use common::{
     assets::load_expect,
     comp::{
-        item::{Debug, Tool},
-        ActionState, CharacterState, ControllerInputs, Energy, ItemKind, Stats,
+        item::{
+            tool::{DebugKind, StaffKind, Tool, ToolKind},
+            ItemKind,
+        },
+        CharacterState, ControllerInputs, Energy, Loadout, Stats,
     },
 };
 use conrod_core::{
@@ -19,7 +22,12 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+
 use std::time::{Duration, Instant};
+/*
+use const_tweaker::tweak;
+#[tweak(min = 0.0, max = 1.0, step = 0.01)]
+const RGB: f32 = 0.1;*/
 
 widget_ids! {
     struct Ids {
@@ -111,6 +119,7 @@ pub struct Skillbar<'a> {
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
     stats: &'a Stats,
+    loadout: &'a Loadout,
     energy: &'a Energy,
     character_state: &'a CharacterState,
     controller: &'a ControllerInputs,
@@ -126,17 +135,19 @@ impl<'a> Skillbar<'a> {
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
         stats: &'a Stats,
+        loadout: &'a Loadout,
         energy: &'a Energy,
         character_state: &'a CharacterState,
         pulse: f32,
         controller: &'a ControllerInputs,
     ) -> Self {
         Self {
+            global_state,
             imgs,
             fonts,
             stats,
+            loadout,
             energy,
-            global_state,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
             character_state,
@@ -539,8 +550,8 @@ impl<'a> Widget for Skillbar<'a> {
                     .set(state.ids.hotbar_align, ui);
                 // M1 Slot
 
-                match self.character_state.action {
-                    ActionState::Attack { .. } => {
+                match self.character_state {
+                    CharacterState::BasicMelee { .. } => {
                         if self.controller.primary.is_pressed() {
                             let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                             Image::new(self.imgs.skillbar_slot_big)
@@ -580,49 +591,58 @@ impl<'a> Widget for Skillbar<'a> {
         // M1 Slot
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(38.0 * scale, 38.0 * scale)
-            .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-                Some(ItemKind::Tool { kind, .. }) => match kind {
-                    Tool::Bow => Some(BG_COLOR_2),
-                    Tool::Staff => Some(BG_COLOR_2),
+            .color(
+                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                        ToolKind::Bow(_) => Some(BG_COLOR_2),
+                        ToolKind::Staff(_) => Some(BG_COLOR_2),
+                        _ => Some(BG_COLOR_2),
+                    },
                     _ => Some(BG_COLOR_2),
                 },
-                _ => Some(BG_COLOR_2),
-            })
+            )
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
-        Button::image(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool { kind, .. }) => match kind {
-                Tool::Sword => self.imgs.twohsword_m1,
-                Tool::Hammer => self.imgs.twohhammer_m1,
-                Tool::Axe => self.imgs.twohaxe_m1,
-                Tool::Bow => self.imgs.bow_m1,
-                Tool::Staff => self.imgs.staff_m1,
-                Tool::Debug(Debug::Boost) => self.imgs.flyingrod_m1,
-                _ => self.imgs.twohaxe_m1,
+        Button::image(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                    ToolKind::Sword(_) => self.imgs.twohsword_m1,
+                    ToolKind::Hammer(_) => self.imgs.twohhammer_m1,
+                    ToolKind::Axe(_) => self.imgs.twohaxe_m1,
+                    ToolKind::Bow(_) => self.imgs.bow_m1,
+                    ToolKind::Staff(_) => self.imgs.staff_m1,
+                    ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m1,
+                    _ => self.imgs.nothing,
+                },
+                _ => self.imgs.nothing,
             },
-            _ => self.imgs.twohaxe_m1,
-        }) // Insert Icon here
-        .w(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool { kind, .. }) => match kind {
-                Tool::Bow => 30.0 * scale,
-                Tool::Staff => 32.0 * scale,
+        ) // Insert Icon here
+        .w(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                    ToolKind::Bow(_) => 30.0 * scale,
+                    ToolKind::Staff(_) => 32.0 * scale,
+                    _ => 38.0 * scale,
+                },
                 _ => 38.0 * scale,
             },
-            _ => 38.0 * scale,
-        })
-        .h(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool { kind, .. }) => match kind {
-                Tool::Bow => 30.0 * scale,
-                Tool::Staff => 32.0 * scale,
+        )
+        .h(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                    ToolKind::Bow(_) => 30.0 * scale,
+                    ToolKind::Staff(_) => 32.0 * scale,
+                    _ => 38.0 * scale,
+                },
                 _ => 38.0 * scale,
             },
-            _ => 38.0 * scale,
-        })
+        )
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
         // M2 Slot
-        match self.character_state.action {
-            ActionState::Block { .. } => {
+        match self.character_state {
+            /*
+            CharacterState::BasicBlock { .. } => {
                 let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                 if self.controller.secondary.is_pressed() {
                     Image::new(self.imgs.skillbar_slot_big)
@@ -641,8 +661,8 @@ impl<'a> Widget for Skillbar<'a> {
                         .right_from(state.ids.m1_slot, 0.0)
                         .set(state.ids.m2_slot, ui);
                 }
-            },
-            ActionState::Attack { .. } => {
+            },*/
+            CharacterState::BasicMelee { .. } => {
                 let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                 if self.controller.secondary.is_pressed() {
                     Image::new(self.imgs.skillbar_slot_big)
@@ -672,45 +692,74 @@ impl<'a> Widget for Skillbar<'a> {
 
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(38.0 * scale, 38.0 * scale)
-            .color(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-                Some(ItemKind::Tool { kind, .. }) => match kind {
-                    Tool::Bow => Some(BG_COLOR_2),
-                    Tool::Staff => Some(BG_COLOR_2),
+            .color(
+                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                        ToolKind::Bow(_) => Some(BG_COLOR_2),
+                        ToolKind::Staff(_) => Some(BG_COLOR_2),
+                        _ => Some(BG_COLOR_2),
+                    },
                     _ => Some(BG_COLOR_2),
                 },
-                _ => Some(BG_COLOR_2),
-            })
+            )
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool { kind, .. }) => match kind {
-                Tool::Sword => self.imgs.twohsword_m2,
-                Tool::Hammer => self.imgs.twohhammer_m2,
-                Tool::Axe => self.imgs.twohaxe_m2,
-                Tool::Bow => self.imgs.bow_m2,
-                Tool::Staff => self.imgs.staff_m2,
-                Tool::Debug(Debug::Boost) => self.imgs.flyingrod_m2,
-                _ => self.imgs.twohaxe_m2,
+        Button::image(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                    ToolKind::Sword(_) => self.imgs.charge,
+                    ToolKind::Hammer(_) => self.imgs.nothing,
+                    ToolKind::Axe(_) => self.imgs.nothing,
+                    ToolKind::Bow(_) => self.imgs.nothing,
+                    ToolKind::Staff(StaffKind::Sceptre) => self.imgs.heal_0,
+                    ToolKind::Staff(_) => self.imgs.staff_m2,
+                    ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
+                    _ => self.imgs.nothing,
+                },
+                _ => self.imgs.nothing,
             },
-            _ => self.imgs.twohaxe_m2,
-        }) // Insert Icon here
-        .w(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool { kind, .. }) => match kind {
-                Tool::Bow => 30.0 * scale,
-                Tool::Staff => 30.0 * scale,
+        ) // Insert Icon here
+        .w(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                    ToolKind::Staff(_) => 30.0 * scale,
+                    _ => 38.0 * scale,
+                },
                 _ => 38.0 * scale,
             },
-            _ => 38.0 * scale,
-        })
-        .h(match self.stats.equipment.main.as_ref().map(|i| &i.kind) {
-            Some(ItemKind::Tool { kind, .. }) => match kind {
-                Tool::Bow => 30.0 * scale,
-                Tool::Staff => 30.0 * scale,
+        )
+        .h(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                    ToolKind::Staff(_) => 30.0 * scale,
+                    _ => 38.0 * scale,
+                },
                 _ => 38.0 * scale,
             },
-            _ => 38.0 * scale,
-        })
+        )
         .middle_of(state.ids.m2_slot_bg)
+        .image_color(
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                    ToolKind::Sword(_) => {
+                        if self.energy.current() as f64 >= 200.0 {
+                            Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                        } else {
+                            Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                        }
+                    },
+                    ToolKind::Staff(StaffKind::Sceptre) => {
+                        if self.energy.current() as f64 >= 400.0 {
+                            Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                        } else {
+                            Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                        }
+                    },
+                    _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+                },
+                _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+            },
+        )
         .set(state.ids.m2_content, ui);
         //Slot 5
         Image::new(self.imgs.skillbar_slot)
@@ -755,8 +804,9 @@ impl<'a> Widget for Skillbar<'a> {
         // Slot 1
         // TODO: Don't hardcode this to one Skill...
         // Frame flashes whenever the active skill inside this slot is activated
-        match self.character_state.action {
-            ActionState::Charge { time_left } => {
+        match self.character_state {
+            /*
+            CharacterState::Charge { time_left } => {
                 let fade = time_left.as_secs_f32() * 10.0;
                 Image::new(self.imgs.skillbar_slot_l)
                     .w_h(20.0 * scale, 20.0 * scale)
@@ -773,7 +823,7 @@ impl<'a> Widget for Skillbar<'a> {
                     )))
                     .floating(true)
                     .set(state.ids.slot1_act, ui);
-            },
+            },*/
             _ => {
                 Image::new(self.imgs.skillbar_slot_l)
                     .w_h(20.0 * scale, 20.0 * scale)
@@ -783,19 +833,35 @@ impl<'a> Widget for Skillbar<'a> {
         }
         Image::new(self.imgs.skillbar_slot_bg)
             .w_h(19.5 * scale, 19.5 * scale)
-            .color(Some(BG_COLOR))
+            .color(
+                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                        ToolKind::Staff(StaffKind::BasicStaff) => Some(BLACK),
+                        _ => Some(BG_COLOR),
+                    },
+                    _ => Some(BG_COLOR),
+                },
+            )
             .middle_of(state.ids.slot1)
             .set(state.ids.slot1_bg, ui);
         // TODO: Changeable slot image
-        Image::new(self.imgs.charge)
-            .w_h(18.0 * scale, 18.0 * scale)
-            .color(if self.energy.current() as f64 >= 200.0 {
-                Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-            } else {
-                Some(Color::Rgba(0.4, 0.4, 0.4, 1.0))
-            })
-            .middle_of(state.ids.slot1_bg)
-            .set(state.ids.slot1_icon, ui);
+        match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                ToolKind::Staff(StaffKind::BasicStaff) => {
+                    Image::new(self.imgs.fire_spell_1)
+                        .w_h(18.0 * scale, 18.0 * scale)
+                        .color(if self.energy.current() as f64 >= 500.0 {
+                            Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                        } else {
+                            Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
+                        })
+                        .middle_of(state.ids.slot1_bg)
+                        .set(state.ids.slot1_icon, ui);
+                },
+                _ => {},
+            },
+            _ => {},
+        }
         // Slot 6
         Image::new(self.imgs.skillbar_slot)
             .w_h(20.0 * scale, 20.0 * scale)

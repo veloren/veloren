@@ -23,11 +23,6 @@
 
 .project
 
-# Vim
-
-**/*.swp
-**/*.vi
-
 # Veloren
 *.rar
 *.log
@@ -40,3 +35,6 @@ todo.txt
 # direnv
 /.envrc
 *.bat
+
+# Mac
+.DS_Store

@@ -15,6 +15,7 @@ pub struct HealthChange {
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
+    Projectile { owner: Option<Uid> },
     Suicide,
     World,
     Revive,
@@ -40,13 +41,6 @@ pub struct Exp {
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Level {
     amount: u32,
-}
-
-#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
-pub struct Equipment {
-    pub main: Option<comp::Item>,
-    pub alt: Option<comp::Item>,
-    // TODO: Armor
 }
 
 impl Health {
@@ -125,7 +119,6 @@ pub struct Stats {
     pub health: Health,
     pub level: Level,
     pub exp: Exp,
-    pub equipment: Equipment,
     pub endurance: u32,
     pub fitness: u32,
     pub willpower: u32,
@@ -142,11 +135,11 @@ impl Stats {
     }
 
     // TODO: Delete this once stat points will be a thing
-    pub fn update_max_hp(&mut self) { self.health.set_maximum(27 + 15 * self.level.amount); }
+    pub fn update_max_hp(&mut self) { self.health.set_maximum(52 + 3 * self.level.amount); }
 }
 
 impl Stats {
-    pub fn new(name: String, body: Body, main: Option<comp::Item>) -> Self {
+    pub fn new(name: String, body: Body) -> Self {
         let race = if let comp::Body::Humanoid(hbody) = body {
             Some(hbody.race)
         } else {
@@ -178,7 +171,6 @@ impl Stats {
                 current: 0,
                 maximum: 50,
             },
-            equipment: Equipment { main, alt: None },
             endurance,
             fitness,
             willpower,

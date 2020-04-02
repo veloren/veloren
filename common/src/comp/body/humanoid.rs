@@ -5,12 +5,6 @@ use vek::Rgb;
 pub struct Body {
     pub race: Race,
     pub body_type: BodyType,
-    pub chest: Chest,
-    pub belt: Belt,
-    pub pants: Pants,
-    pub hand: Hand,
-    pub foot: Foot,
-    pub shoulder: Shoulder,
     pub hair_style: u8,
     pub beard: u8,
     pub eyebrows: Eyebrows,
@@ -33,12 +27,6 @@ impl Body {
         Self {
             race,
             body_type,
-            chest: *(&ALL_CHESTS).choose(rng).unwrap(),
-            belt: *(&ALL_BELTS).choose(rng).unwrap(),
-            pants: *(&ALL_PANTS).choose(rng).unwrap(),
-            hand: *(&ALL_HANDS).choose(rng).unwrap(),
-            foot: *(&ALL_FEET).choose(rng).unwrap(),
-            shoulder: *(&ALL_SHOULDERS).choose(rng).unwrap(),
             hair_style: rng.gen_range(0, race.num_hair_styles(body_type)),
             beard: rng.gen_range(0, race.num_beards(body_type)),
             eyebrows: *(&ALL_EYEBROWS).choose(rng).unwrap(),
@@ -125,7 +113,7 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
 }
 
 // Hair Colors
-pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 11] = [
+pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 12] = [
     (198, 169, 113), // Philosopher's Grey
     //(245, 232, 175), // Cream Blonde
     //(228, 208, 147), // Gold Blonde
@@ -141,9 +129,10 @@ pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 11] = [
     (107, 32, 60), // Grape Purple
     (135, 38, 39), // Dark Red
     (88, 26, 29),  // Wine Red
-                   //(146, 32, 32), // Autumn Red
+    //(146, 32, 32), // Autumn Red
+    (20, 19, 17), // Black
 ];
-pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 20] = [
+pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
@@ -164,8 +153,9 @@ pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 20] = [
     (163, 186, 192), // Matte Green
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
+    (20, 19, 17),    // Black
 ];
-pub const ELF_HAIR_COLORS: [(u8, u8, u8); 23] = [
+pub const ELF_HAIR_COLORS: [(u8, u8, u8); 24] = [
     (66, 83, 113),   // Mysterious Blue
     (13, 76, 41),    // Rainforest Green
     (245, 232, 175), // Cream Blonde
@@ -189,8 +179,9 @@ pub const ELF_HAIR_COLORS: [(u8, u8, u8); 23] = [
     (163, 186, 192), // Matte Green
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
+    (20, 19, 17),    // Black
 ];
-pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 21] = [
+pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 22] = [
     (245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
@@ -212,8 +203,9 @@ pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (163, 186, 192), // Matte Green
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
+    (20, 19, 17),    // Black
 ];
-pub const ORC_HAIR_COLORS: [(u8, u8, u8); 10] = [
+pub const ORC_HAIR_COLORS: [(u8, u8, u8); 11] = [
     (66, 66, 59), // Wise Grey
     //(107, 76, 51),  // Oak Skin4
     //(203, 154, 98), // Light Skin4
@@ -226,8 +218,9 @@ pub const ORC_HAIR_COLORS: [(u8, u8, u8); 10] = [
     (135, 38, 39), // Dark Red
     (88, 26, 29),  // Wine Red
     (66, 83, 113), // Mysterious Blue
+    (20, 19, 17),  // Black
 ];
-pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 21] = [
+pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 22] = [
     //(245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     //(228, 223, 141), // Platinum Blonde
@@ -252,6 +245,7 @@ pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (163, 186, 192), // Matte Green
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
+    (20, 19, 17),    // Black
 ];
 
 // Skin colors
@@ -476,81 +470,6 @@ pub enum BodyType {
     Male = 1,
 }
 pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Chest {
-    Blue = 0,
-    Brown = 1,
-    Dark = 2,
-    Green = 3,
-    Orange = 4,
-    Midnight = 5,
-    Kimono = 6,
-}
-pub const ALL_CHESTS: [Chest; 7] = [
-    Chest::Blue,
-    Chest::Brown,
-    Chest::Dark,
-    Chest::Green,
-    Chest::Orange,
-    Chest::Midnight,
-    Chest::Kimono,
-];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Belt {
-    Dark = 0,
-    Cloth = 1,
-}
-pub const ALL_BELTS: [Belt; 2] = [Belt::Dark, Belt::Cloth];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Pants {
-    Blue = 0,
-    Brown = 1,
-    Dark = 2,
-    Green = 3,
-    Orange = 4,
-    Kimono = 5,
-}
-pub const ALL_PANTS: [Pants; 6] = [
-    Pants::Blue,
-    Pants::Brown,
-    Pants::Dark,
-    Pants::Green,
-    Pants::Orange,
-    Pants::Kimono,
-];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Hand {
-    Bare = 0,
-    Cloth = 1,
-}
-pub const ALL_HANDS: [Hand; 2] = [Hand::Bare, Hand::Cloth];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Foot {
-    Bare = 0,
-    Dark = 1,
-    Sandal = 2,
-    Jester = 3,
-}
-pub const ALL_FEET: [Foot; 4] = [Foot::Bare, Foot::Dark, Foot::Sandal, Foot::Jester];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Shoulder {
-    None = 0,
-    Brown1 = 1,
-    Chain = 2,
-}
-pub const ALL_SHOULDERS: [Shoulder; 3] = [Shoulder::None, Shoulder::Brown1, Shoulder::Chain];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]

@@ -56,7 +56,7 @@ pub fn structure_gen<'a>(
             ForestKind::Palm => &PALMS,
             ForestKind::Savannah => &ACACIAS,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 7 => &OAK_STUMPS,
-            ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 8 == 7 => &FRUIT_TREES,
+            ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 19 == 7 => &FRUIT_TREES,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 14 == 7 => &BIRCHES,
             ForestKind::Oak => &OAKS,
             ForestKind::Pine => &PINES,
@@ -87,7 +87,7 @@ impl Asset for StructuresSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        Ok(ron::de::from_reader(buf_reader).expect("Error parsing structure specs"))
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
 

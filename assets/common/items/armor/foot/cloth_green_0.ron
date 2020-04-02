@@ -1,0 +1,8 @@
+Item(
+    name: "Green Linen Boots",
+   description: "Soft and warm",
+    kind: Armor(
+        kind: Foot(ClothGreen0),
+        stats: (20),
+    ),
+)

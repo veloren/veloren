@@ -1,8 +1,10 @@
 Item(
     name: "Velorite Fragment",
-    description: "Small runes sparkle on its surface.",
+    description: "Small runes sparkle on its surface.
+
+Increases Exp by 10.",
     kind: Consumable(
         kind: VeloriteFrag,
-        effect: Xp(20),
+        effect: Xp(10),
     ),
 )

@@ -35,6 +35,10 @@ const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not
 const SHADOW_DIST_RADIUS: f32 = 8.0;
 const SHADOW_MAX_DIST: f32 = 96.0; // The distance beyond which shadows may not be visible
 
+/// Above this speed is considered running
+/// Used for first person camera effects
+const RUNNING_THRESHOLD: f32 = 0.7;
+
 struct Skybox {
     model: Model<SkyboxPipeline>,
     locals: Consts<SkyboxLocals>,
@@ -126,6 +130,8 @@ impl Scene {
     /// Set the block position that the player is interacting with
     pub fn set_select_pos(&mut self, pos: Option<Vec3<i32>>) { self.select_pos = pos; }
 
+    pub fn select_pos(&self) -> Option<Vec3<i32>> { self.select_pos }
+
     /// Handle an incoming user input event (e.g.: cursor moved, key pressed,
     /// window closed).
     ///
@@ -174,19 +180,27 @@ impl Scene {
         gamma: f32,
     ) {
         // Get player position.
-        let player_pos = scene_data
-            .state
-            .ecs()
+        let ecs = scene_data.state.ecs();
+
+        let player_pos = ecs
             .read_storage::<comp::Pos>()
             .get(scene_data.player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        let player_rolling = scene_data
-            .state
-            .ecs()
+        let player_rolling = ecs
             .read_storage::<comp::CharacterState>()
             .get(scene_data.player_entity)
-            .map_or(false, |cs| cs.action.is_roll());
+            .map_or(false, |cs| cs.is_dodge());
+
+        let is_running = ecs
+            .read_storage::<comp::Vel>()
+            .get(scene_data.player_entity)
+            .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2));
+
+        let on_ground = ecs
+            .read_storage::<comp::PhysicsState>()
+            .get(scene_data.player_entity)
+            .map(|p| p.on_ground);
 
         let player_scale = match scene_data
             .state
@@ -211,9 +225,11 @@ impl Scene {
         let up = match self.camera.get_mode() {
             CameraMode::FirstPerson => {
                 if player_rolling {
-                    player_scale * 0.8_f32
+                    player_scale * 0.8
+                } else if is_running.unwrap_or(false) && on_ground.unwrap_or(false) {
+                    player_scale * 1.6 + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
                 } else {
-                    player_scale * 1.6_f32
+                    player_scale * 1.6
                 }
             },
             CameraMode::ThirdPerson => 1.2,

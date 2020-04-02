@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, Intro, ShortcutNumbers, Show, XpBar, MENU_BG,
-    TEXT_COLOR,
+    img_ids::Imgs, BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, Show, XpBar,
+    MENU_BG, TEXT_COLOR,
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
@@ -141,7 +141,8 @@ widget_ids! {
         sct_num_dur_text,
         sct_num_dur_slider,
         sct_num_dur_value,
-
+        free_look_behavior_text,
+        free_look_behavior_list
     }
 }
 
@@ -220,6 +221,7 @@ pub enum Event {
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
     ChangeLanguage(LanguageMetadata),
+    ChangeFreeLookBehavior(PressBehavior),
 }
 
 pub enum ScaleChange {
@@ -1254,6 +1256,45 @@ impl<'a> Widget for SettingsWindow<'a> {
             .graphics_for(state.ids.mouse_y_invert_button)
             .color(TEXT_COLOR)
             .set(state.ids.mouse_y_invert_label, ui);
+
+            // Free look behaviour
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.free_look_behavior"),
+            )
+            .down_from(state.ids.mouse_zoom_invert_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.free_look_behavior_text, ui);
+
+            let mode_label_list = [
+                &self
+                    .localized_strings
+                    .get("hud.settings.press_behavior.toggle"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.press_behavior.hold"),
+            ];
+
+            // Get which free look behavior is currently active
+            let selected = self.global_state.settings.gameplay.free_look_behavior as usize;
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, Some(selected))
+                .w_h(200.0, 30.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.free_look_behavior_text, 8.0)
+                .set(state.ids.free_look_behavior_list, ui)
+            {
+                match clicked {
+                    0 => events.push(Event::ChangeFreeLookBehavior(PressBehavior::Toggle)),
+                    1 => events.push(Event::ChangeFreeLookBehavior(PressBehavior::Hold)),
+                    _ => unreachable!(),
+                }
+            }
         }
 
         // 3) Controls Tab --------------------------------
@@ -1358,8 +1399,6 @@ impl<'a> Widget for SettingsWindow<'a> {
                  {}\n\
                  {}\n\
                  {}\n\
-                 {}\n\
-                 {}\n\
                  \n\
                  \n\
                  \n\
@@ -1367,6 +1406,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                  {}\n\
                  \n\
                  \n\
+                 {}\n\
                  \n\
                  \n\
                  \n\
@@ -1412,11 +1452,12 @@ impl<'a> Widget for SettingsWindow<'a> {
                 controls.social,
                 controls.map,
                 controls.spellbook,
-                controls.character_window,
-                controls.quest_log,
+                //controls.character_window,
+                //controls.quest_log,
                 controls.bag,
                 controls.enter,
                 "Mouse Wheel", // Scroll chat
+                controls.free_look
             ))
             .color(TEXT_COLOR)
             .right_from(state.ids.controls_text, 0.0)

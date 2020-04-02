@@ -1,0 +1,388 @@
+/// Translation document instructions
+/// 
+/// In order to keep localization documents readible please follow the following
+/// rules:
+/// - separate the string map sections using a commentary describing the purpose
+///   of the next section
+/// - prepend multi-line strings with a commentary
+/// - append one blank lines after a multi-line strings and two after sections
+///
+/// To add a new language in Veloren, just write an additional `.ron` file in 
+/// `assets/voxygen/i18n` and that's it!
+
+/// Localization for Turkish (Turkey)
+VoxygenLocalization(
+    metadata: (
+        language_name: "Türkçe (Türkiye)",
+        language_identifier: "tr_TR",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
+    string_map: {
+        /// Start Common section
+        // Texts used in multiple locations with the same formatting
+        "common.username": "kullanıcı adı",
+        "common.singleplayer": "Tek oyuncu",
+        "common.multiplayer": "Çok oyunculu",
+        "common.servers": "Sunucular",
+        "common.quit": "Çık",
+        "common.settings": "Ayarlar",
+        "common.languages": "Diller",
+        "common.interface": "Arayüz",
+        "common.gameplay": "Oynanış",
+        "common.controls": "Kontroller",
+        "common.video": "Video",
+        "common.sound": "Ses",
+        "common.resume": "Devam Et",
+        "common.characters": "Karakterler",
+        "common.close": "Kapat",
+        "common.yes": "Evet",
+        "common.no": "Hayır",
+        "common.back": "Geri",
+        "common.create": "Oluştur",
+        "common.okay": "Tamam",
+        "common.disclaimer": "Uyarı",
+        "common.cancel": "İptal Et",
+        "common.none": "Yok",
+        "common.error": "Hata",
+        "common.fatal_error": "Ölümcül hata",
+        "common.accept": "Kabul Et",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Bağlantı koptu!
+Sunucu yeniden mi başladı?
+İstemci güncel mi?"#,
+
+
+        "common.races.orc": "Ork",
+        "common.races.human": "İnsan",
+        "common.races.dwarf": "Cüce",
+        "common.races.elf": "Elf",
+        "common.races.undead": "Hortlak",
+        "common.races.danari": "Danari",
+
+        "common.weapons.axe": "Balta",
+        "common.weapons.sword": "Kılıç",
+        "common.weapons.staff": "Asa",
+        "common.weapons.bow": "Yay",
+        "common.weapons.hammer": "Çekiç",
+        /// End Common section
+
+
+        /// Start Main screen section
+        "main.connecting": "Bağlanılıyor",
+        "main.creating_world": "Dünya oluşturuluyor",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Veloren Alfa sürümüne hoşgeldin!
+
+Eğlenmeye başlamadan önce, lütfen bir kaç şeyi aklında tut:
+
+- Bu alfa sürümü daha çok yeni. Hatalar, bitmemiş oynanış, elden geçirilmemiş mekanikler ve eksik özellikler bulunuyor.
+- Yapıcı geri bildirim veya hata raporların varsa, bize Reddit, GitLab veya Discord sunucumuzdan ulaşabilirsin.
+- Veloren GPL 3 açık kaynak lisansı ile lisanslıdır. Bunun anlamı, oyunu istediğin gibi oynayabilir, değiştirebilir ve dağıtabilirsin
+(türetilmiş çalışmalarda GPL 3 ile lisanslanmış olduğu sürece)
+- Veloren kar gütmeyen bir topluluk projesidir ve üzerinde çalışan herkes birer gönüllüdür.
+Gördüklerini beğendiysen, geliştirme veya sanat takımlarına katılabilirsin!
+- 'Voxel RPG' kendi başına bir tür. Birinci şahıs nişancı oyunları önceden Doom kopyaları olarak adlandırılıyordu.
+
+Bizde onlar gibi bir niş inşa etmeye çalışıyoruz. Bu oyun bir kopya değil ve gelecekte gelişimi mevcut oyunlardan ayrılacak.
+
+Bu bildiriyi okumaya zaman ayırdığın için teşekkür ederiz, umarız ki oyundan memnun kalırsın!
+
+~ Veloren Geliştiricileri"#,
+
+        // Login process description
+        "main.login_process": r#"Giriş işlemi hakkında bilgi:
+
+Eğer giriş yaparken sorunlarla karşılaşıyorsan:
+
+Lütfen kimlik doğrulaması gerektiren sunucularda
+oynamak için bir hesaba ihtiyacın olduğunu hatırla.
+
+https://account.veloren.net adresinden
+
+bir hesap oluşturabilirsin."#,
+        "main.login.server_not_found": "Sunucu bulunamadı",
+        "main.login.authentication_error": "Sunucuda kimlik doğrulama hatası",
+        "main.login.server_full": "Sunucu dolu",
+        "main.login.untrusted_auth_server": "Kimlik doğrulama sunucusu güvenilir değil",
+        "main.login.outdated_client_or_server": "SunucuÇılgınaDöndü: Muhtemelen versiyonlar uyuşmuyor, güncellemeler için kontrol et.",
+        "main.login.timeout": "Zamanaşımı: Sunucu zamanında cevap vermedi. (Aşırı yüklenme veya ağ sorunları).",
+        "main.login.server_shut_down": "Sunucu kapandı",
+        "main.login.already_logged_in": "Zaten sunucuya giriş yapmışsın.",
+        "main.login.network_error": "Ağ hatası",
+        "main.login.failed_sending_request": "Kimlik doğrulama sunucusuna istek gönderilemedi",
+        "main.login.client_crashed": "İstemci çöktü",
+
+        /// End Main screen section
+
+
+        /// Start HUD Section
+        "hud.do_not_show_on_startup": "Bunu açılışta gösterme",
+        "hud.show_tips": "Öneriler",
+        "hud.quests": "Görevler",
+        "hud.you_died": "Öldün",
+        
+        "hud.press_key_to_show_keybindings_fmt": "Kontrolleri göstermek için {key}'e bas",
+        "hud.press_key_to_show_debug_info_fmt": "Hata ayıklama bilgilerini göstermek için {key}'e bas",
+        "hud.press_key_to_toggle_keybindings_fmt": "Kontrolleri açmak veya kapamak için {key}'e bas",
+        "hud.press_key_to_toggle_debug_info_fmt": "Hata ayıklama bilgilerini açmak veya kapamak için {key}'e bas",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Ziyaret ettiğin en son kamp ateşinde yeniden doğmak için {key}'e bas."#, 
+
+        // Welcome message
+        "hud.welcome": r#"Veloren Alfa sürümüne hoşgeldin!,
+
+
+Başlamadan önce bazı ipuçları:
+
+
+EN ÖNEMLİSİ: Yeniden doğma noktanı ayarlamak için sohbete /waypoint yaz.
+
+Bu ölmüşsen bile yapılabilir!
+
+
+Kontrolleri görmek için F1'e bas.
+
+Sohbet komutlarını görmek için sohbete /help yaz.
+
+
+Dünyada rastgele oluşan sandıklar ve başka objeler var!
+
+Onları toplamak için Sağ-Tık kullan.
+
+Topladıklarını kullanmak için 'B'ye basarak envanterini aç.
+
+Envanterindeki eşyaları kullanmak veya kuşanmak için iki kere üzerlerine tıkla.
+
+Üzerlerine bir kere tıklayıp ve sonra envaterin dışına tıklayarak onları at.
+
+
+Veloren'de geceler oldukça karanlık olabiliyor.
+
+Sohbete /lantern yazarak fenerini yak.
+
+
+Bu pencereyi kapatmak için imlecini serbest bırakmak mı istiyorsun? TAB'a bas!
+
+
+Veloren'in Dünyasında sana iyi eğlenceler!"#,
+
+        "hud.settings.general": "Genel",
+        "hud.settings.none": "Yok",
+        "hud.settings.press_behavior.toggle": "Aç/kapa",
+        "hud.settings.press_behavior.hold": "Basılı tut",
+        "hud.settings.help_window": "Yardım Penceresi",
+        "hud.settings.debug_info": "Hata Ayıklama Bilgileri",
+        "hud.settings.tips_on_startup": "Açılışta İpuçlarını Göster",
+        "hud.settings.ui_scale": "Arayüz Ölçeği",
+        "hud.settings.relative_scaling": "Otomatik Ölçek",
+        "hud.settings.custom_scaling": "Özel Ölçek",
+        "hud.settings.crosshair": "İmleç tipi",
+        "hud.settings.transparency": "Şeffaflık",
+        "hud.settings.hotbar": "Hotbar",
+        "hud.settings.toggle_shortcuts": "Kısayolları aç/kapa",
+        "hud.settings.toggle_bar_experience": "Tecrübe çubuğunu aç/kapa",
+        "hud.settings.scrolling_combat_text": "Verilen/Alınan Hasar Yazısı",
+        "hud.settings.single_damage_number": "Verilen Hasarı Tek Tek Göster",
+        "hud.settings.cumulated_damage": "Toplam Verilen Hasarı Göster",
+        "hud.settings.incoming_damage": "Alınan Hasarı Tek Tek Göster",
+        "hud.settings.cumulated_incoming_damage": "Toplam Alınan Hasarı Göster",
+        "hud.settings.energybar_numbers": "Enerji çubuğu değerleri",
+        "hud.settings.values": "Sayılar",
+        "hud.settings.percentages": "Yüzdeler",
+        "hud.settings.chat": "Sohbet",
+        "hud.settings.background_transparency": "Arkaplan Şeffaflığı",
+        "hud.settings.none": "Yok",
+
+        "hud.settings.pan_sensitivity": "Kaydırma Hassaslığı",
+        "hud.settings.zoom_sensitivity": "Büyütme Hassaslığı",
+        "hud.settings.invert_scroll_zoom": "Kaydırma Büyütmesini ters çevir",
+        "hud.settings.invert_mouse_y_axis": "Fare Y eksenini ters çevir",
+        "hud.settings.free_look_behavior": "Serbest bakış davranışı",
+
+        "hud.settings.view_distance": "Görüş Mesafesi",
+        "hud.settings.maximum_fps": "Maksimum FPS",
+        "hud.settings.fov": "Görüş alanı (derece)",
+        "hud.settings.gamma": "Gama",
+        "hud.settings.antialiasing_mode": "Kenar Yumuşatma Modu",
+        "hud.settings.cloud_rendering_mode": "Bulut Render Modu",
+        "hud.settings.fluid_rendering_mode": "Su Render Modu",
+        "hud.settings.fluid_rendering_mode.cheap": "Ucuz",
+        "hud.settings.fluid_rendering_mode.shiny": "Güzel",
+        "hud.settings.cloud_rendering_mode.regular": "Normal",
+        "hud.settings.fullscreen": "Tam ekran",
+        "hud.settings.save_window_size": "Pencere boyutunu kaydet",
+
+        "hud.settings.music_volume": "Müzik Sesi",
+        "hud.settings.sound_effect_volume": "Efekt Sesi",
+        "hud.settings.audio_device": "Ses Aygıtı",
+
+        // Control list
+        "hud.settings.control_names": r#"İmleci serbest bırak
+Yardım Pencerisini aç/kapa
+Arayüzü aç/kapa
+FPS ve hata ayıklama bilgilerini aç/kapa
+Ekran görüntüsü al
+İsim etiketlerini aç/kapa
+Tam ekranı aç/kapa
+
+
+İleri Git
+Sola Git
+Sağa Git
+Geriye Git
+
+Zıpla
+
+Planör
+
+Sıçra
+
+Yuvarlan
+
+Tırman
+
+İn
+
+Otomatik yürüme
+
+Silahları koy/çıkar
+
+Kaskı kuşan/çıkar
+
+Otur
+
+Bin
+
+Etkileşim
+
+
+Basit Saldırı
+İkincil Saldırı/Blok/Nişan Alma
+
+
+Yetenek çubuğu Slot 1
+Yetenek çubuğu Slot 2
+Yetenek çubuğu Slot 3
+Yetenek çubuğu Slot 4
+Yetenek çubuğu Slot 5
+Yetenek çubuğu Slot 6
+Yetenek çubuğu Slot 7
+Yetenek çubuğu Slot 8
+Yetenek çubuğu Slot 9
+Yetenek çubuğu Slot 10
+
+
+Duraklatma Menüsü
+Ayarlar
+Sosyal
+Harita
+Büyü kitabı
+Karakter
+Görev kaydı
+Çanta
+
+
+
+Sohbet Mesajı Gönder
+Sohbeti Kaydır
+
+
+Serbest bakış
+
+
+Sohbet komutları:  
+
+/alias [İsim] - Sohbet İsmini değiştir   
+/tp [İsim] - Seni başka bir oyuncuya ışınlar    
+/jump <dx> <dy> <dz> - Pozisyonunu kaydır 
+/goto <x> <y> <z> - Bir pozisyona ışınlan
+/kill - Kendini öldür
+/pig - Domuz NPC'si oluştur
+/wolf - Kurt NPC'si oluştur 
+/help - Sohbet komutlarını göster"#,
+
+        "hud.social": "Sosyal",
+        "hud.social.online": "Çevrimiçi",
+        "hud.social.friends": "Arkadaşlar",
+        "hud.social.not_yet_available": "Şu anda kullanılabilir değil",
+        "hud.social.faction": "Klan",
+        "hud.social.play_online_fmt": "{nb_player} oyuncu çevrimiçi",
+
+        "hud.spell": "Büyü",
+
+        "hud.free_look_indicator": "Serbest bakış açık",
+        /// End HUD section
+
+
+        /// Start chracter selection section
+        // Character delete question
+	"char_selection.delete_permanently": r#"Bu karakteri kalıcı olarak
+silmek istediğinden emin misin?"#,
+
+        "char_selection.change_server": "Sunucu Değiştir",
+        "char_selection.enter_world": "Dünyaya Gir",
+        "char_selection.logout": "Çıkış yap",
+        "char_selection.create_new_charater": "Yeni Karakter Oluştur",
+        "char_selection.character_creation": "Karakter Oluşumu",
+
+        "char_selection.human_default": "İnsan Varsayılanı",
+        "char_selection.level_fmt": "Seviye {level_nb}",
+        "char_selection.uncanny_valley": "Esrarengiz Vadi",
+        "char_selection.plains_of_uncertainty": "Belirsizlik Ovaları",
+        "char_selection.beard": "Sakal",
+        "char_selection.hair_style": "Saç Stili",
+        "char_selection.hair_color": "Saç Rengi",
+        "char_selection.chest_color": "Göğüs Rengi",
+        "char_selection.eye_color": "Göz Rengi",
+        "char_selection.skin": "Deri",
+        "char_selection.eyebrows": "Kaşlar",
+        "char_selection.accessories": "Aksesuarlar",
+
+        /// End chracter selection section
+
+
+        /// Start character window section
+        "character_window.character_name": "Karakter Adı",
+        // Charater stats
+        "character_window.character_stats": r#"Dayanıklılık
+
+Fiziksel yetenek
+
+İrade gücü
+"#,
+
+
+        /// Start character window section
+        
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "Çıkış yap",
+        "esc_menu.quit_game": "Oyundan çık",
+        /// End Escape Menu Section
+    }
+)

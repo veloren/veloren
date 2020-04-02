@@ -83,7 +83,6 @@ impl Server {
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
         let mut state = State::default();
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
-        // TODO: anything but this
         state
             .ecs_mut()
             .insert(AuthProvider::new(settings.auth_server_address.clone()));
@@ -209,6 +208,11 @@ impl Server {
             server_settings: settings.clone(),
         };
         debug!("created veloren server with: {:?}", &settings);
+        log::info!(
+            "Server version: {}[{}]",
+            *common::util::GIT_HASH,
+            *common::util::GIT_DATE
+        );
 
         Ok(this)
     }
@@ -473,7 +477,7 @@ impl Server {
                     .notify(ServerMsg::InitialSync {
                         // Send client their entity
                         entity_package: TrackedComps::fetch(&self.state.ecs())
-                            .create_entity_package(entity),
+                            .create_entity_package(entity, None, None, None),
                         server_info: self.server_info.clone(),
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: self.map.clone(),

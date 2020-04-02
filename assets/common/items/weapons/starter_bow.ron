@@ -1,8 +1,12 @@
 Item(
     name: "Uneven Bow",
-    description: "Someone carved his initials into it...",
+    description: "Someone carved his initials into it...
+    
+    Power: 15",
     kind: Tool(
-        kind: Bow,
-        power: 15,
+        (
+            kind: Bow(BasicBow),    
+            equip_time_millis: 400,
+        )
     ),
 )

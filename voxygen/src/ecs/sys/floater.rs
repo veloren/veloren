@@ -70,7 +70,7 @@ impl<'a> System<'a> for Sys {
                 // (maybe health changes could be sent to the client as a list
                 // of events)
                 if match health.last_change.1.cause {
-                    HealthSource::Attack { by } => {
+                    HealthSource::Attack { by } | HealthSource::Projectile { owner: Some(by) } => {
                         let by_me = my_uid.map_or(false, |&uid| by == uid);
                         // If the attack was by me also reset this timer
                         if by_me {
@@ -80,11 +80,10 @@ impl<'a> System<'a> for Sys {
                     },
                     HealthSource::Suicide => my_entity.0 == entity,
                     HealthSource::World => my_entity.0 == entity,
-                    HealthSource::Revive => false,
-                    HealthSource::Command => true,
                     HealthSource::LevelUp => my_entity.0 == entity,
+                    HealthSource::Command => true,
                     HealthSource::Item => true,
-                    HealthSource::Unknown => false,
+                    _ => false,
                 } {
                     hp_floater_list.floaters.push(HpFloater {
                         timer: 0.0,

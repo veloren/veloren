@@ -1,5 +1,5 @@
-use crate::{comp, sync::Uid};
-use comp::{item::Tool, InventoryUpdateEvent};
+use crate::{comp, sync::Uid, util::Dir};
+use comp::{item::ToolKind, InventoryUpdateEvent};
 use parking_lot::Mutex;
 use serde::Deserialize;
 use specs::Entity as EcsEntity;
@@ -32,7 +32,6 @@ pub enum SfxEvent {
     Run,
     Roll,
     Climb,
-    Swim,
     GliderOpen,
     Glide,
     GliderClose,
@@ -40,27 +39,30 @@ pub enum SfxEvent {
     Fall,
     ExperienceGained,
     LevelUp,
-    Wield(Tool),
-    Unwield(Tool),
+    Wield(ToolKind),
+    Unwield(ToolKind),
     Inventory(InventoryUpdateEvent),
 }
 
 pub enum LocalEvent {
+    /// Applies upward force to entity's `Vel`
     Jump(EcsEntity),
+    /// Applies the `force` to `entity`'s `Vel`
+    ApplyForce { entity: EcsEntity, force: Vec3<f32> },
+    /// Applies leaping force to `entity`'s `Vel` away from `wall_dir` direction
     WallLeap {
         entity: EcsEntity,
         wall_dir: Vec3<f32>,
     },
-    Boost {
-        entity: EcsEntity,
-        vel: Vec3<f32>,
-    },
+    /// Applies `vel` velocity to `entity`
+    Boost { entity: EcsEntity, vel: Vec3<f32> },
 }
 
 pub enum ServerEvent {
     Explosion {
         pos: Vec3<f32>,
-        radius: f32,
+        power: f32,
+        owner: Option<Uid>,
     },
     Damage {
         uid: Uid,
@@ -74,7 +76,7 @@ pub enum ServerEvent {
     Respawn(EcsEntity),
     Shoot {
         entity: EcsEntity,
-        dir: Vec3<f32>,
+        dir: Dir,
         body: comp::Body,
         light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,
@@ -99,6 +101,7 @@ pub enum ServerEvent {
     CreateNpc {
         pos: comp::Pos,
         stats: comp::Stats,
+        loadout: comp::Loadout,
         body: comp::Body,
         agent: comp::Agent,
         alignment: comp::Alignment,
@@ -130,7 +133,7 @@ impl<E> EventBus<E> {
         }
     }
 
-    pub fn emit(&self, event: E) { self.queue.lock().push_front(event); }
+    pub fn emit_now(&self, event: E) { self.queue.lock().push_back(event); }
 
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = E> {
         std::mem::replace(self.queue.lock().deref_mut(), VecDeque::new()).into_iter()
@@ -143,7 +146,9 @@ pub struct Emitter<'a, E> {
 }
 
 impl<'a, E> Emitter<'a, E> {
-    pub fn emit(&mut self, event: E) { self.events.push_front(event); }
+    pub fn emit(&mut self, event: E) { self.events.push_back(event); }
+
+    pub fn append(&mut self, other: &mut VecDeque<E>) { self.events.append(other) }
 }
 
 impl<'a, E> Drop for Emitter<'a, E> {

@@ -1,126 +1,135 @@
-use specs::{Component, FlaggedStorage, HashMapStorage};
-//use specs_idvs::IDVStorage;
-use std::time::Duration;
+use crate::{
+    comp::{Energy, Loadout, Ori, Pos, Vel},
+    event::{LocalEvent, ServerEvent},
+    states::*,
+    sys::character_behavior::JoinData,
+};
+use serde::{Deserialize, Serialize};
+use specs::{Component, FlaggedStorage, HashMapStorage, VecStorage};
+use std::collections::VecDeque;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub enum MovementState {
-    Stand,
-    Sit,
-    Run,
-    Jump,
-    Fall,
-    Glide,
-    Swim,
-    Climb,
+/// Data returned from character behavior fn's to Character Behavior System.
+pub struct StateUpdate {
+    pub character: CharacterState,
+    pub pos: Pos,
+    pub vel: Vel,
+    pub ori: Ori,
+    pub energy: Energy,
+    pub loadout: Loadout,
+    pub local_events: VecDeque<LocalEvent>,
+    pub server_events: VecDeque<ServerEvent>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub enum ActionState {
+impl From<&JoinData<'_>> for StateUpdate {
+    fn from(data: &JoinData) -> Self {
+        StateUpdate {
+            pos: *data.pos,
+            vel: *data.vel,
+            ori: *data.ori,
+            energy: *data.energy,
+            loadout: data.loadout.clone(),
+            character: data.character.clone(),
+            local_events: VecDeque::new(),
+            server_events: VecDeque::new(),
+        }
+    }
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum CharacterState {
     Idle,
-    Wield {
-        time_left: Duration,
-    },
-    Attack {
-        time_left: Duration,
-        applied: bool,
-    },
-    Block {
-        time_active: Duration,
-    },
-    Roll {
-        time_left: Duration,
-        // Whether character was wielding before they started roll
-        was_wielding: bool,
-    },
-    Charge {
-        time_left: Duration,
-    },
-    //Carry,
+    Climb,
+    Sit,
+    Glide,
+    /// A basic blocking state
+    BasicBlock,
+    /// Player is busy equipping or unequipping weapons
+    Equipping(equipping::Data),
+    /// Player is holding a weapon and can perform other actions
+    Wielding,
+    /// A dodge where player can roll
+    Roll(roll::Data),
+    /// A basic melee attack (e.g. sword)
+    BasicMelee(basic_melee::Data),
+    /// A basic ranged attack (e.g. bow)
+    BasicRanged(basic_ranged::Data),
+    /// A force will boost you into a direction for some duration
+    Boost(boost::Data),
+    /// Dash forward and then attack
+    DashMelee(dash_melee::Data),
+    /// A three-stage attack where each attack pushes player forward
+    /// and successive attacks increase in damage, while player holds button.
+    TripleStrike(triple_strike::Data),
 }
 
-impl ActionState {
+impl CharacterState {
     pub fn is_wield(&self) -> bool {
-        if let Self::Wield { .. } = self {
-            true
-        } else {
-            false
+        match self {
+            CharacterState::Wielding
+            | CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
+            | CharacterState::DashMelee(_)
+            | CharacterState::TripleStrike(_)
+            | CharacterState::BasicBlock => true,
+            _ => false,
         }
     }
 
-    pub fn is_action_finished(&self) -> bool {
+    pub fn can_swap(&self) -> bool {
         match self {
-            Self::Wield { time_left }
-            | Self::Attack { time_left, .. }
-            | Self::Roll { time_left, .. }
-            | Self::Charge { time_left } => *time_left == Duration::default(),
-            Self::Idle | Self::Block { .. } => false,
+            CharacterState::Wielding => true,
+            _ => false,
         }
     }
 
     pub fn is_attack(&self) -> bool {
-        if let Self::Attack { .. } = self {
-            true
-        } else {
-            false
+        match self {
+            CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
+            | CharacterState::DashMelee(_)
+            | CharacterState::TripleStrike(_) => true,
+            _ => false,
         }
     }
 
     pub fn is_block(&self) -> bool {
-        if let Self::Block { .. } = self {
-            true
-        } else {
-            false
+        match self {
+            CharacterState::BasicBlock => true,
+            _ => false,
         }
     }
 
-    pub fn is_roll(&self) -> bool {
-        if let Self::Roll { .. } = self {
-            true
-        } else {
-            false
+    pub fn is_dodge(&self) -> bool {
+        match self {
+            CharacterState::Roll(_) => true,
+            _ => false,
         }
     }
 
-    pub fn is_charge(&self) -> bool {
-        if let Self::Charge { .. } = self {
-            true
-        } else {
-            false
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct CharacterState {
-    pub movement: MovementState,
-    pub action: ActionState,
-}
-
-impl CharacterState {
-    pub fn is_same_movement(&self, other: &Self) -> bool {
-        // Check if enum item is the same without looking at the inner data
-        std::mem::discriminant(&self.movement) == std::mem::discriminant(&other.movement)
-    }
-
-    pub fn is_same_action(&self, other: &Self) -> bool {
-        // Check if enum item is the same without looking at the inner data
-        std::mem::discriminant(&self.action) == std::mem::discriminant(&other.action)
-    }
-
-    pub fn is_same_state(&self, other: &Self) -> bool {
-        self.is_same_movement(other) && self.is_same_action(other)
+    /// Compares for shallow equality (does not check internal struct equality)
+    pub fn same_variant(&self, other: &Self) -> bool {
+        // Check if state is the same without looking at the inner data
+        std::mem::discriminant(self) == std::mem::discriminant(other)
     }
 }
 
 impl Default for CharacterState {
-    fn default() -> Self {
-        Self {
-            movement: MovementState::Jump,
-            action: ActionState::Idle,
-        }
-    }
+    fn default() -> Self { Self::Idle }
 }
 
 impl Component for CharacterState {
     type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Attacking {
+    pub base_healthchange: i32,
+    pub range: f32,
+    pub max_angle: f32,
+    pub applied: bool,
+    pub hit_count: u32,
+    pub knockback: f32,
+}
+
+impl Component for Attacking {
+    type Storage = VecStorage<Self>;
 }
