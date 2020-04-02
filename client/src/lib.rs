@@ -71,6 +71,15 @@ pub struct Client {
     client_state: ClientState,
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
+    /// Just the "base" layer for LOD; currently includes colors and a 1-byte
+    /// approximation for height.  In the future we'll add more layers, like
+    /// shadows, rivers, and probably foliage, cities, roads, and other
+    /// structures.
+    pub lod_base: Arc<DynamicImage>,
+    /// A fully rendered map image for use with the map and minimap; note that
+    /// this can be constructed dynamically by combining the layers of world
+    /// map data (e.g. with shadow map data or river data), but at present
+    /// we opt not to do this.
     pub world_map: (Arc<DynamicImage>, Vec2<u32>),
     pub player_list: HashMap<u64, String>,
 
@@ -98,7 +107,7 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity, server_info, world_map) = match postbox.next_message()? {
+        let (state, entity, server_info, lod_base, world_map) = match postbox.next_message()? {
             ServerMsg::InitialSync {
                 entity_package,
                 server_info,
@@ -219,22 +228,26 @@ impl Client {
                             u32::from_le_bytes([r, g, b, a]);
                     },
                 );
-                let mut world_map_raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
-                LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
-                let world_map = Arc::new(
-                    image::DynamicImage::ImageRgba8({
-                        // Should not fail if the dimensions are correct.
-                        let world_map =
-                            image::ImageBuffer::from_raw(map_size.x, map_size.y, world_map_raw);
-                        world_map.ok_or(Error::Other("Server sent a bad world map image".into()))?
-                    })
-                    // Flip the image, since Voxygen uses an orientation where rotation from
-                    // positive x axis to positive y axis is counterclockwise around the z axis.
-                    .flipv(),
-                );
+                let make_raw = |rgba| -> Result<_, Error> {
+                    let mut raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
+                    LittleEndian::write_u32_into(rgba, &mut raw);
+                    Ok(Arc::new(
+                        image::DynamicImage::ImageRgba8({
+                            // Should not fail if the dimensions are correct.
+                            let map =
+                                image::ImageBuffer::from_raw(map_size.x, map_size.y, raw);
+                            map.ok_or(Error::Other("Server sent a bad world map image".into()))?
+                        })
+                        // Flip the image, since Voxygen uses an orientation where rotation from
+                        // positive x axis to positive y axis is counterclockwise around the z axis.
+                        .flipv(),
+                    ))
+                };
+                let lod_base = make_raw(&rgba)?;
+                let world_map = make_raw(&world_map)?;
                 log::debug!("Done preparing image...");
 
-                (state, entity, server_info, (world_map, map_size))
+                (state, entity, server_info, lod_base, (world_map, map_size))
             },
             ServerMsg::TooManyPlayers => return Err(Error::TooManyPlayers),
             _ => return Err(Error::ServerWentMad),
@@ -253,6 +266,7 @@ impl Client {
             thread_pool,
             server_info,
             world_map,
+            lod_base,
             player_list: HashMap::new(),
 
             postbox,

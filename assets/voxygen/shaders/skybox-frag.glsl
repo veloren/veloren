@@ -15,8 +15,8 @@ out vec4 tgt_color;
 void main() {
 	vec4 _clouds;
 
-	/* vec3 cam_dir = normalize(f_pos - cam_pos.xyz);
-	vec3 world_pos = cam_pos.xyz + cam_dir * 500000.0;
+	vec3 cam_dir = normalize(f_pos - cam_pos.xyz);
+	/* vec3 world_pos = cam_pos.xyz + cam_dir * 500000.0;
 	tgt_color = vec4(get_sky_color(normalize(f_pos), time_of_day.x, cam_pos.xyz, world_pos, 1.0, true, _clouds), 1.0); */
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 
@@ -24,7 +24,7 @@ void main() {
 	if (medium.x == 1u) {
 		dist = UNDERWATER_MIST_DIST;
 	}
-	vec3 wpos = cam_pos.xyz + normalize(f_pos) * dist;
+	vec3 wpos = cam_pos.xyz + /*normalize(f_pos)*/cam_dir * dist;
 
 	tgt_color = vec4(get_sky_color(normalize(f_pos), time_of_day.x, cam_pos.xyz, wpos, 1.0, true, _clouds), 1.0);
 }

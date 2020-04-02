@@ -22,7 +22,7 @@ impl Lod {
             model: None,
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
             map: renderer
-                .create_texture(&client.world_map.0, Some(FilterMethod::Trilinear), None)
+                .create_texture(&client.lod_base, Some(FilterMethod::Trilinear), None)
                 .expect("Failed to generate map texture"),
             tgt_detail: settings.graphics.lod_detail.max(100).min(2500),
         }
