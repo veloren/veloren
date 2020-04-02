@@ -116,7 +116,16 @@ pub fn load_glob<A: Asset + 'static>(specifier: &str) -> Result<Arc<Vec<Arc<A>>>
             let assets = Arc::new(
                 glob_matches
                     .into_iter()
-                    .filter_map(|name| load(&specifier.replace("*", &name)).ok())
+                    .filter_map(|name| {
+                        load(&specifier.replace("*", &name))
+                            .map_err(|e| {
+                                error!(
+                                    "Failed to load \"{}\" as part of glob \"{}\" with error: {:?}",
+                                    name, specifier, e
+                                )
+                            })
+                            .ok()
+                    })
                     .collect::<Vec<_>>(),
             );
             let clone = Arc::clone(&assets);
