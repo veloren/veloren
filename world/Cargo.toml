@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
-bitvec = "0.15.2"
+bitvec = "0.17.4"
 image = "0.22.3"
 itertools = "0.8.2"
 vek = "0.10.0"
