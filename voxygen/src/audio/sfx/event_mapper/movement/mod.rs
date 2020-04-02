@@ -98,17 +98,14 @@ impl MovementEventMapper {
                         Some(Self::get_volume_for_body_type(body)),
                     ));
 
-                    // Set the new previous entity state
-                    state.event = mapped_event;
                     state.time = Instant::now();
-                    state.weapon_drawn = Self::weapon_drawn(character);
-                    state.on_ground = physics.on_ground;
-                } else {
-                    // If we don't dispatch the event, store this data as we can use it to determine
-                    // the next event
-                    state.event = mapped_event;
-                    state.on_ground = physics.on_ground;
                 }
+
+                // update state to determine the next event. We only record the time (above) if
+                // it was dispatched
+                state.event = mapped_event;
+                state.weapon_drawn = Self::weapon_drawn(character);
+                state.on_ground = physics.on_ground;
             }
         }
 
