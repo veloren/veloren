@@ -1,5 +1,4 @@
 use super::WORLD_SIZE;
-use approx::ApproxEq;
 use bitvec::prelude::{bitbox, bitvec, BitBox};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use noise::{MultiFractal, NoiseFn, Perlin, Point2, Point3, Point4, Seedable};
@@ -382,299 +381,76 @@ pub fn get_oceans<F: Float>(oldh: impl Fn(usize) -> F + Sync) -> BitBox {
     is_ocean
 }
 
-/// Finds all shadowed chunks.
-///
-/// ray should be a nonzero vector (if it's not, we return an error).
-/// dx and dy should both be positive.
-pub fn get_shadows<F: std::iter::Sum + ApproxEq + Float + Send + Sync + std::fmt::Debug>(
-    ray: Vec3<F>,
+/// Finds the horizon map for sunlight for the given chunks.
+pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
     lgain: F,
-    dx: F,
-    dy: F,
-    bounds: Aabr<F>,
+    bounds: Aabr<i32>,
     minh: F,
     maxh: F,
     h: impl Fn(usize) -> F + Sync,
-) -> Result<Box<[F]>, ()> {
-    // First, make sure the ray and delta aren't zero.
-    let ray = -ray;
-    let ray_squared = ray.magnitude_squared();
-    if ray_squared == F::zero()
-        || ray_squared == F::neg_zero()
-        || !(dx > F::zero())
-        || !(dy > F::zero())
-    {
-        return Err(());
-    }
-    let hsize = Vec2::new(dx, dy);
-    /* if hstep.is_approx_zero() {
-        return Err(());
-    } */
-
-    // Find map sizes.
-    println!("Here?");
-    let wmap_size = Vec2::<F>::from(bounds.size()).map2(hsize, |e, f| e / f);
-    println!("Here?");
-    let map_size = if let Vec2 {
-        x: Some(x),
-        y: Some(y),
-    } = wmap_size.map(|e| F::to_usize(&e))
-    {
-        Vec2::new(x, y)
-    } else {
-        return Err(());
-    };
+    to_angle: impl Fn(F) -> A + Sync,
+    to_height: impl Fn(F) -> H + Sync,
+) -> Result<[(Vec<A>, Vec<H>); 2], ()> {
+    let map_size = Vec2::<i32>::from(bounds.size()).map(|e| e as usize);
     let map_len = map_size.product();
-    /* let distance_map = |wposf: Vec3<F>| {
-        // For all nodes in the height map, the minimum distance to a vertex is either
-        // the distance to the top of this chunk, or the distance to one of the neighbors.
-        let wpos = Vec2::new(i32::from(pos), i32::from(pos));
-        let posi = vec2_as_uniform_idx(wpos);
-        let neighbor_min = neighbors(posi)
-            .map(|posj| Vec3::new(vec2_as_uniform_idx(wpos), h(posj))
-            .min_by_key(|(pos, _)| pos.distance_squared(wpos))
-            .unwrap_or(F::infinity());
-        (wposf.z - ).min(neighobr_min)
-    }
-
-            .min_by
-        wposf.z.min(
-    }; */
-
-    // Make sure that the ray has a horizontal component at all; if not, the ray is
-    // vertical, so it can't cast a shadow, and we set the brightness for each
-    // chunk to 1.0.
-    if Vec2::<F>::from(ray).is_approx_zero() {
-        return Ok(vec![F::one(); map_len].into_boxed_slice());
-    }
-
-    // Conversely if the ray has no vertical component, each chunk must be entirely
-    // in shadow (at least for our purposes).
-    if ray.z == F::zero() || ray.z == F::neg_zero() {
-        return Ok(vec![F::zero(); map_len].into_boxed_slice());
-    }
-
-    // Otherwise, we can use step as the minimum length we need to raymarch in order
-    // to guarantee an accurate bounds check for the given dx and dy (i.e., all
-    // boundaries at spacings smaller than a "pixel" of size (dx,dy) should be
-    // taken into account).
-    let step_dot = if ray.x == F::zero() || ray.x == F::neg_zero() {
-        // Ray has no x component, so we must use y
-        dy * ray.y
-    } else if ray.y == F::zero() || ray.y == F::neg_zero() {
-        // Ray has no y component, so we must use x
-        dx * ray.x
-    } else {
-        // Ray has both an x and y component, so we must use the minimum.
-        if dy < dx { dy * ray.y } else { dx * ray.x }
-    }
-    .abs();
-    let step = ray * (step_dot / ray_squared);
-    let hstep = Vec2::from(step);
-    let zstep = step.z;
 
     // Now, do the raymarching.
-    println!("Here?");
-    let max_steps = if let Some(max_steps) = ((maxh - minh) / zstep)
-        .abs()
-        .min(
-            wmap_size.reduce_partial_max(), /* / hstep.reduce_partial_min() */
-        )
-        .to_usize()
-    {
-        max_steps
+    let chunk_x = if let Vec2 { x: Some(x), .. } = TerrainChunkSize::RECT_SIZE.map(F::from) {
+        x
     } else {
         return Err(());
     };
-    println!("Here?");
-    let step_mag = step.magnitude();
-    let two = F::one() + F::one();
-    let three = two + F::one();
-    let w = F::from(0.5).unwrap();
-    let wstep_mag = lgain / (w * step_mag);
-    let wmax_steps = if let Some(wmax_steps) = F::from(max_steps) {
-        wmax_steps
-    } else {
-        return Err(());
-    };
-    println!("Here?");
-    let chunk_size = if let Vec2 {
-        x: Some(x),
-        y: Some(y),
-    } = TerrainChunkSize::RECT_SIZE.map(F::from)
-    {
-        Vec2::new(x, y)
-    } else {
-        return Err(());
-    };
-    println!(
-        "Here? map_len={:?}, map_size={:?}, hstep={:?}, zstep={:?} max_steps={:?}",
-        map_len, map_size, hstep, zstep, max_steps
-    );
-    Ok((0..map_len)
-        .into_par_iter()
-        .map(|posi| {
-            // Simple raymarch to determine whether we're in shadow.
-            // From https://www.iquilezles.org/www/articles/rmshadows/rmshadows.htm
-            // NOTE: How do we know these will succeed?
-            let wposf_orig = bounds.min
-                + Vec2::new(
-                    F::from(posi % map_size.x).unwrap(),
-                    F::from(posi / map_size.x).unwrap(),
-                ) * hsize;
-            let wpos_orig = wposf_orig.map2(chunk_size, |e, f| e / f);
-            // NOTE: How do we know these will succeed?
-            let wposl_orig = wpos_orig.map(|e| e.floor().to_i32().unwrap());
-            // NOTE: How do we know these will succeed?
-            // let wposr_orig = wpos_orig.map(|e| e.ceil().to_i32().unwrap());
-
-            let h_orig = if wposl_orig.reduce_partial_min() < 0 ||
-                // Casts are fine since we're a positive i32
-                /*wposr_orig*/wposl_orig.x as usize >= WORLD_SIZE.x ||
-                /*wposr_orig*/wposl_orig.y as usize >= WORLD_SIZE.y
-            {
-                // Out of bounds, assign minimum
-                minh
-            } else {
-                let hl_orig = h(vec2_as_uniform_idx(wposl_orig));
-                // let hr_orig = h(vec2_as_uniform_idx(wposr_orig));
-                // let wpos_frac = wposl_orig.map(|e| F::from(e).unwrap()).distance(wpos_orig);
-                hl_orig // hl_orig * wpos_frac + hr_orig * (F::one() - wpos_frac)
-            };
-
-            // let h_orig = h(vec2_as_uniform_idx(posi_orig.to_usize().unwrap()));
-            if h_orig < minh {
-                // Below the minimum height, always in shadow.
-                return F::zero();
-            }
-            let wmax_steps = wmax_steps.min(((maxh - h_orig) / zstep).abs());
-            // NOTE: How do we know these will succeed?
-            /* let wposf = bounds.min
-            + Vec2::new(
-                F::from(posi % map_size.x).unwrap(),
-                F::from(posi / map_size.x).unwrap(),
-            ) * hsize; */
-            let mut s = F::one();
-            // NOTE: How do we know these will succeed?
-            let mut wstep = F::zero();
-            let mut h_i = h_orig;
-            let mut wposf_i = wposf_orig;
-            while wstep < wmax_steps && s >= F::zero() {
-                wstep = wstep + F::one();
-                h_i = h_i + zstep;
-                wposf_i = wposf_i + hstep;
-                // Find height at this point.
-                // let h_i = h_orig + zstep * wstep;
-                // Find locations before and after h_i and use them to interpolate a height.
-                // let wposf_i = wposf + hstep * wstep;
-                let wpos_i = wposf_i.map2(chunk_size, |e, f| e / f);
-                // println!("h_orig={:?} h_i={:?}; wposf_orig={:?} wposf={:?}", h_orig, h_i,
-                // wposf, wposf_i);
-                // NOTE: How do we know these will succeed?
-                let wposl_i = wpos_i.map(|e| e.floor().to_i32().unwrap());
-                // NOTE: How do we know these will succeed?
-                // let wposr_i = wpos_i.map(|e| e.ceil().to_i32().unwrap());
-                if wposl_i.reduce_partial_min() < 0 ||
-                    // Casts are fine since we're a positive i32
-                    /*wposr_i*/wposl_i.x as usize >= WORLD_SIZE.x ||
-                    /*wposr_i*/wposl_i.y as usize >= WORLD_SIZE.y
+    // let epsilon = F::epsilon() * if let x = F::from(map_size.x) { x } else {
+    // return Err(()) };
+    let march = |dx: isize, maxdx: fn(isize) -> isize| {
+        let mut angles = Vec::with_capacity(map_len);
+        let mut heights = Vec::with_capacity(map_len);
+        (0..map_len)
+            .into_par_iter()
+            .map(|posi| {
+                let wposi =
+                    bounds.min + Vec2::new((posi % map_size.x) as i32, (posi / map_size.x) as i32);
+                if wposi.reduce_partial_min() < 0
+                    || wposi.y as usize >= WORLD_SIZE.x
+                    || wposi.y as usize >= WORLD_SIZE.y
                 {
-                    // Out of bounds, we're done!
-                    break;
+                    return (to_angle(F::zero()), to_height(F::zero()));
                 }
-                let hl_i = h(vec2_as_uniform_idx(wposl_i));
-                // let hr_i = h(vec2_as_uniform_idx(wposr_i));
-                // let wpos_frac = wposl_i.map(|e| F::from(e).unwrap()).distance(wpos_i);
-                let h_j = hl_i; //hl_i * wpos_frac + hr_i * (F::one() - wpos_frac);
-                //
-                /* let posj = wpos_i.map(|e| e.into_i32());
-                let h_j = h(posj); */
-                // If we landed in shadow, we're done.
-                // println!("h_orig={:?} h_i={:?} h_j={:?}; wposf_orig={:?} wposf={:?}
-                // wpos_frac={:?}", h_orig, h_i, h_j, wposf, wposf_i, wpos_frac);
-                // NOTE: Approximation to real distance metric, which is hard to compute for an
-                // arbitrary point in a heightmap.
-                // s = s.min((h_i - h_j) * lgain / (wstep * w * step_mag));
-                s = s.min((h_i - h_j) * wstep_mag / wstep);
-                /* if s < F::zero()
-                /* h_i < h_j */
-                {
-                    // s = F::zero();
-                    // println!("A shadow!");
-                    break;
-                } */
-            }
-            /*while h_i + zstep * posj < maxh {
-                wposf += hstep;
-                let posj : Vec2<i32> = (wposf / chunk_size).into();
-                // Simple interpolation.
-                let h_j = h(posj);
-                let h_j = h_i + (h_j - h_i) * (hstep / ).magnitude();
-                h_i += zstep;
-                // If we landed in shadow, we're done.
-                if h_i > h_j {
-                    return 0.0;
-                }
-            } */
-            s = s.max(F::zero());
-            // Smoothstep
-            s * s * (three - two * s)
-            // // Above the maximum height, definitely not in shadow.
-            // return F::one();
-            /* let nh = h(posi);
-            if is_ocean(posi) {
-                -2
-            } else {
-                let mut best = -1;
-                let mut besth = nh;
-                for nposi in neighbors(posi) {
-                    let nbh = h(nposi);
-                    if nbh < besth {
-                        besth = nbh;
-                        best = nposi as isize;
+                let posi = vec2_as_uniform_idx(wposi);
+                // March in the given direction.
+                let maxdx = maxdx(wposi.x as isize);
+                let mut slope = F::zero();
+                let mut max_height = F::zero();
+                let h0 = h(posi);
+                if h0 >= minh {
+                    let maxdz = maxh - h0;
+                    let posi = posi as isize;
+                    for deltax in 1..maxdx {
+                        let posj = (posi + deltax * dx) as usize;
+                        let deltax = chunk_x * F::from(deltax).unwrap();
+                        let h_j_est = slope * deltax;
+                        if h_j_est > maxdz {
+                            break;
+                        }
+                        let h_j_act = h(posj) - h0;
+                        if
+                        /* h_j_est - h_j_act <= epsilon */
+                        h_j_est <= h_j_act {
+                            slope = h_j_act / deltax;
+                            max_height = h_j_act;
+                        }
                     }
                 }
-                best
-            } */
-        })
-        .collect::<Vec<_>>()
-        .into_boxed_slice())
-
-    /* // Raymarching technique to quickly identify approxmate distances
-    // Use a shadow map to raymarch all the height entries.
-    // We can mark tiles as ocean candidates by scanning row by row, since the top
-    // edge is ocean, the sides are connected to it, and any subsequent ocean
-    // tiles must be connected to it.
-    let mut is_ocean = bitbox![0; WORLD_SIZE.x * WORLD_SIZE.y];
-    let mut stack = Vec::new();
-    let mut do_push = |pos| {
-        let posi = vec2_as_uniform_idx(pos);
-        if oldh(posi) <= F::zero() {
-            stack.push(posi);
-        }
+                let a = slope * lgain;
+                let h = h0 + max_height;
+                (to_angle(a), to_height(h))
+            })
+            .unzip_into_vecs(&mut angles, &mut heights);
+        (angles, heights)
     };
-    for x in 0..WORLD_SIZE.x as i32 {
-        do_push(Vec2::new(x, 0));
-        do_push(Vec2::new(x, WORLD_SIZE.y as i32 - 1));
-    }
-    for y in 1..WORLD_SIZE.y as i32 - 1 {
-        do_push(Vec2::new(0, y));
-        do_push(Vec2::new(WORLD_SIZE.x as i32 - 1, y));
-    }
-    while let Some(chunk_idx) = stack.pop() {
-        // println!("Ocean chunk {:?}: {:?}", uniform_idx_as_vec2(chunk_idx),
-        // oldh(chunk_idx));
-        if *is_ocean.at(chunk_idx) {
-            continue;
-        }
-        *is_ocean.at(chunk_idx) = true;
-        stack.extend(neighbors(chunk_idx).filter(|&neighbor_idx| {
-            // println!("Ocean neighbor: {:?}: {:?}", uniform_idx_as_vec2(neighbor_idx),
-            // oldh(neighbor_idx));
-            oldh(neighbor_idx) <= F::zero()
-        }));
-    }
-    is_ocean */
+    let west = march(-1, |x| x);
+    let east = march(1, |x| (WORLD_SIZE.x - x as usize) as isize);
+    Ok([west, east])
 }
 
 /// A 2-dimensional vector, for internal use.

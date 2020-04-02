@@ -14,12 +14,12 @@ pub use self::{
         get_rivers, mrec_downhill, Alt, RiverData, RiverKind,
     },
     location::Location,
-    map::{MapConfig, MapDebug},
+    map::{MapConfig, MapDebug, MapSample},
     settlement::Settlement,
     util::{
-        cdf_irwin_hall, downhill, get_oceans, get_shadows, local_cells, map_edge_factor, neighbors,
-        uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
-        NEIGHBOR_DELTA,
+        cdf_irwin_hall, downhill, get_horizon_map, get_oceans, local_cells, map_edge_factor,
+        neighbors, uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf,
+        ScaleBias, NEIGHBOR_DELTA,
     },
 };
 
@@ -33,6 +33,7 @@ use crate::{
 };
 use common::{
     assets,
+    msg::server::WorldMapMsg,
     terrain::{BiomeKind, TerrainChunkSize},
     vol::RectVolSize,
 };
@@ -41,7 +42,7 @@ use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
     Seedable, SuperSimplex, Worley,
 };
-use num::{Float, Signed};
+use num::{traits::FloatConst, Float, Signed};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
@@ -1196,21 +1197,6 @@ impl WorldSim {
             None => false,
         };
 
-        /* // Build a shadow map.
-        let shadows = get_shadows(
-            Vec3::new(-0.8, -1.0, 0.3),
-            TerrainChunkSize::RECT_SIZE.x,
-            TerrainChunkSize::RECT_SIZE.x as Alt,
-            TerrainChunkSize::RECT_SIZE.y as Alt,
-            Aabr {
-                min: Vec2::new(0.0, 0.0),
-                max: WORLD_SIZE.map(|e| e as Alt) * TerrainChunkSize::RECT_SIZE.map(|e| e as Alt),
-            },
-            0.0,
-            maxh,
-            |posi| alt[posi].max(water_alt[posi]),
-        ); */
-
         // Check whether any tiles around this tile are not water (since Lerp will
         // ensure that they are included).
         let pure_water = |posi: usize| {
@@ -1322,22 +1308,20 @@ impl WorldSim {
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
-    pub fn get_map(&self) -> Vec<u32> {
+    pub fn get_map(&self) -> WorldMapMsg {
         let mut map_config = MapConfig::default();
         map_config.lgain = 1.0;
-        // Build a shadow map.
-        let shadows = get_shadows(
-            Vec3::new(
-                map_config.light_direction.x,
-                map_config.light_direction.z,
-                map_config.light_direction.y,
-            ),
+        // Build a horizon map.
+        let scale_angle =
+            |angle: Alt| (angle.atan() * <Alt as FloatConst>::FRAC_2_PI() * 255.0).floor() as u8;
+        let scale_height = |height: Alt| {
+            ((height - CONFIG.sea_level as Alt) * 255.0 / self.max_height as Alt).floor() as u8
+        };
+        let horizons = get_horizon_map(
             map_config.lgain,
-            TerrainChunkSize::RECT_SIZE.x as Alt,
-            TerrainChunkSize::RECT_SIZE.y as Alt,
             Aabr {
-                min: Vec2::new(0.0, 0.0),
-                max: WORLD_SIZE.map(|e| e as Alt) * TerrainChunkSize::RECT_SIZE.map(|e| e as Alt),
+                min: Vec2::zero(),
+                max: WORLD_SIZE.map(|e| e as i32),
             },
             CONFIG.sea_level as Alt,
             (CONFIG.sea_level + self.max_height) as Alt,
@@ -1345,6 +1329,8 @@ impl WorldSim {
                 let chunk = &self.chunks[posi];
                 chunk.alt.max(chunk.water_alt) as Alt
             },
+            |a| scale_angle(a),
+            |h| scale_height(h),
         )
         .unwrap();
 
@@ -1363,18 +1349,34 @@ impl WorldSim {
 
         let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
         // TODO: Parallelize again.
-        MapConfig {
+        let config = MapConfig {
             gain: self.max_height,
-            // lgain: 1.0,
-            shadows: Some(&shadows),
             samples: Some(&samples_data),
-            // is_sampled: true,
+            is_shaded: false,
             ..map_config
+        };
+
+        config.generate(
+            |pos| config.sample_pos(self, pos),
+            |pos| config.sample_wpos(self, pos),
+            |pos, (r, g, b, _a)| {
+                // We currently ignore alpha and replace it with the height at pos, scaled to
+                // u8.
+                let alt = config.sample_wpos(
+                    self,
+                    pos.map(|e| e as i32) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                );
+                let a = (alt.min(1.0).max(0.0) * 255.0) as u8;
+
+                v[pos.y * WORLD_SIZE.x + pos.x] = u32::from_le_bytes([r, g, b, a]);
+            },
+        );
+        WorldMapMsg {
+            dimensions: WORLD_SIZE.map(|e| e as u32),
+            max_height: self.max_height,
+            rgba: v,
+            horizons,
         }
-        .generate(&self, |pos, (r, g, b, a)| {
-            v[pos.y * WORLD_SIZE.x + pos.x] = u32::from_le_bytes([r, g, b, a]);
-        });
-        v
     }
 
     /// Prepare the world for simulation

@@ -122,7 +122,7 @@ impl<'a> ColumnGen<'a> {
     }
 }
 
-fn river_spline_coeffs(
+pub fn river_spline_coeffs(
     // _sim: &WorldSim,
     chunk_pos: Vec2<f64>,
     spline_derivative: Vec2<f32>,
@@ -145,7 +145,7 @@ fn river_spline_coeffs(
 /// curve"... hopefully this works out okay and gives us what we want (a
 /// river that extends outwards tangent to a quadratic curve, with width
 /// configured by distance along the line).
-fn quadratic_nearest_point(
+pub fn quadratic_nearest_point(
     spline: &Vec3<Vec2<f64>>,
     point: Vec2<f64>,
 ) -> Option<(f64, Vec2<f64>, f64)> {

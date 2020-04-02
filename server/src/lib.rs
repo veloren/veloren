@@ -28,7 +28,7 @@ use crate::{
 use common::{
     comp,
     event::{EventBus, ServerEvent},
-    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
+    msg::{server::WorldMapMsg, ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
@@ -66,7 +66,7 @@ pub struct Tick(u64);
 pub struct Server {
     state: State,
     world: Arc<World>,
-    map: Vec<u32>,
+    map: WorldMapMsg,
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
 
@@ -118,7 +118,12 @@ impl Server {
         #[cfg(not(feature = "worldgen"))]
         let world = World::generate(settings.world_seed);
         #[cfg(not(feature = "worldgen"))]
-        let map = vec![0];
+        let map = WorldMapMsg {
+            dimensions: Vec2::new(1, 1),
+            max_height: 1.0,
+            rgba: vec![0],
+            horizons: [(vec![0], vec![0]), (vec![0], vec![0])],
+        };
 
         #[cfg(feature = "worldgen")]
         let spawn_point = {
@@ -471,7 +476,7 @@ impl Server {
                             .create_entity_package(entity),
                         server_info: self.server_info.clone(),
                         time_of_day: *self.state.ecs().read_resource(),
-                        world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
+                        world_map: self.map.clone(),
                     });
                 log::debug!("Done initial sync with client.");
 
