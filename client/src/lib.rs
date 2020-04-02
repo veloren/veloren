@@ -5,6 +5,7 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
+pub use authc::AuthClientError;
 pub use specs::{
     join::Join,
     saveload::{Marker, MarkerAllocator},
@@ -13,10 +14,14 @@ pub use specs::{
 
 use byteorder::{ByteOrder, LittleEndian};
 use common::{
-    comp::{self, ControlEvent, Controller, ControllerInputs, InventoryManip},
+    comp::{
+        self, ControlAction, ControlEvent, Controller, ControllerInputs, InventoryManip,
+        InventoryUpdateEvent,
+    },
+    event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
-        RequestStateError, ServerError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
+        RegisterError, RequestStateError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     net::PostBox,
     state::State,
@@ -27,7 +32,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use image::DynamicImage;
-use log::warn;
+use log::{error, warn};
 use std::{
     net::SocketAddr,
     sync::Arc,
@@ -39,11 +44,11 @@ use vek::*;
 // The duration of network inactivity until the player is kicked
 // @TODO: in the future, this should be configurable on the server
 // and be provided to the client
-const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
+const SERVER_TIMEOUT: f64 = 20.0;
 
 // After this duration has elapsed, the user will begin getting kick warnings in
 // their chat window
-const SERVER_TIMEOUT_GRACE_PERIOD: Duration = Duration::from_secs(14);
+const SERVER_TIMEOUT_GRACE_PERIOD: f64 = 14.0;
 
 pub enum Event {
     Chat {
@@ -63,8 +68,8 @@ pub struct Client {
 
     postbox: PostBox<ClientMsg, ServerMsg>,
 
-    last_server_ping: Instant,
-    last_server_pong: Instant,
+    last_server_ping: f64,
+    last_server_pong: f64,
     last_ping_delta: f64,
 
     tick: u64,
@@ -85,13 +90,13 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity, server_info, world_map) = match postbox.next_message() {
-            Some(ServerMsg::InitialSync {
+        let (state, entity, server_info, world_map) = match postbox.next_message()? {
+            ServerMsg::InitialSync {
                 entity_package,
                 server_info,
                 time_of_day,
                 world_map: (map_size, world_map),
-            }) => {
+            } => {
                 // TODO: Display that versions don't match in Voxygen
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
                     log::warn!(
@@ -104,8 +109,15 @@ impl Client {
                     );
                 }
 
+                log::debug!("Auth Server: {:?}", server_info.auth_provider);
+
                 // Initialize `State`
                 let mut state = State::default();
+                // Client-only components
+                state
+                    .ecs_mut()
+                    .register::<comp::Last<comp::CharacterState>>();
+
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
 
@@ -128,9 +140,7 @@ impl Client {
 
                 (state, entity, server_info, (world_map, map_size))
             },
-            Some(ServerMsg::Error(ServerError::TooManyPlayers)) => {
-                return Err(Error::TooManyPlayers);
-            },
+            ServerMsg::TooManyPlayers => return Err(Error::TooManyPlayers),
             _ => return Err(Error::ServerWentMad),
         };
 
@@ -151,8 +161,8 @@ impl Client {
 
             postbox,
 
-            last_server_ping: Instant::now(),
-            last_server_pong: Instant::now(),
+            last_server_ping: 0.0,
+            last_server_pong: 0.0,
             last_ping_delta: 0.0,
 
             tick: 0,
@@ -171,16 +181,40 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Registered`.
-    pub fn register(&mut self, player: comp::Player, password: String) -> Result<(), Error> {
-        self.postbox
-            .send_message(ClientMsg::Register { player, password });
+    pub fn register(
+        &mut self,
+        username: String,
+        password: String,
+        mut auth_trusted: impl FnMut(&str) -> bool,
+    ) -> Result<(), Error> {
+        // Authentication
+        let token_or_username = self.server_info.auth_provider.as_ref().map(|addr|
+                // Query whether this is a trusted auth server
+                if auth_trusted(&addr) {
+                    Ok(authc::AuthClient::new(addr)
+                        .sign_in(&username, &password)?
+                        .serialize())
+                } else {
+                    Err(Error::AuthServerNotTrusted)
+                }
+        ).unwrap_or(Ok(username))?;
+
+        self.postbox.send_message(ClientMsg::Register {
+            view_distance: self.view_distance,
+            token_or_username,
+        });
         self.client_state = ClientState::Pending;
+
         loop {
-            match self.postbox.next_message() {
-                Some(ServerMsg::StateAnswer(Err((RequestStateError::Denied, _)))) => {
-                    break Err(Error::InvalidAuth);
+            match self.postbox.next_message()? {
+                ServerMsg::StateAnswer(Err((RequestStateError::RegisterDenied(err), state))) => {
+                    self.client_state = state;
+                    break Err(match err {
+                        RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
+                        RegisterError::AuthError(err) => Error::AuthErr(err),
+                    });
                 },
-                Some(ServerMsg::StateAnswer(Ok(ClientState::Registered))) => break Ok(()),
+                ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
                 _ => {},
             }
         }
@@ -194,10 +228,7 @@ impl Client {
     }
 
     /// Send disconnect message to the server
-    pub fn request_logout(&mut self) {
-        self.postbox.send_message(ClientMsg::Disconnect);
-        self.client_state = ClientState::Pending;
-    }
+    pub fn request_logout(&mut self) { self.postbox.send_message(ClientMsg::Disconnect); }
 
     /// Request a state transition to `ClientState::Registered` from an ingame
     /// state.
@@ -261,6 +292,78 @@ impl Client {
     pub fn unmount(&mut self) {
         self.postbox
             .send_message(ClientMsg::ControlEvent(ControlEvent::Unmount));
+    }
+
+    pub fn respawn(&mut self) {
+        if self
+            .state
+            .ecs()
+            .read_storage::<comp::Stats>()
+            .get(self.entity)
+            .map_or(false, |s| s.is_dead)
+        {
+            self.postbox
+                .send_message(ClientMsg::ControlEvent(ControlEvent::Respawn));
+        }
+    }
+
+    /// Checks whether a player can swap their weapon+ability `Loadout` settings
+    /// and sends the `ControlAction` event that signals to do the swap.
+    pub fn swap_loadout(&mut self) {
+        let can_swap = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| cs.can_swap());
+        match can_swap {
+            Some(true) => self.control_action(ControlAction::SwapLoadout),
+            Some(false) => {},
+            None => warn!("Can't swap, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn toggle_wield(&mut self) {
+        let is_wielding = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| cs.is_wield());
+
+        match is_wielding {
+            Some(true) => self.control_action(ControlAction::Unwield),
+            Some(false) => self.control_action(ControlAction::Wield),
+            None => warn!("Can't toggle wield, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn toggle_sit(&mut self) {
+        let is_sitting = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| matches!(cs, comp::CharacterState::Sit));
+
+        match is_sitting {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => self.control_action(ControlAction::Sit),
+            None => warn!("Can't toggle sit, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    fn control_action(&mut self, control_action: ControlAction) {
+        if let Some(controller) = self
+            .state
+            .ecs()
+            .write_storage::<Controller>()
+            .get_mut(self.entity)
+        {
+            controller.actions.push(control_action);
+        }
+        self.postbox
+            .send_message(ClientMsg::ControlAction(control_action));
     }
 
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
@@ -346,10 +449,26 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if let ClientState::Character = self.client_state {
-            self.state.write_component(self.entity, Controller {
-                inputs: inputs.clone(),
-                events: Vec::new(),
-            });
+            if let Err(err) = self
+                .state
+                .ecs()
+                .write_storage::<Controller>()
+                .entry(self.entity)
+                .map(|entry| {
+                    entry
+                        .or_insert_with(|| Controller {
+                            inputs: inputs.clone(),
+                            events: Vec::new(),
+                            actions: Vec::new(),
+                        })
+                        .inputs = inputs.clone();
+                })
+            {
+                error!(
+                    "Couldn't access controller component on client entity: {:?}",
+                    err
+                );
+            }
             self.postbox
                 .send_message(ClientMsg::ControllerInputs(inputs));
         }
@@ -368,22 +487,23 @@ impl Client {
                 {
                     if last_character_states
                         .get(entity)
-                        .map(|&l| !client_character_state.is_same_state(&l.0))
+                        .map(|l| !client_character_state.same_variant(&l.0))
                         .unwrap_or(true)
                     {
                         let _ = last_character_states
-                            .insert(entity, comp::Last(*client_character_state));
+                            .insert(entity, comp::Last(client_character_state.clone()));
                     }
                 }
             }
         }
+
         // Handle new messages from the server.
         frontend_events.append(&mut self.handle_new_messages()?);
 
         // 3) Update client local data
 
         // 4) Tick the client's LocalState
-        self.state.tick(dt, add_foreign_systems);
+        self.state.tick(dt, add_foreign_systems, true);
 
         // 5) Terrain
         let pos = self
@@ -479,9 +599,9 @@ impl Client {
         }
 
         // Send a ping to the server once every second
-        if Instant::now().duration_since(self.last_server_ping) > Duration::from_secs(1) {
+        if self.state.get_time() - self.last_server_ping > 1. {
             self.postbox.send_message(ClientMsg::Ping);
-            self.last_server_ping = Instant::now();
+            self.last_server_ping = self.state.get_time();
         }
 
         // 6) Update the server about the player's physics attributes.
@@ -526,16 +646,14 @@ impl Client {
         // Check that we have an valid connection.
         // Use the last ping time as a 1s rate limiter, we only notify the user once per
         // second
-        if Instant::now().duration_since(self.last_server_ping) > Duration::from_secs(1) {
-            let duration_since_last_pong = Instant::now().duration_since(self.last_server_pong);
+        if self.state.get_time() - self.last_server_ping > 1. {
+            let duration_since_last_pong = self.state.get_time() - self.last_server_pong;
 
             // Dispatch a notification to the HUD warning they will be kicked in {n} seconds
-            if duration_since_last_pong.as_secs() >= SERVER_TIMEOUT_GRACE_PERIOD.as_secs() {
-                if let Some(seconds_until_kick) =
-                    SERVER_TIMEOUT.checked_sub(duration_since_last_pong)
-                {
+            if duration_since_last_pong >= SERVER_TIMEOUT_GRACE_PERIOD {
+                if self.state.get_time() - duration_since_last_pong > 0. {
                     frontend_events.push(Event::DisconnectionNotification(
-                        seconds_until_kick.as_secs(),
+                        (self.state.get_time() - duration_since_last_pong).round() as u64,
                     ));
                 }
             }
@@ -546,10 +664,8 @@ impl Client {
         if new_msgs.len() > 0 {
             for msg in new_msgs {
                 match msg {
-                    ServerMsg::Error(e) => match e {
-                        ServerError::TooManyPlayers => return Err(Error::ServerWentMad),
-                        ServerError::InvalidAuth => return Err(Error::InvalidAuth),
-                        //TODO: ServerError::InvalidAlias => return Err(Error::InvalidAlias),
+                    ServerMsg::TooManyPlayers => {
+                        return Err(Error::ServerWentMad);
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
@@ -589,11 +705,10 @@ impl Client {
 
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {
-                        self.last_server_pong = Instant::now();
+                        self.last_server_pong = self.state.get_time();
 
-                        self.last_ping_delta = Instant::now()
-                            .duration_since(self.last_server_ping)
-                            .as_secs_f64();
+                        self.last_ping_delta =
+                            (self.state.get_time() - self.last_server_ping).round();
                     },
                     ServerMsg::ChatMsg { message, chat_type } => {
                         frontend_events.push(Event::Chat { message, chat_type })
@@ -608,8 +723,15 @@ impl Client {
                     ServerMsg::TimeOfDay(time_of_day) => {
                         *self.state.ecs_mut().write_resource() = time_of_day;
                     },
-                    ServerMsg::EcsSync(sync_package) => {
-                        self.state.ecs_mut().apply_sync_package(sync_package);
+                    ServerMsg::EntitySync(entity_sync_package) => {
+                        self.state
+                            .ecs_mut()
+                            .apply_entity_sync_package(entity_sync_package);
+                    },
+                    ServerMsg::CompSync(comp_sync_package) => {
+                        self.state
+                            .ecs_mut()
+                            .apply_comp_sync_package(comp_sync_package);
                     },
                     ServerMsg::CreateEntity(entity_package) => {
                         self.state.ecs_mut().apply_entity_package(entity_package);
@@ -646,31 +768,25 @@ impl Client {
                             .allocate(entity_builder.entity, Some(client_uid));
                         self.entity = entity_builder.with(uid).build();
                     },
-                    ServerMsg::EntityPos { entity, pos } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, pos);
+                    ServerMsg::InventoryUpdate(inventory, event) => {
+                        match event {
+                            InventoryUpdateEvent::CollectFailed => {
+                                frontend_events.push(Event::Chat {
+                                    message: String::from(
+                                        "Failed to collect item. Your inventory may be full!",
+                                    ),
+                                    chat_type: ChatType::Meta,
+                                })
+                            },
+                            _ => {
+                                self.state.write_component(self.entity, inventory);
+                            },
                         }
-                    },
-                    ServerMsg::EntityVel { entity, vel } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, vel);
-                        }
-                    },
-                    ServerMsg::EntityOri { entity, ori } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, ori);
-                        }
-                    },
-                    ServerMsg::EntityCharacterState {
-                        entity,
-                        character_state,
-                    } => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, character_state);
-                        }
-                    },
-                    ServerMsg::InventoryUpdate(inventory) => {
-                        self.state.write_component(self.entity, inventory)
+
+                        self.state
+                            .ecs()
+                            .read_resource::<EventBus<SfxEventItem>>()
+                            .emit_now(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
                     },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         if let Ok(chunk) = chunk {
@@ -687,10 +803,6 @@ impl Client {
                         self.client_state = state;
                     },
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        if error == RequestStateError::Denied {
-                            warn!("Connection denied!");
-                            return Err(Error::InvalidAuth);
-                        }
                         warn!(
                             "StateAnswer: {:?}. Server thinks client is in state {:?}.",
                             error, state
@@ -698,13 +810,14 @@ impl Client {
                     },
                     ServerMsg::Disconnect => {
                         frontend_events.push(Event::Disconnect);
+                        self.postbox.send_message(ClientMsg::Terminate);
                     },
                 }
             }
         } else if let Some(err) = self.postbox.error() {
             return Err(err.into());
         // We regularily ping in the tick method
-        } else if Instant::now().duration_since(self.last_server_pong) > SERVER_TIMEOUT {
+        } else if self.state.get_time() - self.last_server_pong > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
         }
         Ok(frontend_events)

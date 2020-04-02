@@ -1,8 +1,12 @@
 Item(
     name: "Gnarled Rod",
-    description: "Smells like resin and magic.",
+    description: "Smells like resin and magic.
+    
+    Power: 20",
     kind: Tool(
-        kind: Staff,
-        power: 20,
+        (
+            kind: Staff(BasicStaff),    
+            equip_time_millis: 300,
+        )
     ),
 )

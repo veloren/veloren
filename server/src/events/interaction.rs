@@ -3,7 +3,8 @@ use crate::{
     Server,
 };
 use common::{
-    assets, comp,
+    assets,
+    comp::{self, item},
     msg::ServerMsg,
     sync::{Uid, WorldSyncExt},
 };
@@ -66,6 +67,16 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         ecs.entity_from_uid(possessor_uid.into()),
         ecs.entity_from_uid(possesse_uid.into()),
     ) {
+        // Check that entities still exist
+        if !(possessor.gen().is_alive() && ecs.is_alive(possessor))
+            || !(possesse.gen().is_alive() && ecs.is_alive(possesse))
+        {
+            error!(
+                "Error possessing! either the possessor entity or possesse entity no longer exists"
+            );
+            return;
+        }
+
         // You can't possess other players
         let mut clients = ecs.write_storage::<Client>();
         if clients.get_mut(possesse).is_none() {
@@ -77,43 +88,29 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                         e
                     )
                 });
-                // Create inventory if it doesn't exist
-                {
-                    let mut inventories = ecs.write_storage::<comp::Inventory>();
-                    if let Some(inventory) = inventories.get_mut(possesse) {
-                        inventory.push(assets::load_expect_cloned("common.items.debug.possess"));
-                    } else {
-                        inventories
-                            .insert(possesse, comp::Inventory {
-                                slots: vec![
-                                    Some(assets::load_expect_cloned("common.items.debug.possess")),
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                ],
-                            })
-                            .err()
-                            .map(|e| {
-                                error!(
-                                    "Error inserting inventory component during possession: {:?}",
-                                    e
-                                )
-                            });
-                    }
+                // Put possess item into loadout
+                let mut loadouts = ecs.write_storage::<comp::Loadout>();
+                let loadout = loadouts
+                    .entry(possesse)
+                    .expect("Could not read loadouts component while possessing")
+                    .or_insert(comp::Loadout::default());
+
+                let item = assets::load_expect_cloned::<comp::Item>("common.items.debug.possess");
+                if let item::ItemKind::Tool(tool) = item.kind {
+                    let mut abilities = tool.get_abilities();
+                    let mut ability_drain = abilities.drain(..);
+                    let debug_item = comp::ItemConfig {
+                        item,
+                        ability1: ability_drain.next(),
+                        ability2: ability_drain.next(),
+                        ability3: ability_drain.next(),
+                        block_ability: None,
+                        dodge_ability: None,
+                    };
+                    std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
+                    loadout.active_item = Some(debug_item);
                 }
-                ecs.write_storage::<comp::InventoryUpdate>()
-                    .insert(possesse, comp::InventoryUpdate)
-                    .err()
-                    .map(|e| {
-                        error!(
-                            "Error inserting inventory update component during possession: {:?}",
-                            e
-                        )
-                    });
+
                 // Move player component
                 {
                     let mut players = ecs.write_storage::<comp::Player>();

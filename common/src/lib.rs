@@ -26,6 +26,7 @@ pub mod ray;
 pub mod region;
 pub mod spiral;
 pub mod state;
+pub mod states;
 pub mod sync;
 pub mod sys;
 pub mod terrain;

@@ -10,7 +10,7 @@ common = { package = "veloren-common", path = "../common" }
 bitvec = "0.15.2"
 image = "0.22.3"
 itertools = "0.8.2"
-vek = "0.9.9"
+vek = "0.10.0"
 noise = { version = "0.6.0", default-features = false }
 num = "0.2.0"
 ordered-float = "1.0"
@@ -28,5 +28,5 @@ serde_derive = "1.0.102"
 ron = "0.5.1"
 
 [dev-dependencies]
-minifb = { git = "https://github.com/emoon/rust_minifb.git" }
 pretty_env_logger = "0.3.0"
+minifb = "0.14.0"

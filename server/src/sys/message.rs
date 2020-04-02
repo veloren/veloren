@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
 use common::{
-    comp::{Admin, Body, CanBuild, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
+    comp::{Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
@@ -27,7 +27,6 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
-        ReadStorage<'a, Body>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, Admin>,
         ReadStorage<'a, ForceUpdate>,
@@ -46,12 +45,11 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            server_emitter,
+            server_event_bus,
             time,
             terrain,
             mut timer,
             uids,
-            bodies,
             can_build,
             admins,
             force_updates,
@@ -70,6 +68,8 @@ impl<'a> System<'a> for Sys {
 
         let time = time.0;
 
+        let mut server_emitter = server_event_bus.emitter();
+
         let mut new_chat_msgs = Vec::new();
 
         // Player list to send new players.
@@ -81,7 +81,6 @@ impl<'a> System<'a> for Sys {
         let mut new_players = Vec::new();
 
         for (entity, client) in (&entities, &mut clients).join() {
-            let mut disconnect = false;
             let new_msgs = client.postbox.new_messages();
 
             // Update client ping.
@@ -91,7 +90,7 @@ impl<'a> System<'a> for Sys {
                 || client.postbox.error().is_some()
             // Postbox error
             {
-                disconnect = true;
+                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             } else if time - client.last_ping > CLIENT_TIMEOUT * 0.5 {
                 // Try pinging the client if the timeout is nearing.
                 client.postbox.send_message(ServerMsg::Ping);
@@ -122,12 +121,27 @@ impl<'a> System<'a> for Sys {
                         },
                         ClientState::Pending => {},
                     },
-                    // Valid player
-                    ClientMsg::Register { player, password } if player.is_valid() => {
-                        if !accounts.query(player.alias.clone(), password) {
-                            client.error_state(RequestStateError::Denied);
+                    // Request registered state (login)
+                    ClientMsg::Register {
+                        view_distance,
+                        token_or_username,
+                    } => {
+                        let (username, uuid) = match accounts.query(token_or_username.clone()) {
+                            Err(err) => {
+                                client.error_state(RequestStateError::RegisterDenied(err));
+                                break;
+                            },
+                            Ok((username, uuid)) => (username, uuid),
+                        };
+
+                        let player = Player::new(username, view_distance, uuid);
+
+                        if !player.is_valid() {
+                            // Invalid player
+                            client.error_state(RequestStateError::Impossible);
                             break;
                         }
+
                         match client.client_state {
                             ClientState::Connected => {
                                 // Add Player component to this client
@@ -148,8 +162,6 @@ impl<'a> System<'a> for Sys {
                         }
                         //client.allow_state(ClientState::Registered);
                     },
-                    // Invalid player
-                    ClientMsg::Register { .. } => client.error_state(RequestStateError::Impossible),
                     ClientMsg::SetViewDistance(view_distance) => match client.client_state {
                         ClientState::Character { .. } => {
                             players
@@ -196,7 +208,7 @@ impl<'a> System<'a> for Sys {
                         },
                         ClientState::Character => {
                             if let Some(controller) = controllers.get_mut(entity) {
-                                controller.inputs = inputs;
+                                controller.inputs.update_with_new(inputs);
                             }
                         },
                         ClientState::Pending => {},
@@ -208,8 +220,27 @@ impl<'a> System<'a> for Sys {
                             client.error_state(RequestStateError::Impossible)
                         },
                         ClientState::Character => {
+                            // Skip respawn if client entity is alive
+                            if let &ControlEvent::Respawn = &event {
+                                if stats.get(entity).map_or(true, |s| !s.is_dead) {
+                                    continue;
+                                }
+                            }
                             if let Some(controller) = controllers.get_mut(entity) {
                                 controller.events.push(event);
+                            }
+                        },
+                        ClientState::Pending => {},
+                    },
+                    ClientMsg::ControlAction(event) => match client.client_state {
+                        ClientState::Connected
+                        | ClientState::Registered
+                        | ClientState::Spectator => {
+                            client.error_state(RequestStateError::Impossible)
+                        },
+                        ClientState::Character => {
+                            if let Some(controller) = controllers.get_mut(entity) {
+                                controller.actions.push(event);
                             }
                         },
                         ClientState::Pending => {},
@@ -272,24 +303,12 @@ impl<'a> System<'a> for Sys {
                     ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                     ClientMsg::Pong => {},
                     ClientMsg::Disconnect => {
-                        disconnect = true;
+                        client.postbox.send_message(ServerMsg::Disconnect);
+                    },
+                    ClientMsg::Terminate => {
+                        server_emitter.emit(ServerEvent::ClientDisconnect(entity));
                     },
                 }
-            }
-
-            if disconnect {
-                if let (Some(player), Some(_)) = (
-                    players.get(entity),
-                    // It only shows a message if you had a body (not in char selection)
-                    bodies.get(entity),
-                ) {
-                    new_chat_msgs.push((
-                        None,
-                        ServerMsg::broadcast(format!("{} went offline.", &player.alias)),
-                    ));
-                }
-                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-                client.postbox.send_message(ServerMsg::Disconnect);
             }
         }
 

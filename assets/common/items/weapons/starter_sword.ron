@@ -1,8 +1,12 @@
 Item(
     name: "Battered Sword",
-    description: "Held together by Rust and hope.",
+    description: "Held together by Rust and hope.
+    
+    Power: 15",
     kind: Tool(
-        kind: Sword,
-        power: 15,
+        (
+            kind: Sword(BasicSword),    
+            equip_time_millis: 300,
+        )
     ),
 )

@@ -4,16 +4,9 @@ use crate::{
     terrain::{Block, TerrainChunk},
     ChatType,
 };
+use authc::AuthClientError;
 use hashbrown::HashMap;
 use vek::*;
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum RequestStateError {
-    Denied,
-    Already,
-    Impossible,
-    WrongMessage,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerInfo {
@@ -21,6 +14,7 @@ pub struct ServerInfo {
     pub description: String,
     pub git_hash: String,
     pub git_date: String,
+    pub auth_provider: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,41 +46,39 @@ pub enum ServerMsg {
     },
     SetPlayerEntity(u64),
     TimeOfDay(state::TimeOfDay),
-    EcsSync(sync::SyncPackage<EcsCompPacket>),
+    EntitySync(sync::EntitySyncPackage),
+    CompSync(sync::CompSyncPackage<EcsCompPacket>),
     CreateEntity(sync::EntityPackage<EcsCompPacket>),
     DeleteEntity(u64),
-    EntityPos {
-        entity: u64,
-        pos: comp::Pos,
-    },
-    EntityVel {
-        entity: u64,
-        vel: comp::Vel,
-    },
-    EntityOri {
-        entity: u64,
-        ori: comp::Ori,
-    },
-    EntityCharacterState {
-        entity: u64,
-        character_state: comp::CharacterState,
-    },
-    InventoryUpdate(comp::Inventory),
+    InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
     TerrainChunkUpdate {
         key: Vec2<i32>,
         chunk: Result<Box<TerrainChunk>, ()>,
     },
     TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
-    Error(ServerError),
     Disconnect,
     Shutdown,
+    TooManyPlayers,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ServerError {
-    TooManyPlayers,
-    InvalidAuth,
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum RequestStateError {
+    RegisterDenied(RegisterError),
+    Denied,
+    Already,
+    Impossible,
+    WrongMessage,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum RegisterError {
+    AlreadyLoggedIn,
+    AuthError(String),
     //TODO: InvalidAlias,
+}
+
+impl From<AuthClientError> for RegisterError {
+    fn from(err: AuthClientError) -> Self { Self::AuthError(err.to_string()) }
 }
 
 impl ServerMsg {

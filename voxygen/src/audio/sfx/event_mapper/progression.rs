@@ -2,10 +2,10 @@
 /// and experience and emits associated SFX
 use crate::audio::sfx::SfxTriggers;
 
-use client::Client;
 use common::{
     comp::Stats,
     event::{EventBus, SfxEvent, SfxEventItem},
+    state::State,
 };
 use specs::WorldExt;
 
@@ -30,13 +30,18 @@ impl ProgressionEventMapper {
         }
     }
 
-    pub fn maintain(&mut self, client: &Client, triggers: &SfxTriggers) {
-        let ecs = client.state().ecs();
+    pub fn maintain(
+        &mut self,
+        state: &State,
+        player_entity: specs::Entity,
+        triggers: &SfxTriggers,
+    ) {
+        let ecs = state.ecs();
 
         // level and exp changes
         let next_state =
             ecs.read_storage::<Stats>()
-                .get(client.entity())
+                .get(player_entity)
                 .map_or(self.state.clone(), |stats| ProgressionState {
                     level: stats.level.level(),
                     exp: stats.exp.current(),
@@ -48,8 +53,7 @@ impl ProgressionEventMapper {
 
                 if sfx_trigger_item.is_some() {
                     ecs.read_resource::<EventBus<SfxEventItem>>()
-                        .emitter()
-                        .emit(SfxEventItem::at_player_position(mapped_event));
+                        .emit_now(SfxEventItem::at_player_position(mapped_event));
                 }
             }
 

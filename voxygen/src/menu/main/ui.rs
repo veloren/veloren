@@ -20,6 +20,10 @@ use conrod_core::{
 use rand::{seq::SliceRandom, thread_rng};
 use std::time::Duration;
 
+// UI Color-Theme
+/*const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
+const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);*/
+
 widget_ids! {
     struct Ids {
         // Background and logo
@@ -68,7 +72,9 @@ widget_ids! {
         // Info Window
         info_frame,
         info_text,
-        info_bottom
+        info_bottom,
+        // Auth Trust Prompt
+        button_add_auth_trust,
     }
 }
 
@@ -90,7 +96,7 @@ image_ids! {
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
         input_bg_top: "voxygen.element.misc_bg.textbox_top",
-        //input_bg_mid: "voxygen.element.misc_bg.textbox_mid", <-- For password input
+        input_bg_mid: "voxygen.element.misc_bg.textbox_mid",
         input_bg_bot: "voxygen.element.misc_bg.textbox_bot",
 
 
@@ -122,16 +128,17 @@ pub enum Event {
     Quit,
     Settings,
     DisclaimerClosed,
+    AuthServerTrust(String, bool),
 }
 
 pub enum PopupType {
     Error,
     ConnectionInfo,
+    AuthTrustPrompt(String),
 }
 
 pub struct PopupData {
     msg: String,
-    button_text: String,
     popup_type: PopupType,
 }
 
@@ -169,6 +176,7 @@ impl MainMenuUi {
             "voxygen.background.bg_6",
             "voxygen.background.bg_7",
             "voxygen.background.bg_8",
+            "voxygen.background.bg_9",
         ];
         let mut rng = thread_rng();
 
@@ -261,27 +269,51 @@ impl MainMenuUi {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.version, ui_widgets);
-        // Popup (Error/Info)
-        if let Some(popup_data) = &self.popup {
-            let text = Text::new(&popup_data.msg)
-                .rgba(1.0, 1.0, 1.0, if self.connect { fade_msg } else { 1.0 })
+
+        // Popup (Error/Info/AuthTrustPrompt)
+        let mut change_popup = None;
+        if let Some(PopupData { msg, popup_type }) = &self.popup {
+            let text = Text::new(msg)
+                .rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    if let PopupType::ConnectionInfo = popup_type {
+                        fade_msg
+                    } else {
+                        1.0
+                    },
+                )
                 .font_id(self.fonts.cyri.conrod_id);
-            Rectangle::fill_with([65.0 * 6.0, 140.0], color::TRANSPARENT)
+            let (frame_w, frame_h) = if let PopupType::AuthTrustPrompt(_) = popup_type {
+                (65.0 * 8.0, 370.0)
+            } else {
+                (65.0 * 6.0, 140.0)
+            };
+            let error_bg = Rectangle::fill_with([frame_w, frame_h], color::TRANSPARENT)
                 .rgba(0.1, 0.1, 0.1, if self.connect { 0.0 } else { 1.0 })
-                .parent(ui_widgets.window)
-                .up_from(self.ids.banner_top, 15.0)
-                .set(self.ids.login_error_bg, ui_widgets);
+                .parent(ui_widgets.window);
+            if let PopupType::AuthTrustPrompt(_) = popup_type {
+                error_bg.middle_of(ui_widgets.window)
+            } else {
+                error_bg.up_from(self.ids.banner_top, 15.0)
+            }
+            .set(self.ids.login_error_bg, ui_widgets);
             Image::new(self.imgs.info_frame)
-                .w_h(65.0 * 6.0, 140.0)
+                .w_h(frame_w, frame_h)
                 .color(Some(Color::Rgba(
                     1.0,
                     1.0,
                     1.0,
-                    if self.connect { 0.0 } else { 1.0 },
+                    if let PopupType::ConnectionInfo = popup_type {
+                        0.0
+                    } else {
+                        1.0
+                    },
                 )))
                 .middle_of(self.ids.login_error_bg)
                 .set(self.ids.error_frame, ui_widgets);
-            if self.connect {
+            if let PopupType::ConnectionInfo = popup_type {
                 text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
                     .font_id(self.fonts.alkhemi.conrod_id)
                     .bottom_left_with_margins_on(ui_widgets.window, 60.0, 60.0)
@@ -289,6 +321,7 @@ impl MainMenuUi {
                     .set(self.ids.login_error, ui_widgets);
             } else {
                 text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
+                    .w(frame_w - 10.0 * 2.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(25))
                     .set(self.ids.login_error, ui_widgets);
@@ -296,7 +329,7 @@ impl MainMenuUi {
             if Button::image(self.imgs.button)
                 .w_h(100.0, 30.0)
                 .mid_bottom_with_margin_on(
-                    if self.connect {
+                    if let PopupType::ConnectionInfo = popup_type {
                         ui_widgets.window
                     } else {
                         self.ids.login_error_bg
@@ -306,22 +339,55 @@ impl MainMenuUi {
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label_y(Relative::Scalar(2.0))
-                .label(&popup_data.button_text)
+                .label(match popup_type {
+                    PopupType::Error => self.voxygen_i18n.get("common.okay"),
+                    PopupType::ConnectionInfo => self.voxygen_i18n.get("common.cancel"),
+                    PopupType::AuthTrustPrompt(_) => self.voxygen_i18n.get("common.cancel"),
+                })
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_font_size(self.fonts.cyri.scale(15))
                 .label_color(TEXT_COLOR)
                 .set(self.ids.button_ok, ui_widgets)
                 .was_clicked()
             {
-                match popup_data.popup_type {
+                match &popup_type {
+                    PopupType::Error => (),
                     PopupType::ConnectionInfo => {
                         events.push(Event::CancelLoginAttempt);
                     },
-                    _ => (),
+                    PopupType::AuthTrustPrompt(auth_server) => {
+                        events.push(Event::AuthServerTrust(auth_server.clone(), false));
+                    },
                 };
-                self.popup = None;
-            };
+                change_popup = Some(None);
+            }
+
+            if let PopupType::AuthTrustPrompt(auth_server) = popup_type {
+                if Button::image(self.imgs.button)
+                    .w_h(100.0, 30.0)
+                    .right_from(self.ids.button_ok, 10.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label_y(Relative::Scalar(2.0))
+                    .label("Add") // TODO: localize
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .label_font_size(self.fonts.cyri.scale(15))
+                    .label_color(TEXT_COLOR)
+                    .set(self.ids.button_add_auth_trust, ui_widgets)
+                    .was_clicked()
+                {
+                    events.push(Event::AuthServerTrust(auth_server.clone(), true));
+                    change_popup = Some(Some(PopupData {
+                        msg: self.voxygen_i18n.get("main.connecting").into(),
+                        popup_type: PopupType::ConnectionInfo,
+                    }));
+                }
+            }
         }
+        if let Some(p) = change_popup {
+            self.popup = p;
+        }
+
         if !self.connect {
             Image::new(self.imgs.banner)
                 .w_h(65.0 * 6.0, 100.0 * 6.0)
@@ -367,7 +433,7 @@ impl MainMenuUi {
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
-                    .label("Accept")
+                    .label(&self.voxygen_i18n.get("common.accept"))
                     .label_font_size(self.fonts.cyri.scale(22))
                     .label_color(TEXT_COLOR)
                     .label_font_id(self.fonts.cyri.conrod_id)
@@ -387,7 +453,6 @@ impl MainMenuUi {
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
                             msg: [self.voxygen_i18n.get("main.connecting"), "..."].concat(),
-                            button_text: self.voxygen_i18n.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
 
@@ -399,7 +464,7 @@ impl MainMenuUi {
                     };
                 }
                 // Info Window
-                Rectangle::fill_with([550.0, 200.0], color::BLACK)
+                Rectangle::fill_with([550.0, 250.0], color::BLACK)
                     .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
                     .set(self.ids.info_frame, ui_widgets);
@@ -425,7 +490,6 @@ impl MainMenuUi {
                         self.connecting = Some(std::time::Instant::now());
                         self.popup = Some(PopupData {
                             msg: [self.voxygen_i18n.get("main.creating_world"), "..."].concat(),
-                            button_text: self.voxygen_i18n.get("common.cancel").to_owned(),
                             popup_type: PopupType::ConnectionInfo,
                         });
                     };
@@ -461,14 +525,12 @@ impl MainMenuUi {
                     }
                 }
                 // Password
-                // TODO: REACTIVATE THIS WHEN A PROPER ACCOUNT SYSTEM IS IN PLACE
-                /*Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
+                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                     .down_from(self.ids.usrnm_bg, 30.0)
                     .set(self.ids.passwd_bg, ui_widgets);
                 Image::new(self.imgs.input_bg_mid)
                     .w_h(337.0, 67.0)
                     .middle_of(self.ids.passwd_bg)
-                    .color(Some(INACTIVE))
                     .set(self.ids.password_bg, ui_widgets);
                 for event in TextBox::new(&self.password)
                     .w_h(290.0, 30.0)
@@ -479,18 +541,20 @@ impl MainMenuUi {
                     // transparent background
                     .color(TRANSPARENT)
                     .border_color(TRANSPARENT)
+                    .hide_text("*")
                     .set(self.ids.password_field, ui_widgets)
                 {
                     match event {
                         TextBoxEvent::Update(password) => {
                             // Note: TextBox limits the input string length to what fits in it
                             self.password = password;
-                        }
+                        },
                         TextBoxEvent::Enter => {
                             login!();
-                        }
+                        },
                     }
-                }*/
+                }
+
                 if self.show_servers {
                     Image::new(self.imgs.info_frame)
                         .mid_top_with_margin_on(self.ids.username_bg, -320.0)
@@ -556,7 +620,7 @@ impl MainMenuUi {
                 }
                 // Server address
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-                    .down_from(self.ids.usrnm_bg, 30.0)
+                    .down_from(self.ids.passwd_bg, 30.0)
                     .set(self.ids.srvr_bg, ui_widgets);
                 Image::new(self.imgs.input_bg_bot)
                     .w_h(337.0, 67.0)
@@ -582,6 +646,7 @@ impl MainMenuUi {
                         },
                     }
                 }
+
                 // Login button
                 if Button::image(self.imgs.button)
                     .hover_image(self.imgs.button_hover)
@@ -684,10 +749,22 @@ impl MainMenuUi {
         events
     }
 
-    pub fn show_info(&mut self, msg: String, button_text: String) {
+    pub fn auth_trust_prompt(&mut self, auth_server: String) {
+        self.popup = Some(PopupData {
+            msg: format!(
+                "Warning: The server you are trying to connect to has provided this \
+                 authentication server address:\n\n{}\n\nbut it is not in your list of trusted \
+                 authentication servers.\n\nMake sure that you trust this site and owner to not \
+                 try and bruteforce your password!",
+                &auth_server
+            ),
+            popup_type: PopupType::AuthTrustPrompt(auth_server),
+        })
+    }
+
+    pub fn show_info(&mut self, msg: String) {
         self.popup = Some(PopupData {
             msg,
-            button_text,
             popup_type: PopupType::Error,
         });
         self.connecting = None;

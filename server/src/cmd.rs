@@ -12,6 +12,7 @@ use common::{
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
     terrain::TerrainChunkSize,
+    util::Dir,
     vol::RectVolSize,
 };
 use rand::Rng;
@@ -262,6 +263,7 @@ lazy_static! {
         ),
     ];
 }
+
 fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
     if let Ok(item) = assets::load_cloned(&args) {
         server
@@ -274,7 +276,10 @@ fn handle_give(server: &mut Server, entity: EcsEntity, args: String, _action: &C
             .state
             .ecs()
             .write_storage::<comp::InventoryUpdate>()
-            .insert(entity, comp::InventoryUpdate);
+            .insert(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
+            );
     } else {
         server.notify_client(entity, ServerMsg::private(String::from("Invalid item!")));
     }
@@ -500,7 +505,8 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                                 .state
                                 .create_npc(
                                     pos,
-                                    comp::Stats::new(get_npc_name(id).into(), body, None),
+                                    comp::Stats::new(get_npc_name(id).into(), body),
+                                    comp::Loadout::default(),
                                     body,
                                 )
                                 .with(comp::Vel(vel))
@@ -639,7 +645,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
         .read_storage::<comp::Ori>()
         .get(entity)
         .copied();
-    /*let builder = server
+    /*let builder = server.state
     .create_object(pos, ori, obj_type)
     .with(ori);*/
     if let (Some(pos), Some(ori)) = (pos, ori) {
@@ -701,19 +707,19 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             },
         };
         server
+            .state
             .create_object(pos, obj_type)
             .with(comp::Ori(
                 // converts player orientation into a 90° rotation for the object by using the axis
                 // with the highest value
-                ori.0
-                    .map(|e| {
-                        if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
-                            e
-                        } else {
-                            0.0
-                        }
-                    })
-                    .normalized(),
+                Dir::from_unnormalized(ori.0.map(|e| {
+                    if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
+                        e
+                    } else {
+                        0.0
+                    }
+                }))
+                .unwrap_or_default(),
             ))
             .build();
         server.notify_client(
@@ -823,14 +829,18 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
 }
 
 fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let radius = scan_fmt!(&args, action.arg_fmt, f32).unwrap_or(8.0);
+    let power = scan_fmt!(&args, action.arg_fmt, f32).unwrap_or(8.0);
+    let ecs = server.state.ecs();
 
     match server.state.read_component_cloned::<comp::Pos>(entity) {
-        Some(pos) => server
-            .state
-            .ecs()
-            .read_resource::<EventBus<ServerEvent>>()
-            .emit(ServerEvent::Explosion { pos: pos.0, radius }),
+        Some(pos) => {
+            ecs.read_resource::<EventBus<ServerEvent>>()
+                .emit_now(ServerEvent::Explosion {
+                    pos: pos.0,
+                    power,
+                    owner: ecs.read_storage::<Uid>().get(entity).copied(),
+                })
+        },
         None => server.notify_client(
             entity,
             ServerMsg::private(String::from("You have no position!")),
@@ -1079,6 +1089,11 @@ fn handle_level(server: &mut Server, entity: EcsEntity, args: String, action: &C
             Ok(player) => {
                 if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
                     stats.level.set_level(lvl);
+
+                    stats.update_max_hp();
+                    stats
+                        .health
+                        .set_to(stats.health.maximum(), comp::HealthSource::LevelUp);
                 } else {
                     error_msg = Some(ServerMsg::private(String::from("Player has no stats!")));
                 }
@@ -1108,7 +1123,10 @@ fn handle_debug(server: &mut Server, entity: EcsEntity, _args: String, _action: 
             .state
             .ecs()
             .write_storage::<comp::InventoryUpdate>()
-            .insert(entity, comp::InventoryUpdate);
+            .insert(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
+            );
     } else {
         server.notify_client(
             entity,

@@ -19,12 +19,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added gamma setting
 - Added new orc hairstyles
 - Added sfx for wielding/unwielding weapons
+- Fixed NPCs attacking the player forever after killing them
+- Added sfx for collecting, dropping and using inventory items
+- New attack animation
+- weapon control system
+- Game pauses when in singleplayer and pause menu
+- Added authentication system (to play on the official server register on https://account.veloren.net)
+- Added gamepad/controller support
+- Added player feedback when attempting to pickup an item with a full inventory
+- Added free look
+- Added Italian translation
+- Added Portuguese translation
+- Added Turkish translation
+- Complete rewrite of the combat system into a state machine
+- Abilities like Dash and Triplestrike
+- Armor can now be eqipped as items
+- Fireball explosions
+- Inventory supports stacking
+- Many new armors and weapons to find in chests
+- Fleshed out "attack" animation into alpha, beta and spin type attacks
+- Fleshed out range attack into charging and shooting anims for staff/bow
+- Customized attack animation for hammers and axes
 
 ### Changed
 
 - Brighter / higher contrast main-map
 - Removed highlighting of non-collectible sprites
 - Fixed /give_exp ignoring player argument
+- Extend run sfx to small animals to prevent sneak attacks by geese.
+- Decreased clientside latency of ServerEvent mediated effects (e.g. projectiles, inventory operations, etc)
+- Started changing the visual theme of the UI
+- Merge of the Bag and Character-Screen
+- Merge of the Map and Questlog
+- Overhauled icon art
+- Asset cleanup to lower client-size
+- Rewrote the humanoid skeleton to be more ideal for attack animations
+
 
 ### Removed
 

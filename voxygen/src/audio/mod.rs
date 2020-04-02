@@ -10,7 +10,7 @@ use soundcache::SoundCache;
 
 use common::assets;
 use cpal::traits::DeviceTrait;
-use rodio::{Decoder, Device};
+use rodio::{source::Source, Decoder, Device};
 use vek::*;
 
 const FALLOFF: f32 = 0.13;
@@ -135,11 +135,14 @@ impl AudioFrontend {
         self.music_channels.last_mut()
     }
 
-    pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>) {
+    pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_device.is_some() {
             let calc_pos = ((pos - self.listener_pos) * FALLOFF).into_array();
 
-            let sound = self.sound_cache.load_sound(sound);
+            let sound = self
+                .sound_cache
+                .load_sound(sound)
+                .amplify(vol.unwrap_or(1.0));
 
             let left_ear = self.listener_ear_left.into_array();
             let right_ear = self.listener_ear_right.into_array();
@@ -235,11 +238,8 @@ impl AudioFrontend {
 
 /// Returns the default audio device.
 /// Does not return rodio Device struct in case our audio backend changes.
-pub fn get_default_device() -> String {
-    rodio::default_output_device()
-        .expect("No audio output devices detected.")
-        .name()
-        .expect("Unable to get device name")
+pub fn get_default_device() -> Option<String> {
+    rodio::default_output_device().map(|dev| dev.name().expect("Unable to get device name"))
 }
 
 /// Returns a vec of the audio devices available.

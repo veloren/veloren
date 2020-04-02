@@ -1,0 +1,58 @@
+({
+    Sword(BasicSword): (
+        vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    Sword(Rapier): (
+        vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    Sword(WoodTraining): (
+        vox_spec: ("weapon.sword.wood_2h", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    Sword(Zweihander0): (
+        vox_spec: ("weapon.sword.zweihander_2h-0", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    Sword(Short0): (
+        vox_spec: ("weapon.sword.short_2h-0", (-1.5, -6.5, -1.0)),
+        color: None
+    ),
+    Axe(BasicAxe): (
+        vox_spec: ("weapon.axe.rusty_2h", (-1.5, -5.0, -4.0)),
+        color: None
+    ),
+    Hammer(BasicHammer): (
+        vox_spec: ("weapon.hammer.rusty_2h", (-2.5, -5.5, -4.0)),
+        color: None
+    ),
+    Dagger(BasicDagger): (
+        vox_spec: ("weapon.hammer.rusty_2h", (-2.5, -5.5, -4.0)), // TODO
+        color: None
+    ),
+    Shield(BasicShield): (
+        vox_spec: ("weapon.shield.wood-0", (-2.5, -6.5, -2.0)),
+        color: None
+    ),
+    Bow(BasicBow): (
+        vox_spec: ("weapon.bow.simple-bow", (-1.0, -6.0, -2.0)),
+        color: None
+    ),
+    Staff(BasicStaff): (
+        vox_spec: ("weapon.staff.wood-fire", (-1.0, -6.0, -3.0)),
+        color: None
+    ),
+     Staff(Sceptre): (
+        vox_spec: ("weapon.staff.wood-nature", (-1.0, -6.0, -5.0)),
+        color: None
+    ),
+    Debug(Boost): (
+        vox_spec: ("weapon.debug_wand", (-1.5, -9.5, -4.0)),
+        color: None
+    ),
+    Debug(Possess): (
+        vox_spec: ("weapon.debug_wand", (-1.5, -9.5, -4.0)),
+        color: None
+    ),
+})

@@ -1,16 +1,16 @@
-mod scene;
 mod ui;
 
 use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
+    scene::simple::{self as scene, Scene},
     session::SessionState,
     window::Event as WinEvent,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{assets, clock::Clock, comp, msg::ClientState};
+use common::{assets, clock::Clock, comp, msg::ClientState, state::DeltaTime};
 use log::error;
-use scene::Scene;
+use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
 
@@ -26,7 +26,10 @@ impl CharSelectionState {
         Self {
             char_selection_ui: CharSelectionUi::new(global_state),
             client,
-            scene: Scene::new(global_state.window.renderer_mut()),
+            scene: Scene::new(
+                global_state.window.renderer_mut(),
+                Some("fixture.selection_bg"),
+            ),
         }
     }
 }
@@ -75,7 +78,7 @@ impl PlayState for CharSelectionState {
                             char_data.body,
                             char_data.tool,
                         );
-                        return PlayStateResult::Push(Box::new(SessionState::new(
+                        return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
                             self.client.clone(),
                         )));
@@ -95,26 +98,26 @@ impl PlayState for CharSelectionState {
                 });
 
             // Maintain the scene.
-            self.scene.maintain(
-                global_state.window.renderer_mut(),
-                &self.client.borrow(),
-                humanoid_body.clone(),
-                global_state.settings.graphics.gamma,
-            );
+            {
+                let client = self.client.borrow();
+                let scene_data = scene::SceneData {
+                    time: client.state().get_time(),
+                    delta_time: client.state().ecs().read_resource::<DeltaTime>().0,
+                    tick: client.get_tick(),
+                    body: humanoid_body.clone(),
+                    gamma: global_state.settings.graphics.gamma,
+                };
+                self.scene
+                    .maintain(global_state.window.renderer_mut(), scene_data);
+            }
 
             // Render the scene.
+            let loadout = self.char_selection_ui.get_loadout();
             self.scene.render(
                 global_state.window.renderer_mut(),
-                &self.client.borrow(),
+                self.client.borrow().get_tick(),
                 humanoid_body.clone(),
-                &comp::Equipment {
-                    main: self
-                        .char_selection_ui
-                        .get_character_data()
-                        .and_then(|data| data.tool)
-                        .and_then(|tool| assets::load_cloned(&tool).ok()),
-                    alt: None,
-                },
+                loadout.as_ref(),
             );
 
             // Draw the UI to the screen.
@@ -132,7 +135,7 @@ impl PlayState for CharSelectionState {
             ) {
                 global_state.info_message =
                     Some(localized_strings.get("common.connection_lost").to_owned());
-                error!("[session] Failed to tick the scene: {:?}", err);
+                error!("[char_selection] Failed to tick the scene: {:?}", err);
 
                 return PlayStateResult::Pop;
             }

@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, HP_COLOR, TEXT_COLOR,
+    Show, HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::ui::{fonts::ConrodVoxygenFonts, img_ids};
 use client::{self, Client};
@@ -17,6 +17,7 @@ use vek::*;
 widget_ids! {
     struct Ids {
         mmap_frame,
+        mmap_frame_2,
         mmap_frame_bg,
         mmap_location,
         mmap_button,
@@ -103,14 +104,20 @@ impl<'a> Widget for MiniMap<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
         let zoom = state.zoom;
+        const SCALE: f64 = 1.5;
         if self.show.mini_map {
             Image::new(self.imgs.mmap_frame)
-                .w_h(100.0 * 3.0, 100.0 * 3.0)
-                .top_right_with_margins_on(ui.window, 5.0, 5.0)
+                .w_h(174.0 * SCALE, 190.0 * SCALE)
+                .top_right_with_margins_on(ui.window, 0.0, 5.0)
+                .color(Some(UI_MAIN))
                 .set(state.ids.mmap_frame, ui);
-
-            Rectangle::fill_with([92.0 * 3.0, 82.0 * 3.0], color::TRANSPARENT)
-                .mid_top_with_margin_on(state.ids.mmap_frame, 13.0 * 3.0 + 3.0)
+            Image::new(self.imgs.mmap_frame_2)
+                .w_h(174.0 * SCALE, 190.0 * SCALE)
+                .middle_of(state.ids.mmap_frame)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.mmap_frame_2, ui);
+            Rectangle::fill_with([170.0 * SCALE, 170.0 * SCALE], color::TRANSPARENT)
+                .mid_top_with_margin_on(state.ids.mmap_frame_2, 18.0 * SCALE)
                 .set(state.ids.mmap_frame_bg, ui);
 
             // Map size
@@ -138,10 +145,11 @@ impl<'a> Widget for MiniMap<'a> {
             let can_zoom_out = zoom > min_zoom;
 
             if Button::image(self.imgs.mmap_minus)
-                .w_h(100.0 * 0.30, 100.0 * 0.30)
+                .w_h(16.0 * SCALE, 18.0 * SCALE)
                 .hover_image(self.imgs.mmap_minus_hover)
                 .press_image(self.imgs.mmap_minus_press)
                 .top_left_with_margins_on(state.ids.mmap_frame, 0.0, 0.0)
+                .image_color(UI_HIGHLIGHT_0)
                 .enabled(can_zoom_out)
                 .set(state.ids.mmap_minus, ui)
                 .was_clicked()
@@ -153,10 +161,11 @@ impl<'a> Widget for MiniMap<'a> {
                 // set_image_dims(zoom);
             }
             if Button::image(self.imgs.mmap_plus)
-                .w_h(100.0 * 0.30, 100.0 * 0.30)
+                .w_h(18.0 * SCALE, 18.0 * SCALE)
                 .hover_image(self.imgs.mmap_plus_hover)
                 .press_image(self.imgs.mmap_plus_press)
-                .right_from(state.ids.mmap_minus, 6.0)
+                .right_from(state.ids.mmap_minus, 0.0)
+                .image_color(UI_HIGHLIGHT_0)
                 .enabled(can_zoom_in)
                 .set(state.ids.mmap_plus, ui)
                 .was_clicked()
@@ -195,7 +204,7 @@ impl<'a> Widget for MiniMap<'a> {
             // Map Image
             Image::new(world_map.source_north)
                 .middle_of(state.ids.mmap_frame_bg)
-                .w_h(92.0 * 3.0, 82.0 * 3.0)
+                .w_h(170.0 * SCALE, 170.0 * SCALE)
                 .parent(state.ids.mmap_frame_bg)
                 .source_rectangle(rect_src)
                 .set(state.ids.grid, ui);
@@ -205,14 +214,15 @@ impl<'a> Widget for MiniMap<'a> {
             Image::new(self.rot_imgs.indicator_mmap_small.none)
                 .middle_of(state.ids.grid)
                 .w_h(32.0 * ind_scale, 37.0 * ind_scale)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                .color(Some(UI_HIGHLIGHT_0))
                 .floating(true)
                 .parent(ui.window)
                 .set(state.ids.indicator, ui);
         } else {
             Image::new(self.imgs.mmap_frame_closed)
-                .w_h(100.0 * 2.0, 11.0 * 2.0)
-                .top_right_with_margins_on(ui.window, 5.0, 5.0)
+                .w_h(174.0 * SCALE, 18.0 * SCALE)
+                .color(Some(UI_MAIN))
+                .top_right_with_margins_on(ui.window, 0.0, 5.0)
                 .set(state.ids.mmap_frame, ui);
         }
 
@@ -221,11 +231,7 @@ impl<'a> Widget for MiniMap<'a> {
         } else {
             self.imgs.mmap_closed
         })
-        .wh(if self.show.mini_map {
-            [100.0 * 0.3; 2]
-        } else {
-            [100.0 * 0.2; 2]
-        })
+        .w_h(18.0 * SCALE, 18.0 * SCALE)
         .hover_image(if self.show.mini_map {
             self.imgs.mmap_open_hover
         } else {
@@ -237,6 +243,7 @@ impl<'a> Widget for MiniMap<'a> {
             self.imgs.mmap_closed_press
         })
         .top_right_with_margins_on(state.ids.mmap_frame, 0.0, 0.0)
+        .image_color(UI_HIGHLIGHT_0)
         .set(state.ids.mmap_button, ui)
         .was_clicked()
         {
@@ -299,15 +306,8 @@ impl<'a> Widget for MiniMap<'a> {
         // Title
         match self.client.current_chunk() {
             Some(chunk) => Text::new(chunk.meta().name())
-                .mid_top_with_margin_on(
-                    state.ids.mmap_frame,
-                    if self.show.mini_map { 6.0 } else { 0.0 },
-                )
-                .font_size(
-                    self.fonts
-                        .cyri
-                        .scale(if self.show.mini_map { 20 } else { 18 }),
-                )
+                .mid_top_with_margin_on(state.ids.mmap_frame, 2.0)
+                .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),

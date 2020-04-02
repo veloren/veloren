@@ -20,8 +20,7 @@ trait Blendable {
 impl Blendable for BlockKind {
     fn is_blended(&self) -> bool {
         match self {
-            BlockKind::Leaves => false,
-            _ => true,
+            _ => false,
         }
     }
 }

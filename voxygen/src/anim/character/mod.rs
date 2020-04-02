@@ -1,31 +1,36 @@
-pub mod attack;
+pub mod alpha;
+pub mod beta;
 pub mod block;
 pub mod blockidle;
 pub mod charge;
-pub mod cidle;
 pub mod climb;
+pub mod dash;
+pub mod equip;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod roll;
 pub mod run;
+pub mod shoot;
 pub mod sit;
+pub mod spin;
 pub mod stand;
 pub mod swim;
 pub mod wield;
 
 // Reexports
 pub use self::{
-    attack::AttackAnimation, block::BlockAnimation, blockidle::BlockIdleAnimation,
-    charge::ChargeAnimation, cidle::CidleAnimation, climb::ClimbAnimation,
-    gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation,
-    run::RunAnimation, sit::SitAnimation, stand::StandAnimation, swim::SwimAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, block::BlockAnimation,
+    blockidle::BlockIdleAnimation, charge::ChargeAnimation, climb::ClimbAnimation,
+    dash::DashAnimation, equip::EquipAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation,
+    sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation,
     wield::WieldAnimation,
 };
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
-use common::comp::{self, item::Tool};
+use common::comp::{self, item::ToolKind};
 
 #[derive(Clone, Default)]
 pub struct CharacterSkeleton {
@@ -37,12 +42,16 @@ pub struct CharacterSkeleton {
     r_hand: Bone,
     l_foot: Bone,
     r_foot: Bone,
-    main: Bone,
     l_shoulder: Bone,
     r_shoulder: Bone,
     glider: Bone,
+    main: Bone,
+    second: Bone,
     lantern: Bone,
     torso: Bone,
+    control: Bone,
+    l_control: Bone,
+    r_control: Bone,
 }
 
 impl CharacterSkeleton {
@@ -52,30 +61,37 @@ impl CharacterSkeleton {
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
+    fn compute_matrices(&self) -> [FigureBoneData; 18] {
         let chest_mat = self.chest.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
         let l_hand_mat = self.l_hand.compute_base_matrix();
+        let r_hand_mat = self.r_hand.compute_base_matrix();
+        let control_mat = self.control.compute_base_matrix();
+        let l_control_mat = self.l_control.compute_base_matrix();
+        let r_control_mat = self.r_control.compute_base_matrix();
         let main_mat = self.main.compute_base_matrix();
+        let second_mat = self.second.compute_base_matrix();
 
         let head_mat = self.head.compute_base_matrix();
         [
-            FigureBoneData::new(torso_mat * head_mat),
+            FigureBoneData::new(torso_mat * chest_mat * head_mat),
             FigureBoneData::new(torso_mat * chest_mat),
-            FigureBoneData::new(torso_mat * self.belt.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * self.shorts.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * chest_mat * l_hand_mat),
-            FigureBoneData::new(torso_mat * chest_mat * self.r_hand.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.belt.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.shorts.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * l_hand_mat),
+            FigureBoneData::new(torso_mat * chest_mat * control_mat * r_control_mat * r_hand_mat),
             FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * chest_mat * main_mat),
             FigureBoneData::new(torso_mat * chest_mat * self.l_shoulder.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat * self.r_shoulder.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.glider.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * main_mat),
+            FigureBoneData::new(torso_mat * chest_mat * control_mat * r_control_mat * second_mat),
             FigureBoneData::new(torso_mat * chest_mat * self.lantern.compute_base_matrix()),
             FigureBoneData::new(torso_mat),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
+            FigureBoneData::new(control_mat),
+            FigureBoneData::new(l_control_mat),
+            FigureBoneData::new(r_control_mat),
         ]
     }
 
@@ -88,12 +104,16 @@ impl Skeleton for CharacterSkeleton {
         self.r_hand.interpolate(&target.r_hand, dt);
         self.l_foot.interpolate(&target.l_foot, dt);
         self.r_foot.interpolate(&target.r_foot, dt);
-        self.main.interpolate(&target.main, dt);
         self.l_shoulder.interpolate(&target.l_shoulder, dt);
         self.r_shoulder.interpolate(&target.r_shoulder, dt);
         self.glider.interpolate(&target.glider, dt);
+        self.main.interpolate(&target.main, dt);
+        self.second.interpolate(&target.second, dt);
         self.lantern.interpolate(&target.lantern, dt);
         self.torso.interpolate(&target.torso, dt);
+        self.control.interpolate(&target.control, dt);
+        self.l_control.interpolate(&target.l_control, dt);
+        self.r_control.interpolate(&target.r_control, dt);
     }
 }
 
@@ -212,27 +232,27 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Male) => 0.0,
                 (Danari, Female) => 0.0,
             },
-            weapon_x: match Tool::Hammer {
-                // TODO: Inventory
-                Tool::Sword => 0.0,
-                Tool::Axe => 3.0,
-                Tool::Hammer => 0.0,
-                Tool::Shield => 3.0,
-                Tool::Staff => 3.0,
-                Tool::Bow => 0.0,
-                Tool::Dagger => 0.0,
-                Tool::Debug(_) => 0.0,
+            weapon_x: match ToolKind::Empty {
+                ToolKind::Sword(_) => 0.0,
+                ToolKind::Axe(_) => 3.0,
+                ToolKind::Hammer(_) => 0.0,
+                ToolKind::Shield(_) => 3.0,
+                ToolKind::Staff(_) => 3.0,
+                ToolKind::Bow(_) => 0.0,
+                ToolKind::Dagger(_) => 0.0,
+                ToolKind::Debug(_) => 0.0,
+                ToolKind::Empty => 0.0,
             },
-            weapon_y: match Tool::Hammer {
-                // TODO: Inventory
-                Tool::Sword => -1.25,
-                Tool::Axe => 0.0,
-                Tool::Hammer => -2.0,
-                Tool::Shield => 0.0,
-                Tool::Staff => 0.0,
-                Tool::Bow => -2.0,
-                Tool::Dagger => -2.0,
-                Tool::Debug(_) => 0.0,
+            weapon_y: match ToolKind::Empty {
+                ToolKind::Sword(_) => -1.25,
+                ToolKind::Axe(_) => 0.0,
+                ToolKind::Hammer(_) => -2.0,
+                ToolKind::Shield(_) => 0.0,
+                ToolKind::Staff(_) => 0.0,
+                ToolKind::Bow(_) => -2.0,
+                ToolKind::Dagger(_) => -2.0,
+                ToolKind::Debug(_) => 0.0,
+                ToolKind::Empty => 0.0,
             },
         }
     }

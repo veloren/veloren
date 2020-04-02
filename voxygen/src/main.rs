@@ -1,93 +1,25 @@
 #![deny(unsafe_code)]
-#![feature(drain_filter)]
+#![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
-#[macro_use]
-pub mod ui;
-pub mod anim;
-pub mod audio;
-mod ecs;
-pub mod error;
-pub mod hud;
-pub mod i18n;
-pub mod key_state;
-mod logging;
-pub mod menu;
-pub mod mesh;
-pub mod meta;
-pub mod render;
-pub mod scene;
-pub mod session;
-pub mod settings;
-#[cfg(feature = "singleplayer")]
-pub mod singleplayer;
-pub mod window;
-
-// Reexports
-pub use crate::error::Error;
-
-use crate::{
-    audio::AudioFrontend,
-    i18n::{i18n_asset_key, VoxygenLocalization},
+use veloren_voxygen::{
+    audio::{self, AudioFrontend},
+    i18n::{self, i18n_asset_key, VoxygenLocalization},
+    logging,
     menu::main::MainMenuState,
     meta::Meta,
-    settings::Settings,
+    settings::{AudioOutput, Settings},
     window::Window,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
+
 use common::assets::{load, load_expect};
 use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
-/// A type used to store state that is shared between all play states.
-pub struct GlobalState {
-    settings: Settings,
-    meta: Meta,
-    window: Window,
-    audio: AudioFrontend,
-    info_message: Option<String>,
-}
-
-impl GlobalState {
-    /// Called after a change in play state has occurred (usually used to
-    /// reverse any temporary effects a state may have made).
-    pub fn on_play_state_changed(&mut self) {
-        self.window.grab_cursor(false);
-        self.window.needs_refresh_resize();
-    }
-
-    pub fn maintain(&mut self, dt: f32) { self.audio.maintain(dt); }
-}
-
-pub enum Direction {
-    Forwards,
-    Backwards,
-}
-
-/// States can either close (and revert to a previous state), push a new state
-/// on top of themselves, or switch to a totally different state.
-pub enum PlayStateResult {
-    /// Pop all play states in reverse order and shut down the program.
-    Shutdown,
-    /// Close the current play state and pop it from the play state stack.
-    Pop,
-    /// Push a new play state onto the play state stack.
-    Push(Box<dyn PlayState>),
-    /// Switch the current play state with a new play state.
-    Switch(Box<dyn PlayState>),
-}
-
-/// A trait representing a playable game state. This may be a menu, a game
-/// session, the title screen, etc.
-pub trait PlayState {
-    /// Play the state until some change of state is required (i.e: a menu is
-    /// opened or the game is closed).
-    fn play(&mut self, direction: Direction, global_state: &mut GlobalState) -> PlayStateResult;
-
-    /// Get a descriptive name for this state type.
-    fn name(&self) -> &'static str;
-}
-
 fn main() {
+    #[cfg(feature = "tweak")]
+    const_tweaker::run().expect("Could not run server");
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
         .and_then(|env| env.to_str().map(|s| s.to_owned()))
@@ -115,16 +47,13 @@ fn main() {
         panic!("Failed to save settings: {:?}", err);
     }
 
-    let audio_device = || match &settings.audio.audio_device {
-        Some(d) => d.to_string(),
-        None => audio::get_default_device(),
-    };
-
-    let mut audio = if settings.audio.audio_on {
-        AudioFrontend::new(audio_device(), settings.audio.max_sfx_channels)
-    } else {
-        AudioFrontend::no_audio()
-    };
+    let mut audio = match settings.audio.output {
+        AudioOutput::Off => None,
+        AudioOutput::Automatic => audio::get_default_device(),
+        AudioOutput::Device(ref dev) => Some(dev.clone()),
+    }
+    .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
+    .unwrap_or_else(AudioFrontend::no_audio);
 
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);
@@ -135,6 +64,7 @@ fn main() {
         settings,
         meta,
         info_message: None,
+        singleplayer: None,
     };
 
     // Try to load the localization and log missing entries
@@ -193,7 +123,7 @@ fn main() {
             and the events that led up to the panic as possible.
             \n\
             Voxygen has logged information about the problem (including this \
-            message) to the file {:#?}. Please include the contents of this \
+            message) to the file {}. Please include the contents of this \
             file in your bug report.
             \n\
             > Error information\n\
@@ -201,13 +131,17 @@ fn main() {
             The information below is intended for developers and testers.\n\
             \n\
             Panic Payload: {:?}\n\
-            PanicInfo: {}",
-            // TODO: Verify that this works
-            Settings::get_settings_path()
+            PanicInfo: {}\n\
+            Game version: {} [{}]",
+            Settings::load()
+                .log
+                .logs_path
                 .join("voxygen-<date>.log")
                 .display(),
             reason,
             panic_info,
+            common::util::GIT_HASH.to_string(),
+            common::util::GIT_DATE.to_string()
         );
 
         error!(

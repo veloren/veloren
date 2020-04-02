@@ -1,7 +1,10 @@
 use crate::{sys, Server, StateExt};
-use common::comp::{
-    self, Agent, Alignment, Body, Gravity, LightEmitter, Pos, Projectile, Scale, Stats, Vel,
-    WaypointArea,
+use common::{
+    comp::{
+        self, Agent, Alignment, Body, Gravity, LightEmitter, Loadout, Pos, Projectile, Scale,
+        Stats, Vel, WaypointArea,
+    },
+    util::Dir,
 };
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
@@ -16,7 +19,7 @@ pub fn handle_create_character(
     let state = &mut server.state;
     let server_settings = &server.server_settings;
 
-    Server::create_player_character(state, entity, name, body, main, server_settings);
+    state.create_player_character(entity, name, body, main, server_settings);
     sys::subscription::initialize_region_subscription(state.ecs(), entity);
 }
 
@@ -24,6 +27,7 @@ pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,
     stats: Stats,
+    loadout: Loadout,
     body: Body,
     agent: Agent,
     alignment: Alignment,
@@ -31,7 +35,7 @@ pub fn handle_create_npc(
 ) {
     server
         .state
-        .create_npc(pos, stats, body)
+        .create_npc(pos, stats, loadout, body)
         .with(agent)
         .with(scale)
         .with(alignment)
@@ -41,7 +45,7 @@ pub fn handle_create_npc(
 pub fn handle_shoot(
     server: &mut Server,
     entity: EcsEntity,
-    dir: Vec3<f32>,
+    dir: Dir,
     body: Body,
     light: Option<LightEmitter>,
     projectile: Projectile,
@@ -59,8 +63,7 @@ pub fn handle_shoot(
     // TODO: Player height
     pos.z += 1.2;
 
-    let mut builder =
-        Server::create_projectile(state, Pos(pos), Vel(dir * 100.0), body, projectile);
+    let mut builder = state.create_projectile(Pos(pos), Vel(*dir * 100.0), body, projectile);
     if let Some(light) = light {
         builder = builder.with(light)
     }
@@ -73,6 +76,7 @@ pub fn handle_shoot(
 
 pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
     server
+        .state
         .create_object(Pos(pos), comp::object::Body::CampfireLit)
         .with(LightEmitter {
             offset: Vec3::unit_z() * 0.5,

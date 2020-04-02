@@ -40,7 +40,7 @@ pub struct DeltaTime(pub f32);
 /// this value, the game's physics will begin to produce time lag. Ideally, we'd
 /// avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
-const HUMANOID_JUMP_ACCEL: f32 = 26.0;
+const HUMANOID_JUMP_ACCEL: f32 = 16.0;
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -106,6 +106,7 @@ impl State {
         // Uids for sync
         ecs.register_sync_marker();
         // Register server -> all clients synced components.
+        ecs.register::<comp::Loadout>();
         ecs.register::<comp::Body>();
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();
@@ -119,12 +120,12 @@ impl State {
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Gravity>();
+        ecs.register::<comp::CharacterState>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
 
         // Register components send directly from server -> all but one client
-        ecs.register::<comp::CharacterState>();
         ecs.register::<comp::PhysicsState>();
 
         // Register components synced from client -> server -> all other clients
@@ -138,7 +139,6 @@ impl State {
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
-        ecs.register::<comp::Last<comp::CharacterState>>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::WaypointArea>();
@@ -147,6 +147,7 @@ impl State {
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
         ecs.register::<comp::Projectile>();
+        ecs.register::<comp::Attacking>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));
@@ -286,8 +287,35 @@ impl State {
         }
     }
 
+    // Run RegionMap tick to update entity region occupancy
+    pub fn update_region_map(&self) {
+        self.ecs.write_resource::<RegionMap>().tick(
+            self.ecs.read_storage::<comp::Pos>(),
+            self.ecs.read_storage::<comp::Vel>(),
+            self.ecs.entities(),
+        );
+    }
+
+    // Apply terrain changes
+    pub fn apply_terrain_changes(&self) {
+        let mut terrain = self.ecs.write_resource::<TerrainGrid>();
+        let mut modified_blocks = std::mem::replace(
+            &mut self.ecs.write_resource::<BlockChange>().blocks,
+            Default::default(),
+        );
+        // Apply block modifications
+        // Only include in `TerrainChanges` if successful
+        modified_blocks.retain(|pos, block| terrain.set(*pos, *block).is_ok());
+        self.ecs.write_resource::<TerrainChanges>().modified_blocks = modified_blocks;
+    }
+
     /// Execute a single tick, simulating the game state by the given duration.
-    pub fn tick(&mut self, dt: Duration, add_foreign_systems: impl Fn(&mut DispatcherBuilder)) {
+    pub fn tick(
+        &mut self,
+        dt: Duration,
+        add_foreign_systems: impl Fn(&mut DispatcherBuilder),
+        update_terrain_and_regions: bool,
+    ) {
         // Change the time accordingly.
         self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
         self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
@@ -297,12 +325,9 @@ impl State {
         // important physics events.
         self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f32().min(MAX_DELTA_TIME);
 
-        // Run RegionMap tick to update entity region occupancy
-        self.ecs.write_resource::<RegionMap>().tick(
-            self.ecs.read_storage::<comp::Pos>(),
-            self.ecs.read_storage::<comp::Vel>(),
-            self.ecs.entities(),
-        );
+        if update_terrain_and_regions {
+            self.update_region_map();
+        }
 
         // Run systems to update the world.
         // Create and run a dispatcher for ecs systems.
@@ -315,16 +340,9 @@ impl State {
 
         self.ecs.maintain();
 
-        // Apply terrain changes
-        let mut terrain = self.ecs.write_resource::<TerrainGrid>();
-        let mut modified_blocks = std::mem::replace(
-            &mut self.ecs.write_resource::<BlockChange>().blocks,
-            Default::default(),
-        );
-        // Apply block modifications
-        // Only include in `TerrainChanges` if successful
-        modified_blocks.retain(|pos, block| terrain.set(*pos, *block).is_ok());
-        self.ecs.write_resource::<TerrainChanges>().modified_blocks = modified_blocks;
+        if update_terrain_and_regions {
+            self.apply_terrain_changes();
+        }
 
         // Process local events
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
@@ -335,6 +353,13 @@ impl State {
                 LocalEvent::Jump(entity) => {
                     if let Some(vel) = velocities.get_mut(entity) {
                         vel.0.z = HUMANOID_JUMP_ACCEL;
+                    }
+                },
+                LocalEvent::ApplyForce { entity, force } => {
+                    // TODO: this sets the velocity directly to the value of `force`, consider
+                    // renaming the event or changing the behavior
+                    if let Some(vel) = velocities.get_mut(entity) {
+                        vel.0 = force;
                     }
                 },
                 LocalEvent::WallLeap { entity, wall_dir } => {

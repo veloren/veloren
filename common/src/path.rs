@@ -218,8 +218,26 @@ where
         ];
 
         DIRS.iter()
-            .map(move |dir| pos + dir)
-            .filter(move |pos| is_walkable(pos))
+            .map(move |dir| (pos, dir))
+            .filter(move |(pos, dir)| {
+                is_walkable(pos)
+                    && ((dir.z < 1
+                        || vol
+                            .get(pos + Vec3::unit_z() * 2)
+                            .map(|b| !b.is_solid())
+                            .unwrap_or(true))
+                        && (dir.z < 2
+                            || vol
+                                .get(pos + Vec3::unit_z() * 3)
+                                .map(|b| !b.is_solid())
+                                .unwrap_or(true))
+                        && (dir.z >= 0
+                            || vol
+                                .get(pos + *dir + Vec3::unit_z() * 2)
+                                .map(|b| !b.is_solid())
+                                .unwrap_or(true)))
+            })
+            .map(move |(pos, dir)| pos + dir)
             .chain(
                 DIAGONALS
                     .iter()

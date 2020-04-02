@@ -1,15 +1,18 @@
 pub mod item;
 
-// Reexports
-pub use item::{Debug, Item, ItemKind, Tool};
-
 use crate::assets;
-use specs::{Component, HashMapStorage, NullStorage};
+use item::{Consumable, Item, ItemKind};
+use specs::{Component, FlaggedStorage, HashMapStorage};
+use specs_idvs::IDVStorage;
 use std::ops::Not;
+
+// The limit on distance between the entity and a collectible (squared)
+pub const MAX_PICKUP_RANGE_SQR: f32 = 64.0;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
     pub slots: Vec<Option<Item>>,
+    pub amount: u32,
 }
 
 /// Errors which the methods on `Inventory` produce
@@ -25,16 +28,123 @@ impl Inventory {
 
     pub fn len(&self) -> usize { self.slots.len() }
 
+    pub fn recount_items(&mut self) {
+        self.amount = self.slots.iter().filter(|i| i.is_some()).count() as u32;
+    }
+
+    /// Adds a new item to the first fitting group of the inventory or starts a
+    /// new group. Returns the item again if no space was found.
+    pub fn push(&mut self, item: Item) -> Option<Item> {
+        let item = match item.kind {
+            ItemKind::Tool(_) | ItemKind::Armor { .. } => self.add_to_first_empty(item),
+            ItemKind::Utility {
+                kind: item_kind,
+                amount: new_amount,
+            } => {
+                for slot in &mut self.slots {
+                    if slot
+                        .as_ref()
+                        .map(|s| s.name() == item.name())
+                        .unwrap_or(false)
+                        && slot
+                            .as_ref()
+                            .map(|s| s.description() == item.description())
+                            .unwrap_or(false)
+                    {
+                        if let Some(Item {
+                            kind: ItemKind::Utility { kind, amount },
+                            ..
+                        }) = slot
+                        {
+                            if item_kind == *kind {
+                                *amount += new_amount;
+                                self.recount_items();
+                                return None;
+                            }
+                        }
+                    }
+                }
+                // It didn't work
+                self.add_to_first_empty(item)
+            },
+            ItemKind::Consumable {
+                kind: item_kind,
+                amount: new_amount,
+                ..
+            } => {
+                for slot in &mut self.slots {
+                    if slot
+                        .as_ref()
+                        .map(|s| s.name() == item.name())
+                        .unwrap_or(false)
+                        && slot
+                            .as_ref()
+                            .map(|s| s.description() == item.description())
+                            .unwrap_or(false)
+                    {
+                        if let Some(Item {
+                            kind: ItemKind::Consumable { kind, amount, .. },
+                            ..
+                        }) = slot
+                        {
+                            if item_kind == *kind {
+                                *amount += new_amount;
+                                self.recount_items();
+                                return None;
+                            }
+                        }
+                    }
+                }
+                // It didn't work
+                self.add_to_first_empty(item)
+            },
+            ItemKind::Ingredient {
+                kind: item_kind,
+                amount: new_amount,
+            } => {
+                for slot in &mut self.slots {
+                    if slot
+                        .as_ref()
+                        .map(|s| s.name() == item.name())
+                        .unwrap_or(false)
+                        && slot
+                            .as_ref()
+                            .map(|s| s.description() == item.description())
+                            .unwrap_or(false)
+                    {
+                        if let Some(Item {
+                            kind: ItemKind::Ingredient { kind, amount },
+                            ..
+                        }) = slot
+                        {
+                            if item_kind == *kind {
+                                *amount += new_amount;
+                                self.recount_items();
+                                return None;
+                            }
+                        }
+                    }
+                }
+                // It didn't work
+                self.add_to_first_empty(item)
+            },
+        };
+        self.recount_items();
+        item
+    }
+
     /// Adds a new item to the first empty slot of the inventory. Returns the
     /// item again if no free slot was found.
-    pub fn push(&mut self, item: Item) -> Option<Item> {
-        match self.slots.iter_mut().find(|slot| slot.is_none()) {
+    fn add_to_first_empty(&mut self, item: Item) -> Option<Item> {
+        let item = match self.slots.iter_mut().find(|slot| slot.is_none()) {
             Some(slot) => {
                 *slot = Some(item);
                 None
             },
             None => Some(item),
-        }
+        };
+        self.recount_items();
+        item
     }
 
     /// Add a series of items to inventory, returning any which do not fit as an
@@ -50,6 +160,7 @@ impl Inventory {
                 leftovers.push(item);
             }
         }
+        self.recount_items();
         if leftovers.len() > 0 {
             Err(Error::Full(leftovers))
         } else {
@@ -87,6 +198,7 @@ impl Inventory {
             Some(slot) => {
                 let old = slot.take();
                 *slot = Some(item);
+                self.recount_items();
                 Ok(old)
             },
             None => Err(item),
@@ -117,14 +229,73 @@ impl Inventory {
 
     /// Remove an item from the slot
     pub fn remove(&mut self, cell: usize) -> Option<Item> {
-        self.slots.get_mut(cell).and_then(|item| item.take())
+        let item = self.slots.get_mut(cell).and_then(|item| item.take());
+        self.recount_items();
+        item
+    }
+
+    /// Remove just one item from the slot
+    pub fn take(&mut self, cell: usize) -> Option<Item> {
+        if let Some(Some(item)) = self.slots.get_mut(cell) {
+            let mut return_item = item.clone();
+            match &mut item.kind {
+                ItemKind::Tool(_) | ItemKind::Armor { .. } => self.remove(cell),
+                ItemKind::Utility { kind, amount } => {
+                    if *amount <= 1 {
+                        self.remove(cell)
+                    } else {
+                        *amount -= 1;
+                        return_item.kind = ItemKind::Utility {
+                            kind: *kind,
+                            amount: 1,
+                        };
+                        self.recount_items();
+                        Some(return_item)
+                    }
+                },
+                ItemKind::Consumable {
+                    kind,
+                    amount,
+                    effect,
+                } => {
+                    if *amount <= 1 {
+                        self.remove(cell)
+                    } else {
+                        *amount -= 1;
+                        return_item.kind = ItemKind::Consumable {
+                            kind: *kind,
+                            effect: *effect,
+                            amount: 1,
+                        };
+                        self.recount_items();
+                        Some(return_item)
+                    }
+                },
+                ItemKind::Ingredient { kind, amount } => {
+                    if *amount <= 1 {
+                        self.remove(cell)
+                    } else {
+                        *amount -= 1;
+                        return_item.kind = ItemKind::Ingredient {
+                            kind: *kind,
+                            amount: 1,
+                        };
+                        self.recount_items();
+                        Some(return_item)
+                    }
+                },
+            }
+        } else {
+            None
+        }
     }
 }
 
 impl Default for Inventory {
     fn default() -> Inventory {
         let mut inventory = Inventory {
-            slots: vec![None; 25],
+            slots: vec![None; 18],
+            amount: 0,
         };
         inventory.push(assets::load_expect_cloned("common.items.cheese"));
         inventory.push(assets::load_expect_cloned("common.items.apple"));
@@ -136,12 +307,38 @@ impl Component for Inventory {
     type Storage = HashMapStorage<Self>;
 }
 
-// ForceUpdate
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub enum InventoryUpdateEvent {
+    Init,
+    Used,
+    Consumed(Consumable),
+    Gave,
+    Given,
+    Swapped,
+    Dropped,
+    Collected,
+    CollectFailed,
+    Possession,
+    Debug,
+}
+
+impl Default for InventoryUpdateEvent {
+    fn default() -> Self { Self::Init }
+}
+
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
-pub struct InventoryUpdate;
+pub struct InventoryUpdate {
+    event: InventoryUpdateEvent,
+}
+
+impl InventoryUpdate {
+    pub fn new(event: InventoryUpdateEvent) -> Self { Self { event } }
+
+    pub fn event(&self) -> InventoryUpdateEvent { self.event }
+}
 
 impl Component for InventoryUpdate {
-    type Storage = NullStorage<Self>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
 #[cfg(test)] mod test;

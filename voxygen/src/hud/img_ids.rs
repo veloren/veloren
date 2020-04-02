@@ -9,28 +9,17 @@ rotation_image_ids! {
         tt_side: "voxygen/element/frames/tt_test_edge",
         tt_corner: "voxygen/element/frames/tt_test_corner_tr",
 
+        <ImageGraphic>
+        indicator_mmap_small: "voxygen.element.buttons.indicator_mmap_small",
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <VoxelPixArtGraphic>
-
-        // Minimap
-        indicator_mmap_small: "voxygen.element.buttons.indicator_mmap_small",
     }
 }
 
 image_ids! {
     pub struct Imgs {
         <VoxelGraphic>
-
-        // Bag
-        bag_contents: "voxygen.element.frames.bag",
-        inv_grid: "voxygen.element.frames.inv_grid",
-        inv_slot: "voxygen.element.buttons.inv_slot",
-        inv_slot_sel: "voxygen.element.buttons.inv_slot_sel",
-        grid_inv: "voxygen.element.buttons.grid_inv",
-        bag_top: "voxygen.element.bag.top",
-        bag_mid: "voxygen.element.bag.mid",
-        bag_bot: "voxygen.element.bag.bot",
 
         // Skillbar
         xp_bar_mid: "voxygen.element.skillbar.xp_bar_mid",
@@ -67,10 +56,6 @@ image_ids! {
         tab_small_open: "voxygen.element.frames.tab_small_open",
         tab_small_closed: "voxygen.element.frames.tab_small_closed",
 
-        // MiniMap
-        mmap_frame: "voxygen.element.frames.mmap",
-        mmap_frame_closed: "voxygen.element.frames.mmap_closed",
-
         // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
         window_frame: "voxygen.element.frames.window2",
 
@@ -93,71 +78,30 @@ image_ids! {
         slider_indicator: "voxygen.element.slider.indicator",
         esc_frame: "voxygen.element.frames.esc_menu",
 
-        // Map Window
-        map_frame_l: "voxygen.element.frames.map_l",
-        map_frame_r: "voxygen.element.frames.map_r",
-        map_frame_bl: "voxygen.element.frames.map_bl",
-        map_frame_br: "voxygen.element.frames.map_br",
-        pos_indicator: "voxygen.element.buttons.qlog",
-
         // Chat-Arrows
         chat_arrow: "voxygen.element.buttons.arrow_down",
         chat_arrow_mo: "voxygen.element.buttons.arrow_down_hover",
         chat_arrow_press: "voxygen.element.buttons.arrow_down_press",
-
-        // Crosshair
-        crosshair_inner: "voxygen.element.misc_bg.crosshair_inner",
 
 
 
 ////////////////////////////////////////////////////////////////////////
         <VoxelPixArtGraphic>
 
-         // Esc-Menu
-        fireplace: "voxygen.element.misc_bg.fireplace",
-
         // Skill Icons
-        twohsword_m1: "voxygen.element.icons.2hsword_m1",
-        twohsword_m2: "voxygen.element.icons.2hsword_m2",
-        twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
-        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
-        twohaxe_m1: "voxygen.element.icons.2haxe_m1",
-        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
-        bow_m1: "voxygen.element.icons.bow_m1",
         bow_m2: "voxygen.element.icons.bow_m2",
-        staff_m1: "voxygen.element.icons.staff_m1",
-        staff_m2: "voxygen.element.icons.staff_m2",
-        flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
-        flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
-        charge: "voxygen.element.icons.skill_charge_3",
-
 
         // Icons
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
-        apple: "voxygen.element.icons.item_apple",
-        mushroom: "voxygen.element.icons.item_mushroom",
-        skull: "voxygen.element.icons.skull",
-        skull_2: "voxygen.element.icons.skull_2",
+
+        // Minimap
 
         // Map
-        indicator_mmap: "voxygen.element.buttons.indicator_mmap",
         indicator_mmap_2: "voxygen.element.buttons.indicator_mmap_2",
         indicator_mmap_3: "voxygen.element.buttons.indicator_mmap_3",
 
-        // Crosshair
-
-        crosshair_outer_round: "voxygen.element.misc_bg.crosshair_outer_1",
-        crosshair_outer_round_edges: "voxygen.element.misc_bg.crosshair_outer_2",
-        crosshair_outer_edges: "voxygen.element.misc_bg.crosshair_outer_3",
-
-        crosshair_bg: "voxygen.element.misc_bg.crosshair_bg",
-        crosshair_bg_hover: "voxygen.element.misc_bg.crosshair_bg_hover",
-        crosshair_bg_press: "voxygen.element.misc_bg.crosshair_bg_press",
-        crosshair_bg_pressed: "voxygen.element.misc_bg.crosshair_bg_pressed",
-
         // Checkboxes and Radio buttons
-
         check: "voxygen.element.buttons.radio.inactive",
         check_mo: "voxygen.element.buttons.radio.inactive_hover",
         check_press: "voxygen.element.buttons.radio.press",
@@ -168,20 +112,6 @@ image_ids! {
         checkbox_press: "voxygen.element.buttons.checkbox.press",
         checkbox_checked: "voxygen.element.buttons.checkbox.active",
         checkbox_checked_mo: "voxygen.element.buttons.checkbox.hover",
-
-        // Buttons
-        mmap_closed: "voxygen.element.buttons.button_mmap_closed",
-        mmap_closed_hover: "voxygen.element.buttons.button_mmap_closed_hover",
-        mmap_closed_press: "voxygen.element.buttons.button_mmap_closed_press",
-        mmap_open: "voxygen.element.buttons.button_mmap_open",
-        mmap_open_hover: "voxygen.element.buttons.button_mmap_open_hover",
-        mmap_open_press: "voxygen.element.buttons.button_mmap_open_press",
-        mmap_plus: "voxygen.element.buttons.min_plus.mmap_button-plus",
-        mmap_plus_hover: "voxygen.element.buttons.min_plus.mmap_button-plus_hover",
-        mmap_plus_press: "voxygen.element.buttons.min_plus.mmap_button-plus_press",
-        mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
-        mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
-        mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
 
         // Grid
         grid: "voxygen.element.buttons.grid",
@@ -204,17 +134,102 @@ image_ids! {
         spellbook_hover: "voxygen.element.buttons.spellbook_hover",
         spellbook_press: "voxygen.element.buttons.spellbook_press",
 
-        character_button: "voxygen.element.buttons.character",
-        character_hover: "voxygen.element.buttons.character_hover",
-        character_press: "voxygen.element.buttons.character_press",
-
-        qlog_button: "voxygen.element.buttons.qlog",
-        qlog_hover: "voxygen.element.buttons.qlog_hover",
-        qlog_press: "voxygen.element.buttons.qlog_press",
-
         // Charwindow
         xp_charwindow: "voxygen.element.frames.xp_charwindow",
         divider: "voxygen.element.frames.divider_charwindow",
+
+
+        // Items
+        potion_red: "voxygen.voxel.object.potion_red",
+        potion_green: "voxygen.voxel.object.potion_green",
+        potion_blue: "voxygen.voxel.object.potion_blue",
+        key: "voxygen.voxel.object.key",
+        key_gold: "voxygen.voxel.object.key_gold",
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        <ImageGraphic>
+
+        // Skill Icons
+        twohsword_m1: "voxygen.element.icons.2hsword_m1",
+        twohsword_m2: "voxygen.element.icons.2hsword_m2",
+        twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
+        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
+        twohaxe_m1: "voxygen.element.icons.2haxe_m1",
+        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
+        bow_m1: "voxygen.element.icons.bow_m1",
+        //bow_m2: "voxygen.element.icons.bow_m2",
+        staff_m1: "voxygen.element.icons.staff_m1",
+        staff_m2: "voxygen.element.icons.staff_m2",
+        flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
+        flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
+        charge: "voxygen.element.icons.skill_charge_3",
+
+        // Other Icons/Art
+        skull: "voxygen.element.icons.skull",
+        skull_2: "voxygen.element.icons.skull_2",
+        fireplace: "voxygen.element.misc_bg.fireplace",
+
+        // Crosshair
+        crosshair_inner: "voxygen.element.misc_bg.crosshair_inner",
+
+        crosshair_outer_round: "voxygen.element.misc_bg.crosshair_outer_1",
+        crosshair_outer_round_edges: "voxygen.element.misc_bg.crosshair_outer_2",
+        crosshair_outer_edges: "voxygen.element.misc_bg.crosshair_outer_3",
+
+        crosshair_bg: "voxygen.element.misc_bg.crosshair_bg",
+        crosshair_bg_hover: "voxygen.element.misc_bg.crosshair_bg_hover",
+        crosshair_bg_press: "voxygen.element.misc_bg.crosshair_bg_press",
+        crosshair_bg_pressed: "voxygen.element.misc_bg.crosshair_bg_pressed",
+
+        // Map
+        map_bg: "voxygen.element.misc_bg.map_bg",
+        map_frame: "voxygen.element.misc_bg.map_frame",
+        map_frame_art: "voxygen.element.misc_bg.map_frame_art",
+        indicator_mmap: "voxygen.element.buttons.indicator_mmap",
+
+        // MiniMap
+        mmap_frame: "voxygen.element.frames.mmap",
+        mmap_frame_2: "voxygen.element.frames.mmap_frame",
+        mmap_frame_closed: "voxygen.element.frames.mmap_closed",
+        mmap_closed: "voxygen.element.buttons.button_mmap_closed",
+        mmap_closed_hover: "voxygen.element.buttons.button_mmap_closed_hover",
+        mmap_closed_press: "voxygen.element.buttons.button_mmap_closed_press",
+        mmap_open: "voxygen.element.buttons.button_mmap_open",
+        mmap_open_hover: "voxygen.element.buttons.button_mmap_open_hover",
+        mmap_open_press: "voxygen.element.buttons.button_mmap_open_press",
+        mmap_plus: "voxygen.element.buttons.min_plus.mmap_button-plus",
+        mmap_plus_hover: "voxygen.element.buttons.min_plus.mmap_button-plus_hover",
+        mmap_plus_press: "voxygen.element.buttons.min_plus.mmap_button-plus_press",
+        mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
+        mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
+        mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
+
+        // Close-Button
+        close_btn: "voxygen.element.buttons.close_btn",
+        close_btn_hover: "voxygen.element.buttons.close_btn_hover",
+        close_btn_press: "voxygen.element.buttons.close_btn_press",
+        close_button: "voxygen.element.buttons.close_btn",
+        close_button_hover: "voxygen.element.buttons.close_btn_hover",
+        close_button_press: "voxygen.element.buttons.close_btn_press",
+
+        // Inventory
+        coin_ico: "voxygen.element.icons.coin",
+        inv_bg_armor: "voxygen.element.misc_bg.inv_bg_0",
+        inv_bg_stats: "voxygen.element.misc_bg.inv_bg_1",
+        inv_frame: "voxygen.element.misc_bg.inv_frame",
+        char_art: "voxygen.element.icons.character",
+        inv_slot: "voxygen.element.buttons.inv_slot",
+        inv_slot_sel: "voxygen.element.buttons.inv_slot_sel",
+        scrollbar_bg: "voxygen.element.slider.scrollbar",
+        inv_tab_active: "voxygen.element.buttons.inv_tab_active",
+        inv_tab_inactive: "voxygen.element.buttons.inv_tab_inactive",
+        inv_tab_inactive_hover: "voxygen.element.buttons.inv_tab_inactive",
+        inv_tab_inactive_press: "voxygen.element.buttons.inv_tab_inactive",
+        inv_slots: "voxygen.element.misc_bg.inv_slots",
+        inv_runes: "voxygen.element.misc_bg.inv_runes",
+        armor_slot: "voxygen.element.buttons.armor_slot",
         head_bg: "voxygen.element.icons.head",
         shoulders_bg: "voxygen.element.icons.shoulders",
         hands_bg: "voxygen.element.icons.hands",
@@ -226,44 +241,25 @@ image_ids! {
         tabard_bg: "voxygen.element.icons.tabard",
         chest_bg: "voxygen.element.icons.chest",
         back_bg: "voxygen.element.icons.back",
-        gem_bg: "voxygen.element.icons.gem",
         necklace_bg: "voxygen.element.icons.necklace",
         mainhand_bg: "voxygen.element.icons.mainhand",
         offhand_bg: "voxygen.element.icons.offhand",
-
-        // Close button
-        close_button: "voxygen.element.buttons.x",
-        close_button_hover: "voxygen.element.buttons.x_hover",
-        close_button_press: "voxygen.element.buttons.x_press",
-
-
-        // Items
-        potion_red: "voxygen.voxel.object.potion_red",
-        potion_green: "voxygen.voxel.object.potion_green",
-        potion_blue: "voxygen.voxel.object.potion_blue",
-        key: "voxygen.voxel.object.key",
-        key_gold: "voxygen.voxel.object.key_gold",
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        <ImageGraphic>
+        willpower_ico: "voxygen.element.icons.willpower",
+        endurance_ico: "voxygen.element.icons.endurance",
+        fitness_ico: "voxygen.element.icons.fitness",
 
         not_found:"voxygen.element.not_found",
 
         help:"voxygen.element.help",
-
-        charwindow_gradient:"voxygen.element.misc_bg.charwindow",
 
         death_bg: "voxygen.background.death",
         hurt_bg: "voxygen.background.hurt",
 
         banner_top: "voxygen.element.frames.banner_top",
 
-
+        // Icons
+        fire_spell_1: "voxygen.element.icons.fire_spell_0",
+        heal_0: "voxygen.element.icons.heal_0",
 
         // Buttons
         button: "voxygen.element.buttons.button",
@@ -275,8 +271,6 @@ image_ids! {
         enemy_health_bg: "voxygen.element.frames.enemybar_bg",
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.skillbar.enemy_bar_content",
-        // Spell Book Window
-        spellbook_icon: "voxygen.element.icons.spellbook",
         // Bag
         bag: "voxygen.element.buttons.bag.closed",
         bag_hover: "voxygen.element.buttons.bag.closed_hover",
@@ -295,13 +289,6 @@ image_ids! {
         // Char Window
         progress_frame: "voxygen.element.frames.progress_bar",
         progress: "voxygen.element.misc_bg.progress",
-
-        // Quest-Log Window
-        questlog_icon: "voxygen.element.icons.questlog",
-
-
-        // Social Window
-        social_icon: "voxygen.element.icons.social",
 
         <BlankGraphic>
         nothing: (),

@@ -6,7 +6,10 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{ActionState, Body, CharacterState, Equipment, MovementState},
+    comp::{
+        item::{tool::ToolKind, ItemKind},
+        Body, CharacterState, Item, Loadout,
+    },
 };
 use hashbrown::{hash_map::Entry, HashMap};
 use std::{
@@ -17,25 +20,38 @@ use std::{
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
-    Complex(
-        Body,
-        Option<Equipment>,
-        CameraMode,
-        Option<CharacterStateCacheKey>,
-    ),
+    Complex(Body, CameraMode, CharacterCacheKey),
 }
 
 #[derive(PartialEq, Eq, Hash, Clone)]
-struct CharacterStateCacheKey {
-    movement: Discriminant<MovementState>,
-    action: Discriminant<ActionState>,
+struct CharacterCacheKey {
+    state: Option<Discriminant<CharacterState>>, // TODO: Can this be simplified?
+    active_tool: Option<ToolKind>,
+    shoulder: Option<Item>,
+    chest: Option<Item>,
+    belt: Option<Item>,
+    hand: Option<Item>,
+    pants: Option<Item>,
+    foot: Option<Item>,
 }
 
-impl From<&CharacterState> for CharacterStateCacheKey {
-    fn from(cs: &CharacterState) -> Self {
+impl CharacterCacheKey {
+    fn from(cs: Option<&CharacterState>, loadout: &Loadout) -> Self {
         Self {
-            movement: discriminant(&cs.movement),
-            action: discriminant(&cs.action),
+            state: cs.map(|cs| discriminant(cs)),
+            active_tool: if let Some(ItemKind::Tool(tool)) =
+                loadout.active_item.as_ref().map(|i| &i.item.kind)
+            {
+                Some(tool.kind)
+            } else {
+                None
+            },
+            shoulder: loadout.shoulder.clone(),
+            chest: loadout.chest.clone(),
+            belt: loadout.belt.clone(),
+            hand: loadout.hand.clone(),
+            pants: loadout.pants.clone(),
+            foot: loadout.foot.clone(),
         }
     }
 }
@@ -60,7 +76,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         &mut self,
         renderer: &mut Renderer,
         body: Body,
-        equipment: Option<&Equipment>,
+        loadout: Option<&Loadout>,
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
@@ -69,12 +85,11 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         for<'a> &'a common::comp::Body: std::convert::TryInto<Skel::Attr>,
         Skel::Attr: Default,
     {
-        let key = if equipment.is_some() {
+        let key = if let Some(loadout) = loadout {
             FigureKey::Complex(
                 body,
-                equipment.cloned(),
                 camera_mode,
-                character_state.map(|cs| CharacterStateCacheKey::from(cs)),
+                CharacterCacheKey::from(character_state, loadout),
             )
         } else {
             FigureKey::Simple(body)
@@ -107,6 +122,12 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     HumArmorPantsSpec::load_watched(&mut self.manifest_indicator);
                                 let humanoid_armor_foot_spec =
                                     HumArmorFootSpec::load_watched(&mut self.manifest_indicator);
+                                let humanoid_main_weapon_spec =
+                                    HumMainWeaponSpec::load_watched(&mut self.manifest_indicator);
+
+                                // TODO: This is bad code, maybe this method should return Option<_>
+                                let default_loadout = Loadout::default();
+                                let loadout = loadout.unwrap_or(&default_loadout);
 
                                 [
                                     match camera_mode {
@@ -126,78 +147,83 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_chest_spec.mesh_chest(&body))
-                                        },
+                                        CameraMode::ThirdPerson => Some(
+                                            humanoid_armor_chest_spec.mesh_chest(&body, loadout),
+                                        ),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_belt_spec.mesh_belt(&body))
+                                            Some(humanoid_armor_belt_spec.mesh_belt(&body, loadout))
                                         },
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_pants_spec.mesh_pants(&body))
-                                        },
+                                        CameraMode::ThirdPerson => Some(
+                                            humanoid_armor_pants_spec.mesh_pants(&body, loadout),
+                                        ),
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode == CameraMode::FirstPerson
                                         && character_state
-                                            .map(|cs| cs.action.is_roll())
+                                            .map(|cs| cs.is_dodge())
                                             .unwrap_or_default()
                                     {
                                         None
                                     } else {
-                                        Some(humanoid_armor_hand_spec.mesh_left_hand(&body))
+                                        Some(
+                                            humanoid_armor_hand_spec.mesh_left_hand(&body, loadout),
+                                        )
                                     },
-                                    if character_state
-                                        .map(|cs| cs.action.is_roll())
-                                        .unwrap_or_default()
-                                    {
+                                    if character_state.map(|cs| cs.is_dodge()).unwrap_or_default() {
                                         None
                                     } else {
-                                        Some(humanoid_armor_hand_spec.mesh_right_hand(&body))
-                                    },
-                                    match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_foot_spec.mesh_left_foot(&body))
-                                        },
-                                        CameraMode::FirstPerson => None,
-                                    },
-                                    match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(humanoid_armor_foot_spec.mesh_right_foot(&body))
-                                        },
-                                        CameraMode::FirstPerson => None,
-                                    },
-                                    if camera_mode != CameraMode::FirstPerson
-                                        || character_state
-                                            .map(|cs| {
-                                                cs.action.is_attack()
-                                                    || cs.action.is_block()
-                                                    || cs.action.is_wield()
-                                            })
-                                            .unwrap_or_default()
-                                    {
-                                        Some(mesh_main(equipment.and_then(|e| e.main.as_ref())))
-                                    } else {
-                                        None
+                                        Some(
+                                            humanoid_armor_hand_spec
+                                                .mesh_right_hand(&body, loadout),
+                                        )
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_shoulder_spec.mesh_left_shoulder(&body),
+                                            humanoid_armor_foot_spec.mesh_left_foot(&body, loadout),
                                         ),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => Some(
-                                            humanoid_armor_shoulder_spec.mesh_right_shoulder(&body),
+                                            humanoid_armor_foot_spec
+                                                .mesh_right_foot(&body, loadout),
+                                        ),
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode {
+                                        CameraMode::ThirdPerson => Some(
+                                            humanoid_armor_shoulder_spec
+                                                .mesh_left_shoulder(&body, loadout),
+                                        ),
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode {
+                                        CameraMode::ThirdPerson => Some(
+                                            humanoid_armor_shoulder_spec
+                                                .mesh_right_shoulder(&body, loadout),
                                         ),
                                         CameraMode::FirstPerson => None,
                                     },
                                     Some(mesh_glider()),
+                                    if camera_mode != CameraMode::FirstPerson
+                                        || character_state
+                                            .map(|cs| {
+                                                cs.is_attack() || cs.is_block() || cs.is_wield()
+                                            })
+                                            .unwrap_or_default()
+                                    {
+                                        Some(humanoid_main_weapon_spec.mesh_main_weapon(
+                                            loadout.active_item.as_ref().map(|i| &i.item.kind),
+                                        ))
+                                    } else {
+                                        None
+                                    },
                                     Some(mesh_lantern()),
                                     None,
                                     None,
