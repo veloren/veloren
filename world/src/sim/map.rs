@@ -626,7 +626,7 @@ impl<'a> MapConfig<'a> {
                             1.0
                         }
                     })
-                    .unwrap_or(alt as f64);
+                    .unwrap_or(1.0);
 
                 let rgb = if is_shaded {
                     // Phong reflection model with shadows:
@@ -643,7 +643,7 @@ impl<'a> MapConfig<'a> {
                     //
                     // for each light m,
                     //  i_m,d = (RGB) intensity of diffuse component of light source m
-                    let i_m_d = Rgb::new(0.45, 0.45, 0.45);
+                    let i_m_d = Rgb::new(1.0, 1.0, 1.0);
                     //  i_m,s = (RGB) intensity of specular component of light source m
                     let i_m_s = Rgb::new(0.45, 0.45, 0.45);
                     // let i_m_s = Rgb::new(0.45, 0.45, 0.45);

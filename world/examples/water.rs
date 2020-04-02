@@ -273,6 +273,12 @@ fn main() {
         if win.is_key_down(minifb::Key::L) {
             if is_camera {
                 // TODO: implement removing horizon mapping.
+                horizons = if horizons.is_some() {
+                    None
+                } else {
+                    refresh_horizons(lgain, is_basement, is_water)
+                };
+                samples_changed = true;
             } else {
                 is_shaded ^= true;
                 samples_changed = true;
