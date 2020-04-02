@@ -191,6 +191,19 @@ Bu pencereyi kapatmak için imlecini serbest bırakmak mı istiyorsun? TAB'a bas
 
 Veloren'in Dünyasında sana iyi eğlenceler!"#,
 
+
+        // Inventory
+        "hud.bag.inventory": "'in Envanteri",
+        "hud.bag.stats_title": "'in Nitelikleri",
+        "hud.bag.exp": "Tecrübe",
+        "hud.bag.armor": "Zırh",
+        "hud.bag.stats": "Nitelikler",
+
+        // Map and Questlog
+        "hud.map.map_title": "Harita",
+        "hud.map.qlog_title": "Görevler",
+
+        // Settings
         "hud.settings.general": "Genel",
         "hud.settings.none": "Yok",
         "hud.settings.press_behavior.toggle": "Aç/kapa",
@@ -203,7 +216,7 @@ Veloren'in Dünyasında sana iyi eğlenceler!"#,
         "hud.settings.custom_scaling": "Özel Ölçek",
         "hud.settings.crosshair": "İmleç tipi",
         "hud.settings.transparency": "Şeffaflık",
-        "hud.settings.hotbar": "Hotbar",
+        "hud.settings.hotbar": "Aksiyon Çubuğu",
         "hud.settings.toggle_shortcuts": "Kısayolları aç/kapa",
         "hud.settings.toggle_bar_experience": "Tecrübe çubuğunu aç/kapa",
         "hud.settings.scrolling_combat_text": "Verilen/Alınan Hasar Yazısı",
@@ -371,7 +384,7 @@ silmek istediğinden emin misin?"#,
         // Charater stats
         "character_window.character_stats": r#"Dayanıklılık
 
-Fiziksel yetenek
+Hareket gücü
 
 İrade gücü
 "#,
