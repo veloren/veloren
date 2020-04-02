@@ -1,5 +1,5 @@
 use super::WORLD_SIZE;
-use bitvec::prelude::{bitbox, bitvec, BitBox};
+use bitvec::prelude::{bitbox, BitBox};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use noise::{MultiFractal, NoiseFn, Perlin, Point2, Point3, Point4, Seedable};
 use num::Float;
@@ -322,10 +322,11 @@ pub fn get_oceans<F: Float>(oldh: impl Fn(usize) -> F + Sync) -> BitBox {
     while let Some(chunk_idx) = stack.pop() {
         // println!("Ocean chunk {:?}: {:?}", uniform_idx_as_vec2(chunk_idx),
         // oldh(chunk_idx));
-        if *is_ocean.at(chunk_idx) {
+        let mut is_ocean = is_ocean.get_mut(chunk_idx).unwrap();
+        if *is_ocean {
             continue;
         }
-        *is_ocean.at(chunk_idx) = true;
+        *is_ocean = true;
         stack.extend(neighbors(chunk_idx).filter(|&neighbor_idx| {
             // println!("Ocean neighbor: {:?}: {:?}", uniform_idx_as_vec2(neighbor_idx),
             // oldh(neighbor_idx));
