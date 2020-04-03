@@ -22,12 +22,8 @@ pub struct SfxTriggerItem {
     pub threshold: f64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct SfxTriggers(HashMap<SfxEvent, SfxTriggerItem>);
-
-impl Default for SfxTriggers {
-    fn default() -> Self { Self(HashMap::new()) }
-}
 
 impl SfxTriggers {
     pub fn get_trigger(&self, trigger: &SfxEvent) -> Option<&SfxTriggerItem> { self.0.get(trigger) }
