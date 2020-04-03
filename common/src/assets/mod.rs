@@ -19,8 +19,8 @@ use std::{
 /// The error returned by asset loading functions
 #[derive(Debug, Clone)]
 pub enum Error {
-    /// An internal error occurred.
-    Internal(Arc<dyn std::error::Error>),
+    /// Parsing error occurred.
+    ParseError(Arc<dyn std::fmt::Debug>),
     /// An asset of a different type has already been loaded with this
     /// specifier.
     InvalidType,
@@ -28,10 +28,16 @@ pub enum Error {
     NotFound(String),
 }
 
+impl Error {
+    pub fn parse_error<E: std::fmt::Debug + 'static>(err: E) -> Self {
+        Self::ParseError(Arc::new(err))
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::Internal(err) => err.fmt(f),
+            Error::ParseError(err) => write!(f, "{:?}", err),
             Error::InvalidType => write!(
                 f,
                 "an asset of a different type has already been loaded with this specifier."
@@ -110,7 +116,16 @@ pub fn load_glob<A: Asset + 'static>(specifier: &str) -> Result<Arc<Vec<Arc<A>>>
             let assets = Arc::new(
                 glob_matches
                     .into_iter()
-                    .filter_map(|name| load(&specifier.replace("*", &name)).ok())
+                    .filter_map(|name| {
+                        load(&specifier.replace("*", &name))
+                            .map_err(|e| {
+                                error!(
+                                    "Failed to load \"{}\" as part of glob \"{}\" with error: {:?}",
+                                    name, specifier, e
+                                )
+                            })
+                            .ok()
+                    })
                     .collect::<Vec<_>>(),
             );
             let clone = Arc::clone(&assets);
@@ -226,7 +241,7 @@ impl Asset for DynamicImage {
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
-        Ok(image::load_from_memory(&buf).unwrap())
+        image::load_from_memory(&buf).map_err(Error::parse_error)
     }
 }
 
@@ -236,7 +251,7 @@ impl Asset for DotVoxData {
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
-        Ok(dot_vox::load_bytes(&buf).unwrap())
+        dot_vox::load_bytes(&buf).map_err(Error::parse_error)
     }
 }
 
@@ -245,7 +260,7 @@ impl Asset for Value {
     const ENDINGS: &'static [&'static str] = &["json"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, Error> {
-        Ok(serde_json::from_reader(buf_reader).unwrap())
+        serde_json::from_reader(buf_reader).map_err(Error::parse_error)
     }
 }
 
