@@ -39,6 +39,7 @@ pub enum SfxEvent {
     Fall,
     ExperienceGained,
     LevelUp,
+    Attack(ToolKind),
     Wield(ToolKind),
     Unwield(ToolKind),
     Inventory(InventoryUpdateEvent),

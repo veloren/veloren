@@ -23,6 +23,15 @@
             ],
             threshold: 0.5,
         ),
+        Attack(Bow(BasicBow)): (
+            files: [
+                "voxygen.audio.sfx.weapon.bow_attack_01",
+                "voxygen.audio.sfx.weapon.bow_attack_02",
+                "voxygen.audio.sfx.weapon.bow_attack_03",
+                "voxygen.audio.sfx.weapon.bow_attack_04",
+            ],
+            threshold: 0.5,
+        ),
         Wield(Sword(BasicSword)): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",
