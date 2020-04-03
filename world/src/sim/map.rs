@@ -273,6 +273,8 @@ impl<'a> MapConfig<'a> {
             })
             .map(|sample| {
                 // TODO: Eliminate the redundancy between this and the block renderer.
+                let alt = sample.alt;
+                let basement = sample.basement;
                 let grass_depth = (1.5 + 2.0 * sample.chaos).min(alt - basement);
                 let wposz = if is_basement { basement } else { alt };
                 if is_basement && wposz < alt - grass_depth {
@@ -615,7 +617,8 @@ impl<'a> MapConfig<'a> {
                     })
                     .map(|(angle, height)| {
                         let w = 0.1;
-                        if angle != 0.0 && light_direction.x != 0.0 {
+                        let height = (height - alt as Alt * gain as Alt).max(0.0);
+                        if angle != 0.0 && light_direction.x != 0.0 && height != 0.0 {
                             let deltax = height / angle;
                             let lighty = (light_direction.y / light_direction.x * deltax).abs();
                             let deltay = lighty - height;
