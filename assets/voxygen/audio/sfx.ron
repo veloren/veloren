@@ -32,6 +32,39 @@
             ],
             threshold: 0.5,
         ),
+        Attack(Sword(BasicSword)): (
+            files: [
+                "voxygen.audio.sfx.weapon.sword_attack_01",
+                "voxygen.audio.sfx.weapon.sword_attack_02",
+                "voxygen.audio.sfx.weapon.sword_attack_03",
+                "voxygen.audio.sfx.weapon.sword_attack_04",
+            ],
+            threshold: 0.5,
+        ),
+        Attack(Hammer(BasicHammer)): (
+            files: [
+                "voxygen.audio.sfx.weapon.hammer_attack_01",
+                "voxygen.audio.sfx.weapon.hammer_attack_02",
+                "voxygen.audio.sfx.weapon.hammer_attack_03",
+            ],
+            threshold: 0.5,
+        ),
+        Attack(Staff(BasicStaff)): (
+            files: [
+                "voxygen.audio.sfx.weapon.staff_attack_01",
+                "voxygen.audio.sfx.weapon.staff_attack_02",
+                "voxygen.audio.sfx.weapon.staff_attack_03",
+            ],
+            threshold: 0.5,
+        ),
+        Attack(Axe(BasicAxe)): (
+            files: [
+                "voxygen.audio.sfx.weapon.hammer_attack_01",
+                "voxygen.audio.sfx.weapon.hammer_attack_02",
+                "voxygen.audio.sfx.weapon.hammer_attack_03",
+            ],
+            threshold: 0.5,
+        ),
         Wield(Sword(BasicSword)): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",
