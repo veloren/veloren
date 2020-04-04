@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slot_kinds::{HudSlotManager, InventorySlot},
+    slot_kinds::{ArmorSlot, HudSlotManager, InventorySlot},
     Event as HudEvent, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
     XP_COLOR,
 };
@@ -47,7 +47,7 @@ widget_ids! {
         tab_2,
         tab_3,
         tab_4,
-        //Stats
+        // Stats
         stats_alignment,
         level,
         exp_rectangle,
@@ -57,36 +57,23 @@ widget_ids! {
         divider,
         statnames,
         stats,
-        //Armor Slots
+        // Armor Slots
         slots_bg,
-        head_bg,
-        neck_bg,
-        chest_bg,
-        shoulder_bg,
-        hands_bg,
-        legs_bg,
-        belt_bg,
-        ring_r_bg,
-        ring_l_bg,
-        foot_bg,
-        back_bg,
-        tabard_bg,
-        mainhand_bg,
-        offhand_bg,
-        head_ico,
-        neck_ico,
-        chest_ico,
-        shoulder_ico,
-        hands_ico,
-        legs_ico,
-        belt_ico,
-        ring_r_ico,
-        ring_l_ico,
-        foot_ico,
-        back_ico,
-        tabard_ico,
-        mainhand_ico,
-        offhand_ico,
+        head_slot,
+        neck_slot,
+        chest_slot,
+        shoulders_slot,
+        hands_slot,
+        legs_slot,
+        belt_slot,
+        ring_r_slot,
+        ring_l_slot,
+        feet_slot,
+        back_slot,
+        tabard_slot,
+        mainhand_slot,
+        offhand_slot,
+        // ???
         end_ico,
         fit_ico,
         wp_ico,
@@ -143,7 +130,6 @@ impl<'a> Bag<'a> {
 
 pub struct State {
     ids: Ids,
-    selected_slot: Option<usize>,
 }
 
 pub enum Event {
@@ -160,7 +146,6 @@ impl<'a> Widget for Bag<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
-            selected_slot: None,
         }
     }
 
@@ -173,9 +158,15 @@ impl<'a> Widget for Bag<'a> {
 
         let invs = self.client.inventories();
         let inventory = match invs.get(self.client.entity()) {
-            Some(inv) => inv,
+            Some(i) => i,
             None => return None,
         };
+        let loadouts = self.client.loadouts();
+        let loadout = match loadouts.get(self.client.entity()) {
+            Some(l) => l,
+            None => return None,
+        };
+
         let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
         let exp_treshold = format!(
             "{}/{} {}",
@@ -322,174 +313,173 @@ impl<'a> Widget for Bag<'a> {
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.slots_bg, ui);*/
             // Armor Slots
-            //Head
-            Image::new(self.imgs.armor_slot)
+            let mut slot_maker = SlotMaker {
+                background: self.imgs.armor_slot,
+                selected_background: self.imgs.armor_slot,
+                background_color: Some(UI_HIGHLIGHT_0),
+                content_size: Vec2::broadcast(30.0),
+                selected_content_size: Vec2::broadcast(32.0),
+                amount_font: self.fonts.cyri.conrod_id,
+                amount_margins: Vec2::new(-4.0, 0.0),
+                amount_font_size: self.fonts.cyri.scale(12),
+                amount_text_color: TEXT_COLOR,
+                content_source: loadout,
+                image_source: self.item_imgs,
+                slot_manager: Some(self.slot_manager),
+            };
+            //  Head
+            let (title, desc) = ("Helmet", "");
+            slot_maker
+                .fabricate(ArmorSlot::Head)
                 .w_h(45.0, 45.0)
                 .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.head_bg, ui);
-            Button::image(self.imgs.head_bg)
-                .w_h(32.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.head_bg)
-                .with_tooltip(self.tooltip_manager, "Helmet", "", &item_tooltip)
-                .set(state.ids.head_ico, ui);
-            //Necklace
-            Image::new(self.imgs.armor_slot)
+                .with_icon(self.imgs.head_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.head_slot, ui);
+            //  Necklace
+            let (title, desc) = ("Neck", "");
+            slot_maker
+                .fabricate(ArmorSlot::Neck)
                 .w_h(45.0, 45.0)
-                .mid_bottom_with_margin_on(state.ids.head_bg, -55.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.neck_bg, ui);
-            Button::image(self.imgs.necklace_bg)
-                .w_h(40.0, 31.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.neck_bg)
-                .with_tooltip(self.tooltip_manager, "Neck", "", &item_tooltip)
-                .set(state.ids.neck_ico, ui);
-            //Chest
-            Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
+                .mid_bottom_with_margin_on(state.ids.head_slot, -55.0)
+                .with_icon(self.imgs.necklace_bg, Vec2::new(40.0, 31.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.neck_slot, ui);
+            // Chest
+            //Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
+            let (title, desc) = loadout
+                .chest
+                .as_ref()
+                .map_or(("Chest", ""), |item| (item.name(), item.description()));
+            slot_maker
+                .fabricate(ArmorSlot::Chest)
                 .w_h(85.0, 85.0)
-                .mid_bottom_with_margin_on(state.ids.neck_bg, -95.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.chest_bg, ui);
-            Button::image(self.imgs.chest_bg)
-                .w_h(64.0, 42.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.chest_bg)
-                .with_tooltip(self.tooltip_manager, "Chest", "", &item_tooltip)
-                .set(state.ids.chest_ico, ui);
-            //Shoulder
-            Image::new(self.imgs.armor_slot)
+                .mid_bottom_with_margin_on(state.ids.neck_slot, -95.0)
+                .with_icon(self.imgs.chest_bg, Vec2::new(64.0, 42.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.chest_slot, ui);
+            //  Shoulders
+            let (title, desc) = loadout
+                .shoulder
+                .as_ref()
+                .map_or(("Shoulders", ""), |item| (item.name(), item.description()));
+            slot_maker
+                .fabricate(ArmorSlot::Shoulders)
                 .w_h(70.0, 70.0)
-                .bottom_left_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.shoulder_bg, ui);
-            Button::image(self.imgs.shoulders_bg)
-                .w_h(60.0, 36.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.shoulder_bg)
-                .with_tooltip(self.tooltip_manager, "Shoulders", "", &item_tooltip)
-                .set(state.ids.shoulder_ico, ui);
-            //Hands
-            Image::new(self.imgs.armor_slot)
+                .bottom_left_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
+                .with_icon(self.imgs.shoulders_bg, Vec2::new(60.0, 36.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.shoulders_slot, ui);
+            // Hands
+            let (title, desc) = loadout
+                .hand
+                .as_ref()
+                .map_or(("Hands", ""), |item| (item.name(), item.description()));
+            slot_maker
+                .fabricate(ArmorSlot::Hands)
                 .w_h(70.0, 70.0)
-                .bottom_right_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.hands_bg, ui);
-            Button::image(self.imgs.hands_bg)
-                .w_h(55.0, 60.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.hands_bg)
-                .with_tooltip(self.tooltip_manager, "Hands", "", &item_tooltip)
-                .set(state.ids.hands_ico, ui);
-            //Belt
-            Image::new(self.imgs.armor_slot)
+                .bottom_right_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
+                .with_icon(self.imgs.hands_bg, Vec2::new(55.0, 60.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.hands_slot, ui);
+            // Belt
+            let (title, desc) = loadout
+                .belt
+                .as_ref()
+                .map_or(("Belt", ""), |item| (item.name(), item.description()));
+            slot_maker
+                .fabricate(ArmorSlot::Belt)
                 .w_h(45.0, 45.0)
-                .mid_bottom_with_margin_on(state.ids.chest_bg, -55.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.belt_bg, ui);
-            Button::image(self.imgs.belt_bg)
-                .w_h(40.0, 23.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.belt_bg)
-                .with_tooltip(self.tooltip_manager, "Belt", "", &item_tooltip)
-                .set(state.ids.belt_ico, ui);
-            //Legs
-            Image::new(self.imgs.armor_slot)
+                .mid_bottom_with_margin_on(state.ids.chest_slot, -55.0)
+                .with_icon(self.imgs.belt_bg, Vec2::new(40.0, 23.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.belt_slot, ui);
+            // Legs
+            let (title, desc) = loadout
+                .belt
+                .as_ref()
+                .map_or(("Legs", ""), |item| (item.name(), item.description()));
+            slot_maker
+                .fabricate(ArmorSlot::Legs)
                 .w_h(85.0, 85.0)
-                .mid_bottom_with_margin_on(state.ids.belt_bg, -95.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.legs_bg, ui);
-            Button::image(self.imgs.legs_bg)
-                .w_h(48.0, 70.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.legs_bg)
-                .with_tooltip(self.tooltip_manager, "Legs", "", &item_tooltip)
-                .set(state.ids.legs_ico, ui);
-            //Ring-L
-            Image::new(self.imgs.armor_slot)
+                .mid_bottom_with_margin_on(state.ids.belt_slot, -95.0)
+                .with_icon(self.imgs.legs_bg, Vec2::new(48.0, 70.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.legs_slot, ui);
+            // Ring-L
+            let (title, desc) = ("Left Ring", "");
+            slot_maker
+                .fabricate(ArmorSlot::LeftRing)
                 .w_h(45.0, 45.0)
-                .bottom_right_with_margins_on(state.ids.shoulder_bg, -55.0, 0.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.ring_l_bg, ui);
-            Button::image(self.imgs.ring_l_bg)
-                .w_h(36.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.ring_l_bg)
-                .with_tooltip(self.tooltip_manager, "Left Ring", "", &item_tooltip)
-                .set(state.ids.ring_l_ico, ui);
-            //Ring-R
-            Image::new(self.imgs.armor_slot)
+                .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
+                .with_icon(self.imgs.ring_l_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.ring_l_slot, ui);
+            // Ring-R
+            let (title, desc) = ("Right Ring", "");
+            slot_maker
+                .fabricate(ArmorSlot::RightRing)
                 .w_h(45.0, 45.0)
-                .bottom_left_with_margins_on(state.ids.hands_bg, -55.0, 0.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.ring_r_bg, ui);
-            Button::image(self.imgs.ring_r_bg)
-                .w_h(36.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.ring_r_bg)
-                .with_tooltip(self.tooltip_manager, "Right Ring", "", &item_tooltip)
-                .set(state.ids.ring_r_ico, ui);
-            //Back
-            Image::new(self.imgs.armor_slot)
+                .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
+                .with_icon(self.imgs.ring_r_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.ring_r_slot, ui);
+            // Back
+            let (title, desc) = ("Back", "");
+            slot_maker
+                .fabricate(ArmorSlot::Back)
                 .w_h(45.0, 45.0)
-                .down_from(state.ids.ring_l_bg, 10.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.back_bg, ui);
-            Button::image(self.imgs.back_bg)
-                .w_h(33.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.back_bg)
-                .with_tooltip(self.tooltip_manager, "Back", "", &item_tooltip)
-                .set(state.ids.back_ico, ui);
-            //Foot
-            Image::new(self.imgs.armor_slot)
+                .down_from(state.ids.ring_l_slot, 10.0)
+                .with_icon(self.imgs.back_bg, Vec2::new(33.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.back_slot, ui);
+            // Foot
+            let (title, desc) = loadout
+                .foot
+                .as_ref()
+                .map_or(("Feet", ""), |item| (item.name(), item.description()));
+            slot_maker
+                .fabricate(ArmorSlot::Feet)
                 .w_h(45.0, 45.0)
-                .down_from(state.ids.ring_r_bg, 10.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.foot_bg, ui);
-            Button::image(self.imgs.feet_bg)
-                .w_h(32.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.foot_bg)
-                .with_tooltip(self.tooltip_manager, "Feet", "", &item_tooltip)
-                .set(state.ids.foot_ico, ui);
-            //Tabard
-            Image::new(self.imgs.armor_slot)
+                .down_from(state.ids.ring_r_slot, 10.0)
+                .with_icon(self.imgs.feet_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.feet_slot, ui);
+            // Tabard
+            let (title, desc) = ("Tabard", "");
+            slot_maker
+                .fabricate(ArmorSlot::Tabard)
                 .w_h(70.0, 70.0)
                 .top_right_with_margins_on(state.ids.bg_frame, 80.5, 53.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.tabard_bg, ui);
-            Button::image(self.imgs.tabard_bg)
-                .w_h(60.0, 60.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.tabard_bg)
-                .with_tooltip(self.tooltip_manager, "Tabard", "", &item_tooltip)
-                .set(state.ids.tabard_ico, ui);
-            //Mainhand/Left-Slot
-            Image::new(self.imgs.armor_slot)
+                .with_icon(self.imgs.tabard_bg, Vec2::new(60.0, 60.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.tabard_slot, ui);
+            // Mainhand/Left-Slot
+            let (title, desc) = loadout
+                .active_item
+                .as_ref()
+                .map(|i| &i.item)
+                .map_or(("Mainhand", ""), |item| (item.name(), item.description()));
+            slot_maker
+                .fabricate(ArmorSlot::Mainhand)
                 .w_h(85.0, 85.0)
-                .bottom_right_with_margins_on(state.ids.back_bg, -95.0, 0.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.mainhand_bg, ui);
-            Button::image(self.imgs.mainhand_bg)
-                .w_h(75.0, 75.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.mainhand_bg)
-                .with_tooltip(self.tooltip_manager, "Mainhand", "", &item_tooltip)
-                .set(state.ids.mainhand_ico, ui);
-            //Offhand/Right-Slot
-            Image::new(self.imgs.armor_slot)
+                .bottom_right_with_margins_on(state.ids.back_slot, -95.0, 0.0)
+                .with_icon(self.imgs.mainhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.mainhand_slot, ui);
+            // Offhand/Right-Slot
+            let (title, desc) = loadout
+                .second_item
+                .as_ref()
+                .map(|i| &i.item)
+                .map_or(("Offhand", ""), |item| (item.name(), item.description()));
+            slot_maker
+                .fabricate(ArmorSlot::Offhand)
                 .w_h(85.0, 85.0)
-                .bottom_left_with_margins_on(state.ids.foot_bg, -95.0, 0.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.offhand_bg, ui);
-            Button::image(self.imgs.offhand_bg)
-                .w_h(75.0, 75.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.offhand_bg)
-                .with_tooltip(self.tooltip_manager, "Offhand", "", &item_tooltip)
-                .set(state.ids.offhand_ico, ui);
+                .bottom_left_with_margins_on(state.ids.feet_slot, -95.0, 0.0)
+                .with_icon(self.imgs.offhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.offhand_slot, ui);
         } else {
             // Stats
             // Title

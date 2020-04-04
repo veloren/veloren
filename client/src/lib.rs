@@ -387,6 +387,8 @@ impl Client {
 
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
 
+    pub fn loadouts(&self) -> ReadStorage<comp::Loadout> { self.state.read_storage() }
+
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {

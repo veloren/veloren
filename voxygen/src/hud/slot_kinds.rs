@@ -1,8 +1,7 @@
 use super::item_imgs::{ItemImgs, ItemKey};
 use crate::ui::slot::{ContentKey, SlotKinds, SlotManager};
-use common::comp::{item::ItemKind, Inventory};
+use common::comp::{item::ItemKind, Inventory, Loadout};
 use conrod_core::image;
-use vek::*;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum HudSlotKinds {
@@ -18,7 +17,7 @@ pub struct InventorySlot(pub usize);
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum ArmorSlot {
-    Helmet,
+    Head,
     Neck,
     Shoulders,
     Chest,
@@ -72,8 +71,32 @@ impl ContentKey for InventorySlot {
     fn image_id(key: &Self::ImageKey, source: &Self::ImageSource) -> image::Id {
         source.img_id_or_not_found_img(key.clone())
     }
+}
 
-    fn back_icon(&self, _: &Self::ImageSource) -> Option<(image::Id, Vec2<f32>)> { None }
+impl ContentKey for ArmorSlot {
+    type ContentSource = Loadout;
+    type ImageKey = ItemKey;
+    type ImageSource = ItemImgs;
+
+    fn image_key(&self, source: &Self::ContentSource) -> Option<Self::ImageKey> {
+        let item = match self {
+            ArmorSlot::Shoulders => source.shoulder.as_ref(),
+            ArmorSlot::Chest => source.chest.as_ref(),
+            ArmorSlot::Belt => source.belt.as_ref(),
+            ArmorSlot::Hands => source.hand.as_ref(),
+            ArmorSlot::Legs => source.pants.as_ref(),
+            ArmorSlot::Feet => source.foot.as_ref(),
+            _ => None,
+        };
+
+        item.map(Into::into)
+    }
+
+    fn amount(&self, _: &Self::ContentSource) -> Option<u32> { None }
+
+    fn image_id(key: &Self::ImageKey, source: &Self::ImageSource) -> image::Id {
+        source.img_id_or_not_found_img(key.clone())
+    }
 }
 
 impl From<InventorySlot> for HudSlotKinds {

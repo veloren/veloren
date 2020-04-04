@@ -18,8 +18,6 @@ pub trait ContentKey: Copy {
     // TODO: is this the right integer type?
     fn amount(&self, source: &Self::ContentSource) -> Option<u32>;
     fn image_id(key: &Self::ImageKey, source: &Self::ImageSource) -> image::Id;
-    /// Returns slot icon and icon size as fraction of slot size
-    fn back_icon(&self, source: &Self::ImageSource) -> Option<(image::Id, Vec2<f32>)>;
 }
 
 pub trait SlotKinds: Sized + PartialEq + Copy {}
@@ -223,6 +221,8 @@ pub struct Slot<'a, C: ContentKey + Into<K>, K: SlotKinds> {
     // TODO: maybe use constant scale factor or move this setting to the slot manager?
     selected_content_size: Vec2<f32>,
 
+    icon: Option<(image::Id, Vec2<f32>, Option<Color>)>,
+
     // Amount styling
     amount_font: font::Id,
     amount_font_size: u32,
@@ -265,6 +265,11 @@ where
         pub with_background_color { background_color = Some(Color) }
     }
 
+    pub fn with_icon(mut self, img: image::Id, size: Vec2<f32>, color: Option<Color>) -> Self {
+        self.icon = Some((img, size, color));
+        self
+    }
+
     fn new(
         content: C,
         background: image::Id,
@@ -285,6 +290,7 @@ where
             background_color: None,
             content_size,
             selected_content_size,
+            icon: None,
             amount_font,
             amount_font_size,
             amount_margins,
@@ -331,6 +337,7 @@ where
             background_color,
             content_size,
             selected_content_size,
+            icon,
             amount_font,
             amount_font_size,
             amount_margins,
@@ -362,7 +369,6 @@ where
         } else {
             background
         };
-        let icon = content.back_icon(image_source);
         let content_image = state.cached_image.as_ref().map(|c| c.1);
 
         // Get amount (None => no amount text)
@@ -381,13 +387,14 @@ where
             .set(state.ids.background, ui);
 
         // Draw icon
-        if let Some((icon_image, size_frac)) = icon {
-            let wh = (size_frac.map(|e| e as f64) * Vec2::new(w, h)).into_array();
+        if let Some((icon_image, size, color)) = icon {
+            let wh = size.map(|e| e as f64).into_array();
             Image::new(icon_image)
                 .x_y(x, y)
                 .wh(wh)
                 .parent(id)
                 .graphics_for(id)
+                .color(color)
                 .set(state.ids.icon, ui);
         }
 
