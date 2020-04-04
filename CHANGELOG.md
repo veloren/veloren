@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fleshed out "attack" animation into alpha, beta and spin type attacks
 - Fleshed out range attack into charging and shooting anims for staff/bow
 - Customized attack animation for hammers and axes
+- German translation
 
 ### Changed
 
