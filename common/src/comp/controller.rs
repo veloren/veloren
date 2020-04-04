@@ -8,6 +8,15 @@ use vek::*;
 pub const DEFAULT_HOLD_DURATION: Duration = Duration::from_millis(200);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum InventoryManip {
+    Pickup(Uid),
+    Collect(Vec3<i32>),
+    Use(usize),
+    Swap(usize, usize),
+    Drop(usize),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlEvent {
     Mount(Uid),
     Unmount,
@@ -229,13 +238,4 @@ pub struct Mounting(pub Uid);
 
 impl Component for Mounting {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum InventoryManip {
-    Pickup(Uid),
-    Collect(Vec3<i32>),
-    Use(usize),
-    Swap(usize, usize),
-    Drop(usize),
 }
