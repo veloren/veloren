@@ -647,6 +647,15 @@ impl PlayState for SessionState {
                     HudEvent::SwapInventorySlots(a, b) => {
                         self.client.borrow_mut().swap_inventory_slots(a, b)
                     },
+                    HudEvent::SwapInventoryArmor(inv_slot, armor_slot) => {
+                        // Swapping between inventory and armor slot
+                        // TODO: don't do this
+                        self.client.borrow_mut().use_inventory_slot(inv_slot)
+                    },
+                    HudEvent::SwapArmorSlots(from, to) => {
+                        // Only works with rings currently
+                        // TODO: implement
+                    },
                     HudEvent::DropInventorySlot(x) => {
                         self.client.borrow_mut().drop_inventory_slot(x)
                     },

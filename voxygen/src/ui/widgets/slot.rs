@@ -111,7 +111,7 @@ enum Interaction {
     None,
 }
 
-enum Event<K> {
+pub enum Event<K> {
     // Dragged to another slot
     Dragged(K, K),
     // Dragged to open space
@@ -130,6 +130,25 @@ impl<K> SlotManager<K>
 where
     K: SlotKinds,
 {
+    pub fn new() -> Self {
+        Self {
+            state: ManagerState::Idle,
+            events: Vec::new(),
+        }
+    }
+
+    pub fn maintain(&mut self, ui: &conrod_core::Ui) -> Vec<Event<K>> {
+        // Detect drops by of selected item by clicking in empty space
+        if let ManagerState::Selected(_, slot) = self.state {
+            if ui.widget_input(ui.window).clicks().left().next().is_some() {
+                self.state = ManagerState::Idle;
+                self.events.push(Event::Dropped(slot))
+            }
+        }
+
+        std::mem::replace(&mut self.events, Vec::new())
+    }
+
     fn update(&mut self, widget: widget::Id, slot: K, ui: &conrod_core::Ui) -> Interaction {
         // If this is the selected/dragged widget make sure the slot value is up to date
         match &mut self.state {
@@ -377,15 +396,15 @@ where
             Image::new(content_image)
                 .x_y(x, y)
                 .wh(if let Interaction::Selected = interaction {
-                    content_size
-                } else {
                     selected_content_size
+                } else {
+                    content_size
                 }
                 .map(|e| e as f64)
                 .into_array())
                 .parent(id)
                 .graphics_for(id)
-                .set(state.ids.icon, ui);
+                .set(state.ids.content, ui);
         }
 
         // Draw amount
@@ -393,11 +412,15 @@ where
             let amount = format!("{}", &amount);
             // Text shadow
             Text::new(&amount)
-                .parent(id)
-                .graphics_for(id)
                 .font_id(amount_font)
                 .font_size(amount_font_size)
-                .top_right_with_margins_on(id, amount_margins.x as f64, amount_margins.y as f64)
+                .top_right_with_margins_on(
+                    state.ids.content,
+                    amount_margins.x as f64,
+                    amount_margins.y as f64,
+                )
+                .parent(id)
+                .graphics_for(id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(state.ids.amount_bg, ui);
             Text::new(&amount)
