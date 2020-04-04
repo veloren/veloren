@@ -534,7 +534,7 @@ impl MainMenuUi {
                     .set(self.ids.password_bg, ui_widgets);
                 for event in TextBox::new(&self.password)
                     .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.password_bg, 44.0 / 2.0)
+                    .mid_bottom_with_margin_on(self.ids.password_bg, 17.0)
                     .font_size(self.fonts.cyri.scale(22))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)

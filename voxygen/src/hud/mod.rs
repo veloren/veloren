@@ -42,6 +42,7 @@ use crate::{
 use client::{Client, Event as ClientEvent};
 use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
+    position::Relative,
     text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
@@ -305,6 +306,7 @@ pub struct Show {
 impl Show {
     fn bag(&mut self, open: bool) {
         self.bag = open;
+        self.map = false;
         self.want_grab = !open;
     }
 
@@ -361,6 +363,8 @@ impl Show {
             || self.map
             || self.social
             || self.spell
+            || self.help
+            || self.intro
             || match self.open_windows {
                 Windows::None => false,
                 _ => true,
@@ -368,6 +372,8 @@ impl Show {
         {
             self.bag = false;
             self.esc_menu = false;
+            self.help = false;
+            self.intro = false;
             self.map = false;
             self.social = false;
             self.spell = false;
@@ -1239,23 +1245,27 @@ impl Hud {
         if self.show.intro && !self.show.esc_menu && !self.intro_2 {
             match global_state.settings.gameplay.intro_show {
                 Intro::Show => {
-                    Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
-                        .top_left_with_margins_on(ui_widgets.window, 180.0, 10.0)
-                        .floating(true)
-                        .set(self.ids.intro_bg, ui_widgets);
+                    Rectangle::fill_with(
+                        [800.0 * 0.8, 850.0 * 0.8],
+                        Color::Rgba(0.0, 0.0, 0.0, 0.80),
+                    )
+                    .top_left_with_margins_on(ui_widgets.window, 180.0 * 0.8, 10.0 * 0.8)
+                    .floating(true)
+                    .set(self.ids.intro_bg, ui_widgets);
                     Text::new(intro_text)
                         .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
-                        .font_size(self.fonts.cyri.scale(20))
+                        .font_size(self.fonts.cyri.scale(16))
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(TEXT_COLOR)
                         .set(self.ids.intro_text, ui_widgets);
                     if Button::image(self.imgs.button)
-                        .w_h(100.0, 50.0)
+                        .w_h(90.0, 35.0)
                         .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
                         .label(&self.voxygen_i18n.get("common.close"))
-                        .label_font_size(self.fonts.cyri.scale(20))
+                        .label_font_size(self.fonts.cyri.scale(16))
                         .label_font_id(self.fonts.cyri.conrod_id)
                         .label_color(TEXT_COLOR)
+                        .label_y(Relative::Scalar(4.0))
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .set(self.ids.intro_close, ui_widgets)
@@ -1550,14 +1560,14 @@ impl Hud {
         if self.show.help && !self.show.map && !self.show.esc_menu {
             Image::new(self.imgs.help)
                 .middle_of(ui_widgets.window)
-                .w_h(1260.0 * 1.2, 519.0 * 1.2)
+                .w_h(1260.0, 519.0)
                 .set(self.ids.help, ui_widgets);
             // Show tips
-            if Button::image(self.imgs.button)
+            /*if Button::image(self.imgs.button)
                 .w_h(120.0, 50.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label(&self.voxygen_i18n.get("hud.show_tips"))
+                .label(&self.voxygen_i18n.get("common.close"))
                 .label_font_size(self.fonts.cyri.scale(20))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
@@ -1569,7 +1579,7 @@ impl Hud {
                 self.show.intro = false;
                 self.intro = false;
                 self.intro_2 = true;
-            };
+            };*/
             // X-button
             if Button::image(self.imgs.close_button)
                 .w_h(40.0, 40.0)
