@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Italian translation
 - Added Portuguese translation
 - Added Turkish translation
+- Added Traditional Chinese translation
 - Complete rewrite of the combat system into a state machine
 - Abilities like Dash and Triplestrike
 - Armor can now be eqipped as items
