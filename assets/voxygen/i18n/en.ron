@@ -156,15 +156,10 @@ https://account.veloren.net."#,
         "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
 
         // Welcome message
-        "hud.welcome": r#"Welcome to the Veloren Alpha!,
+        "hud.welcome": r#"Welcome to the Veloren Alpha!
 
 
 Some tips before you start:
-
-
-MOST IMPORTANTLY: To set your respawn point type /waypoint into the chat.
-
-This can also be done when you are already dead!
 
 
 Press F1 to see the available key commands.
