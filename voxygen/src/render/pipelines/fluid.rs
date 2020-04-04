@@ -1,10 +1,11 @@
 use super::{
-    super::{Pipeline, TerrainLocals, TgtColorFmt, TgtDepthFmt},
+    super::{Pipeline, TerrainLocals, TgtColorFmt, TgtDepthStencilFmt},
     Globals, Light, Shadow,
 };
 use gfx::{
     self, gfx_defines, gfx_impl_struct_meta, gfx_pipeline, gfx_pipeline_inner,
-    gfx_vertex_struct_meta, state::ColorMask,
+    gfx_vertex_struct_meta,
+    state::{ColorMask, Comparison, Stencil, StencilOp},
 };
 use std::ops::Mul;
 use vek::*;
@@ -27,7 +28,7 @@ gfx_defines! {
         waves: gfx::TextureSampler<[f32; 4]> = "t_waves",
 
         tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
+        tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_TEST,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
     }
 }
 

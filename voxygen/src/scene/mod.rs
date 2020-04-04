@@ -347,6 +347,7 @@ impl Scene {
                     .unwrap_or(BlockKind::Air),
                 self.select_pos,
                 gamma,
+                self.camera.get_mode(),
             )])
             .expect("Failed to update global constants");
 
@@ -381,6 +382,13 @@ impl Scene {
         tick: u64,
     ) {
         // Render terrain and figures.
+        self.terrain.render(
+            renderer,
+            &self.globals,
+            &self.lights,
+            &self.shadows,
+            self.camera.get_focus_pos(),
+        );
         self.figure_mgr.render(
             renderer,
             state,
@@ -390,13 +398,6 @@ impl Scene {
             &self.lights,
             &self.shadows,
             &self.camera,
-        );
-        self.terrain.render(
-            renderer,
-            &self.globals,
-            &self.lights,
-            &self.shadows,
-            self.camera.get_focus_pos(),
         );
 
         // Render the skybox.
@@ -408,6 +409,17 @@ impl Scene {
             &self.lights,
             &self.shadows,
             self.camera.get_focus_pos(),
+        );
+
+        self.figure_mgr.render_player(
+            renderer,
+            state,
+            player_entity,
+            tick,
+            &self.globals,
+            &self.lights,
+            &self.shadows,
+            &self.camera,
         );
 
         renderer.render_post_process(
