@@ -30,7 +30,7 @@ pub use self::{
         },
         Globals, Light, Shadow,
     },
-    renderer::{Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt},
+    renderer::{Renderer, TgtColorFmt, TgtDepthStencilFmt, WinColorFmt, WinDepthFmt},
     texture::Texture,
 };
 
