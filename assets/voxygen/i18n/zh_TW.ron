@@ -8,23 +8,23 @@ VoxygenLocalization(
     fonts: {
         "opensans": Font (
             asset_key: "voxygen.font.bdfUMplus-outline",
-            scale_ratio: 1.0,
+            scale_ratio: 0.75,
         ),
         "metamorph": Font (
             asset_key: "voxygen.font.bdfUMplus-outline",
-            scale_ratio: 1.0,
+            scale_ratio: 0.75,
         ),
         "alkhemi": Font (
             asset_key: "voxygen.font.bdfUMplus-outline",
-            scale_ratio: 1.0,
+            scale_ratio: 0.75,
         ),
         "wizard": Font (
             asset_key: "voxygen.font.bdfUMplus-outline",
-            scale_ratio: 1.0,
+            scale_ratio: 0.75,
         ),
         "cyri": Font (
             asset_key: "voxygen.font.bdfUMplus-outline",
-            scale_ratio: 0.9,
+            scale_ratio: 0.75,
         ),
     },
     string_map: {
@@ -88,9 +88,9 @@ VoxygenLocalization(
 在您開始享受遊戲之前，請注意一些事情：
 
 - 這是非常前期的 alpha 版本，您會遇到不少錯誤、未完成遊戲模式、未完善的遊戲機制以及缺失的功能。 
-- 如鬼你有建設性的意見回饋或是錯誤回報，你可以上 Reddit、GitLab 或者我們的 Discord 伺服器。
-- Veloren 的授權條款是 GPL 3 open-source licence，也就是你可以任意的遊玩、更改並重新發布遊戲（其衍生的專案也都是 GPL 3）。
-- Veloren 是個非營利的社群專案，任何人都是自願參預開發的。如果你喜歡的話，歡迎加入開發與美術設計團隊。
+- 如鬼有建設性的意見回饋或是錯誤回報，可以上 Reddit、GitLab 或者我們的 Discord 伺服器。
+- Veloren 的授權條款是 GPL 3 open-source licence，也就是任何人都可以任意的遊玩、更改並重新發布遊戲（其衍生的專案也都是 GPL 3）。
+- Veloren 是個非營利的社群專案，任何人都是自願參預開發的。如果喜歡的話，歡迎加入開發與美術設計團隊。
 - 「Voxel RPG」是個專屬的類別，就像任何的第一人稱射擊遊戲以前都稱作 Doom 的複製品。
 
 就像他們一樣，我們想要打造完美的作品，這不是款複製品遊戲，而此遊戲的開發將會讓未來的遊戲更加多元化。
@@ -129,7 +129,7 @@ https://account.veloren.net."#,
         "hud.do_not_show_on_startup": "開啟時不顯示這個",
         "hud.show_tips": "顯示提示",
         "hud.quests": "任務",
-        "hud.you_died": "你死了",
+        "hud.you_died": "死亡",
         
         "hud.press_key_to_show_keybindings_fmt": "按 {key} 以顯示按鍵設置",
         "hud.press_key_to_show_debug_info_fmt": "按 {key} 以顯示除錯資訊",
@@ -137,7 +137,7 @@ https://account.veloren.net."#,
         "hud.press_key_to_toggle_debug_info_fmt": "按 {key} 以切換除錯資訊",
 
         // Respawn message
-        "hud.press_key_to_respawn": r#"按 {key} 以重生在你上一個營火堆。"#,
+        "hud.press_key_to_respawn": r#"按 {key} 以重生在上一個營火堆。"#,
 
         // Welcome message
         "hud.welcome": r#"歡迎來到 Veloren Alpha 版，
@@ -146,9 +146,9 @@ https://account.veloren.net."#,
 以下是些開始前的提示：
 
 
-最重要的提示：想設置你的重生點請在聊天欄輸入 /waypoint 。
+最重要的提示：想設置重生點請在聊天欄輸入 /waypoint 。
 
-你就算死了也可以這麽作！
+就算死了也可以作！
 
 
 按 F1 可以查看按鍵設置。
@@ -160,23 +160,34 @@ https://account.veloren.net."#,
 
 點擊右鍵能收集它們。
 
-要真的使用你收集到的物品，請按「B」開啟你的物品欄。
+要真的使用收集到的物品，請按「B」開啟物品欄。
 
 在背包中雙擊物品來使用或裝備它們。
 
-要丟棄它們的話，可以按它們一次然後再點背包外面一次
+要拋棄它們的話，可以按它們一次然後再點背包外面一次
 
 
-Veloren 晚上會特別暗。
+Veloren 半夜會特別暗。
 
-在聊天欄輸入 /lantern 可以點亮你的提燈
+在聊天欄輸入 /lantern 可以點亮提燈
 
 
-想要用滑鼠關閉這個視窗嗎？請按 TAB！
+想要用滑鼠關閉這個視窗？請按 TAB！
 
 
 祝您的 Veloren 旅途愉快。"#,
+        // Inventory
+        "hud.bag.inventory": "的物品欄",
+        "hud.bag.stats_title": "的狀態",
+        "hud.bag.exp": "經驗",
+        "hud.bag.armor": "護甲",
+        "hud.bag.stats": "狀態",
 
+        // Map and Questlog
+        "hud.map.map_title": "地圖",
+        "hud.map.qlog_title": "任務",
+
+        // Settings
         "hud.settings.general": "一般",
         "hud.settings.none": "無",
         "hud.settings.press_behavior.toggle": "切換",
@@ -302,9 +313,9 @@ Veloren 晚上會特別暗。
 
 聊天指令：
 
-/alias [Name] - 變更你的聊天名稱
-/tp [Name] - 傳送你到其他玩家
-/jump <dx> <dy> <dz> - 偏移你的位置
+/alias [Name] - 變更的聊天名稱
+/tp [Name] - 傳送到其他玩家
+/jump <dx> <dy> <dz> - 偏移自己的位置
 /goto <x> <y> <z> - 傳送到指定位置
 /kill - 自殺
 /pig - 生成一隻豬 NPC    
