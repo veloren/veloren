@@ -9,6 +9,8 @@
 ///
 /// To add a new language in Veloren, just write an additional `.ron` file in
 /// `assets/voxygen/i18n` and that's it!
+///
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for "global" English
 VoxygenLocalization(
@@ -228,8 +230,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.values": "Values",
         "hud.settings.percentages": "Percentages",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Background Transparency",
-        "hud.settings.none": "None",
+        "hud.settings.background_transparency": "Background Transparency",        
 
         "hud.settings.pan_sensitivity": "Pan Sensitivity",
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
