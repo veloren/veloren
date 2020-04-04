@@ -13,4 +13,5 @@ uniform u_globals {
 	uvec4 medium;
 	ivec4 select_pos;
 	vec4 gamma;
+	uint cam_mode;
 };

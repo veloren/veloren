@@ -10,6 +10,9 @@ layout (std140)
 uniform u_locals {
 	mat4 model_mat;
 	vec4 model_col;
+	// bit 0 - is player
+	// bit 1-31 - unused
+	int flags;
 };
 
 struct BoneData {
@@ -43,5 +46,13 @@ void main() {
 	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 0.5, true, clouds);
 	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
 
-	tgt_color = vec4(color, 1.0);
+	float opacity = 1.0;
+
+	if ((flags & 1) == 1 && int(cam_mode) == 1) {
+		float distance = distance(vec3(cam_pos), f_pos) - 1;
+
+		opacity = clamp(distance / 3, 0, 1);
+	}
+
+	tgt_color = vec4(color, opacity);
 }

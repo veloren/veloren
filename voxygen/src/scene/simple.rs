@@ -170,6 +170,7 @@ impl Scene {
             BlockKind::Air,
             None,
             scene_data.gamma,
+            self.camera.get_mode(),
         )]) {
             error!("Renderer failed to update: {:?}", err);
         }
@@ -199,6 +200,7 @@ impl Scene {
             1.0,
             0,
             true,
+            false,
         );
     }
 
