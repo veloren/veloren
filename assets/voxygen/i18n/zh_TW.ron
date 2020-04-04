@@ -7,23 +7,23 @@ VoxygenLocalization(
     convert_utf8_to_ascii: false,
     fonts: {
         "opensans": Font (
-            asset_key: "voxygen.font.Zpix",
+            asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 1.0,
         ),
         "metamorph": Font (
-            asset_key: "voxygen.font.Zpix",
+            asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 1.0,
         ),
         "alkhemi": Font (
-            asset_key: "voxygen.font.Zpix",
+            asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 1.0,
         ),
         "wizard": Font (
-            asset_key: "voxygen.font.Zpix",
+            asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 1.0,
         ),
         "cyri": Font (
-            asset_key: "voxygen.font.Zpix",
+            asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 0.9,
         ),
     },
@@ -80,7 +80,7 @@ VoxygenLocalization(
 
         /// Start Main screen section
         "main.connecting": "連線中",
-        "main.creating_world": "產生世界中",
+        "main.creating_world": "生成世界中",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"歡迎加入 Veloren alpha 版！
@@ -193,11 +193,11 @@ Veloren 晚上會特別暗。
         "hud.settings.toggle_shortcuts": "顯示快捷鍵",
         "hud.settings.toggle_bar_experience": "顯示經驗條",
         "hud.settings.scrolling_combat_text": "戰鬥訊息",
-        "hud.settings.single_damage_number": "單一傷害數值",
-        "hud.settings.cumulated_damage": "累積傷害數值",
-        "hud.settings.incoming_damage": "所受傷害數值",
-        "hud.settings.cumulated_incoming_damage": "累積所受傷害數值",
-        "hud.settings.energybar_numbers": "能量條數值",
+        "hud.settings.single_damage_number": "單一傷害",
+        "hud.settings.cumulated_damage": "累積傷害",
+        "hud.settings.incoming_damage": "所受傷害",
+        "hud.settings.cumulated_incoming_damage": "累積所受傷害",
+        "hud.settings.energybar_numbers": "能量條",
         "hud.settings.values": "數字",
         "hud.settings.percentages": "百分比",
         "hud.settings.chat": "聊天欄",
@@ -307,8 +307,8 @@ Veloren 晚上會特別暗。
 /jump <dx> <dy> <dz> - 偏移你的位置
 /goto <x> <y> <z> - 傳送到指定位置
 /kill - 自殺
-/pig - 產生一隻豬 NPC    
-/wolf - 產生一隻狼 NPC  
+/pig - 生成一隻豬 NPC    
+/wolf - 生成一隻狼 NPC  
 /help - 顯示聊天指令"#,
 
         "hud.social": "社交",
