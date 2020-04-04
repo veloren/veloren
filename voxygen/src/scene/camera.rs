@@ -13,8 +13,8 @@ pub const MIN_ZOOM: f32 = 0.1;
 // Possible TODO: Add more modes
 #[derive(PartialEq, Clone, Copy, Eq, Hash)]
 pub enum CameraMode {
-    FirstPerson,
-    ThirdPerson,
+    FirstPerson = 0,
+    ThirdPerson = 1,
 }
 
 impl Default for CameraMode {

@@ -7,6 +7,7 @@ pub mod terrain;
 pub mod ui;
 
 use super::util::arr_to_mat;
+use crate::scene::camera::CameraMode;
 use common::terrain::BlockKind;
 use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
 use vek::*;
@@ -27,6 +28,7 @@ gfx_defines! {
         medium: [u32; 4] = "medium",
         select_pos: [i32; 4] = "select_pos",
         gamma: [f32; 4] = "gamma",
+        cam_mode: u32 = "cam_mode",
     }
 
     constant Light {
@@ -55,6 +57,7 @@ impl Globals {
         medium: BlockKind,
         select_pos: Option<Vec3<i32>>,
         gamma: f32,
+        cam_mode: CameraMode,
     ) -> Self {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
@@ -73,6 +76,7 @@ impl Globals {
                 .unwrap_or(Vec4::zero())
                 .into_array(),
             gamma: [gamma; 4],
+            cam_mode: cam_mode as u32,
         }
     }
 }
@@ -93,6 +97,7 @@ impl Default for Globals {
             BlockKind::Air,
             None,
             1.0,
+            CameraMode::ThirdPerson,
         )
     }
 }
