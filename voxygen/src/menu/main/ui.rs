@@ -550,6 +550,7 @@ impl MainMenuUi {
                             self.password = password;
                         },
                         TextBoxEvent::Enter => {
+                            self.password.pop();
                             login!();
                         },
                     }
