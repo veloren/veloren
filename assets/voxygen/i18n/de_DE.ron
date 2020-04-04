@@ -10,7 +10,7 @@
 /// To add a new language in Veloren, juste write an additional `.ron` file in 
 /// `assets/voxygen/i18n` and that's it!
 
-/// Localization for "global" English
+/// Lokalisation für Deutsch/Deutschland
 VoxygenLocalization(
     metadata: (
         language_name: "Deutsch",
@@ -238,7 +238,7 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "hud.settings.zoom_sensitivity": "Zoom Sensibilität",
         "hud.settings.invert_scroll_zoom": "Scroll-Zoom invertieren",
         "hud.settings.invert_mouse_y_axis": "Maus Y-Achse invertieren",
-        "hud.settings.free_look_behavior": "Freie Sicht",
+        "hud.settings.free_look_behavior": "Freies Umsehen",
 
         "hud.settings.view_distance": "Sichtweite",
         "hud.settings.maximum_fps": "Maximale FPS",

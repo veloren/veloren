@@ -149,9 +149,7 @@ pub enum Event {
     Stats,
     Close,
 }
-/*
 
-*/
 impl<'a> Widget for Bag<'a> {
     type Event = Option<Event>;
     type State = State;
