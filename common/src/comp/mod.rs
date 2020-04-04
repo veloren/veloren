@@ -16,7 +16,7 @@ mod stats;
 mod visual;
 
 // Reexports
-pub use ability::{CharacterAbility, ItemConfig, Loadout};
+pub use ability::{CharacterAbility, CharacterAbilityType, ItemConfig, Loadout};
 pub use admin::Admin;
 pub use agent::{Agent, Alignment, SpeechBubble, SPEECH_BUBBLE_DURATION};
 pub use body::{

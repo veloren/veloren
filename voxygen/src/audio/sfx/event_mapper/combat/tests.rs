@@ -2,8 +2,8 @@ use super::*;
 use common::{
     assets,
     comp::{
-        item::tool::{AxeKind, BowKind, ToolKind},
-        CharacterState, ItemConfig, Loadout,
+        item::tool::{AxeKind, BowKind, SwordKind, ToolKind},
+        CharacterAbilityType, CharacterState, ItemConfig, Loadout,
     },
     event::SfxEvent,
     states,
@@ -94,5 +94,52 @@ fn maps_basic_melee() {
         Some(&loadout),
     );
 
-    assert_eq!(result, SfxEvent::Attack(ToolKind::Axe(AxeKind::BasicAxe)));
+    assert_eq!(
+        result,
+        SfxEvent::Attack(
+            CharacterAbilityType::BasicMelee,
+            ToolKind::Axe(AxeKind::BasicAxe)
+        )
+    );
+}
+
+#[test]
+fn maps_triple_strike() {
+    let mut loadout = Loadout::default();
+
+    loadout.active_item = Some(ItemConfig {
+        item: assets::load_expect_cloned("common.items.weapons.starter_sword"),
+        ability1: None,
+        ability2: None,
+        ability3: None,
+        block_ability: None,
+        dodge_ability: None,
+    });
+
+    let result = CombatEventMapper::map_event(
+        &CharacterState::TripleStrike(states::triple_strike::Data {
+            base_damage: 10,
+            stage: states::triple_strike::Stage::First,
+            stage_time_active: Duration::default(),
+            stage_exhausted: false,
+            initialized: true,
+            transition_style: states::triple_strike::TransitionStyle::Hold(
+                states::triple_strike::HoldingState::Released,
+            ),
+        }),
+        &PreviousEntityState {
+            event: SfxEvent::Idle,
+            time: Instant::now(),
+            weapon_drawn: true,
+        },
+        Some(&loadout),
+    );
+
+    assert_eq!(
+        result,
+        SfxEvent::Attack(
+            CharacterAbilityType::TripleStrike,
+            ToolKind::Sword(SwordKind::BasicSword)
+        )
+    );
 }

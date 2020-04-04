@@ -5,7 +5,7 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 use common::{
     comp::{
         item::{Item, ItemKind},
-        CharacterState, ItemConfig, Loadout, Pos,
+        CharacterAbilityType, CharacterState, ItemConfig, Loadout, Pos,
     },
     event::{EventBus, SfxEvent, SfxEventItem},
     state::State,
@@ -143,7 +143,10 @@ impl CombatEventMapper {
             {
                 // Check for attacking states
                 if character_state.is_attack() {
-                    return SfxEvent::Attack(data.kind);
+                    return SfxEvent::Attack(
+                        CharacterAbilityType::from(character_state),
+                        data.kind,
+                    );
                 } else {
                     if let Some(wield_event) = match (
                         previous_state.weapon_drawn,
