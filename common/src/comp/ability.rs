@@ -10,6 +10,30 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
 
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub enum CharacterAbilityType {
+    BasicMelee,
+    BasicRanged,
+    Boost,
+    DashMelee,
+    BasicBlock,
+    TripleStrike,
+}
+
+impl From<&CharacterState> for CharacterAbilityType {
+    fn from(state: &CharacterState) -> Self {
+        match state {
+            CharacterState::BasicMelee(_) => Self::BasicMelee,
+            CharacterState::BasicRanged(_) => Self::BasicRanged,
+            CharacterState::Boost(_) => Self::Boost,
+            CharacterState::DashMelee(_) => Self::DashMelee,
+            CharacterState::BasicBlock => Self::BasicBlock,
+            CharacterState::TripleStrike(_) => Self::TripleStrike,
+            _ => Self::BasicMelee,
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbility {
     BasicMelee {
