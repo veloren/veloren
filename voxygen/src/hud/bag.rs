@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{ItemImgs, ItemKey},
+    item_imgs::ItemImgs,
     slot_kinds::{HudSlotManager, InventorySlot},
     Event as HudEvent, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
     XP_COLOR,
@@ -15,7 +15,7 @@ use crate::{
 use client::Client;
 use common::comp::Stats;
 use conrod_core::{
-    color, image,
+    color,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -32,10 +32,7 @@ widget_ids! {
         inv_slots_0,
         map_title,
         inv_slots[],
-        items[],
-        amounts[],
-        amounts_bg[],
-        tooltip[],
+        //tooltip[],
         bg,
         bg_frame,
         char_ico,
@@ -106,6 +103,7 @@ pub struct Bag<'a> {
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    slot_manager: &'a mut HudSlotManager,
     _pulse: f32,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     stats: &'a Stats,
@@ -120,6 +118,7 @@ impl<'a> Bag<'a> {
         fonts: &'a ConrodVoxygenFonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        slot_manager: &'a mut HudSlotManager,
         pulse: f32,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
         stats: &'a Stats,
@@ -133,6 +132,7 @@ impl<'a> Bag<'a> {
             common: widget::CommonBuilder::default(),
             rot_imgs,
             tooltip_manager,
+            slot_manager,
             _pulse: pulse,
             localized_strings,
             stats,
@@ -143,7 +143,6 @@ impl<'a> Bag<'a> {
 
 pub struct State {
     ids: Ids,
-    img_id_cache: Vec<Option<(ItemKey, image::Id)>>,
     selected_slot: Option<usize>,
 }
 
@@ -161,7 +160,6 @@ impl<'a> Widget for Bag<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
-            img_id_cache: Vec::new(),
             selected_slot: None,
         }
     }
@@ -607,8 +605,6 @@ impl<'a> Widget for Bag<'a> {
             });
         }
         // Display inventory contents
-        // TODO: add slot manager
-        let slot_manager: Option<&mut HudSlotManager> = None;
         let mut slot_maker = SlotMaker {
             background: self.imgs.inv_slot,
             selected_background: self.imgs.inv_slot_sel,
@@ -621,7 +617,7 @@ impl<'a> Widget for Bag<'a> {
             amount_text_color: TEXT_COLOR,
             content_source: inventory,
             image_source: self.item_imgs,
-            slot_manager,
+            slot_manager: Some(self.slot_manager),
         };
         for (i, item) in inventory.slots().iter().enumerate() {
             let x = i % 9;
