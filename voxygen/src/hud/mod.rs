@@ -8,6 +8,7 @@ mod map;
 mod minimap;
 mod settings_window;
 mod skillbar;
+mod slot_kinds;
 mod social;
 mod spell;
 
@@ -461,7 +462,7 @@ impl Hud {
         // Load rotation images.
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load rot images!");
         // Load item images.
-        let item_imgs = ItemImgs::new(&mut ui);
+        let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
         // Load language
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,

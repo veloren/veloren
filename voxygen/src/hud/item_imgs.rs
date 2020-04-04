@@ -82,12 +82,14 @@ impl Asset for ItemImagesSpec {
     }
 }
 
+// TODO: when there are more images don't load them all into memory
 pub struct ItemImgs {
     map: HashMap<ItemKey, Id>,
     indicator: ReloadIndicator,
+    not_found: Id,
 }
 impl ItemImgs {
-    pub fn new(ui: &mut Ui) -> Self {
+    pub fn new(ui: &mut Ui, not_found: Id) -> Self {
         let mut indicator = ReloadIndicator::new();
         Self {
             map: assets::load_watched::<ItemImagesSpec>(
@@ -97,9 +99,13 @@ impl ItemImgs {
             .expect("Unable to load item image manifest")
             .0
             .iter()
+            // TODO: what if multiple kinds map to the same image, it would be nice to use the same
+            // image id for both, although this does interfere with the current hot-reloading
+            // strategy
             .map(|(kind, spec)| (kind.clone(), ui.add_graphic(spec.create_graphic())))
             .collect(),
             indicator,
+            not_found,
         }
     }
 
@@ -138,6 +144,10 @@ impl ItemImgs {
                 None
             },
         }
+    }
+
+    pub fn img_id_or_not_found_img(&self, item_kind: ItemKey) -> Id {
+        self.img_id(item_kind).unwrap_or(self.not_found)
     }
 }
 

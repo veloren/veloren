@@ -1,21 +1,25 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{ItemImgs, ItemKey},
+    slot_kinds::{HudSlotManager, InventorySlot},
     Event as HudEvent, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
     XP_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
-    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    ui::{
+        fonts::ConrodVoxygenFonts, slot::SlotMaker, ImageFrame, Tooltip, TooltipManager,
+        Tooltipable,
+    },
 };
 use client::Client;
-use common::comp::{item::ItemKind, Stats};
+use common::comp::Stats;
 use conrod_core::{
     color, image,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-//
+use vek::Vec2;
 
 widget_ids! {
     pub struct Ids {
@@ -93,7 +97,6 @@ widget_ids! {
 }
 
 #[derive(WidgetCommon)]
-#[allow(dead_code)]
 pub struct Bag<'a> {
     client: &'a Client,
     imgs: &'a Imgs,
@@ -103,7 +106,7 @@ pub struct Bag<'a> {
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
-    pulse: f32,
+    _pulse: f32,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     stats: &'a Stats,
     show: &'a Show,
@@ -130,7 +133,7 @@ impl<'a> Bag<'a> {
             common: widget::CommonBuilder::default(),
             rot_imgs,
             tooltip_manager,
-            pulse,
+            _pulse: pulse,
             localized_strings,
             stats,
             show,
@@ -603,57 +606,37 @@ impl<'a> Widget for Bag<'a> {
                     .resize(inventory.len(), &mut ui.widget_id_generator());
             });
         }
-        if state.ids.items.len() < inventory.len() {
-            state.update(|s| {
-                s.ids
-                    .items
-                    .resize(inventory.len(), &mut ui.widget_id_generator());
-            });
-        }
-        if state.ids.amounts.len() < inventory.len() {
-            state.update(|s| {
-                s.ids
-                    .amounts
-                    .resize(inventory.len(), &mut ui.widget_id_generator());
-            });
-        }
-        if state.ids.amounts_bg.len() < inventory.len() {
-            state.update(|s| {
-                s.ids
-                    .amounts_bg
-                    .resize(inventory.len(), &mut ui.widget_id_generator());
-            });
-        }
-        // Expand img id cache to the number of slots
-        if state.img_id_cache.len() < inventory.len() {
-            state.update(|s| {
-                s.img_id_cache.resize(inventory.len(), None);
-            });
-        }
-
         // Display inventory contents
+        // TODO: add slot manager
+        let slot_manager: Option<&mut HudSlotManager> = None;
+        let mut slot_maker = SlotMaker {
+            background: self.imgs.inv_slot,
+            selected_background: self.imgs.inv_slot_sel,
+            background_color: Some(UI_MAIN),
+            content_size: Vec2::broadcast(30.0),
+            selected_content_size: Vec2::broadcast(32.0),
+            amount_font: self.fonts.cyri.conrod_id,
+            amount_margins: Vec2::new(-4.0, 0.0),
+            amount_font_size: self.fonts.cyri.scale(12),
+            amount_text_color: TEXT_COLOR,
+            content_source: inventory,
+            image_source: self.item_imgs,
+            slot_manager,
+        };
         for (i, item) in inventory.slots().iter().enumerate() {
             let x = i % 9;
             let y = i / 9;
 
-            let is_selected = Some(i) == state.selected_slot;
-
             // Slot
-
-            let slot_widget = Button::image(if !is_selected {
-                self.imgs.inv_slot
-            } else {
-                self.imgs.inv_slot_sel
-            })
-            .top_left_with_margins_on(
-                state.ids.inv_alignment,
-                0.0 + y as f64 * (40.0),
-                0.0 + x as f64 * (40.0),
-            )
-            .wh([40.0; 2])
-            .image_color(UI_MAIN);
-
-            let slot_widget_clicked = if let Some(item) = item {
+            let slot_widget = slot_maker
+                .fabricate(InventorySlot(i))
+                .top_left_with_margins_on(
+                    state.ids.inv_alignment,
+                    0.0 + y as f64 * (40.0),
+                    0.0 + x as f64 * (40.0),
+                )
+                .wh([40.0; 2]);
+            if let Some(item) = item {
                 slot_widget
                     .with_tooltip(
                         self.tooltip_manager,
@@ -664,82 +647,15 @@ impl<'a> Widget for Bag<'a> {
                         ),
                         &item_tooltip,
                     )
-                    .set(state.ids.inv_slots[i], ui)
+                    .set(state.ids.inv_slots[i], ui);
             } else {
-                slot_widget.set(state.ids.inv_slots[i], ui)
-            }
-            .was_clicked();
-
-            // Item
-            if slot_widget_clicked {
-                let selected_slot = match state.selected_slot {
-                    Some(a) => {
-                        if a == i {
-                            event = Some(Event::HudEvent(HudEvent::UseInventorySlot(i)));
-                        } else {
-                            event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(a, i)));
-                        }
-                        None
-                    },
-                    None if item.is_some() => Some(i),
-                    None => None,
-                };
-                state.update(|s| s.selected_slot = selected_slot);
-            }
-            // Item
-            if let Some(kind) = item.as_ref().map(|i| ItemKey::from(i)) {
-                //Stack Size
-                Button::image(match &state.img_id_cache[i] {
-                    Some((cached_kind, id)) if cached_kind == &kind => *id,
-                    _ => {
-                        let id = self
-                            .item_imgs
-                            .img_id(kind.clone())
-                            .unwrap_or(self.imgs.not_found);
-                        state.update(|s| s.img_id_cache[i] = Some((kind, id)));
-                        id
-                    },
-                })
-                .wh(if is_selected { [32.0; 2] } else { [30.0; 2] })
-                .middle_of(state.ids.inv_slots[i])
-                .graphics_for(state.ids.inv_slots[i])
-                .set(state.ids.items[i], ui);
-            }
-            if let Some(item) = item {
-                if let Some(amount) = match item.kind {
-                    ItemKind::Tool { .. } | ItemKind::Armor { .. } => None,
-                    ItemKind::Utility { amount, .. }
-                    | ItemKind::Consumable { amount, .. }
-                    | ItemKind::Ingredient { amount, .. } => Some(amount),
-                } {
-                    if amount > 1 {
-                        Text::new(&format!("{}", &amount))
-                            .top_right_with_margins_on(state.ids.items[i], -4.0, 0.0)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .floating(true)
-                            .font_size(self.fonts.cyri.scale(12))
-                            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                            .floating(true)
-                            .set(state.ids.amounts_bg[i], ui);
-                        Text::new(&format!("{}", &amount))
-                            .bottom_left_with_margins_on(state.ids.amounts_bg[i], 1.0, 1.0)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .font_size(self.fonts.cyri.scale(12))
-                            .color(TEXT_COLOR)
-                            .floating(true)
-                            .set(state.ids.amounts[i], ui);
-                    }
-                }
+                slot_widget.set(state.ids.inv_slots[i], ui);
             }
         }
 
         // Drop selected item
-        if let Some(to_drop) = state.selected_slot {
-            if ui.widget_input(ui.window).clicks().left().next().is_some() {
-                event = Some(Event::HudEvent(HudEvent::DropInventorySlot(to_drop)));
-                state.update(|s| s.selected_slot = None);
-            }
-        }
+        //    if ui.widget_input(ui.window).clicks().left().next().is_some() {
+
         // Stats Button
         if Button::image(self.imgs.button)
             .w_h(92.0, 22.0)
