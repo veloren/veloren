@@ -1,4 +1,5 @@
 #include <random.glsl>
+#include <srgb.glsl>
 #include <cloud.glsl>
 
 const float PI = 3.141592;
@@ -36,7 +37,7 @@ vec3 get_moon_dir(float time_of_day) {
 	return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 }
 
-const float PERSISTENT_AMBIANCE = 0.1;
+const float PERSISTENT_AMBIANCE = 0.025; // 0.1;
 
 float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0) * 0.9;
@@ -62,7 +63,18 @@ vec3 get_moon_color(vec3 moon_dir) {
 	return vec3(0.05, 0.05, 0.6);
 }
 
-void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion) {
+// Calculates extra emission and reflectance (due to sunlight / moonlight).
+//
+// reflectence = k_a * i_a + i_a,persistent
+// emittence = Σ { m ∈ lights } i_m * shadow_m * get_light_reflected(light_m)
+//
+// Note that any shadowing to be done that would block the sun and moon, aside from heightmap shadowing (that will be
+// implemented sooon), should be implicitly provided via k_a, k_d, and k_s.  For instance, shadowing via ambient occlusion.
+//
+// Also note that the emitted light calculation is kind of lame... we probabbly need something a bit nicer if we ever want to do
+// anything interesting here.
+// void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion
+void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
 	const float SUN_AMBIANCE = 0.1;
 
 	vec3 sun_dir = get_sun_dir(time_of_day);
@@ -77,12 +89,26 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 	vec3 sun_chroma = sun_color * sun_light;
 	vec3 moon_chroma = moon_color * moon_light;
 
-	light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
+    /* float NLsun = max(dot(-norm, sun_dir), 0);
+    float NLmoon = max(dot(-norm, moon_dir), 0);
+    vec3 E = -dir; */
+
+    // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
+    // Will be attenuated by k_d, which is assumed to carry any additional ambient occlusion information (e.g. about shadowing).
+    float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * 10000.0), 0.0, 0.5);
+
+    emitted_light = k_a * (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light)) + PERSISTENT_AMBIANCE;
+    // TODO: Add shadows.
+    reflected_light =
+        sun_chroma * light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) +
+        moon_chroma * 0.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha);
+
+	/* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 	diffuse_light =
 		sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.5 + 0.5, 0.0), diffusion) +
 		moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
 		PERSISTENT_AMBIANCE;
-	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light);
+	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
 }
 
 // This has been extracted into a function to allow quick exit when detecting a star.
@@ -215,7 +241,12 @@ float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
 	return pow(clamp((max(fog, mist) - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
 }
 
-vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
+/* vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
 	float avg_col = (color.r + color.g + color.b) / 3.0;
 	return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse + ambience);
+} */
+vec3 illuminate(vec3 emitted, vec3 reflected) {
+    const float gamma = /*0.5*/1.0;//1.0;
+    vec3 color = emitted + reflected;
+    return srgb_to_linear(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }
