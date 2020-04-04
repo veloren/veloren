@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fleshed out range attack into charging and shooting anims for staff/bow
 - Customized attack animation for hammers and axes
 - German translation
+- Added a silhouette for players when they are occluded
+- Added transparency to the player when zooming in
 
 ### Changed
 
@@ -55,7 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled icon art
 - Asset cleanup to lower client-size
 - Rewrote the humanoid skeleton to be more ideal for attack animations
-
 
 ### Removed
 

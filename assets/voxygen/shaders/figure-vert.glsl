@@ -11,6 +11,9 @@ layout (std140)
 uniform u_locals {
 	mat4 model_mat;
 	vec4 model_col;
+	// bit 0 - is player
+	// bit 1-31 - unused
+	int flags;
 };
 
 struct BoneData {
