@@ -314,8 +314,9 @@ impl<'a> Widget for Bag<'a> {
             .set(state.ids.slots_bg, ui);*/
             // Armor Slots
             let mut slot_maker = SlotMaker {
-                background: self.imgs.armor_slot,
-                selected_background: self.imgs.armor_slot,
+                empty_slot: self.imgs.armor_slot_empty,
+                filled_slot: self.imgs.armor_slot,
+                selected_slot: self.imgs.armor_slot_sel,
                 background_color: Some(UI_HIGHLIGHT_0),
                 content_size: Vec2::broadcast(30.0),
                 selected_content_size: Vec2::broadcast(32.0),
@@ -596,8 +597,9 @@ impl<'a> Widget for Bag<'a> {
         }
         // Display inventory contents
         let mut slot_maker = SlotMaker {
-            background: self.imgs.inv_slot,
-            selected_background: self.imgs.inv_slot_sel,
+            empty_slot: self.imgs.inv_slot,
+            filled_slot: self.imgs.inv_slot,
+            selected_slot: self.imgs.inv_slot_sel,
             background_color: Some(UI_MAIN),
             content_size: Vec2::broadcast(30.0),
             selected_content_size: Vec2::broadcast(32.0),
