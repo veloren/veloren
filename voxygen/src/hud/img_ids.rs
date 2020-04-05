@@ -230,6 +230,8 @@ image_ids! {
         inv_slots: "voxygen.element.misc_bg.inv_slots",
         inv_runes: "voxygen.element.misc_bg.inv_runes",
         armor_slot: "voxygen.element.buttons.armor_slot",
+        armor_slot_sel: "voxygen.element.buttons.armor_slot_sel",
+        armor_slot_empty: "voxygen.element.buttons.armor_slot_empty",
         head_bg: "voxygen.element.icons.head",
         shoulders_bg: "voxygen.element.icons.shoulders",
         hands_bg: "voxygen.element.icons.hands",
