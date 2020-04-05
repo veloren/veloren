@@ -23,8 +23,10 @@ pub trait ContentKey: Copy {
 pub trait SlotKinds: Sized + PartialEq + Copy {}
 
 pub struct SlotMaker<'a, C: ContentKey + Into<K>, K: SlotKinds> {
-    pub background: image::Id,
-    pub selected_background: image::Id,
+    pub empty_slot: image::Id,
+    pub filled_slot: image::Id,
+    pub selected_slot: image::Id,
+    // Is this useful?
     pub background_color: Option<Color>,
     pub content_size: Vec2<f32>,
     pub selected_content_size: Vec2<f32>,
@@ -45,8 +47,9 @@ where
     pub fn fabricate(&mut self, contents: C) -> Slot<C, K> {
         Slot::new(
             contents,
-            self.background,
-            self.selected_background,
+            self.empty_slot,
+            self.filled_slot,
+            self.selected_slot,
             self.content_size,
             self.selected_content_size,
             self.amount_font,
@@ -211,9 +214,10 @@ where
 pub struct Slot<'a, C: ContentKey + Into<K>, K: SlotKinds> {
     content: C,
 
-    // Background is also the frame
-    background: image::Id,
-    selected_background: image::Id,
+    // Images for slot background and frame
+    empty_slot: image::Id,
+    filled_slot: image::Id,
+    selected_slot: image::Id,
     background_color: Option<Color>,
 
     // Size of content image
@@ -272,8 +276,9 @@ where
 
     fn new(
         content: C,
-        background: image::Id,
-        selected_background: image::Id,
+        empty_slot: image::Id,
+        filled_slot: image::Id,
+        selected_slot: image::Id,
         content_size: Vec2<f32>,
         selected_content_size: Vec2<f32>,
         amount_font: font::Id,
@@ -285,8 +290,9 @@ where
     ) -> Self {
         Self {
             content,
-            background,
-            selected_background,
+            empty_slot,
+            filled_slot,
+            selected_slot,
             background_color: None,
             content_size,
             selected_content_size,
@@ -332,8 +338,9 @@ where
         } = args;
         let Slot {
             content,
-            background,
-            selected_background,
+            empty_slot,
+            filled_slot,
+            selected_slot,
             background_color,
             content_size,
             selected_content_size,
@@ -364,12 +371,14 @@ where
             .map_or(Interaction::None, |m| m.update(id, content.into(), ui));
 
         // Get image ids
-        let background_image = if let Interaction::Selected = interaction {
-            selected_background
-        } else {
-            background
-        };
         let content_image = state.cached_image.as_ref().map(|c| c.1);
+        let slot_image = if let Interaction::Selected = interaction {
+            selected_slot
+        } else if content_image.is_some() {
+            filled_slot
+        } else {
+            empty_slot
+        };
 
         // Get amount (None => no amount text)
         let amount = content.amount(content_source);
@@ -377,8 +386,8 @@ where
         // Get slot widget dimensions and position
         let (x, y, w, h) = rect.x_y_w_h();
 
-        // Draw background
-        Image::new(background_image)
+        // Draw slot frame/background
+        Image::new(slot_image)
             .x_y(x, y)
             .w_h(w, h)
             .parent(id)
@@ -386,8 +395,9 @@ where
             .color(background_color)
             .set(state.ids.background, ui);
 
-        // Draw icon
-        if let Some((icon_image, size, color)) = icon {
+        // Draw icon (only when there is not content)
+        // Note: this could potentially be done by the user instead
+        if let (Some((icon_image, size, color)), true) = (icon, content_image.is_none()) {
             let wh = size.map(|e| e as f64).into_array();
             Image::new(icon_image)
                 .x_y(x, y)
