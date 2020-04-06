@@ -1,6 +1,7 @@
 //! A widget for selecting a single value along some linear range.
 use conrod_core::{
     builder_methods, image,
+    input::state::mouse,
     text::font,
     widget::{self, Image, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
@@ -20,7 +21,7 @@ pub trait ContentKey: Copy {
     fn image_id(key: &Self::ImageKey, source: &Self::ImageSource) -> image::Id;
 }
 
-pub trait SlotKinds: Sized + PartialEq + Copy {}
+pub trait SlotKinds: Sized + PartialEq + Copy + Send + 'static {}
 
 pub struct ContentSize {
     // Width divided by height
@@ -88,44 +89,9 @@ where
     }
 }
 
-/*
-// Note: will probably delete this
-// Integrate tooltip adding??
-use super::tooltip::{Tooltip, TooltipManager, Tooltipable};
-pub fn with_tooltips(
-    self,
-    tooltip_manager: &'a mut TooltipManager,
-    tooltip: &'a Tooltip<'a>,
-) -> TooltippedSlotMaker<'a, C, K> {
-    TooltippedSlotMaker {
-        slot_maker: self,
-        tooltip_manager,
-        tooltip,
-    }
-}
-
-
-tooltip: &'a Tooltip<'a>,
-slot_widget
-    .with_tooltip(
-        self.tooltip_manager,
-        &item.name(),
-        &format!(
-            "{}",
-            /* item.kind, item.effect(), */ item.description()
-        ),
-        &item_tooltip,
-    )
-
-pub struct TooltippedSlotMaker<'a, C: ContentKey + Into<K>, K: SlotKinds> {
-    pub slot_maker: SlotMaker<'a, C, K>,
-    pub tooltip_manager: &'a mut TooltipManager,
-    pub tooltip: &'a Tooltip,
-}*/
-
 #[derive(Clone, Copy)]
 enum ManagerState<K> {
-    Dragging(widget::Id, K),
+    Dragging(widget::Id, K, image::Id),
     Selected(widget::Id, K),
     Idle,
 }
@@ -147,28 +113,72 @@ pub enum Event<K> {
 // Handles interactions with slots
 pub struct SlotManager<K: SlotKinds> {
     state: ManagerState<K>,
+    // Rebuilt every frame
+    slot_ids: Vec<widget::Id>,
+    // Rebuilt every frame
+    slot_kinds: Vec<K>,
     events: Vec<Event<K>>,
-    // widget id for dragging image
+    // Widget id for dragging image
+    drag_id: widget::Id,
+    // Size to display dragged content
+    // Note: could potentially be specialized for each slot if needed
+    drag_img_size: Vec2<f32>,
 }
 
 impl<K> SlotManager<K>
 where
     K: SlotKinds,
 {
-    pub fn new() -> Self {
+    pub fn new(mut gen: widget::id::Generator, drag_img_size: Vec2<f32>) -> Self {
         Self {
             state: ManagerState::Idle,
+            slot_ids: Vec::new(),
+            slot_kinds: Vec::new(),
             events: Vec::new(),
+            drag_id: gen.next(),
+            drag_img_size,
         }
     }
 
-    pub fn maintain(&mut self, ui: &conrod_core::Ui) -> Vec<Event<K>> {
+    pub fn maintain(&mut self, ui: &mut conrod_core::UiCell) -> Vec<Event<K>> {
+        // Clear
+        let slot_ids = std::mem::replace(&mut self.slot_ids, Vec::new());
+        let slot_kinds = std::mem::replace(&mut self.slot_kinds, Vec::new());
+
         // Detect drops by of selected item by clicking in empty space
         if let ManagerState::Selected(_, slot) = self.state {
             if ui.widget_input(ui.window).clicks().left().next().is_some() {
                 self.state = ManagerState::Idle;
-                self.events.push(Event::Dropped(slot))
+                self.events.push(Event::Dropped(slot));
             }
+        }
+
+        // If dragging and mouse if released check if there is a slot widget under the
+        // mouse
+        if let ManagerState::Dragging(id, slot, content_img) = &self.state {
+            let content_img = *content_img;
+            let input = &ui.global_input().current;
+            if let mouse::ButtonPosition::Up = input.mouse.buttons.left() {
+                // Get widget under the mouse
+                if let Some(id) = input.widget_under_mouse {
+                    // If over the window widget drop the contents
+                    if id == ui.window {
+                        self.events.push(Event::Dropped(*slot));
+                    } else if let Some(idx) = slot_ids.iter().position(|slot_id| *slot_id == id) {
+                        // If widget is a slot widget swap with it
+                        self.events.push(Event::Dragged(*slot, slot_kinds[idx]));
+                    }
+                }
+                // Mouse released stop dragging
+                self.state = ManagerState::Idle;
+            }
+            // Draw image of contents being dragged
+            let [mouse_x, mouse_y] = input.mouse.xy;
+            let size = self.drag_img_size.map(|e| e as f64).into_array();
+            super::ghost_image::GhostImage::new(content_img)
+                .wh(size)
+                .xy([mouse_x, mouse_y])
+                .set(self.drag_id, ui);
         }
 
         std::mem::replace(&mut self.events, Vec::new())
@@ -179,11 +189,16 @@ where
         widget: widget::Id,
         slot: K,
         ui: &conrod_core::Ui,
-        filled: bool,
+        content_img: Option<image::Id>,
     ) -> Interaction {
+        // Add to list of slots
+        self.slot_ids.push(widget);
+        self.slot_kinds.push(slot);
+
+        let filled = content_img.is_some();
         // If the slot is no longer filled deselect it or cancel dragging
         match &self.state {
-            ManagerState::Selected(id, _) | ManagerState::Dragging(id, _)
+            ManagerState::Selected(id, _) | ManagerState::Dragging(id, _, _)
                 if *id == widget && !filled =>
             {
                 self.state = ManagerState::Idle;
@@ -193,7 +208,8 @@ where
 
         // If this is the selected/dragged widget make sure the slot value is up to date
         match &mut self.state {
-            ManagerState::Selected(id, stored_slot) | ManagerState::Dragging(id, stored_slot)
+            ManagerState::Selected(id, stored_slot)
+            | ManagerState::Dragging(id, stored_slot, _)
                 if *id == widget =>
             {
                 *stored_slot = slot
@@ -203,7 +219,6 @@ where
 
         // TODO: make more robust wrt multiple events in the same frame (eg event order
         // may matter) TODO: handle taps as well
-        // TODO: handle drags
         let click_count = ui.widget_input(widget).clicks().left().count();
         if click_count > 0 {
             let odd_num_clicks = click_count % 2 == 1;
@@ -240,10 +255,25 @@ where
             };
         }
 
+        // If not dragging and the mouse is down and started on this slot start dragging
+        let input = &ui.global_input().current;
+        if let mouse::ButtonPosition::Down(_, Some(id)) = input.mouse.buttons.left() {
+            match self.state {
+                ManagerState::Selected(_, _) | ManagerState::Idle if widget == *id => {
+                    // Start dragging if widget is filled
+                    if let Some(img) = content_img {
+                        self.state = ManagerState::Dragging(widget, slot, img);
+                    }
+                },
+                // Already dragging or id doesn't match
+                _ => {},
+            }
+        }
+
         // Determine whether this slot is being interacted with
         match self.state {
             ManagerState::Selected(id, _) if id == widget => Interaction::Selected,
-            ManagerState::Dragging(id, _) if id == widget => Interaction::Dragging,
+            ManagerState::Dragging(id, _, _) if id == widget => Interaction::Dragging,
             _ => Interaction::None,
         }
     }
@@ -292,9 +322,10 @@ widget_ids! {
 }
 
 /// Represents the state of the Slot widget.
-pub struct State<K> {
+pub struct State<S: SlotKinds, K> {
     ids: Ids,
     cached_image: Option<(K, image::Id)>,
+    slot_kind: S,
 }
 
 impl<'a, C, K> Slot<'a, C, K>
@@ -353,13 +384,14 @@ where
     K: SlotKinds,
 {
     type Event = ();
-    type State = State<C::ImageKey>;
+    type State = State<K, C::ImageKey>;
     type Style = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
             cached_image: None,
+            slot_kind: self.content.into(),
         }
     }
 
@@ -403,13 +435,27 @@ where
             });
         }
 
-        // Get whether this slot is selected
-        let interaction = self.slot_manager.map_or(Interaction::None, |m| {
-            m.update(id, content.into(), ui, state.cached_image.is_some())
-        });
+        // If the slot kind value changed update the state
+        let slot_kind = content.into();
+        if slot_kind != state.slot_kind {
+            state.update(|state| {
+                state.slot_kind = slot_kind;
+            });
+        }
 
         // Get image ids
         let content_image = state.cached_image.as_ref().map(|c| c.1);
+        // Get whether this slot is selected
+        let interaction = self.slot_manager.map_or(Interaction::None, |m| {
+            m.update(id, content.into(), ui, content_image)
+        });
+        // No content if it is being dragged
+        let content_image = if let Interaction::Dragging = interaction {
+            None
+        } else {
+            content_image
+        };
+        // Go back to getting image ids
         let slot_image = if let Interaction::Selected = interaction {
             selected_slot
         } else if content_image.is_some() {

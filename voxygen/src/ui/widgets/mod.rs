@@ -1,3 +1,4 @@
+pub mod ghost_image;
 pub mod image_frame;
 pub mod image_slider;
 pub mod ingame;

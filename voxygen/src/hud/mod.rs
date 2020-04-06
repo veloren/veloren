@@ -474,6 +474,9 @@ impl Hud {
         let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
 
+        let slot_manager =
+            slot_kinds::HudSlotManager::new(ui.id_generator(), Vec2::broadcast(40.0));
+
         Self {
             ui,
             imgs,
@@ -512,7 +515,7 @@ impl Hud {
             pulse: 0.0,
             velocity: 0.0,
             voxygen_i18n,
-            slot_manager: slot_kinds::HudSlotManager::new(),
+            slot_manager,
         }
     }
 
