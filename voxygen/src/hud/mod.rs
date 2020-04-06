@@ -8,7 +8,7 @@ mod map;
 mod minimap;
 mod settings_window;
 mod skillbar;
-mod slot_kinds;
+mod slots;
 mod social;
 mod spell;
 
@@ -234,8 +234,8 @@ pub enum Event {
     CharacterSelection,
     UseInventorySlot(usize),
     SwapInventorySlots(usize, usize),
-    SwapInventoryArmor(usize, slot_kinds::ArmorSlot),
-    SwapArmorSlots(slot_kinds::ArmorSlot, slot_kinds::ArmorSlot),
+    SwapInventoryArmor(usize, slots::ArmorSlot),
+    SwapArmorSlots(slots::ArmorSlot, slots::ArmorSlot),
     DropInventorySlot(usize),
     Logout,
     Quit,
@@ -443,7 +443,7 @@ pub struct Hud {
     pulse: f32,
     velocity: f32,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
-    slot_manager: slot_kinds::HudSlotManager,
+    slot_manager: slots::SlotManager,
 }
 
 impl Hud {
@@ -474,8 +474,7 @@ impl Hud {
         let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
 
-        let slot_manager =
-            slot_kinds::HudSlotManager::new(ui.id_generator(), Vec2::broadcast(40.0));
+        let slot_manager = slots::SlotManager::new(ui.id_generator(), Vec2::broadcast(40.0));
 
         Self {
             ui,
@@ -1962,29 +1961,26 @@ impl Hud {
 
         // Maintain slot manager
         for event in self.slot_manager.maintain(ui_widgets) {
-            use slot_kinds::HudSlotKinds;
+            use slots::SlotKind;
             match event {
-                slot::Event::Dragged(
-                    HudSlotKinds::Inventory(from),
-                    HudSlotKinds::Inventory(to),
-                ) => {
+                slot::Event::Dragged(SlotKind::Inventory(from), SlotKind::Inventory(to)) => {
                     // Swap between inventory slots
                     events.push(Event::SwapInventorySlots(from.0, to.0));
                 },
-                slot::Event::Dragged(HudSlotKinds::Armor(from), HudSlotKinds::Armor(to)) => {
+                slot::Event::Dragged(SlotKind::Armor(from), SlotKind::Armor(to)) => {
                     // Swap between two armor slots
                     events.push(Event::SwapArmorSlots(from, to));
                 },
-                slot::Event::Dragged(HudSlotKinds::Inventory(inv), HudSlotKinds::Armor(arm))
-                | slot::Event::Dragged(HudSlotKinds::Armor(arm), HudSlotKinds::Inventory(inv)) => {
+                slot::Event::Dragged(SlotKind::Inventory(inv), SlotKind::Armor(arm))
+                | slot::Event::Dragged(SlotKind::Armor(arm), SlotKind::Inventory(inv)) => {
                     // Swap between inventory and armor slot
                     events.push(Event::SwapInventoryArmor(inv.0, arm));
                 },
-                slot::Event::Dropped(HudSlotKinds::Inventory(from)) => {
+                slot::Event::Dropped(SlotKind::Inventory(from)) => {
                     // Drop item from inventory
                     events.push(Event::DropInventorySlot(from.0));
                 },
-                slot::Event::Used(HudSlotKinds::Inventory(inv)) => {
+                slot::Event::Used(SlotKind::Inventory(inv)) => {
                     // Item in inventory used (selected and then clicked again)
                     events.push(Event::UseInventorySlot(inv.0));
                 },

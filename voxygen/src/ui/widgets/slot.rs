@@ -10,18 +10,15 @@ use vek::*;
 
 const AMOUNT_SHADOW_OFFSET: [f64; 2] = [1.0, 1.0];
 
-pub trait ContentKey: Copy {
-    type ContentSource;
-    type ImageSource;
+pub trait SlotKey<C, I>: Copy {
     type ImageKey: PartialEq + Send + 'static;
     /// Returns an Option since the slot could be empty
-    fn image_key(&self, source: &Self::ContentSource) -> Option<Self::ImageKey>;
-    // TODO: is this the right integer type?
-    fn amount(&self, source: &Self::ContentSource) -> Option<u32>;
-    fn image_id(key: &Self::ImageKey, source: &Self::ImageSource) -> image::Id;
+    fn image_key(&self, source: &C) -> Option<Self::ImageKey>;
+    fn amount(&self, source: &C) -> Option<u32>;
+    fn image_id(key: &Self::ImageKey, source: &I) -> image::Id;
 }
 
-pub trait SlotKinds: Sized + PartialEq + Copy + Send + 'static {}
+pub trait SumSlot: Sized + PartialEq + Copy + Send + 'static {}
 
 pub struct ContentSize {
     // Width divided by height
@@ -30,7 +27,7 @@ pub struct ContentSize {
     pub max_fraction: f32,
 }
 
-pub struct SlotMaker<'a, C: ContentKey + Into<K>, K: SlotKinds> {
+pub struct SlotMaker<'a, C, I, S: SumSlot> {
     pub empty_slot: image::Id,
     pub filled_slot: image::Id,
     pub selected_slot: image::Id,
@@ -43,17 +40,20 @@ pub struct SlotMaker<'a, C: ContentKey + Into<K>, K: SlotKinds> {
     pub amount_font_size: u32,
     pub amount_margins: Vec2<f32>,
     pub amount_text_color: Color,
-    pub content_source: &'a C::ContentSource,
-    pub image_source: &'a C::ImageSource,
-    pub slot_manager: Option<&'a mut SlotManager<K>>,
+    pub content_source: &'a C,
+    pub image_source: &'a I,
+    pub slot_manager: Option<&'a mut SlotManager<S>>,
 }
 
-impl<'a, C, K> SlotMaker<'a, C, K>
+impl<'a, C, I, S> SlotMaker<'a, C, I, S>
 where
-    C: ContentKey + Into<K>,
-    K: SlotKinds,
+    S: SumSlot,
 {
-    pub fn fabricate(&mut self, contents: C, wh: [f32; 2]) -> Slot<C, K> {
+    pub fn fabricate<K: SlotKey<C, I> + Into<S>>(
+        &mut self,
+        contents: K,
+        wh: [f32; 2],
+    ) -> Slot<K, C, I, S> {
         let content_size = {
             let ContentSize {
                 max_fraction,
@@ -111,13 +111,13 @@ pub enum Event<K> {
     Used(K),
 }
 // Handles interactions with slots
-pub struct SlotManager<K: SlotKinds> {
-    state: ManagerState<K>,
+pub struct SlotManager<S: SumSlot> {
+    state: ManagerState<S>,
     // Rebuilt every frame
     slot_ids: Vec<widget::Id>,
     // Rebuilt every frame
-    slot_kinds: Vec<K>,
-    events: Vec<Event<K>>,
+    slots: Vec<S>,
+    events: Vec<Event<S>>,
     // Widget id for dragging image
     drag_id: widget::Id,
     // Size to display dragged content
@@ -125,25 +125,25 @@ pub struct SlotManager<K: SlotKinds> {
     drag_img_size: Vec2<f32>,
 }
 
-impl<K> SlotManager<K>
+impl<S> SlotManager<S>
 where
-    K: SlotKinds,
+    S: SumSlot,
 {
     pub fn new(mut gen: widget::id::Generator, drag_img_size: Vec2<f32>) -> Self {
         Self {
             state: ManagerState::Idle,
             slot_ids: Vec::new(),
-            slot_kinds: Vec::new(),
+            slots: Vec::new(),
             events: Vec::new(),
             drag_id: gen.next(),
             drag_img_size,
         }
     }
 
-    pub fn maintain(&mut self, ui: &mut conrod_core::UiCell) -> Vec<Event<K>> {
+    pub fn maintain(&mut self, ui: &mut conrod_core::UiCell) -> Vec<Event<S>> {
         // Clear
         let slot_ids = std::mem::replace(&mut self.slot_ids, Vec::new());
-        let slot_kinds = std::mem::replace(&mut self.slot_kinds, Vec::new());
+        let slots = std::mem::replace(&mut self.slots, Vec::new());
 
         // Detect drops by of selected item by clicking in empty space
         if let ManagerState::Selected(_, slot) = self.state {
@@ -166,7 +166,7 @@ where
                         self.events.push(Event::Dropped(*slot));
                     } else if let Some(idx) = slot_ids.iter().position(|slot_id| *slot_id == id) {
                         // If widget is a slot widget swap with it
-                        self.events.push(Event::Dragged(*slot, slot_kinds[idx]));
+                        self.events.push(Event::Dragged(*slot, slots[idx]));
                     }
                 }
                 // Mouse released stop dragging
@@ -187,13 +187,13 @@ where
     fn update(
         &mut self,
         widget: widget::Id,
-        slot: K,
+        slot: S,
         ui: &conrod_core::Ui,
         content_img: Option<image::Id>,
     ) -> Interaction {
         // Add to list of slots
         self.slot_ids.push(widget);
-        self.slot_kinds.push(slot);
+        self.slots.push(slot);
 
         let filled = content_img.is_some();
         // If the slot is no longer filled deselect it or cancel dragging
@@ -280,8 +280,8 @@ where
 }
 
 #[derive(WidgetCommon)]
-pub struct Slot<'a, C: ContentKey + Into<K>, K: SlotKinds> {
-    content: C,
+pub struct Slot<'a, K: SlotKey<C, I> + Into<S>, C, I, S: SumSlot> {
+    slot_key: K,
 
     // Images for slot background and frame
     empty_slot: image::Id,
@@ -301,10 +301,10 @@ pub struct Slot<'a, C: ContentKey + Into<K>, K: SlotKinds> {
     amount_margins: Vec2<f32>,
     amount_text_color: Color,
 
-    slot_manager: Option<&'a mut SlotManager<K>>,
+    slot_manager: Option<&'a mut SlotManager<S>>,
     // Should we just pass in the ImageKey?
-    content_source: &'a C::ContentSource,
-    image_source: &'a C::ImageSource,
+    content_source: &'a C,
+    image_source: &'a I,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -322,20 +322,23 @@ widget_ids! {
 }
 
 /// Represents the state of the Slot widget.
-pub struct State<S: SlotKinds, K> {
+pub struct State<K> {
     ids: Ids,
     cached_image: Option<(K, image::Id)>,
-    slot_kind: S,
 }
 
-impl<'a, C, K> Slot<'a, C, K>
+impl<'a, K, C, I, S> Slot<'a, K, C, I, S>
 where
-    C: ContentKey + Into<K>,
-    K: SlotKinds,
+    K: SlotKey<C, I> + Into<S>,
+    S: SumSlot,
 {
     builder_methods! {
-        pub with_manager { slot_manager = Some(&'a mut SlotManager<K>) }
         pub with_background_color { background_color = Some(Color) }
+    }
+
+    pub fn with_manager(mut self, slot_manager: &'a mut SlotManager<S>) -> Self {
+        self.slot_manager = Some(slot_manager);
+        self
     }
 
     pub fn with_icon(mut self, img: image::Id, size: Vec2<f32>, color: Option<Color>) -> Self {
@@ -344,7 +347,7 @@ where
     }
 
     fn new(
-        content: C,
+        slot_key: K,
         empty_slot: image::Id,
         filled_slot: image::Id,
         selected_slot: image::Id,
@@ -354,11 +357,11 @@ where
         amount_font_size: u32,
         amount_margins: Vec2<f32>,
         amount_text_color: Color,
-        content_source: &'a C::ContentSource,
-        image_source: &'a C::ImageSource,
+        content_source: &'a C,
+        image_source: &'a I,
     ) -> Self {
         Self {
-            content,
+            slot_key,
             empty_slot,
             filled_slot,
             selected_slot,
@@ -378,20 +381,19 @@ where
     }
 }
 
-impl<'a, C, K> Widget for Slot<'a, C, K>
+impl<'a, K, C, I, S> Widget for Slot<'a, K, C, I, S>
 where
-    C: ContentKey + Into<K>,
-    K: SlotKinds,
+    K: SlotKey<C, I> + Into<S>,
+    S: SumSlot,
 {
     type Event = ();
-    type State = State<K, C::ImageKey>;
+    type State = State<K::ImageKey>;
     type Style = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
             cached_image: None,
-            slot_kind: self.content.into(),
         }
     }
 
@@ -407,7 +409,7 @@ where
             ..
         } = args;
         let Slot {
-            content,
+            slot_key,
             empty_slot,
             filled_slot,
             selected_slot,
@@ -425,21 +427,13 @@ where
         } = self;
 
         // If the key changed update the cached image id
-        let image_key = content.image_key(content_source);
+        let image_key = slot_key.image_key(content_source);
         if state.cached_image.as_ref().map(|c| &c.0) != image_key.as_ref() {
             state.update(|state| {
                 state.cached_image = image_key.map(|key| {
-                    let image_id = C::image_id(&key, &image_source);
+                    let image_id = K::image_id(&key, &image_source);
                     (key, image_id)
                 });
-            });
-        }
-
-        // If the slot kind value changed update the state
-        let slot_kind = content.into();
-        if slot_kind != state.slot_kind {
-            state.update(|state| {
-                state.slot_kind = slot_kind;
             });
         }
 
@@ -447,7 +441,7 @@ where
         let content_image = state.cached_image.as_ref().map(|c| c.1);
         // Get whether this slot is selected
         let interaction = self.slot_manager.map_or(Interaction::None, |m| {
-            m.update(id, content.into(), ui, content_image)
+            m.update(id, slot_key.into(), ui, content_image)
         });
         // No content if it is being dragged
         let content_image = if let Interaction::Dragging = interaction {
@@ -465,7 +459,7 @@ where
         };
 
         // Get amount (None => no amount text)
-        let amount = content.amount(content_source);
+        let amount = slot_key.amount(content_source);
 
         // Get slot widget dimensions and position
         let (x, y, w, h) = rect.x_y_w_h();
