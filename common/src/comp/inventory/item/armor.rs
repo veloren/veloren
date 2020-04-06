@@ -163,6 +163,12 @@ pub const ALL_SHOULDERS: [Shoulder; 9] = [
     Shoulder::ClothBlue0,
     Shoulder::ClothGreen0,
 ];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Back {
+    Short0 = 1,
+}
+pub const ALL_BACKS: [Back; 1] = [Back::Short0];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
@@ -172,6 +178,7 @@ pub enum Armor {
     Hand(Hand),
     Pants(Pants),
     Foot(Foot),
+    Back(Back),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

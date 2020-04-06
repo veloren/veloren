@@ -1,0 +1,8 @@
+Item(
+    name: "Short leather Cape",
+   description: "WIP",
+    kind: Armor(
+        kind: Back(Short0),
+        stats: (20),
+    ),
+)
