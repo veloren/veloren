@@ -12,7 +12,7 @@ use common::{
         dragon, fish_medium, fish_small,
         humanoid::{Body, BodyType, EyeColor, Eyebrows, Race, Skin},
         item::{
-            armor::{Armor, Back, Belt, Chest, Foot, Hand, Pants, Shoulder},
+            armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Lantern, Pants, Shoulder, Tabard},
             tool::{Tool, ToolKind},
             ItemKind,
         },
@@ -258,6 +258,12 @@ pub struct HumArmorFootSpec(ArmorVoxSpecMap<Foot, ArmorVoxSpec>);
 pub struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorBackSpec(ArmorVoxSpecMap<Back, ArmorVoxSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorLanternSpec(ArmorVoxSpecMap<Lantern, ArmorVoxSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorHeadSpec(ArmorVoxSpecMap<Head, ArmorVoxSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorTabardSpec(ArmorVoxSpecMap<Tabard, ArmorVoxSpec>);
 
 impl Asset for HumArmorShoulderSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
@@ -308,6 +314,27 @@ impl Asset for HumArmorBackSpec {
         ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
+impl Asset for HumArmorLanternSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
+}
+impl Asset for HumArmorHeadSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
+}
+impl Asset for HumArmorTabardSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
+}
 impl Asset for HumMainWeaponSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
@@ -315,7 +342,7 @@ impl Asset for HumMainWeaponSpec {
         ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
-
+// Shoulder
 impl HumArmorShoulderSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_shoulder_manifest", indicator)
@@ -372,7 +399,7 @@ impl HumArmorShoulderSpec {
         self.mesh_shoulder(body, loadout, false)
     }
 }
-
+// Chest
 impl HumArmorChestSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_chest_manifest", indicator)
@@ -423,7 +450,7 @@ impl HumArmorChestSpec {
         generate_mesh(&chest, Vec3::from(spec.vox_spec.1))
     }
 }
-
+// Hand
 impl HumArmorHandSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_hand_manifest", indicator)
@@ -475,7 +502,7 @@ impl HumArmorHandSpec {
         self.mesh_hand(body, loadout, false)
     }
 }
-
+// Belt
 impl HumArmorBeltSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_belt_manifest", indicator)
@@ -509,7 +536,7 @@ impl HumArmorBeltSpec {
         generate_mesh(&belt_segment, Vec3::from(spec.vox_spec.1))
     }
 }
-
+// Legs
 impl HumArmorPantsSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_pants_manifest", indicator)
@@ -560,7 +587,7 @@ impl HumArmorPantsSpec {
         generate_mesh(&pants, Vec3::from(spec.vox_spec.1))
     }
 }
-
+// Foot
 impl HumArmorFootSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_foot_manifest", indicator)
@@ -632,6 +659,7 @@ impl HumMainWeaponSpec {
         generate_mesh(&tool_kind_segment, Vec3::from(spec.vox_spec.1))
     }
 }
+// Back
 impl HumArmorBackSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_back_manifest", indicator)
@@ -682,13 +710,164 @@ impl HumArmorBackSpec {
         generate_mesh(&back, Vec3::from(spec.vox_spec.1))
     }
 }
+// Lantern
+impl HumArmorLanternSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_lantern_manifest", indicator)
+            .unwrap()
+    }
 
+    pub fn mesh_lantern(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+        let spec = if let Some(ItemKind::Armor {
+            kind: Armor::Lantern(lantern),
+            ..
+        }) = loadout.lantern.as_ref().map(|i| &i.kind)
+        {
+            match self.0.map.get(&lantern) {
+                Some(spec) => spec,
+                None => {
+                    error!("No lantern specification exists for {:?}", lantern);
+                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let color = |mat_segment| {
+            color_segment(
+                mat_segment,
+                body.race.skin_color(body.skin),
+                body.race.hair_color(body.hair_color),
+                body.race.eye_color(body.eye_color),
+            )
+        };
+
+        let bare_lantern = graceful_load_mat_segment("armor.empty");
+
+        let mut lantern_armor = graceful_load_mat_segment(&spec.vox_spec.0);
+
+        if let Some(color) = spec.color {
+            let lantern_color = Vec3::from(color);
+            lantern_armor =
+                lantern_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(lantern_color)));
+        }
+
+        let lantern = DynaUnionizer::new()
+            .add(color(bare_lantern), Vec3::new(0, 0, 0))
+            .add(color(lantern_armor), Vec3::new(0, 0, 0))
+            .unify()
+            .0;
+
+        generate_mesh(&lantern, Vec3::from(spec.vox_spec.1))
+    }
+}
+impl HumArmorHeadSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_head_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_lantern(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+        let spec = if let Some(ItemKind::Armor {
+            kind: Armor::Head(head),
+            ..
+        }) = loadout.head.as_ref().map(|i| &i.kind)
+        {
+            match self.0.map.get(&head) {
+                Some(spec) => spec,
+                None => {
+                    error!("No head specification exists for {:?}", head);
+                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let color = |mat_segment| {
+            color_segment(
+                mat_segment,
+                body.race.skin_color(body.skin),
+                body.race.hair_color(body.hair_color),
+                body.race.eye_color(body.eye_color),
+            )
+        };
+
+        let bare_head = graceful_load_mat_segment("armor.empty");
+
+        let mut head_armor = graceful_load_mat_segment(&spec.vox_spec.0);
+
+        if let Some(color) = spec.color {
+            let head_color = Vec3::from(color);
+            head_armor = head_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(head_color)));
+        }
+
+        let head = DynaUnionizer::new()
+            .add(color(bare_head), Vec3::new(0, 0, 0))
+            .add(color(head_armor), Vec3::new(0, 0, 0))
+            .unify()
+            .0;
+
+        generate_mesh(&head, Vec3::from(spec.vox_spec.1))
+    }
+}
+impl HumArmorTabardSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_tabard_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_lantern(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+        let spec = if let Some(ItemKind::Armor {
+            kind: Armor::Tabard(tabard),
+            ..
+        }) = loadout.tabard.as_ref().map(|i| &i.kind)
+        {
+            match self.0.map.get(&tabard) {
+                Some(spec) => spec,
+                None => {
+                    error!("No tabard specification exists for {:?}", tabard);
+                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let color = |mat_segment| {
+            color_segment(
+                mat_segment,
+                body.race.skin_color(body.skin),
+                body.race.hair_color(body.hair_color),
+                body.race.eye_color(body.eye_color),
+            )
+        };
+
+        let bare_tabard = graceful_load_mat_segment("armor.empty");
+
+        let mut tabard_armor = graceful_load_mat_segment(&spec.vox_spec.0);
+
+        if let Some(color) = spec.color {
+            let tabard_color = Vec3::from(color);
+            tabard_armor = tabard_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(tabard_color)));
+        }
+
+        let tabard = DynaUnionizer::new()
+            .add(color(bare_tabard), Vec3::new(0, 0, 0))
+            .add(color(tabard_armor), Vec3::new(0, 0, 0))
+            .unify()
+            .0;
+
+        generate_mesh(&tabard, Vec3::from(spec.vox_spec.1))
+    }
+}
 // TODO: Inventory
 pub fn mesh_glider() -> Mesh<FigurePipeline> {
     load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0))
 }
 pub fn mesh_lantern() -> Mesh<FigurePipeline> {
-    load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0))
+    load_mesh("object.lantern0", Vec3::new(0.0, 0.0, 0.0))
 }
 
 /////////

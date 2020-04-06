@@ -356,6 +356,11 @@ impl CharSelectionUi {
                     pants: None,
                     foot: None,
                     back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: None,
+                    head: None,
+                    tabard: None,
                 };
                 Some(loadout)
             },

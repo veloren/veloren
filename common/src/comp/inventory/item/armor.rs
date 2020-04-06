@@ -169,6 +169,36 @@ pub enum Back {
     Short0 = 1,
 }
 pub const ALL_BACKS: [Back; 1] = [Back::Short0];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Ring {
+    Ring0 = 1,
+}
+pub const ALL_RINGS: [Ring; 1] = [Ring::Ring0];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Neck {
+    Neck0 = 1,
+}
+pub const ALL_NECKS: [Neck; 1] = [Neck::Neck0];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Lantern {
+    Lantern0 = 1,
+}
+pub const ALL_LANTERNS: [Lantern; 1] = [Lantern::Lantern0];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Head {
+    Head0 = 1,
+}
+pub const ALL_HEADS: [Head; 1] = [Head::Head0];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Tabard {
+    Tabard0 = 1,
+}
+pub const ALL_TABARDS: [Tabard; 1] = [Tabard::Tabard0];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
@@ -179,6 +209,11 @@ pub enum Armor {
     Pants(Pants),
     Foot(Foot),
     Back(Back),
+    Ring(Ring),
+    Neck(Neck),
+    Lantern(Lantern),
+    Head(Head),
+    Tabard(Tabard),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
