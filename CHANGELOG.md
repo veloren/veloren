@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled icon art
 - Asset cleanup to lower client-size
 - Rewrote the humanoid skeleton to be more ideal for attack animations
+- Arrows can no longer hurt their owners
 
 ### Removed
 
