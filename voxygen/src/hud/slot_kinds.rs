@@ -86,6 +86,8 @@ impl ContentKey for ArmorSlot {
             ArmorSlot::Hands => source.hand.as_ref(),
             ArmorSlot::Legs => source.pants.as_ref(),
             ArmorSlot::Feet => source.foot.as_ref(),
+            ArmorSlot::Mainhand => source.active_item.as_ref().map(|i| &i.item),
+            ArmorSlot::Offhand => source.second_item.as_ref().map(|i| &i.item),
             _ => None,
         };
 

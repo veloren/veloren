@@ -22,14 +22,22 @@ pub trait ContentKey: Copy {
 
 pub trait SlotKinds: Sized + PartialEq + Copy {}
 
+pub struct ContentSize {
+    // Width divided by height
+    pub width_height_ratio: f32,
+    // Max fraction of slot widget size that each side can be
+    pub max_fraction: f32,
+}
+
 pub struct SlotMaker<'a, C: ContentKey + Into<K>, K: SlotKinds> {
     pub empty_slot: image::Id,
     pub filled_slot: image::Id,
     pub selected_slot: image::Id,
     // Is this useful?
     pub background_color: Option<Color>,
-    pub content_size: Vec2<f32>,
-    pub selected_content_size: Vec2<f32>,
+    pub content_size: ContentSize,
+    // How to scale content size relative to base content size when selected
+    pub selected_content_scale: f32,
     pub amount_font: font::Id,
     pub amount_font_size: u32,
     pub amount_margins: Vec2<f32>,
@@ -44,14 +52,29 @@ where
     C: ContentKey + Into<K>,
     K: SlotKinds,
 {
-    pub fn fabricate(&mut self, contents: C) -> Slot<C, K> {
+    pub fn fabricate(&mut self, contents: C, wh: [f32; 2]) -> Slot<C, K> {
+        let content_size = {
+            let ContentSize {
+                max_fraction,
+                width_height_ratio,
+            } = self.content_size;
+            let w_max = max_fraction * wh[0];
+            let h_max = max_fraction * wh[1];
+            let max_ratio = w_max / h_max;
+            let (w, h) = if max_ratio > width_height_ratio {
+                (width_height_ratio * h_max, w_max)
+            } else {
+                (w_max, w_max / width_height_ratio)
+            };
+            Vec2::new(w, h)
+        };
         Slot::new(
             contents,
             self.empty_slot,
             self.filled_slot,
             self.selected_slot,
-            self.content_size,
-            self.selected_content_size,
+            content_size,
+            self.selected_content_scale,
             self.amount_font,
             self.amount_font_size,
             self.amount_margins,
@@ -59,6 +82,7 @@ where
             self.content_source,
             self.image_source,
         )
+        .wh([wh[0] as f64, wh[1] as f64])
         .and_then(self.background_color, |s, c| s.with_background_color(c))
         .and_then(self.slot_manager.as_mut(), |s, m| s.with_manager(m))
     }
@@ -150,7 +174,23 @@ where
         std::mem::replace(&mut self.events, Vec::new())
     }
 
-    fn update(&mut self, widget: widget::Id, slot: K, ui: &conrod_core::Ui) -> Interaction {
+    fn update(
+        &mut self,
+        widget: widget::Id,
+        slot: K,
+        ui: &conrod_core::Ui,
+        filled: bool,
+    ) -> Interaction {
+        // If the slot is no longer filled deselect it or cancel dragging
+        match &self.state {
+            ManagerState::Selected(id, _) | ManagerState::Dragging(id, _)
+                if *id == widget && !filled =>
+            {
+                self.state = ManagerState::Idle;
+            }
+            _ => (),
+        }
+
         // If this is the selected/dragged widget make sure the slot value is up to date
         match &mut self.state {
             ManagerState::Selected(id, stored_slot) | ManagerState::Dragging(id, stored_slot)
@@ -163,7 +203,6 @@ where
 
         // TODO: make more robust wrt multiple events in the same frame (eg event order
         // may matter) TODO: handle taps as well
-        // TODO: handle clicks in empty space
         // TODO: handle drags
         let click_count = ui.widget_input(widget).clicks().left().count();
         if click_count > 0 {
@@ -192,7 +231,7 @@ where
                 }
             } else {
                 // No widgets were selected
-                if odd_num_clicks {
+                if odd_num_clicks && filled {
                     ManagerState::Selected(widget, slot)
                 } else {
                     // Selected and then deselected with one or more clicks
@@ -222,8 +261,7 @@ pub struct Slot<'a, C: ContentKey + Into<K>, K: SlotKinds> {
 
     // Size of content image
     content_size: Vec2<f32>,
-    // TODO: maybe use constant scale factor or move this setting to the slot manager?
-    selected_content_size: Vec2<f32>,
+    selected_content_scale: f32,
 
     icon: Option<(image::Id, Vec2<f32>, Option<Color>)>,
 
@@ -280,7 +318,7 @@ where
         filled_slot: image::Id,
         selected_slot: image::Id,
         content_size: Vec2<f32>,
-        selected_content_size: Vec2<f32>,
+        selected_content_scale: f32,
         amount_font: font::Id,
         amount_font_size: u32,
         amount_margins: Vec2<f32>,
@@ -295,7 +333,7 @@ where
             selected_slot,
             background_color: None,
             content_size,
-            selected_content_size,
+            selected_content_scale,
             icon: None,
             amount_font,
             amount_font_size,
@@ -343,7 +381,7 @@ where
             selected_slot,
             background_color,
             content_size,
-            selected_content_size,
+            selected_content_scale,
             icon,
             amount_font,
             amount_font_size,
@@ -366,9 +404,9 @@ where
         }
 
         // Get whether this slot is selected
-        let interaction = self
-            .slot_manager
-            .map_or(Interaction::None, |m| m.update(id, content.into(), ui));
+        let interaction = self.slot_manager.map_or(Interaction::None, |m| {
+            m.update(id, content.into(), ui, state.cached_image.is_some())
+        });
 
         // Get image ids
         let content_image = state.cached_image.as_ref().map(|c| c.1);
@@ -412,11 +450,12 @@ where
         if let Some(content_image) = content_image {
             Image::new(content_image)
                 .x_y(x, y)
-                .wh(if let Interaction::Selected = interaction {
-                    selected_content_size
-                } else {
-                    content_size
-                }
+                .wh((content_size
+                    * if let Interaction::Selected = interaction {
+                        selected_content_scale
+                    } else {
+                        1.0
+                    })
                 .map(|e| e as f64)
                 .into_array())
                 .parent(id)
