@@ -100,7 +100,9 @@ impl<'a> System<'a> for Sys {
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Damage(change) => {
-                            server_emitter.emit(ServerEvent::Damage { uid: other, change })
+                            if other != projectile.owner.unwrap() {
+                                server_emitter.emit(ServerEvent::Damage { uid: other, change });
+                            }
                         },
                         projectile::Effect::Knockback(knockback) => {
                             if let Some(entity) =
@@ -134,8 +136,10 @@ impl<'a> System<'a> for Sys {
                             cause: HealthSource::World,
                         }),
                         projectile::Effect::Possess => {
-                            if let Some(owner) = projectile.owner {
-                                server_emitter.emit(ServerEvent::Possess(owner.into(), other));
+                            if other != projectile.owner.unwrap() {
+                                if let Some(owner) = projectile.owner {
+                                    server_emitter.emit(ServerEvent::Possess(owner.into(), other));
+                                }
                             }
                         },
                         _ => {},
