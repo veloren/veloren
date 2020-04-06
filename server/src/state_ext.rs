@@ -185,6 +185,11 @@ impl StateExt for State {
                     pants: None,
                     foot: None,
                     back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: None,
+                    head: None,
+                    tabard: None,
                 }
             } else {
                 comp::Loadout::default()
