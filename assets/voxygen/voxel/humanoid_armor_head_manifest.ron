@@ -1,0 +1,12 @@
+((
+    default: (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
+    map: {
+      Neck0: (
+          vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+          color: None
+      ),     
+    },
+))
