@@ -8,6 +8,7 @@ pub enum HudSlotKinds {
     Inventory(InventorySlot),
     Armor(ArmorSlot),
     Hotbar(HotbarSlot),
+    //Spellbook(SpellbookSlot), TODO
 }
 
 pub type HudSlotManager = SlotManager<HudSlotKinds>;
@@ -22,8 +23,8 @@ pub enum ArmorSlot {
     Shoulders,
     Chest,
     Hands,
-    LeftRing,
-    RightRing,
+    Ring,
+    Lantern,
     Back,
     Belt,
     Legs,
@@ -86,6 +87,12 @@ impl ContentKey for ArmorSlot {
             ArmorSlot::Hands => source.hand.as_ref(),
             ArmorSlot::Legs => source.pants.as_ref(),
             ArmorSlot::Feet => source.foot.as_ref(),
+            ArmorSlot::Back => source.back.as_ref(),
+            ArmorSlot::Ring => source.ring.as_ref(),
+            ArmorSlot::Neck => source.neck.as_ref(),
+            ArmorSlot::Head => source.head.as_ref(),
+            ArmorSlot::Lantern => source.lantern.as_ref(),
+            ArmorSlot::Tabard => source.tabard.as_ref(),
             ArmorSlot::Mainhand => source.active_item.as_ref().map(|i| &i.item),
             ArmorSlot::Offhand => source.second_item.as_ref().map(|i| &i.item),
             _ => None,
