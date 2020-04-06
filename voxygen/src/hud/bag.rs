@@ -67,8 +67,8 @@ widget_ids! {
         hands_slot,
         legs_slot,
         belt_slot,
-        ring_r_slot,
-        ring_l_slot,
+        lantern_slot,
+        ring_slot,
         feet_slot,
         back_slot,
         tabard_slot,
@@ -404,27 +404,27 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.legs_bg, Vec2::new(48.0, 70.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.legs_slot, ui);
-            // Ring-L
-            let (title, desc) = ("Left Ring", "");
+            // Lantern
+            let (title, desc) = ("Lantern", "");
             slot_maker
-                .fabricate(ArmorSlot::LeftRing, [45.0; 2])
+                .fabricate(ArmorSlot::Lantern, [45.0; 2])
                 .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
-                .with_icon(self.imgs.ring_l_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
+                .with_icon(self.imgs.lantern_bg, Vec2::new(24.0, 38.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .set(state.ids.ring_l_slot, ui);
-            // Ring-R
-            let (title, desc) = ("Right Ring", "");
+                .set(state.ids.lantern_slot, ui);
+            // Ring
+            let (title, desc) = ("Ring", "");
             slot_maker
-                .fabricate(ArmorSlot::RightRing, [45.0; 2])
+                .fabricate(ArmorSlot::Ring, [45.0; 2])
                 .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
-                .with_icon(self.imgs.ring_r_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
+                .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .set(state.ids.ring_r_slot, ui);
+                .set(state.ids.ring_slot, ui);
             // Back
             let (title, desc) = ("Back", "");
             slot_maker
                 .fabricate(ArmorSlot::Back, [45.0; 2])
-                .down_from(state.ids.ring_l_slot, 10.0)
+                .down_from(state.ids.lantern_slot, 10.0)
                 .with_icon(self.imgs.back_bg, Vec2::new(33.0, 40.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.back_slot, ui);
@@ -435,7 +435,7 @@ impl<'a> Widget for Bag<'a> {
                 .map_or(("Feet", ""), |item| (item.name(), item.description()));
             slot_maker
                 .fabricate(ArmorSlot::Feet, [45.0; 2])
-                .down_from(state.ids.ring_r_slot, 10.0)
+                .down_from(state.ids.ring_slot, 10.0)
                 .with_icon(self.imgs.feet_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.feet_slot, ui);
