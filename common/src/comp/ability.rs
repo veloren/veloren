@@ -104,6 +104,7 @@ pub struct Loadout {
     pub hand: Option<Item>,
     pub pants: Option<Item>,
     pub foot: Option<Item>,
+    pub back: Option<Item>,
 }
 
 impl From<&CharacterAbility> for CharacterState {

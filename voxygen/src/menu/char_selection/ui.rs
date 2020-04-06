@@ -355,6 +355,7 @@ impl CharSelectionUi {
                     hand: None,
                     pants: None,
                     foot: None,
+                    back: None,
                 };
                 Some(loadout)
             },
