@@ -1,17 +1,17 @@
 use super::item_imgs::{ItemImgs, ItemKey};
-use crate::ui::slot::{ContentKey, SlotKinds, SlotManager};
+use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{item::ItemKind, Inventory, Loadout};
 use conrod_core::image;
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum HudSlotKinds {
+pub enum SlotKind {
     Inventory(InventorySlot),
     Armor(ArmorSlot),
-    Hotbar(HotbarSlot),
-    //Spellbook(SpellbookSlot), TODO
+    /*Hotbar(HotbarSlot),
+     *Spellbook(SpellbookSlot), TODO */
 }
 
-pub type HudSlotManager = SlotManager<HudSlotKinds>;
+pub type SlotManager = slot::SlotManager<SlotKind>;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct InventorySlot(pub usize);
@@ -34,7 +34,7 @@ pub enum ArmorSlot {
     Tabard,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+/*#[derive(Clone, Copy, PartialEq)]
 pub enum HotbarSlot {
     One,
     Two,
@@ -46,18 +46,16 @@ pub enum HotbarSlot {
     Eight,
     Nine,
     Ten,
-}
+}*/
 
-impl ContentKey for InventorySlot {
-    type ContentSource = Inventory;
+impl SlotKey<Inventory, ItemImgs> for InventorySlot {
     type ImageKey = ItemKey;
-    type ImageSource = ItemImgs;
 
-    fn image_key(&self, source: &Self::ContentSource) -> Option<Self::ImageKey> {
+    fn image_key(&self, source: &Inventory) -> Option<Self::ImageKey> {
         source.get(self.0).map(Into::into)
     }
 
-    fn amount(&self, source: &Self::ContentSource) -> Option<u32> {
+    fn amount(&self, source: &Inventory) -> Option<u32> {
         source
             .get(self.0)
             .and_then(|item| match item.kind {
@@ -69,17 +67,15 @@ impl ContentKey for InventorySlot {
             .filter(|amount| *amount > 1)
     }
 
-    fn image_id(key: &Self::ImageKey, source: &Self::ImageSource) -> image::Id {
+    fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
         source.img_id_or_not_found_img(key.clone())
     }
 }
 
-impl ContentKey for ArmorSlot {
-    type ContentSource = Loadout;
+impl SlotKey<Loadout, ItemImgs> for ArmorSlot {
     type ImageKey = ItemKey;
-    type ImageSource = ItemImgs;
 
-    fn image_key(&self, source: &Self::ContentSource) -> Option<Self::ImageKey> {
+    fn image_key(&self, source: &Loadout) -> Option<Self::ImageKey> {
         let item = match self {
             ArmorSlot::Shoulders => source.shoulder.as_ref(),
             ArmorSlot::Chest => source.chest.as_ref(),
@@ -101,23 +97,47 @@ impl ContentKey for ArmorSlot {
         item.map(Into::into)
     }
 
-    fn amount(&self, _: &Self::ContentSource) -> Option<u32> { None }
+    fn amount(&self, _: &Loadout) -> Option<u32> { None }
 
-    fn image_id(key: &Self::ImageKey, source: &Self::ImageSource) -> image::Id {
+    fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
         source.img_id_or_not_found_img(key.clone())
     }
 }
 
-impl From<InventorySlot> for HudSlotKinds {
+/*impl SlotKey<Hotbar, ItemImgs> for HotbarSlot {
+    type ImageKey = ItemKey;
+
+    fn image_key(&self, source: &Inventory) -> Option<Self::ImageKey> {
+        source.get(self.0).map(Into::into)
+    }
+
+    fn amount(&self, source: &Inventory) -> Option<u32> {
+        source
+            .get(self.0)
+            .and_then(|item| match item.kind {
+                ItemKind::Tool { .. } | ItemKind::Armor { .. } => None,
+                ItemKind::Utility { amount, .. }
+                | ItemKind::Consumable { amount, .. }
+                | ItemKind::Ingredient { amount, .. } => Some(amount),
+            })
+            .filter(|amount| *amount > 1)
+    }
+
+    fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
+        source.img_id_or_not_found_img(key.clone())
+    }
+}*/
+
+impl From<InventorySlot> for SlotKind {
     fn from(inventory: InventorySlot) -> Self { Self::Inventory(inventory) }
 }
 
-impl From<ArmorSlot> for HudSlotKinds {
+impl From<ArmorSlot> for SlotKind {
     fn from(armor: ArmorSlot) -> Self { Self::Armor(armor) }
 }
 
-impl From<HotbarSlot> for HudSlotKinds {
-    fn from(hotbar: HotbarSlot) -> Self { Self::Hotbar(hotbar) }
-}
+//impl From<HotbarSlot> for SlotKind {
+//    fn from(hotbar: HotbarSlot) -> Self { Self::Hotbar(hotbar) }
+//}
 
-impl SlotKinds for HudSlotKinds {}
+impl SumSlot for SlotKind {}

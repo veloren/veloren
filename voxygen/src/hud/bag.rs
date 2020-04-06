@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slot_kinds::{ArmorSlot, HudSlotManager, InventorySlot},
+    slots::{ArmorSlot, InventorySlot, SlotManager},
     Event as HudEvent, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
     XP_COLOR,
 };
@@ -91,7 +91,7 @@ pub struct Bag<'a> {
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
-    slot_manager: &'a mut HudSlotManager,
+    slot_manager: &'a mut SlotManager,
     _pulse: f32,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 
@@ -107,7 +107,7 @@ impl<'a> Bag<'a> {
         fonts: &'a ConrodVoxygenFonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
-        slot_manager: &'a mut HudSlotManager,
+        slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
         stats: &'a Stats,
