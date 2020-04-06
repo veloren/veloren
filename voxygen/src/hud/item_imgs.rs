@@ -6,6 +6,7 @@ use common::{
         tool::{Tool, ToolKind},
         Consumable, Ingredient, Item, ItemKind, Utility,
     },
+    figure::Segment,
 };
 use conrod_core::image::Id;
 use dot_vox::DotVoxData;
@@ -49,7 +50,7 @@ impl ImageSpec {
         match self {
             ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(&specifier)),
             ImageSpec::Vox(specifier) => Graphic::Voxel(
-                graceful_load_vox(&specifier),
+                graceful_load_segment_no_skin(&specifier),
                 Transform {
                     stretch: false,
                     ..Default::default()
@@ -57,7 +58,7 @@ impl ImageSpec {
                 SampleStrat::None,
             ),
             ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom) => Graphic::Voxel(
-                graceful_load_vox(&specifier),
+                graceful_load_segment_no_skin(&specifier),
                 Transform {
                     ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
                         .rotated_y(rot_y * std::f32::consts::PI / 180.0)
@@ -178,4 +179,17 @@ fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
             assets::load_expect::<DynamicImage>("voxygen.element.not_found")
         },
     }
+}
+
+fn graceful_load_segment_no_skin(specifier: &str) -> Arc<Segment> {
+    use common::figure::{mat_cell::MatCell, MatSegment};
+    let mat_seg = MatSegment::from(&*graceful_load_vox(specifier));
+    let seg = mat_seg
+        .map(|mat_cell| match mat_cell {
+            MatCell::None => None,
+            MatCell::Mat(_) => Some(MatCell::None),
+            MatCell::Normal(_) => None,
+        })
+        .to_segment(|_| Rgb::broadcast(255));
+    Arc::new(seg)
 }
