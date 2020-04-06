@@ -5,7 +5,7 @@
     ),
     map: {
       Short0: (
-          vox_spec: ("armor.back.short-0", (0.0, 0.0, 0.0)),
+          vox_spec: ("armor.back.short-0", (10.0, 10.0, 10.0)),
           color: None
       ),     
     },

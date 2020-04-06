@@ -12,7 +12,7 @@ use common::{
         dragon, fish_medium, fish_small,
         humanoid::{Body, BodyType, EyeColor, Eyebrows, Race, Skin},
         item::{
-            armor::{Armor, Belt, Chest, Foot, Hand, Pants, Shoulder},
+            armor::{Armor, Back, Belt, Chest, Foot, Hand, Pants, Shoulder},
             tool::{Tool, ToolKind},
             ItemKind,
         },
@@ -255,9 +255,9 @@ pub struct HumArmorPantsSpec(ArmorVoxSpecMap<Pants, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorFootSpec(ArmorVoxSpecMap<Foot, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorBackSpec(ArmorVoxSpecMap<Foot, ArmorVoxSpec>);
-#[derive(Serialize, Deserialize)]
 pub struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
+#[derive(Serialize, Deserialize)]
+pub struct HumArmorBackSpec(ArmorVoxSpecMap<Back, ArmorVoxSpec>);
 
 impl Asset for HumArmorShoulderSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
@@ -606,6 +606,32 @@ impl HumArmorFootSpec {
         self.mesh_foot(body, loadout, false)
     }
 }
+
+impl HumMainWeaponSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_main_weapon_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_main_weapon(&self, item_kind: Option<&ItemKind>) -> Mesh<FigurePipeline> {
+        let tool_kind = if let Some(ItemKind::Tool(Tool { kind, .. })) = item_kind {
+            kind
+        } else {
+            return Mesh::new();
+        };
+
+        let spec = match self.0.get(tool_kind) {
+            Some(spec) => spec,
+            None => {
+                error!("No hand specification exists for {:?}", tool_kind);
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+            },
+        };
+
+        let tool_kind_segment = graceful_load_segment(&spec.vox_spec.0);
+        generate_mesh(&tool_kind_segment, Vec3::from(spec.vox_spec.1))
+    }
+}
 impl HumArmorBackSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
         assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_back_manifest", indicator)
@@ -654,32 +680,6 @@ impl HumArmorBackSpec {
             .0;
 
         generate_mesh(&back, Vec3::from(spec.vox_spec.1))
-    }
-}
-
-impl HumMainWeaponSpec {
-    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_main_weapon_manifest", indicator)
-            .unwrap()
-    }
-
-    pub fn mesh_main_weapon(&self, item_kind: Option<&ItemKind>) -> Mesh<FigurePipeline> {
-        let tool_kind = if let Some(ItemKind::Tool(Tool { kind, .. })) = item_kind {
-            kind
-        } else {
-            return Mesh::new();
-        };
-
-        let spec = match self.0.get(tool_kind) {
-            Some(spec) => spec,
-            None => {
-                error!("No hand specification exists for {:?}", tool_kind);
-                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            },
-        };
-
-        let tool_kind_segment = graceful_load_segment(&spec.vox_spec.0);
-        generate_mesh(&tool_kind_segment, Vec3::from(spec.vox_spec.1))
     }
 }
 

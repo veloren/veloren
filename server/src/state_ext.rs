@@ -184,6 +184,7 @@ impl StateExt for State {
                     hand: None,
                     pants: None,
                     foot: None,
+                    back: None,
                 }
             } else {
                 comp::Loadout::default()
