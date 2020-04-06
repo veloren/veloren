@@ -1,7 +1,11 @@
 use super::{Graphic, SampleStrat, Transform};
-use common::assets::{load, Error};
+use common::{
+    assets::{load, Error},
+    figure::Segment,
+};
 use dot_vox::DotVoxData;
 use image::DynamicImage;
+use std::sync::Arc;
 use vek::*;
 
 pub enum BlankGraphic {}
@@ -25,17 +29,25 @@ impl<'a> GraphicCreator<'a> for ImageGraphic {
 }
 
 pub enum VoxelGraphic {}
+// TODO: Are these uneeded now that we have PixArtGraphic?
 pub enum VoxelSsGraphic {}
 pub enum VoxelSs4Graphic {}
 pub enum VoxelSs9Graphic {}
+
 pub enum VoxelPixArtGraphic {}
+
+fn load_segment(specifier: &str) -> Result<Arc<Segment>, Error> {
+    let dot_vox = load::<DotVoxData>(specifier)?;
+    let seg = dot_vox.as_ref().into();
+    Ok(Arc::new(seg))
+}
 
 impl<'a> GraphicCreator<'a> for VoxelGraphic {
     type Specifier = &'a str;
 
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
-            load::<DotVoxData>(specifier)?,
+            load_segment(specifier)?,
             Transform {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
@@ -49,7 +61,7 @@ impl<'a> GraphicCreator<'a> for VoxelSsGraphic {
 
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
-            load::<DotVoxData>(specifier.0)?,
+            load_segment(specifier.0)?,
             Transform {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
@@ -63,7 +75,7 @@ impl<'a> GraphicCreator<'a> for VoxelSs4Graphic {
 
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
-            load::<DotVoxData>(specifier)?,
+            load_segment(specifier)?,
             Transform {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
@@ -77,7 +89,7 @@ impl<'a> GraphicCreator<'a> for VoxelSs9Graphic {
 
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
-            load::<DotVoxData>(specifier)?,
+            load_segment(specifier)?,
             Transform {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
@@ -91,7 +103,7 @@ impl<'a> GraphicCreator<'a> for VoxelPixArtGraphic {
 
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
-            load::<DotVoxData>(specifier)?,
+            load_segment(specifier)?,
             Transform {
                 ori: Quaternion::rotation_x(-std::f32::consts::PI / 2.0),
                 ..Default::default()
