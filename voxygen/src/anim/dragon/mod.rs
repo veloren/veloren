@@ -49,7 +49,7 @@ impl DragonSkeleton {
 impl Skeleton for DragonSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 18] {
+    fn compute_matrices(&self) -> [FigureBoneData; 19] {
         let chest_front_mat = self.chest_front.compute_base_matrix();
         let wing_in_l_mat = self.wing_in_l.compute_base_matrix();
         let wing_in_r_mat = self.wing_in_r.compute_base_matrix();
@@ -69,6 +69,7 @@ impl Skeleton for DragonSkeleton {
             FigureBoneData::new(self.foot_fr.compute_base_matrix()),
             FigureBoneData::new(self.foot_bl.compute_base_matrix()),
             FigureBoneData::new(self.foot_br.compute_base_matrix()),
+            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
