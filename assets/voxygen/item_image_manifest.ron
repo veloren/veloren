@@ -252,7 +252,7 @@
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     // Tabards
-    Armor(Tabard(Tabard0)): VoxTrans(
+    Armor(Tabard(Admin)): VoxTrans(
         "voxel.armor.tabard.tabard-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),

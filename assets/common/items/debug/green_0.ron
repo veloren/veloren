@@ -1,0 +1,8 @@
+Item(
+    name: "Lime Zest Lantern",
+   description: "It has an opening that could fit a ring...",
+    kind: Armor(
+        kind: Lantern(Green0),
+        stats: (20),
+    ),
+)

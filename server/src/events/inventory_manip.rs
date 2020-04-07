@@ -139,11 +139,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 Pants(_) => &mut loadout.pants,
                                 Foot(_) => &mut loadout.foot,
                                 Back(_) => &mut loadout.back,
-                                Ring(_) => &mut loadout.back,
-                                Neck(_) => &mut loadout.back,
-                                Lantern(_) => &mut loadout.back,
-                                Head(_) => &mut loadout.back,
-                                Tabard(_) => &mut loadout.back,
+                                Ring(_) => &mut loadout.ring,
+                                Neck(_) => &mut loadout.neck,
+                                Lantern(_) => &mut loadout.lantern,
+                                Head(_) => &mut loadout.head,
+                                Tabard(_) => &mut loadout.tabard,
                             };
 
                             // Insert old item into inventory
