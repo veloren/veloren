@@ -46,13 +46,15 @@ void main() {
 	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 0.5, true, clouds);
 	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
 
-	float opacity = 1.0;
-
 	if ((flags & 1) == 1 && int(cam_mode) == 1) {
-		float distance = distance(vec3(cam_pos), f_pos) - 1;
+		float distance = distance(vec3(cam_pos), vec3(model_mat * vec4(vec3(0), 1))) - 2;
+		
+		float opacity = clamp(distance / distance_divider, 0, 1);
 
-		opacity = clamp(distance / 3, 0, 1);
+		if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
+			discard;
+		}
 	}
 
-	tgt_color = vec4(color, opacity);
+	tgt_color = vec4(color, 1.0);
 }
