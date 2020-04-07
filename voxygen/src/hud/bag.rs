@@ -333,7 +333,10 @@ impl<'a> Widget for Bag<'a> {
                 slot_manager: Some(self.slot_manager),
             };
             //  Head
-            let (title, desc) = ("Helmet", "");
+            let (title, desc) = loadout
+                .head
+                .as_ref()
+                .map_or(("Head", ""), |item| (item.name(), item.description()));
             slot_maker
                 .fabricate(ArmorSlot::Head, [45.0; 2])
                 .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
@@ -341,7 +344,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.head_slot, ui);
             //  Necklace
-            let (title, desc) = ("Neck", "");
+            let (title, desc) = loadout
+                .neck
+                .as_ref()
+                .map_or(("Neck", ""), |item| (item.name(), item.description()));
             slot_maker
                 .fabricate(ArmorSlot::Neck, [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.head_slot, -55.0)
@@ -395,7 +401,7 @@ impl<'a> Widget for Bag<'a> {
                 .set(state.ids.belt_slot, ui);
             // Legs
             let (title, desc) = loadout
-                .belt
+                .pants
                 .as_ref()
                 .map_or(("Legs", ""), |item| (item.name(), item.description()));
             slot_maker
@@ -405,7 +411,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.legs_slot, ui);
             // Lantern
-            let (title, desc) = ("Lantern", "");
+            let (title, desc) = loadout
+                .lantern
+                .as_ref()
+                .map_or(("Lantern", ""), |item| (item.name(), item.description()));
             slot_maker
                 .fabricate(ArmorSlot::Lantern, [45.0; 2])
                 .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
@@ -413,7 +422,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.lantern_slot, ui);
             // Ring
-            let (title, desc) = ("Ring", "");
+            let (title, desc) = loadout
+                .ring
+                .as_ref()
+                .map_or(("Ring", ""), |item| (item.name(), item.description()));
             slot_maker
                 .fabricate(ArmorSlot::Ring, [45.0; 2])
                 .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
@@ -421,7 +433,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.ring_slot, ui);
             // Back
-            let (title, desc) = ("Back", "");
+            let (title, desc) = loadout
+                .back
+                .as_ref()
+                .map_or(("Back", ""), |item| (item.name(), item.description()));
             slot_maker
                 .fabricate(ArmorSlot::Back, [45.0; 2])
                 .down_from(state.ids.lantern_slot, 10.0)
@@ -440,7 +455,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.feet_slot, ui);
             // Tabard
-            let (title, desc) = ("Tabard", "");
+            let (title, desc) = loadout
+                .tabard
+                .as_ref()
+                .map_or(("Tabard", ""), |item| (item.name(), item.description()));
             slot_maker
                 .fabricate(ArmorSlot::Tabard, [70.0; 2])
                 .top_right_with_margins_on(state.ids.bg_frame, 80.5, 53.0)

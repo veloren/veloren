@@ -199,9 +199,9 @@ pub const ALL_HEADS: [Head; 2] = [Head::Leather0, Head::AssaMask0];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Tabard {
-    Tabard0 = 1,
+    Admin = 1,
 }
-pub const ALL_TABARDS: [Tabard; 1] = [Tabard::Tabard0];
+pub const ALL_TABARDS: [Tabard; 1] = [Tabard::Admin];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
