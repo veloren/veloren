@@ -403,14 +403,6 @@ impl Scene {
         // Render the skybox.
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
-        self.terrain.render_translucent(
-            renderer,
-            &self.globals,
-            &self.lights,
-            &self.shadows,
-            self.camera.get_focus_pos(),
-        );
-
         self.figure_mgr.render_player(
             renderer,
             state,
@@ -420,6 +412,14 @@ impl Scene {
             &self.lights,
             &self.shadows,
             &self.camera,
+        );
+
+        self.terrain.render_translucent(
+            renderer,
+            &self.globals,
+            &self.lights,
+            &self.shadows,
+            self.camera.get_focus_pos(),
         );
 
         renderer.render_post_process(
