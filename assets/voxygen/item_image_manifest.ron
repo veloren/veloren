@@ -222,6 +222,49 @@
         "voxel.armor.shoulder.cloth_purple_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
+    // Backs
+    Armor(Back(Short0)): VoxTrans(
+        "voxel.armor.back.short-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    Armor(Back(Admin)): VoxTrans(
+        "voxel.armor.back.admin",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    // Rings
+    Armor(Ring(Ring0)): VoxTrans(
+        "voxel.armor.ring.ring-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    // Necks
+    Armor(Neck(Neck0)): VoxTrans(
+        "voxel.armor.neck.neck-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+
+    // Lanterns
+    Armor(Lantern(Black0)): VoxTrans(
+        "voxel.armor.lantern.lantern_black-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    Armor(Lantern(Green0)): VoxTrans(
+        "voxel.armor.lantern.lantern_green-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    // Tabards
+    Armor(Tabard(Tabard0)): VoxTrans(
+        "voxel.armor.tabard.tabard-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    // Heads
+    Armor(Head(Leather0)): VoxTrans(
+        "voxel.armor.head.leather-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    Armor(Head(AssaMask0)): VoxTrans(
+        "voxel.armor.head.assa_mask-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
     // Consumables
     Consumable(Apple): VoxTrans(
         "element.icons.item_apple",

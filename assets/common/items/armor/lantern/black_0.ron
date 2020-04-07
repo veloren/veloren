@@ -1,0 +1,8 @@
+Item(
+    name: "Black Lantern",
+   description: "WIP",
+    kind: Armor(
+        kind: Lantern(Black0),
+        stats: (20),
+    ),
+)

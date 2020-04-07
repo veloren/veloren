@@ -167,8 +167,9 @@ pub const ALL_SHOULDERS: [Shoulder; 9] = [
 #[repr(u32)]
 pub enum Back {
     Short0 = 1,
+    Admin = 2,
 }
-pub const ALL_BACKS: [Back; 1] = [Back::Short0];
+pub const ALL_BACKS: [Back; 2] = [Back::Short0, Back::Admin];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Ring {
@@ -184,15 +185,17 @@ pub const ALL_NECKS: [Neck; 1] = [Neck::Neck0];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Lantern {
-    Lantern0 = 1,
+    Black0 = 1,
+    Green0 = 2,
 }
-pub const ALL_LANTERNS: [Lantern; 1] = [Lantern::Lantern0];
+pub const ALL_LANTERNS: [Lantern; 2] = [Lantern::Black0, Lantern::Green0];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Head {
-    Head0 = 1,
+    Leather0 = 1,
+    AssaMask0 = 2,
 }
-pub const ALL_HEADS: [Head; 1] = [Head::Head0];
+pub const ALL_HEADS: [Head; 2] = [Head::Leather0, Head::AssaMask0];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Tabard {
