@@ -99,10 +99,10 @@ impl<'a> System<'a> for Sys {
                             - *bearing * 0.01
                             - if let Some(patrol_origin) = agent.patrol_origin {
                                 Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
-                                    + Vec3::one() / Vec2::<f32>::from(pos.0 - patrol_origin)
                             } else {
                                 Vec2::zero()
                             };
+
                         // Stop if we're too close to a wall
                         *bearing *= 0.1
                             + if terrain
@@ -111,7 +111,7 @@ impl<'a> System<'a> for Sys {
                                     pos.0
                                         + Vec3::from(*bearing)
                                             .try_normalized()
-                                            .unwrap_or(Vec3::zero())
+                                            .unwrap_or(Vec3::unit_y())
                                             * 1.5
                                         + Vec3::unit_z(),
                                 )
@@ -126,9 +126,8 @@ impl<'a> System<'a> for Sys {
                                 0.0
                             };
 
-                        if bearing.magnitude_squared() > 0.25f32.powf(2.0) {
-                            inputs.move_dir =
-                                bearing.try_normalized().unwrap_or(Vec2::zero()) * 0.65;
+                        if bearing.magnitude_squared() > 0.5f32.powf(2.0) {
+                            inputs.move_dir = *bearing * 0.65;
                         }
 
                         // Sometimes try searching for new targets
