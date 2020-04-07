@@ -241,7 +241,7 @@
     ),
     // Lanterns
     Armor(Lantern(Black0)): Png(
-        "voxel.element.icons.lantern_grey-0",        
+        "element.icons.lantern_black-0",        
     ),
     Armor(Lantern(Green0)): Png(
         "element.icons.lantern_green-0",        
