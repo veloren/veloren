@@ -198,12 +198,20 @@ impl<'a> Widget for Map<'a> {
         let y = player_pos.y as f64 / worldsize.y * 760.0;
         let x_rel = player_pos.x as f64 / worldsize.x;
         let y_rel = player_pos.y as f64 / worldsize.y;
-        let indic_scale = 0.6;        
+        let indic_scale = 0.6;
         Image::new(self.rot_imgs.indicator_mmap_small.target_north)
             .bottom_left_with_margins_on(
                 state.ids.grid,
-                if y_rel > 0.0 &&  y_rel < 1.0 { y - 37.0 * indic_scale / 2.0 } else { 760.0 - 37.0 * indic_scale / 2.0 },
-                if x_rel > 0.0 &&  x_rel < 1.0 { x - 32.0 * indic_scale / 2.0 } else { 760.0 - 32.0 * indic_scale / 2.0 },
+                if y_rel > 0.0 && y_rel < 1.0 {
+                    y - 37.0 * indic_scale / 2.0
+                } else {
+                    760.0 - 37.0 * indic_scale / 2.0
+                },
+                if x_rel > 0.0 && x_rel < 1.0 {
+                    x - 32.0 * indic_scale / 2.0
+                } else {
+                    760.0 - 32.0 * indic_scale / 2.0
+                },
             )
             .w_h(32.0 * indic_scale, 37.0 * indic_scale)
             .color(Some(UI_HIGHLIGHT_0))
