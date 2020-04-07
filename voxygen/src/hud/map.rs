@@ -15,7 +15,6 @@ use conrod_core::{
 };
 use specs::WorldExt;
 use vek::*;
-
 widget_ids! {
     struct Ids {
         frame,
@@ -193,27 +192,21 @@ impl<'a> Widget for Map<'a> {
             .read_storage::<comp::Pos>()
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
-
-        let x = player_pos.x as f64 / worldsize.x * 760.0;
-        let y = player_pos.y as f64 / worldsize.y * 760.0;
-        let x_rel = player_pos.x as f64 / worldsize.x;
-        let y_rel = player_pos.y as f64 / worldsize.y;
-        let indic_scale = 0.6;
+        // Cursor pos relative to playerpos and widget size
+        // Cursor stops moving on an axis as soon as it's position exceeds the maximum size of the widget
+        let rel = Vec2::from(player_pos).map2(worldsize, |e: f32, sz: f64| {
+            (e as f64 / sz).clamped(0.0, 1.0)
+        });
+        let xy = rel * 760.0;
+        let scale = 0.6;
+        let arrow_sz = Vec2::new(32.0, 37.0) * scale;
         Image::new(self.rot_imgs.indicator_mmap_small.target_north)
             .bottom_left_with_margins_on(
                 state.ids.grid,
-                if y_rel > 0.0 && y_rel < 1.0 {
-                    y - 37.0 * indic_scale / 2.0
-                } else {
-                    760.0 - 37.0 * indic_scale / 2.0
-                },
-                if x_rel > 0.0 && x_rel < 1.0 {
-                    x - 32.0 * indic_scale / 2.0
-                } else {
-                    760.0 - 32.0 * indic_scale / 2.0
-                },
+                xy.y - arrow_sz.y / 2.0,
+                xy.x - arrow_sz.x / 2.0,
             )
-            .w_h(32.0 * indic_scale, 37.0 * indic_scale)
+            .w_h(arrow_sz.x, arrow_sz.y)
             .color(Some(UI_HIGHLIGHT_0))
             .floating(true)
             .parent(ui.window)
