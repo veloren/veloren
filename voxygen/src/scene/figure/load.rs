@@ -251,13 +251,13 @@ pub struct HumArmorHandSpec(ArmorVoxSpecMap<Hand, SidedArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorBeltSpec(ArmorVoxSpecMap<Belt, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
+pub struct HumArmorBackSpec(ArmorVoxSpecMap<Back, ArmorVoxSpec>);
+#[derive(Serialize, Deserialize)]
 pub struct HumArmorPantsSpec(ArmorVoxSpecMap<Pants, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorFootSpec(ArmorVoxSpecMap<Foot, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
-#[derive(Serialize, Deserialize)]
-pub struct HumArmorBackSpec(ArmorVoxSpecMap<Back, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorLanternSpec(ArmorVoxSpecMap<Lantern, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
@@ -293,6 +293,13 @@ impl Asset for HumArmorBeltSpec {
         ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
+impl Asset for HumArmorBackSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
+}
 impl Asset for HumArmorPantsSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
@@ -301,13 +308,6 @@ impl Asset for HumArmorPantsSpec {
     }
 }
 impl Asset for HumArmorFootSpec {
-    const ENDINGS: &'static [&'static str] = &["ron"];
-
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
-    }
-}
-impl Asset for HumArmorBackSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
 
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
@@ -536,6 +536,40 @@ impl HumArmorBeltSpec {
         generate_mesh(&belt_segment, Vec3::from(spec.vox_spec.1))
     }
 }
+// Cape
+impl HumArmorBackSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_back_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_back(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+        let spec = if let Some(ItemKind::Armor {
+            kind: Armor::Back(back),
+            ..
+        }) = loadout.back.as_ref().map(|i| &i.kind)
+        {
+            match self.0.map.get(&back) {
+                Some(spec) => spec,
+                None => {
+                    error!("No back specification exists for {:?}", back);
+                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let back_segment = color_segment(
+            graceful_load_mat_segment(&spec.vox_spec.0),
+            body.race.skin_color(body.skin),
+            body.race.hair_color(body.hair_color),
+            body.race.eye_color(body.eye_color),
+        );
+
+        generate_mesh(&back_segment, Vec3::from(spec.vox_spec.1))
+    }
+}
 // Legs
 impl HumArmorPantsSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
@@ -657,57 +691,6 @@ impl HumMainWeaponSpec {
 
         let tool_kind_segment = graceful_load_segment(&spec.vox_spec.0);
         generate_mesh(&tool_kind_segment, Vec3::from(spec.vox_spec.1))
-    }
-}
-// Back
-impl HumArmorBackSpec {
-    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_back_manifest", indicator)
-            .unwrap()
-    }
-
-    pub fn mesh_back(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Back(back),
-            ..
-        }) = loadout.back.as_ref().map(|i| &i.kind)
-        {
-            match self.0.map.get(&back) {
-                Some(spec) => spec,
-                None => {
-                    error!("No back-armor specification exists for {:?}", back);
-                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
-                },
-            }
-        } else {
-            &self.0.default
-        };
-
-        let color = |mat_segment| {
-            color_segment(
-                mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
-            )
-        };
-
-        let bare_back = graceful_load_mat_segment("armor.empty");
-
-        let mut back_armor = graceful_load_mat_segment(&spec.vox_spec.0);
-
-        if let Some(color) = spec.color {
-            let back_color = Vec3::from(color);
-            back_armor = back_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(back_color)));
-        }
-
-        let back = DynaUnionizer::new()
-            .add(color(bare_back), Vec3::new(0, 0, 0))
-            .add(color(back_armor), Vec3::new(0, 0, 0))
-            .unify()
-            .0;
-
-        generate_mesh(&back, Vec3::from(spec.vox_spec.1))
     }
 }
 // Lantern

@@ -35,7 +35,7 @@ impl FishMediumSkeleton {
 impl Skeleton for FishMediumSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 18] {
+    fn compute_matrices(&self) -> [FigureBoneData; 19] {
         let torso_mat = self.torso.compute_base_matrix();
         let rear_mat = self.rear.compute_base_matrix();
 
@@ -46,6 +46,7 @@ impl Skeleton for FishMediumSkeleton {
             FigureBoneData::new(self.tail.compute_base_matrix() * rear_mat),
             FigureBoneData::new(self.fin_l.compute_base_matrix() * rear_mat),
             FigureBoneData::new(self.fin_r.compute_base_matrix() * rear_mat),
+            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),

@@ -30,6 +30,7 @@ struct CharacterCacheKey {
     shoulder: Option<Item>,
     chest: Option<Item>,
     belt: Option<Item>,
+    back: Option<Item>,
     hand: Option<Item>,
     pants: Option<Item>,
     foot: Option<Item>,
@@ -49,6 +50,7 @@ impl CharacterCacheKey {
             shoulder: loadout.shoulder.clone(),
             chest: loadout.chest.clone(),
             belt: loadout.belt.clone(),
+            back: loadout.back.clone(),
             hand: loadout.hand.clone(),
             pants: loadout.pants.clone(),
             foot: loadout.foot.clone(),
@@ -118,6 +120,8 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     HumArmorHandSpec::load_watched(&mut self.manifest_indicator);
                                 let humanoid_armor_belt_spec =
                                     HumArmorBeltSpec::load_watched(&mut self.manifest_indicator);
+                                let humanoid_armor_back_spec =
+                                    HumArmorBackSpec::load_watched(&mut self.manifest_indicator);
                                 let humanoid_armor_pants_spec =
                                     HumArmorPantsSpec::load_watched(&mut self.manifest_indicator);
                                 let humanoid_armor_foot_spec =
@@ -155,6 +159,12 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(humanoid_armor_belt_spec.mesh_belt(&body, loadout))
+                                        },
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode {
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_armor_back_spec.mesh_back(&body, loadout))
                                         },
                                         CameraMode::FirstPerson => None,
                                     },
@@ -225,7 +235,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                         None
                                     },
                                     Some(mesh_lantern()),
-                                    None,
                                     None,
                                     None,
                                 ]

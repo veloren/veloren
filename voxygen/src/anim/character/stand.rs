@@ -50,6 +50,10 @@ impl Animation for StandAnimation {
         next.belt.ori = Quaternion::rotation_z(head_look.x * -0.1);
         next.belt.scale = Vec3::one() + breathe * -0.05;
 
+        next.back.offset = Vec3::new(0.0, -2.8, 7.25);
+        next.back.ori = Quaternion::rotation_z(0.0);
+        next.back.scale = Vec3::one() * 1.02;
+
         next.shorts.offset = Vec3::new(0.0, 0.0, -5.0); //2
         next.shorts.ori = Quaternion::rotation_x(head_look.x * -0.2);
         next.shorts.scale = Vec3::one() + breathe * -0.05;
@@ -101,7 +105,7 @@ impl Animation for StandAnimation {
 
         next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
         next.lantern.ori = Quaternion::rotation_x(0.0);
-        next.lantern.scale = Vec3::one() * 0.0;
+        next.lantern.scale = Vec3::one() * 5.0;
 
         next.torso.offset = Vec3::new(0.0, -0.1, 0.1) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(0.0);

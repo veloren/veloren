@@ -36,6 +36,10 @@ impl Animation for JumpAnimation {
         next.belt.ori = Quaternion::rotation_z(0.0);
         next.belt.scale = Vec3::one();
 
+        next.back.offset = Vec3::new(0.0, -2.8, 7.25);
+        next.back.ori = Quaternion::rotation_z(0.0);
+        next.back.scale = Vec3::one() * 1.02;
+
         next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
         next.shorts.ori = Quaternion::rotation_z(0.0);
         next.shorts.scale = Vec3::one();
