@@ -25,7 +25,7 @@ vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
 }
 
 float attenuation_strength(vec3 rpos) {
-	return 1.0 / pow(rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z, 0.6);
+	return 1.0 / pow(rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z, 0.8);
 }
 
 vec3 light_at(vec3 wpos, vec3 wnorm) {
