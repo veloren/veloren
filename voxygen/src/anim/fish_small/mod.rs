@@ -27,12 +27,13 @@ impl FishSmallSkeleton {
 impl Skeleton for FishSmallSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 18] {
+    fn compute_matrices(&self) -> [FigureBoneData; 19] {
         let torso_mat = self.torso.compute_base_matrix();
 
         [
             FigureBoneData::new(torso_mat),
             FigureBoneData::new(self.tail.compute_base_matrix() * torso_mat),
+            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
