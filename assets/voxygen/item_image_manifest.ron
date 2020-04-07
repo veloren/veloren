@@ -253,7 +253,7 @@
     ),
     // Tabards
     Armor(Tabard(Admin)): VoxTrans(
-        "voxel.armor.tabard.tabard-0",
+        "voxel.armor.tabard.admin",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     // Heads
