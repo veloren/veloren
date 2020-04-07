@@ -2,7 +2,7 @@ Item(
     name: "Dark Assassin Mask",
    description: "WIP",
     kind: Armor(
-        kind: Head(Leather0),
+        kind: Head(AssaMask0),
         stats: (20),
     ),
 )

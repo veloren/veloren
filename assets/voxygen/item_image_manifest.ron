@@ -232,34 +232,27 @@
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     // Rings
-    Armor(Ring(Ring0)): VoxTrans(
-        "voxel.armor.ring.ring-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    Armor(Ring(Ring0)): Png(
+        "element.icons.ring-0",        
     ),
     // Necks
-    Armor(Neck(Neck0)): VoxTrans(
-        "voxel.armor.neck.neck-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    Armor(Neck(Neck0)): Png(
+        "element.icons.neck-0",        
     ),
-
     // Lanterns
-    Armor(Lantern(Black0)): VoxTrans(
-        "voxel.armor.lantern.lantern_black-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    Armor(Lantern(Black0)): Png(
+        "voxel.element.icons.lantern_grey-0",        
     ),
-    Armor(Lantern(Green0)): VoxTrans(
-        "voxel.armor.lantern.lantern_green-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    Armor(Lantern(Green0)): Png(
+        "element.icons.lantern_green-0",        
     ),
     // Tabards
-    Armor(Tabard(Admin)): VoxTrans(
-        "voxel.armor.tabard.admin",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    Armor(Tabard(Admin)): Png(
+        "element.icons.tabard_admin",        
     ),
     // Heads
-    Armor(Head(Leather0)): VoxTrans(
-        "voxel.armor.head.leather-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    Armor(Head(Leather0)): Png(
+        "element.icons.head_leather-0",        
     ),
     Armor(Head(AssaMask0)): VoxTrans(
         "voxel.armor.head.assa_mask-0",
