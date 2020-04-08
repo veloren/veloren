@@ -713,6 +713,9 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.window_size = new_size;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ChangeBinding(game_input) => {
+                        global_state.window.set_keybinding_mode(game_input);
+                    },
                     HudEvent::ChangeFreeLookBehavior(behavior) => {
                         global_state.settings.gameplay.free_look_behavior = behavior;
                     },
