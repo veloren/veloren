@@ -103,9 +103,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.climb_down)
                     .or_default()
                     .push(GameInput::ClimbDown);
-                map.entry(settings.game_buttons.wall_leap)
-                    .or_default()
-                    .push(GameInput::WallLeap);
+                /*map.entry(settings.game_buttons.wall_leap)
+                .or_default()
+                .push(GameInput::WallLeap);*/
                 map.entry(settings.game_buttons.mount)
                     .or_default()
                     .push(GameInput::Mount);
@@ -157,9 +157,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.swap_loadout)
                     .or_default()
                     .push(GameInput::SwapLoadout);
-                map.entry(settings.game_buttons.charge)
-                    .or_default()
-                    .push(GameInput::Charge);
+                /*map.entry(settings.game_buttons.charge)
+                .or_default()
+                .push(GameInput::Charge);*/
                 map
             },
             menu_button_map: {

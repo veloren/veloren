@@ -336,7 +336,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .head
                 .as_ref()
-                .map_or(("Head", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.head"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Head, [45.0; 2])
                 .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
@@ -347,7 +349,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .neck
                 .as_ref()
-                .map_or(("Neck", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.neck"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Neck, [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.head_slot, -55.0)
@@ -359,7 +363,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .chest
                 .as_ref()
-                .map_or(("Chest", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.chest"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Chest, [85.0; 2])
                 .mid_bottom_with_margin_on(state.ids.neck_slot, -95.0)
@@ -367,10 +373,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.chest_slot, ui);
             //  Shoulders
-            let (title, desc) = loadout
-                .shoulder
-                .as_ref()
-                .map_or(("Shoulders", ""), |item| (item.name(), item.description()));
+            let (title, desc) = loadout.shoulder.as_ref().map_or(
+                (self.localized_strings.get("hud.bag.shoulders"), ""),
+                |item| (item.name(), item.description()),
+            );
             slot_maker
                 .fabricate(ArmorSlot::Shoulders, [70.0; 2])
                 .bottom_left_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
@@ -381,7 +387,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .hand
                 .as_ref()
-                .map_or(("Hands", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.hands"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Hands, [70.0; 2])
                 .bottom_right_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
@@ -392,7 +400,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .belt
                 .as_ref()
-                .map_or(("Belt", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.belt"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Belt, [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.chest_slot, -55.0)
@@ -403,7 +413,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .pants
                 .as_ref()
-                .map_or(("Legs", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.legs"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Legs, [85.0; 2])
                 .mid_bottom_with_margin_on(state.ids.belt_slot, -95.0)
@@ -411,10 +423,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.legs_slot, ui);
             // Lantern
-            let (title, desc) = loadout
-                .lantern
-                .as_ref()
-                .map_or(("Lantern", ""), |item| (item.name(), item.description()));
+            let (title, desc) = loadout.lantern.as_ref().map_or(
+                (self.localized_strings.get("hud.bag.lantern"), ""),
+                |item| (item.name(), item.description()),
+            );
             slot_maker
                 .fabricate(ArmorSlot::Lantern, [45.0; 2])
                 .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
@@ -425,7 +437,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .ring
                 .as_ref()
-                .map_or(("Ring", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.ring"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Ring, [45.0; 2])
                 .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
@@ -436,7 +450,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .back
                 .as_ref()
-                .map_or(("Back", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.back"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Back, [45.0; 2])
                 .down_from(state.ids.lantern_slot, 10.0)
@@ -447,7 +463,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .foot
                 .as_ref()
-                .map_or(("Feet", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.feet"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Feet, [45.0; 2])
                 .down_from(state.ids.ring_slot, 10.0)
@@ -458,7 +476,9 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout
                 .tabard
                 .as_ref()
-                .map_or(("Tabard", ""), |item| (item.name(), item.description()));
+                .map_or((self.localized_strings.get("hud.bag.tabard"), ""), |item| {
+                    (item.name(), item.description())
+                });
             slot_maker
                 .fabricate(ArmorSlot::Tabard, [70.0; 2])
                 .top_right_with_margins_on(state.ids.bg_frame, 80.5, 53.0)
@@ -466,11 +486,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.tabard_slot, ui);
             // Mainhand/Left-Slot
-            let (title, desc) = loadout
-                .active_item
-                .as_ref()
-                .map(|i| &i.item)
-                .map_or(("Mainhand", ""), |item| (item.name(), item.description()));
+            let (title, desc) = loadout.active_item.as_ref().map(|i| &i.item).map_or(
+                (self.localized_strings.get("hud.bag.mainhand"), ""),
+                |item| (item.name(), item.description()),
+            );
             slot_maker
                 .fabricate(ArmorSlot::Mainhand, [85.0; 2])
                 .bottom_right_with_margins_on(state.ids.back_slot, -95.0, 0.0)
@@ -478,11 +497,10 @@ impl<'a> Widget for Bag<'a> {
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
                 .set(state.ids.mainhand_slot, ui);
             // Offhand/Right-Slot
-            let (title, desc) = loadout
-                .second_item
-                .as_ref()
-                .map(|i| &i.item)
-                .map_or(("Offhand", ""), |item| (item.name(), item.description()));
+            let (title, desc) = loadout.second_item.as_ref().map(|i| &i.item).map_or(
+                (self.localized_strings.get("hud.bag.offhand"), ""),
+                |item| (item.name(), item.description()),
+            );
             slot_maker
                 .fabricate(ArmorSlot::Offhand, [85.0; 2])
                 .bottom_left_with_margins_on(state.ids.feet_slot, -95.0, 0.0)

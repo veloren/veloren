@@ -14,8 +14,9 @@ pub enum Chest {
     ClothPurple0 = 11,
     ClothBlue0 = 12,
     ClothGreen0 = 13,
+    Rugged0 = 14,
 }
-pub const ALL_CHESTS: [Chest; 13] = [
+pub const ALL_CHESTS: [Chest; 14] = [
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
@@ -29,6 +30,7 @@ pub const ALL_CHESTS: [Chest; 13] = [
     Chest::ClothPurple0,
     Chest::ClothBlue0,
     Chest::ClothGreen0,
+    Chest::Rugged0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

@@ -68,6 +68,10 @@
         "voxel.armor.pants.rugged-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
+    Armor(Chest(Rugged0)): VoxTrans(
+        "voxel.armor.chest.rugged-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
     // Assassin Set
     Armor(Chest(Assassin)): VoxTrans(
         "voxel.armor.chest.assa",
