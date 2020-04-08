@@ -4,7 +4,6 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::types::{Mid, Sid};
 use byteorder::{NetworkEndian, ReadBytesExt};
 use std::sync::Arc;
-use tracing::*;
 
 pub(crate) struct MessageBuffer {
     // use VecDeque for msg storage, because it allows to quickly remove data from front.
@@ -29,13 +28,7 @@ pub(crate) struct InCommingMessage {
 }
 
 pub(crate) fn serialize<M: Serialize>(message: &M) -> MessageBuffer {
-    let mut writer = {
-        let actual_size = bincode::serialized_size(message).unwrap();
-        Vec::<u8>::with_capacity(actual_size as usize)
-    };
-    if let Err(e) = bincode::serialize_into(&mut writer, message) {
-        error!("Oh nooo {}", e);
-    };
+    let writer = bincode::serialize(message).unwrap();
     MessageBuffer { data: writer }
 }
 

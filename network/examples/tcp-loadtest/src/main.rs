@@ -19,9 +19,13 @@ fn setup() -> Result<SocketAddr, u32> {
         return Err(1);
     }
     let a: SocketAddr = format!("{}:{}", args[1], args[2]).parse().unwrap();
+    println!("You provided address: {}", &a);
     return Ok(a);
 }
-
+/// This example file is not running veloren-network at all,
+/// instead it's just trying to create 4 threads and pump as much bytes as
+/// possible through a specific listener, the listener needs to be created
+/// before this program is started.
 fn main() -> Result<(), u32> {
     let addr = Arc::new(setup()?);
     let data: Arc<String> = Arc::new(

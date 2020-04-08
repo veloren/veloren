@@ -157,22 +157,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97be891acc47ca214468e09425d02cef3af2c94d0d82081cd02061f996802f14"
 
 [[package]]
-name = "async-recv"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "chrono",
- "clap",
- "futures 0.3.5",
- "serde",
- "tracing",
- "tracing-subscriber",
- "uuid 0.8.1",
- "uvth",
- "veloren_network",
-]
-
-[[package]]
 name = "async-std"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -589,13 +573,9 @@ version = "2.33.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bdfa80d47f954d53a35a64987ca1422f495b8d6483c0fe9f7117b36c2a792129"
 dependencies = [
- "ansi_term",
- "atty",
  "bitflags",
- "strsim 0.8.0",
  "textwrap",
  "unicode-width",
- "vec_map",
 ]
 
 [[package]]
@@ -1069,7 +1049,7 @@ dependencies = [
  "ident_case",
  "proc-macro2 1.0.17",
  "quote 1.0.6",
- "strsim 0.9.3",
+ "strsim",
  "syn 1.0.27",
 ]
 
@@ -2831,21 +2811,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "network-speed"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "clap",
- "futures 0.3.5",
- "serde",
- "tracing",
- "tracing-subscriber",
- "uuid 0.8.1",
- "uvth",
- "veloren_network",
-]
-
-[[package]]
 name = "nix"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4489,12 +4454,6 @@ dependencies = [
 
 [[package]]
 name = "strsim"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
-
-[[package]]
-name = "strsim"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
@@ -4554,13 +4513,6 @@ dependencies = [
  "quote 1.0.6",
  "syn 1.0.27",
  "unicode-xid 0.2.0",
-]
-
-[[package]]
-name = "tcp-loadtest"
-version = "0.1.0"
-dependencies = [
- "rand 0.7.3",
 ]
 
 [[package]]
@@ -4684,14 +4636,6 @@ checksum = "45e4bc5ac99433e0dcb8b9f309dd271a165ae37dde129b9e0ce1bfdd8bfe4891"
 dependencies = [
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "tlid"
-version = "0.2.2"
-dependencies = [
- "num-traits 0.2.11",
- "serde",
 ]
 
 [[package]]
@@ -5094,10 +5038,6 @@ name = "uuid"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fde2f6a4bea1d6e007c4ad38c6839fa71cbb63b6dbf5b595aa38dc9b1093c11"
-dependencies = [
- "rand 0.7.3",
- "serde",
-]
 
 [[package]]
 name = "uvth"
@@ -5358,7 +5298,6 @@ dependencies = [
  "prometheus",
  "rand 0.7.3",
  "serde",
- "tlid",
  "tracing",
  "tracing-futures",
  "tracing-subscriber",

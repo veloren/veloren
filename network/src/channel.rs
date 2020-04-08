@@ -1,12 +1,16 @@
 use crate::{
-    frames::Frame,
+    protocols::Protocols,
     types::{
-        Cid, NetworkBuffer, Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
+        Cid, Frame, Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
         VELOREN_NETWORK_VERSION,
     },
 };
-use async_std::{net::TcpStream, prelude::*, sync::RwLock};
-use futures::{channel::mpsc, future::FutureExt, select, sink::SinkExt, stream::StreamExt};
+use async_std::sync::RwLock;
+use futures::{
+    channel::{mpsc, oneshot},
+    sink::SinkExt,
+    stream::StreamExt,
+};
 use tracing::*;
 //use futures::prelude::*;
 
@@ -27,10 +31,12 @@ enum ChannelState {
 }
 
 impl Channel {
+    #[cfg(debug_assertions)]
     const WRONG_NUMBER: &'static [u8] = "Handshake does not contain the magic number requiered by \
                                          veloren server.\nWe are not sure if you are a valid \
                                          veloren client.\nClosing the connection"
         .as_bytes();
+    #[cfg(debug_assertions)]
     const WRONG_VERSION: &'static str = "Handshake does contain a correct magic number, but \
                                          invalid version.\nWe don't know how to communicate with \
                                          you.\nClosing the connection";
@@ -54,24 +60,36 @@ impl Channel {
     /// receiver: mpsc::Receiver
     pub async fn run(
         self,
-        protocol: TcpStream,
+        protocol: Protocols,
         part_in_receiver: mpsc::UnboundedReceiver<Frame>,
         part_out_sender: mpsc::UnboundedSender<(Cid, Frame)>,
-        configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid)>,
+        configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
     ) {
         let (prot_in_sender, prot_in_receiver) = mpsc::unbounded::<Frame>();
         let (prot_out_sender, prot_out_receiver) = mpsc::unbounded::<Frame>();
 
-        futures::join!(
-            self.read(protocol.clone(), prot_in_sender),
-            self.write(protocol, prot_out_receiver, part_in_receiver),
-            self.frame_handler(
-                prot_in_receiver,
-                prot_out_sender,
-                part_out_sender,
-                configured_sender
-            )
+        let handler_future = self.frame_handler(
+            prot_in_receiver,
+            prot_out_sender,
+            part_out_sender,
+            configured_sender,
         );
+        match protocol {
+            Protocols::Tcp(tcp) => {
+                futures::join!(
+                    tcp.read(prot_in_sender),
+                    tcp.write(prot_out_receiver, part_in_receiver),
+                    handler_future,
+                );
+            },
+            Protocols::Udp(udp) => {
+                futures::join!(
+                    udp.read(prot_in_sender),
+                    udp.write(prot_out_receiver, part_in_receiver),
+                    handler_future,
+                );
+            },
+        }
 
         //return part_out_receiver;
     }
@@ -81,17 +99,17 @@ impl Channel {
         mut frames: mpsc::UnboundedReceiver<Frame>,
         mut frame_sender: mpsc::UnboundedSender<Frame>,
         mut external_frame_sender: mpsc::UnboundedSender<(Cid, Frame)>,
-        mut configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid)>,
+        mut configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
     ) {
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
                              something went wrong on network layer and connection will be closed";
         while let Some(frame) = frames.next().await {
-            trace!(?frame, "recv frame");
             match frame {
                 Frame::Handshake {
                     magic_number,
                     version,
                 } => {
+                    trace!(?magic_number, ?version, "recv handshake");
                     if self
                         .verify_handshake(magic_number, version, &mut frame_sender)
                         .await
@@ -121,10 +139,19 @@ impl Channel {
                         STREAM_ID_OFFSET1
                     };
                     info!(?pid, "this channel is now configured!");
+                    let (sender, receiver) = oneshot::channel();
                     configured_sender
-                        .send((self.cid, pid, stream_id_offset))
+                        .send((self.cid, pid, stream_id_offset, sender))
                         .await
                         .unwrap();
+                    receiver.await.unwrap();
+                    //TODO: this is sync anyway, because we need to wait. so find a better way than
+                    // there channels like direct method call... otherwise a
+                    // frame might jump in before its officially configured yet
+                    debug!(
+                        "STOP, if you read this, fix this error. make this a function isntead a \
+                         channel here"
+                    );
                 },
                 Frame::Shutdown => {
                     info!("shutdown signal received");
@@ -144,81 +171,12 @@ impl Channel {
         }
     }
 
-    pub async fn read(
-        &self,
-        mut protocol: TcpStream,
-        mut frame_handler: mpsc::UnboundedSender<Frame>,
-    ) {
-        let mut buffer = NetworkBuffer::new();
-        loop {
-            match protocol.read(buffer.get_write_slice(2048)).await {
-                Ok(0) => {
-                    debug!(?buffer, "shutdown of tcp channel detected");
-                    frame_handler.send(Frame::Shutdown).await.unwrap();
-                    break;
-                },
-                Ok(n) => {
-                    buffer.actually_written(n);
-                    trace!("incomming message with len: {}", n);
-                    let slice = buffer.get_read_slice();
-                    let mut cur = std::io::Cursor::new(slice);
-                    let mut read_ok = 0;
-                    while cur.position() < n as u64 {
-                        let round_start = cur.position() as usize;
-                        let r: Result<Frame, _> = bincode::deserialize_from(&mut cur);
-                        match r {
-                            Ok(frame) => {
-                                frame_handler.send(frame).await.unwrap();
-                                read_ok = cur.position() as usize;
-                            },
-                            Err(e) => {
-                                // Probably we have to wait for moare data!
-                                let first_bytes_of_msg =
-                                    &slice[round_start..std::cmp::min(n, round_start + 16)];
-                                debug!(
-                                    ?buffer,
-                                    ?e,
-                                    ?n,
-                                    ?round_start,
-                                    ?first_bytes_of_msg,
-                                    "message cant be parsed, probably because we need to wait for \
-                                     more data"
-                                );
-                                break;
-                            },
-                        }
-                    }
-                    buffer.actually_read(read_ok);
-                },
-                Err(e) => panic!("{}", e),
-            }
-        }
-    }
-
-    pub async fn write(
-        &self,
-        mut protocol: TcpStream,
-        mut internal_frame_receiver: mpsc::UnboundedReceiver<Frame>,
-        mut external_frame_receiver: mpsc::UnboundedReceiver<Frame>,
-    ) {
-        while let Some(frame) = select! {
-            next = internal_frame_receiver.next().fuse() => next,
-            next = external_frame_receiver.next().fuse() => next,
-        } {
-            //dezerialize here as this is executed in a seperate thread PER channel.
-            // Limites Throughput per single Receiver but stays in same thread (maybe as its
-            // in a threadpool)
-            trace!(?frame, "going to send frame via tcp");
-            let data = bincode::serialize(&frame).unwrap();
-            protocol.write_all(data.as_slice()).await.unwrap();
-        }
-    }
-
     async fn verify_handshake(
         &self,
         magic_number: String,
         version: [u32; 3],
-        frame_sender: &mut mpsc::UnboundedSender<Frame>,
+        #[cfg(debug_assertions)] frame_sender: &mut mpsc::UnboundedSender<Frame>,
+        #[cfg(not(debug_assertions))] _: &mut mpsc::UnboundedSender<Frame>,
     ) -> Result<(), ()> {
         if magic_number != VELOREN_MAGIC_NUMBER {
             error!(?magic_number, "connection with invalid magic_number");
