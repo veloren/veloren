@@ -6,6 +6,7 @@ use crate::{
 };
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
+
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
@@ -27,7 +28,7 @@ pub enum GameInput {
     Glide,
     Climb,
     ClimbDown,
-    WallLeap,
+    //WallLeap,
     Mount,
     Enter,
     Command,
@@ -47,7 +48,7 @@ pub enum GameInput {
     Respawn,
     Interact,
     ToggleWield,
-    Charge,
+    //Charge,
     SwapLoadout,
     FreeLook,
 }
@@ -67,7 +68,7 @@ impl GameInput {
             GameInput::Glide => "gameinput.glide",
             GameInput::Climb => "gameinput.climb",
             GameInput::ClimbDown => "gameinput.climbdown",
-            GameInput::WallLeap => "gameinput.wallleap",
+            //GameInput::WallLeap => "gameinput.wallleap",
             GameInput::Mount => "gameinput.mount",
             GameInput::Enter => "gameinput.enter",
             GameInput::Command => "gameinput.command",
@@ -87,7 +88,7 @@ impl GameInput {
             GameInput::Respawn => "gameinput.respawn",
             GameInput::Interact => "gameinput.interact",
             GameInput::ToggleWield => "gameinput.togglewield",
-            GameInput::Charge => "gameinput.charge",
+            //GameInput::Charge => "gameinput.charge",
             GameInput::FreeLook => "gameinput.freelook",
             GameInput::Ability3 => "gameinput.ability3",
             GameInput::SwapLoadout => "gameinput.swaploadout",

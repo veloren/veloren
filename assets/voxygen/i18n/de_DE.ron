@@ -155,9 +155,7 @@ eurer erstellen Charaktere gespeichert."#,
         "hud.press_key_to_toggle_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
 
         /// Respawn message
-        "hud.press_key_to_respawn": r#"Drückt {key} um am letzten Lagerfeuer wiederbelebt zu werden.
-
-Drückt Enter und tippt /waypoint in den Chat um den Wegpunkt hier zu erstellen."#,
+        "hud.press_key_to_respawn": r#"Drückt {key} um am letzten Lagerfeuer wiederbelebt zu werden."#,
 
         /// Welcome message
         "hud.welcome": r#"Willkommen zur Veloren Alpha.
@@ -209,6 +207,8 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "hud.bag.chest": "Brust",
         "hud.bag.hands": "Hände",
         "hud.bag.lantern": "Laterne",
+        "hud.bag.belt": "Gürtel",
+        "hud.bag.ring": "Ring",
         "hud.bag.back": "Rücken",
         "hud.bag.legs": "Beine",
         "hud.bag.feet": "Füße",
@@ -321,7 +321,7 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "gameinput.charge": "Anstürmen",
         "gameinput.togglewield": "Waffe ziehen/wegstecken",
         "gameinput.interact": "Interagieren",
-        "gameinput.freelook": "Freies Umsehen",
+        "gameinput.freelook": "Freie Sicht",
 
         /// End GameInput section
 

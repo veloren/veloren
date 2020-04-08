@@ -179,7 +179,9 @@ impl StateExt for State {
                     }),
                     second_item: None,
                     shoulder: None,
-                    chest: None,
+                    chest: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.rugged_chest",
+                    )),
                     belt: None,
                     hand: None,
                     pants: Some(assets::load_expect_cloned(

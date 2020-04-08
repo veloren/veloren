@@ -1,0 +1,8 @@
+Item(
+    name: "Rugged Shirt",
+    description: "Smells like Adventure.",
+    kind: Armor(
+        kind: Chest(Rugged0),
+        stats: (20),
+    ),
+)

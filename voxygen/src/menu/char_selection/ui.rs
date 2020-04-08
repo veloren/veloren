@@ -351,7 +351,9 @@ impl CharSelectionUi {
                         }),
                     second_item: None,
                     shoulder: None,
-                    chest: None,
+                    chest: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.rugged_chest",
+                    )),
                     belt: None,
                     hand: None,
                     pants: Some(assets::load_expect_cloned(
@@ -378,6 +380,9 @@ impl CharSelectionUi {
                     block_ability: None,
                     dodge_ability: None,
                 });
+                loadout.chest = Some(assets::load_expect_cloned(
+                    "common.items.armor.starter.rugged_chest",
+                ));
                 loadout.pants = Some(assets::load_expect_cloned(
                     "common.items.armor.starter.rugged_pants",
                 ));
