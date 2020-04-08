@@ -509,10 +509,13 @@ impl Window {
                     },
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. } => {
-                        if let Some(game_inputs) = Window::map_input(
-                            KeyMouse::Mouse(button),
-                            controls,
-                            remapping_keybindings,
+                        if let (true, Some(game_inputs)) = (
+                            cursor_grabbed,
+                            Window::map_input(
+                                KeyMouse::Mouse(button),
+                                controls,
+                                remapping_keybindings,
+                            ),
                         ) {
                             for game_input in game_inputs {
                                 events.push(Event::InputUpdate(
