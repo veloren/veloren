@@ -1,3 +1,5 @@
+mod building;
+
 use crate::{
     column::ColumnSample,
     sim::{SimChunk, WorldSim},
