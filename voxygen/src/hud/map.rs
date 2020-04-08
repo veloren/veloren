@@ -193,7 +193,8 @@ impl<'a> Widget for Map<'a> {
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
         // Cursor pos relative to playerpos and widget size
-        // Cursor stops moving on an axis as soon as it's position exceeds the maximum size of the widget
+        // Cursor stops moving on an axis as soon as it's position exceeds the maximum
+        // size of the widget
         let rel = Vec2::from(player_pos).map2(worldsize, |e: f32, sz: f64| {
             (e as f64 / sz).clamped(0.0, 1.0)
         });
