@@ -7,12 +7,11 @@ Note: TODO: prio0 will be send immeadiatly when found!
 */
 
 use crate::{
-    frames::Frame,
     message::OutGoingMessage,
-    types::{Pid, Prio, Sid},
+    types::{Frame, Pid, Prio, Sid},
 };
 use std::{
-    collections::{HashSet, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     sync::mpsc::{channel, Receiver, Sender},
 };
 
@@ -24,6 +23,7 @@ pub(crate) struct PrioManager {
     points: [u32; PRIO_MAX],
     messages: [VecDeque<(Pid, Sid, OutGoingMessage)>; PRIO_MAX],
     messages_rx: Receiver<(Prio, Pid, Sid, OutGoingMessage)>,
+    pid_sid_owned: HashMap<(Pid, Sid), u64>,
     queued: HashSet<u8>,
 }
 
@@ -110,6 +110,7 @@ impl PrioManager {
                 ],
                 messages_rx,
                 queued: HashSet::new(), //TODO: optimize with u64 and 64 bits
+                pid_sid_owned: HashMap::new(),
             },
             messages_tx,
         )
@@ -117,11 +118,21 @@ impl PrioManager {
 
     fn tick(&mut self) {
         // Check Range
+        let mut times = 0;
         for (prio, pid, sid, msg) in self.messages_rx.try_iter() {
             debug_assert!(prio as usize <= PRIO_MAX);
-            trace!(?prio, ?sid, ?pid, "tick");
+            times += 1;
+            //trace!(?prio, ?sid, ?pid, "tick");
             self.queued.insert(prio);
             self.messages[prio as usize].push_back((pid, sid, msg));
+            if let Some(cnt) = self.pid_sid_owned.get_mut(&(pid, sid)) {
+                *cnt += 1;
+            } else {
+                self.pid_sid_owned.insert((pid, sid), 1);
+            }
+        }
+        if times > 0 {
+            trace!(?times, "tick");
         }
     }
 
@@ -191,7 +202,7 @@ impl PrioManager {
         for _ in 0..no_of_frames {
             match self.calc_next_prio() {
                 Some(prio) => {
-                    trace!(?prio, "handle next prio");
+                    //trace!(?prio, "handle next prio");
                     self.points[prio as usize] += Self::PRIOS[prio as usize];
                     //pop message from front of VecDeque, handle it and push it back, so that all
                     // => messages with same prio get a fair chance :)
@@ -203,6 +214,15 @@ impl PrioManager {
                                 //check if prio is empty
                                 if self.messages[prio as usize].is_empty() {
                                     self.queued.remove(&prio);
+                                }
+                                //decrease pid_sid counter by 1 again
+                                let cnt = self.pid_sid_owned.get_mut(&(pid, sid)).expect(
+                                    "the pid_sid_owned counter works wrong, more pid,sid removed \
+                                     than inserted",
+                                );
+                                *cnt -= 1;
+                                if *cnt == 0 {
+                                    self.pid_sid_owned.remove(&(pid, sid));
                                 }
                             } else {
                                 self.messages[prio as usize].push_back((pid, sid, msg));
@@ -221,6 +241,12 @@ impl PrioManager {
             }
         }
     }
+
+    /// if you want to make sure to empty the prio of a single pid and sid, use
+    /// this
+    pub(crate) fn contains_pid_sid(&self, pid: Pid, sid: Sid) -> bool {
+        self.pid_sid_owned.contains_key(&(pid, sid))
+    }
 }
 
 impl std::fmt::Debug for PrioManager {
@@ -237,17 +263,17 @@ impl std::fmt::Debug for PrioManager {
 #[cfg(test)]
 mod tests {
     use crate::{
-        frames::Frame,
         message::{MessageBuffer, OutGoingMessage},
         prios::*,
-        types::{Pid, Prio, Sid},
+        types::{Frame, Pid, Prio, Sid},
     };
     use std::{collections::VecDeque, sync::Arc};
 
     const SIZE: u64 = PrioManager::FRAME_DATA_SIZE;
     const USIZE: usize = PrioManager::FRAME_DATA_SIZE as usize;
 
-    fn mock_out(prio: Prio, sid: Sid) -> (Prio, Pid, Sid, OutGoingMessage) {
+    fn mock_out(prio: Prio, sid: u64) -> (Prio, Pid, Sid, OutGoingMessage) {
+        let sid = Sid::new(sid);
         (prio, Pid::fake(0), sid, OutGoingMessage {
             buffer: Arc::new(MessageBuffer {
                 data: vec![48, 49, 50],
@@ -258,7 +284,8 @@ mod tests {
         })
     }
 
-    fn mock_out_large(prio: Prio, sid: Sid) -> (Prio, Pid, Sid, OutGoingMessage) {
+    fn mock_out_large(prio: Prio, sid: u64) -> (Prio, Pid, Sid, OutGoingMessage) {
+        let sid = Sid::new(sid);
         let mut data = vec![48; USIZE];
         data.append(&mut vec![49; USIZE]);
         data.append(&mut vec![50; 20]);
@@ -270,14 +297,14 @@ mod tests {
         })
     }
 
-    fn assert_header(frames: &mut VecDeque<(Pid, Sid, Frame)>, f_sid: Sid, f_length: u64) {
+    fn assert_header(frames: &mut VecDeque<(Pid, Sid, Frame)>, f_sid: u64, f_length: u64) {
         let frame = frames
             .pop_front()
             .expect("frames vecdeque doesn't contain enough frames!")
             .2;
         if let Frame::DataHeader { mid, sid, length } = frame {
             assert_eq!(mid, 1);
-            assert_eq!(sid, f_sid);
+            assert_eq!(sid, Sid::new(f_sid));
             assert_eq!(length, f_length);
         } else {
             panic!("wrong frame type!, expected DataHeader");
@@ -298,6 +325,14 @@ mod tests {
         }
     }
 
+    fn assert_contains(mgr: &PrioManager, sid: u64) {
+        assert!(mgr.contains_pid_sid(Pid::fake(0), Sid::new(sid)));
+    }
+
+    fn assert_no_contains(mgr: &PrioManager, sid: u64) {
+        assert!(!mgr.contains_pid_sid(Pid::fake(0), Sid::new(sid)));
+    }
+
     #[test]
     fn single_p16() {
         let (mut mgr, tx) = PrioManager::new();
@@ -316,7 +351,12 @@ mod tests {
         tx.send(mock_out(16, 1337)).unwrap();
         tx.send(mock_out(20, 42)).unwrap();
         let mut frames = VecDeque::new();
+
         mgr.fill_frames(100, &mut frames);
+
+        assert_no_contains(&mgr, 1337);
+        assert_no_contains(&mgr, 42);
+        assert_no_contains(&mgr, 666);
 
         assert_header(&mut frames, 1337, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -382,8 +422,14 @@ mod tests {
         tx.send(mock_out(16, 9)).unwrap();
         tx.send(mock_out(16, 11)).unwrap();
         tx.send(mock_out(20, 13)).unwrap();
+
         let mut frames = VecDeque::new();
         mgr.fill_frames(3, &mut frames);
+
+        assert_no_contains(&mgr, 1);
+        assert_no_contains(&mgr, 3);
+        assert_contains(&mgr, 13);
+
         for i in 1..4 {
             assert_header(&mut frames, i, 3);
             assert_data(&mut frames, 0, vec![48, 49, 50]);

@@ -1,77 +1,133 @@
-use async_std::{sync::RwLock, task};
-use futures::{
-    channel::{mpsc, oneshot},
-    executor::ThreadPool,
-    sink::SinkExt,
-};
-use std::sync::{atomic::AtomicU64, Arc};
-use veloren_network::{Network, Pid, Scheduler};
+use async_std::task;
+use task::block_on;
+use veloren_network::StreamError;
 mod helper;
-use std::collections::HashMap;
-use tracing::*;
-use uvth::ThreadPoolBuilder;
-
-#[test]
-fn network() {
-    let (_, _) = helper::setup(true, 100);
-    {
-        let addr1 = helper::tcp();
-        let pool = ThreadPoolBuilder::new().num_threads(2).build();
-        let n1 = Network::new(Pid::fake(1), &pool);
-        let n2 = Network::new(Pid::fake(2), &pool);
-
-        n1.listen(addr1.clone()).unwrap();
-        std::thread::sleep(std::time::Duration::from_millis(100));
-
-        let pid1 = task::block_on(n2.connect(addr1)).unwrap();
-        warn!("yay connected");
-
-        let pid2 = task::block_on(n1.connected()).unwrap();
-        warn!("yay connected");
-
-        let mut sid1_p1 = task::block_on(pid1.open(10, 0)).unwrap();
-        let mut sid1_p2 = task::block_on(pid2.opened()).unwrap();
-
-        task::block_on(sid1_p1.send("Hello World")).unwrap();
-        let m1: Result<String, _> = task::block_on(sid1_p2.recv());
-        assert_eq!(m1, Ok("Hello World".to_string()));
-
-        //assert_eq!(pid, Pid::fake(1));
-
-        std::thread::sleep(std::time::Duration::from_secs(10));
-    }
-    std::thread::sleep(std::time::Duration::from_secs(2));
-}
+use helper::{network_participant_stream, tcp, udp};
 
 #[test]
 #[ignore]
-fn scheduler() {
-    let (_, _) = helper::setup(true, 100);
-    let addr = helper::tcp();
-    let (scheduler, mut listen_tx, _, _, _) = Scheduler::new(Pid::new());
-    task::block_on(listen_tx.send(addr)).unwrap();
-    task::block_on(scheduler.run());
+fn network_20s() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, _, _n_b, _, _) = block_on(network_participant_stream(tcp()));
+    std::thread::sleep(std::time::Duration::from_secs(30));
 }
 
 #[test]
-#[ignore]
-fn channel_creator_test() {
-    let (_, _) = helper::setup(true, 100);
-    let (_end_sender, end_receiver) = oneshot::channel::<()>();
-    let (part_out_sender, _part_out_receiver) = mpsc::unbounded();
-    let (configured_sender, _configured_receiver) = mpsc::unbounded::<(u64, Pid, u64)>();
-    let addr = helper::tcp();
-    task::block_on(async {
-        Scheduler::channel_creator(
-            Arc::new(AtomicU64::new(0)),
-            Pid::new(),
-            addr,
-            end_receiver,
-            Arc::new(ThreadPool::new().unwrap()),
-            part_out_sender,
-            configured_sender,
-            Arc::new(RwLock::new(HashMap::new())),
-        )
-        .await;
-    });
+fn close_network() {
+    let (_, _) = helper::setup(false, 0);
+    let (_, _p1_a, mut s1_a, _, _p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    std::thread::sleep(std::time::Duration::from_millis(30));
+
+    assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
+    let msg1: Result<String, _> = block_on(s1_b.recv());
+    assert_eq!(msg1, Err(StreamError::StreamClosed));
+}
+
+#[test]
+fn close_participant() {
+    let (_, _) = helper::setup(false, 0);
+    let (n_a, p1_a, mut s1_a, n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    block_on(n_a.disconnect(p1_a)).unwrap();
+    block_on(n_b.disconnect(p1_b)).unwrap();
+
+    std::thread::sleep(std::time::Duration::from_millis(30));
+    assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
+    assert_eq!(
+        block_on(s1_b.recv::<String>()),
+        Err(StreamError::StreamClosed)
+    );
+}
+
+#[test]
+fn close_stream() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, _) = block_on(network_participant_stream(tcp()));
+
+    // s1_b is dropped directly while s1_a isn't
+    std::thread::sleep(std::time::Duration::from_millis(30));
+
+    assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
+    assert_eq!(
+        block_on(s1_a.recv::<String>()),
+        Err(StreamError::StreamClosed)
+    );
+}
+
+#[test]
+fn stream_simple() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send("Hello World").unwrap();
+    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
+}
+
+#[test]
+fn stream_simple_3msg() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send("Hello World").unwrap();
+    s1_a.send(1337).unwrap();
+    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    assert_eq!(block_on(s1_b.recv()), Ok(1337));
+    s1_a.send("3rdMessage").unwrap();
+    assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+}
+
+#[test]
+fn stream_simple_3msg_then_close() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send(1u8).unwrap();
+    s1_a.send(42).unwrap();
+    s1_a.send("3rdMessage").unwrap();
+    assert_eq!(block_on(s1_b.recv()), Ok(1u8));
+    assert_eq!(block_on(s1_b.recv()), Ok(42));
+    assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+    drop(s1_a);
+    std::thread::sleep(std::time::Duration::from_millis(30));
+    assert_eq!(s1_b.send("Hello World"), Err(StreamError::StreamClosed));
+}
+
+#[test]
+fn stream_send_first_then_receive() {
+    // recv should still be possible even if stream got closed if they are in queue
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send(1u8).unwrap();
+    s1_a.send(42).unwrap();
+    s1_a.send("3rdMessage").unwrap();
+    drop(s1_a);
+    std::thread::sleep(std::time::Duration::from_millis(2000));
+    assert_eq!(block_on(s1_b.recv()), Ok(1u8));
+    assert_eq!(block_on(s1_b.recv()), Ok(42));
+    assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+    assert_eq!(s1_b.send("Hello World"), Err(StreamError::StreamClosed));
+}
+
+#[test]
+fn stream_simple_udp() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(udp()));
+
+    s1_a.send("Hello World").unwrap();
+    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
+}
+
+#[test]
+fn stream_simple_udp_3msg() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(udp()));
+
+    s1_a.send("Hello World").unwrap();
+    s1_a.send(1337).unwrap();
+    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    assert_eq!(block_on(s1_b.recv()), Ok(1337));
+    s1_a.send("3rdMessage").unwrap();
+    assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
 }

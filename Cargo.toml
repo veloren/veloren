@@ -10,9 +10,6 @@ members = [
 	"voxygen",
 	"world",
     "network",
-	"network/tools/tcp-loadtest",
-	"network/tools/network-speed",
-	"network/tools/async_recv",
 ]
 
 # default profile for devs, fast to compile, okay enough to run, no debug information

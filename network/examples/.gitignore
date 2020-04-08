@@ -1,0 +1,2 @@
+# dont save cargo locks for examples
+*/Cargo.lock

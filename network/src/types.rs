@@ -1,8 +1,6 @@
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use tracing::*;
 
-pub type Sid = u64;
 pub type Mid = u64;
 pub type Cid = u64;
 pub type Prio = u8;
@@ -17,18 +15,60 @@ pub const PROMISES_ENCRYPTED: Promises = 16;
 
 pub(crate) const VELOREN_MAGIC_NUMBER: &str = "VELOREN";
 pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 2, 0];
-pub(crate) const STREAM_ID_OFFSET1: Sid = 0;
-pub(crate) const STREAM_ID_OFFSET2: Sid = u64::MAX / 2;
-
-pub(crate) struct NetworkBuffer {
-    pub(crate) data: Vec<u8>,
-    pub(crate) read_idx: usize,
-    pub(crate) write_idx: usize,
-}
+pub(crate) const STREAM_ID_OFFSET1: Sid = Sid::new(0);
+pub(crate) const STREAM_ID_OFFSET2: Sid = Sid::new(u64::MAX / 2);
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub struct Pid {
     internal: u128,
+}
+
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
+pub(crate) struct Sid {
+    internal: u64,
+}
+
+// Used for Communication between Channel <----(TCP/UDP)----> Channel
+#[derive(Serialize, Deserialize, Debug)]
+pub(crate) enum Frame {
+    Handshake {
+        magic_number: String,
+        version: [u32; 3],
+    },
+    ParticipantId {
+        pid: Pid,
+    },
+    Shutdown, /* Shutsdown this channel gracefully, if all channels are shut down, Participant
+               * is deleted */
+    OpenStream {
+        sid: Sid,
+        prio: Prio,
+        promises: Promises,
+    },
+    CloseStream {
+        sid: Sid,
+    },
+    DataHeader {
+        mid: Mid,
+        sid: Sid,
+        length: u64,
+    },
+    Data {
+        id: Mid,
+        start: u64,
+        data: Vec<u8>,
+    },
+    /* WARNING: Sending RAW is only used for debug purposes in case someone write a new API
+     * against veloren Server! */
+    Raw(Vec<u8>),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub(crate) enum Requestor {
+    User,
+    Api,
+    Scheduler,
+    Remote,
 }
 
 impl Pid {
@@ -49,88 +89,34 @@ impl Pid {
     }
 }
 
-/// NetworkBuffer to use for streamed access
-/// valid data is between read_idx and write_idx!
-/// everything before read_idx is already processed and no longer important
-/// everything after write_idx is either 0 or random data buffered
-impl NetworkBuffer {
-    pub(crate) fn new() -> Self {
-        NetworkBuffer {
-            data: vec![0; 2048],
-            read_idx: 0,
-            write_idx: 0,
-        }
-    }
-
-    pub(crate) fn get_write_slice(&mut self, min_size: usize) -> &mut [u8] {
-        if self.data.len() < self.write_idx + min_size {
-            trace!(
-                ?self,
-                ?min_size,
-                "need to resize because buffer is to small"
-            );
-            self.data.resize(self.write_idx + min_size, 0);
-        }
-        &mut self.data[self.write_idx..]
-    }
-
-    pub(crate) fn actually_written(&mut self, cnt: usize) { self.write_idx += cnt; }
-
-    pub(crate) fn get_read_slice(&self) -> &[u8] { &self.data[self.read_idx..self.write_idx] }
-
-    pub(crate) fn actually_read(&mut self, cnt: usize) {
-        self.read_idx += cnt;
-        if self.read_idx == self.write_idx {
-            if self.read_idx > 10485760 {
-                trace!(?self, "buffer empty, resetting indices");
-            }
-            self.read_idx = 0;
-            self.write_idx = 0;
-        }
-        if self.write_idx > 10485760 {
-            if self.write_idx - self.read_idx < 65536 {
-                debug!(
-                    ?self,
-                    "This buffer is filled over 10 MB, but the actual data diff is less then \
-                     65kB, which is a sign of stressing this connection much as always new data \
-                     comes in - nevertheless, in order to handle this we will remove some data \
-                     now so that this buffer doesn't grow endlessly"
-                );
-                let mut i2 = 0;
-                for i in self.read_idx..self.write_idx {
-                    self.data[i2] = self.data[i];
-                    i2 += 1;
-                }
-                self.read_idx = 0;
-                self.write_idx = i2;
-            }
-            if self.data.len() > 67108864 {
-                warn!(
-                    ?self,
-                    "over 64Mbyte used, something seems fishy, len: {}",
-                    self.data.len()
-                );
-            }
-        }
-    }
-}
-
-impl std::fmt::Debug for NetworkBuffer {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "NetworkBuffer(len: {}, read: {}, write: {})",
-            self.data.len(),
-            self.read_idx,
-            self.write_idx
-        )
-    }
+impl Sid {
+    pub const fn new(internal: u64) -> Self { Self { internal } }
 }
 
 impl std::fmt::Debug for Pid {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.internal)
+        //only print last 6 chars of number as full u128 logs are unreadable
+        write!(f, "{}", self.internal.rem_euclid(100000))
     }
+}
+
+impl std::ops::AddAssign for Sid {
+    fn add_assign(&mut self, other: Self) {
+        *self = Self {
+            internal: self.internal + other.internal,
+        };
+    }
+}
+
+impl std::fmt::Debug for Sid {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        //only print last 6 chars of number as full u128 logs are unreadable
+        write!(f, "{}", self.internal.rem_euclid(1000000))
+    }
+}
+
+impl From<u64> for Sid {
+    fn from(internal: u64) -> Self { Sid { internal } }
 }
