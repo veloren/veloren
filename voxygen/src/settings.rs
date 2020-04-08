@@ -3,7 +3,7 @@ use crate::{
     i18n,
     render::{AaMode, CloudMode, FluidMode},
     ui::ScaleMode,
-    window::KeyMouse,
+    window::{GameInput, KeyMouse},
 };
 use directories::{ProjectDirs, UserDirs};
 use glutin::{MouseButton, VirtualKeyCode};
@@ -12,46 +12,47 @@ use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
 
+// ControlSetting-like struct used by Serde, to handle not serializing/building
+// post-deserializing the inverse_keybindings hashmap
+#[derive(Serialize, Deserialize)]
+struct ControlSettingsSerde {
+    keybindings: HashMap<GameInput, KeyMouse>,
+}
+
+impl From<ControlSettings> for ControlSettingsSerde {
+    fn from(control_settings: ControlSettings) -> Self {
+        let mut user_bindings: HashMap<GameInput, KeyMouse> = HashMap::new();
+        // Do a delta between default() ControlSettings and the argument, and let
+        // keybindings be only the custom keybindings chosen by the user.
+        for (k, v) in control_settings.keybindings {
+            if ControlSettings::default_binding(k) != v {
+                // Keybinding chosen by the user
+                user_bindings.insert(k, v);
+            }
+        }
+        ControlSettingsSerde {
+            keybindings: user_bindings,
+        }
+    }
+}
+
 /// `ControlSettings` contains keybindings.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(default)]
+#[serde(from = "ControlSettingsSerde", into = "ControlSettingsSerde")]
 pub struct ControlSettings {
-    pub primary: KeyMouse,
-    pub secondary: KeyMouse,
-    pub ability3: KeyMouse,
-    pub toggle_cursor: KeyMouse,
-    pub escape: KeyMouse,
-    pub enter: KeyMouse,
-    pub command: KeyMouse,
-    pub move_forward: KeyMouse,
-    pub move_left: KeyMouse,
-    pub move_back: KeyMouse,
-    pub move_right: KeyMouse,
-    pub jump: KeyMouse,
-    pub sit: KeyMouse,
-    pub glide: KeyMouse,
-    pub climb: KeyMouse,
-    pub climb_down: KeyMouse,
-    pub wall_leap: KeyMouse,
-    pub mount: KeyMouse,
-    pub map: KeyMouse,
-    pub bag: KeyMouse,
-    pub social: KeyMouse,
-    pub spellbook: KeyMouse,
-    pub settings: KeyMouse,
-    pub help: KeyMouse,
-    pub toggle_interface: KeyMouse,
-    pub toggle_debug: KeyMouse,
-    pub fullscreen: KeyMouse,
-    pub screenshot: KeyMouse,
-    pub toggle_ingame_ui: KeyMouse,
-    pub roll: KeyMouse,
-    pub respawn: KeyMouse,
-    pub interact: KeyMouse,
-    pub toggle_wield: KeyMouse,
-    pub swap_loadout: KeyMouse,
-    pub charge: KeyMouse,
-    pub free_look: KeyMouse,
+    pub keybindings: HashMap<GameInput, KeyMouse>,
+    pub inverse_keybindings: HashMap<KeyMouse, HashSet<GameInput>>, // used in event loop
+}
+
+impl From<ControlSettingsSerde> for ControlSettings {
+    fn from(control_serde: ControlSettingsSerde) -> Self {
+        let user_keybindings = control_serde.keybindings;
+        let mut control_settings = ControlSettings::default();
+        for (k, v) in user_keybindings {
+            control_settings.modify_binding(k, v);
+        }
+        control_settings
+    }
 }
 
 /// Since Macbook trackpads lack middle click, on OS X we default to LShift
@@ -64,46 +65,135 @@ const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(VirtualKeyCode::LShift);
 #[cfg(not(target_os = "macos"))]
 const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Mouse(MouseButton::Middle);
 
+impl ControlSettings {
+    pub fn get_binding(&self, game_input: GameInput) -> Option<KeyMouse> {
+        self.keybindings.get(&game_input).copied()
+    }
+
+    pub fn get_associated_game_inputs(&self, key_mouse: &KeyMouse) -> Option<&HashSet<GameInput>> {
+        self.inverse_keybindings.get(key_mouse)
+    }
+
+    pub fn insert_binding(&mut self, game_input: GameInput, key_mouse: KeyMouse) {
+        self.keybindings.insert(game_input, key_mouse);
+        self.inverse_keybindings
+            .entry(key_mouse)
+            .or_default()
+            .insert(game_input);
+    }
+
+    pub fn modify_binding(&mut self, game_input: GameInput, key_mouse: KeyMouse) {
+        // For the KeyMouse->GameInput hashmap, we first need to remove the GameInput
+        // from the old binding
+        if let Some(old_binding) = self.get_binding(game_input) {
+            self.inverse_keybindings
+                .entry(old_binding)
+                .or_default()
+                .remove(&game_input);
+        }
+        // then we add the GameInput to the proper key
+        self.inverse_keybindings
+            .entry(key_mouse)
+            .or_default()
+            .insert(game_input);
+        // For the GameInput->KeyMouse hashmap, just overwrite the value
+        self.keybindings.insert(game_input, key_mouse);
+    }
+
+    pub fn default_binding(game_input: GameInput) -> KeyMouse {
+        // If a new GameInput is added, be sure to update ControlSettings::default()
+        // too!
+        match game_input {
+            GameInput::Primary => KeyMouse::Mouse(MouseButton::Left),
+            GameInput::Secondary => KeyMouse::Mouse(MouseButton::Right),
+            GameInput::ToggleCursor => KeyMouse::Key(VirtualKeyCode::Tab),
+            GameInput::Escape => KeyMouse::Key(VirtualKeyCode::Escape),
+            GameInput::Enter => KeyMouse::Key(VirtualKeyCode::Return),
+            GameInput::Command => KeyMouse::Key(VirtualKeyCode::Slash),
+            GameInput::MoveForward => KeyMouse::Key(VirtualKeyCode::W),
+            GameInput::MoveLeft => KeyMouse::Key(VirtualKeyCode::A),
+            GameInput::MoveBack => KeyMouse::Key(VirtualKeyCode::S),
+            GameInput::MoveRight => KeyMouse::Key(VirtualKeyCode::D),
+            GameInput::Jump => KeyMouse::Key(VirtualKeyCode::Space),
+            GameInput::Sit => KeyMouse::Key(VirtualKeyCode::K),
+            GameInput::Glide => KeyMouse::Key(VirtualKeyCode::LShift),
+            GameInput::Climb => KeyMouse::Key(VirtualKeyCode::Space),
+            GameInput::ClimbDown => KeyMouse::Key(VirtualKeyCode::LControl),
+            GameInput::WallLeap => MIDDLE_CLICK_KEY,
+            GameInput::Mount => KeyMouse::Key(VirtualKeyCode::F),
+            GameInput::Map => KeyMouse::Key(VirtualKeyCode::M),
+            GameInput::Bag => KeyMouse::Key(VirtualKeyCode::B),
+            GameInput::Social => KeyMouse::Key(VirtualKeyCode::O),
+            GameInput::Spellbook => KeyMouse::Key(VirtualKeyCode::P),
+            GameInput::Settings => KeyMouse::Key(VirtualKeyCode::N),
+            GameInput::Help => KeyMouse::Key(VirtualKeyCode::F1),
+            GameInput::ToggleInterface => KeyMouse::Key(VirtualKeyCode::F2),
+            GameInput::ToggleDebug => KeyMouse::Key(VirtualKeyCode::F3),
+            GameInput::Fullscreen => KeyMouse::Key(VirtualKeyCode::F11),
+            GameInput::Screenshot => KeyMouse::Key(VirtualKeyCode::F4),
+            GameInput::ToggleIngameUi => KeyMouse::Key(VirtualKeyCode::F6),
+            GameInput::Roll => MIDDLE_CLICK_KEY,
+            GameInput::Respawn => KeyMouse::Key(VirtualKeyCode::Space),
+            GameInput::Interact => KeyMouse::Mouse(MouseButton::Right),
+            GameInput::ToggleWield => KeyMouse::Key(VirtualKeyCode::T),
+            GameInput::Charge => KeyMouse::Key(VirtualKeyCode::Key1),
+            GameInput::FreeLook => KeyMouse::Key(VirtualKeyCode::L),
+            GameInput::Ability3 => KeyMouse::Key(VirtualKeyCode::Key1),
+            GameInput::SwapLoadout => KeyMouse::Key(VirtualKeyCode::LAlt),
+        }
+    }
+}
 impl Default for ControlSettings {
     fn default() -> Self {
-        Self {
-            primary: KeyMouse::Mouse(MouseButton::Left),
-            secondary: KeyMouse::Mouse(MouseButton::Right),
-            ability3: KeyMouse::Key(VirtualKeyCode::Key1),
-            toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
-            escape: KeyMouse::Key(VirtualKeyCode::Escape),
-            enter: KeyMouse::Key(VirtualKeyCode::Return),
-            command: KeyMouse::Key(VirtualKeyCode::Slash),
-            move_forward: KeyMouse::Key(VirtualKeyCode::W),
-            move_left: KeyMouse::Key(VirtualKeyCode::A),
-            move_back: KeyMouse::Key(VirtualKeyCode::S),
-            move_right: KeyMouse::Key(VirtualKeyCode::D),
-            jump: KeyMouse::Key(VirtualKeyCode::Space),
-            sit: KeyMouse::Key(VirtualKeyCode::K),
-            glide: KeyMouse::Key(VirtualKeyCode::LShift),
-            climb: KeyMouse::Key(VirtualKeyCode::Space),
-            climb_down: KeyMouse::Key(VirtualKeyCode::LControl),
-            wall_leap: MIDDLE_CLICK_KEY,
-            mount: KeyMouse::Key(VirtualKeyCode::F),
-            map: KeyMouse::Key(VirtualKeyCode::M),
-            bag: KeyMouse::Key(VirtualKeyCode::B),
-            social: KeyMouse::Key(VirtualKeyCode::O),
-            spellbook: KeyMouse::Key(VirtualKeyCode::P),
-            settings: KeyMouse::Key(VirtualKeyCode::N),
-            help: KeyMouse::Key(VirtualKeyCode::F1),
-            toggle_interface: KeyMouse::Key(VirtualKeyCode::F2),
-            toggle_debug: KeyMouse::Key(VirtualKeyCode::F3),
-            fullscreen: KeyMouse::Key(VirtualKeyCode::F11),
-            screenshot: KeyMouse::Key(VirtualKeyCode::F4),
-            toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
-            roll: MIDDLE_CLICK_KEY,
-            respawn: KeyMouse::Key(VirtualKeyCode::Space),
-            interact: KeyMouse::Mouse(MouseButton::Right),
-            toggle_wield: KeyMouse::Key(VirtualKeyCode::T),
-            swap_loadout: KeyMouse::Key(VirtualKeyCode::Q),
-            charge: KeyMouse::Key(VirtualKeyCode::Key1),
-            free_look: KeyMouse::Key(VirtualKeyCode::L),
+        let mut new_settings = Self {
+            keybindings: HashMap::new(),
+            inverse_keybindings: HashMap::new(),
+        };
+        // Sets the initial keybindings for those GameInputs. If a new one is created in
+        // future, you'll have to update default_binding, and you should update this vec
+        // too.
+        let game_inputs = vec![
+            GameInput::Primary,
+            GameInput::Secondary,
+            GameInput::ToggleCursor,
+            GameInput::MoveForward,
+            GameInput::MoveBack,
+            GameInput::MoveLeft,
+            GameInput::MoveRight,
+            GameInput::Jump,
+            GameInput::Sit,
+            GameInput::Glide,
+            GameInput::Climb,
+            GameInput::ClimbDown,
+            GameInput::WallLeap,
+            GameInput::Mount,
+            GameInput::Enter,
+            GameInput::Command,
+            GameInput::Escape,
+            GameInput::Map,
+            GameInput::Bag,
+            GameInput::Social,
+            GameInput::Spellbook,
+            GameInput::Settings,
+            GameInput::ToggleInterface,
+            GameInput::Help,
+            GameInput::ToggleDebug,
+            GameInput::Fullscreen,
+            GameInput::Screenshot,
+            GameInput::ToggleIngameUi,
+            GameInput::Roll,
+            GameInput::Respawn,
+            GameInput::Interact,
+            GameInput::ToggleWield,
+            GameInput::Charge,
+            GameInput::FreeLook,
+            GameInput::Ability3,
+            GameInput::SwapLoadout,
+        ];
+        for game_input in game_inputs {
+            new_settings.insert_binding(game_input, ControlSettings::default_binding(game_input));
         }
+        new_settings
     }
 }
 
