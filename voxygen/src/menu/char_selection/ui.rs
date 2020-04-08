@@ -378,6 +378,12 @@ impl CharSelectionUi {
                     block_ability: None,
                     dodge_ability: None,
                 });
+                loadout.pants = Some(assets::load_expect_cloned(
+                    "common.items.armor.starter.rugged_pants",
+                ));
+                loadout.foot = Some(assets::load_expect_cloned(
+                    "common.items.armor.starter.sandals_0",
+                ));
                 Some(loadout.clone())
             },
         }
