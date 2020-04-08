@@ -1435,6 +1435,13 @@ impl FigureMgr {
         let character_state = character_state_storage.get(player_entity);
 
         if let Some(body) = ecs.read_storage::<Body>().get(player_entity) {
+            let stats_storage = state.read_storage::<Stats>();
+            let stats = stats_storage.get(player_entity);
+
+            if stats.map_or(false, |s| s.is_dead) {
+                return;
+            }
+
             let loadout_storage = ecs.read_storage::<Loadout>();
             let loadout = loadout_storage.get(player_entity);
 
