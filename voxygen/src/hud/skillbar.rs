@@ -5,6 +5,7 @@ use super::{
 use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
     ui::fonts::ConrodVoxygenFonts,
+    window::GameInput,
     GlobalState,
 };
 use common::{
@@ -300,36 +301,45 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.level_down, ui);
         // Death message
         if self.stats.is_dead {
-            Text::new(&localized_strings.get("hud.you_died"))
-                .middle_of(ui.window)
-                .font_size(self.fonts.cyri.scale(50))
+            if let Some(key) = self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Respawn)
+            {
+                Text::new(&localized_strings.get("hud.you_died"))
+                    .middle_of(ui.window)
+                    .font_size(self.fonts.cyri.scale(50))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                    .set(state.ids.death_message_1_bg, ui);
+                Text::new(
+                    &localized_strings
+                        .get("hud.press_key_to_respawn")
+                        .replace("{key}", key.to_string().as_str()),
+                )
+                .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
+                .font_size(self.fonts.cyri.scale(30))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                .set(state.ids.death_message_1_bg, ui);
-            Text::new(&localized_strings.get("hud.press_key_to_respawn").replace(
-                "{key}",
-                &format!("{:?}", self.global_state.settings.controls.respawn),
-            ))
-            .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
-            .font_size(self.fonts.cyri.scale(30))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-            .set(state.ids.death_message_2_bg, ui);
-            Text::new(&localized_strings.get("hud.you_died"))
-                .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
-                .font_size(self.fonts.cyri.scale(50))
+                .set(state.ids.death_message_2_bg, ui);
+                Text::new(&localized_strings.get("hud.you_died"))
+                    .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
+                    .font_size(self.fonts.cyri.scale(50))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(CRITICAL_HP_COLOR)
+                    .set(state.ids.death_message_1, ui);
+                Text::new(
+                    &localized_strings
+                        .get("hud.press_key_to_respawn")
+                        .replace("{key}", key.to_string().as_str()),
+                )
+                .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(30))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(CRITICAL_HP_COLOR)
-                .set(state.ids.death_message_1, ui);
-            Text::new(&localized_strings.get("hud.press_key_to_respawn").replace(
-                "{key}",
-                &format!("{:?}", self.global_state.settings.controls.respawn),
-            ))
-            .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
-            .font_size(self.fonts.cyri.scale(30))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(CRITICAL_HP_COLOR)
-            .set(state.ids.death_message_2, ui);
+                .set(state.ids.death_message_2, ui);
+            }
         }
         // Experience-Bar
         match self.global_state.settings.gameplay.xp_bar {
