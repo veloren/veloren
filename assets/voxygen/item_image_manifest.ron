@@ -57,9 +57,17 @@
     // Other
     Utility(Collar): Png(
         "element.icons.collar",
-    ),
-    
+    ),    
     // Armor
+    // Starter Parts
+    Armor(Foot(Sandal0)): VoxTrans(
+        "voxel.armor.foot.cloth_sandals",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Pants(Rugged0)): VoxTrans(
+        "voxel.armor.pants.rugged-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
     // Assassin Set
     Armor(Chest(Assassin)): VoxTrans(
         "voxel.armor.chest.assa",
