@@ -195,6 +195,19 @@ Enjoy your stay in the World of Veloren."#,
         "hud.bag.exp": "Exp",
         "hud.bag.armor": "Armor",
         "hud.bag.stats": "Stats",
+        "hud.bag.head": "Head",
+        "hud.bag.neck": "Neck",
+        "hud.bag.tabard": "Tabard",
+        "hud.bag.shoulders": "Shoulders",
+        "hud.bag.chest": "Chest",
+        "hud.bag.hands": "Hands",
+        "hud.bag.lantern": "Lantern",
+        "hud.bag.back": "Back",
+        "hud.bag.legs": "Legs",
+        "hud.bag.feet": "Feet",
+        "hud.bag.mainhand": "Mainhand",
+        "hud.bag.offhand": "Offhand",    
+
 
         // Map and Questlog
         "hud.map.map_title": "Map",
@@ -261,7 +274,8 @@ Enjoy your stay in the World of Veloren."#,
 
         "hud.spell": "Spell",
 
-        "hud.free_look_indicator": "Free look active",
+        "hud.free_look_indicator": "Free look active",       
+
         /// End HUD section
 
 
@@ -271,7 +285,7 @@ Enjoy your stay in the World of Veloren."#,
         "gameinput.secondary": "Secondary Attack/Block/Aim",
         "gameinput.ability3": "Hotbar Slot 1",
         "gameinput.swaploadout": "Swap Loadout",
-        "gameinput.togglecursor": "Free Cursor",
+        "gameinput.togglecursor": "Toggle Cursor",
         "gameinput.help": "Toggle Help Window",
         "gameinput.toggleinterface": "Toggle Interface",
         "gameinput.toggledebug": "Toggle FPS and Debug Info",
@@ -296,13 +310,13 @@ Enjoy your stay in the World of Veloren."#,
         "gameinput.bag": "Bag",
         "gameinput.social": "Social",
         "gameinput.sit": "Sit",
-        "gameinput.spellbook": "Spell Book",
+        "gameinput.spellbook": "Spells",
         "gameinput.settings": "Settings",
         "gameinput.respawn": "Respawn",
         "gameinput.charge": "Charge",
         "gameinput.togglewield": "Toggle Wield",
         "gameinput.interact": "Interact",
-        "gameinput.freelook": "Free look behavior",
+        "gameinput.freelook": "Free Look",
 
         /// End GameInput section
 
