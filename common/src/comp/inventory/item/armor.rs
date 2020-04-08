@@ -76,8 +76,9 @@ pub enum Pants {
     ClothPurple0 = 10,
     ClothBlue0 = 11,
     ClothGreen0 = 12,
+    Rugged0 = 13,
 }
-pub const ALL_PANTS: [Pants; 13] = [
+pub const ALL_PANTS: [Pants; 14] = [
     Pants::None,
     Pants::Blue,
     Pants::Brown,
@@ -91,6 +92,7 @@ pub const ALL_PANTS: [Pants; 13] = [
     Pants::ClothPurple0,
     Pants::ClothBlue0,
     Pants::ClothGreen0,
+    Pants::Rugged0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -118,7 +120,7 @@ pub const ALL_HANDS: [Hand; 7] = [
 #[repr(u32)]
 pub enum Foot {
     Dark = 1,
-    Sandal = 2,
+    Sandal0 = 2,
     Jester = 3,
     Assassin = 4,
     Plate0 = 5,
@@ -129,7 +131,7 @@ pub enum Foot {
 }
 pub const ALL_FEET: [Foot; 9] = [
     Foot::Dark,
-    Foot::Sandal,
+    Foot::Sandal0,
     Foot::Jester,
     Foot::Assassin,
     Foot::Plate0,

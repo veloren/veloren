@@ -182,8 +182,12 @@ impl StateExt for State {
                     chest: None,
                     belt: None,
                     hand: None,
-                    pants: None,
-                    foot: None,
+                    pants: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.rugged_pants",
+                    )),
+                    foot: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.sandals_0",
+                    )),
                     back: None,
                     ring: None,
                     neck: None,

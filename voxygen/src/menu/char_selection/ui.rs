@@ -12,6 +12,7 @@ use crate::{
 };
 use client::Client;
 use common::{
+    assets,
     assets::load_expect,
     comp::{self, humanoid},
 };
@@ -353,8 +354,12 @@ impl CharSelectionUi {
                     chest: None,
                     belt: None,
                     hand: None,
-                    pants: None,
-                    foot: None,
+                    pants: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.rugged_pants",
+                    )),
+                    foot: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.sandals_0",
+                    )),
                     back: None,
                     ring: None,
                     neck: None,
@@ -364,18 +369,39 @@ impl CharSelectionUi {
                 };
                 Some(loadout)
             },
-            Mode::Create { loadout, tool, .. } => {
-                loadout.active_item = tool.map(|tool| comp::ItemConfig {
-                    item: (*load_expect::<comp::Item>(tool)).clone(),
-                    ability1: None,
-                    ability2: None,
-                    ability3: None,
-                    block_ability: None,
-                    dodge_ability: None,
-                });
-                Some(loadout.clone())
-            },
-        }
+            Mode::Create (characterdata) =>
+            let loadout = comp::Loadout {
+                active_item: characterdata
+                    .as_ref()
+                    .and_then(|d| d.tool.as_ref())
+                    .map(|tool| comp::ItemConfig {
+                        item: (*load_expect::<comp::Item>(&tool)).clone(),
+                        ability1: None,
+                        ability2: None,
+                        ability3: None,
+                        block_ability: None,
+                        dodge_ability: None,
+                    }),
+                second_item: None,
+                shoulder: None,
+                chest: None,
+                belt: None,
+                hand: None,
+                pants: Some(assets::load_expect_cloned(
+                    "common.items.armor.starter.rugged_pants",
+                )),
+                foot: Some(assets::load_expect_cloned(
+                    "common.items.armor.starter.sandals_0",
+                )),
+                back: None,
+                ring: None,
+                neck: None,
+                lantern: None,
+                head: None,
+                tabard: None,
+            };
+            Some(loadout)
+        },
     }
 
     // TODO: Split this into multiple modules or functions.
