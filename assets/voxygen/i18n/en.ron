@@ -202,6 +202,8 @@ Enjoy your stay in the World of Veloren."#,
         "hud.bag.chest": "Chest",
         "hud.bag.hands": "Hands",
         "hud.bag.lantern": "Lantern",
+        "hud.bag.belt": "Belt",
+        "hud.bag.ring": "Ring",
         "hud.bag.back": "Back",
         "hud.bag.legs": "Legs",
         "hud.bag.feet": "Feet",
@@ -317,7 +319,7 @@ Enjoy your stay in the World of Veloren."#,
         "gameinput.togglewield": "Toggle Wield",
         "gameinput.interact": "Interact",
         "gameinput.freelook": "Free Look",
-
+        
         /// End GameInput section
 
 
