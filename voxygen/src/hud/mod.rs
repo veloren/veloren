@@ -237,6 +237,7 @@ pub enum Event {
     Logout,
     Quit,
     ChangeLanguage(LanguageMetadata),
+    ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
 }
 
@@ -1494,66 +1495,70 @@ impl Hud {
             .set(self.ids.num_figures, ui_widgets);
 
             // Help Window
-            Text::new(
-                &self
-                    .voxygen_i18n
-                    .get("hud.press_key_to_toggle_keybindings_fmt")
-                    .replace(
-                        "{key}",
-                        &format!("{:?}", global_state.settings.controls.help),
-                    ),
-            )
-            .color(TEXT_COLOR)
-            .down_from(self.ids.num_figures, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.help_info, ui_widgets);
+            if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_toggle_keybindings_fmt")
+                        .replace("{key}", help_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .down_from(self.ids.num_figures, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.help_info, ui_widgets);
+            }
             // Info about Debug Shortcut
-            Text::new(
-                &self
-                    .voxygen_i18n
-                    .get("hud.press_key_to_toggle_debug_info_fmt")
-                    .replace(
-                        "{key}",
-                        &format!("{:?}", global_state.settings.controls.toggle_debug),
-                    ),
-            )
-            .color(TEXT_COLOR)
-            .down_from(self.ids.help_info, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.debug_info, ui_widgets);
+            if let Some(toggle_debug_key) = global_state
+                .settings
+                .controls
+                .get_binding(GameInput::ToggleDebug)
+            {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_toggle_debug_info_fmt")
+                        .replace("{key}", toggle_debug_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .down_from(self.ids.help_info, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.debug_info, ui_widgets);
+            }
         } else {
             // Help Window
-            Text::new(
-                &self
-                    .voxygen_i18n
-                    .get("hud.press_key_to_show_keybindings_fmt")
-                    .replace(
-                        "{key}",
-                        &format!("{:?}", global_state.settings.controls.help),
-                    ),
-            )
-            .color(TEXT_COLOR)
-            .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(16))
-            .set(self.ids.help_info, ui_widgets);
+            if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_show_keybindings_fmt")
+                        .replace("{key}", help_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(16))
+                .set(self.ids.help_info, ui_widgets);
+            }
             // Info about Debug Shortcut
-            Text::new(
-                &self
-                    .voxygen_i18n
-                    .get("hud.press_key_to_show_debug_info_fmt")
-                    .replace(
-                        "{key}",
-                        &format!("{:?}", global_state.settings.controls.toggle_debug),
-                    ),
-            )
-            .color(TEXT_COLOR)
-            .down_from(self.ids.help_info, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(12))
-            .set(self.ids.debug_info, ui_widgets);
+            if let Some(toggle_debug_key) = global_state
+                .settings
+                .controls
+                .get_binding(GameInput::ToggleDebug)
+            {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_show_debug_info_fmt")
+                        .replace("{key}", toggle_debug_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .down_from(self.ids.help_info, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(12))
+                .set(self.ids.debug_info, ui_widgets);
+            }
         }
 
         // Help Text
@@ -1821,6 +1826,9 @@ impl Hud {
                     },
                     settings_window::Event::AdjustWindowSize(new_size) => {
                         events.push(Event::AdjustWindowSize(new_size));
+                    },
+                    settings_window::Event::ChangeBinding(game_input) => {
+                        events.push(Event::ChangeBinding(game_input));
                     },
                     settings_window::Event::ChangeFreeLookBehavior(behavior) => {
                         events.push(Event::ChangeFreeLookBehavior(behavior));

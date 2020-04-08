@@ -250,90 +250,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.sound_effect_volume": "Sound Effects Volume",
         "hud.settings.audio_device": "Audio Device",
 
-        // Control list
-        "hud.settings.control_names": r#"Free Cursor
-Toggle Help Window
-Toggle Interface
-Toggle FPS and Debug Info
-Take Screenshot
-Toggle Nametags
-Toggle Fullscreen
-
-
-Move Forward
-Move Left
-Move Right
-Move Backwards
-
-Jump
-
-Glider
-
-Dodge
-
-Roll
-
-Climb
-
-Climb down
-
-Auto Walk
-
-Sheathe/Draw Weapons
-
-Put on/Remove Helmet
-
-Sit
-
-Mount
-
-Interact
-
-
-Basic Attack
-Secondary Attack/Block/Aim
-
-
-Skillbar Slot 1
-Skillbar Slot 2
-Skillbar Slot 3
-Skillbar Slot 4
-Skillbar Slot 5
-Skillbar Slot 6
-Skillbar Slot 7
-Skillbar Slot 8
-Skillbar Slot 9
-Skillbar Slot 10
-
-
-Pause Menu
-Settings
-Social
-Map
-Spellbook
-Character
-Questlog
-Bag
-
-
-
-Send Chat Message
-Scroll Chat
-
-
-Free look
-
-
-Chat commands:  
-
-/alias [Name] - Change your Chat Name   
-/tp [Name] - Teleports you to another player    
-/jump <dx> <dy> <dz> - Offset your position
-/goto <x> <y> <z> - Teleport to a position  
-/kill - Kill yourself   
-/pig - Spawn pig NPC    
-/wolf - Spawn wolf NPC  
-/help - Display chat commands"#,
+        "hud.settings.awaitingkey": "Press a key...",
 
         "hud.social": "Social",
         "hud.social.online": "Online",
@@ -346,6 +263,48 @@ Chat commands:
 
         "hud.free_look_indicator": "Free look active",
         /// End HUD section
+
+
+        /// Start GameInput section
+
+        "gameinput.primary": "Basic Attack",
+        "gameinput.secondary": "Secondary Attack/Block/Aim",
+        "gameinput.ability3": "Hotbar Slot 1",
+        "gameinput.swaploadout": "Swap Loadout",
+        "gameinput.togglecursor": "Free Cursor",
+        "gameinput.help": "Toggle Help Window",
+        "gameinput.toggleinterface": "Toggle Interface",
+        "gameinput.toggledebug": "Toggle FPS and Debug Info",
+        "gameinput.screenshot": "Take Screenshot",
+        "gameinput.toggleingameui": "Toggle Nametags",
+        "gameinput.fullscreen": "Toggle Fullscreen",
+        "gameinput.moveforward": "Move Forward",
+        "gameinput.moveleft": "Move Left",
+        "gameinput.moveright": "Move Right",
+        "gameinput.moveback": "Move Backwards",
+        "gameinput.jump": "Jump",
+        "gameinput.glide": "Glider",
+        "gameinput.roll": "Roll",
+        "gameinput.climb": "Climb",
+        "gameinput.climbdown": "Climb Down",
+        "gameinput.wallleap": "Wall Leap",
+        "gameinput.mount": "Mount",
+        "gameinput.enter": "Enter",
+        "gameinput.command": "Command",
+        "gameinput.escape": "Escape",
+        "gameinput.map": "Map",
+        "gameinput.bag": "Bag",
+        "gameinput.social": "Social",
+        "gameinput.sit": "Sit",
+        "gameinput.spellbook": "Spell Book",
+        "gameinput.settings": "Settings",
+        "gameinput.respawn": "Respawn",
+        "gameinput.charge": "Charge",
+        "gameinput.togglewield": "Toggle Wield",
+        "gameinput.interact": "Interact",
+        "gameinput.freelook": "Free look behavior",
+
+        /// End GameInput section
 
 
         /// Start chracter selection section
