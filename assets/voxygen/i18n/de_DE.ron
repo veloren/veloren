@@ -257,92 +257,61 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "hud.settings.sound_effect_volume": "Geräusch Lautstärke",
         "hud.settings.audio_device": "Ausgabegerät",
 
-        /// Control list
-        "hud.settings.control_names": r#"Free Cursor
-Toggle Help Window
-Toggle Interface
-Toggle FPS and Debug Info
-Take Screenshot
-Toggle Nametags
-Toggle Fullscreen
+        "hud.settings.awaitingkey": "Drückt eine Taste...",
 
-
-Move Forward
-Move Left
-Move Right
-Move Backwards
-
-Jump
-
-Glider
-
-Dodge
-
-Auto Walk
-
-Sheathe/Draw Weapons
-
-Put on/Remove Helmet
-
-Sit
-
-
-Basic Attack
-Secondary Attack/Block/Aim
-
-
-Skillbar Slot 1
-Skillbar Slot 2
-Skillbar Slot 3
-Skillbar Slot 4
-Skillbar Slot 5
-Skillbar Slot 6
-Skillbar Slot 7
-Skillbar Slot 8
-Skillbar Slot 9
-Skillbar Slot 10
-
-
-Pause Menu
-Settings
-Social
-Map
-Spellbook
-Character
-Questlog
-Bag
-
-
-
-Send Chat Message
-Scroll Chat
-
-
-Chat commands:  
-
-/alias [Name] - Change your Chat Name   
-/tp [Name] - Teleports you to another player    
-/jump <dx> <dy> <dz> - Offset your position 
-/goto <x> <y> <z> - Teleport to a position  
-/kill - Kill yourself   
-/pig - Spawn pig NPC    
-/wolf - Spawn wolf NPC  
-/help - Display chat commands"#,
-
-        "hud.social": "Andere Spieler",
+        "hud.social": "Sozial",
         "hud.social.online": "Online",
         "hud.social.friends": "Freunde",
-        "hud.social.not_yet_available": "Noch nicht verfügbar.",
-        "hud.social.Faction": "Fraktion",
-        "hud.social.play_online_fmt": "Online Spieler",
+        "hud.social.not_yet_available": "Noch nicht verfügbar",
         "hud.social.faction": "Fraktion",
-
+        "hud.social.play_online_fmt": "{nb_player} Spieler online",
 
         "hud.spell": "Zauber",
 
-        "hud.free_look_indicator": "Freies Umsehen Aktiv",
-        /// End HUD section
+        "hud.free_look_indicator": "Freie Sicht aktiv",
 
+       
+        /// End HUD section
+        /// Start GameInput section
+
+        "gameinput.primary": "Linker mittlerer Slot",
+        "gameinput.secondary": "Rechter mittlerer Slot",
+        "gameinput.ability3": "Hotbar Slot 1",
+        "gameinput.swaploadout": "Waffe wechseln",
+        "gameinput.togglecursor": "Freie Sicht",
+        "gameinput.help": "Hilfe anzeigen",
+        "gameinput.toggleinterface": "Interface verstecken/zeigen",
+        "gameinput.toggledebug": "FPS und Debug Informationen",
+        "gameinput.screenshot": "Bildschirmaufnahme",
+        "gameinput.toggleingameui": "Namensplaketten zeigen",
+        "gameinput.fullscreen": "Vollbildschirm",
+        "gameinput.moveforward": "Vorwärts bewegen",
+        "gameinput.moveleft": "Nach Links bewegen",
+        "gameinput.moveright": "Nach Rechts bewegen",
+        "gameinput.moveback": "Rückwärts bewegen",
+        "gameinput.jump": "Springen",
+        "gameinput.glide": "Gleiter",
+        "gameinput.roll": "Rollen",
+        "gameinput.climb": "Klettern",
+        "gameinput.climbdown": "Runter klettern",
+        "gameinput.wallleap": "Wandsprung",
+        "gameinput.mount": "Aufsteigen",
+        "gameinput.enter": "Betreten",
+        "gameinput.command": "Befehl",
+        "gameinput.escape": "Escape",
+        "gameinput.map": "Karte",
+        "gameinput.bag": "Inventar",
+        "gameinput.social": "Sozial",
+        "gameinput.sit": "Sitzen",
+        "gameinput.spellbook": "Zauberbuch",
+        "gameinput.settings": "Einstellungen",
+        "gameinput.respawn": "Wiederbeleben",
+        "gameinput.charge": "Anstürmen",
+        "gameinput.togglewield": "Waffe ziehen/wegstecken",
+        "gameinput.interact": "Interagieren",
+        "gameinput.freelook": "Verhalten der freien Sicht",
+
+        /// End GameInput section
 
         /// Start chracter selection section
         "char_selection.delete_permanently": "Diesen Charakter unwiderruflich löschen?",
