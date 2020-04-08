@@ -1,0 +1,8 @@
+Item(
+    name: "Worn out Sandals",
+    description: "Loyal companions.",
+    kind: Armor(
+        kind: Foot(Sandal0),
+        stats: (20),
+    ),
+)
