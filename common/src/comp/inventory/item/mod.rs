@@ -164,6 +164,9 @@ impl Item {
                     "common.items.armor.pants.cloth_purple_0",
                     "common.items.armor.shoulder.cloth_purple_0",
                     "common.items.armor.hand.cloth_purple_0",
+                    "common.items.armor.ring.ring_0",
+                    "common.items.armor.back.short_0",
+                    "common.items.armor.neck.neck_0",
                 ]
                 .choose(&mut rand::thread_rng())
                 .unwrap(), // Can't fail

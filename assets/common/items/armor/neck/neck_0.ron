@@ -1,6 +1,6 @@
 Item(
     name: "Plain Necklace",
-   description: "WIP",
+   description: "",
     kind: Armor(
         kind: Neck(Neck0),
         stats: (20),
