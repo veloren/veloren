@@ -139,6 +139,15 @@ impl ControlSettings {
             //GameInput::Charge => KeyMouse::Key(VirtualKeyCode::Key1),
             GameInput::FreeLook => KeyMouse::Key(VirtualKeyCode::L),
             GameInput::Ability3 => KeyMouse::Key(VirtualKeyCode::Key1),
+            GameInput::Slot2 => KeyMouse::Key(VirtualKeyCode::Key2),
+            GameInput::Slot3 => KeyMouse::Key(VirtualKeyCode::Key3),
+            GameInput::Slot4 => KeyMouse::Key(VirtualKeyCode::Key4),
+            GameInput::Slot5 => KeyMouse::Key(VirtualKeyCode::Key5),
+            GameInput::Slot6 => KeyMouse::Key(VirtualKeyCode::Key6),
+            GameInput::Slot7 => KeyMouse::Key(VirtualKeyCode::Key7),
+            GameInput::Slot8 => KeyMouse::Key(VirtualKeyCode::Key8),
+            GameInput::Slot9 => KeyMouse::Key(VirtualKeyCode::Key9),
+            GameInput::Slot10 => KeyMouse::Key(VirtualKeyCode::Q),
             GameInput::SwapLoadout => KeyMouse::Key(VirtualKeyCode::LAlt),
         }
     }
@@ -188,6 +197,15 @@ impl Default for ControlSettings {
             //GameInput::Charge,
             GameInput::FreeLook,
             GameInput::Ability3,
+            GameInput::Slot2,
+            GameInput::Slot3,
+            GameInput::Slot4,
+            GameInput::Slot5,
+            GameInput::Slot6,
+            GameInput::Slot7,
+            GameInput::Slot8,
+            GameInput::Slot9,
+            GameInput::Slot10,
             GameInput::SwapLoadout,
         ];
         for game_input in game_inputs {
@@ -256,7 +274,7 @@ pub mod con_settings {
         pub glide: Button,
         pub climb: Button,
         pub climb_down: Button,
-        pub wall_leap: Button,
+        //pub wall_leap: Button,
         pub mount: Button,
         pub map: Button,
         pub bag: Button,
@@ -276,7 +294,7 @@ pub mod con_settings {
         pub interact: Button,
         pub toggle_wield: Button,
         pub swap_loadout: Button,
-        pub charge: Button,
+        //pub charge: Button,
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -342,7 +360,7 @@ pub mod con_settings {
                 glide: Button::Simple(GilButton::LeftTrigger),
                 climb: Button::Simple(GilButton::South),
                 climb_down: Button::Simple(GilButton::Unknown),
-                wall_leap: Button::Simple(GilButton::Unknown),
+                //wall_leap: Button::Simple(GilButton::Unknown),
                 mount: Button::Simple(GilButton::North),
                 map: Button::Simple(GilButton::DPadRight),
                 bag: Button::Simple(GilButton::DPadDown),
@@ -362,7 +380,7 @@ pub mod con_settings {
                 interact: Button::Simple(GilButton::LeftTrigger2),
                 toggle_wield: Button::Simple(GilButton::DPadLeft),
                 swap_loadout: Button::Simple(GilButton::Unknown),
-                charge: Button::Simple(GilButton::Unknown),
+                //charge: Button::Simple(GilButton::Unknown),
             }
         }
     }

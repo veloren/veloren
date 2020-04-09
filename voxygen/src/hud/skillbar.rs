@@ -925,78 +925,162 @@ impl<'a> Widget for Skillbar<'a> {
         // Shortcuts
 
         if let ShortcutNumbers::On = shortcuts {
-            Text::new("1")
-                .top_right_with_margins_on(state.ids.slot1_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot1_text, ui);
-            Text::new("2")
-                .top_right_with_margins_on(state.ids.slot2_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot2_text, ui);
-            Text::new("3")
-                .top_right_with_margins_on(state.ids.slot3_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot3_text, ui);
-            Text::new("4")
-                .top_right_with_margins_on(state.ids.slot4_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot4_text, ui);
-            Text::new("5")
-                .top_right_with_margins_on(state.ids.slot5_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot5_text, ui);
-            Text::new("M1")
-                .top_left_with_margins_on(state.ids.m1_slot, 5.0, 5.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.m1_text, ui);
-            Text::new("M2")
-                .top_right_with_margins_on(state.ids.m2_slot, 5.0, 5.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.m2_text, ui);
-            Text::new("6")
-                .top_left_with_margins_on(state.ids.slot6_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot6_text, ui);
-            Text::new("7")
-                .top_left_with_margins_on(state.ids.slot7_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot7_text, ui);
-            Text::new("8")
-                .top_left_with_margins_on(state.ids.slot8_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot8_text, ui);
-            Text::new("9")
-                .top_left_with_margins_on(state.ids.slot9_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slot9_text, ui);
-            Text::new("Q")
-                .top_left_with_margins_on(state.ids.slotq_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(8))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.slotq_text, ui);
+            if let Some(slot1) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Ability3)
+            {
+                Text::new(slot1.to_string().as_str())
+                    .top_right_with_margins_on(state.ids.slot1_bg, 1.0, 2.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot1_text, ui);
+            }
+            if let Some(slot2) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot2)
+            {
+                Text::new(slot2.to_string().as_str())
+                    .top_right_with_margins_on(state.ids.slot2_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot2_text, ui);
+            }
+            if let Some(slot3) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot3)
+            {
+                Text::new(slot3.to_string().as_str())
+                    .top_right_with_margins_on(state.ids.slot3_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot3_text, ui);
+            }
+            if let Some(slot4) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot4)
+            {
+                Text::new(slot4.to_string().as_str())
+                    .top_right_with_margins_on(state.ids.slot4_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot4_text, ui);
+            }
+            if let Some(slot5) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot5)
+            {
+                Text::new(slot5.to_string().as_str())
+                    .top_right_with_margins_on(state.ids.slot5_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot5_text, ui);
+            }
+            if let Some(m1) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Primary)
+            {
+                Text::new(m1.to_string().as_str())
+                    .top_left_with_margins_on(state.ids.m1_slot, 5.0, 5.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.m1_text, ui);
+            }
+            if let Some(m2) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Secondary)
+            {
+                Text::new(m2.to_string().as_str())
+                    .top_right_with_margins_on(state.ids.m2_slot, 5.0, 5.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.m2_text, ui);
+            }
+            if let Some(slot6) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot6)
+            {
+                Text::new(slot6.to_string().as_str())
+                    .top_left_with_margins_on(state.ids.slot6_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot6_text, ui);
+            }
+            if let Some(slot7) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot7)
+            {
+                Text::new(slot7.to_string().as_str())
+                    .top_left_with_margins_on(state.ids.slot7_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot7_text, ui);
+            }
+            if let Some(slot8) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot8)
+            {
+                Text::new(slot8.to_string().as_str())
+                    .top_left_with_margins_on(state.ids.slot8_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot8_text, ui);
+            }
+            if let Some(slot9) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot9)
+            {
+                Text::new(slot9.to_string().as_str())
+                    .top_left_with_margins_on(state.ids.slot9_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slot9_text, ui);
+            }
+            if let Some(slot10) = &self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Slot10)
+            {
+                Text::new(slot10.to_string().as_str())
+                    .top_left_with_margins_on(state.ids.slotq_bg, 1.0, 2.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.slotq_text, ui);
+            }
         };
 
         // Lifebar
