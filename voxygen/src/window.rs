@@ -523,8 +523,8 @@ impl Window {
                                     state == glutin::ElementState::Pressed,
                                 ));
                             }
-                            events.push(Event::MouseButton(button, state));
                         }
+                        events.push(Event::MouseButton(button, state));
                     },
                     glutin::WindowEvent::KeyboardInput { input, .. } => {
                         if let Some(key) = input.virtual_keycode {
