@@ -51,45 +51,57 @@ widget_ids! {
         m1_slot,
         m1_slot_bg,
         m1_text,
+        m1_text_bg,
         m1_slot_act,
         m1_content,
         m2_slot,
         m2_slot_bg,
         m2_text,
+        m2_text_bg,
         m2_slot_act,
         m2_content,
         slot1,
         slot1_bg,
         slot1_text,
+        slot1_text_bg,
         slot1_icon,
         slot1_act,
         slot2,
         slot2_bg,
         slot2_text,
+        slot2_text_bg,
         slot3,
         slot3_bg,
         slot3_text,
+        slot3_text_bg,
         slot4,
         slot4_bg,
         slot4_text,
+        slot4_text_bg,
         slot5,
         slot5_bg,
         slot5_text,
+        slot5_text_bg,
         slot6,
         slot6_bg,
         slot6_text,
+        slot6_text_bg,
         slot7,
         slot7_bg,
         slot7_text,
+        slot7_text_bg,
         slot8,
         slot8_bg,
         slot8_text,
+        slot8_text_bg,
         slot9,
         slot9_bg,
         slot9_text,
-        slotq,
-        slotq_bg,
-        slotq_text,
+        slot9_text_bg,
+        slot10,
+        slot10_bg,
+        slot10_text,
+        slot10_text_bg,
         healthbar_bg,
         healthbar_filling,
         health_text,
@@ -916,12 +928,12 @@ impl<'a> Widget for Skillbar<'a> {
         Image::new(self.imgs.skillbar_slot_r)
             .w_h(20.0 * scale, 20.0 * scale)
             .right_from(state.ids.slot9, 0.0)
-            .set(state.ids.slotq, ui);
+            .set(state.ids.slot10, ui);
         Image::new(self.imgs.skillbar_slot_bg)
             .w_h(19.0 * scale, 19.0 * scale)
             .color(Some(BG_COLOR))
-            .middle_of(state.ids.slotq)
-            .set(state.ids.slotq_bg, ui);
+            .middle_of(state.ids.slot10)
+            .set(state.ids.slot10_bg, ui);
         // Shortcuts
 
         if let ShortcutNumbers::On = shortcuts {
@@ -933,6 +945,12 @@ impl<'a> Widget for Skillbar<'a> {
             {
                 Text::new(slot1.to_string().as_str())
                     .top_right_with_margins_on(state.ids.slot1_bg, 1.0, 2.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot1_text_bg, ui);
+                Text::new(slot1.to_string().as_str())
+                    .bottom_left_with_margins_on(state.ids.slot1_text_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
@@ -948,6 +966,12 @@ impl<'a> Widget for Skillbar<'a> {
                     .top_right_with_margins_on(state.ids.slot2_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot2_text_bg, ui);
+                Text::new(slot2.to_string().as_str())
+                    .bottom_left_with_margins_on(state.ids.slot2_text_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(state.ids.slot2_text, ui);
             }
@@ -959,6 +983,12 @@ impl<'a> Widget for Skillbar<'a> {
             {
                 Text::new(slot3.to_string().as_str())
                     .top_right_with_margins_on(state.ids.slot3_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot3_text_bg, ui);
+                Text::new(slot3.to_string().as_str())
+                    .bottom_left_with_margins_on(state.ids.slot3_text_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
@@ -974,6 +1004,12 @@ impl<'a> Widget for Skillbar<'a> {
                     .top_right_with_margins_on(state.ids.slot4_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot4_text_bg, ui);
+                Text::new(slot4.to_string().as_str())
+                    .bottom_left_with_margins_on(state.ids.slot4_text_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(state.ids.slot4_text, ui);
             }
@@ -985,6 +1021,12 @@ impl<'a> Widget for Skillbar<'a> {
             {
                 Text::new(slot5.to_string().as_str())
                     .top_right_with_margins_on(state.ids.slot5_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot5_text_bg, ui);
+                Text::new(slot5.to_string().as_str())
+                    .bottom_left_with_margins_on(state.ids.slot5_text_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
@@ -1000,6 +1042,12 @@ impl<'a> Widget for Skillbar<'a> {
                     .top_left_with_margins_on(state.ids.m1_slot, 5.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.m1_text_bg, ui);
+                Text::new(m1.to_string().as_str())
+                    .bottom_right_with_margins_on(state.ids.m1_text_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(state.ids.m1_text, ui);
             }
@@ -1013,6 +1061,12 @@ impl<'a> Widget for Skillbar<'a> {
                     .top_right_with_margins_on(state.ids.m2_slot, 5.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.m2_text_bg, ui);
+                Text::new(m2.to_string().as_str())
+                    .bottom_left_with_margins_on(state.ids.m2_text_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(state.ids.m2_text, ui);
             }
@@ -1023,7 +1077,13 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot6)
             {
                 Text::new(slot6.to_string().as_str())
-                    .top_left_with_margins_on(state.ids.slot6_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot6_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot6_text_bg, ui);
+                Text::new(slot6.to_string().as_str())
+                    .bottom_right_with_margins_on(state.ids.slot6_text_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
@@ -1036,7 +1096,13 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot7)
             {
                 Text::new(slot7.to_string().as_str())
-                    .top_left_with_margins_on(state.ids.slot7_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot7_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot7_text_bg, ui);
+                Text::new(slot7.to_string().as_str())
+                    .bottom_right_with_margins_on(state.ids.slot7_text_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
@@ -1049,7 +1115,13 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot8)
             {
                 Text::new(slot8.to_string().as_str())
-                    .top_left_with_margins_on(state.ids.slot8_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot8_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot8_text_bg, ui);
+                Text::new(slot8.to_string().as_str())
+                    .bottom_right_with_margins_on(state.ids.slot8_text_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
@@ -1062,7 +1134,13 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot9)
             {
                 Text::new(slot9.to_string().as_str())
-                    .top_left_with_margins_on(state.ids.slot9_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot9_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot9_text_bg, ui);
+                Text::new(slot9.to_string().as_str())
+                    .bottom_right_with_margins_on(state.ids.slot9_text_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
@@ -1075,11 +1153,17 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot10)
             {
                 Text::new(slot10.to_string().as_str())
-                    .top_left_with_margins_on(state.ids.slotq_bg, 1.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot10_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(state.ids.slot10_text_bg, ui);
+                Text::new(slot10.to_string().as_str())
+                    .bottom_right_with_margins_on(state.ids.slot10_text_bg, 1.0, 1.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
-                    .set(state.ids.slotq_text, ui);
+                    .set(state.ids.slot10_text, ui);
             }
         };
 
