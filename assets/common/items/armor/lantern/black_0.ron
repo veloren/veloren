@@ -1,6 +1,6 @@
 Item(
     name: "Black Lantern",
-   description: "WIP",
+   description: "Used by city guards.",
     kind: Armor(
         kind: Lantern(Black0),
         stats: (20),

@@ -1,6 +1,7 @@
 Item(
     name: "Admin's Tabard",
-   description: "With great power comes
+   description: "
+   With great power comes
    great responsibility. ",
     kind: Armor(
         kind: Tabard(Admin),
