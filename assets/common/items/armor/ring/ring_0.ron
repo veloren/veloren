@@ -1,6 +1,6 @@
 Item(
     name: "Scratched Ring",
-   description: "WIP",
+   description: "Barely fits your finger.",
     kind: Armor(
         kind: Ring(Ring0),
         stats: (20),

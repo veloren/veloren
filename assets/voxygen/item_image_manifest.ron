@@ -263,8 +263,9 @@
         "element.icons.tabard_admin",        
     ),
     // Heads
-    Armor(Head(Leather0)): Png(
-        "element.icons.head_leather-0",        
+    Armor(Head(Leather0)): VoxTrans(
+        "voxel.armor.head.leather-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     Armor(Head(AssaMask0)): VoxTrans(
         "voxel.armor.head.assa_mask-0",

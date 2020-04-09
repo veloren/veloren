@@ -1,6 +1,6 @@
 Item(
     name: "Short leather Cape",
-   description: "WIP",
+   description: "",
     kind: Armor(
         kind: Back(Short0),
         stats: (20),
