@@ -195,8 +195,8 @@ um dieses Fenster zu schließen? Drückt 'TAB'!
 Viel Spaß in der Welt von Veloren, Abenteurer!"#,
 
         // Inventory
-        "hud.bag.inventory": "s Inventar",
-        "hud.bag.stats_title": "s Werte",
+        "hud.bag.inventory": "{name}s Inventar",
+        "hud.bag.stats_title": "{playername}s Werte",
         "hud.bag.exp": "Erf",
         "hud.bag.armor": "Rüstung",
         "hud.bag.stats": "Werte",
