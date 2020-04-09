@@ -94,6 +94,7 @@ pub struct Bag<'a> {
     slot_manager: &'a mut HudSlotManager,
     _pulse: f32,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+
     stats: &'a Stats,
     show: &'a Show,
 }
@@ -217,21 +218,28 @@ impl<'a> Widget for Bag<'a> {
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.bg_frame, ui);
         // Title
-        Text::new(&format!(
+        /*Text::new(&format!(
             "{}{}",
             &self.stats.name,
             &self.localized_strings.get("hud.bag.inventory")
-        ))
+        ))*/
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.bag.inventory")
+                .replace("{playername}", &self.stats.name.to_string().as_str()),
+        )
         .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
         .font_id(self.fonts.cyri.conrod_id)
         .font_size(self.fonts.cyri.scale(22))
         .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
         .set(state.ids.inventory_title_bg, ui);
-        Text::new(&format!(
-            "{}{}",
-            &self.stats.name,
-            &self.localized_strings.get("hud.bag.inventory")
-        ))
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.bag.inventory")
+                .replace("{playername}", &self.stats.name.to_string().as_str()),
+        )
         .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
         .font_id(self.fonts.cyri.conrod_id)
         .font_size(self.fonts.cyri.scale(22))
@@ -280,21 +288,23 @@ impl<'a> Widget for Bag<'a> {
 
         if !self.show.stats {
             // Title
-            Text::new(&format!(
-                "{}{}",
-                &self.stats.name,
-                &self.localized_strings.get("hud.bag.inventory")
-            ))
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.bag.inventory")
+                    .replace("{playername}", &self.stats.name.to_string().as_str()),
+            )
             .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(22))
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.inventory_title_bg, ui);
-            Text::new(&format!(
-                "{}{}",
-                &self.stats.name,
-                &self.localized_strings.get("hud.bag.inventory")
-            ))
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.bag.inventory")
+                    .replace("{playername}", &self.stats.name.to_string().as_str()),
+            )
             .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(22))
@@ -510,21 +520,23 @@ impl<'a> Widget for Bag<'a> {
         } else {
             // Stats
             // Title
-            Text::new(&format!(
-                "{}{}",
-                &self.stats.name,
-                &self.localized_strings.get("hud.bag.stats_title")
-            ))
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.bag.stats_title")
+                    .replace("{playername}", &self.stats.name.to_string().as_str()),
+            )
             .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(22))
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.inventory_title_bg, ui);
-            Text::new(&format!(
-                "{}{}",
-                &self.stats.name,
-                &self.localized_strings.get("hud.bag.stats_title")
-            ))
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.bag.stats_title")
+                    .replace("{playername}", &self.stats.name.to_string().as_str()),
+            )
             .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(22))
