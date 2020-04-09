@@ -4908,6 +4908,7 @@ dependencies = [
  "log 0.4.8",
  "num 0.2.1",
  "num_cpus",
+ "rayon",
  "specs",
  "uvth",
  "vek 0.10.0",

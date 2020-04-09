@@ -37,7 +37,7 @@ vec3 get_moon_dir(float time_of_day) {
 	return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 }
 
-const float PERSISTENT_AMBIANCE = 0.025; // 0.1;
+const float PERSISTENT_AMBIANCE = 0.1; // 0.025; // 0.1;
 
 float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0) * 0.9;
@@ -95,13 +95,13 @@ void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d,
 
     // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
     // Will be attenuated by k_d, which is assumed to carry any additional ambient occlusion information (e.g. about shadowing).
-    float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * 10000.0), 0.0, 0.5);
+    float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
 
     emitted_light = k_a * (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light)) + PERSISTENT_AMBIANCE;
     // TODO: Add shadows.
     reflected_light =
         sun_chroma * light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) +
-        moon_chroma * 0.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha);
+        moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha);
 
 	/* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 	diffuse_light =

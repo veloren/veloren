@@ -557,6 +557,8 @@ impl Renderer {
         locals: &Consts<terrain::Locals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
+        map: &Texture,     /* <(gfx::format::R8, gfx::format::Unorm)> */
+        horizon: &Texture, /* <(gfx::format::R8, gfx::format::Unorm)> */
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -574,6 +576,8 @@ impl Renderer {
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -654,6 +658,7 @@ impl Renderer {
         globals: &Consts<Globals>,
         locals: &Consts<lod_terrain::Locals>,
         map: &Texture,
+        horizon: &Texture,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -670,6 +675,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },

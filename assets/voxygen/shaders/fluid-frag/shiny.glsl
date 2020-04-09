@@ -1,5 +1,7 @@
 #version 330 core
 
+// https://www.shadertoy.com/view/XdsyWf
+
 #include <globals.glsl>
 #include <random.glsl>
 
@@ -66,6 +68,8 @@ void main() {
 	vec3 f_norm = normals[norm_axis + norm_dir];
 
 	vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
+    vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
+    vec3 view_dir = normalize(-vec3(vert_pos4) / vert_pos4.w);
 	float frag_dist = length(f_pos - cam_pos.xyz);
 
 	vec3 b_norm;
@@ -95,22 +99,31 @@ void main() {
 
 
     vec4 _clouds;
-	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
+	vec3 reflect_ray_dir = reflect(cam_to_frag/*-view_dir*/, norm);
+    /* vec4 reflect_ray_dir4 = view_mat * vec4(reflect_ray_dir, 1.0);
+    reflect_ray_dir = normalize(vec3(reflect_ray_dir4) / reflect_ray_dir4.w); */
+	// vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
 	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
     vec3 surf_color = /*srgb_to_linear*/(vec3(0.2, 0.5, 1.0));
 
-    vec3 k_a = surf_color;
-    vec3 k_d = vec3(1.0);
-    vec3 k_s = reflect_color;
+    vec3 k_a = vec3(1.0);
+    vec3 k_d = surf_color;
+    vec3 k_s = 2.0 * reflect_color;
     float alpha = 0.255;
 
 	vec3 emitted_light, reflected_light;
 	// vec3 light, diffuse_light, ambient_light;
-	float point_shadow = shadow_at(f_pos,f_norm);
+	float point_shadow = shadow_at(f_pos, f_norm);
     // 0 = 100% reflection, 1 = translucent water
-    float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
-    get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, k_a * f_light * point_shadow, vec3(0.0), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s * f_light * point_shadow, alpha, emitted_light, reflected_light);
-    lights_at(f_pos, f_norm, cam_to_frag, k_a * f_light * point_shadow, k_d * f_light * point_shadow, k_s * f_light * point_shadow, alpha, emitted_light, reflected_light);
+    float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag/*-view_dir*/), -cam_to_frag/*view_dir*/), 0.5);
+    vec3 diffuse_light_point = vec3(0.0);
+    get_sun_diffuse(norm, time_of_day.x, view_dir, k_a * f_light * point_shadow, vec3(0.0), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s * f_light * point_shadow, alpha, emitted_light, reflected_light);
+    lights_at(f_pos, norm, view_dir, k_a, vec3(1.0), vec3(0.0), alpha, emitted_light, diffuse_light_point);
+    vec3 dump_light = vec3(0.0);
+    vec3 specular_light_point = vec3(0.0);
+    lights_at(f_pos, norm, view_dir, vec3(0.0), vec3(0.0), vec3(1.0), alpha, dump_light, specular_light_point);
+    float reflected_light_point = diffuse_light_point.r + f_light * point_shadow;
+    reflected_light += k_d * (diffuse_light_point + f_light * point_shadow) + k_s * specular_light_point;
 	// get_sun_diffuse(norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
 	// diffuse_light *= f_light * point_shadow;
 	// ambient_light *= f_light * point_shadow;
@@ -119,7 +132,7 @@ void main() {
 	// diffuse_light += point_light;
     // reflected_light += point_light;
 	// vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
-    surf_color = illuminate(emitted_light, reflected_light);
+    surf_color = illuminate(surf_color * emitted_light, reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
@@ -133,11 +146,12 @@ void main() {
 	// vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
 	// Tint
 	// reflect_color = mix(reflect_color, surf_color, 0.6);
-	
 
 	// vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*/(f_light * point_shadow + point_light) * 0.25)), passthrough);
-	vec4 color = vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*/(/*f_light * point_shadow + point_light*/reflected_light) * 0.25));
-    // vec4 color = surf_color;
+	// vec4 color = mix(vec4(reflect_color * 2.0, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*/(/*f_light * point_shadow*/f_light * point_shadow + reflected_light_point/* + point_light*//*reflected_light*/) * 0.25)), passthrough);
+    // vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 0.0), passthrough);
+    //vec4 color = vec4(surf_color, 1.0);
+    vec4 color = vec4(surf_color, mix(1.0, 1.0 / (1.0 + 0.25 * /*diffuse_light*/(/*f_light * point_shadow*/reflected_light_point)), passthrough));
 
-    tgt_color = color; // mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
+    tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
 }

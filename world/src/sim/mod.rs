@@ -1316,6 +1316,42 @@ impl WorldSim {
             |angle: Alt| (angle.atan() * <Alt as FloatConst>::FRAC_2_PI() * 255.0).floor() as u8;
         let scale_height =
             |height: Alt| (height as Alt * 255.0 / self.max_height as Alt).floor() as u8;
+
+        let samples_data = {
+            let column_sample = ColumnGen::new(self);
+            (0..WORLD_SIZE.product())
+                .into_par_iter()
+                .map_init(
+                    || Box::new(BlockGen::new(ColumnGen::new(self))),
+                    |block_gen, posi| {
+                        let wpos = uniform_idx_as_vec2(posi);
+                        let mut sample = column_sample.get(
+                            uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                        )?;
+                        // let zcache = block_gen.get_z_cache();
+                        let alt = sample.alt;
+                        sample.alt = alt.max(BlockGen::get_cliff_height(
+                            &mut block_gen.column_gen,
+                            &mut block_gen.column_cache,
+                            wpos.map(|e| e as f32),
+                            &sample.close_cliffs,
+                            sample.cliff_hill,
+                            32.0,
+                        ));
+                        sample.basement += sample.alt - alt;
+
+                        Some(sample)
+                    },
+                )
+                /* .map(|posi| {
+                    let mut sample = column_sample.get(
+                        uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                    );
+                }) */
+                .collect::<Vec<_>>()
+                .into_boxed_slice()
+        };
+
         let horizons = get_horizon_map(
             map_config.lgain,
             Aabr {
@@ -1325,26 +1361,17 @@ impl WorldSim {
             CONFIG.sea_level as Alt,
             (CONFIG.sea_level + self.max_height) as Alt,
             |posi| {
-                let chunk = &self.chunks[posi];
-                chunk.alt.max(chunk.water_alt) as Alt
+                /* let chunk = &self.chunks[posi];
+                chunk.alt.max(chunk.water_alt) as Alt */
+                let sample = samples_data[posi].as_ref();
+                sample
+                    .map(|s| s.alt.max(s.water_level))
+                    .unwrap_or(CONFIG.sea_level) as Alt
             },
             |a| scale_angle(a),
             |h| scale_height(h),
         )
         .unwrap();
-
-        let samples_data = {
-            let column_sample = ColumnGen::new(self);
-            (0..WORLD_SIZE.product())
-                .into_par_iter()
-                .map(|posi| {
-                    column_sample.get(
-                        uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                    )
-                })
-                .collect::<Vec<_>>()
-                .into_boxed_slice()
-        };
 
         let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
         // TODO: Parallelize again.

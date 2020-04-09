@@ -36,7 +36,7 @@ impl<'a> BlockGen<'a> {
             .as_ref()
     }
 
-    fn get_cliff_height(
+    pub fn get_cliff_height(
         column_gen: &ColumnGen<'a>,
         cache: &mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<f32>,

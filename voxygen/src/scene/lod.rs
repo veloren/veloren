@@ -12,7 +12,8 @@ use vek::*;
 pub struct Lod {
     model: Option<(u32, Model<LodTerrainPipeline>)>,
     locals: Consts<Locals>,
-    map: Texture,
+    pub map: Texture,
+    pub horizon: Texture,
     tgt_detail: u32,
 }
 
@@ -24,6 +25,9 @@ impl Lod {
             map: renderer
                 .create_texture(&client.lod_base, Some(FilterMethod::Trilinear), None)
                 .expect("Failed to generate map texture"),
+            horizon: renderer
+                .create_texture(&client.lod_horizon, Some(FilterMethod::Trilinear), None)
+                .expect("Failed to generate horizon texture"),
             tgt_detail: settings.graphics.lod_detail.max(100).min(2500),
         }
     }
@@ -48,7 +52,7 @@ impl Lod {
 
     pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
         if let Some((_, model)) = self.model.as_ref() {
-            renderer.render_lod_terrain(&model, globals, &self.locals, &self.map);
+            renderer.render_lod_terrain(&model, globals, &self.locals, &self.map, &self.horizon);
         }
     }
 }

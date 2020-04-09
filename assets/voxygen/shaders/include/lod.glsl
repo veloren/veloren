@@ -1,6 +1,19 @@
 #include <random.glsl>
+#include <sky.glsl>
 
 uniform sampler2D t_map;
+uniform sampler2D t_horizon;
+
+vec3 linear_to_srgb(vec3 col) {
+    vec3 s1 = vec3(sqrt(col.r), sqrt(col.g), sqrt(col.b));
+    vec3 s2 = vec3(sqrt(s1.r), sqrt(s1.g), sqrt(s1.b));
+    vec3 s3 = vec3(sqrt(s2.r), sqrt(s2.g), sqrt(s2.b));
+    return vec3(
+            mix(11.500726 * col.r, (0.585122381 * s1.r + 0.783140355 * s2.r - 0.368262736 * s3.r), clamp((col.r - 0.0060) * 10000.0, 0.0, 1.0)),
+            mix(11.500726 * col.g, (0.585122381 * s1.g + 0.783140355 * s2.g - 0.368262736 * s3.g), clamp((col.g - 0.0060) * 10000.0, 0.0, 1.0)),
+            mix(11.500726 * col.b, (0.585122381 * s1.b + 0.783140355 * s2.b - 0.368262736 * s3.b), clamp((col.b - 0.0060) * 10000.0, 0.0, 1.0))
+    );
+}
 
 vec2 pos_to_uv(vec2 pos) {
 	vec2 uv_pos = (pos + 16) / 32768.0;
@@ -52,13 +65,86 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
 }
 
 float alt_at(vec2 pos) {
-	return texture(t_map, pos_to_uv(pos)).a * (1300.0) + 140.0;
+	return texture/*textureBicubic*/(t_map, pos_to_uv(pos)).a * (1300.0) + 140.0;
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
 	return 0.0
 		+ pow(texture(t_noise, pos * 0.00005).x * 1.4, 3.0) * 1000.0
 		+ texture(t_noise, pos * 0.001).x * 100.0
 		+ texture(t_noise, pos * 0.003).x * 30.0;
+}
+
+float horizon_at(vec3 pos, /*float time_of_day*/vec3 light_dir) {
+    // vec3 sun_dir = get_sun_dir(time_of_day);
+    const float PI_2 = 3.1415926535897932384626433832795 / 2.0;
+    const float MIN_LIGHT = 0.115;
+/*
+
+                let shade_frac = horizon_map
+                    .and_then(|(angles, heights)| {
+                        chunk_idx
+                            .and_then(|chunk_idx| angles.get(chunk_idx))
+                            .map(|&e| (e as f64, heights))
+                    })
+                    .and_then(|(e, heights)| {
+                        chunk_idx
+                            .and_then(|chunk_idx| heights.get(chunk_idx))
+                            .map(|&f| (e, f as f64))
+                    })
+                    .map(|(angle, height)| {
+                        let w = 0.1;
+                        if angle != 0.0 && light_direction.x != 0.0 {
+                            let deltax = height / angle;
+                            let lighty = (light_direction.y / light_direction.x * deltax).abs();
+                            let deltay = lighty - height;
+                            let s = (deltay / deltax / w).min(1.0).max(0.0);
+                            // Smoothstep
+                            s * s * (3.0 - 2.0 * s)
+                        } else {
+                            1.0
+                        }
+                    })
+                    .unwrap_or(1.0);
+*/
+    float alt = alt_at(pos.xy);
+    vec4 f_horizons = textureBicubic(t_horizon, pos_to_uv(pos.xy));
+    f_horizons.xyz = linear_to_srgb(f_horizons.xyz);
+    vec2 f_horizon;
+    if (light_dir.z >= 0) {
+        return MIN_LIGHT;
+    }
+    if (light_dir.x >= 0) {
+        f_horizon = f_horizons.rg;
+    } else {
+        f_horizon = f_horizons.ba;
+    }
+    float angle = tan(f_horizon.x * PI_2);
+    float height = f_horizon.y * /*1300.0*/1278.7266845703125 + 140.0;
+    const float w = 0.1;
+    float deltah = height - alt;
+    if (deltah < 0.0001 || angle < 0.0001 || abs(light_dir.x) < 0.0001) {
+        return 1.0;
+    } else {
+        float lighta = abs(light_dir.z / light_dir.x);
+        float deltax = deltah / angle;
+        float lighty = lighta * deltax;
+        float deltay = lighty - (deltah + max(pos.z - alt, 0.0));
+        float s = max(min(max(deltay, 0.0) / deltax / w, 1.0), 0.0);
+        return max(/*0.2 + 0.8 * */(s * s * (3.0 - 2.0 * s)), MIN_LIGHT);
+        /* if (lighta >= angle) {
+            return 1.0;
+        } else {
+            return MIN_LIGHT;
+        } */
+        // float deltah = height - alt;
+        // float deltah = max(height - alt, 0.0);
+        // float lighty = abs(sun_dir.z / sun_dir.x * deltax);
+        // float lighty = abs(sun_dir.z / sun_dir.x * deltax);
+        // float deltay = lighty - /*pos.z*//*deltah*/(deltah + max(pos.z - alt, 0.0))/*deltah*/;
+        // float s = max(min(max(deltay, 0.0) / deltax / w, 1.0), 0.0);
+        // Smoothstep
+        return max(/*0.2 + 0.8 * */(s * s * (3.0 - 2.0 * s)), MIN_LIGHT);
+    }
 }
 
 vec2 splay(vec2 pos) {
@@ -96,6 +182,6 @@ vec3 lod_pos(vec2 v_pos, vec2 focus_pos) {
 
 vec3 lod_col(vec2 pos) {
 	//return vec3(0, 0.5, 0);
-	return textureBicubic(t_map, pos_to_uv(pos)).rgb;
+	return linear_to_srgb(textureBicubic(t_map, pos_to_uv(pos)).rgb);
 		//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 }

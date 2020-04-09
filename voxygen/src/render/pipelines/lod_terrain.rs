@@ -23,6 +23,7 @@ gfx_defines! {
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
         map: gfx::TextureSampler<[f32; 4]> = "t_map",
+        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
 
         noise: gfx::TextureSampler<f32> = "t_noise",
 

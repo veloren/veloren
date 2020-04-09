@@ -395,6 +395,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
+            &self.lod,
             self.camera.get_focus_pos(),
         );
         self.figure_mgr.render(

@@ -34,6 +34,7 @@ use hashbrown::HashMap;
 use image::DynamicImage;
 use log::{error, warn};
 use num::traits::FloatConst;
+use rayon::prelude::*;
 use std::{
     net::SocketAddr,
     sync::Arc,
@@ -72,6 +73,10 @@ pub struct Client {
     /// shadows, rivers, and probably foliage, cities, roads, and other
     /// structures.
     pub lod_base: Arc<DynamicImage>,
+    /// The "shadow" layer for LOD.  Includes east and west horizon angles and
+    /// an approximate max occluder height, which we use to try to
+    /// approximate soft and volumetric shadows.
+    pub lod_horizon: Arc<DynamicImage>,
     /// A fully rendered map image for use with the map and minimap; note that
     /// this can be constructed dynamically by combining the layers of world
     /// map data (e.g. with shadow map data or river data), but at present
@@ -103,131 +108,137 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity, server_info, lod_base, world_map) = match postbox.next_message()? {
-            ServerMsg::InitialSync {
-                entity_package,
-                server_info,
-                time_of_day,
-                world_map,
-            } => {
-                // TODO: Display that versions don't match in Voxygen
-                if server_info.git_hash != common::util::GIT_HASH.to_string() {
-                    log::warn!(
-                        "Server is running {}[{}], you are running {}[{}], versions might be \
-                         incompatible!",
-                        server_info.git_hash,
-                        server_info.git_date,
-                        common::util::GIT_HASH.to_string(),
-                        common::util::GIT_DATE.to_string(),
-                    );
-                }
+        let (state, entity, server_info, lod_base, lod_horizon, world_map) =
+            match postbox.next_message()? {
+                ServerMsg::InitialSync {
+                    entity_package,
+                    server_info,
+                    time_of_day,
+                    world_map,
+                } => {
+                    // TODO: Display that versions don't match in Voxygen
+                    if server_info.git_hash != common::util::GIT_HASH.to_string() {
+                        log::warn!(
+                            "Server is running {}[{}], you are running {}[{}], versions might be \
+                             incompatible!",
+                            server_info.git_hash,
+                            server_info.git_date,
+                            common::util::GIT_HASH.to_string(),
+                            common::util::GIT_DATE.to_string(),
+                        );
+                    }
 
-                log::debug!("Auth Server: {:?}", server_info.auth_provider);
+                    log::debug!("Auth Server: {:?}", server_info.auth_provider);
 
-                // Initialize `State`
-                let mut state = State::default();
-                // Client-only components
-                state
-                    .ecs_mut()
-                    .register::<comp::Last<comp::CharacterState>>();
+                    // Initialize `State`
+                    let mut state = State::default();
+                    // Client-only components
+                    state
+                        .ecs_mut()
+                        .register::<comp::Last<comp::CharacterState>>();
 
-                let entity = state.ecs_mut().apply_entity_package(entity_package);
-                *state.ecs_mut().write_resource() = time_of_day;
+                    let entity = state.ecs_mut().apply_entity_package(entity_package);
+                    *state.ecs_mut().write_resource() = time_of_day;
 
-                let map_size = world_map.dimensions;
-                let max_height = world_map.max_height;
-                let rgba = world_map.rgba;
-                assert_eq!(rgba.len(), (map_size.x * map_size.y) as usize);
-                let [west, east] = world_map.horizons;
-                let scale_angle =
-                    |a: u8| (a as Alt / 255.0 * <Alt as FloatConst>::FRAC_PI_2()).tan();
-                let scale_height = |h: u8| h as Alt / 255.0 * max_height as Alt;
+                    let map_size = world_map.dimensions;
+                    let max_height = world_map.max_height;
+                    let rgba = world_map.rgba;
+                    assert_eq!(rgba.len(), (map_size.x * map_size.y) as usize);
+                    let [west, east] = world_map.horizons;
+                    let scale_angle =
+                        |a: u8| (a as Alt / 255.0 * <Alt as FloatConst>::FRAC_PI_2()).tan();
+                    let scale_height = |h: u8| h as Alt / 255.0 * max_height as Alt;
 
-                log::debug!("Preparing image...");
-                let unzip_horizons = |(angles, heights): (Vec<_>, Vec<_>)| {
-                    (
-                        angles.into_iter().map(scale_angle).collect::<Vec<_>>(),
-                        heights.into_iter().map(scale_height).collect::<Vec<_>>(),
-                    )
-                };
-                let horizons = [unzip_horizons(west), unzip_horizons(east)];
+                    log::debug!("Preparing image...");
+                    let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
+                        (
+                            angles.iter().copied().map(scale_angle).collect::<Vec<_>>(),
+                            heights
+                                .iter()
+                                .copied()
+                                .map(scale_height)
+                                .collect::<Vec<_>>(),
+                        )
+                    };
+                    let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
 
-                // Redraw map (with shadows this time).
-                let mut world_map = vec![0u32; rgba.len()];
-                let mut map_config = world::sim::MapConfig::default();
-                map_config.lgain = 1.0;
-                map_config.gain = max_height;
-                map_config.horizons = Some(&horizons);
-                map_config.focus.z = 0.0;
-                let rescale_height = |h: Alt| (h / max_height as Alt) as f32;
-                let bounds_check = |pos: Vec2<i32>| {
-                    pos.reduce_partial_min() >= 0
-                        && pos.x < map_size.x as i32
-                        && pos.y < map_size.y as i32
-                };
-                map_config.generate(
-                    |pos| {
-                        let (rgba, downhill_wpos) = if bounds_check(pos) {
-                            let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
-                            let [r, g, b, a] = rgba[posi].to_le_bytes();
-                            // Compute downhill.
-                            let downhill = {
-                                let mut best = -1;
-                                let mut besth = a;
-                                // TODO: Fix to work for dynamic WORLD_SIZE (i.e. map_size).
-                                for nposi in neighbors(posi) {
-                                    let nbh = rgba[nposi].to_le_bytes()[3];
-                                    if nbh < besth {
-                                        besth = nbh;
-                                        best = nposi as isize;
+                    // Redraw map (with shadows this time).
+                    let mut world_map = vec![0u32; rgba.len()];
+                    let mut map_config = world::sim::MapConfig::default();
+                    map_config.lgain = 1.0;
+                    map_config.gain = max_height;
+                    map_config.horizons = Some(&horizons);
+                    // map_config.light_direction = Vec3::new(1.0, -1.0, 0.0);
+                    map_config.focus.z = 0.0;
+                    let rescale_height = |h: Alt| (h / max_height as Alt) as f32;
+                    let bounds_check = |pos: Vec2<i32>| {
+                        pos.reduce_partial_min() >= 0
+                            && pos.x < map_size.x as i32
+                            && pos.y < map_size.y as i32
+                    };
+                    map_config.generate(
+                        |pos| {
+                            let (rgba, downhill_wpos) = if bounds_check(pos) {
+                                let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
+                                let [r, g, b, a] = rgba[posi].to_le_bytes();
+                                // Compute downhill.
+                                let downhill = {
+                                    let mut best = -1;
+                                    let mut besth = a;
+                                    // TODO: Fix to work for dynamic WORLD_SIZE (i.e. map_size).
+                                    for nposi in neighbors(posi) {
+                                        let nbh = rgba[nposi].to_le_bytes()[3];
+                                        if nbh < besth {
+                                            besth = nbh;
+                                            best = nposi as isize;
+                                        }
                                     }
-                                }
-                                best
-                            };
-                            let downhill_wpos = if downhill < 0 {
-                                None
+                                    best
+                                };
+                                let downhill_wpos = if downhill < 0 {
+                                    None
+                                } else {
+                                    Some(
+                                        Vec2::new(
+                                            (downhill as usize % map_size.x as usize) as i32,
+                                            (downhill as usize / map_size.x as usize) as i32,
+                                        ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                    )
+                                };
+                                (Rgba::new(r, g, b, a), downhill_wpos)
                             } else {
-                                Some(
-                                    Vec2::new(
-                                        (downhill as usize % map_size.x as usize) as i32,
-                                        (downhill as usize / map_size.x as usize) as i32,
-                                    ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                                )
+                                (Rgba::zero(), None)
                             };
-                            (Rgba::new(r, g, b, a), downhill_wpos)
-                        } else {
-                            (Rgba::zero(), None)
-                        };
-                        let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-                        let downhill_wpos = downhill_wpos
-                            .unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
-                        let alt = rescale_height(scale_height(rgba.a));
-                        world::sim::MapSample {
-                            rgb: Rgb::from(rgba),
-                            alt: alt as Alt,
-                            downhill_wpos,
-                            connections: None,
-                        }
-                    },
-                    |wpos| {
-                        let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
-                        rescale_height(if bounds_check(pos) {
-                            let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
-                            scale_height(rgba[posi].to_le_bytes()[3])
-                        } else {
-                            0.0
-                        })
-                    },
-                    |pos, (r, g, b, a)| {
-                        world_map[pos.y * map_size.x as usize + pos.x] =
-                            u32::from_le_bytes([r, g, b, a]);
-                    },
-                );
-                let make_raw = |rgba| -> Result<_, Error> {
-                    let mut raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
-                    LittleEndian::write_u32_into(rgba, &mut raw);
-                    Ok(Arc::new(
-                        image::DynamicImage::ImageRgba8({
+                            let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                            let downhill_wpos = downhill_wpos
+                                .unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
+                            let alt = rescale_height(scale_height(rgba.a));
+                            world::sim::MapSample {
+                                rgb: Rgb::from(rgba),
+                                alt: alt as Alt,
+                                downhill_wpos,
+                                connections: None,
+                            }
+                        },
+                        |wpos| {
+                            let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                            rescale_height(if bounds_check(pos) {
+                                let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
+                                scale_height(rgba[posi].to_le_bytes()[3])
+                            } else {
+                                0.0
+                            })
+                        },
+                        |pos, (r, g, b, a)| {
+                            world_map[pos.y * map_size.x as usize + pos.x] =
+                                u32::from_le_bytes([r, g, b, a]);
+                        },
+                    );
+                    let make_raw = |rgba| -> Result<_, Error> {
+                        let mut raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
+                        LittleEndian::write_u32_into(rgba, &mut raw);
+                        Ok(Arc::new(
+                            image::DynamicImage::ImageRgba8({
                             // Should not fail if the dimensions are correct.
                             let map =
                                 image::ImageBuffer::from_raw(map_size.x, map_size.y, raw);
@@ -236,17 +247,29 @@ impl Client {
                         // Flip the image, since Voxygen uses an orientation where rotation from
                         // positive x axis to positive y axis is counterclockwise around the z axis.
                         .flipv(),
-                    ))
-                };
-                let lod_base = make_raw(&rgba)?;
-                let world_map = make_raw(&world_map)?;
-                log::debug!("Done preparing image...");
+                        ))
+                    };
+                    let lod_base = make_raw(&rgba)?;
+                    let world_map = make_raw(&world_map)?;
+                    let horizons = (west.0, west.1, east.0, east.1)
+                        .into_par_iter()
+                        .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
+                        .collect::<Vec<_>>();
+                    let lod_horizon = make_raw(&horizons)?;
+                    log::debug!("Done preparing image...");
 
-                (state, entity, server_info, lod_base, (world_map, map_size))
-            },
-            ServerMsg::TooManyPlayers => return Err(Error::TooManyPlayers),
-            _ => return Err(Error::ServerWentMad),
-        };
+                    (
+                        state,
+                        entity,
+                        server_info,
+                        lod_base,
+                        lod_horizon,
+                        (world_map, map_size),
+                    )
+                },
+                ServerMsg::TooManyPlayers => return Err(Error::TooManyPlayers),
+                _ => return Err(Error::ServerWentMad),
+            };
 
         postbox.send_message(ClientMsg::Ping);
 
@@ -262,6 +285,7 @@ impl Client {
             server_info,
             world_map,
             lod_base,
+            lod_horizon,
             player_list: HashMap::new(),
 
             postbox,
