@@ -40,6 +40,7 @@ pub enum BlockKind {
     Fern,
     DeadBush,
     Blueberry,
+    Ember,
 }
 
 impl BlockKind {
@@ -81,13 +82,14 @@ impl BlockKind {
             BlockKind::Fern => true,
             BlockKind::DeadBush => true,
             BlockKind::Blueberry => true,
+            BlockKind::Ember => true,
             _ => false,
         }
     }
 
     pub fn is_fluid(&self) -> bool {
         match self {
-            BlockKind::Water => true,
+            BlockKind::Water => true,            
             _ => false,
         }
     }
@@ -123,7 +125,7 @@ impl BlockKind {
             BlockKind::LeafyPlant => false,
             BlockKind::Fern => false,
             BlockKind::DeadBush => false,
-            BlockKind::Blueberry => false,
+            BlockKind::Blueberry => false,            
             _ => true,
         }
     }
@@ -159,6 +161,7 @@ impl BlockKind {
             BlockKind::Fern => false,
             BlockKind::DeadBush => false,
             BlockKind::Blueberry => false,
+            BlockKind::Ember => false,
             _ => true,
         }
     }
@@ -180,7 +183,7 @@ impl BlockKind {
             BlockKind::Velorite => true,
             BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
-            BlockKind::Pumpkin => true,
+            BlockKind::Pumpkin => true,            
             _ => false,
         }
     }

@@ -170,6 +170,10 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 4,
             wind_sway: 0.1,
         }),
+        BlockKind::Ember => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 4.0,
+        }),
 
         _ => None,
     }
@@ -1063,6 +1067,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::Blueberry, 8),
                     make_model(
                         "voxygen.voxel.sprite.blueberry.9",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                // Ember
+                (
+                    (BlockKind::Ember, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.ember.1",
                         Vec3::new(-6.0, -6.0, -0.0),
                     ),
                 ),
