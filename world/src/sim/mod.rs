@@ -1568,6 +1568,10 @@ impl WorldSim {
         }
     }
 
+    pub fn get_alt_approx(&self, pos: Vec2<i32>) -> Option<f32> {
+        self.get_interpolated(pos, |chunk| chunk.alt)
+    }
+
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
         self.get(
             wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
