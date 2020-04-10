@@ -5,6 +5,7 @@ use crate::{
     sim::{SimChunk, WorldSim},
     util::{Grid, RandomField, Sampler, StructureGen2d},
 };
+use self::building::HouseBuilding;
 use super::SpawnRules;
 use common::{
     astar::Astar,
@@ -81,12 +82,11 @@ const AREA_SIZE: u32 = 32;
 fn to_tile(e: i32) -> i32 { ((e as f32).div_euclid(AREA_SIZE as f32)).floor() as i32 }
 
 pub enum StructureKind {
-    House,
+    House(HouseBuilding),
 }
 
 pub struct Structure {
     kind: StructureKind,
-    bounds: Aabr<i32>,
 }
 
 pub struct Settlement {
@@ -105,25 +105,31 @@ pub struct Farm {
     base_tile: Vec2<i32>,
 }
 
+pub struct GenCtx<'a, R: Rng> {
+    sim: Option<&'a WorldSim>,
+    rng: &'a mut R,
+}
+
 impl Settlement {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
+        let mut ctx = GenCtx { sim, rng };
         let mut this = Self {
             origin: wpos,
-            land: Land::new(rng),
+            land: Land::new(ctx.rng),
             farms: Store::default(),
             structures: Vec::new(),
             town: None,
         };
 
-        if let Some(sim) = sim {
-            this.designate_from_world(sim, rng);
+        if let Some(sim) = ctx.sim {
+            this.designate_from_world(sim, ctx.rng);
         }
 
         //this.place_river(rng);
 
-        this.place_farms(rng);
-        this.place_town(rng);
-        this.place_paths(rng);
+        this.place_farms(&mut ctx);
+        this.place_town(ctx.rng);
+        this.place_paths(ctx.rng);
 
         this
     }
@@ -295,8 +301,8 @@ impl Settlement {
             .write_path(&wall_path, WayKind::Wall, buildable, true);
     }
 
-    pub fn place_farms(&mut self, rng: &mut impl Rng) {
-        const FARM_COUNT: usize = 4;
+    pub fn place_farms(&mut self, ctx: &mut GenCtx<impl Rng>) {
+        const FARM_COUNT: usize = 6;
         const FIELDS_PER_FARM: usize = 5;
 
         for _ in 0..FARM_COUNT {
@@ -309,23 +315,26 @@ impl Settlement {
                 self.land.set(base_tile, farmhouse);
 
                 // Farmhouses
-                for _ in 0..rng.gen_range(1, 3) {
+                for _ in 0..ctx.rng.gen_range(1, 3) {
                     let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
-                        + Vec2::new(rng.gen_range(-16, 16), rng.gen_range(-16, 16));
+                        + Vec2::new(ctx.rng.gen_range(-16, 16), ctx.rng.gen_range(-16, 16));
 
                     self.structures.push(Structure {
-                        kind: StructureKind::House,
-                        bounds: Aabr {
-                            min: house_pos - Vec2::new(rng.gen_range(4, 6), rng.gen_range(4, 6)),
-                            max: house_pos + Vec2::new(rng.gen_range(4, 6), rng.gen_range(4, 6)),
-                        },
+                        kind: StructureKind::House(HouseBuilding::generate(ctx.rng, Vec3::new(
+                            house_pos.x,
+                            house_pos.y,
+                            ctx.sim
+                                .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
+                                .unwrap_or(0.0)
+                                .ceil() as i32,
+                        ))),
                     });
                 }
 
                 // Fields
                 let farmland = self.farms.insert(Farm { base_tile });
                 for _ in 0..FIELDS_PER_FARM {
-                    self.place_field(farmland, base_tile, rng);
+                    self.place_field(farmland, base_tile, ctx.rng);
                 }
             }
         }
@@ -451,19 +460,32 @@ impl Settlement {
                 }
             }
         }
+
+        // Apply structures
+        for structure in &self.structures {
+            match &structure.kind {
+                StructureKind::House(b) => {
+                    let centre = b.bounds_2d().center();
+                    let bounds = b.bounds();
+                    for x in bounds.min.x..bounds.max.x {
+                        for y in bounds.min.y..bounds.max.y {
+                            for z in bounds.min.z..bounds.max.z {
+                                let rpos = Vec3::new(x, y, z);
+                                let wpos = Vec3::from(self.origin) + rpos;
+                                let coffs = wpos - Vec3::from(wpos2d);
+
+                                if let Some(block) = b.sample(rpos) {
+                                    vol.set(coffs, block);
+                                }
+                            }
+                        }
+                    }
+                },
+            }
+        }
     }
 
     pub fn get_color(&self, pos: Vec2<i32>) -> Option<Rgb<u8>> {
-        if let Some(structure) = self
-            .structures
-            .iter()
-            .find(|s| s.bounds.contains_point(pos))
-        {
-            return Some(match structure.kind {
-                StructureKind::House => Rgb::new(200, 80, 50),
-            });
-        }
-
         let sample = self.land.get_at_block(pos);
 
         match sample.tower {
