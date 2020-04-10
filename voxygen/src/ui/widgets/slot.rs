@@ -217,9 +217,10 @@ where
             _ => (),
         }
 
+        let input = ui.widget_input(widget);
         // TODO: make more robust wrt multiple events in the same frame (eg event order
         // may matter) TODO: handle taps as well
-        let click_count = ui.widget_input(widget).clicks().left().count();
+        let click_count = input.clicks().left().count();
         if click_count > 0 {
             let odd_num_clicks = click_count % 2 == 1;
             self.state = if let ManagerState::Selected(id, other_slot) = self.state {
@@ -255,17 +256,25 @@ where
             };
         }
 
-        // If not dragging and there is a drag event on this slot start dragging
-        if ui.widget_input(widget).drags().left().next().is_some() {
+        // Use on right click if not dragging
+        if input.clicks().right().next().is_some() {
             match self.state {
                 ManagerState::Selected(_, _) | ManagerState::Idle => {
-                    // Start dragging if widget is filled
-                    if let Some(img) = content_img {
-                        self.state = ManagerState::Dragging(widget, slot, img);
-                    }
+                    self.events.push(Event::Used(slot));
+                    // If something is selected, deselect
+                    self.state = ManagerState::Idle;
                 },
-                // Already dragging or id doesn't match
-                _ => {},
+                ManagerState::Dragging(_, _, _) => {},
+            }
+        }
+
+        // If not dragging and there is a drag event on this slot start dragging
+        if input.drags().left().next().is_some()
+            && !matches!(self.state, ManagerState::Dragging(_, _, _))
+        {
+            // Start dragging if widget is filled
+            if let Some(img) = content_img {
+                self.state = ManagerState::Dragging(widget, slot, img);
             }
         }
 
