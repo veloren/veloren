@@ -188,13 +188,6 @@ pub enum Neck {
 pub const ALL_NECKS: [Neck; 1] = [Neck::Neck0];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
-pub enum Lantern {
-    Black0 = 1,
-    Green0 = 2,
-}
-pub const ALL_LANTERNS: [Lantern; 2] = [Lantern::Black0, Lantern::Green0];
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
 pub enum Head {
     Leather0 = 1,
     AssaMask0 = 2,
@@ -218,7 +211,6 @@ pub enum Armor {
     Back(Back),
     Ring(Ring),
     Neck(Neck),
-    Lantern(Lantern),
     Head(Head),
     Tabard(Tabard),
 }

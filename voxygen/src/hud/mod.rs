@@ -232,11 +232,9 @@ pub enum Event {
     ToggleDebug(bool),
     UiScale(ScaleChange),
     CharacterSelection,
-    UseInventorySlot(usize),
-    SwapInventorySlots(usize, usize),
-    SwapInventoryArmor(usize, slots::ArmorSlot),
-    SwapArmorSlots(slots::ArmorSlot, slots::ArmorSlot),
-    DropInventorySlot(usize),
+    UseSlot(comp::slot::Slot),
+    SwapSlots(comp::slot::Slot, comp::slot::Slot),
+    DropSlot(comp::slot::Slot),
     Logout,
     Quit,
     ChangeLanguage(LanguageMetadata),
@@ -1660,7 +1658,6 @@ impl Hud {
             )
             .set(self.ids.bag, ui_widgets)
             {
-                Some(bag::Event::HudEvent(event)) => events.push(event),
                 Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
                 Some(bag::Event::Close) => {
                     self.show.bag(false);
@@ -1961,30 +1958,32 @@ impl Hud {
 
         // Maintain slot manager
         for event in self.slot_manager.maintain(ui_widgets) {
+            use comp::slot::Slot;
             use slots::SlotKind;
+            let to_slot = |slot_kind| match slot_kind {
+                SlotKind::Inventory(i) => Some(Slot::Inventory(i.0)),
+                SlotKind::Equip(e) => Some(Slot::Equip(e)),
+                //SlotKind::Hotbar(h) => None,
+            };
             match event {
-                slot::Event::Dragged(SlotKind::Inventory(from), SlotKind::Inventory(to)) => {
-                    // Swap between inventory slots
-                    events.push(Event::SwapInventorySlots(from.0, to.0));
+                slot::Event::Dragged(a, b) => {
+                    // Swap between slots
+                    if let (Some(a), Some(b)) = (to_slot(a), to_slot(b)) {
+                        events.push(Event::SwapSlots(a, b));
+                    }
                 },
-                slot::Event::Dragged(SlotKind::Armor(from), SlotKind::Armor(to)) => {
-                    // Swap between two armor slots
-                    events.push(Event::SwapArmorSlots(from, to));
+                slot::Event::Dropped(from) => {
+                    // Drop item
+                    if let Some(from) = to_slot(from) {
+                        events.push(Event::DropSlot(from));
+                    }
                 },
-                slot::Event::Dragged(SlotKind::Inventory(inv), SlotKind::Armor(arm))
-                | slot::Event::Dragged(SlotKind::Armor(arm), SlotKind::Inventory(inv)) => {
-                    // Swap between inventory and armor slot
-                    events.push(Event::SwapInventoryArmor(inv.0, arm));
+                slot::Event::Used(from) => {
+                    // Item used (selected and then clicked again)
+                    if let Some(from) = to_slot(from) {
+                        events.push(Event::UseSlot(from));
+                    }
                 },
-                slot::Event::Dropped(SlotKind::Inventory(from)) => {
-                    // Drop item from inventory
-                    events.push(Event::DropInventorySlot(from.0));
-                },
-                slot::Event::Used(SlotKind::Inventory(inv)) => {
-                    // Item in inventory used (selected and then clicked again)
-                    events.push(Event::UseInventorySlot(inv.0));
-                },
-                _ => {},
             }
         }
 

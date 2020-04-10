@@ -153,9 +153,9 @@ where
             }
         }
 
-        // If dragging and mouse if released check if there is a slot widget under the
+        // If dragging and mouse is released check if there is a slot widget under the
         // mouse
-        if let ManagerState::Dragging(id, slot, content_img) = &self.state {
+        if let ManagerState::Dragging(_, slot, content_img) = &self.state {
             let content_img = *content_img;
             let input = &ui.global_input().current;
             if let mouse::ButtonPosition::Up = input.mouse.buttons.left() {

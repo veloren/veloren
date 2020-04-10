@@ -643,22 +643,9 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::UseInventorySlot(x) => self.client.borrow_mut().use_inventory_slot(x),
-                    HudEvent::SwapInventorySlots(a, b) => {
-                        self.client.borrow_mut().swap_inventory_slots(a, b)
-                    },
-                    HudEvent::SwapInventoryArmor(inv_slot, armor_slot) => {
-                        // Swapping between inventory and armor slot
-                        // TODO: don't do this
-                        self.client.borrow_mut().use_inventory_slot(inv_slot)
-                    },
-                    HudEvent::SwapArmorSlots(from, to) => {
-                        // Only works with rings currently
-                        // TODO: implement
-                    },
-                    HudEvent::DropInventorySlot(x) => {
-                        self.client.borrow_mut().drop_inventory_slot(x)
-                    },
+                    HudEvent::UseSlot(x) => self.client.borrow_mut().use_slot(x),
+                    HudEvent::SwapSlots(a, b) => self.client.borrow_mut().swap_slots(a, b),
+                    HudEvent::DropSlot(x) => self.client.borrow_mut().drop_slot(x),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();

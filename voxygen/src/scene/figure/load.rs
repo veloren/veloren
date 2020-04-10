@@ -12,9 +12,9 @@ use common::{
         dragon, fish_medium, fish_small,
         humanoid::{Body, BodyType, EyeColor, Eyebrows, Race, Skin},
         item::{
-            armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Lantern, Pants, Shoulder, Tabard},
+            armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard},
             tool::{Tool, ToolKind},
-            ItemKind,
+            ItemKind, Lantern,
         },
         object,
         quadruped_medium::{BodyType as QMBodyType, Species as QMSpecies},
@@ -701,21 +701,18 @@ impl HumArmorLanternSpec {
     }
 
     pub fn mesh_lantern(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Lantern(lantern),
-            ..
-        }) = loadout.lantern.as_ref().map(|i| &i.kind)
-        {
-            match self.0.map.get(&lantern) {
-                Some(spec) => spec,
-                None => {
-                    error!("No lantern specification exists for {:?}", lantern);
-                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
-                },
-            }
-        } else {
-            &self.0.default
-        };
+        let spec =
+            if let Some(ItemKind::Lantern(lantern)) = loadout.lantern.as_ref().map(|i| &i.kind) {
+                match self.0.map.get(&lantern) {
+                    Some(spec) => spec,
+                    None => {
+                        error!("No lantern specification exists for {:?}", lantern);
+                        return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
+                    },
+                }
+            } else {
+                &self.0.default
+            };
 
         let lantern_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),

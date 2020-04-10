@@ -1,9 +1,8 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slots::{ArmorSlot, InventorySlot, SlotManager},
-    Event as HudEvent, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
-    XP_COLOR,
+    slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
+    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
@@ -135,7 +134,6 @@ pub struct State {
 }
 
 pub enum Event {
-    HudEvent(HudEvent),
     Stats,
     Close,
 }
@@ -350,7 +348,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Head, [45.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Head), [45.0; 2])
                 .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
                 .with_icon(self.imgs.head_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -363,7 +361,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Neck, [45.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Neck), [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.head_slot, -55.0)
                 .with_icon(self.imgs.necklace_bg, Vec2::new(40.0, 31.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -377,7 +375,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Chest, [85.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Chest), [85.0; 2])
                 .mid_bottom_with_margin_on(state.ids.neck_slot, -95.0)
                 .with_icon(self.imgs.chest_bg, Vec2::new(64.0, 42.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -388,7 +386,7 @@ impl<'a> Widget for Bag<'a> {
                 |item| (item.name(), item.description()),
             );
             slot_maker
-                .fabricate(ArmorSlot::Shoulders, [70.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Shoulders), [70.0; 2])
                 .bottom_left_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
                 .with_icon(self.imgs.shoulders_bg, Vec2::new(60.0, 36.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -401,7 +399,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Hands, [70.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Hands), [70.0; 2])
                 .bottom_right_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
                 .with_icon(self.imgs.hands_bg, Vec2::new(55.0, 60.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -414,7 +412,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Belt, [45.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Belt), [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.chest_slot, -55.0)
                 .with_icon(self.imgs.belt_bg, Vec2::new(40.0, 23.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -427,7 +425,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Legs, [85.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Legs), [85.0; 2])
                 .mid_bottom_with_margin_on(state.ids.belt_slot, -95.0)
                 .with_icon(self.imgs.legs_bg, Vec2::new(48.0, 70.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -438,7 +436,7 @@ impl<'a> Widget for Bag<'a> {
                 |item| (item.name(), item.description()),
             );
             slot_maker
-                .fabricate(ArmorSlot::Lantern, [45.0; 2])
+                .fabricate(EquipSlot::Lantern, [45.0; 2])
                 .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
                 .with_icon(self.imgs.lantern_bg, Vec2::new(24.0, 38.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -451,7 +449,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Ring, [45.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Ring), [45.0; 2])
                 .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
                 .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -464,7 +462,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Back, [45.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Back), [45.0; 2])
                 .down_from(state.ids.lantern_slot, 10.0)
                 .with_icon(self.imgs.back_bg, Vec2::new(33.0, 40.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -477,7 +475,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Feet, [45.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Feet), [45.0; 2])
                 .down_from(state.ids.ring_slot, 10.0)
                 .with_icon(self.imgs.feet_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -490,7 +488,7 @@ impl<'a> Widget for Bag<'a> {
                     (item.name(), item.description())
                 });
             slot_maker
-                .fabricate(ArmorSlot::Tabard, [70.0; 2])
+                .fabricate(EquipSlot::Armor(ArmorSlot::Tabard), [70.0; 2])
                 .top_right_with_margins_on(state.ids.bg_frame, 80.5, 53.0)
                 .with_icon(self.imgs.tabard_bg, Vec2::new(60.0, 60.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -501,7 +499,7 @@ impl<'a> Widget for Bag<'a> {
                 |item| (item.name(), item.description()),
             );
             slot_maker
-                .fabricate(ArmorSlot::Mainhand, [85.0; 2])
+                .fabricate(EquipSlot::Mainhand, [85.0; 2])
                 .bottom_right_with_margins_on(state.ids.back_slot, -95.0, 0.0)
                 .with_icon(self.imgs.mainhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -512,7 +510,7 @@ impl<'a> Widget for Bag<'a> {
                 |item| (item.name(), item.description()),
             );
             slot_maker
-                .fabricate(ArmorSlot::Offhand, [85.0; 2])
+                .fabricate(EquipSlot::Offhand, [85.0; 2])
                 .bottom_left_with_margins_on(state.ids.feet_slot, -95.0, 0.0)
                 .with_icon(self.imgs.offhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
                 .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
@@ -680,9 +678,6 @@ impl<'a> Widget for Bag<'a> {
                 slot_widget.set(state.ids.inv_slots[i], ui);
             }
         }
-
-        // Drop selected item
-        //    if ui.widget_input(ui.window).clicks().left().next().is_some() {
 
         // Stats Button
         if Button::image(self.imgs.button)
