@@ -21,33 +21,38 @@ impl Archetype for Keep {
     fn draw(
         &self,
         dist: i32,
-        offset: Vec2<i32>,
+        bound_offset: Vec2<i32>,
+        center_offset: Vec2<i32>,
         z: i32,
         branch: &Branch<Self::Attr>,
-    ) -> Option<Block> {
-        let profile = Vec2::new(offset.x, z);
+    ) -> Option<Option<Block>> {
+        let profile = Vec2::new(bound_offset.x, z);
 
-        let foundation = Block::new(BlockKind::Normal, Rgb::new(100, 100, 100));
-        let log = Block::new(BlockKind::Normal, Rgb::new(60, 45, 30));
-        let wall = Block::new(BlockKind::Normal, Rgb::new(75, 100, 125));
-        let roof = Block::new(BlockKind::Normal, Rgb::new(150, 120, 50));
-        let empty = Block::empty();
+        let make_block = |r, g, b| {
+            Some(Some(Block::new(BlockKind::Normal, Rgb::new(r, g, b))))
+        };
+
+        let foundation = make_block(100, 100, 100);
+        let log = make_block(60, 45, 30);
+        let wall = make_block(75, 100, 125);
+        let roof = make_block(150, 120, 50);
+        let empty = Some(Some(Block::empty()));
 
         let width = 3 + branch.locus;
         let rampart_width = 5 + branch.locus;
         let roof_height = 12 + width;
-        let ceil_height = 8;
+        let ceil_height = 16;
 
         if profile.y <= 1 - (dist - width - 1).max(0) && dist < width + 3 { // Foundations
-            Some(foundation)
+            foundation
         } else if profile.y == ceil_height && dist < rampart_width {
-            Some(roof)
+            roof
         } else if dist == rampart_width && profile.y >= ceil_height && profile.y < ceil_height + 4 {
-            Some(wall)
+            wall
         } else if dist == width && profile.y <= ceil_height {
-            Some(wall)
+            wall
         } else {
-            None
+            empty
         }
     }
 }

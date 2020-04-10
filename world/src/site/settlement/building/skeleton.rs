@@ -58,13 +58,13 @@ impl<T> Skeleton<T> {
         bounds
     }
 
-    pub fn closest(&self, pos: Vec2<i32>) -> (i32, Vec2<i32>, &Branch<T>) {
+    pub fn closest<R>(&self, pos: Vec2<i32>, mut f: impl FnMut(i32, Vec2<i32>, Vec2<i32>, &Branch<T>) -> Option<R>) -> Option<R> {
         let mut min = None;
         self.for_each(|node, ori, branch| {
             let node2 = node + ori.dir() * branch.len;
             let bounds = Aabr::new_empty(node)
                 .expanded_to_contain_point(node2);
-            let offs = if ori == Ori::East {
+            let bound_offset = if ori == Ori::East {
                 Vec2::new(
                     node.y - pos.y,
                     pos.x - pos.x.clamped(bounds.min.x, bounds.max.x)
@@ -75,12 +75,17 @@ impl<T> Skeleton<T> {
                     pos.y - pos.y.clamped(bounds.min.y, bounds.max.y)
                 )
             }.map(|e| e.abs());
-            let dist = offs.reduce_max();
+            let center_offset = if ori == Ori::East {
+                Vec2::new(pos.y, pos.x)
+            } else {
+                Vec2::new(pos.x, pos.y)
+            };
+            let dist = bound_offset.reduce_max();
             let dist_locus = dist - branch.locus;
-            if min.map(|(min_dist_locus, _, _, _)| dist_locus < min_dist_locus).unwrap_or(true) {
-                min = Some((dist_locus, dist, offs, branch));
+            if min.as_ref().map(|(min_dist_locus, _)| dist_locus < *min_dist_locus).unwrap_or(true) {
+                min = f(dist, bound_offset, center_offset, branch).map(|r| (dist_locus, r));
             }
         });
-        min.map(|(_, dist, offs, branch)| (dist, offs, branch)).unwrap()
+        min.map(|(_, r)| r)
     }
 }
