@@ -25,8 +25,8 @@ impl<A: Archetype> Building<A> {
         let archetype = A::generate(rng);
         Self {
             skel: Skeleton {
-                offset: -rng.gen_range(-4, len + 4).clamped(0, len),
-                ori: Ori::East,
+                offset: -rng.gen_range(0, len + 7).clamped(0, len),
+                ori: if rng.gen() { Ori::East } else { Ori::North },
                 root: Branch {
                     len,
                     attr: A::Attr::default(),
