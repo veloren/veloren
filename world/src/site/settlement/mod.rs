@@ -403,7 +403,7 @@ impl Settlement {
 
                 // Ground color
                 if let Some(color) = self.get_color(rpos) {
-                    for z in -3..3 {
+                    for z in -3..5 {
                         vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
                             if z >= 0 { Block::empty() } else { Block::new(BlockKind::Normal, color) },

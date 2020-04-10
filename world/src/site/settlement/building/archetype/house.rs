@@ -4,6 +4,7 @@ use common::{
     terrain::{Block, BlockKind},
     vol::Vox,
 };
+use crate::util::{RandomField, Sampler};
 use super::{
     Archetype,
     super::skeleton::*,
@@ -11,6 +12,7 @@ use super::{
 
 pub struct House {
     roof_color: Rgb<u8>,
+    noise: RandomField,
 }
 
 impl Archetype for House {
@@ -23,61 +25,83 @@ impl Archetype for House {
                 rng.gen_range(50, 200),
                 rng.gen_range(50, 200),
             ),
+            noise: RandomField::new(rng.gen()),
         }
     }
 
     fn draw(
         &self,
         dist: i32,
-        offset: Vec2<i32>,
+        bound_offset: Vec2<i32>,
+        center_offset: Vec2<i32>,
         z: i32,
         branch: &Branch<Self::Attr>,
-    ) -> Option<Block> {
-        let profile = Vec2::new(offset.x, z);
+    ) -> Option<Option<Block>> {
+        let profile = Vec2::new(bound_offset.x, z);
 
-        let foundation = Block::new(BlockKind::Normal, Rgb::new(100, 100, 100));
-        let log = Block::new(BlockKind::Normal, Rgb::new(60, 45, 30));
-        let floor = Block::new(BlockKind::Normal, Rgb::new(100, 75, 50));
-        let wall = Block::new(BlockKind::Normal, Rgb::new(200, 180, 150));
-        let roof = Block::new(BlockKind::Normal, self.roof_color);
-        let empty = Block::empty();
+        let make_block = |r, g, b| {
+            let nz = self.noise.get(Vec3::new(center_offset.x, center_offset.y, z * 8));
+            Some(Some(Block::new(BlockKind::Normal, Rgb::new(r, g, b) + (nz & 0x0F) as u8 - 8)))
+        };
 
-        let width = 3 + branch.locus;
-        let roof_height = 8 + width;
+        let foundation = make_block(100, 100, 100);
+        let log = make_block(60, 45, 30);
+        let floor = make_block(100, 75, 50);
+        let wall = make_block(200, 180, 150);
+        let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b);
+        let empty = Some(Some(Block::empty()));
+
         let ceil_height = 6;
+        let width = 3 + branch.locus + if profile.y >= ceil_height { 1 } else { 0 };
+        let foundation_height = 1 - (dist - width - 1).max(0);
+        let roof_height = 8 + width;
 
-        if profile.y <= 1 - (dist - width - 1).max(0) && dist < width + 3 { // Foundations
-            if dist < width { // Floor
-                Some(floor)
+        if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y > foundation_height + 1 { // Chimney shaft
+            empty
+        } else if center_offset.map(|e| e.abs()).reduce_max() <= 1 && profile.y < roof_height + 2 { // Chimney
+            if center_offset.product() == 0 && profile.y > foundation_height + 1 && profile.y <= foundation_height + 3 { // Fireplace
+                empty
             } else {
-                Some(foundation)
+                foundation
+            }
+        } else if profile.y <= foundation_height && dist < width + 3 { // Foundations
+            if dist == width - 1 { // Floor lining
+                log
+            } else if dist < width - 1 && profile.y == foundation_height { // Floor
+                floor
+            } else if dist < width && profile.y >= foundation_height - 3 { // Basement
+                empty
+            } else {
+                foundation
             }
         } else if profile.y > roof_height - profile.x { // Air above roof
-            None
+            Some(None)
         } else if profile.y == roof_height - profile.x
             && profile.y >= ceil_height
             && dist <= width + 2
         { // Roof
-            if profile.x == 0 || dist == width + 2 { // Eaves
-                Some(log)
+            if profile.x == 0 || dist == width + 2 || profile.x.abs() % 3 == 0 { // Eaves
+                log
             } else {
-                Some(roof)
+                roof
             }
         } else if dist == width { // Wall
-            if offset.x == offset.y || profile.y == ceil_height || offset.x == 0 {
-                Some(log)
+            if bound_offset.x == bound_offset.y || profile.y == ceil_height || bound_offset.x == 0 {
+                log
+            } else if profile.x >= 2 && profile.x <= width - 2 && profile.y >= foundation_height + 2 && profile.y <= foundation_height + 3 { // Windows
+                empty
             } else {
-                Some(wall)
+                wall
             }
         } else if dist < width { // Internals
             if profile.y == ceil_height {
                 if profile.x == 0 {// Rafters
-                    Some(log)
+                    log
                 } else { // Ceiling
-                    Some(floor)
+                    floor
                 }
             } else {
-                Some(empty)
+                empty
             }
         } else {
             None

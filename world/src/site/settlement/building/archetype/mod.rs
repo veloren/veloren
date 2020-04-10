@@ -13,8 +13,9 @@ pub trait Archetype {
     fn draw(
         &self,
         dist: i32,
-        offset: Vec2<i32>,
+        bound_offset: Vec2<i32>,
+        center_offset: Vec2<i32>,
         z: i32,
         branch: &Branch<Self::Attr>,
-    ) -> Option<Block>;
+    ) -> Option<Option<Block>>;
 }
