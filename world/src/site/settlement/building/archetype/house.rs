@@ -53,48 +53,87 @@ impl Archetype for House {
 
         let ceil_height = 6;
         let width = 3 + branch.locus + if profile.y >= ceil_height { 1 } else { 0 };
-        let foundation_height = 1 - (dist - width - 1).max(0);
+        let foundation_height = 0 - (dist - width - 1).max(0);
         let roof_height = 8 + width;
 
         if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y > foundation_height + 1 { // Chimney shaft
-            empty
-        } else if center_offset.map(|e| e.abs()).reduce_max() <= 1 && profile.y < roof_height + 2 { // Chimney
+            return empty;
+        }
+
+        if center_offset.map(|e| e.abs()).reduce_max() <= 1 && profile.y < roof_height + 2 { // Chimney
             if center_offset.product() == 0 && profile.y > foundation_height + 1 && profile.y <= foundation_height + 3 { // Fireplace
-                empty
+                return empty;
             } else {
-                foundation
+                return foundation;
             }
-        } else if profile.y <= foundation_height && dist < width + 3 { // Foundations
+        }
+
+        if profile.y <= foundation_height && dist < width + 3 { // Foundations
             if dist == width - 1 { // Floor lining
-                log
+                return log;
             } else if dist < width - 1 && profile.y == foundation_height { // Floor
-                floor
+                return floor;
             } else if dist < width && profile.y >= foundation_height - 3 { // Basement
-                empty
+                return empty;
             } else {
-                foundation
+                return foundation;
             }
-        } else if profile.y > roof_height - profile.x { // Air above roof
-            Some(None)
-        } else if profile.y == roof_height - profile.x
+        }
+
+        if profile.y > roof_height - profile.x { // Air above roof
+            return Some(None);
+        }
+
+        // Roof
+        if profile.y == roof_height - profile.x
             && profile.y >= ceil_height
             && dist <= width + 2
-        { // Roof
-            if profile.x == 0 || dist == width + 2 || profile.x.abs() % 3 == 0 { // Eaves
-                log
+        {
+            if profile.x == 0 || dist == width + 2 || (roof_height - profile.y) % 3 == 0 { // Eaves
+                return log;
             } else {
-                roof
+                return roof;
             }
-        } else if dist == width { // Wall
-            if bound_offset.x == bound_offset.y || profile.y == ceil_height || bound_offset.x == 0 {
+        }
+
+        // Walls
+        if dist == width {
+            let frame_bounds = if profile.y >= ceil_height {
+                Aabr {
+                    min: Vec2::new(-1, ceil_height + 2),
+                    max: Vec2::new(1, ceil_height + 5),
+                }
+            } else {
+                Aabr {
+                    min: Vec2::new(2, foundation_height + 2),
+                    max: Vec2::new(width - 2, ceil_height - 2),
+                }
+            };
+            let window_bounds = Aabr {
+                min: (frame_bounds.min + 1).map2(frame_bounds.center(), |a, b| a.min(b)),
+                max: (frame_bounds.max - 1).map2(frame_bounds.center(), |a, b| a.max(b)),
+            };
+
+            // Window
+            if (frame_bounds.size() + 1).reduce_min() > 2 {
+                let surface_pos = Vec2::new(bound_offset.x, profile.y);
+                if window_bounds.contains_point(surface_pos) {
+                    return empty;
+                } else if frame_bounds.contains_point(surface_pos) {
+                    return log;
+                };
+            }
+
+            // Wall
+            return if bound_offset.x == bound_offset.y || profile.x == 0 || profile.y == ceil_height { // Support beams
                 log
-            } else if profile.x >= 2 && profile.x <= width - 2 && profile.y >= foundation_height + 2 && profile.y <= foundation_height + 3 { // Windows
-                empty
             } else {
                 wall
-            }
-        } else if dist < width { // Internals
-            if profile.y == ceil_height {
+            };
+        }
+
+        if dist < width { // Internals
+            return if profile.y == ceil_height {
                 if profile.x == 0 {// Rafters
                     log
                 } else { // Ceiling
@@ -102,9 +141,9 @@ impl Archetype for House {
                 }
             } else {
                 empty
-            }
-        } else {
-            None
+            };
         }
+
+        None
     }
 }
