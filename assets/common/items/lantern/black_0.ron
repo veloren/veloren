@@ -1,0 +1,5 @@
+Item(
+    name: "Black Lantern",
+    description: "Used by city guards.",
+    kind: Lantern(Black0),
+)
