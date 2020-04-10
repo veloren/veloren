@@ -1,4 +1,4 @@
-use crate::{sync::Uid, util::Dir};
+use crate::{comp::inventory::slot::Slot, sync::Uid, util::Dir};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
@@ -11,9 +11,9 @@ pub const DEFAULT_HOLD_DURATION: Duration = Duration::from_millis(200);
 pub enum InventoryManip {
     Pickup(Uid),
     Collect(Vec3<i32>),
-    Use(usize),
-    Swap(usize, usize),
-    Drop(usize),
+    Use(Slot),
+    Swap(Slot, Slot),
+    Drop(Slot),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

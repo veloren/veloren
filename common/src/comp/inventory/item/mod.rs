@@ -36,12 +36,21 @@ pub enum Ingredient {
     Grass,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Lantern {
+    Black0 = 1,
+    Green0 = 2,
+}
+pub const ALL_LANTERNS: [Lantern; 2] = [Lantern::Black0, Lantern::Green0];
+
 fn default_amount() -> u32 { 1 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(tool::Tool),
+    Lantern(Lantern),
     Armor {
         kind: armor::Armor,
         stats: armor::Stats,
