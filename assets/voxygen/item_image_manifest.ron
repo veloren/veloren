@@ -54,6 +54,13 @@
         "voxel.weapon.shield.wood-0",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
+    // Lanterns
+    Lantern(Black0): Png(
+        "element.icons.lantern_black-0",        
+    ),
+    Lantern(Green0): Png(
+        "element.icons.lantern_green-0",        
+    ),
     // Other
     Utility(Collar): Png(
         "element.icons.collar",
@@ -250,13 +257,6 @@
     // Necks
     Armor(Neck(Neck0)): Png(
         "element.icons.neck-0",        
-    ),
-    // Lanterns
-    Armor(Lantern(Black0)): Png(
-        "element.icons.lantern_black-0",        
-    ),
-    Armor(Lantern(Green0)): Png(
-        "element.icons.lantern_green-0",        
     ),
     // Tabards
     Armor(Tabard(Admin)): Png(
