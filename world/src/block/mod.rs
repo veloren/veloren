@@ -604,7 +604,7 @@ pub fn block_from_structure(
         StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 3 > 0 {
             Block::empty()
         } else {
-            Block::new(BlockKind::Apple, Rgb::new(194, 30, 37))
+            Block::new(BlockKind::Ember, Rgb::new(0, 0, 0))
         }),
         StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
             Block::empty()
