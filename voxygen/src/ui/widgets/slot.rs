@@ -255,11 +255,10 @@ where
             };
         }
 
-        // If not dragging and the mouse is down and started on this slot start dragging
-        let input = &ui.global_input().current;
-        if let mouse::ButtonPosition::Down(_, Some(id)) = input.mouse.buttons.left() {
+        // If not dragging and there is a drag event on this slot start dragging
+        if ui.widget_input(widget).drags().left().next().is_some() {
             match self.state {
-                ManagerState::Selected(_, _) | ManagerState::Idle if widget == *id => {
+                ManagerState::Selected(_, _) | ManagerState::Idle => {
                     // Start dragging if widget is filled
                     if let Some(img) = content_img {
                         self.state = ManagerState::Dragging(widget, slot, img);
@@ -459,7 +458,11 @@ where
         };
 
         // Get amount (None => no amount text)
-        let amount = slot_key.amount(content_source);
+        let amount = if let Interaction::Dragging = interaction {
+            None // Don't show amount if being dragged
+        } else {
+            slot_key.amount(content_source)
+        };
 
         // Get slot widget dimensions and position
         let (x, y, w, h) = rect.x_y_w_h();

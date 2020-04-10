@@ -246,5 +246,5 @@ pub fn unequip(slot: EquipSlot, inventory: &mut Inventory, loadout: &mut Loadout
     loadout_remove(slot, loadout) // Remove item from loadout
         .and_then(|i| inventory.push(i)) // Insert into inventory
         .and_then(|i| loadout_insert(slot, i, loadout)) // If that fails put back in loadout
-        .unwrap(); // Never fails
+        .unwrap_none(); // Never fails
 }
