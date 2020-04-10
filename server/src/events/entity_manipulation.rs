@@ -138,15 +138,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
 
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
     let state = &server.state;
-    if vel.z <= -37.0 {
+    if vel.z <= -30.0 {
         if let Some(stats) = state.ecs().write_storage::<comp::Stats>().get_mut(entity) {
-            let falldmg = (vel.z / 2.5) as i32;
-            if falldmg < 0 {
-                stats.health.change_by(comp::HealthChange {
-                    amount: falldmg,
-                    cause: comp::HealthSource::World,
-                });
-            }
+            let falldmg = vel.z.powi(2) as i32 / 20 - 40;
+            stats.health.change_by(comp::HealthChange {
+                amount: -falldmg,
+                cause: comp::HealthSource::World,
+            });
         }
     }
 }
