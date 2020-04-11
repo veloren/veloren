@@ -9,7 +9,7 @@ use crate::{
 };
 use common::{
     terrain::Block,
-    vol::{BaseVol, RectSizedVol, WriteVol},
+    vol::{BaseVol, RectSizedVol, ReadVol, WriteVol},
 };
 use std::{fmt, sync::Arc};
 use vek::*;
@@ -40,7 +40,7 @@ impl Site {
         &'a self,
         wpos2d: Vec2<i32>,
         get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + WriteVol),
+        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
         match self {
             Site::Settlement(settlement) => settlement.apply_to(wpos2d, get_column, vol),

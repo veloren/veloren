@@ -592,7 +592,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let near_cliffs = sim_chunk.near_cliffs;
 
         let river_gouge = 0.5;
-        let (in_water, water_dist, alt_, water_level, warp_factor) = if let Some((
+        let (in_water, water_dist, alt_, water_level, riverless_alt, warp_factor) = if let Some((
             max_border_river_pos,
             river_chunk,
             max_border_river,
@@ -603,7 +603,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             //
             // If we are <= water_alt, we are in the lake; otherwise, we are flowing into
             // it.
-            let (in_water, water_dist, new_alt, new_water_alt, warp_factor) = max_border_river
+            let (in_water, water_dist, new_alt, new_water_alt, riverless_alt, warp_factor) = max_border_river
                 .river_kind
                 .and_then(|river_kind| {
                     if let RiverKind::River { cross_section } = river_kind {
@@ -621,15 +621,18 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         let river_dist = wposf.distance(river_pos);
                         let river_height_factor = river_dist / (river_width * 0.5);
 
+                        let valley_alt = Lerp::lerp(
+                            new_alt - cross_section.y.max(1.0),
+                            new_alt - 1.0,
+                            (river_height_factor * river_height_factor) as f32,
+                        );
+
                         Some((
                             true,
                             Some(river_dist as f32),
-                            Lerp::lerp(
-                                new_alt - cross_section.y.max(1.0),
-                                new_alt - 1.0,
-                                (river_height_factor * river_height_factor) as f32,
-                            ),
+                            valley_alt,
                             new_alt,
+                            valley_alt + river_gouge,
                             0.0,
                         ))
                     } else {
@@ -676,6 +679,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             Some(river_dist as f32),
                                             alt_for_river.min(lake_water_alt - 1.0 - river_gouge),
                                             lake_water_alt - river_gouge,
+                                            alt_for_river.min(lake_water_alt - 1.0),
                                             0.0,
                                         ));
                                     }
@@ -685,6 +689,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         Some(wposf.distance(river_pos) as f32),
                                         alt_for_river,
                                         downhill_water_alt,
+                                        alt_for_river,
                                         river_scale_factor as f32,
                                     ))
                                 },
@@ -714,10 +719,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                         || downhill_water_alt
                                                             .max(river_chunk.water_alt)
                                                             > alt_for_river,
-                                                    None,
+                                                    Some(lake_dist as f32),
                                                     alt_for_river,
                                                     (downhill_water_alt.max(river_chunk.water_alt)
                                                         - river_gouge),
+                                                    alt_for_river,
                                                     river_scale_factor as f32
                                                         * (1.0 - gouge_factor),
                                                 ));
@@ -727,6 +733,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                     Some(lake_dist as f32),
                                                     alt_for_river,
                                                     downhill_water_alt,
+                                                    alt_for_river,
                                                     river_scale_factor as f32,
                                                 ));
                                             }
@@ -746,6 +753,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             Some(lake_dist as f32),
                                             alt_for_river.min(lake_water_alt - 1.0 - river_gouge),
                                             lake_water_alt - river_gouge,
+                                            alt_for_river.min(lake_water_alt - 1.0),
                                             0.0,
                                         ));
                                     }
@@ -766,6 +774,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                 alt.min(lake_water_alt - 1.0 - river_gouge),
                                                 downhill_water_alt.max(lake_water_alt)
                                                     - river_gouge,
+                                                alt.min(lake_water_alt - 1.0),
                                                 0.0,
                                             ));
                                         } else {
@@ -775,10 +784,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                 alt_for_river,
                                                 if in_bounds_ {
                                                     downhill_water_alt.max(lake_water_alt)
-                                                        - river_gouge
                                                 } else {
-                                                    downhill_water_alt - river_gouge
-                                                },
+                                                    downhill_water_alt
+                                                } - river_gouge,
+                                                alt_for_river,
                                                 river_scale_factor as f32 * (1.0 - gouge_factor),
                                             ));
                                         }
@@ -788,6 +797,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         Some(lake_dist as f32),
                                         alt_for_river,
                                         downhill_water_alt,
+                                        alt_for_river,
                                         river_scale_factor as f32,
                                     ))
                                 },
@@ -802,6 +812,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         Some(river_dist as f32),
                                         alt_for_river,
                                         downhill_water_alt,
+                                        alt_for_river,
                                         river_scale_factor as f32,
                                     ))
                                 },
@@ -812,19 +823,20 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             None,
                             alt_for_river,
                             downhill_water_alt,
+                            alt_for_river,
                             river_scale_factor as f32,
                         ))
                 });
-            (in_water, water_dist, new_alt, new_water_alt, warp_factor)
+            (in_water, water_dist, new_alt, new_water_alt, riverless_alt, warp_factor)
         } else {
-            (false, None, alt_for_river, downhill_water_alt, 1.0)
+            (false, None, alt_for_river, downhill_water_alt, alt_for_river, 1.0)
         };
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
-        let riverless_alt = alt + riverless_alt_delta;
         let alt = alt_ + riverless_alt_delta;
+        let riverless_alt = riverless_alt + riverless_alt_delta;
         let basement =
             alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
