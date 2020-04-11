@@ -710,39 +710,21 @@ impl HumArmorLanternSpec {
                 Some(spec) => spec,
                 None => {
                     error!("No lantern specification exists for {:?}", lantern);
-                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
+                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
                 },
             }
         } else {
             &self.0.default
         };
 
-        let color = |mat_segment| {
-            color_segment(
-                mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
-            )
-        };
+        let lantern_segment = color_segment(
+            graceful_load_mat_segment(&spec.vox_spec.0),
+            body.race.skin_color(body.skin),
+            body.race.hair_color(body.hair_color),
+            body.race.eye_color(body.eye_color),
+        );
 
-        let bare_lantern = graceful_load_mat_segment("armor.empty");
-
-        let mut lantern_armor = graceful_load_mat_segment(&spec.vox_spec.0);
-
-        if let Some(color) = spec.color {
-            let lantern_color = Vec3::from(color);
-            lantern_armor =
-                lantern_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(lantern_color)));
-        }
-
-        let lantern = DynaUnionizer::new()
-            .add(color(bare_lantern), Vec3::new(0, 0, 0))
-            .add(color(lantern_armor), Vec3::new(0, 0, 0))
-            .unify()
-            .0;
-
-        generate_mesh(&lantern, Vec3::from(spec.vox_spec.1))
+        generate_mesh(&lantern_segment, Vec3::from(spec.vox_spec.1))
     }
 }
 impl HumArmorHeadSpec {
@@ -751,7 +733,7 @@ impl HumArmorHeadSpec {
             .unwrap()
     }
 
-    pub fn mesh_lantern(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+    pub fn mesh_head(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
         let spec = if let Some(ItemKind::Armor {
             kind: Armor::Head(head),
             ..
@@ -801,7 +783,7 @@ impl HumArmorTabardSpec {
             .unwrap()
     }
 
-    pub fn mesh_lantern(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
+    pub fn mesh_tabard(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
         let spec = if let Some(ItemKind::Armor {
             kind: Armor::Tabard(tabard),
             ..
@@ -848,9 +830,6 @@ impl HumArmorTabardSpec {
 // TODO: Inventory
 pub fn mesh_glider() -> Mesh<FigurePipeline> {
     load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0))
-}
-pub fn mesh_lantern() -> Mesh<FigurePipeline> {
-    load_mesh("object.lantern0", Vec3::new(0.0, 0.0, 0.0))
 }
 
 /////////

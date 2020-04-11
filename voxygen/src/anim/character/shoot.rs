@@ -138,6 +138,9 @@ impl Animation for ShootAnimation {
                 * Quaternion::rotation_y(0.0);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         }
+        next.back.offset = Vec3::new(0.0, -2.8, 7.25);
+        next.back.ori = Quaternion::rotation_x(-0.3);
+        next.back.scale = Vec3::one() * 1.02;
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
