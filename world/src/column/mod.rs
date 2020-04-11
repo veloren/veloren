@@ -629,7 +629,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
                         Some((
                             true,
-                            Some(river_dist as f32),
+                            Some((river_dist - river_width * 0.5) as f32),
                             valley_alt,
                             new_alt,
                             valley_alt + river_gouge,
@@ -676,7 +676,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         let _river_height_factor = river_dist / (river_width * 0.5);
                                         return Some((
                                             true,
-                                            Some(river_dist as f32),
+                                            Some((river_dist - river_width * 0.5) as f32),
                                             alt_for_river.min(lake_water_alt - 1.0 - river_gouge),
                                             lake_water_alt - river_gouge,
                                             alt_for_river.min(lake_water_alt - 1.0),
@@ -686,7 +686,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
                                     Some((
                                         river_scale_factor <= 1.0,
-                                        Some(wposf.distance(river_pos) as f32),
+                                        Some((wposf.distance(river_pos) - river_width * 0.5) as f32),
                                         alt_for_river,
                                         downhill_water_alt,
                                         alt_for_river,
