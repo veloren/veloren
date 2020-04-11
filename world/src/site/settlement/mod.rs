@@ -12,7 +12,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     terrain::{Block, BlockKind, TerrainChunkSize},
-    vol::{BaseVol, RectSizedVol, RectVolSize, WriteVol, Vox},
+    vol::{BaseVol, RectSizedVol, RectVolSize, ReadVol, WriteVol, Vox},
     store::{Id, Store},
 };
 use hashbrown::{HashMap, HashSet};
@@ -76,7 +76,7 @@ impl WorldSim {
         self
             .get(pos)
             .map(|chunk| {
-                chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake()
+                !chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake()
             })
             .unwrap_or(false)
         && self
@@ -157,7 +157,7 @@ impl Settlement {
     /// Designate hazardous terrain based on world data
     pub fn designate_from_world(&mut self, sim: &WorldSim, rng: &mut impl Rng) {
         let tile_radius = self.radius() as i32 / AREA_SIZE as i32;
-        let hazard = self.land.new_plot(Plot::Hazard);
+        let hazard = self.land.hazard;
         Spiral2d::new()
             .take_while(|tile| tile.map(|e| e.abs()).reduce_max() < tile_radius)
             .for_each(|tile| {
@@ -169,8 +169,7 @@ impl Settlement {
                     .any(|offs| {
                         let wpos = wpos + offs * AREA_SIZE as i32 / 2;
                         let cpos = wpos.map(|e| e.div_euclid(TerrainChunkSize::RECT_SIZE.x as i32));
-                        sim
-                            .can_host_settlement(cpos)
+                        !sim.can_host_settlement(cpos)
                     })
                     || rng.gen_range(0, 16) == 0 // Randomly consider some tiles inaccessible
                 {
@@ -278,7 +277,7 @@ impl Settlement {
             .iter()
             .filter_map(|dir| {
                 self.land.find_tile_dir(origin, *dir, |plot| match plot {
-                    Some(Plot::Hazard) => false,
+                    Some(Plot::Water) => false,
                     Some(Plot::Town) => false,
                     _ => true,
                 })
@@ -290,9 +289,10 @@ impl Settlement {
                 .find_path(spokes[i], spokes[(i + 1) % spokes.len()], |_, to| match to
                     .map(|to| self.land.plot(to.plot))
                 {
-                    Some(Plot::Hazard) => 100000.0,
-                    Some(Plot::Town) => 10000.0,
-                    _ => 1.0,
+                    Some(Plot::Hazard) => 200.0,
+                    Some(Plot::Water) => 40.0,
+                    Some(Plot::Town) => 1000.0,
+                    _ => 10.0,
                 })
                 .map(|path| wall_path.extend(path.iter().copied()));
         }
@@ -448,7 +448,7 @@ impl Settlement {
         &'a self,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + WriteVol),
+        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
         let rand_field = RandomField::new(0);
 
@@ -482,13 +482,13 @@ impl Settlement {
                     // Try to use the column at the centre of the path for sampling to make them flatter
                     let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos)).unwrap_or(col_sample);
                     let bridge_offset = if let Some(water_dist) = col.water_dist {
-                        ((water_dist.abs() * 0.15).min(f32::consts::PI).cos() + 1.0) * 5.0
+                        ((water_dist.abs() * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0
                     } else {
                         0.0
                     };
                     let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
 
-                    for z in inset - 2..inset {
+                    for z in inset - 3..inset {
                         vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
                             if bridge_offset >= 2.0 {
@@ -498,7 +498,7 @@ impl Settlement {
                             },
                         );
                     }
-                    let head_space = 6;//(6 - (dist * 0.4).powf(6.0).round() as i32).max(1);
+                    let head_space = (8 - (dist * 0.25).powf(6.0).round() as i32).max(1);
                     for z in inset..inset + head_space {
                         vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
@@ -507,11 +507,16 @@ impl Settlement {
                     }
                 // Ground colour
                 } else if let Some(color) = self.get_color(rpos) {
-                    for z in -3..5 {
-                        vol.set(
-                            Vec3::new(offs.x, offs.y, surface_z + z),
-                            if z >= 0 { Block::empty() } else { Block::new(BlockKind::Normal, noisy_color(color, 4)) },
-                        );
+                    for z in -8..6 {
+                        let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+
+                        if z >= 0 {
+                            if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                                vol.set(pos, Block::empty());
+                            }
+                        } else {
+                            vol.set(pos, Block::new(BlockKind::Normal, noisy_color(color, 4)));
+                        }
                     }
                 }
 
@@ -523,7 +528,15 @@ impl Settlement {
                         (rand_field.get(wpos2d.into()) % 256) as f32 / 256.0,
                     )
                     .map(|e| (e % 256) as u8);
-                    for z in 0..12 {
+
+                    let z_offset = if let Some(water_dist) = col_sample.water_dist {
+                        // Water gate
+                        ((water_dist.abs() * 0.45).min(f32::consts::PI).cos() + 1.0) * 4.0
+                    } else {
+                        0.0
+                    } as i32;
+
+                    for z in z_offset..12 {
                         if dist / WayKind::Wall.width()
                             < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0)
                         {
@@ -566,7 +579,13 @@ impl Settlement {
 
                     for x in bounds.min.x..bounds.max.x + 1 {
                         for y in bounds.min.y..bounds.max.y + 1 {
-                            for z in bounds.min.z..bounds.max.z + 1 {
+                            let col = if let Some(col) = get_column(offs) {
+                                col
+                            } else {
+                                continue;
+                            };
+
+                            for z in bounds.min.z.min(col.alt as i32 - 1)..bounds.max.z + 1 {
                                 let rpos = Vec3::new(x, y, z);
                                 let wpos = Vec3::from(self.origin) + rpos;
                                 let coffs = wpos - Vec3::from(wpos2d);
@@ -585,17 +604,17 @@ impl Settlement {
     pub fn get_color(&self, pos: Vec2<i32>) -> Option<Rgb<u8>> {
         let sample = self.land.get_at_block(pos);
 
-        match sample.tower {
-            Some((Tower::Wall, _)) => return Some(Rgb::new(50, 50, 50)),
-            _ => {},
-        }
+        // match sample.tower {
+        //     Some((Tower::Wall, _)) => return Some(Rgb::new(50, 50, 50)),
+        //     _ => {},
+        // }
 
-        match sample.way {
-            Some((WayKind::Path, _, _)) => return Some(Rgb::new(90, 70, 50)),
-            Some((WayKind::Hedge, _, _)) => return Some(Rgb::new(0, 150, 0)),
-            Some((WayKind::Wall, _, _)) => return Some(Rgb::new(60, 60, 60)),
-            _ => {},
-        }
+        // match sample.way {
+        //     Some((WayKind::Path, _, _)) => return Some(Rgb::new(90, 70, 50)),
+        //     Some((WayKind::Hedge, _, _)) => return Some(Rgb::new(0, 150, 0)),
+        //     Some((WayKind::Wall, _, _)) => return Some(Rgb::new(60, 60, 60)),
+        //     _ => {},
+        // }
 
         match sample.plot {
             Some(Plot::Dirt) => return Some(Rgb::new(90, 70, 50)),
@@ -696,14 +715,18 @@ pub struct Land {
     tiles: HashMap<Vec2<i32>, Tile>,
     plots: Store<Plot>,
     sampler_warp: StructureGen2d,
+    hazard: Id<Plot>,
 }
 
 impl Land {
     pub fn new(rng: &mut impl Rng) -> Self {
+        let mut plots = Store::default();
+        let hazard = plots.insert(Plot::Hazard);
         Self {
             tiles: HashMap::new(),
-            plots: Store::default(),
+            plots,
             sampler_warp: StructureGen2d::new(rng.gen(), AREA_SIZE, AREA_SIZE * 2 / 5),
+            hazard,
         }
     }
 
@@ -797,7 +820,7 @@ impl Land {
         dest: Vec2<i32>,
         mut path_cost_fn: impl FnMut(Option<&Tile>, Option<&Tile>) -> f32,
     ) -> Option<Path<Vec2<i32>>> {
-        let heuristic = |pos: &Vec2<i32>| pos.distance_squared(dest) as f32;
+        let heuristic = |pos: &Vec2<i32>| (pos - dest).map(|e| e as f32).magnitude();
         let neighbors = |pos: &Vec2<i32>| {
             let pos = *pos;
             CARDINALS.iter().map(move |dir| pos + *dir)
@@ -868,7 +891,11 @@ impl Land {
             } else {
                 continue;
             };
+            if self.tile_at(tiles[0]).is_none() {
+                self.set(tiles[0], self.hazard);
+            }
             let mut plots = &self.plots;
+
             self.tiles
                 .get_mut(&tiles[1])
                 .filter(|tile| permit_fn(plots.get(tile.plot)))
