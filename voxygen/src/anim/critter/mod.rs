@@ -32,16 +32,13 @@ impl CritterSkeleton {
 impl Skeleton for CritterSkeleton {
     type Attr = CritterAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 19] {
+    fn compute_matrices(&self) -> [FigureBoneData; 16] {
         [
             FigureBoneData::new(self.head.compute_base_matrix()),
             FigureBoneData::new(self.chest.compute_base_matrix()),
             FigureBoneData::new(self.feet_f.compute_base_matrix()),
             FigureBoneData::new(self.feet_b.compute_base_matrix()),
             FigureBoneData::new(self.tail.compute_base_matrix()),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
