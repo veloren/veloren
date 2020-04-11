@@ -91,7 +91,7 @@ impl Animation for RunAnimation {
         next.belt.scale = Vec3::one();
 
         next.back.offset = Vec3::new(0.0, -2.8, 7.25);
-        next.back.ori = Quaternion::rotation_z(0.0);
+        next.back.ori = Quaternion::rotation_x(-0.2 + short * 0.2);
         next.back.scale = Vec3::one() * 1.02;
 
         next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
@@ -138,7 +138,7 @@ impl Animation for RunAnimation {
 
         next.main.offset = Vec3::new(
             -7.0 + skeleton_attr.weapon_x,
-            -5.0 + skeleton_attr.weapon_y,
+            -6.5 + skeleton_attr.weapon_y,
             15.0,
         );
         next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + short * 0.25);
