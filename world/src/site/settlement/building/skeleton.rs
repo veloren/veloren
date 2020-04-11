@@ -52,8 +52,12 @@ impl<T> Skeleton<T> {
     pub fn bounds(&self) -> Aabr<i32> {
         let mut bounds = Aabr::new_empty(self.ori.dir() * self.offset);
         self.for_each(|node, ori, branch| {
-            bounds.expand_to_contain(Aabr::new_empty(node - ori.flip().dir() * branch.locus)
-                .expanded_to_contain_point(node + ori.dir() * branch.len + ori.flip().dir() * branch.locus));
+            let node2 = node + ori.dir() * branch.len;
+
+            let a = node.map2(node2, |a, b| a.min(b)) - branch.locus;
+            let b = node.map2(node2, |a, b| a.max(b)) + branch.locus;
+            bounds.expand_to_contain_point(a);
+            bounds.expand_to_contain_point(b);
         });
         bounds
     }
