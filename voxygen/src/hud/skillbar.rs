@@ -1,10 +1,13 @@
 use super::{
-    img_ids::Imgs, BarNumbers, ShortcutNumbers, XpBar, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
-    LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
+    hotbar, img_ids::Imgs, item_imgs::ItemImgs, slots, BarNumbers, ShortcutNumbers, XpBar, BLACK,
+    CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
-    ui::fonts::ConrodVoxygenFonts,
+    ui::{
+        fonts::ConrodVoxygenFonts,
+        slot::{ContentSize, SlotMaker},
+    },
     window::GameInput,
     GlobalState,
 };
@@ -15,7 +18,7 @@ use common::{
             tool::{DebugKind, StaffKind, Tool, ToolKind},
             ItemKind,
         },
-        CharacterState, ControllerInputs, Energy, Loadout, Stats,
+        CharacterState, ControllerInputs, Energy, Inventory, Loadout, Stats,
     },
 };
 use conrod_core::{
@@ -23,8 +26,8 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
 use std::time::{Duration, Instant};
+use vek::*;
 /*
 use const_tweaker::tweak;
 #[tweak(min = 0.0, max = 1.0, step = 0.01)]
@@ -130,12 +133,16 @@ pub enum ResourceType {
 pub struct Skillbar<'a> {
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
+    item_imgs: &'a ItemImgs,
     fonts: &'a ConrodVoxygenFonts,
     stats: &'a Stats,
     loadout: &'a Loadout,
     energy: &'a Energy,
     character_state: &'a CharacterState,
     controller: &'a ControllerInputs,
+    inventory: &'a Inventory,
+    hotbar: &'a hotbar::State,
+    slot_manager: &'a mut slots::SlotManager,
     pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -146,6 +153,7 @@ impl<'a> Skillbar<'a> {
     pub fn new(
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
+        item_imgs: &'a ItemImgs,
         fonts: &'a ConrodVoxygenFonts,
         stats: &'a Stats,
         loadout: &'a Loadout,
@@ -153,10 +161,14 @@ impl<'a> Skillbar<'a> {
         character_state: &'a CharacterState,
         pulse: f32,
         controller: &'a ControllerInputs,
+        inventory: &'a Inventory,
+        hotbar: &'a hotbar::State,
+        slot_manager: &'a mut slots::SlotManager,
     ) -> Self {
         Self {
             global_state,
             imgs,
+            item_imgs,
             fonts,
             stats,
             loadout,
@@ -166,6 +178,9 @@ impl<'a> Skillbar<'a> {
             character_state,
             pulse,
             controller,
+            inventory,
+            hotbar,
+            slot_manager,
         }
     }
 }
@@ -783,51 +798,53 @@ impl<'a> Widget for Skillbar<'a> {
             },
         )
         .set(state.ids.m2_content, ui);
+        // Slots
+        let content_source = (self.hotbar, self.inventory, self.loadout, self.energy); // TODO: avoid this
+        let image_source = (self.item_imgs, self.imgs);
+
+        let mut slot_maker = SlotMaker {
+            // TODO: is a separate image needed for the frame?
+            empty_slot: self.imgs.skillbar_slot,
+            filled_slot: self.imgs.skillbar_slot,
+            selected_slot: self.imgs.skillbar_slot,
+            background_color: Some(BG_COLOR),
+            content_size: ContentSize {
+                width_height_ratio: 1.0,
+                max_fraction: 0.9,
+            },
+            selected_content_scale: 1.067,
+            amount_font: self.fonts.cyri.conrod_id,
+            amount_margins: Vec2::new(-4.0, 0.0),
+            amount_font_size: self.fonts.cyri.scale(12),
+            amount_text_color: TEXT_COLOR,
+            content_source: &content_source,
+            image_source: &image_source,
+            slot_manager: Some(self.slot_manager),
+        };
         //Slot 5
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker
+            .fabricate(hotbar::Slot::Five, [20.0 * scale as f32; 2])
             .bottom_left_with_margins_on(state.ids.m1_slot, 0.0, -20.0 * scale)
             .set(state.ids.slot5, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot5)
-            .set(state.ids.slot5_bg, ui);
         // Slot 4
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker
+            .fabricate(hotbar::Slot::Four, [20.0 * scale as f32; 2])
             .left_from(state.ids.slot5, 0.0)
             .set(state.ids.slot4, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot4)
-            .set(state.ids.slot4_bg, ui);
         // Slot 3
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker
+            .fabricate(hotbar::Slot::Three, [20.0 * scale as f32; 2])
             .left_from(state.ids.slot4, 0.0)
             .set(state.ids.slot3, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot3)
-            .set(state.ids.slot3_bg, ui);
         // Slot 2
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker
+            .fabricate(hotbar::Slot::Two, [20.0 * scale as f32; 2])
             .left_from(state.ids.slot3, 0.0)
             .set(state.ids.slot2, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot2)
-            .set(state.ids.slot2_bg, ui);
         // Slot 1
         // TODO: Don't hardcode this to one Skill...
         // Frame flashes whenever the active skill inside this slot is activated
-        match self.character_state {
-            /*
+        /*match self.character_state {
             CharacterState::Charge { time_left } => {
                 let fade = time_left.as_secs_f32() * 10.0;
                 Image::new(self.imgs.skillbar_slot_l)
@@ -845,29 +862,14 @@ impl<'a> Widget for Skillbar<'a> {
                     )))
                     .floating(true)
                     .set(state.ids.slot1_act, ui);
-            },*/
-            _ => {
-                Image::new(self.imgs.skillbar_slot_l)
-                    .w_h(20.0 * scale, 20.0 * scale)
-                    .left_from(state.ids.slot2, 0.0)
-                    .set(state.ids.slot1, ui);
             },
-        }
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.5 * scale, 19.5 * scale)
-            .color(
-                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                        ToolKind::Staff(StaffKind::BasicStaff) => Some(BLACK),
-                        _ => Some(BG_COLOR),
-                    },
-                    _ => Some(BG_COLOR),
-                },
-            )
-            .middle_of(state.ids.slot1)
-            .set(state.ids.slot1_bg, ui);
+        }*/
+        slot_maker
+            .fabricate(hotbar::Slot::One, [20.0 * scale as f32; 2])
+            .left_from(state.ids.slot2, 0.0)
+            .set(state.ids.slot1, ui);
         // TODO: Changeable slot image
-        match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+        /*match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
             Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                 ToolKind::Staff(StaffKind::BasicStaff) => {
                     Image::new(self.imgs.fire_spell_1)
@@ -883,65 +885,43 @@ impl<'a> Widget for Skillbar<'a> {
                 _ => {},
             },
             _ => {},
-        }
+        }*/
         // Slot 6
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker
+            .fabricate(hotbar::Slot::Six, [20.0 * scale as f32; 2])
             .bottom_right_with_margins_on(state.ids.m2_slot, 0.0, -20.0 * scale)
             .set(state.ids.slot6, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot6)
-            .set(state.ids.slot6_bg, ui);
         // Slot 7
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker
+            .fabricate(hotbar::Slot::Seven, [20.0 * scale as f32; 2])
             .right_from(state.ids.slot6, 0.0)
             .set(state.ids.slot7, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot7)
-            .set(state.ids.slot7_bg, ui);
         // Slot 8
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker
+            .fabricate(hotbar::Slot::Eight, [20.0 * scale as f32; 2])
             .right_from(state.ids.slot7, 0.0)
             .set(state.ids.slot8, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot8)
-            .set(state.ids.slot8_bg, ui);
         // Slot 9
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker
+            .fabricate(hotbar::Slot::Nine, [20.0 * scale as f32; 2])
             .right_from(state.ids.slot8, 0.0)
             .set(state.ids.slot9, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot9)
-            .set(state.ids.slot9_bg, ui);
         // Quickslot
-        Image::new(self.imgs.skillbar_slot_r)
-            .w_h(20.0 * scale, 20.0 * scale)
+        slot_maker.filled_slot = self.imgs.skillbar_slot_r;
+        slot_maker.selected_slot = self.imgs.skillbar_slot_r;
+        slot_maker.empty_slot = self.imgs.skillbar_slot_r;
+        slot_maker
+            .fabricate(hotbar::Slot::Ten, [20.0 * scale as f32; 2])
             .right_from(state.ids.slot9, 0.0)
             .set(state.ids.slot10, ui);
-        Image::new(self.imgs.skillbar_slot_bg)
-            .w_h(19.0 * scale, 19.0 * scale)
-            .color(Some(BG_COLOR))
-            .middle_of(state.ids.slot10)
-            .set(state.ids.slot10_bg, ui);
-        // Shortcuts
 
+        // Shortcuts
         if let ShortcutNumbers::On = shortcuts {
             if let Some(slot1) = &self
                 .global_state
                 .settings
                 .controls
-                .get_binding(GameInput::Ability3)
+                .get_binding(GameInput::Slot1)
             {
                 Text::new(slot1.to_string().as_str())
                     .top_right_with_margins_on(state.ids.slot1_bg, 1.0, 2.0)

@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
-#![feature(drain_filter)]
+#![feature(drain_filter, bool_to_option)]
 #![recursion_limit = "2048"]
 
 #[macro_use]

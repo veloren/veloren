@@ -17,7 +17,7 @@ use vek::*;
 pub enum GameInput {
     Primary,
     Secondary,
-    Ability3,
+    Slot1,
     Slot2,
     Slot3,
     Slot4,
@@ -99,7 +99,7 @@ impl GameInput {
             GameInput::ToggleWield => "gameinput.togglewield",
             //GameInput::Charge => "gameinput.charge",
             GameInput::FreeLook => "gameinput.freelook",
-            GameInput::Ability3 => "gameinput.slot1",
+            GameInput::Slot1 => "gameinput.slot1",
             GameInput::Slot2 => "gameinput.slot2",
             GameInput::Slot3 => "gameinput.slot3",
             GameInput::Slot4 => "gameinput.slot4",

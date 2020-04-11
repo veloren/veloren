@@ -2,6 +2,7 @@ mod bag;
 mod buttons;
 mod chat;
 mod esc_menu;
+mod hotbar;
 mod img_ids;
 mod item_imgs;
 mod map;
@@ -235,6 +236,7 @@ pub enum Event {
     UseSlot(comp::slot::Slot),
     SwapSlots(comp::slot::Slot, comp::slot::Slot),
     DropSlot(comp::slot::Slot),
+    Ability3(bool),
     Logout,
     Quit,
     ChangeLanguage(LanguageMetadata),
@@ -442,6 +444,8 @@ pub struct Hud {
     velocity: f32,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
     slot_manager: slots::SlotManager,
+    hotbar: hotbar::State,
+    events: Vec<Event>,
 }
 
 impl Hud {
@@ -513,6 +517,8 @@ impl Hud {
             velocity: 0.0,
             voxygen_i18n,
             slot_manager,
+            hotbar: hotbar::State::new(),
+            events: Vec::new(),
         }
     }
 
@@ -529,7 +535,7 @@ impl Hud {
         debug_info: DebugInfo,
         dt: Duration,
     ) -> Vec<Event> {
-        let mut events = Vec::new();
+        let mut events = std::mem::replace(&mut self.events, Vec::new());
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
@@ -1676,16 +1682,26 @@ impl Hud {
         let energies = ecs.read_storage::<comp::Energy>();
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
-        if let (Some(stats), Some(loadout), Some(energy), Some(character_state), Some(controller)) = (
+        let inventories = ecs.read_storage::<comp::Inventory>();
+        if let (
+            Some(stats),
+            Some(loadout),
+            Some(energy),
+            Some(character_state),
+            Some(controller),
+            Some(inventory),
+        ) = (
             stats.get(entity),
             loadouts.get(entity),
             energies.get(entity),
             character_states.get(entity),
             controllers.get(entity).map(|c| &c.inputs),
+            inventories.get(entity),
         ) {
             Skillbar::new(
                 global_state,
                 &self.imgs,
+                &self.item_imgs,
                 &self.fonts,
                 &stats,
                 &loadout,
@@ -1693,6 +1709,9 @@ impl Hud {
                 &character_state,
                 self.pulse,
                 &controller,
+                &inventory,
+                &self.hotbar,
+                &mut self.slot_manager,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -1959,33 +1978,50 @@ impl Hud {
         // Maintain slot manager
         for event in self.slot_manager.maintain(ui_widgets) {
             use comp::slot::Slot;
-            use slots::SlotKind;
+            use slots::SlotKind::*;
             let to_slot = |slot_kind| match slot_kind {
-                SlotKind::Inventory(i) => Some(Slot::Inventory(i.0)),
-                SlotKind::Equip(e) => Some(Slot::Equip(e)),
-                //SlotKind::Hotbar(h) => None,
+                Inventory(i) => Some(Slot::Inventory(i.0)),
+                Equip(e) => Some(Slot::Equip(e)),
+                Hotbar(_) => None,
             };
             match event {
                 slot::Event::Dragged(a, b) => {
                     // Swap between slots
                     if let (Some(a), Some(b)) = (to_slot(a), to_slot(b)) {
                         events.push(Event::SwapSlots(a, b));
+                    } else if let (Inventory(i), Hotbar(h)) = (a, b) {
+                        self.hotbar.add_inventory_link(h, i.0);
+                    } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
+                        self.hotbar.swap(a, b);
                     }
                 },
                 slot::Event::Dropped(from) => {
                     // Drop item
                     if let Some(from) = to_slot(from) {
                         events.push(Event::DropSlot(from));
+                    } else if let Hotbar(h) = from {
+                        self.hotbar.clear_slot(h);
                     }
                 },
                 slot::Event::Used(from) => {
                     // Item used (selected and then clicked again)
                     if let Some(from) = to_slot(from) {
                         events.push(Event::UseSlot(from));
+                    } else if let Hotbar(h) = from {
+                        self.hotbar.get(h).map(|s| {
+                            match s {
+                                hotbar::SlotContents::Inventory(i) => {
+                                    events.push(Event::UseSlot(comp::slot::Slot::Inventory(i)));
+                                },
+                                hotbar::SlotContents::Ability3 => {}, /* Event::Ability3(true),
+                                                                       * sticks */
+                            }
+                        });
                     }
                 },
             }
         }
+        self.hotbar.maintain_ability3(client);
 
         events
     }
@@ -2018,6 +2054,30 @@ impl Hud {
     }
 
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
+        // Helper
+        fn handle_slot(
+            slot: hotbar::Slot,
+            state: bool,
+            events: &mut Vec<Event>,
+            slot_manager: &mut slots::SlotManager,
+            hotbar: &mut hotbar::State,
+        ) {
+            if let Some(slots::SlotKind::Inventory(i)) = slot_manager.selected() {
+                hotbar.add_inventory_link(slot, i.0);
+                slot_manager.idle();
+            } else {
+                let just_pressed = hotbar.process_input(slot, state);
+                hotbar.get(slot).map(|s| match s {
+                    hotbar::SlotContents::Inventory(i) => {
+                        if just_pressed {
+                            events.push(Event::UseSlot(comp::slot::Slot::Inventory(i)));
+                        }
+                    },
+                    hotbar::SlotContents::Ability3 => events.push(Event::Ability3(state)),
+                });
+            }
+        }
+
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         let handled = match event {
             WinEvent::Ui(event) => {
@@ -2058,44 +2118,145 @@ impl Hud {
             },
 
             // Press key while not typing
-            WinEvent::InputUpdate(key, true) if !self.typing() => match key {
-                GameInput::Command => {
+            WinEvent::InputUpdate(key, state) if !self.typing() => match key {
+                GameInput::Command if state => {
                     self.force_chat_input = Some("/".to_owned());
                     self.force_chat_cursor = Some(Index { line: 0, char: 1 });
                     self.ui.focus_widget(Some(self.ids.chat));
                     true
                 },
-                GameInput::Map => {
+                GameInput::Map if state => {
                     self.show.toggle_map();
                     true
                 },
-                GameInput::Bag => {
+                GameInput::Bag if state => {
                     self.show.toggle_bag();
                     true
                 },
-                GameInput::Social => {
+                GameInput::Social if state => {
                     self.show.toggle_social();
                     true
                 },
-                GameInput::Spellbook => {
+                GameInput::Spellbook if state => {
                     self.show.toggle_spell();
                     true
                 },
-                GameInput::Settings => {
+                GameInput::Settings if state => {
                     self.show.toggle_settings();
                     true
                 },
-                GameInput::Help => {
+                GameInput::Help if state => {
                     self.show.toggle_help();
                     true
                 },
-                GameInput::ToggleDebug => {
+                GameInput::ToggleDebug if state => {
                     global_state.settings.gameplay.toggle_debug =
                         !global_state.settings.gameplay.toggle_debug;
                     true
                 },
-                GameInput::ToggleIngameUi => {
+                GameInput::ToggleIngameUi if state => {
                     self.show.ingame = !self.show.ingame;
+                    true
+                },
+                // Skillbar
+                GameInput::Slot1 => {
+                    handle_slot(
+                        hotbar::Slot::One,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot2 => {
+                    handle_slot(
+                        hotbar::Slot::Two,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot3 => {
+                    handle_slot(
+                        hotbar::Slot::Three,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot4 => {
+                    handle_slot(
+                        hotbar::Slot::Four,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot5 => {
+                    handle_slot(
+                        hotbar::Slot::Five,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot6 => {
+                    handle_slot(
+                        hotbar::Slot::Six,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot7 => {
+                    handle_slot(
+                        hotbar::Slot::Seven,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot8 => {
+                    handle_slot(
+                        hotbar::Slot::Eight,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot9 => {
+                    handle_slot(
+                        hotbar::Slot::Nine,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot10 => {
+                    handle_slot(
+                        hotbar::Slot::Ten,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
                     true
                 },
                 _ => false,
