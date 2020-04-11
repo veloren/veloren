@@ -100,7 +100,7 @@ impl Civs {
             let flatten_radius = 12.0;
             if let Some(center_alt) = ctx.sim.get_alt_approx(wpos) {
                 for pos in nearby_chunks.clone() {
-                    let factor = (1.0 - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius) * 1.3;
+                    let factor = (1.0 - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius) * 1.15;
                     ctx.sim
                         .get_mut(pos)
                         // Don't disrupt chunks that are near water
