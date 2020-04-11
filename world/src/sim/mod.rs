@@ -1451,6 +1451,7 @@ impl WorldSim {
         */
 
         // Stage 2 - towns!
+        /*
         let chunk_idx_center = |e: Vec2<i32>| {
             e.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
                 e * sz as i32 + sz as i32 / 2
@@ -1464,12 +1465,9 @@ impl WorldSim {
                 chunk_idx_center(WORLD_SIZE.map(|e| e as i32)),
             )
             .map_init(
-                || Box::new(BlockGen::new(ColumnGen::new(self))),
-                |mut block_gen, (pos, seed)| {
+                || (),
+                |_, (pos, seed)| {
                     let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-                    // println!("Town: {:?}", town);
-                    //TownState::generate(pos, &mut block_gen, &mut rng).map(|t| (pos,
-                    // Arc::new(t)))
                     (
                         pos,
                         Site::from(Settlement::generate(pos, Some(self), &mut rng)),
@@ -1496,6 +1494,7 @@ impl WorldSim {
                     chunk.sites.push(site.clone());
                 }
             });
+        */
 
         // Create waypoints
         const WAYPOINT_EVERY: usize = 16;

@@ -89,6 +89,14 @@ pub struct Structure {
     kind: StructureKind,
 }
 
+impl Structure {
+    pub fn bounds_2d(&self) -> Aabr<i32> {
+        match &self.kind {
+            StructureKind::House(house) => house.bounds_2d(),
+        }
+    }
+}
+
 pub struct Settlement {
     origin: Vec2<i32>,
     land: Land,
@@ -128,7 +136,7 @@ impl Settlement {
         //this.place_river(rng);
 
         this.place_farms(&mut ctx);
-        this.place_town(ctx.rng);
+        this.place_town(&mut ctx);
         this.place_paths(ctx.rng);
 
         this
@@ -229,10 +237,10 @@ impl Settlement {
         }
     }
 
-    pub fn place_town(&mut self, rng: &mut impl Rng) {
+    pub fn place_town(&mut self, ctx: &mut GenCtx<impl Rng>) {
         const PLOT_COUNT: usize = 2;
 
-        let mut origin = Vec2::new(rng.gen_range(-2, 3), rng.gen_range(-2, 3));
+        let mut origin = Vec2::new(ctx.rng.gen_range(-2, 3), ctx.rng.gen_range(-2, 3));
 
         for i in 0..PLOT_COUNT {
             if let Some(base_tile) = self.land.find_tile_near(origin, |plot| match plot {
@@ -243,6 +251,43 @@ impl Settlement {
                 self.land
                     .plot_at_mut(base_tile)
                     .map(|plot| *plot = Plot::Town);
+
+                for _ in 0..ctx.rng.gen_range(10, 30) {
+                    for _ in 0..10 {
+                        let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
+                            + Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(-(AREA_SIZE as i32) * 3, AREA_SIZE as i32 * 3));
+
+                        if let Some(Plot::Town) = self.land
+                            .plot_at(house_pos.map(|e| e.div_euclid(AREA_SIZE as i32)))
+                        {} else {
+                            continue;
+                        }
+
+                        let structure = Structure {
+                            kind: StructureKind::House(HouseBuilding::generate(ctx.rng, Vec3::new(
+                                house_pos.x,
+                                house_pos.y,
+                                ctx.sim
+                                    .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
+                                    .unwrap_or(0.0)
+                                    .ceil() as i32,
+                            ))),
+                        };
+
+                        let bounds = structure.bounds_2d();
+
+                        // Check for collision with other structures
+                        if self.structures
+                            .iter()
+                            .any(|s| s.bounds_2d().collides_with_aabr(bounds))
+                        {
+                            continue;
+                        }
+
+                        self.structures.push(structure);
+                        break;
+                    }
+                }
 
                 if i == 0 {
                     /*
@@ -315,21 +360,21 @@ impl Settlement {
                 self.land.set(base_tile, farmhouse);
 
                 // Farmhouses
-                for _ in 0..ctx.rng.gen_range(1, 3) {
-                    let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
-                        + Vec2::new(ctx.rng.gen_range(-16, 16), ctx.rng.gen_range(-16, 16));
+                // for _ in 0..ctx.rng.gen_range(1, 3) {
+                //     let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
+                //         + Vec2::new(ctx.rng.gen_range(-16, 16), ctx.rng.gen_range(-16, 16));
 
-                    self.structures.push(Structure {
-                        kind: StructureKind::House(HouseBuilding::generate(ctx.rng, Vec3::new(
-                            house_pos.x,
-                            house_pos.y,
-                            ctx.sim
-                                .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
-                                .unwrap_or(0.0)
-                                .ceil() as i32,
-                        ))),
-                    });
-                }
+                //     self.structures.push(Structure {
+                //         kind: StructureKind::House(HouseBuilding::generate(ctx.rng, Vec3::new(
+                //             house_pos.x,
+                //             house_pos.y,
+                //             ctx.sim
+                //                 .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
+                //                 .unwrap_or(0.0)
+                //                 .ceil() as i32,
+                //         ))),
+                //     });
+                // }
 
                 // Fields
                 let farmland = self.farms.insert(Farm { base_tile });
@@ -463,13 +508,24 @@ impl Settlement {
 
         // Apply structures
         for structure in &self.structures {
+            let bounds = structure.bounds_2d();
+
+            // Skip this structure if it's not near this chunk
+            if !bounds.collides_with_aabr(Aabr {
+                min: wpos2d - self.origin,
+                max: wpos2d - self.origin + vol.size_xy().map(|e| e as i32),
+            }) {
+                continue;
+            }
+
             match &structure.kind {
                 StructureKind::House(b) => {
                     let centre = b.bounds_2d().center();
                     let bounds = b.bounds();
-                    for x in bounds.min.x..bounds.max.x {
-                        for y in bounds.min.y..bounds.max.y {
-                            for z in bounds.min.z..bounds.max.z {
+
+                    for x in bounds.min.x..bounds.max.x + 1 {
+                        for y in bounds.min.y..bounds.max.y + 1 {
+                            for z in bounds.min.z..bounds.max.z + 1 {
                                 let rpos = Vec3::new(x, y, z);
                                 let wpos = Vec3::from(self.origin) + rpos;
                                 let coffs = wpos - Vec3::from(wpos2d);

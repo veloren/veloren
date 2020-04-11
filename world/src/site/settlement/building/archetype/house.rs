@@ -52,7 +52,7 @@ impl Archetype for House {
         let empty = Some(Some(Block::empty()));
 
         let ceil_height = 6;
-        let width = 3 + branch.locus + if profile.y >= ceil_height { 1 } else { 0 };
+        let width = -3 + branch.locus + if profile.y >= ceil_height { 1 } else { 0 };
         let foundation_height = 0 - (dist - width - 1).max(0);
         let roof_height = 8 + width;
 
@@ -115,7 +115,7 @@ impl Archetype for House {
             };
 
             // Window
-            if (frame_bounds.size() + 1).reduce_min() > 2 {
+            if (frame_bounds.size() + 1).reduce_min() > 2 { // Window frame is large enough for a window
                 let surface_pos = Vec2::new(bound_offset.x, profile.y);
                 if window_bounds.contains_point(surface_pos) {
                     return empty;

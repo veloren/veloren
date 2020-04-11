@@ -14,8 +14,12 @@ use common::{
     store::{Id, Store},
     path::Path,
     astar::Astar,
+    spiral::Spiral2d,
 };
-use crate::sim::{WorldSim, SimChunk};
+use crate::{
+    sim::{WorldSim, SimChunk},
+    site::{Site as WorldSite, Settlement},
+};
 
 const CARDINALS: [Vec2<i32>; 4] = [
     Vec2::new(1, 0),
@@ -79,8 +83,20 @@ impl Civs {
         // Temporary!
         for track in this.tracks.iter() {
             for loc in track.path.iter() {
-                sim.get_mut(*loc).unwrap().place = Some(this.civs.iter().next().unwrap().homeland);
+                ctx.sim.get_mut(*loc).unwrap().place = Some(this.civs.iter().next().unwrap().homeland);
             }
+        }
+
+        // Place sites in world
+        for site in this.sites.iter() {
+            let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
+            let settlement = WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), ctx.rng));
+            for pos in Spiral2d::new().map(|offs| site.center + offs).take(32usize.pow(2)) {
+                ctx.sim
+                    .get_mut(pos)
+                    .map(|chunk| chunk.sites.push(settlement.clone()));
+            }
+            println!("Placed site at {:?}", site.center);
         }
 
         this.display_info();
