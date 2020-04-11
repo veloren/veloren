@@ -105,7 +105,7 @@ impl Animation for StandAnimation {
 
         next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
         next.lantern.ori = Quaternion::rotation_x(0.0);
-        next.lantern.scale = Vec3::one() * 50.0;
+        next.lantern.scale = Vec3::one() * 1.0;
 
         next.torso.offset = Vec3::new(0.0, -0.1, 0.1) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(0.0);

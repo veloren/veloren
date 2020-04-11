@@ -15,11 +15,8 @@ const SCALE: f32 = 1.0 / 11.0;
 impl Skeleton for ObjectSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 19] {
+    fn compute_matrices(&self) -> [FigureBoneData; 16] {
         [
-            FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
-            FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
-            FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
             FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
             FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
             FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),

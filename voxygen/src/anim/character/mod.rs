@@ -62,7 +62,7 @@ impl CharacterSkeleton {
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 19] {
+    fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let chest_mat = self.chest.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
         let l_hand_mat = self.l_hand.compute_base_matrix();
@@ -90,10 +90,7 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * main_mat),
             FigureBoneData::new(torso_mat * chest_mat * control_mat * r_control_mat * second_mat),
             FigureBoneData::new(torso_mat * chest_mat * self.lantern.compute_base_matrix()),
-            FigureBoneData::new(torso_mat),
-            FigureBoneData::new(control_mat),
-            FigureBoneData::new(l_control_mat),
-            FigureBoneData::new(r_control_mat),
+            FigureBoneData::default(),
         ]
     }
 

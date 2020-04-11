@@ -238,8 +238,8 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     } else {
                                         None
                                     },
-                                    Some(humanoid_armor_lantern_spec.mesh_lantern(&body, loadout)),
                                     None,
+                                    Some(humanoid_armor_lantern_spec.mesh_lantern(&body, loadout)),
                                     None,
                                 ]
                             },
