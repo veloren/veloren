@@ -282,9 +282,6 @@ impl PlayState for SessionState {
                         }
                     },
 
-                    Event::InputUpdate(GameInput::Ability3, state) => {
-                        self.inputs.ability3.set_state(state);
-                    },
                     Event::InputUpdate(GameInput::Roll, state) => {
                         let client = self.client.borrow();
                         if client
@@ -646,6 +643,7 @@ impl PlayState for SessionState {
                     HudEvent::UseSlot(x) => self.client.borrow_mut().use_slot(x),
                     HudEvent::SwapSlots(a, b) => self.client.borrow_mut().swap_slots(a, b),
                     HudEvent::DropSlot(x) => self.client.borrow_mut().drop_slot(x),
+                    HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();

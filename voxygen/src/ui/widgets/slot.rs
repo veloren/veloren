@@ -13,7 +13,7 @@ const AMOUNT_SHADOW_OFFSET: [f64; 2] = [1.0, 1.0];
 pub trait SlotKey<C, I>: Copy {
     type ImageKey: PartialEq + Send + 'static;
     /// Returns an Option since the slot could be empty
-    fn image_key(&self, source: &C) -> Option<Self::ImageKey>;
+    fn image_key(&self, source: &C) -> Option<(Self::ImageKey, Option<Color>)>;
     fn amount(&self, source: &C) -> Option<u32>;
     fn image_id(key: &Self::ImageKey, source: &I) -> image::Id;
 }
@@ -285,6 +285,18 @@ where
             _ => Interaction::None,
         }
     }
+
+    /// Returns Some(slot) if a slot is selected
+    pub fn selected(&self) -> Option<S> {
+        if let ManagerState::Selected(_, s) = self.state {
+            Some(s)
+        } else {
+            None
+        }
+    }
+
+    /// Sets the SlotManager into an idle state
+    pub fn idle(&mut self) { self.state = ManagerState::Idle; }
 }
 
 #[derive(WidgetCommon)]
@@ -435,7 +447,9 @@ where
         } = self;
 
         // If the key changed update the cached image id
-        let image_key = slot_key.image_key(content_source);
+        let (image_key, content_color) = slot_key
+            .image_key(content_source)
+            .map_or((None, None), |(i, c)| (Some(i), c));
         if state.cached_image.as_ref().map(|c| &c.0) != image_key.as_ref() {
             state.update(|state| {
                 state.cached_image = image_key.map(|key| {
@@ -510,6 +524,7 @@ where
                     })
                 .map(|e| e as f64)
                 .into_array())
+                .color(content_color)
                 .parent(id)
                 .graphics_for(id)
                 .set(state.ids.content, ui);
