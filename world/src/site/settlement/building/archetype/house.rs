@@ -13,6 +13,9 @@ use super::{
 pub struct House {
     roof_color: Rgb<u8>,
     noise: RandomField,
+    roof_ribbing: bool,
+    central_supports: bool,
+    chimney: Option<i32>,
 }
 
 impl Archetype for House {
@@ -26,6 +29,9 @@ impl Archetype for House {
                 rng.gen_range(50, 200),
             ),
             noise: RandomField::new(rng.gen()),
+            roof_ribbing: rng.gen(),
+            central_supports: rng.gen(),
+            chimney: if rng.gen() { Some(rng.gen_range(1, 6)) } else { None },
         }
     }
 
@@ -56,15 +62,20 @@ impl Archetype for House {
         let foundation_height = 0 - (dist - width - 1).max(0);
         let roof_height = 8 + width;
 
-        if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y > foundation_height + 1 { // Chimney shaft
-            return empty;
-        }
-
-        if center_offset.map(|e| e.abs()).reduce_max() <= 1 && profile.y < roof_height + 2 { // Chimney
-            if center_offset.product() == 0 && profile.y > foundation_height + 1 && profile.y <= foundation_height + 3 { // Fireplace
+        if let Some(chimney_height) = self.chimney {
+            // Chimney shaft
+            if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y > foundation_height + 1 {
                 return empty;
-            } else {
-                return foundation;
+            }
+
+            // Chimney
+            if center_offset.map(|e| e.abs()).reduce_max() <= 1 && profile.y < roof_height + chimney_height {
+                // Fireplace
+                if center_offset.product() == 0 && profile.y > foundation_height + 1 && profile.y <= foundation_height + 3 {
+                    return empty;
+                } else {
+                    return foundation;
+                }
             }
         }
 
@@ -89,7 +100,8 @@ impl Archetype for House {
             && profile.y >= ceil_height
             && dist <= width + 2
         {
-            if profile.x == 0 || dist == width + 2 || (roof_height - profile.y) % 3 == 0 { // Eaves
+            let is_ribbing = (roof_height - profile.y) % 3 == 0 && self.roof_ribbing;
+            if profile.x == 0 || dist == width + 2 || is_ribbing { // Eaves
                 return log;
             } else {
                 return roof;
@@ -125,7 +137,11 @@ impl Archetype for House {
             }
 
             // Wall
-            return if bound_offset.x == bound_offset.y || profile.x == 0 || profile.y == ceil_height { // Support beams
+            return if
+                bound_offset.x == bound_offset.y ||
+                (profile.x == 0 && self.central_supports) ||
+                profile.y == ceil_height
+            { // Support beams
                 log
             } else {
                 wall
