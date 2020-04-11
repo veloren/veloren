@@ -100,9 +100,10 @@ impl World {
         let mut sampler = self.sample_blocks();
 
         let chunk_wpos2d = Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+        let grid_border = 4;
         let zcache_grid =
-            Grid::populate_from(TerrainChunkSize::RECT_SIZE.map(|e| e as i32), |offs| {
-                sampler.get_z_cache(chunk_wpos2d + offs)
+            Grid::populate_from(TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2, |offs| {
+                sampler.get_z_cache(chunk_wpos2d - grid_border + offs)
             });
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
@@ -115,7 +116,7 @@ impl World {
                 let offs = Vec2::new(x, y);
                 let wpos2d = chunk_wpos2d + offs;
 
-                let z_cache = match zcache_grid.get(offs) {
+                let z_cache = match zcache_grid.get(offs + grid_border) {
                     Some(Some(z_cache)) => z_cache,
                     _ => continue,
                 };
@@ -146,7 +147,7 @@ impl World {
                 chunk_wpos2d,
                 |offs| {
                     zcache_grid
-                        .get(offs)
+                        .get(grid_border + offs)
                         .map(Option::as_ref)
                         .flatten()
                         .map(|zc| &zc.sample)
