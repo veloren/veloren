@@ -4,7 +4,7 @@ use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use common::{
     comp::{
-        item::{Item, ItemKind},
+        item::{Item, ItemKind, ToolCategory},
         CharacterAbilityType, CharacterState, ItemConfig, Loadout, Pos,
     },
     event::{EventBus, SfxEvent, SfxEventItem},
@@ -145,7 +145,7 @@ impl CombatEventMapper {
                 if character_state.is_attack() {
                     return SfxEvent::Attack(
                         CharacterAbilityType::from(character_state),
-                        data.kind,
+                        ToolCategory::from(data.kind),
                     );
                 } else {
                     if let Some(wield_event) = match (
@@ -153,8 +153,12 @@ impl CombatEventMapper {
                         character_state.is_dodge(),
                         Self::weapon_drawn(character_state),
                     ) {
-                        (false, false, true) => Some(SfxEvent::Wield(data.kind)),
-                        (true, false, false) => Some(SfxEvent::Unwield(data.kind)),
+                        (false, false, true) => {
+                            Some(SfxEvent::Wield(ToolCategory::from(data.kind)))
+                        },
+                        (true, false, false) => {
+                            Some(SfxEvent::Unwield(ToolCategory::from(data.kind)))
+                        },
                         _ => None,
                     } {
                         return wield_event;
