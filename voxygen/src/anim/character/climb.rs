@@ -57,6 +57,10 @@ impl Animation for ClimbAnimation {
         next.belt.ori = Quaternion::rotation_z(quick * 0.0) * Quaternion::rotation_x(0.0);
         next.belt.scale = Vec3::one();
 
+        next.back.offset = Vec3::new(0.0, -2.8, 7.25);
+        next.back.ori = Quaternion::rotation_z(-0.2);
+        next.back.scale = Vec3::one() * 1.02;
+
         next.shorts.offset = Vec3::new(0.0, 1.0, -5.0);
         next.shorts.ori = Quaternion::rotation_z(quick * 0.0)
             * Quaternion::rotation_x(0.1)

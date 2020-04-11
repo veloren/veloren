@@ -31,6 +31,7 @@ struct CharacterCacheKey {
     chest: Option<Item>,
     belt: Option<Item>,
     back: Option<Item>,
+    lantern: Option<Item>,
     hand: Option<Item>,
     pants: Option<Item>,
     foot: Option<Item>,
@@ -51,6 +52,7 @@ impl CharacterCacheKey {
             chest: loadout.chest.clone(),
             belt: loadout.belt.clone(),
             back: loadout.back.clone(),
+            lantern: loadout.lantern.clone(),
             hand: loadout.hand.clone(),
             pants: loadout.pants.clone(),
             foot: loadout.foot.clone(),
@@ -122,6 +124,8 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     HumArmorBeltSpec::load_watched(&mut self.manifest_indicator);
                                 let humanoid_armor_back_spec =
                                     HumArmorBackSpec::load_watched(&mut self.manifest_indicator);
+                                let humanoid_armor_lantern_spec =
+                                    HumArmorLanternSpec::load_watched(&mut self.manifest_indicator);
                                 let humanoid_armor_pants_spec =
                                     HumArmorPantsSpec::load_watched(&mut self.manifest_indicator);
                                 let humanoid_armor_foot_spec =
@@ -234,7 +238,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     } else {
                                         None
                                     },
-                                    Some(mesh_lantern()),
+                                    Some(humanoid_armor_lantern_spec.mesh_lantern(&body, loadout)),
                                     None,
                                     None,
                                 ]
