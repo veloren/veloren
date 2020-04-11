@@ -291,7 +291,7 @@ impl Settlement {
                 {
                     Some(Plot::Hazard) => 200.0,
                     Some(Plot::Water) => 40.0,
-                    Some(Plot::Town) => 1000.0,
+                    Some(Plot::Town) => 10000.0,
                     _ => 10.0,
                 })
                 .map(|path| wall_path.extend(path.iter().copied()));
@@ -482,7 +482,7 @@ impl Settlement {
                     // Try to use the column at the centre of the path for sampling to make them flatter
                     let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos)).unwrap_or(col_sample);
                     let bridge_offset = if let Some(water_dist) = col.water_dist {
-                        ((water_dist.abs() * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0
+                        ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0
                     } else {
                         0.0
                     };
@@ -500,22 +500,24 @@ impl Settlement {
                     }
                     let head_space = (8 - (dist * 0.25).powf(6.0).round() as i32).max(1);
                     for z in inset..inset + head_space {
-                        vol.set(
-                            Vec3::new(offs.x, offs.y, surface_z + z),
-                            Block::empty(),
-                        );
+                        let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+                        if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                            vol.set(pos, Block::empty());
+                        }
                     }
                 // Ground colour
                 } else if let Some(color) = self.get_color(rpos) {
-                    for z in -8..6 {
-                        let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+                    if col_sample.water_dist.map(|dist| dist > 2.0).unwrap_or(true) {
+                        for z in -8..6 {
+                            let pos = Vec3::new(offs.x, offs.y, surface_z + z);
 
-                        if z >= 0 {
-                            if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                                vol.set(pos, Block::empty());
+                            if z >= 0 {
+                                if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                                    vol.set(pos, Block::empty());
+                                }
+                            } else {
+                                vol.set(pos, Block::new(BlockKind::Normal, noisy_color(color, 4)));
                             }
-                        } else {
-                            vol.set(pos, Block::new(BlockKind::Normal, noisy_color(color, 4)));
                         }
                     }
                 }
@@ -531,7 +533,7 @@ impl Settlement {
 
                     let z_offset = if let Some(water_dist) = col_sample.water_dist {
                         // Water gate
-                        ((water_dist.abs() * 0.45).min(f32::consts::PI).cos() + 1.0) * 4.0
+                        ((water_dist.max(0.0) * 0.45).min(f32::consts::PI).cos() + 1.0) * 4.0
                     } else {
                         0.0
                     } as i32;
@@ -550,7 +552,7 @@ impl Settlement {
 
                 // Towers
                 if let Some((Tower::Wall, _pos)) = sample.tower {
-                    for z in 0..16 {
+                    for z in -2..16 {
                         vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
                             Block::new(BlockKind::Normal, Rgb::new(50, 50, 50)),
@@ -579,7 +581,7 @@ impl Settlement {
 
                     for x in bounds.min.x..bounds.max.x + 1 {
                         for y in bounds.min.y..bounds.max.y + 1 {
-                            let col = if let Some(col) = get_column(offs) {
+                            let col = if let Some(col) = get_column(self.origin + Vec2::new(x, y) - wpos2d) {
                                 col
                             } else {
                                 continue;
