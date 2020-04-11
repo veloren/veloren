@@ -1567,8 +1567,8 @@ impl WorldSim {
         }
     }
 
-    pub fn get_alt_approx(&self, pos: Vec2<i32>) -> Option<f32> {
-        self.get_interpolated(pos, |chunk| chunk.alt)
+    pub fn get_alt_approx(&self, wpos: Vec2<i32>) -> Option<f32> {
+        self.get_interpolated(wpos, |chunk| chunk.alt)
     }
 
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {

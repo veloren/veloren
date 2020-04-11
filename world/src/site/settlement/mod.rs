@@ -11,8 +11,8 @@ use common::{
     astar::Astar,
     path::Path,
     spiral::Spiral2d,
-    terrain::{Block, BlockKind},
-    vol::{BaseVol, RectSizedVol, WriteVol, Vox},
+    terrain::{Block, BlockKind, TerrainChunkSize},
+    vol::{BaseVol, RectSizedVol, RectVolSize, WriteVol, Vox},
     store::{Id, Store},
 };
 use hashbrown::{HashMap, HashSet};
@@ -71,9 +71,18 @@ pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
     Vec2::new(x, y)
 }
 
-impl SimChunk {
-    fn can_host_settlement(&self) -> bool {
-        !self.near_cliffs && !self.river.is_river() && !self.river.is_lake()
+impl WorldSim {
+    fn can_host_settlement(&self, pos: Vec2<i32>) -> bool {
+        self
+            .get(pos)
+            .map(|chunk| {
+                chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake()
+            })
+            .unwrap_or(false)
+        && self
+            .get_gradient_approx(pos)
+            .map(|grad| grad < 0.75)
+            .unwrap_or(false)
     }
 }
 
@@ -103,6 +112,7 @@ pub struct Settlement {
     farms: Store<Farm>,
     structures: Vec<Structure>,
     town: Option<Town>,
+    noise: RandomField,
 }
 
 pub struct Town {
@@ -127,6 +137,7 @@ impl Settlement {
             farms: Store::default(),
             structures: Vec::new(),
             town: None,
+            noise: RandomField::new(ctx.rng.gen()),
         };
 
         if let Some(sim) = ctx.sim {
@@ -138,6 +149,7 @@ impl Settlement {
         this.place_farms(&mut ctx);
         this.place_town(&mut ctx);
         this.place_paths(ctx.rng);
+        this.place_buildings(&mut ctx);
 
         this
     }
@@ -155,10 +167,12 @@ impl Settlement {
                     .map(|x| (0..4).map(move |y| Vec2::new(x, y)))
                     .flatten()
                     .any(|offs| {
-                        sim.get_wpos(wpos + offs * AREA_SIZE as i32 / 2)
-                            .map(|chunk| !chunk.can_host_settlement())
-                            .unwrap_or(true)
+                        let wpos = wpos + offs * AREA_SIZE as i32 / 2;
+                        let cpos = wpos.map(|e| e.div_euclid(TerrainChunkSize::RECT_SIZE.x as i32));
+                        sim
+                            .can_host_settlement(cpos)
                     })
+                    || rng.gen_range(0, 16) == 0 // Randomly consider some tiles inaccessible
                 {
                     self.land.set(tile, hazard);
                 }
@@ -252,50 +266,7 @@ impl Settlement {
                     .plot_at_mut(base_tile)
                     .map(|plot| *plot = Plot::Town);
 
-                for _ in 0..ctx.rng.gen_range(10, 30) {
-                    for _ in 0..10 {
-                        let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
-                            + Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(-(AREA_SIZE as i32) * 3, AREA_SIZE as i32 * 3));
-
-                        if let Some(Plot::Town) = self.land
-                            .plot_at(house_pos.map(|e| e.div_euclid(AREA_SIZE as i32)))
-                        {} else {
-                            continue;
-                        }
-
-                        let structure = Structure {
-                            kind: StructureKind::House(HouseBuilding::generate(ctx.rng, Vec3::new(
-                                house_pos.x,
-                                house_pos.y,
-                                ctx.sim
-                                    .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
-                                    .unwrap_or(0.0)
-                                    .ceil() as i32,
-                            ))),
-                        };
-
-                        let bounds = structure.bounds_2d();
-
-                        // Check for collision with other structures
-                        if self.structures
-                            .iter()
-                            .any(|s| s.bounds_2d().collides_with_aabr(bounds))
-                        {
-                            continue;
-                        }
-
-                        self.structures.push(structure);
-                        break;
-                    }
-                }
-
                 if i == 0 {
-                    /*
-                    for dir in CARDINALS.iter() {
-                        self.land.set(base_tile + *dir, town);
-                    }
-                    */
-
                     self.town = Some(Town { base_tile });
                     origin = base_tile;
                 }
@@ -307,6 +278,7 @@ impl Settlement {
             .iter()
             .filter_map(|dir| {
                 self.land.find_tile_dir(origin, *dir, |plot| match plot {
+                    Some(Plot::Hazard) => false,
                     Some(Plot::Town) => false,
                     _ => true,
                 })
@@ -318,8 +290,8 @@ impl Settlement {
                 .find_path(spokes[i], spokes[(i + 1) % spokes.len()], |_, to| match to
                     .map(|to| self.land.plot(to.plot))
                 {
-                    Some(Plot::Hazard) => 10000.0,
-                    Some(Plot::Town) => 1000.0,
+                    Some(Plot::Hazard) => 100000.0,
+                    Some(Plot::Town) => 10000.0,
                     _ => 1.0,
                 })
                 .map(|path| wall_path.extend(path.iter().copied()));
@@ -344,6 +316,54 @@ impl Settlement {
         }
         self.land
             .write_path(&wall_path, WayKind::Wall, buildable, true);
+    }
+
+    pub fn place_buildings(&mut self, ctx: &mut GenCtx<impl Rng>) {
+        let town_center = if let Some(town) = self.town.as_ref() {
+            town.base_tile
+        } else {
+            return;
+        };
+
+        for tile in Spiral2d::new().map(|offs| town_center + offs).take(16usize.pow(2)) {
+            for _ in 0..ctx.rng.gen_range(1, 5) {
+                for _ in 0..10 {
+                    let house_pos = tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
+                        + Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(-(AREA_SIZE as i32) / 2, AREA_SIZE as i32) / 2);
+
+                    let tile_pos = house_pos.map(|e| e.div_euclid(AREA_SIZE as i32));
+                    if !matches!(self.land.plot_at(tile_pos), Some(Plot::Town))
+                        || self.land.tile_at(tile_pos).map(|t| t.contains(WayKind::Path)).unwrap_or(true)
+                    {
+                        continue;
+                    }
+
+                    let structure = Structure {
+                        kind: StructureKind::House(HouseBuilding::generate(ctx.rng, Vec3::new(
+                            house_pos.x,
+                            house_pos.y,
+                            ctx.sim
+                                .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
+                                .unwrap_or(0.0)
+                                .ceil() as i32,
+                        ))),
+                    };
+
+                    let bounds = structure.bounds_2d();
+
+                    // Check for collision with other structures
+                    if self.structures
+                        .iter()
+                        .any(|s| s.bounds_2d().collides_with_aabr(bounds))
+                    {
+                        continue;
+                    }
+
+                    self.structures.push(structure);
+                    break;
+                }
+            }
+        }
     }
 
     pub fn place_farms(&mut self, ctx: &mut GenCtx<impl Rng>) {
@@ -416,7 +436,11 @@ impl Settlement {
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
-            trees: self.land.get_at_block(wpos - self.origin).plot.is_none(),
+            trees: self.land
+                .get_at_block(wpos - self.origin)
+                .plot
+                .map(|p| if let Plot::Hazard = p { true } else { false })
+                .unwrap_or(true),
         }
     }
 
@@ -441,23 +465,58 @@ impl Settlement {
                 } else {
                     continue;
                 };
-                let surface_z = col_sample.alt.floor() as i32;
+                let surface_z = col_sample.riverless_alt.floor() as i32;
 
                 // Sample settlement
                 let sample = self.land.get_at_block(rpos);
 
-                // Ground color
-                if let Some(color) = self.get_color(rpos) {
+                let noisy_color = |col: Rgb<u8>, factor: u32| {
+                    let nz = self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, surface_z));
+                    col.map(|e| (e as u32 + nz % (factor * 2)).saturating_sub(factor).min(255) as u8)
+                };
+
+                // Paths
+                if let Some((WayKind::Path, dist, nearest)) = sample.way {
+                    let inset = -1;
+
+                    // Try to use the column at the centre of the path for sampling to make them flatter
+                    let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos)).unwrap_or(col_sample);
+                    let bridge_offset = if let Some(water_dist) = col.water_dist {
+                        ((water_dist.abs() * 0.15).min(f32::consts::PI).cos() + 1.0) * 5.0
+                    } else {
+                        0.0
+                    };
+                    let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
+
+                    for z in inset - 2..inset {
+                        vol.set(
+                            Vec3::new(offs.x, offs.y, surface_z + z),
+                            if bridge_offset >= 2.0 {
+                                Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
+                            } else {
+                                Block::new(BlockKind::Normal, noisy_color(Rgb::new(90, 70, 50), 8))
+                            },
+                        );
+                    }
+                    let head_space = 6;//(6 - (dist * 0.4).powf(6.0).round() as i32).max(1);
+                    for z in inset..inset + head_space {
+                        vol.set(
+                            Vec3::new(offs.x, offs.y, surface_z + z),
+                            Block::empty(),
+                        );
+                    }
+                // Ground colour
+                } else if let Some(color) = self.get_color(rpos) {
                     for z in -3..5 {
                         vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
-                            if z >= 0 { Block::empty() } else { Block::new(BlockKind::Normal, color) },
+                            if z >= 0 { Block::empty() } else { Block::new(BlockKind::Normal, noisy_color(color, 4)) },
                         );
                     }
                 }
 
                 // Walls
-                if let Some((WayKind::Wall, dist)) = sample.way {
+                if let Some((WayKind::Wall, dist, _)) = sample.way {
                     let color = Lerp::lerp(
                         Rgb::new(130i32, 100, 0),
                         Rgb::new(90, 70, 50),
@@ -482,24 +541,6 @@ impl Settlement {
                         vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
                             Block::new(BlockKind::Normal, Rgb::new(50, 50, 50)),
-                        );
-                    }
-                }
-
-                // Paths
-                if let Some((WayKind::Path, dist)) = sample.way {
-                    let inset = -1;
-                    for z in -3..inset {
-                        vol.set(
-                            Vec3::new(offs.x, offs.y, surface_z + z),
-                            Block::new(BlockKind::Normal, Rgb::new(90, 70, 50)),
-                        );
-                    }
-                    let head_space = (6 - (dist * 0.4).powf(6.0).round() as i32).max(1);
-                    for z in inset..inset + head_space {
-                        vol.set(
-                            Vec3::new(offs.x, offs.y, surface_z + z),
-                            Block::empty(),
                         );
                     }
                 }
@@ -550,9 +591,9 @@ impl Settlement {
         }
 
         match sample.way {
-            Some((WayKind::Path, _)) => return Some(Rgb::new(90, 70, 50)),
-            Some((WayKind::Hedge, _)) => return Some(Rgb::new(0, 150, 0)),
-            Some((WayKind::Wall, _)) => return Some(Rgb::new(60, 60, 60)),
+            Some((WayKind::Path, _, _)) => return Some(Rgb::new(90, 70, 50)),
+            Some((WayKind::Hedge, _, _)) => return Some(Rgb::new(0, 150, 0)),
+            Some((WayKind::Wall, _, _)) => return Some(Rgb::new(60, 60, 60)),
             _ => {},
         }
 
@@ -560,11 +601,7 @@ impl Settlement {
             Some(Plot::Dirt) => return Some(Rgb::new(90, 70, 50)),
             Some(Plot::Grass) => return Some(Rgb::new(100, 200, 0)),
             Some(Plot::Water) => return Some(Rgb::new(100, 150, 250)),
-            Some(Plot::Town) => return Some(if pos.map(|e| e.rem_euclid(4) < 2).reduce(|x, y| x ^ y) {
-                Rgb::new(200, 130, 120)
-            } else {
-                Rgb::new(160, 150, 120)
-            }),
+            Some(Plot::Town) => return Some(Rgb::new(130, 120, 80)),
             Some(Plot::Field { seed, .. }) => {
                 let furrow_dirs = [
                     Vec2::new(1, 0),
@@ -651,7 +688,7 @@ impl Tile {
 #[derive(Default)]
 pub struct Sample<'a> {
     plot: Option<&'a Plot>,
-    way: Option<(&'a WayKind, f32)>,
+    way: Option<(&'a WayKind, f32, Vec2<f32>)>,
     tower: Option<(&'a Tower, Vec2<i32>)>,
 }
 
@@ -690,14 +727,15 @@ impl Land {
 
         for (i, dir) in CARDINALS.iter().enumerate() {
             let map = [1, 5, 7, 3];
-            let line = [
-                neighbors[4].0.map(|e| e as f32),
-                neighbors[map[i]].0.map(|e| e as f32),
-            ];
+            let line = LineSegment2 {
+                start: neighbors[4].0.map(|e| e as f32),
+                end: neighbors[map[i]].0.map(|e| e as f32),
+            };
             if let Some(way) = center_tile.and_then(|tile| tile.ways[i].as_ref()) {
-                let dist = dist_to_line(line, pos.map(|e| e as f32));
+                let proj_point = line.projected_point(pos.map(|e| e as f32));
+                let dist = proj_point.distance(pos.map(|e| e as f32));
                 if dist < way.width() {
-                    sample.way = Some((way, dist));
+                    sample.way = Some((way, dist, proj_point));
                 }
             }
         }

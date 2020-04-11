@@ -8,6 +8,7 @@ use std::{
 use hashbrown::{HashMap, HashSet};
 use vek::*;
 use rand::prelude::*;
+use rand_chacha::ChaChaRng;
 use common::{
     terrain::TerrainChunkSize,
     vol::RectVolSize,
@@ -19,6 +20,7 @@ use common::{
 use crate::{
     sim::{WorldSim, SimChunk},
     site::{Site as WorldSite, Settlement},
+    util::seed_expan,
 };
 
 const CARDINALS: [Vec2<i32>; 4] = [
@@ -64,7 +66,7 @@ pub struct GenCtx<'a, R: Rng> {
 impl Civs {
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
-        let mut rng = sim.rng.clone();
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let mut ctx = GenCtx { sim, rng: &mut rng };
 
         for _ in 0..INITIAL_CIV_COUNT {
@@ -89,9 +91,32 @@ impl Civs {
 
         // Place sites in world
         for site in this.sites.iter() {
+            let radius = 48i32;
+
             let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
+            let nearby_chunks = Spiral2d::new().map(|offs| site.center + offs).take(radius.pow(2) as usize);
+
+            // Flatten ground
+            let flatten_radius = 12.0;
+            if let Some(center_alt) = ctx.sim.get_alt_approx(wpos) {
+                for pos in nearby_chunks.clone() {
+                    let factor = (1.0 - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius) * 1.3;
+                    ctx.sim
+                        .get_mut(pos)
+                        // Don't disrupt chunks that are near water
+                        .filter(|chunk| !chunk.river.near_water())
+                        .map(|chunk| {
+                            let diff = Lerp::lerp_precise(chunk.alt, center_alt, factor) - chunk.alt;
+                            chunk.alt += diff;
+                            chunk.basement += diff;
+                            chunk.rockiness = 0.0;
+                        });
+                }
+            }
+
             let settlement = WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), ctx.rng));
-            for pos in Spiral2d::new().map(|offs| site.center + offs).take(32usize.pow(2)) {
+
+            for pos in nearby_chunks {
                 ctx.sim
                     .get_mut(pos)
                     .map(|chunk| chunk.sites.push(settlement.clone()));
