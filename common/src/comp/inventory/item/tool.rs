@@ -116,6 +116,35 @@ pub enum ToolKind {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ToolCategory {
+    Sword,
+    Axe,
+    Hammer,
+    Bow,
+    Dagger,
+    Staff,
+    Shield,
+    Debug,
+    Empty,
+}
+
+impl From<ToolKind> for ToolCategory {
+    fn from(kind: ToolKind) -> ToolCategory {
+        match kind {
+            ToolKind::Sword(_) => ToolCategory::Sword,
+            ToolKind::Axe(_) => ToolCategory::Axe,
+            ToolKind::Hammer(_) => ToolCategory::Hammer,
+            ToolKind::Bow(_) => ToolCategory::Bow,
+            ToolKind::Dagger(_) => ToolCategory::Dagger,
+            ToolKind::Staff(_) => ToolCategory::Staff,
+            ToolKind::Shield(_) => ToolCategory::Shield,
+            ToolKind::Debug(_) => ToolCategory::Debug,
+            ToolKind::Empty => ToolCategory::Empty,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
     equip_time_millis: u32,

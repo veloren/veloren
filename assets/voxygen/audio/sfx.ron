@@ -23,7 +23,7 @@
             ],
             threshold: 0.5,
         ),
-        Attack(DashMelee, Sword(BasicSword)): (
+        Attack(DashMelee, Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.whoosh_normal_01",
                 "voxygen.audio.sfx.weapon.whoosh_normal_02",
@@ -32,7 +32,7 @@
             ],
             threshold: 1.2,
         ),
-        Attack(TripleStrike, Sword(BasicSword)): (
+        Attack(TripleStrike, Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_triple_strike_01",
                 "voxygen.audio.sfx.weapon.sword_triple_strike_02",
@@ -40,14 +40,14 @@
             ],
             threshold: 0.8,
         ),
-        Attack(BasicRanged, Bow(BasicBow)): (
+        Attack(BasicRanged, Bow): (
             files: [
                 "voxygen.audio.sfx.weapon.bow_attack_01",
                 "voxygen.audio.sfx.weapon.bow_attack_02",
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Hammer(BasicHammer)): (
+        Attack(BasicMelee, Hammer): (
             files: [
                 "voxygen.audio.sfx.weapon.whoosh_low_01",
                 "voxygen.audio.sfx.weapon.whoosh_low_02",
@@ -55,7 +55,7 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Staff(BasicStaff)): (
+        Attack(BasicMelee, Staff): (
             files: [
                 "voxygen.audio.sfx.weapon.whoosh_normal_01",
                 "voxygen.audio.sfx.weapon.whoosh_normal_02",
@@ -64,13 +64,13 @@
             ],
             threshold: 0.5,
         ),
-        Wield(Sword(BasicSword)): (
+        Wield(Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",
             ],
             threshold: 0.5,
         ),
-        Unwield(Sword(BasicSword)): (
+        Unwield(Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_in",
             ],

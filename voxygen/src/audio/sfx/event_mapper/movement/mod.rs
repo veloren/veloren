@@ -4,9 +4,7 @@
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
 
 use common::{
-    comp::{
-        Body, CharacterState, PhysicsState, Pos, Vel,
-    },
+    comp::{Body, CharacterState, PhysicsState, Pos, Vel},
     event::{EventBus, SfxEvent, SfxEventItem},
     state::State,
 };

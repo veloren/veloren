@@ -2,7 +2,7 @@ use super::*;
 use common::{
     assets,
     comp::{
-        item::tool::{AxeKind, BowKind, SwordKind, ToolKind},
+        item::tool::{AxeKind, BowKind, SwordKind, ToolCategory, ToolKind},
         CharacterAbilityType, CharacterState, ItemConfig, Loadout,
     },
     event::SfxEvent,
@@ -35,7 +35,7 @@ fn maps_wield_while_equipping() {
         Some(&loadout),
     );
 
-    assert_eq!(result, SfxEvent::Wield(ToolKind::Axe(AxeKind::BasicAxe)));
+    assert_eq!(result, SfxEvent::Wield(ToolCategory::Axe));
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn maps_unwield() {
         Some(&loadout),
     );
 
-    assert_eq!(result, SfxEvent::Unwield(ToolKind::Bow(BowKind::BasicBow)));
+    assert_eq!(result, SfxEvent::Unwield(ToolCategory::Bow));
 }
 
 #[test]
@@ -96,10 +96,7 @@ fn maps_basic_melee() {
 
     assert_eq!(
         result,
-        SfxEvent::Attack(
-            CharacterAbilityType::BasicMelee,
-            ToolKind::Axe(AxeKind::BasicAxe)
-        )
+        SfxEvent::Attack(CharacterAbilityType::BasicMelee, ToolCategory::Axe)
     );
 }
 
@@ -137,9 +134,6 @@ fn maps_triple_strike() {
 
     assert_eq!(
         result,
-        SfxEvent::Attack(
-            CharacterAbilityType::TripleStrike,
-            ToolKind::Sword(SwordKind::BasicSword)
-        )
+        SfxEvent::Attack(CharacterAbilityType::TripleStrike, ToolCategory::Sword)
     );
 }
