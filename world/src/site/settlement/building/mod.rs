@@ -30,12 +30,12 @@ impl<A: Archetype> Building<A> {
                 root: Branch {
                     len,
                     attr: A::Attr::default(),
-                    locus: 2 + rng.gen_range(0, 5),
+                    locus: 8 + rng.gen_range(0, 5),
                     children: (0..rng.gen_range(0, 4))
-                        .map(|_| (rng.gen_range(0, len + 1), Branch {
+                        .map(|_| (rng.gen_range(-5, len + 5).clamped(0, len.max(1) - 1), Branch {
                             len: rng.gen_range(5, 12) * if rng.gen() { 1 } else { -1 },
                             attr: A::Attr::default(),
-                            locus: 1 + rng.gen_range(0, 3),
+                            locus: 8 + rng.gen_range(0, 3),
                             children: Vec::new(),
                         }))
                         .collect(),
@@ -49,8 +49,8 @@ impl<A: Archetype> Building<A> {
     pub fn bounds_2d(&self) -> Aabr<i32> {
         let b = self.skel.bounds();
         Aabr {
-            min: Vec2::from(self.origin) + b.min - 14,
-            max: Vec2::from(self.origin) + b.max + 14,
+            min: Vec2::from(self.origin) + b.min,
+            max: Vec2::from(self.origin) + b.max,
         }
     }
 
