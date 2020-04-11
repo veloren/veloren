@@ -56,6 +56,7 @@ impl Archetype for House {
         let wall = make_block(200, 180, 150);
         let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b);
         let empty = Some(Some(Block::empty()));
+        let fire = Some(Some(Block::new(BlockKind::Ember, Rgb::white())));
 
         let ceil_height = 6;
         let width = -3 + branch.locus + if profile.y >= ceil_height { 1 } else { 0 };
@@ -64,8 +65,12 @@ impl Archetype for House {
 
         if let Some(chimney_height) = self.chimney {
             // Chimney shaft
-            if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y > foundation_height + 1 {
-                return empty;
+            if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y >= foundation_height + 1 {
+                return if profile.y == foundation_height + 1 {
+                    fire
+                } else {
+                    empty
+                };
             }
 
             // Chimney
