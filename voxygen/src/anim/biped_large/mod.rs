@@ -47,7 +47,7 @@ impl BipedLargeSkeleton {
 impl Skeleton for BipedLargeSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 19] {
+    fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();
         let shoulder_r_mat = self.shoulder_r.compute_base_matrix();
@@ -73,9 +73,6 @@ impl Skeleton for BipedLargeSkeleton {
             FigureBoneData::new(torso_mat * leg_r_mat),
             FigureBoneData::new(torso_mat * self.foot_l.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.foot_r.compute_base_matrix()),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),

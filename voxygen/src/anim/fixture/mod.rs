@@ -13,11 +13,8 @@ impl FixtureSkeleton {
 impl Skeleton for FixtureSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 19] {
+    fn compute_matrices(&self) -> [FigureBoneData; 16] {
         [
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
             FigureBoneData::new(vek::Mat4::identity()),
             FigureBoneData::new(vek::Mat4::identity()),
             FigureBoneData::new(vek::Mat4::identity()),

@@ -696,8 +696,7 @@ impl HumMainWeaponSpec {
 // Lantern
 impl HumArmorLanternSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.humanoid_armor_lantern_manifest", indicator)
-            .unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_lantern_manifest", indicator).unwrap()
     }
 
     pub fn mesh_lantern(&self, body: &Body, loadout: &Loadout) -> Mesh<FigurePipeline> {
