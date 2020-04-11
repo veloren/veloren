@@ -67,7 +67,7 @@ impl Archetype for House {
             // Chimney shaft
             if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y >= foundation_height + 1 {
                 return if profile.y == foundation_height + 1 {
-                    fire
+                    empty//fire
                 } else {
                     empty
                 };
