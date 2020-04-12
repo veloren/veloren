@@ -357,7 +357,8 @@ impl Scene {
             .expect("Failed to update global constants");
 
         // Maintain LoD.
-        self.lod.maintain(renderer);
+        self.lod
+            .maintain(renderer, scene_data.state.get_time_of_day());
 
         // Maintain the terrain.
         self.terrain.maintain(
@@ -406,6 +407,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
+            &self.lod,
             &self.camera,
         );
         self.lod.render(renderer, &self.globals);
@@ -418,6 +420,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
+            &self.lod,
             self.camera.get_focus_pos(),
         );
 

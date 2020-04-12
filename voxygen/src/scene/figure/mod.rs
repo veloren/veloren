@@ -16,7 +16,7 @@ use crate::{
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::{
         camera::{Camera, CameraMode},
-        SceneData,
+        Lod, SceneData,
     },
 };
 use common::{
@@ -1365,6 +1365,7 @@ impl FigureMgr {
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
+        lod: &Lod,
         camera: &Camera,
     ) {
         let ecs = state.ecs();
@@ -1597,7 +1598,16 @@ impl FigureMgr {
                     )
                 }),
             } {
-                renderer.render_figure(model, globals, locals, bone_consts, lights, shadows);
+                renderer.render_figure(
+                    model,
+                    globals,
+                    locals,
+                    bone_consts,
+                    lights,
+                    shadows,
+                    &lod.map,
+                    &lod.horizon,
+                );
             } else {
                 trace!("Body has no saved figure");
             }

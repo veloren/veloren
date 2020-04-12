@@ -1,6 +1,7 @@
 #version 330 core
 
 #include <globals.glsl>
+#include <lod.glsl>
 
 in vec3 v_pos;
 in vec3 v_norm;
@@ -25,6 +26,8 @@ uniform u_bones {
 out vec3 f_pos;
 out vec3 f_col;
 flat out vec3 f_norm;
+out float f_alt;
+out vec4 f_shadow;
 
 void main() {
 	// Pre-calculate bone matrix
@@ -41,6 +44,10 @@ void main() {
 		combined_mat *
 		vec4(v_norm, 0.0)
 	).xyz);
+
+    // Also precalculate shadow texture and estimated terrain altitude.
+    f_alt = alt_at(f_pos.xy);
+    f_shadow = textureBicubic(t_horizon, pos_to_uv(f_pos.xy));
 
 	gl_Position = all_mat * vec4(f_pos, 1);
 	gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);

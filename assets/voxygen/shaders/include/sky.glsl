@@ -37,7 +37,7 @@ vec3 get_moon_dir(float time_of_day) {
 	return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 }
 
-const float PERSISTENT_AMBIANCE = 0.1; // 0.025; // 0.1;
+const float PERSISTENT_AMBIANCE = 0.025; // 0.1; // 0.025; // 0.1;
 
 float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0) * 0.9;
@@ -110,6 +110,41 @@ void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d,
 		PERSISTENT_AMBIANCE;
 	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
 }
+
+void get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
+	const float SUN_AMBIANCE = 0.1;
+
+	float sun_light = get_sun_brightness(sun_dir);
+	float moon_light = get_moon_brightness(moon_dir);
+
+	vec3 sun_color = get_sun_color(sun_dir);
+	vec3 moon_color = get_moon_color(moon_dir);
+
+	vec3 sun_chroma = sun_color * sun_light;
+	vec3 moon_chroma = moon_color * moon_light;
+
+    /* float NLsun = max(dot(-norm, sun_dir), 0);
+    float NLmoon = max(dot(-norm, moon_dir), 0);
+    vec3 E = -dir; */
+
+    // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
+    // Will be attenuated by k_d, which is assumed to carry any additional ambient occlusion information (e.g. about shadowing).
+    float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
+
+    emitted_light = k_a * (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light)) + PERSISTENT_AMBIANCE;
+    // TODO: Add shadows.
+    reflected_light =
+        sun_chroma * light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) +
+        moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha);
+
+	/* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
+	diffuse_light =
+		sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.5 + 0.5, 0.0), diffusion) +
+		moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
+		PERSISTENT_AMBIANCE;
+	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
+}
+
 
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {

@@ -2,6 +2,7 @@
 
 #include <globals.glsl>
 #include <srgb.glsl>
+#include <lod.glsl>
 
 in uint v_pos_norm;
 in uint v_col_light;
@@ -14,6 +15,8 @@ uniform u_locals {
 
 out vec3 f_pos;
 flat out uint f_pos_norm;
+out float f_alt;
+out vec4 f_shadow;
 out vec3 f_col;
 out float f_light;
 
@@ -28,6 +31,10 @@ void main() {
 	f_light = float(v_col_light & 0xFFu) / 255.0;
 
 	f_pos_norm = v_pos_norm;
+
+    // Also precalculate shadow texture and estimated terrain altitude.
+    f_alt = alt_at(f_pos.xy);
+    f_shadow = textureBicubic(t_horizon, pos_to_uv(f_pos.xy));
 
 	gl_Position =
 		all_mat *

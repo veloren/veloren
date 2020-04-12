@@ -11,9 +11,12 @@ use crate::{
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{load_mesh, FigureModelCache, FigureState},
+        Lod,
     },
+    settings::Settings,
     window::{Event, PressState},
 };
+use client::Client;
 use common::{
     comp::{humanoid, Body, Loadout},
     terrain::BlockKind,
@@ -58,6 +61,7 @@ pub struct Scene {
 
     skybox: Skybox,
     postprocess: PostProcess,
+    lod: Lod,
     backdrop: Option<(Model<FigurePipeline>, FigureState<FixtureSkeleton>)>,
 
     figure_model_cache: FigureModelCache,
@@ -76,7 +80,12 @@ pub struct SceneData {
 }
 
 impl Scene {
-    pub fn new(renderer: &mut Renderer, backdrop: Option<&str>) -> Self {
+    pub fn new(
+        renderer: &mut Renderer,
+        client: &Client,
+        settings: &Settings,
+        backdrop: Option<&str>,
+    ) -> Self {
         let resolution = renderer.get_resolution().map(|e| e as f32);
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
@@ -100,6 +109,8 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
+            lod: Lod::new(renderer, client, settings),
+
             figure_model_cache: FigureModelCache::new(),
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
 
@@ -231,6 +242,8 @@ impl Scene {
                 self.figure_state.bone_consts(),
                 &self.lights,
                 &self.shadows,
+                &self.lod.map,
+                &self.lod.horizon,
             );
         }
 
@@ -242,6 +255,8 @@ impl Scene {
                 state.bone_consts(),
                 &self.lights,
                 &self.shadows,
+                &self.lod.map,
+                &self.lod.horizon,
             );
         }
 

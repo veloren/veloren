@@ -1,7 +1,8 @@
 use crate::{
     render::{
         pipelines::lod_terrain::{Locals, Vertex},
-        Consts, FilterMethod, Globals, LodTerrainPipeline, Mesh, Model, Quad, Renderer, Texture,
+        Consts, FilterMethod, Globals, LodColorFmt, LodTerrainPipeline, Mesh, Model, Quad,
+        Renderer, Texture,
     },
     settings::Settings,
 };
@@ -12,8 +13,8 @@ use vek::*;
 pub struct Lod {
     model: Option<(u32, Model<LodTerrainPipeline>)>,
     locals: Consts<Locals>,
-    pub map: Texture,
-    pub horizon: Texture,
+    pub map: Texture<LodColorFmt>,
+    pub horizon: Texture<LodColorFmt>,
     tgt_detail: u32,
 }
 
@@ -23,7 +24,7 @@ impl Lod {
             model: None,
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
             map: renderer
-                .create_texture(&client.lod_base, Some(FilterMethod::Trilinear), None)
+                .create_texture(&client.lod_base, Some(FilterMethod::Bilinear), None)
                 .expect("Failed to generate map texture"),
             horizon: renderer
                 .create_texture(&client.lod_horizon, Some(FilterMethod::Trilinear), None)
@@ -34,7 +35,7 @@ impl Lod {
 
     pub fn set_detail(&mut self, detail: u32) { self.tgt_detail = detail.max(100).min(2500); }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, _time_of_day: f64) {
         if self
             .model
             .as_ref()

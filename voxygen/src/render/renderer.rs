@@ -41,6 +41,9 @@ pub type WinColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, Wi
 /// A handle to a window depth target.
 pub type WinDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, WinDepthFmt>;
 
+/// Represents the formt of LOD map color targets.
+pub type LodColorFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm); //[gfx::format::U8Norm; 4];
+
 /// A handle to a render color target as a resource.
 pub type TgtColorRes = gfx::handle::ShaderResourceView<
     gfx_backend::Resources,
@@ -416,12 +419,17 @@ impl Renderer {
     pub fn max_texture_size(&self) -> usize { self.factory.get_capabilities().max_texture_size }
 
     /// Create a new texture from the provided image.
-    pub fn create_texture(
+    pub fn create_texture<F: gfx::format::Formatted>(
         &mut self,
         image: &image::DynamicImage,
         filter_method: Option<FilterMethod>,
         wrap_mode: Option<WrapMode>,
-    ) -> Result<Texture, RenderError> {
+    ) -> Result<Texture<F>, RenderError>
+    where
+        F::Surface: gfx::format::TextureSurface,
+        F::Channel: gfx::format::TextureChannel,
+        <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
+    {
         Texture::new(&mut self.factory, image, filter_method, wrap_mode)
     }
 
@@ -524,6 +532,8 @@ impl Renderer {
         bones: &Consts<figure::BoneData>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodColorFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -542,6 +552,8 @@ impl Renderer {
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -557,8 +569,8 @@ impl Renderer {
         locals: &Consts<terrain::Locals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
-        map: &Texture,     /* <(gfx::format::R8, gfx::format::Unorm)> */
-        horizon: &Texture, /* <(gfx::format::R8, gfx::format::Unorm)> */
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodColorFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -593,6 +605,8 @@ impl Renderer {
         locals: &Consts<terrain::Locals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodColorFmt>,
         waves: &Texture,
     ) {
         self.encoder.draw(
@@ -610,6 +624,8 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 waves: (waves.srv.clone(), waves.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
@@ -627,6 +643,8 @@ impl Renderer {
         instances: &Instances<sprite::Instance>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodColorFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -644,6 +662,8 @@ impl Renderer {
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -657,8 +677,8 @@ impl Renderer {
         model: &Model<lod_terrain::LodTerrainPipeline>,
         globals: &Consts<Globals>,
         locals: &Consts<lod_terrain::Locals>,
-        map: &Texture,
-        horizon: &Texture,
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodColorFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -683,14 +703,18 @@ impl Renderer {
     }
 
     /// Queue the rendering of the provided UI element in the upcoming frame.
-    pub fn render_ui_element(
+    pub fn render_ui_element<F: gfx::format::Formatted<View = [f32; 4]>>(
         &mut self,
         model: &Model<ui::UiPipeline>,
-        tex: &Texture,
+        tex: &Texture<F>,
         scissor: Aabr<u16>,
         globals: &Consts<Globals>,
         locals: &Consts<ui::Locals>,
-    ) {
+    ) where
+        F::Surface: gfx::format::TextureSurface,
+        F::Channel: gfx::format::TextureChannel,
+        <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
+    {
         let Aabr { min, max } = scissor;
         self.encoder.draw(
             &gfx::Slice {

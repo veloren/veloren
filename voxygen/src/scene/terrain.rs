@@ -1429,6 +1429,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
+        lod: &Lod,
         focus_pos: Vec3<f32>,
     ) {
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
@@ -1459,6 +1460,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                             &instances,
                             lights,
                             shadows,
+                            &lod.map,
+                            &lod.horizon,
                         );
                     }
                 }
@@ -1476,7 +1479,16 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .map(|model| (model, &chunk.locals))
             })
             .for_each(|(model, locals)| {
-                renderer.render_fluid_chunk(model, globals, locals, lights, shadows, &self.waves)
+                renderer.render_fluid_chunk(
+                    model,
+                    globals,
+                    locals,
+                    lights,
+                    shadows,
+                    &lod.map,
+                    &lod.horizon,
+                    &self.waves,
+                )
             });
     }
 }

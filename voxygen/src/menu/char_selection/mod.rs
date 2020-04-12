@@ -23,13 +23,16 @@ pub struct CharSelectionState {
 impl CharSelectionState {
     /// Create a new `CharSelectionState`.
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
+        let scene = Scene::new(
+            global_state.window.renderer_mut(),
+            &client.borrow(),
+            &global_state.settings,
+            Some("fixture.selection_bg"),
+        );
         Self {
             char_selection_ui: CharSelectionUi::new(global_state),
             client,
-            scene: Scene::new(
-                global_state.window.renderer_mut(),
-                Some("fixture.selection_bg"),
-            ),
+            scene,
         }
     }
 }

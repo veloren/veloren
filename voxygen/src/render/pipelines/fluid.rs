@@ -22,6 +22,8 @@ gfx_defines! {
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
         lights: gfx::ConstantBuffer<Light> = "u_lights",
         shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
+        map: gfx::TextureSampler<[f32; 4]> = "t_map",
+        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
 
         noise: gfx::TextureSampler<f32> = "t_noise",
         waves: gfx::TextureSampler<[f32; 4]> = "t_waves",

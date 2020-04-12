@@ -1328,8 +1328,9 @@ impl WorldSim {
                         let mut sample = column_sample.get(
                             uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         )?;
-                        // let zcache = block_gen.get_z_cache();
                         let alt = sample.alt;
+                        /* let z_cache = block_gen.get_z_cache(wpos);
+                        sample.alt = alt.max(z_cache.get_z_limits(&mut block_gen).2); */
                         sample.alt = alt.max(BlockGen::get_cliff_height(
                             &mut block_gen.column_gen,
                             &mut block_gen.column_cache,
