@@ -20,29 +20,6 @@ rotation_image_ids! {
 image_ids! {
     pub struct Imgs {
         <VoxelGraphic>
-
-        // Skillbar
-        xp_bar_mid: "voxygen.element.skillbar.xp_bar_mid",
-        xp_bar_left: "voxygen.element.skillbar.xp_bar_left",
-        xp_bar_right: "voxygen.element.skillbar.xp_bar_right",
-        skillbar_slot_big: "voxygen.element.skillbar.skillbar_slot_big",
-        skillbar_slot_big_act: "voxygen.element.skillbar.skillbar_slot_big_active",
-        skillbar_slot_big_bg: "voxygen.element.skillbar.skillbar_slot_big_bg",
-        healthbar_bg: "voxygen.element.skillbar.healthbar_bg",
-        energybar_bg: "voxygen.element.skillbar.energybar_bg",
-        bar_content: "voxygen.element.skillbar.bar_content",
-        level_up: "voxygen.element.misc_bg.level_up",
-        level_down:"voxygen.element.misc_bg.level_down",
-        stamina_0:"voxygen.element.skillbar.stamina_wheel-empty",
-        stamina_1:"voxygen.element.skillbar.stamina_wheel-0",
-        stamina_2:"voxygen.element.skillbar.stamina_wheel-1",
-        stamina_3:"voxygen.element.skillbar.stamina_wheel-2",
-        stamina_4:"voxygen.element.skillbar.stamina_wheel-3",
-        stamina_5:"voxygen.element.skillbar.stamina_wheel-4",
-        stamina_6:"voxygen.element.skillbar.stamina_wheel-5",
-        stamina_7:"voxygen.element.skillbar.stamina_wheel-6",
-        stamina_8:"voxygen.element.skillbar.stamina_wheel-7",
-
         // Window Parts
         window_3: "voxygen.element.frames.window_3",
         tab_bg: "voxygen.element.frames.tab_bg",
@@ -145,6 +122,17 @@ image_ids! {
         <ImageGraphic>
 
         // Skillbar
+        level_up: "voxygen.element.misc_bg.level_up",
+        level_down:"voxygen.element.misc_bg.level_down",
+        xp_bar_mid: "voxygen.element.skillbar.xp_bar_mid",
+        xp_bar_left: "voxygen.element.skillbar.xp_bar_left",
+        xp_bar_right: "voxygen.element.skillbar.xp_bar_right",
+        healthbar_bg: "voxygen.element.skillbar.healthbar_bg",
+        energybar_bg: "voxygen.element.skillbar.energybar_bg",
+        bar_content: "voxygen.element.skillbar.bar_content",
+        skillbar_slot_big: "voxygen.element.skillbar.skillbar_slot_big",
+        skillbar_slot_big_bg: "voxygen.element.skillbar.skillbar_slot_big",
+        skillbar_slot_big_act: "voxygen.element.skillbar.skillbar_slot_big",
         skillbar_slot: "voxygen.element.skillbar.skillbar_slot",
         skillbar_slot_act: "voxygen.element.skillbar.skillbar_slot_active",
         skillbar_slot_l: "voxygen.element.skillbar.skillbar_slot_l",

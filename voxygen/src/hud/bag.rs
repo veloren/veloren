@@ -216,11 +216,6 @@ impl<'a> Widget for Bag<'a> {
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.bg_frame, ui);
         // Title
-        /*Text::new(&format!(
-            "{}{}",
-            &self.stats.name,
-            &self.localized_strings.get("hud.bag.inventory")
-        ))*/
         Text::new(
             &self
                 .localized_strings
@@ -329,7 +324,9 @@ impl<'a> Widget for Bag<'a> {
                 background_color: Some(UI_HIGHLIGHT_0),
                 content_size: ContentSize {
                     width_height_ratio: 1.0,
-                    max_fraction: 0.75,
+                    max_fraction: 0.75, /* Changes the item image size by setting a maximum
+                                         * fraction
+                                         * of either the width or height */
                 },
                 selected_content_scale: 1.067,
                 amount_font: self.fonts.cyri.conrod_id,
