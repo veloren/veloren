@@ -537,7 +537,7 @@ where
             Text::new(&amount)
                 .font_id(amount_font)
                 .font_size(amount_font_size)
-                .top_right_with_margins_on(
+                .bottom_right_with_margins_on(
                     state.ids.content,
                     amount_margins.x as f64,
                     amount_margins.y as f64,
