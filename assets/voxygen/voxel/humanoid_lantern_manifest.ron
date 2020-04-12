@@ -5,11 +5,11 @@
     ),
     map: {
       Green0: (
-          vox_spec: ("lantern.green-0", (0.0, 0.0, 0.0)),
+          vox_spec: ("armor.lantern.green-0", (-2.0, -2.0, -7.0)),
           color: None
       ),  
       Black0: (
-          vox_spec: ("lantern.black-0", (0.0, 0.0, 0.0)),
+          vox_spec: ("armor.lantern.black-0", (-2.0, -2.0, -7.0)),
           color: None
       ),     
     },
