@@ -22,25 +22,9 @@ impl<A: Archetype> Building<A> {
         where A: Sized
     {
         let len = rng.gen_range(-8, 12).max(0);
-        let archetype = A::generate(rng);
+        let (archetype, skel) = A::generate(rng);
         Self {
-            skel: Skeleton {
-                offset: -rng.gen_range(0, len + 7).clamped(0, len),
-                ori: if rng.gen() { Ori::East } else { Ori::North },
-                root: Branch {
-                    len,
-                    attr: A::Attr::default(),
-                    locus: 8 + rng.gen_range(0, 5),
-                    children: (0..rng.gen_range(0, 4))
-                        .map(|_| (rng.gen_range(-5, len + 5).clamped(0, len.max(1) - 1), Branch {
-                            len: rng.gen_range(5, 12) * if rng.gen() { 1 } else { -1 },
-                            attr: A::Attr::default(),
-                            locus: 8 + rng.gen_range(0, 3),
-                            children: Vec::new(),
-                        }))
-                        .collect(),
-                },
-            },
+            skel,
             archetype,
             origin,
         }
