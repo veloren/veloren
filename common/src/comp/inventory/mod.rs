@@ -1,4 +1,5 @@
 pub mod item;
+pub mod slot;
 
 use crate::assets;
 use item::{Consumable, Item, ItemKind};
@@ -36,7 +37,9 @@ impl Inventory {
     /// new group. Returns the item again if no space was found.
     pub fn push(&mut self, item: Item) -> Option<Item> {
         let item = match item.kind {
-            ItemKind::Tool(_) | ItemKind::Armor { .. } => self.add_to_first_empty(item),
+            ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => {
+                self.add_to_first_empty(item)
+            },
             ItemKind::Utility {
                 kind: item_kind,
                 amount: new_amount,
@@ -239,7 +242,9 @@ impl Inventory {
         if let Some(Some(item)) = self.slots.get_mut(cell) {
             let mut return_item = item.clone();
             match &mut item.kind {
-                ItemKind::Tool(_) | ItemKind::Armor { .. } => self.remove(cell),
+                ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => {
+                    self.remove(cell)
+                },
                 ItemKind::Utility { kind, amount } => {
                     if *amount <= 1 {
                         self.remove(cell)

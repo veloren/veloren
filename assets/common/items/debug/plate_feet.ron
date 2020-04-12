@@ -1,0 +1,8 @@
+Item(
+    name: "Iron Feet",
+    description: "WIP",
+    kind: Armor(
+        kind: Foot(Plate0),
+        stats: (20),
+    ),
+)

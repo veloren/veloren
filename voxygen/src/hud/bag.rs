@@ -1,21 +1,25 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{ItemImgs, ItemKey},
-    Event as HudEvent, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
-    XP_COLOR,
+    item_imgs::ItemImgs,
+    slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
+    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
-    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    ui::{
+        fonts::ConrodVoxygenFonts,
+        slot::{ContentSize, SlotMaker},
+        ImageFrame, Tooltip, TooltipManager, Tooltipable,
+    },
 };
 use client::Client;
-use common::comp::{item::ItemKind, Stats};
+use common::comp::Stats;
 use conrod_core::{
-    color, image,
+    color,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-//
+use vek::Vec2;
 
 widget_ids! {
     pub struct Ids {
@@ -28,10 +32,7 @@ widget_ids! {
         inv_slots_0,
         map_title,
         inv_slots[],
-        items[],
-        amounts[],
-        amounts_bg[],
-        tooltip[],
+        //tooltip[],
         bg,
         bg_frame,
         char_ico,
@@ -46,7 +47,7 @@ widget_ids! {
         tab_2,
         tab_3,
         tab_4,
-        //Stats
+        // Stats
         stats_alignment,
         level,
         exp_rectangle,
@@ -56,36 +57,23 @@ widget_ids! {
         divider,
         statnames,
         stats,
-        //Armor Slots
+        // Armor Slots
         slots_bg,
-        head_bg,
-        neck_bg,
-        chest_bg,
-        shoulder_bg,
-        hands_bg,
-        legs_bg,
-        belt_bg,
-        ring_r_bg,
-        ring_l_bg,
-        foot_bg,
-        back_bg,
-        tabard_bg,
-        mainhand_bg,
-        offhand_bg,
-        head_ico,
-        neck_ico,
-        chest_ico,
-        shoulder_ico,
-        hands_ico,
-        legs_ico,
-        belt_ico,
-        ring_r_ico,
-        ring_l_ico,
-        foot_ico,
-        back_ico,
-        tabard_ico,
-        mainhand_ico,
-        offhand_ico,
+        head_slot,
+        neck_slot,
+        chest_slot,
+        shoulders_slot,
+        hands_slot,
+        legs_slot,
+        belt_slot,
+        lantern_slot,
+        ring_slot,
+        feet_slot,
+        back_slot,
+        tabard_slot,
+        mainhand_slot,
+        offhand_slot,
+        // ???
         end_ico,
         fit_ico,
         wp_ico,
@@ -93,7 +81,6 @@ widget_ids! {
 }
 
 #[derive(WidgetCommon)]
-#[allow(dead_code)]
 pub struct Bag<'a> {
     client: &'a Client,
     imgs: &'a Imgs,
@@ -103,8 +90,10 @@ pub struct Bag<'a> {
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
-    pulse: f32,
+    slot_manager: &'a mut SlotManager,
+    _pulse: f32,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+
     stats: &'a Stats,
     show: &'a Show,
 }
@@ -117,6 +106,7 @@ impl<'a> Bag<'a> {
         fonts: &'a ConrodVoxygenFonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
         stats: &'a Stats,
@@ -130,7 +120,8 @@ impl<'a> Bag<'a> {
             common: widget::CommonBuilder::default(),
             rot_imgs,
             tooltip_manager,
-            pulse,
+            slot_manager,
+            _pulse: pulse,
             localized_strings,
             stats,
             show,
@@ -140,12 +131,9 @@ impl<'a> Bag<'a> {
 
 pub struct State {
     ids: Ids,
-    img_id_cache: Vec<Option<(ItemKey, image::Id)>>,
-    selected_slot: Option<usize>,
 }
 
 pub enum Event {
-    HudEvent(HudEvent),
     Stats,
     Close,
 }
@@ -158,8 +146,6 @@ impl<'a> Widget for Bag<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
-            img_id_cache: Vec::new(),
-            selected_slot: None,
         }
     }
 
@@ -172,9 +158,15 @@ impl<'a> Widget for Bag<'a> {
 
         let invs = self.client.inventories();
         let inventory = match invs.get(self.client.entity()) {
-            Some(inv) => inv,
+            Some(i) => i,
             None => return None,
         };
+        let loadouts = self.client.loadouts();
+        let loadout = match loadouts.get(self.client.entity()) {
+            Some(l) => l,
+            None => return None,
+        };
+
         let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
         let exp_treshold = format!(
             "{}/{} {}",
@@ -224,21 +216,23 @@ impl<'a> Widget for Bag<'a> {
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.bg_frame, ui);
         // Title
-        Text::new(&format!(
-            "{}{}",
-            &self.stats.name,
-            &self.localized_strings.get("hud.bag.inventory")
-        ))
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.bag.inventory")
+                .replace("{playername}", &self.stats.name.to_string().as_str()),
+        )
         .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
         .font_id(self.fonts.cyri.conrod_id)
         .font_size(self.fonts.cyri.scale(22))
         .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
         .set(state.ids.inventory_title_bg, ui);
-        Text::new(&format!(
-            "{}{}",
-            &self.stats.name,
-            &self.localized_strings.get("hud.bag.inventory")
-        ))
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.bag.inventory")
+                .replace("{playername}", &self.stats.name.to_string().as_str()),
+        )
         .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
         .font_id(self.fonts.cyri.conrod_id)
         .font_size(self.fonts.cyri.scale(22))
@@ -287,21 +281,23 @@ impl<'a> Widget for Bag<'a> {
 
         if !self.show.stats {
             // Title
-            Text::new(&format!(
-                "{}{}",
-                &self.stats.name,
-                &self.localized_strings.get("hud.bag.inventory")
-            ))
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.bag.inventory")
+                    .replace("{playername}", &self.stats.name.to_string().as_str()),
+            )
             .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(22))
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.inventory_title_bg, ui);
-            Text::new(&format!(
-                "{}{}",
-                &self.stats.name,
-                &self.localized_strings.get("hud.bag.inventory")
-            ))
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.bag.inventory")
+                    .replace("{playername}", &self.stats.name.to_string().as_str()),
+            )
             .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(22))
@@ -321,192 +317,221 @@ impl<'a> Widget for Bag<'a> {
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.slots_bg, ui);*/
             // Armor Slots
-            //Head
-            Image::new(self.imgs.armor_slot)
-                .w_h(45.0, 45.0)
+            let mut slot_maker = SlotMaker {
+                empty_slot: self.imgs.armor_slot_empty,
+                filled_slot: self.imgs.armor_slot,
+                selected_slot: self.imgs.armor_slot_sel,
+                background_color: Some(UI_HIGHLIGHT_0),
+                content_size: ContentSize {
+                    width_height_ratio: 1.0,
+                    max_fraction: 0.75, /* Changes the item image size by setting a maximum
+                                         * fraction
+                                         * of either the width or height */
+                },
+                selected_content_scale: 1.067,
+                amount_font: self.fonts.cyri.conrod_id,
+                amount_margins: Vec2::new(-4.0, 0.0),
+                amount_font_size: self.fonts.cyri.scale(12),
+                amount_text_color: TEXT_COLOR,
+                content_source: loadout,
+                image_source: self.item_imgs,
+                slot_manager: Some(self.slot_manager),
+            };
+            //  Head
+            let (title, desc) = loadout
+                .head
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.head"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Head), [45.0; 2])
                 .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.head_bg, ui);
-            Button::image(self.imgs.head_bg)
-                .w_h(32.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.head_bg)
-                .with_tooltip(self.tooltip_manager, "Helmet", "", &item_tooltip)
-                .set(state.ids.head_ico, ui);
-            //Necklace
-            Image::new(self.imgs.armor_slot)
-                .w_h(45.0, 45.0)
-                .mid_bottom_with_margin_on(state.ids.head_bg, -55.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.neck_bg, ui);
-            Button::image(self.imgs.necklace_bg)
-                .w_h(40.0, 31.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.neck_bg)
-                .with_tooltip(self.tooltip_manager, "Neck", "", &item_tooltip)
-                .set(state.ids.neck_ico, ui);
-            //Chest
-            Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
-                .w_h(85.0, 85.0)
-                .mid_bottom_with_margin_on(state.ids.neck_bg, -95.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.chest_bg, ui);
-            Button::image(self.imgs.chest_bg)
-                .w_h(64.0, 42.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.chest_bg)
-                .with_tooltip(self.tooltip_manager, "Chest", "", &item_tooltip)
-                .set(state.ids.chest_ico, ui);
-            //Shoulder
-            Image::new(self.imgs.armor_slot)
-                .w_h(70.0, 70.0)
-                .bottom_left_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.shoulder_bg, ui);
-            Button::image(self.imgs.shoulders_bg)
-                .w_h(60.0, 36.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.shoulder_bg)
-                .with_tooltip(self.tooltip_manager, "Shoulders", "", &item_tooltip)
-                .set(state.ids.shoulder_ico, ui);
-            //Hands
-            Image::new(self.imgs.armor_slot)
-                .w_h(70.0, 70.0)
-                .bottom_right_with_margins_on(state.ids.chest_bg, 0.0, -80.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.hands_bg, ui);
-            Button::image(self.imgs.hands_bg)
-                .w_h(55.0, 60.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.hands_bg)
-                .with_tooltip(self.tooltip_manager, "Hands", "", &item_tooltip)
-                .set(state.ids.hands_ico, ui);
-            //Belt
-            Image::new(self.imgs.armor_slot)
-                .w_h(45.0, 45.0)
-                .mid_bottom_with_margin_on(state.ids.chest_bg, -55.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.belt_bg, ui);
-            Button::image(self.imgs.belt_bg)
-                .w_h(40.0, 23.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.belt_bg)
-                .with_tooltip(self.tooltip_manager, "Belt", "", &item_tooltip)
-                .set(state.ids.belt_ico, ui);
-            //Legs
-            Image::new(self.imgs.armor_slot)
-                .w_h(85.0, 85.0)
-                .mid_bottom_with_margin_on(state.ids.belt_bg, -95.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.legs_bg, ui);
-            Button::image(self.imgs.legs_bg)
-                .w_h(48.0, 70.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.legs_bg)
-                .with_tooltip(self.tooltip_manager, "Legs", "", &item_tooltip)
-                .set(state.ids.legs_ico, ui);
-            //Ring-L
-            Image::new(self.imgs.armor_slot)
-                .w_h(45.0, 45.0)
-                .bottom_right_with_margins_on(state.ids.shoulder_bg, -55.0, 0.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.ring_l_bg, ui);
-            Button::image(self.imgs.ring_l_bg)
-                .w_h(36.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.ring_l_bg)
-                .with_tooltip(self.tooltip_manager, "Left Ring", "", &item_tooltip)
-                .set(state.ids.ring_l_ico, ui);
-            //Ring-R
-            Image::new(self.imgs.armor_slot)
-                .w_h(45.0, 45.0)
-                .bottom_left_with_margins_on(state.ids.hands_bg, -55.0, 0.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.ring_r_bg, ui);
-            Button::image(self.imgs.ring_r_bg)
-                .w_h(36.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.ring_r_bg)
-                .with_tooltip(self.tooltip_manager, "Right Ring", "", &item_tooltip)
-                .set(state.ids.ring_r_ico, ui);
-            //Back
-            Image::new(self.imgs.armor_slot)
-                .w_h(45.0, 45.0)
-                .down_from(state.ids.ring_l_bg, 10.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.back_bg, ui);
-            Button::image(self.imgs.back_bg)
-                .w_h(33.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.back_bg)
-                .with_tooltip(self.tooltip_manager, "Back", "", &item_tooltip)
-                .set(state.ids.back_ico, ui);
-            //Foot
-            Image::new(self.imgs.armor_slot)
-                .w_h(45.0, 45.0)
-                .down_from(state.ids.ring_r_bg, 10.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.foot_bg, ui);
-            Button::image(self.imgs.feet_bg)
-                .w_h(32.0, 40.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.foot_bg)
-                .with_tooltip(self.tooltip_manager, "Feet", "", &item_tooltip)
-                .set(state.ids.foot_ico, ui);
-            //Tabard
-            Image::new(self.imgs.armor_slot)
-                .w_h(70.0, 70.0)
+                .with_icon(self.imgs.head_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.head_slot, ui);
+            //  Necklace
+            let (title, desc) = loadout
+                .neck
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.neck"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Neck), [45.0; 2])
+                .mid_bottom_with_margin_on(state.ids.head_slot, -55.0)
+                .with_icon(self.imgs.necklace_bg, Vec2::new(40.0, 31.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.neck_slot, ui);
+            // Chest
+            //Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
+            let (title, desc) = loadout
+                .chest
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.chest"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Chest), [85.0; 2])
+                .mid_bottom_with_margin_on(state.ids.neck_slot, -95.0)
+                .with_icon(self.imgs.chest_bg, Vec2::new(64.0, 42.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.chest_slot, ui);
+            //  Shoulders
+            let (title, desc) = loadout.shoulder.as_ref().map_or(
+                (self.localized_strings.get("hud.bag.shoulders"), ""),
+                |item| (item.name(), item.description()),
+            );
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Shoulders), [70.0; 2])
+                .bottom_left_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
+                .with_icon(self.imgs.shoulders_bg, Vec2::new(60.0, 36.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.shoulders_slot, ui);
+            // Hands
+            let (title, desc) = loadout
+                .hand
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.hands"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Hands), [70.0; 2])
+                .bottom_right_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
+                .with_icon(self.imgs.hands_bg, Vec2::new(55.0, 60.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.hands_slot, ui);
+            // Belt
+            let (title, desc) = loadout
+                .belt
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.belt"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Belt), [45.0; 2])
+                .mid_bottom_with_margin_on(state.ids.chest_slot, -55.0)
+                .with_icon(self.imgs.belt_bg, Vec2::new(40.0, 23.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.belt_slot, ui);
+            // Legs
+            let (title, desc) = loadout
+                .pants
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.legs"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Legs), [85.0; 2])
+                .mid_bottom_with_margin_on(state.ids.belt_slot, -95.0)
+                .with_icon(self.imgs.legs_bg, Vec2::new(48.0, 70.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.legs_slot, ui);
+            // Lantern
+            let (title, desc) = loadout.lantern.as_ref().map_or(
+                (self.localized_strings.get("hud.bag.lantern"), ""),
+                |item| (item.name(), item.description()),
+            );
+            slot_maker
+                .fabricate(EquipSlot::Lantern, [45.0; 2])
+                .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
+                .with_icon(self.imgs.lantern_bg, Vec2::new(24.0, 38.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.lantern_slot, ui);
+            // Ring
+            let (title, desc) = loadout
+                .ring
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.ring"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Ring), [45.0; 2])
+                .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
+                .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.ring_slot, ui);
+            // Back
+            let (title, desc) = loadout
+                .back
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.back"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Back), [45.0; 2])
+                .down_from(state.ids.lantern_slot, 10.0)
+                .with_icon(self.imgs.back_bg, Vec2::new(33.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.back_slot, ui);
+            // Foot
+            let (title, desc) = loadout
+                .foot
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.feet"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Feet), [45.0; 2])
+                .down_from(state.ids.ring_slot, 10.0)
+                .with_icon(self.imgs.feet_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.feet_slot, ui);
+            // Tabard
+            let (title, desc) = loadout
+                .tabard
+                .as_ref()
+                .map_or((self.localized_strings.get("hud.bag.tabard"), ""), |item| {
+                    (item.name(), item.description())
+                });
+            slot_maker
+                .fabricate(EquipSlot::Armor(ArmorSlot::Tabard), [70.0; 2])
                 .top_right_with_margins_on(state.ids.bg_frame, 80.5, 53.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.tabard_bg, ui);
-            Button::image(self.imgs.tabard_bg)
-                .w_h(60.0, 60.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.tabard_bg)
-                .with_tooltip(self.tooltip_manager, "Tabard", "", &item_tooltip)
-                .set(state.ids.tabard_ico, ui);
-            //Mainhand/Left-Slot
-            Image::new(self.imgs.armor_slot)
-                .w_h(85.0, 85.0)
-                .bottom_right_with_margins_on(state.ids.back_bg, -95.0, 0.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.mainhand_bg, ui);
-            Button::image(self.imgs.mainhand_bg)
-                .w_h(75.0, 75.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.mainhand_bg)
-                .with_tooltip(self.tooltip_manager, "Mainhand", "", &item_tooltip)
-                .set(state.ids.mainhand_ico, ui);
-            //Offhand/Right-Slot
-            Image::new(self.imgs.armor_slot)
-                .w_h(85.0, 85.0)
-                .bottom_left_with_margins_on(state.ids.foot_bg, -95.0, 0.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.offhand_bg, ui);
-            Button::image(self.imgs.offhand_bg)
-                .w_h(75.0, 75.0)
-                .image_color(UI_MAIN)
-                .middle_of(state.ids.offhand_bg)
-                .with_tooltip(self.tooltip_manager, "Offhand", "", &item_tooltip)
-                .set(state.ids.offhand_ico, ui);
+                .with_icon(self.imgs.tabard_bg, Vec2::new(60.0, 60.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.tabard_slot, ui);
+            // Mainhand/Left-Slot
+            let (title, desc) = loadout.active_item.as_ref().map(|i| &i.item).map_or(
+                (self.localized_strings.get("hud.bag.mainhand"), ""),
+                |item| (item.name(), item.description()),
+            );
+            slot_maker
+                .fabricate(EquipSlot::Mainhand, [85.0; 2])
+                .bottom_right_with_margins_on(state.ids.back_slot, -95.0, 0.0)
+                .with_icon(self.imgs.mainhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.mainhand_slot, ui);
+            // Offhand/Right-Slot
+            let (title, desc) = loadout.second_item.as_ref().map(|i| &i.item).map_or(
+                (self.localized_strings.get("hud.bag.offhand"), ""),
+                |item| (item.name(), item.description()),
+            );
+            slot_maker
+                .fabricate(EquipSlot::Offhand, [85.0; 2])
+                .bottom_left_with_margins_on(state.ids.feet_slot, -95.0, 0.0)
+                .with_icon(self.imgs.offhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
+                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .set(state.ids.offhand_slot, ui);
         } else {
             // Stats
             // Title
-            Text::new(&format!(
-                "{}{}",
-                &self.stats.name,
-                &self.localized_strings.get("hud.bag.stats_title")
-            ))
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.bag.stats_title")
+                    .replace("{playername}", &self.stats.name.to_string().as_str()),
+            )
             .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(22))
             .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(state.ids.inventory_title_bg, ui);
-            Text::new(&format!(
-                "{}{}",
-                &self.stats.name,
-                &self.localized_strings.get("hud.bag.stats_title")
-            ))
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.bag.stats_title")
+                    .replace("{playername}", &self.stats.name.to_string().as_str()),
+            )
             .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(22))
@@ -603,57 +628,38 @@ impl<'a> Widget for Bag<'a> {
                     .resize(inventory.len(), &mut ui.widget_id_generator());
             });
         }
-        if state.ids.items.len() < inventory.len() {
-            state.update(|s| {
-                s.ids
-                    .items
-                    .resize(inventory.len(), &mut ui.widget_id_generator());
-            });
-        }
-        if state.ids.amounts.len() < inventory.len() {
-            state.update(|s| {
-                s.ids
-                    .amounts
-                    .resize(inventory.len(), &mut ui.widget_id_generator());
-            });
-        }
-        if state.ids.amounts_bg.len() < inventory.len() {
-            state.update(|s| {
-                s.ids
-                    .amounts_bg
-                    .resize(inventory.len(), &mut ui.widget_id_generator());
-            });
-        }
-        // Expand img id cache to the number of slots
-        if state.img_id_cache.len() < inventory.len() {
-            state.update(|s| {
-                s.img_id_cache.resize(inventory.len(), None);
-            });
-        }
-
         // Display inventory contents
+        let mut slot_maker = SlotMaker {
+            empty_slot: self.imgs.inv_slot,
+            filled_slot: self.imgs.inv_slot,
+            selected_slot: self.imgs.inv_slot_sel,
+            background_color: Some(UI_MAIN),
+            content_size: ContentSize {
+                width_height_ratio: 1.0,
+                max_fraction: 0.75,
+            },
+            selected_content_scale: 1.067,
+            amount_font: self.fonts.cyri.conrod_id,
+            amount_margins: Vec2::new(-4.0, 0.0),
+            amount_font_size: self.fonts.cyri.scale(12),
+            amount_text_color: TEXT_COLOR,
+            content_source: inventory,
+            image_source: self.item_imgs,
+            slot_manager: Some(self.slot_manager),
+        };
         for (i, item) in inventory.slots().iter().enumerate() {
             let x = i % 9;
             let y = i / 9;
 
-            let is_selected = Some(i) == state.selected_slot;
-
             // Slot
-
-            let slot_widget = Button::image(if !is_selected {
-                self.imgs.inv_slot
-            } else {
-                self.imgs.inv_slot_sel
-            })
-            .top_left_with_margins_on(
-                state.ids.inv_alignment,
-                0.0 + y as f64 * (40.0),
-                0.0 + x as f64 * (40.0),
-            )
-            .wh([40.0; 2])
-            .image_color(UI_MAIN);
-
-            let slot_widget_clicked = if let Some(item) = item {
+            let slot_widget = slot_maker
+                .fabricate(InventorySlot(i), [40.0; 2])
+                .top_left_with_margins_on(
+                    state.ids.inv_alignment,
+                    0.0 + y as f64 * (40.0),
+                    0.0 + x as f64 * (40.0),
+                );
+            if let Some(item) = item {
                 slot_widget
                     .with_tooltip(
                         self.tooltip_manager,
@@ -664,82 +670,12 @@ impl<'a> Widget for Bag<'a> {
                         ),
                         &item_tooltip,
                     )
-                    .set(state.ids.inv_slots[i], ui)
+                    .set(state.ids.inv_slots[i], ui);
             } else {
-                slot_widget.set(state.ids.inv_slots[i], ui)
-            }
-            .was_clicked();
-
-            // Item
-            if slot_widget_clicked {
-                let selected_slot = match state.selected_slot {
-                    Some(a) => {
-                        if a == i {
-                            event = Some(Event::HudEvent(HudEvent::UseInventorySlot(i)));
-                        } else {
-                            event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(a, i)));
-                        }
-                        None
-                    },
-                    None if item.is_some() => Some(i),
-                    None => None,
-                };
-                state.update(|s| s.selected_slot = selected_slot);
-            }
-            // Item
-            if let Some(kind) = item.as_ref().map(|i| ItemKey::from(i)) {
-                //Stack Size
-                Button::image(match &state.img_id_cache[i] {
-                    Some((cached_kind, id)) if cached_kind == &kind => *id,
-                    _ => {
-                        let id = self
-                            .item_imgs
-                            .img_id(kind.clone())
-                            .unwrap_or(self.imgs.not_found);
-                        state.update(|s| s.img_id_cache[i] = Some((kind, id)));
-                        id
-                    },
-                })
-                .wh(if is_selected { [32.0; 2] } else { [30.0; 2] })
-                .middle_of(state.ids.inv_slots[i])
-                .graphics_for(state.ids.inv_slots[i])
-                .set(state.ids.items[i], ui);
-            }
-            if let Some(item) = item {
-                if let Some(amount) = match item.kind {
-                    ItemKind::Tool { .. } | ItemKind::Armor { .. } => None,
-                    ItemKind::Utility { amount, .. }
-                    | ItemKind::Consumable { amount, .. }
-                    | ItemKind::Ingredient { amount, .. } => Some(amount),
-                } {
-                    if amount > 1 {
-                        Text::new(&format!("{}", &amount))
-                            .top_right_with_margins_on(state.ids.items[i], -4.0, 0.0)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .floating(true)
-                            .font_size(self.fonts.cyri.scale(12))
-                            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                            .floating(true)
-                            .set(state.ids.amounts_bg[i], ui);
-                        Text::new(&format!("{}", &amount))
-                            .bottom_left_with_margins_on(state.ids.amounts_bg[i], 1.0, 1.0)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .font_size(self.fonts.cyri.scale(12))
-                            .color(TEXT_COLOR)
-                            .floating(true)
-                            .set(state.ids.amounts[i], ui);
-                    }
-                }
+                slot_widget.set(state.ids.inv_slots[i], ui);
             }
         }
 
-        // Drop selected item
-        if let Some(to_drop) = state.selected_slot {
-            if ui.widget_input(ui.window).clicks().left().next().is_some() {
-                event = Some(Event::HudEvent(HudEvent::DropInventorySlot(to_drop)));
-                state.update(|s| s.selected_slot = None);
-            }
-        }
         // Stats Button
         if Button::image(self.imgs.button)
             .w_h(92.0, 22.0)

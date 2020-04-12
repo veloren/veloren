@@ -1,0 +1,10 @@
+Item(
+    name: "Admin's Cape",
+   description: "
+   With great power comes 
+   great responsibility. ",
+    kind: Armor(
+        kind: Back(Admin),
+        stats: (20),
+    ),
+)

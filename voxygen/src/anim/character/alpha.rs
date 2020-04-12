@@ -104,6 +104,10 @@ impl Animation for AlphaAnimation {
                 next.r_foot.ori = Quaternion::rotation_x(slow * -0.6)
                     * Quaternion::rotation_y((slow * 0.2).min(0.0));
                 next.r_foot.scale = Vec3::one();
+
+                next.lantern.ori =
+                    Quaternion::rotation_x(slow * -0.7 + 0.4) * Quaternion::rotation_y(slow * 0.4);
+
                 next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
                 next.torso.ori = Quaternion::rotation_z(0.0)
                     * Quaternion::rotation_x(0.0)
@@ -151,6 +155,9 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_z(-0.8);
                 next.main.scale = Vec3::one();
 
+                next.lantern.ori = Quaternion::rotation_x(slowax * -0.7 + 0.4)
+                    * Quaternion::rotation_y(slowax * 0.4);
+
                 next.control.offset = Vec3::new(0.0, 0.0 + slowax * 8.2, 6.0);
                 next.control.ori = Quaternion::rotation_x(0.8)
                     * Quaternion::rotation_y(-0.3)
@@ -197,6 +204,10 @@ impl Animation for AlphaAnimation {
                 next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
                 next.shorts.ori = next.chest.ori * -0.15;
                 next.shorts.scale = Vec3::one();
+
+                next.lantern.ori = Quaternion::rotation_x(slower * -0.7 + 0.4)
+                    * Quaternion::rotation_y(slower * 0.4);
+
                 next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
                 next.torso.ori = Quaternion::rotation_z(0.0)
                     * Quaternion::rotation_x(0.0)
@@ -519,6 +530,8 @@ impl Animation for AlphaAnimation {
             },
             _ => {},
         }
+        next.lantern.offset = Vec3::new(-5.0, 2.5, 5.5);
+        next.lantern.scale = Vec3::one() * 0.65;
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
@@ -531,10 +544,6 @@ impl Animation for AlphaAnimation {
         next.glider.offset = Vec3::new(0.0, 5.0, 0.0);
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
-
-        next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.lantern.ori = Quaternion::rotation_x(0.0);
-        next.lantern.scale = Vec3::one() * 0.0;
 
         next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
         next.l_control.ori = Quaternion::rotation_x(0.0);

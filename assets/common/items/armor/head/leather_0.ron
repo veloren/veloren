@@ -1,0 +1,8 @@
+Item(
+    name: "Swift Leather Cap",
+   description: "WIP",
+    kind: Armor(
+        kind: Head(Leather0),
+        stats: (20),
+    ),
+)

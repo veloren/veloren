@@ -282,9 +282,6 @@ impl PlayState for SessionState {
                         }
                     },
 
-                    Event::InputUpdate(GameInput::Ability3, state) => {
-                        self.inputs.ability3.set_state(state);
-                    },
                     Event::InputUpdate(GameInput::Roll, state) => {
                         let client = self.client.borrow();
                         if client
@@ -336,9 +333,9 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::ClimbDown, state) => {
                         self.key_state.climb_down = state;
                     },
-                    Event::InputUpdate(GameInput::WallLeap, state) => {
+                    /*Event::InputUpdate(GameInput::WallLeap, state) => {
                         self.inputs.wall_leap.set_state(state)
-                    },
+                    },*/
                     Event::InputUpdate(GameInput::ToggleWield, state)
                         if state != self.key_state.toggle_wield =>
                     {
@@ -420,9 +417,9 @@ impl PlayState for SessionState {
                             }
                         }
                     },
-                    Event::InputUpdate(GameInput::Charge, state) => {
+                    /*Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
-                    },
+                    },*/
                     Event::InputUpdate(GameInput::FreeLook, state) => {
                         match (global_state.settings.gameplay.free_look_behavior, state) {
                             (PressBehavior::Toggle, true) => {
@@ -643,13 +640,10 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::UseInventorySlot(x) => self.client.borrow_mut().use_inventory_slot(x),
-                    HudEvent::SwapInventorySlots(a, b) => {
-                        self.client.borrow_mut().swap_inventory_slots(a, b)
-                    },
-                    HudEvent::DropInventorySlot(x) => {
-                        self.client.borrow_mut().drop_inventory_slot(x)
-                    },
+                    HudEvent::UseSlot(x) => self.client.borrow_mut().use_slot(x),
+                    HudEvent::SwapSlots(a, b) => self.client.borrow_mut().swap_slots(a, b),
+                    HudEvent::DropSlot(x) => self.client.borrow_mut().drop_slot(x),
+                    HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();

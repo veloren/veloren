@@ -190,11 +190,26 @@ Enjoy your stay in the World of Veloren."#,
 
 
         // Inventory
-        "hud.bag.inventory": "'s Inventory",
-        "hud.bag.stats_title": "'s Stats",
+        "hud.bag.inventory": "{playername}'s Inventory",
+        "hud.bag.stats_title": "{playername}'s Stats",
         "hud.bag.exp": "Exp",
         "hud.bag.armor": "Armor",
         "hud.bag.stats": "Stats",
+        "hud.bag.head": "Head",
+        "hud.bag.neck": "Neck",
+        "hud.bag.tabard": "Tabard",
+        "hud.bag.shoulders": "Shoulders",
+        "hud.bag.chest": "Chest",
+        "hud.bag.hands": "Hands",
+        "hud.bag.lantern": "Lantern",
+        "hud.bag.belt": "Belt",
+        "hud.bag.ring": "Ring",
+        "hud.bag.back": "Back",
+        "hud.bag.legs": "Legs",
+        "hud.bag.feet": "Feet",
+        "hud.bag.mainhand": "Mainhand",
+        "hud.bag.offhand": "Offhand",    
+
 
         // Map and Questlog
         "hud.map.map_title": "Map",
@@ -261,7 +276,8 @@ Enjoy your stay in the World of Veloren."#,
 
         "hud.spell": "Spell",
 
-        "hud.free_look_indicator": "Free look active",
+        "hud.free_look_indicator": "Free look active",       
+
         /// End HUD section
 
 
@@ -269,9 +285,18 @@ Enjoy your stay in the World of Veloren."#,
 
         "gameinput.primary": "Basic Attack",
         "gameinput.secondary": "Secondary Attack/Block/Aim",
-        "gameinput.ability3": "Hotbar Slot 1",
+       "gameinput.slot1": "Hotbar Slot 1",        
+        "gameinput.slot2": "Hotbar Slot 2",
+        "gameinput.slot3": "Hotbar Slot 3",
+        "gameinput.slot4": "Hotbar Slot 4",
+        "gameinput.slot5": "Hotbar Slot 5",
+        "gameinput.slot6": "Hotbar Slot 6",
+        "gameinput.slot7": "Hotbar Slot 7",
+        "gameinput.slot8": "Hotbar Slot 8",
+        "gameinput.slot9": "Hotbar Slot 9",
+        "gameinput.slot10": "Hotbar Slot 10",
         "gameinput.swaploadout": "Swap Loadout",
-        "gameinput.togglecursor": "Free Cursor",
+        "gameinput.togglecursor": "Toggle Cursor",
         "gameinput.help": "Toggle Help Window",
         "gameinput.toggleinterface": "Toggle Interface",
         "gameinput.toggledebug": "Toggle FPS and Debug Info",
@@ -296,14 +321,14 @@ Enjoy your stay in the World of Veloren."#,
         "gameinput.bag": "Bag",
         "gameinput.social": "Social",
         "gameinput.sit": "Sit",
-        "gameinput.spellbook": "Spell Book",
+        "gameinput.spellbook": "Spells",
         "gameinput.settings": "Settings",
         "gameinput.respawn": "Respawn",
         "gameinput.charge": "Charge",
         "gameinput.togglewield": "Toggle Wield",
         "gameinput.interact": "Interact",
-        "gameinput.freelook": "Free look behavior",
-
+        "gameinput.freelook": "Free Look",
+        
         /// End GameInput section
 
 
