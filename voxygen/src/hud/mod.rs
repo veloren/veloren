@@ -1703,6 +1703,7 @@ impl Hud {
                 &self.imgs,
                 &self.item_imgs,
                 &self.fonts,
+                &self.rot_imgs,
                 &stats,
                 &loadout,
                 &energy,
@@ -1711,7 +1712,9 @@ impl Hud {
                 &controller,
                 &inventory,
                 &self.hotbar,
+                tooltip_manager,
                 &mut self.slot_manager,
+                &self.voxygen_i18n,
             )
             .set(self.ids.skillbar, ui_widgets);
         }

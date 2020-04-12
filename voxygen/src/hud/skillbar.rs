@@ -1,25 +1,26 @@
 use super::{
-    hotbar, img_ids::Imgs, item_imgs::ItemImgs, slots, BarNumbers, ShortcutNumbers, XpBar, BLACK,
-    CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
+    hotbar,
+    img_ids::{Imgs, ImgsRot},
+    item_imgs::ItemImgs,
+    slots, BarNumbers, ShortcutNumbers, XpBar, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
+    MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::{
-    i18n::{i18n_asset_key, VoxygenLocalization},
+    i18n::VoxygenLocalization,
     ui::{
         fonts::ConrodVoxygenFonts,
         slot::{ContentSize, SlotMaker},
+        ImageFrame, Tooltip, TooltipManager, Tooltipable,
     },
     window::GameInput,
     GlobalState,
 };
-use common::{
-    assets::load_expect,
-    comp::{
-        item::{
-            tool::{DebugKind, StaffKind, Tool, ToolKind},
-            ItemKind,
-        },
-        CharacterState, ControllerInputs, Energy, Inventory, Loadout, Stats,
+use common::comp::{
+    item::{
+        tool::{DebugKind, StaffKind, Tool, ToolKind},
+        ItemKind,
     },
+    CharacterState, ControllerInputs, Energy, Inventory, Loadout, Stats,
 };
 use conrod_core::{
     color,
@@ -64,45 +65,34 @@ widget_ids! {
         m2_slot_act,
         m2_content,
         slot1,
-        slot1_bg,
         slot1_text,
         slot1_text_bg,
-        slot1_icon,
-        slot1_act,
+        //slot1_act,
         slot2,
-        slot2_bg,
         slot2_text,
         slot2_text_bg,
         slot3,
-        slot3_bg,
         slot3_text,
         slot3_text_bg,
         slot4,
-        slot4_bg,
         slot4_text,
         slot4_text_bg,
         slot5,
-        slot5_bg,
         slot5_text,
         slot5_text_bg,
         slot6,
-        slot6_bg,
         slot6_text,
         slot6_text_bg,
         slot7,
-        slot7_bg,
         slot7_text,
         slot7_text_bg,
         slot8,
-        slot8_bg,
         slot8_text,
         slot8_text_bg,
         slot9,
-        slot9_bg,
         slot9_text,
         slot9_text_bg,
         slot10,
-        slot10_bg,
         slot10_text,
         slot10_text_bg,
         healthbar_bg,
@@ -135,6 +125,7 @@ pub struct Skillbar<'a> {
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     fonts: &'a ConrodVoxygenFonts,
+    rot_imgs: &'a ImgsRot,
     stats: &'a Stats,
     loadout: &'a Loadout,
     energy: &'a Energy,
@@ -142,7 +133,9 @@ pub struct Skillbar<'a> {
     controller: &'a ControllerInputs,
     inventory: &'a Inventory,
     hotbar: &'a hotbar::State,
+    tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut slots::SlotManager,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -155,6 +148,7 @@ impl<'a> Skillbar<'a> {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a ConrodVoxygenFonts,
+        rot_imgs: &'a ImgsRot,
         stats: &'a Stats,
         loadout: &'a Loadout,
         energy: &'a Energy,
@@ -163,13 +157,16 @@ impl<'a> Skillbar<'a> {
         controller: &'a ControllerInputs,
         inventory: &'a Inventory,
         hotbar: &'a hotbar::State,
+        tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut slots::SlotManager,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
             global_state,
             imgs,
             item_imgs,
             fonts,
+            rot_imgs,
             stats,
             loadout,
             energy,
@@ -180,7 +177,9 @@ impl<'a> Skillbar<'a> {
             controller,
             inventory,
             hotbar,
+            tooltip_manager,
             slot_manager,
+            localized_strings,
         }
     }
 }
@@ -234,9 +233,7 @@ impl<'a> Widget for Skillbar<'a> {
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
-        let localized_strings = load_expect::<VoxygenLocalization>(&i18n_asset_key(
-            &self.global_state.settings.language.selected_language,
-        ));
+        let localized_strings = self.localized_strings;
 
         // Stamina Wheel
         /*
@@ -821,26 +818,82 @@ impl<'a> Widget for Skillbar<'a> {
             image_source: &image_source,
             slot_manager: Some(self.slot_manager),
         };
+        let item_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .title_text_color(TEXT_COLOR)
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
+        // Helper
+        let tooltip_text = |slot| {
+            content_source
+                .0
+                .get(slot)
+                .and_then(|content| match content {
+                    hotbar::SlotContents::Inventory(i) => content_source
+                        .1
+                        .get(i)
+                        .map(|item| (item.name(), item.description())),
+                    hotbar::SlotContents::Ability3 => Some(("Something something fireball", "")),
+                })
+        };
+        const SLOT_TOOLTIP_UPSHIFT: f64 = 70.0;
         //Slot 5
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Five, [20.0 * scale as f32; 2])
-            .bottom_left_with_margins_on(state.ids.m1_slot, 0.0, -20.0 * scale)
-            .set(state.ids.slot5, ui);
+            .bottom_left_with_margins_on(state.ids.m1_slot, 0.0, -20.0 * scale);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Five) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot5, ui);
+        } else {
+            slot.set(state.ids.slot5, ui);
+        }
         // Slot 4
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Four, [20.0 * scale as f32; 2])
-            .left_from(state.ids.slot5, 0.0)
-            .set(state.ids.slot4, ui);
+            .left_from(state.ids.slot5, 0.0);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Four) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot4, ui);
+        } else {
+            slot.set(state.ids.slot4, ui);
+        }
         // Slot 3
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Three, [20.0 * scale as f32; 2])
-            .left_from(state.ids.slot4, 0.0)
-            .set(state.ids.slot3, ui);
+            .left_from(state.ids.slot4, 0.0);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Three) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot3, ui);
+        } else {
+            slot.set(state.ids.slot3, ui);
+        }
         // Slot 2
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Two, [20.0 * scale as f32; 2])
-            .left_from(state.ids.slot3, 0.0)
-            .set(state.ids.slot2, ui);
+            .left_from(state.ids.slot3, 0.0);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Two) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot2, ui);
+        } else {
+            slot.set(state.ids.slot2, ui);
+        }
         // Slot 1
         // TODO: Don't hardcode this to one Skill...
         // Frame flashes whenever the active skill inside this slot is activated
@@ -864,10 +917,16 @@ impl<'a> Widget for Skillbar<'a> {
                     .set(state.ids.slot1_act, ui);
             },
         }*/
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::One, [20.0 * scale as f32; 2])
-            .left_from(state.ids.slot2, 0.0)
-            .set(state.ids.slot1, ui);
+            .left_from(state.ids.slot2, 0.0);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::One) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot1, ui);
+        } else {
+            slot.set(state.ids.slot1, ui);
+        }
         // TODO: Changeable slot image
         /*match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
             Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
@@ -887,33 +946,63 @@ impl<'a> Widget for Skillbar<'a> {
             _ => {},
         }*/
         // Slot 6
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Six, [20.0 * scale as f32; 2])
-            .bottom_right_with_margins_on(state.ids.m2_slot, 0.0, -20.0 * scale)
-            .set(state.ids.slot6, ui);
+            .bottom_right_with_margins_on(state.ids.m2_slot, 0.0, -20.0 * scale);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Six) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot6, ui);
+        } else {
+            slot.set(state.ids.slot6, ui);
+        }
         // Slot 7
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Seven, [20.0 * scale as f32; 2])
-            .right_from(state.ids.slot6, 0.0)
-            .set(state.ids.slot7, ui);
+            .right_from(state.ids.slot6, 0.0);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Seven) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot7, ui);
+        } else {
+            slot.set(state.ids.slot7, ui);
+        }
         // Slot 8
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Eight, [20.0 * scale as f32; 2])
-            .right_from(state.ids.slot7, 0.0)
-            .set(state.ids.slot8, ui);
+            .right_from(state.ids.slot7, 0.0);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Eight) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot8, ui);
+        } else {
+            slot.set(state.ids.slot8, ui);
+        }
         // Slot 9
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Nine, [20.0 * scale as f32; 2])
-            .right_from(state.ids.slot8, 0.0)
-            .set(state.ids.slot9, ui);
+            .right_from(state.ids.slot8, 0.0);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Nine) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot9, ui);
+        } else {
+            slot.set(state.ids.slot9, ui);
+        }
         // Quickslot
         slot_maker.filled_slot = self.imgs.skillbar_slot_r;
         slot_maker.selected_slot = self.imgs.skillbar_slot_r;
         slot_maker.empty_slot = self.imgs.skillbar_slot_r;
-        slot_maker
+        let slot = slot_maker
             .fabricate(hotbar::Slot::Ten, [20.0 * scale as f32; 2])
-            .right_from(state.ids.slot9, 0.0)
-            .set(state.ids.slot10, ui);
+            .right_from(state.ids.slot9, 0.0);
+        if let Some((title, desc)) = tooltip_text(hotbar::Slot::Ten) {
+            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
+                .set(state.ids.slot10, ui);
+        } else {
+            slot.set(state.ids.slot10, ui);
+        }
 
         // Shortcuts
         if let ShortcutNumbers::On = shortcuts {
@@ -924,7 +1013,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot1)
             {
                 Text::new(slot1.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot1_bg, 1.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot1, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -943,7 +1032,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot2)
             {
                 Text::new(slot2.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot2_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot2, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -962,7 +1051,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot3)
             {
                 Text::new(slot3.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot3_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot3, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -981,7 +1070,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot4)
             {
                 Text::new(slot4.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot4_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot4, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1000,7 +1089,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot5)
             {
                 Text::new(slot5.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot5_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot5, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1057,7 +1146,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot6)
             {
                 Text::new(slot6.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot6_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot6, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1076,7 +1165,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot7)
             {
                 Text::new(slot7.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot7_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot7, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1095,7 +1184,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot8)
             {
                 Text::new(slot8.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot8_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot8, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1114,7 +1203,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot9)
             {
                 Text::new(slot9.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot9_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot9, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1133,7 +1222,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot10)
             {
                 Text::new(slot10.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot10_bg, 1.0, 1.0)
+                    .top_right_with_margins_on(state.ids.slot10, 2.0, 2.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
