@@ -174,11 +174,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 };
 
                                 if reinsert {
-                                    let _ = state
-                                        .ecs()
-                                        .write_storage::<comp::Inventory>()
-                                        .get_mut(entity)
-                                        .map(|inv| inv.insert(slot, item));
+                                    let _ = inventory.insert(slot, item);
                                 }
 
                                 Some(comp::InventoryUpdateEvent::Used)
