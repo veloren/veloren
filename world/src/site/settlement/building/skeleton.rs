@@ -62,7 +62,7 @@ impl<T> Skeleton<T> {
         bounds
     }
 
-    pub fn closest<R>(&self, pos: Vec2<i32>, mut f: impl FnMut(i32, Vec2<i32>, Vec2<i32>, &Branch<T>) -> Option<R>) -> Option<R> {
+    pub fn closest<R: Clone>(&self, pos: Vec2<i32>, mut f: impl FnMut(i32, Vec2<i32>, Vec2<i32>, &Branch<T>) -> Option<R>) -> Option<R> {
         let mut min = None;
         self.for_each(|node, ori, branch| {
             let node2 = node + ori.dir() * branch.len;
@@ -87,7 +87,7 @@ impl<T> Skeleton<T> {
             let dist = bound_offset.reduce_max();
             let dist_locus = dist - branch.locus;
             if min.as_ref().map(|(min_dist_locus, _)| dist_locus < *min_dist_locus).unwrap_or(true) {
-                min = f(dist, bound_offset, center_offset, branch).map(|r| (dist_locus, r));
+                min = f(dist, bound_offset, center_offset, branch).map(|r| (dist_locus, r)).or(min.clone());
             }
         });
         min.map(|(_, r)| r)

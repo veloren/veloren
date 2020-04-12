@@ -7,9 +7,9 @@ use common::terrain::Block;
 use super::skeleton::*;
 
 pub trait Archetype {
-    type Attr: Default;
+    type Attr;
 
-    fn generate<R: Rng>(rng: &mut R) -> Self where Self: Sized;
+    fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>) where Self: Sized;
     fn draw(
         &self,
         dist: i32,
