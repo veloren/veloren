@@ -76,7 +76,9 @@ impl ArmorSlot {
     }
 }
 
-// TODO: shouldn't need this
+// TODO: There are plans to save the selected abilities for each tool even
+// when they are not equipped, when that is implemented this helper function
+// should no longer be needed
 fn item_config(item: item::Item) -> comp::ItemConfig {
     let mut abilities = if let item::ItemKind::Tool(tool) = &item.kind {
         tool.get_abilities()
