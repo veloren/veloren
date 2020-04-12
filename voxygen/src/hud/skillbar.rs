@@ -228,7 +228,6 @@ impl<'a> Widget for Skillbar<'a> {
         let bar_values = self.global_state.settings.gameplay.bar_numbers;
         let shortcuts = self.global_state.settings.gameplay.shortcut_numbers;
 
-        const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
         const BG_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 0.99);
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
@@ -803,8 +802,8 @@ impl<'a> Widget for Skillbar<'a> {
             // TODO: is a separate image needed for the frame?
             empty_slot: self.imgs.skillbar_slot,
             filled_slot: self.imgs.skillbar_slot,
-            selected_slot: self.imgs.skillbar_slot,
-            background_color: Some(BG_COLOR),
+            selected_slot: self.imgs.skillbar_slot_act,
+            background_color: None,
             content_size: ContentSize {
                 width_height_ratio: 1.0,
                 max_fraction: 0.9,
@@ -917,6 +916,9 @@ impl<'a> Widget for Skillbar<'a> {
                     .set(state.ids.slot1_act, ui);
             },
         }*/
+        slot_maker.empty_slot = self.imgs.skillbar_slot_l;
+        slot_maker.filled_slot = self.imgs.skillbar_slot_l;
+        slot_maker.selected_slot = self.imgs.skillbar_slot_l_act;
         let slot = slot_maker
             .fabricate(hotbar::Slot::One, [20.0 * scale as f32; 2])
             .left_from(state.ids.slot2, 0.0);
@@ -946,6 +948,9 @@ impl<'a> Widget for Skillbar<'a> {
             _ => {},
         }*/
         // Slot 6
+        slot_maker.empty_slot = self.imgs.skillbar_slot;
+        slot_maker.filled_slot = self.imgs.skillbar_slot;
+        slot_maker.selected_slot = self.imgs.skillbar_slot_act;
         let slot = slot_maker
             .fabricate(hotbar::Slot::Six, [20.0 * scale as f32; 2])
             .bottom_right_with_margins_on(state.ids.m2_slot, 0.0, -20.0 * scale);
@@ -990,9 +995,9 @@ impl<'a> Widget for Skillbar<'a> {
             slot.set(state.ids.slot9, ui);
         }
         // Quickslot
-        slot_maker.filled_slot = self.imgs.skillbar_slot_r;
-        slot_maker.selected_slot = self.imgs.skillbar_slot_r;
         slot_maker.empty_slot = self.imgs.skillbar_slot_r;
+        slot_maker.filled_slot = self.imgs.skillbar_slot_r;
+        slot_maker.selected_slot = self.imgs.skillbar_slot_r_act;
         let slot = slot_maker
             .fabricate(hotbar::Slot::Ten, [20.0 * scale as f32; 2])
             .right_from(state.ids.slot9, 0.0);
