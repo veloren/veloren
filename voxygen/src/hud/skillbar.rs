@@ -811,7 +811,7 @@ impl<'a> Widget for Skillbar<'a> {
             },
             selected_content_scale: 1.067,
             amount_font: self.fonts.cyri.conrod_id,
-            amount_margins: Vec2::new(-4.0, 0.0),
+            amount_margins: Vec2::new(3.0, 2.0),
             amount_font_size: self.fonts.cyri.scale(12),
             amount_text_color: TEXT_COLOR,
             content_source: &content_source,
