@@ -29,10 +29,6 @@ use conrod_core::{
 };
 use std::time::{Duration, Instant};
 use vek::*;
-/*
-use const_tweaker::tweak;
-#[tweak(min = 0.0, max = 1.0, step = 0.01)]
-const RGB: f32 = 0.1;*/
 
 widget_ids! {
     struct Ids {
@@ -108,7 +104,6 @@ widget_ids! {
         level_align,
         level_message,
         level_message_bg,
-        stamina_wheel,
         death_bg,
         hurt_bg,
     }
@@ -233,36 +228,6 @@ impl<'a> Widget for Skillbar<'a> {
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
         let localized_strings = self.localized_strings;
-
-        // Stamina Wheel
-        /*
-        let stamina_percentage =
-            self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
-        if stamina_percentage < 100.0 {
-            Image::new(if stamina_percentage <= 0.1 {
-                self.imgs.stamina_0
-            } else if stamina_percentage < 12.5 {
-                self.imgs.stamina_1
-            } else if stamina_percentage < 25.0 {
-                self.imgs.stamina_2
-            } else if stamina_percentage < 37.5 {
-                self.imgs.stamina_3
-            } else if stamina_percentage < 50.0 {
-                self.imgs.stamina_4
-            } else if stamina_percentage < 62.5 {
-                self.imgs.stamina_5
-            } else if stamina_percentage < 75.0 {
-                self.imgs.stamina_6
-            } else if stamina_percentage < 87.5 {
-                self.imgs.stamina_7
-            } else {
-                self.imgs.stamina_8
-            })
-            .w_h(37.0 * 3.0, 37.0 * 3.0)
-            .mid_bottom_with_margin_on(ui.window, 150.0)
-            .set(state.ids.stamina_wheel, ui);
-        }
-        */
 
         // Level Up Message
 
@@ -674,27 +639,6 @@ impl<'a> Widget for Skillbar<'a> {
         .set(state.ids.m1_content, ui);
         // M2 Slot
         match self.character_state {
-            /*
-            CharacterState::BasicBlock { .. } => {
-                let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
-                if self.controller.secondary.is_pressed() {
-                    Image::new(self.imgs.skillbar_slot_big)
-                        .w_h(40.0 * scale, 40.0 * scale)
-                        .right_from(state.ids.m1_slot, 0.0)
-                        .set(state.ids.m2_slot, ui);
-                    Image::new(self.imgs.skillbar_slot_big_act)
-                        .w_h(40.0 * scale, 40.0 * scale)
-                        .middle_of(state.ids.m2_slot)
-                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_pulse)))
-                        .floating(true)
-                        .set(state.ids.m2_slot_act, ui);
-                } else {
-                    Image::new(self.imgs.skillbar_slot_big)
-                        .w_h(40.0 * scale, 40.0 * scale)
-                        .right_from(state.ids.m1_slot, 0.0)
-                        .set(state.ids.m2_slot, ui);
-                }
-            },*/
             CharacterState::BasicMelee { .. } => {
                 let fade_pulse = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.6; //Animation timer;
                 if self.controller.secondary.is_pressed() {
@@ -806,11 +750,12 @@ impl<'a> Widget for Skillbar<'a> {
             background_color: None,
             content_size: ContentSize {
                 width_height_ratio: 1.0,
-                max_fraction: 0.9,
+                max_fraction: 0.8, /* Changes the item image size by setting a maximum fraction
+                                    * of either the width or height */
             },
-            selected_content_scale: 1.067,
+            selected_content_scale: 1.0,
             amount_font: self.fonts.cyri.conrod_id,
-            amount_margins: Vec2::new(3.0, 2.0),
+            amount_margins: Vec2::new(1.0, 1.0),
             amount_font_size: self.fonts.cyri.scale(12),
             amount_text_color: TEXT_COLOR,
             content_source: &content_source,
@@ -894,28 +839,6 @@ impl<'a> Widget for Skillbar<'a> {
             slot.set(state.ids.slot2, ui);
         }
         // Slot 1
-        // TODO: Don't hardcode this to one Skill...
-        // Frame flashes whenever the active skill inside this slot is activated
-        /*match self.character_state {
-            CharacterState::Charge { time_left } => {
-                let fade = time_left.as_secs_f32() * 10.0;
-                Image::new(self.imgs.skillbar_slot_l)
-                    .w_h(20.0 * scale, 20.0 * scale)
-                    .left_from(state.ids.slot2, 0.0)
-                    .set(state.ids.slot1, ui);
-                Image::new(self.imgs.skillbar_slot_l_act)
-                    .w_h(20.0 * scale, 20.0 * scale)
-                    .middle_of(state.ids.slot1)
-                    .color(Some(Color::Rgba(
-                        1.0,
-                        1.0,
-                        1.0,
-                        if fade > 0.6 { 0.6 } else { fade },
-                    )))
-                    .floating(true)
-                    .set(state.ids.slot1_act, ui);
-            },
-        }*/
         slot_maker.empty_slot = self.imgs.skillbar_slot_l;
         slot_maker.filled_slot = self.imgs.skillbar_slot_l;
         slot_maker.selected_slot = self.imgs.skillbar_slot_l_act;
@@ -929,24 +852,6 @@ impl<'a> Widget for Skillbar<'a> {
         } else {
             slot.set(state.ids.slot1, ui);
         }
-        // TODO: Changeable slot image
-        /*match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-            Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                ToolKind::Staff(StaffKind::BasicStaff) => {
-                    Image::new(self.imgs.fire_spell_1)
-                        .w_h(18.0 * scale, 18.0 * scale)
-                        .color(if self.energy.current() as f64 >= 500.0 {
-                            Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                        } else {
-                            Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
-                        })
-                        .middle_of(state.ids.slot1_bg)
-                        .set(state.ids.slot1_icon, ui);
-                },
-                _ => {},
-            },
-            _ => {},
-        }*/
         // Slot 6
         slot_maker.empty_slot = self.imgs.skillbar_slot;
         slot_maker.filled_slot = self.imgs.skillbar_slot;
@@ -1018,7 +923,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot1)
             {
                 Text::new(slot1.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot1, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot1, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1037,7 +942,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot2)
             {
                 Text::new(slot2.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot2, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot2, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1056,7 +961,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot3)
             {
                 Text::new(slot3.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot3, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot3, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1075,7 +980,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot4)
             {
                 Text::new(slot4.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot4, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot4, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1094,7 +999,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot5)
             {
                 Text::new(slot5.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot5, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot5, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1151,7 +1056,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot6)
             {
                 Text::new(slot6.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot6, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot6, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1170,7 +1075,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot7)
             {
                 Text::new(slot7.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot7, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot7, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1189,7 +1094,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot8)
             {
                 Text::new(slot8.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot8, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot8, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1208,7 +1113,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot9)
             {
                 Text::new(slot9.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot9, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot9, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
@@ -1227,7 +1132,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .get_binding(GameInput::Slot10)
             {
                 Text::new(slot10.to_string().as_str())
-                    .top_right_with_margins_on(state.ids.slot10, 2.0, 2.0)
+                    .top_right_with_margins_on(state.ids.slot10, 3.0, 5.0)
                     .font_size(self.fonts.cyri.scale(8))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(BLACK)
