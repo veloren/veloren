@@ -19,11 +19,11 @@ impl Animation for RollAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 5.5).sin();
-        let wave_quick = (anim_time as f32 * 9.5).sin();
-        let wave_quick_cos = (anim_time as f32 * 9.5).cos();
-        let wave_slow = (anim_time as f32 * 2.8 + PI).sin();
-        let wave_dub = (anim_time as f32 * 5.5).sin();
+        let wave = (anim_time as f32 * 4.5).sin();
+        let wave_quick = (anim_time as f32 * 7.5).sin();
+        let wave_quick_cos = (anim_time as f32 * 7.5).cos();
+        let wave_slow = (anim_time as f32 * 2.3 + PI).sin();
+        let wave_dub = (anim_time as f32 * 4.5).sin();
 
         let ori = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
@@ -116,9 +116,9 @@ impl Animation for RollAnimation {
         next.second.ori = Quaternion::rotation_y(0.0);
         next.second.scale = Vec3::one() * 0.0;
 
-        next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.lantern.ori = Quaternion::rotation_x(0.0);
-        next.lantern.scale = Vec3::one() * 0.0;
+        next.lantern.offset = Vec3::new(-5.0, 2.5, 5.5);
+        next.lantern.ori = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
+        next.lantern.scale = Vec3::one() * 0.65;
 
         next.torso.offset =
             Vec3::new(0.0, 0.0, 0.1 + wave_dub * 16.0) / 11.0 * skeleton_attr.scaler;

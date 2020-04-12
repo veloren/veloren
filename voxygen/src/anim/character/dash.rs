@@ -103,9 +103,10 @@ impl Animation for DashAnimation {
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        next.lantern.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.lantern.ori = Quaternion::rotation_x(0.0);
-        next.lantern.scale = Vec3::one() * 0.0;
+        next.lantern.offset = Vec3::new(-5.0, 2.5, 5.5);
+        next.lantern.ori =
+            Quaternion::rotation_x(slow * -0.7 + 0.4) * Quaternion::rotation_y(slow * 0.4);
+        next.lantern.scale = Vec3::one() * 0.65;
 
         next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
         next.torso.ori =
