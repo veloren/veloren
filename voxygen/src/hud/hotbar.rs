@@ -31,7 +31,7 @@ impl State {
         }
     }
 
-    /// Returns true is the button was just pressed
+    /// Returns true if the button was just pressed
     pub fn process_input(&mut self, slot: Slot, state: bool) -> bool {
         let slot = slot as usize;
         let just_pressed = !self.inputs[slot] && state;
