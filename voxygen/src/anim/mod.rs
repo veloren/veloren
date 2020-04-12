@@ -52,7 +52,7 @@ impl Bone {
 pub trait Skeleton: Send + Sync + 'static {
     type Attr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 18];
+    fn compute_matrices(&self) -> [FigureBoneData; 16];
 
     /// Change the current skeleton to be more like `target`.
     fn interpolate(&mut self, target: &Self, dt: f32);

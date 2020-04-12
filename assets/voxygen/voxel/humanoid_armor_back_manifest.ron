@@ -1,0 +1,16 @@
+((
+    default: (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
+    map: {
+      Short0: (
+          vox_spec: ("armor.back.short-0", (-5.0, -1.0, -11.0)),
+          color: None
+      ), 
+      Admin: (
+          vox_spec: ("armor.back.admin", (-5.0, -1.0, -11.0)),
+          color: None
+      ),     
+    },
+))

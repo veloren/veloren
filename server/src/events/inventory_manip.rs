@@ -1,6 +1,10 @@
 use crate::{Server, StateExt};
 use common::{
-    comp::{self, item, Pos, MAX_PICKUP_RANGE_SQR},
+    comp::{
+        self, item,
+        slot::{self, Slot},
+        Pos, MAX_PICKUP_RANGE_SQR,
+    },
     sync::WorldSyncExt,
     terrain::block::Block,
     vol::{ReadVol, Vox},
@@ -83,156 +87,141 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         },
 
-        comp::InventoryManip::Use(slot_idx) => {
-            let item_opt = state
-                .ecs()
-                .write_storage::<comp::Inventory>()
-                .get_mut(entity)
-                .and_then(|inv| inv.take(slot_idx));
+        comp::InventoryManip::Use(slot) => {
+            let mut inventories = state.ecs().write_storage::<comp::Inventory>();
+            let inventory = if let Some(inventory) = inventories.get_mut(entity) {
+                inventory
+            } else {
+                error!("Can't manipulate inventory, entity doesn't have one");
+                return;
+            };
 
-            let mut event = comp::InventoryUpdateEvent::Used;
+            let mut maybe_effect = None;
 
-            if let Some(item) = item_opt {
-                match &item.kind {
-                    item::ItemKind::Tool(tool) => {
-                        if let Some(loadout) =
-                            state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
-                        {
-                            // Insert old item into inventory
-                            if let Some(old_item) = loadout.active_item.take() {
-                                state
-                                    .ecs()
-                                    .write_storage::<comp::Inventory>()
-                                    .get_mut(entity)
-                                    .map(|inv| inv.insert(slot_idx, old_item.item));
-                            }
-
-                            let mut abilities = tool.get_abilities();
-                            let mut ability_drain = abilities.drain(..);
-                            let active_item = comp::ItemConfig {
-                                item,
-                                ability1: ability_drain.next(),
-                                ability2: ability_drain.next(),
-                                ability3: ability_drain.next(),
-                                block_ability: Some(comp::CharacterAbility::BasicBlock),
-                                dodge_ability: Some(comp::CharacterAbility::Roll),
-                            };
-                            loadout.active_item = Some(active_item);
+            let event = match slot {
+                Slot::Inventory(slot) => {
+                    use item::ItemKind;
+                    // Check if item is equipable
+                    if inventory.get(slot).map_or(false, |i| match &i.kind {
+                        ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => true,
+                        _ => false,
+                    }) {
+                        if let Some(loadout) = state.ecs().write_storage().get_mut(entity) {
+                            slot::equip(slot, inventory, loadout);
+                            Some(comp::InventoryUpdateEvent::Used)
+                        } else {
+                            None
                         }
-                    },
-
-                    item::ItemKind::Consumable { kind, effect, .. } => {
-                        event = comp::InventoryUpdateEvent::Consumed(*kind);
-                        state.apply_effect(entity, *effect);
-                    },
-
-                    item::ItemKind::Armor { kind, .. } => {
-                        if let Some(loadout) =
-                            state.ecs().write_storage::<comp::Loadout>().get_mut(entity)
-                        {
-                            use comp::item::armor::Armor::*;
-                            let slot = match kind.clone() {
-                                Shoulder(_) => &mut loadout.shoulder,
-                                Chest(_) => &mut loadout.chest,
-                                Belt(_) => &mut loadout.belt,
-                                Hand(_) => &mut loadout.hand,
-                                Pants(_) => &mut loadout.pants,
-                                Foot(_) => &mut loadout.foot,
-                            };
-
-                            // Insert old item into inventory
-                            if let Some(old_item) = slot.take() {
-                                state
-                                    .ecs()
-                                    .write_storage::<comp::Inventory>()
-                                    .get_mut(entity)
-                                    .map(|inv| inv.insert(slot_idx, old_item));
-                            }
-
-                            *slot = Some(item);
-                        }
-                    },
-
-                    item::ItemKind::Utility { kind, .. } => match kind {
-                        comp::item::Utility::Collar => {
-                            let reinsert = if let Some(pos) =
-                                state.read_storage::<comp::Pos>().get(entity)
-                            {
-                                if (
-                                    &state.read_storage::<comp::Alignment>(),
-                                    &state.read_storage::<comp::Agent>(),
-                                )
-                                    .join()
-                                    .filter(|(alignment, _)| {
-                                        alignment == &&comp::Alignment::Owned(entity)
-                                    })
-                                    .count()
-                                    >= 3
+                    } else if let Some(item) = inventory.take(slot) {
+                        match &item.kind {
+                            ItemKind::Consumable { kind, effect, .. } => {
+                                maybe_effect = Some(*effect);
+                                Some(comp::InventoryUpdateEvent::Consumed(*kind))
+                            },
+                            ItemKind::Utility {
+                                kind: comp::item::Utility::Collar,
+                                ..
+                            } => {
+                                let reinsert = if let Some(pos) =
+                                    state.read_storage::<comp::Pos>().get(entity)
                                 {
-                                    true
-                                } else if let Some(tameable_entity) = {
-                                    let nearest_tameable = (
-                                        &state.ecs().entities(),
-                                        &state.ecs().read_storage::<comp::Pos>(),
-                                        &state.ecs().read_storage::<comp::Alignment>(),
+                                    if (
+                                        &state.read_storage::<comp::Alignment>(),
+                                        &state.read_storage::<comp::Agent>(),
                                     )
                                         .join()
-                                        .filter(|(_, wild_pos, _)| {
-                                            wild_pos.0.distance_squared(pos.0) < 5.0f32.powf(2.0)
+                                        .filter(|(alignment, _)| {
+                                            alignment == &&comp::Alignment::Owned(entity)
                                         })
-                                        .filter(|(_, _, alignment)| {
-                                            alignment == &&comp::Alignment::Wild
-                                        })
-                                        .min_by_key(|(_, wild_pos, _)| {
-                                            (wild_pos.0.distance_squared(pos.0) * 100.0) as i32
-                                        })
-                                        .map(|(entity, _, _)| entity);
-                                    nearest_tameable
-                                } {
-                                    let _ = state
-                                        .ecs()
-                                        .write_storage()
-                                        .insert(tameable_entity, comp::Alignment::Owned(entity));
-                                    let _ = state
-                                        .ecs()
-                                        .write_storage()
-                                        .insert(tameable_entity, comp::Agent::default());
-                                    false
+                                        .count()
+                                        >= 3
+                                    {
+                                        true
+                                    } else if let Some(tameable_entity) = {
+                                        let nearest_tameable = (
+                                            &state.ecs().entities(),
+                                            &state.ecs().read_storage::<comp::Pos>(),
+                                            &state.ecs().read_storage::<comp::Alignment>(),
+                                        )
+                                            .join()
+                                            .filter(|(_, wild_pos, _)| {
+                                                wild_pos.0.distance_squared(pos.0)
+                                                    < 5.0f32.powf(2.0)
+                                            })
+                                            .filter(|(_, _, alignment)| {
+                                                alignment == &&comp::Alignment::Wild
+                                            })
+                                            .min_by_key(|(_, wild_pos, _)| {
+                                                (wild_pos.0.distance_squared(pos.0) * 100.0) as i32
+                                            })
+                                            .map(|(entity, _, _)| entity);
+                                        nearest_tameable
+                                    } {
+                                        let _ = state.ecs().write_storage().insert(
+                                            tameable_entity,
+                                            comp::Alignment::Owned(entity),
+                                        );
+                                        let _ = state
+                                            .ecs()
+                                            .write_storage()
+                                            .insert(tameable_entity, comp::Agent::default());
+                                        false
+                                    } else {
+                                        true
+                                    }
                                 } else {
                                     true
+                                };
+
+                                if reinsert {
+                                    let _ = inventory.insert(slot, item);
                                 }
-                            } else {
-                                true
-                            };
 
-                            if reinsert {
-                                let _ = state
-                                    .ecs()
-                                    .write_storage::<comp::Inventory>()
-                                    .get_mut(entity)
-                                    .map(|inv| inv.insert(slot_idx, item));
-                            }
-                        },
-                    },
-                    _ => {
-                        let _ = state
-                            .ecs()
-                            .write_storage::<comp::Inventory>()
-                            .get_mut(entity)
-                            .map(|inv| inv.insert(slot_idx, item));
-                    },
-                }
+                                Some(comp::InventoryUpdateEvent::Used)
+                            },
+                            _ => {
+                                // TODO: this doesn't work for stackable items
+                                inventory.insert(slot, item).unwrap();
+                                None
+                            },
+                        }
+                    } else {
+                        None
+                    }
+                },
+                Slot::Equip(slot) => {
+                    if let Some(loadout) = state.ecs().write_storage().get_mut(entity) {
+                        slot::unequip(slot, inventory, loadout);
+                        Some(comp::InventoryUpdateEvent::Used)
+                    } else {
+                        error!("Entity doesn't have a loadout, can't unequip...");
+                        None
+                    }
+                },
+            };
+
+            drop(inventories);
+            if let Some(effect) = maybe_effect {
+                state.apply_effect(entity, effect);
             }
-
-            state.write_component(entity, comp::InventoryUpdate::new(event));
+            if let Some(event) = event {
+                state.write_component(entity, comp::InventoryUpdate::new(event));
+            }
         },
 
         comp::InventoryManip::Swap(a, b) => {
-            state
-                .ecs()
-                .write_storage::<comp::Inventory>()
-                .get_mut(entity)
-                .map(|inv| inv.swap_slots(a, b));
+            let ecs = state.ecs();
+            let mut inventories = ecs.write_storage();
+            let mut loadouts = ecs.write_storage();
+            let inventory = inventories.get_mut(entity);
+            let loadout = loadouts.get_mut(entity);
+
+            slot::swap(a, b, inventory, loadout);
+
+            // :/
+            drop(loadouts);
+            drop(inventories);
+
             state.write_component(
                 entity,
                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
@@ -240,11 +229,18 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         },
 
         comp::InventoryManip::Drop(slot) => {
-            let item = state
-                .ecs()
-                .write_storage::<comp::Inventory>()
-                .get_mut(entity)
-                .and_then(|inv| inv.remove(slot));
+            let item = match slot {
+                Slot::Inventory(slot) => state
+                    .ecs()
+                    .write_storage::<comp::Inventory>()
+                    .get_mut(entity)
+                    .and_then(|inv| inv.remove(slot)),
+                Slot::Equip(slot) => state
+                    .ecs()
+                    .write_storage()
+                    .get_mut(entity)
+                    .and_then(|ldt| slot::loadout_remove(slot, ldt)),
+            };
 
             if let (Some(item), Some(pos)) =
                 (item, state.ecs().read_storage::<comp::Pos>().get(entity))

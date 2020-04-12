@@ -31,7 +31,7 @@ impl QuadrupedMediumSkeleton {
 impl Skeleton for QuadrupedMediumSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 18] {
+    fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let ears_mat = self.ears.compute_base_matrix();
         let head_upper_mat = self.head_upper.compute_base_matrix();
         let head_lower_mat = self.head_lower.compute_base_matrix();
@@ -48,8 +48,6 @@ impl Skeleton for QuadrupedMediumSkeleton {
             FigureBoneData::new(self.foot_rf.compute_base_matrix()),
             FigureBoneData::new(self.foot_lb.compute_base_matrix()),
             FigureBoneData::new(self.foot_rb.compute_base_matrix()),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),

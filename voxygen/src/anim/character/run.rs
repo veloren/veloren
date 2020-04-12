@@ -31,6 +31,13 @@ impl Animation for RunAnimation {
             / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 16.0).sin());
+        let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
+        let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
+
+        let shorte = (((5.0)
+            / (4.0 + 1.0 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * lab as f32 * 16.0).sin());
 
         let shortalt = (((5.0)
             / (1.5
@@ -90,6 +97,10 @@ impl Animation for RunAnimation {
         next.belt.ori = Quaternion::rotation_z(short * 0.25);
         next.belt.scale = Vec3::one();
 
+        next.back.offset = Vec3::new(0.0, -2.8, 7.25);
+        next.back.ori = Quaternion::rotation_x(-0.25 + short * 0.1 + noisea * 0.1 + noiseb * 0.1);
+        next.back.scale = Vec3::one() * 1.02;
+
         next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
         next.shorts.ori = Quaternion::rotation_z(short * 0.4);
         next.shorts.scale = Vec3::one();
@@ -134,7 +145,7 @@ impl Animation for RunAnimation {
 
         next.main.offset = Vec3::new(
             -7.0 + skeleton_attr.weapon_x,
-            -5.0 + skeleton_attr.weapon_y,
+            -6.5 + skeleton_attr.weapon_y,
             15.0,
         );
         next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + short * 0.25);
@@ -148,9 +159,10 @@ impl Animation for RunAnimation {
         next.second.ori = Quaternion::rotation_y(0.0);
         next.second.scale = Vec3::one() * 0.0;
 
-        next.lantern.offset = Vec3::new(0.0, 5.0, 0.0);
-        next.lantern.ori = Quaternion::rotation_y(0.0);
-        next.lantern.scale = Vec3::one() * 0.0;
+        next.lantern.offset = Vec3::new(-5.0, 2.5, 5.5);
+        next.lantern.ori =
+            Quaternion::rotation_x(shorte * -0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
+        next.lantern.scale = Vec3::one() * 0.65;
 
         next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.0) * skeleton_attr.scaler;
         next.torso.ori =
