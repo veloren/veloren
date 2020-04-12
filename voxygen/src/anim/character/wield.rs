@@ -27,6 +27,8 @@ impl Animation for WieldAnimation {
             / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 16.0).sin());
+        let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
+        let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
         let wave = (anim_time as f32 * 16.0).sin();
         match active_tool_kind {
             //TODO: Inventory
@@ -199,7 +201,9 @@ impl Animation for WieldAnimation {
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
             next.back.offset = Vec3::new(0.0, -2.8, 7.25);
-            next.back.ori = Quaternion::rotation_x(-0.4 + short * 0.3);
+            next.back.ori = Quaternion::rotation_x(
+                (-0.25 + short * 0.3 + noisea * 0.4 + noiseb * 0.4).min(-0.1),
+            );
             next.back.scale = Vec3::one() * 1.02;
 
             next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
