@@ -31,7 +31,7 @@ impl BirdSmallSkeleton {
 impl Skeleton for BirdSmallSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> [FigureBoneData; 18] {
+    fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let torso_mat = self.torso.compute_base_matrix();
 
         [
@@ -39,8 +39,6 @@ impl Skeleton for BirdSmallSkeleton {
             FigureBoneData::new(torso_mat),
             FigureBoneData::new(self.wing_l.compute_base_matrix() * torso_mat),
             FigureBoneData::new(self.wing_r.compute_base_matrix() * torso_mat),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),

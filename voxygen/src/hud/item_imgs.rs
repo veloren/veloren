@@ -4,8 +4,9 @@ use common::{
     comp::item::{
         armor::Armor,
         tool::{Tool, ToolKind},
-        Consumable, Ingredient, Item, ItemKind, Utility,
+        Consumable, Ingredient, Item, ItemKind, Lantern, Utility,
     },
+    figure::Segment,
 };
 use conrod_core::image::Id;
 use dot_vox::DotVoxData;
@@ -19,6 +20,7 @@ use vek::*;
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKey {
     Tool(ToolKind),
+    Lantern(Lantern),
     Armor(Armor),
     Utility(Utility),
     Consumable(Consumable),
@@ -29,6 +31,7 @@ impl From<&Item> for ItemKey {
     fn from(item: &Item) -> Self {
         match &item.kind {
             ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),
+            ItemKind::Lantern(kind) => ItemKey::Lantern(kind.clone()),
             ItemKind::Armor { kind, .. } => ItemKey::Armor(kind.clone()),
             ItemKind::Utility { kind, .. } => ItemKey::Utility(kind.clone()),
             ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
@@ -49,7 +52,7 @@ impl ImageSpec {
         match self {
             ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(&specifier)),
             ImageSpec::Vox(specifier) => Graphic::Voxel(
-                graceful_load_vox(&specifier),
+                graceful_load_segment_no_skin(&specifier),
                 Transform {
                     stretch: false,
                     ..Default::default()
@@ -57,7 +60,7 @@ impl ImageSpec {
                 SampleStrat::None,
             ),
             ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom) => Graphic::Voxel(
-                graceful_load_vox(&specifier),
+                graceful_load_segment_no_skin(&specifier),
                 Transform {
                     ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
                         .rotated_y(rot_y * std::f32::consts::PI / 180.0)
@@ -82,12 +85,14 @@ impl Asset for ItemImagesSpec {
     }
 }
 
+// TODO: when there are more images don't load them all into memory
 pub struct ItemImgs {
     map: HashMap<ItemKey, Id>,
     indicator: ReloadIndicator,
+    not_found: Id,
 }
 impl ItemImgs {
-    pub fn new(ui: &mut Ui) -> Self {
+    pub fn new(ui: &mut Ui, not_found: Id) -> Self {
         let mut indicator = ReloadIndicator::new();
         Self {
             map: assets::load_watched::<ItemImagesSpec>(
@@ -97,9 +102,13 @@ impl ItemImgs {
             .expect("Unable to load item image manifest")
             .0
             .iter()
+            // TODO: what if multiple kinds map to the same image, it would be nice to use the same
+            // image id for both, although this does interfere with the current hot-reloading
+            // strategy
             .map(|(kind, spec)| (kind.clone(), ui.add_graphic(spec.create_graphic())))
             .collect(),
             indicator,
+            not_found,
         }
     }
 
@@ -139,6 +148,10 @@ impl ItemImgs {
             },
         }
     }
+
+    pub fn img_id_or_not_found_img(&self, item_kind: ItemKey) -> Id {
+        self.img_id(item_kind).unwrap_or(self.not_found)
+    }
 }
 
 // Copied from figure/load.rs
@@ -168,4 +181,17 @@ fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
             assets::load_expect::<DynamicImage>("voxygen.element.not_found")
         },
     }
+}
+
+fn graceful_load_segment_no_skin(specifier: &str) -> Arc<Segment> {
+    use common::figure::{mat_cell::MatCell, MatSegment};
+    let mat_seg = MatSegment::from(&*graceful_load_vox(specifier));
+    let seg = mat_seg
+        .map(|mat_cell| match mat_cell {
+            MatCell::None => None,
+            MatCell::Mat(_) => Some(MatCell::None),
+            MatCell::Normal(_) => None,
+        })
+        .to_segment(|_| Rgb::broadcast(255));
+    Arc::new(seg)
 }

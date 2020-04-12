@@ -12,6 +12,7 @@ use crate::{
 };
 use client::Client;
 use common::{
+    assets,
     assets::load_expect,
     comp::{self, humanoid},
 };
@@ -350,11 +351,23 @@ impl CharSelectionUi {
                         }),
                     second_item: None,
                     shoulder: None,
-                    chest: None,
+                    chest: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.rugged_chest",
+                    )),
                     belt: None,
                     hand: None,
-                    pants: None,
-                    foot: None,
+                    pants: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.rugged_pants",
+                    )),
+                    foot: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.sandals_0",
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: None,
+                    head: None,
+                    tabard: None,
                 };
                 Some(loadout)
             },
@@ -367,6 +380,15 @@ impl CharSelectionUi {
                     block_ability: None,
                     dodge_ability: None,
                 });
+                loadout.chest = Some(assets::load_expect_cloned(
+                    "common.items.armor.starter.rugged_chest",
+                ));
+                loadout.pants = Some(assets::load_expect_cloned(
+                    "common.items.armor.starter.rugged_pants",
+                ));
+                loadout.foot = Some(assets::load_expect_cloned(
+                    "common.items.armor.starter.sandals_0",
+                ));
                 Some(loadout.clone())
             },
         }

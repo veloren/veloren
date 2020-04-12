@@ -17,11 +17,18 @@ impl Animation for WieldAnimation {
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
+        let lab = 1.0;
+
         let mut next = (*skeleton).clone();
         let slow_cos = (anim_time as f32 * 6.0 + PI).cos();
         let ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
-
+        let short = (((5.0)
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * lab as f32 * 16.0).sin());
+        let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
+        let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
         let wave = (anim_time as f32 * 16.0).sin();
         match active_tool_kind {
             //TODO: Inventory
@@ -193,6 +200,12 @@ impl Animation for WieldAnimation {
             next.torso.ori = Quaternion::rotation_x(-0.2);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
+            next.back.offset = Vec3::new(0.0, -2.8, 7.25);
+            next.back.ori = Quaternion::rotation_x(
+                (-0.25 + short * 0.3 + noisea * 0.4 + noiseb * 0.4).min(-0.1),
+            );
+            next.back.scale = Vec3::one() * 1.02;
+
             next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
             next.l_control.ori = Quaternion::rotation_x(0.0);
             next.l_control.scale = Vec3::one();
@@ -231,6 +244,10 @@ impl Animation for WieldAnimation {
             next.belt.ori =
                 Quaternion::rotation_y(ultra_slow_cos * 0.03) * Quaternion::rotation_z(0.22);
             next.belt.scale = Vec3::one() * 1.02;
+
+            next.back.offset = Vec3::new(0.0, -2.8, 7.25);
+            next.back.ori = Quaternion::rotation_x(-0.2);
+            next.back.scale = Vec3::one() * 1.02;
 
             next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
             next.shorts.ori = Quaternion::rotation_z(0.3);

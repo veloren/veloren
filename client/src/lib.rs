@@ -244,21 +244,21 @@ impl Client {
         // Can't fail
     }
 
-    pub fn use_inventory_slot(&mut self, slot: usize) {
+    pub fn use_slot(&mut self, slot: comp::slot::Slot) {
         self.postbox
             .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Use(slot),
             )));
     }
 
-    pub fn swap_inventory_slots(&mut self, a: usize, b: usize) {
+    pub fn swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
         self.postbox
             .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Swap(a, b),
             )));
     }
 
-    pub fn drop_inventory_slot(&mut self, slot: usize) {
+    pub fn drop_slot(&mut self, slot: comp::slot::Slot) {
         self.postbox
             .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Drop(slot),
@@ -386,6 +386,8 @@ impl Client {
     }
 
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
+
+    pub fn loadouts(&self) -> ReadStorage<comp::Loadout> { self.state.read_storage() }
 
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {

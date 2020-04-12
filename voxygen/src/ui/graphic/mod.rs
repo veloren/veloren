@@ -4,7 +4,7 @@ mod renderer;
 pub use renderer::{SampleStrat, Transform};
 
 use crate::render::{Renderer, Texture};
-use dot_vox::DotVoxData;
+use common::figure::Segment;
 use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
@@ -16,7 +16,8 @@ use vek::*;
 #[derive(Clone)]
 pub enum Graphic {
     Image(Arc<DynamicImage>),
-    Voxel(Arc<DotVoxData>, Transform, SampleStrat),
+    // Note: none of the users keep this Arc currently
+    Voxel(Arc<Segment>, Transform, SampleStrat),
     Blank,
 }
 
@@ -292,8 +293,8 @@ fn draw_graphic(graphic_map: &GraphicMap, graphic_id: Id, dims: Vec2<u16>) -> Op
             u32::from(dims.x),
             u32::from(dims.y),
         )),
-        Some(Graphic::Voxel(ref vox, trans, sample_strat)) => Some(renderer::draw_vox(
-            &vox.as_ref().into(),
+        Some(Graphic::Voxel(ref segment, trans, sample_strat)) => Some(renderer::draw_vox(
+            &segment,
             dims,
             trans.clone(),
             *sample_strat,

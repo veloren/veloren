@@ -243,6 +243,12 @@ impl<'a> System<'a> for Sys {
                             foot: Some(assets::load_expect_cloned(
                                 "common.items.armor.foot.leather_0",
                             )),
+                            back: None,
+                            ring: None,
+                            neck: None,
+                            lantern: None,
+                            head: None,
+                            tabard: None,
                         },
                         comp::Alignment::Enemy => comp::Loadout {
                             active_item,
@@ -265,6 +271,12 @@ impl<'a> System<'a> for Sys {
                             foot: Some(assets::load_expect_cloned(
                                 "common.items.armor.foot.plate_0",
                             )),
+                            back: None,
+                            ring: None,
+                            neck: None,
+                            lantern: None,
+                            head: None,
+                            tabard: None,
                         },
                         _ => comp::Loadout {
                             active_item,
@@ -275,6 +287,12 @@ impl<'a> System<'a> for Sys {
                             hand: None,
                             pants: None,
                             foot: None,
+                            back: None,
+                            ring: None,
+                            neck: None,
+                            lantern: None,
+                            head: None,
+                            tabard: None,
                         },
                     };
 
@@ -335,6 +353,12 @@ impl<'a> System<'a> for Sys {
                             foot: Some(assets::load_expect_cloned(
                                 "common.items.armor.foot.plate_0",
                             )),
+                            back: None,
+                            ring: None,
+                            neck: None,
+                            lantern: None,
+                            head: None,
+                            tabard: None,
                         };
 
                         stats.level.set_level(rand::thread_rng().gen_range(30, 35));

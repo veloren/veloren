@@ -6,6 +6,7 @@ use crate::{
 };
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
+
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
@@ -16,7 +17,16 @@ use vek::*;
 pub enum GameInput {
     Primary,
     Secondary,
-    Ability3,
+    Slot1,
+    Slot2,
+    Slot3,
+    Slot4,
+    Slot5,
+    Slot6,
+    Slot7,
+    Slot8,
+    Slot9,
+    Slot10,
     ToggleCursor,
     MoveForward,
     MoveBack,
@@ -27,7 +37,7 @@ pub enum GameInput {
     Glide,
     Climb,
     ClimbDown,
-    WallLeap,
+    //WallLeap,
     Mount,
     Enter,
     Command,
@@ -47,7 +57,7 @@ pub enum GameInput {
     Respawn,
     Interact,
     ToggleWield,
-    Charge,
+    //Charge,
     SwapLoadout,
     FreeLook,
 }
@@ -67,7 +77,7 @@ impl GameInput {
             GameInput::Glide => "gameinput.glide",
             GameInput::Climb => "gameinput.climb",
             GameInput::ClimbDown => "gameinput.climbdown",
-            GameInput::WallLeap => "gameinput.wallleap",
+            //GameInput::WallLeap => "gameinput.wallleap",
             GameInput::Mount => "gameinput.mount",
             GameInput::Enter => "gameinput.enter",
             GameInput::Command => "gameinput.command",
@@ -87,9 +97,18 @@ impl GameInput {
             GameInput::Respawn => "gameinput.respawn",
             GameInput::Interact => "gameinput.interact",
             GameInput::ToggleWield => "gameinput.togglewield",
-            GameInput::Charge => "gameinput.charge",
+            //GameInput::Charge => "gameinput.charge",
             GameInput::FreeLook => "gameinput.freelook",
-            GameInput::Ability3 => "gameinput.ability3",
+            GameInput::Slot1 => "gameinput.slot1",
+            GameInput::Slot2 => "gameinput.slot2",
+            GameInput::Slot3 => "gameinput.slot3",
+            GameInput::Slot4 => "gameinput.slot4",
+            GameInput::Slot5 => "gameinput.slot5",
+            GameInput::Slot6 => "gameinput.slot6",
+            GameInput::Slot7 => "gameinput.slot7",
+            GameInput::Slot8 => "gameinput.slot8",
+            GameInput::Slot9 => "gameinput.slot9",
+            GameInput::Slot10 => "gameinput.slot10",
             GameInput::SwapLoadout => "gameinput.swaploadout",
         }
     }
@@ -340,8 +359,8 @@ impl fmt::Display for KeyMouse {
             Key(Copy) => "Copy",
             Key(Paste) => "Paste",
             Key(Cut) => "Cut",
-            Mouse(MouseButton::Left) => "Mouse L-Click",
-            Mouse(MouseButton::Right) => "Mouse R-Click",
+            Mouse(MouseButton::Left) => "Mouse Left",
+            Mouse(MouseButton::Right) => "Mouse Right",
             Mouse(MouseButton::Middle) => "Mouse Middle-Click",
             Mouse(MouseButton::Other(button)) =>
                 return write!(f, "Unknown Mouse Button: {:?}", button),

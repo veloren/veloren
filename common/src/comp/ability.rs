@@ -104,6 +104,12 @@ pub struct Loadout {
     pub hand: Option<Item>,
     pub pants: Option<Item>,
     pub foot: Option<Item>,
+    pub back: Option<Item>,
+    pub ring: Option<Item>,
+    pub neck: Option<Item>,
+    pub lantern: Option<Item>,
+    pub head: Option<Item>,
+    pub tabard: Option<Item>,
 }
 
 impl From<&CharacterAbility> for CharacterState {

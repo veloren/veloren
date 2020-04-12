@@ -194,8 +194,14 @@
             Some(("figure.beard.dwarf.dwarf-20", (1, 7,-4))),
         ],
         accessory: [
-            None,
-            Some(("figure.accessory.elf.warpaint-0", (6, 9, 4))), ]
+            None,            
+            Some(("figure.accessory.dwarf.earring-0", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earring-1", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earrings-0", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earrings-1", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earrings-2", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earrings-3", (0, 3, 0))),           
+            ]
     ),	
     (Dwarf, Female): (
         offset: (-6.0, -4.5, -6.0),
@@ -209,7 +215,14 @@
         ],
         beard: [None],
         accessory: [
-            None]
+            None,            
+            Some(("figure.accessory.dwarf.earring-0", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earring-1", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earrings-0", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earrings-1", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earrings-2", (0, 3, 0))),
+            Some(("figure.accessory.dwarf.earrings-3", (0, 3, 0))),           
+            ]
     ),
     (Undead, Male): (
         offset: (-5.0, -4.0, -6.75),
