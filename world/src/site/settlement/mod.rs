@@ -376,8 +376,8 @@ impl Settlement {
                 .find_tile_near(Vec2::zero(), |plot| plot.is_none())
             {
                 // Farm
-                let farmhouse = self.land.new_plot(Plot::Dirt);
-                self.land.set(base_tile, farmhouse);
+                //let farmhouse = self.land.new_plot(Plot::Dirt);
+                //self.land.set(base_tile, farmhouse);
 
                 // Farmhouses
                 // for _ in 0..ctx.rng.gen_range(1, 3) {

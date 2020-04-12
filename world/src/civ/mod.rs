@@ -89,17 +89,15 @@ impl Civs {
             }
         }
 
-        // Place sites in world
+        // Flatten ground around sites
         for site in this.sites.iter() {
             let radius = 48i32;
-
             let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
-            let nearby_chunks = Spiral2d::new().map(|offs| site.center + offs).take(radius.pow(2) as usize);
 
             // Flatten ground
             let flatten_radius = 12.0;
             if let Some(center_alt) = ctx.sim.get_alt_approx(wpos) {
-                for pos in nearby_chunks.clone() {
+                for pos in Spiral2d::new().map(|offs| site.center + offs).take(radius.pow(2) as usize) {
                     let factor = (1.0 - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius) * 1.15;
                     ctx.sim
                         .get_mut(pos)
@@ -113,10 +111,16 @@ impl Civs {
                         });
                 }
             }
+        }
+
+        // Place sites in world
+        for site in this.sites.iter() {
+            let radius = 48i32;
+            let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
 
             let settlement = WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), ctx.rng));
 
-            for pos in nearby_chunks {
+            for pos in Spiral2d::new().map(|offs| site.center + offs).take(radius.pow(2) as usize) {
                 ctx.sim
                     .get_mut(pos)
                     .map(|chunk| chunk.sites.push(settlement.clone()));
