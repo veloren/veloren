@@ -45,8 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a silhouette for players when they are occluded
 - Added transparency to the player when zooming in
 - Made armor and hotbar slots actually function
-- Added dragging and right-click to use functionality to inventory, armor, & hotbar slotskillbars
-- Added capes, lanterns, and more armor items
+- Added dragging and right-click to use functionality to inventory, armor & hotbar slots
+- Added capes, lanterns, tabards, rings, helmets & necklaces as equippable armor
 
 ### Changed
 
