@@ -174,7 +174,26 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 1,
             wind_sway: 0.8,
         }),
-
+        BlockKind::Corn => Some(SpriteConfig {
+            variations: 6,
+            wind_sway: 0.4,
+        }),
+        BlockKind::WheatYellow => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.4,
+        }),
+        BlockKind::WheatGreen => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.4,
+        }),
+        BlockKind::Cabbage => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Coconut => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         _ => None,
     }
 }
@@ -1074,6 +1093,221 @@ impl<V: RectRasterableVol> Terrain<V> {
                 (
                     (BlockKind::Ember, 0),
                     make_model("voxygen.voxel.sprite.ember.1", Vec3::new(-7.0, -7.0, -2.9)),
+                ),
+                // Corn
+                (
+                    (BlockKind::Corn, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Yellow Wheat
+                (
+                    (BlockKind::WheatYellow, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-6",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-7",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-8",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 9),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-9",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Green Wheat
+                (
+                    (BlockKind::WheatGreen, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-6",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-7",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-8",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 9),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-9",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Cabbage
+                (
+                    (BlockKind::WheatGreen, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.cabbage.cabbage-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.cabbage.cabbage-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.cabbage.cabbage-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Coconut
+                (
+                    (BlockKind::WheatGreen, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.fruit.coconut",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
             ]
             .into_iter()
