@@ -95,9 +95,11 @@ impl Civs {
             let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
 
             // Flatten ground
-            let flatten_radius = 12.0;
+            let flatten_radius = 10.0;
             if let Some(center_alt) = ctx.sim.get_alt_approx(wpos) {
-                for pos in Spiral2d::new().map(|offs| site.center + offs).take(radius.pow(2) as usize) {
+                for offs in Spiral2d::new().take(radius.pow(2) as usize) {
+                    let center_alt = center_alt + if offs.magnitude_squared() <= 6i32.pow(2) { 16.0 } else { 0.0 }; // Raise the town centre up a little
+                    let pos = site.center + offs;
                     let factor = (1.0 - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius) * 1.15;
                     ctx.sim
                         .get_mut(pos)
