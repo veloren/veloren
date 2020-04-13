@@ -1867,7 +1867,8 @@ impl SimChunk {
             )
         };
 
-        let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
+        //let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
+        let cliff = 0.0; // Disable cliffs
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f64| x.ln() - x.neg().ln_1p();

@@ -251,7 +251,7 @@ impl Settlement {
     }
 
     pub fn place_town(&mut self, ctx: &mut GenCtx<impl Rng>) {
-        const PLOT_COUNT: usize = 2;
+        const PLOT_COUNT: usize = 3;
 
         let mut origin = Vec2::new(ctx.rng.gen_range(-2, 3), ctx.rng.gen_range(-2, 3));
 
@@ -273,6 +273,7 @@ impl Settlement {
         }
 
         // Boundary wall
+        /*
         let spokes = CARDINALS
             .iter()
             .filter_map(|dir| {
@@ -316,6 +317,7 @@ impl Settlement {
         }
         self.land
             .write_path(&wall_path, WayKind::Wall, buildable, true);
+        */
     }
 
     pub fn place_buildings(&mut self, ctx: &mut GenCtx<impl Rng>) {
@@ -326,10 +328,11 @@ impl Settlement {
         };
 
         for tile in Spiral2d::new().map(|offs| town_center + offs).take(16usize.pow(2)) {
-            for _ in 0..ctx.rng.gen_range(1, 5) {
-                for _ in 0..10 {
+            // This is a stupid way to decide how to place buildings
+            for _ in 0..ctx.rng.gen_range(2, 5) {
+                for _ in 0..25 {
                     let house_pos = tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
-                        + Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(-(AREA_SIZE as i32) / 2, AREA_SIZE as i32) / 2);
+                        + Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(-(AREA_SIZE as i32) / 2, AREA_SIZE as i32 / 2));
 
                     let tile_pos = house_pos.map(|e| e.div_euclid(AREA_SIZE as i32));
                     if !matches!(self.land.plot_at(tile_pos), Some(Plot::Town))
@@ -481,20 +484,23 @@ impl Settlement {
 
                     // Try to use the column at the centre of the path for sampling to make them flatter
                     let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos)).unwrap_or(col_sample);
-                    let bridge_offset = if let Some(water_dist) = col.water_dist {
-                        ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0
+                    let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
+                        (
+                            ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
+                            ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs()) * (col.riverless_alt + 5.0 - col.alt).max(0.0) * 1.75 + 3.0) as i32,
+                        )
                     } else {
-                        0.0
+                        (0.0, 3)
                     };
                     let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
 
-                    for z in inset - 3..inset {
+                    for z in inset - depth..inset {
                         vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
-                            if bridge_offset >= 2.0 {
+                            if bridge_offset >= 2.0 && dist >= 2.5 || z < inset - 1 {
                                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
                             } else {
-                                Block::new(BlockKind::Normal, noisy_color(Rgb::new(90, 70, 50), 8))
+                                Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 50, 30), 8))
                             },
                         );
                     }
@@ -622,7 +628,10 @@ impl Settlement {
             Some(Plot::Dirt) => return Some(Rgb::new(90, 70, 50)),
             Some(Plot::Grass) => return Some(Rgb::new(100, 200, 0)),
             Some(Plot::Water) => return Some(Rgb::new(100, 150, 250)),
-            Some(Plot::Town) => return Some(Rgb::new(130, 120, 80)),
+            Some(Plot::Town) => return Some(Rgb::new(150, 110, 60)
+                .map2(Rgb::iota(), |e: u8, i: i32| e
+                    .saturating_add((self.noise.get(Vec3::new(pos.x, pos.y, i * 5)) % 16) as u8)
+                    .saturating_sub(8))),
             Some(Plot::Field { seed, .. }) => {
                 let furrow_dirs = [
                     Vec2::new(1, 0),
@@ -760,7 +769,9 @@ impl Land {
                 let proj_point = line.projected_point(pos.map(|e| e as f32));
                 let dist = proj_point.distance(pos.map(|e| e as f32));
                 if dist < way.width() {
-                    sample.way = Some((way, dist, proj_point));
+                    sample.way = sample.way
+                        .filter(|(_, d, _)| *d < dist)
+                        .or(Some((way, dist, proj_point)));
                 }
             }
         }

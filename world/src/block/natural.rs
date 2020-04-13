@@ -28,6 +28,7 @@ pub fn structure_gen<'a>(
     if (st_sample.tree_density as f64) < random_seed
         || st_sample.alt < st_sample.water_level
         || st_sample.spawn_rate < 0.5
+        || st_sample.water_dist.map(|d| d < 8.0).unwrap_or(false)
     {
         return None;
     }
