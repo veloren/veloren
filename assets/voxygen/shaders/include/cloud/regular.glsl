@@ -1,8 +1,8 @@
 uniform sampler2D t_noise;
 
 const float CLOUD_AVG_HEIGHT = 1025.0;
-const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 30.0;
-const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 30.0;
+const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 60.0;
+const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 60.0;
 const float CLOUD_THRESHOLD = 0.27;
 const float CLOUD_SCALE = 5.0;
 const float CLOUD_DENSITY = 100.0;
