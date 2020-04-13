@@ -83,9 +83,9 @@ impl<T> Skeleton<T> {
                 )
             }.map(|e| e.abs());
             let center_offset = if ori == Ori::East {
-                Vec2::new(pos.y, pos.x)
+                Vec2::new(pos.y - bounds.center().y, pos.x - bounds.center().x)
             } else {
-                Vec2::new(pos.x, pos.y)
+                Vec2::new(pos.x - bounds.center().x, pos.y - bounds.center().y)
             };
             let dist = bound_offset.reduce_max();
             let dist_locus = dist - branch.locus;
@@ -95,7 +95,7 @@ impl<T> Skeleton<T> {
             } || true {
                 let new_bm = f(dist, bound_offset, center_offset, branch);
                 min = min
-                    .map(|(min_dist_locus, bm)| (dist_locus, bm.resolve_with(min_dist_locus, new_bm, dist_locus)))
+                    .map(|(_, bm)| (dist_locus, bm.resolve_with(new_bm)))
                     .or(Some((dist_locus, new_bm)));
             }
         });

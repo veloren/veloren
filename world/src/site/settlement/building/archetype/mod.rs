@@ -29,14 +29,8 @@ impl BlockMask {
         self
     }
 
-    pub fn resolve_with(self, dist_self: i32, other: Self, dist_other: i32) -> Self {
-        if self.priority == other.priority {
-            if dist_self <= dist_other {
-                self
-            } else {
-                other
-            }
-        } else if self.priority >= other.priority {
+    pub fn resolve_with(self, other: Self) -> Self {
+        if self.priority >= other.priority {
             self
         } else {
             other

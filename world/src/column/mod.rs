@@ -770,7 +770,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         if gouge_factor == 1.0 {
                                             return Some((
                                                 true,
-                                                None,
+                                                Some(lake_dist as f32),
                                                 alt.min(lake_water_alt - 1.0 - river_gouge),
                                                 downhill_water_alt.max(lake_water_alt)
                                                     - river_gouge,
