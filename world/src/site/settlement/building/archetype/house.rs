@@ -14,8 +14,14 @@ use super::{
 pub struct House {
     roof_color: Rgb<u8>,
     noise: RandomField,
-    chimney: Option<i32>,
     roof_ribbing: bool,
+    roof_ribbing_diagonal: bool,
+}
+
+enum Pillar {
+    None,
+    Chimney(i32),
+    Tower(i32),
 }
 
 enum RoofStyle {
@@ -31,7 +37,7 @@ enum StoreyFill {
 }
 
 impl StoreyFill {
-    fn has_lower(&self) -> bool { !if let StoreyFill::None = self { true } else { false } }
+    fn has_lower(&self) -> bool { if let StoreyFill::All = self { true } else { false } }
     fn has_upper(&self) -> bool { if let StoreyFill::None = self { false } else { true } }
 }
 
@@ -40,10 +46,11 @@ pub struct Attr {
     storey_fill: StoreyFill,
     roof_style: RoofStyle,
     mansard: i32,
+    pillar: Pillar,
 }
 
 impl Attr {
-    fn generate<R: Rng>(rng: &mut R) -> Self {
+    fn generate<R: Rng>(rng: &mut R, locus: i32) -> Self {
         Self {
             central_supports: rng.gen(),
             storey_fill: match rng.gen_range(0, 2) {
@@ -56,7 +63,11 @@ impl Attr {
                 1 => RoofStyle::Gable,
                 _ => RoofStyle::Rounded,
             },
-            mansard: rng.gen_range(-8, 6).max(0),
+            mansard: rng.gen_range(-7, 4).max(0),
+            pillar: match rng.gen_range(0, 4) {
+                0 => Pillar::Chimney(9 + locus + rng.gen_range(0, 4)),
+                _ => Pillar::None,
+            },
         }
     }
 }
@@ -76,7 +87,12 @@ impl Archetype for House {
                 attr: Attr {
                     storey_fill: StoreyFill::All,
                     mansard: 0,
-                    ..Attr::generate(rng)
+                    pillar: match rng.gen_range(0, 3) {
+                        0 => Pillar::Chimney(9 + locus + rng.gen_range(0, 4)),
+                        1 => Pillar::Tower(15 + locus + rng.gen_range(0, 4)),
+                        _ => Pillar::None,
+                    },
+                    ..Attr::generate(rng, locus)
                 },
                 locus,
                 border: 4,
@@ -86,8 +102,8 @@ impl Archetype for House {
                     .flatten()
                     .filter_map(|(i, flip)| if rng.gen() {
                         Some((i as i32 * len / (branches_per_side - 1).max(1) as i32, Branch {
-                            len: rng.gen_range(5, 16) * flip,
-                            attr: Attr::generate(rng),
+                            len: rng.gen_range(8, 16) * flip,
+                            attr: Attr::generate(rng, locus),
                             locus: (6 + rng.gen_range(0, 3)).min(locus),
                             border: 4,
                             children: Vec::new(),
@@ -106,8 +122,8 @@ impl Archetype for House {
                 rng.gen_range(50, 200),
             ),
             noise: RandomField::new(rng.gen()),
-            chimney: if rng.gen() { Some(8 + skel.root.locus + rng.gen_range(1, 5)) } else { None },
             roof_ribbing: rng.gen(),
+            roof_ribbing_diagonal: rng.gen(),
         };
 
         (this, skel)
@@ -144,7 +160,7 @@ impl Archetype for House {
         let foundation_height = 0 - (dist - width - 1).max(0);
         let roof_top = 8 + width;
 
-        if let Some(chimney_top) = self.chimney {
+        if let Pillar::Chimney(chimney_top) = branch.attr.pillar {
             // Chimney shaft
             if center_offset.map(|e| e.abs()).reduce_max() == 0 && profile.y >= foundation_height + 1 {
                 return if profile.y == foundation_height + 1 {
@@ -181,97 +197,115 @@ impl Archetype for House {
             }
         }
 
-        let do_roof = |profile: Vec2<i32>, dist, roof_top, roof_width, mansard| {
-            if profile.y > roof_top - profile.x.max(mansard) && profile.y >= roof_top - roof_width { // Air above roof
-                return Some(empty);
+        // Roofs and walls
+        let do_roof_wall = |profile: Vec2<i32>, width, dist, bound_offset: Vec2<i32>, roof_top, mansard| {
+            // Roof
+
+            let (roof_profile, roof_dist) = match &branch.attr.roof_style {
+                RoofStyle::Hip => (Vec2::new(dist, profile.y), dist),
+                RoofStyle::Gable => (profile, dist),
+                RoofStyle::Rounded => {
+                    let circular_dist = (bound_offset.map(|e| e.pow(4) as f32).sum().powf(0.25) + 0.5).ceil() as i32;
+                    (Vec2::new(circular_dist, profile.y), circular_dist)
+                },
+            };
+
+            let roof_level = roof_top - roof_profile.x.max(mansard);
+
+            if profile.y > roof_level {
+                return None;
             }
 
             // Roof
-            if profile.y == roof_top - profile.x.max(mansard)
-                && dist <= roof_width
-            {
-                let is_ribbing = (profile.y - ceil_height) % 3 == 0 && self.roof_ribbing;
-                if (profile.x == 0 && mansard == 0) || dist == roof_width|| is_ribbing { // Eaves
-                    return Some(log.with_priority(1));
+            if profile.y == roof_level && roof_dist <= width + 2 {
+                let is_ribbing = ((profile.y - ceil_height) % 3 == 0 && self.roof_ribbing)
+                    || (bound_offset.x == bound_offset.y && self.roof_ribbing_diagonal);
+                if (roof_profile.x == 0 && mansard == 0) || roof_dist == width + 2 || is_ribbing { // Eaves
+                    return Some(log);
                 } else {
-                    return Some(roof.with_priority(1));
+                    return Some(roof);
+                }
+            }
+
+            // Wall
+
+            if dist == width && profile.y < roof_level {
+                if bound_offset.x == bound_offset.y || profile.y == ceil_height { // Support beams
+                    return Some(log);
+                } else if !branch.attr.storey_fill.has_lower() && profile.y < ceil_height {
+                    return Some(empty);
+                } else if !branch.attr.storey_fill.has_upper() {
+                    return Some(empty);
+                } else {
+                    let frame_bounds = if profile.y >= ceil_height {
+                        Aabr {
+                            min: Vec2::new(-1, ceil_height + 2),
+                            max: Vec2::new(1, ceil_height + 5),
+                        }
+                    } else {
+                        Aabr {
+                            min: Vec2::new(2, foundation_height + 2),
+                            max: Vec2::new(width - 2, ceil_height - 2),
+                        }
+                    };
+                    let window_bounds = Aabr {
+                        min: (frame_bounds.min + 1).map2(frame_bounds.center(), |a, b| a.min(b)),
+                        max: (frame_bounds.max - 1).map2(frame_bounds.center(), |a, b| a.max(b)),
+                    };
+
+                    // Window
+                    if (frame_bounds.size() + 1).reduce_min() > 2 { // Window frame is large enough for a window
+                        let surface_pos = Vec2::new(bound_offset.x, profile.y);
+                        if window_bounds.contains_point(surface_pos) {
+                            return Some(internal);
+                        } else if frame_bounds.contains_point(surface_pos) {
+                            return Some(log.with_priority(3));
+                        };
+                    }
+
+                    // Wall
+                    return Some(if branch.attr.central_supports && profile.x == 0 { // Support beams
+                        log.with_priority(4)
+                    } else {
+                        wall
+                    });
+                }
+            }
+
+            if dist < width { // Internals
+                if profile.y == ceil_height {
+                    if profile.x == 0 {// Rafters
+                        return Some(log);
+                    } else if branch.attr.storey_fill.has_upper() { // Ceiling
+                        return Some(floor);
+                    }
+                } else if (!branch.attr.storey_fill.has_lower() && profile.y < ceil_height)
+                    || (!branch.attr.storey_fill.has_upper() && profile.y >= ceil_height)
+                {
+                    return Some(empty);
+                } else {
+                    return Some(internal);
                 }
             }
 
             None
         };
 
-        if let Some(block) = match &branch.attr.roof_style {
-            RoofStyle::Hip => do_roof(Vec2::new(dist, profile.y), dist, roof_top, width + 2, branch.attr.mansard),
-            RoofStyle::Gable => do_roof(profile, dist, roof_top, width + 2, branch.attr.mansard),
-            RoofStyle::Rounded => {
-                let circular_dist = (bound_offset.map(|e| e.pow(4) as f32).sum().powf(0.25) + 0.5).ceil() as i32;
-                do_roof(Vec2::new(circular_dist, profile.y), circular_dist, roof_top, width + 2, branch.attr.mansard)
-            },
-        } {
-            return block;
+        let mut cblock = empty;
+
+        if let Some(block) = do_roof_wall(profile, width, dist, bound_offset, roof_top, branch.attr.mansard) {
+            cblock = cblock.resolve_with(block);
         }
 
-        // Walls
-        if dist == width {
-            if bound_offset.x == bound_offset.y || profile.y == ceil_height { // Support beams
-                return log;
-            } else if !branch.attr.storey_fill.has_lower() && profile.y < ceil_height {
-                return empty;
-            } else if !branch.attr.storey_fill.has_upper() {
-                return empty;
-            } else {
-                let frame_bounds = if profile.y >= ceil_height {
-                    Aabr {
-                        min: Vec2::new(-1, ceil_height + 2),
-                        max: Vec2::new(1, ceil_height + 5),
-                    }
-                } else {
-                    Aabr {
-                        min: Vec2::new(2, foundation_height + 2),
-                        max: Vec2::new(width - 2, ceil_height - 2),
-                    }
-                };
-                let window_bounds = Aabr {
-                    min: (frame_bounds.min + 1).map2(frame_bounds.center(), |a, b| a.min(b)),
-                    max: (frame_bounds.max - 1).map2(frame_bounds.center(), |a, b| a.max(b)),
-                };
+        if let Pillar::Tower(tower_top) = branch.attr.pillar {
+            let profile = Vec2::new(center_offset.x.abs(), profile.y);
+            let dist = center_offset.map(|e| e.abs()).reduce_max();
 
-                // Window
-                if (frame_bounds.size() + 1).reduce_min() > 2 { // Window frame is large enough for a window
-                    let surface_pos = Vec2::new(bound_offset.x, profile.y);
-                    if window_bounds.contains_point(surface_pos) {
-                        return internal;
-                    } else if frame_bounds.contains_point(surface_pos) {
-                        return log.with_priority(3);
-                    };
-                }
-
-                // Wall
-                return if branch.attr.central_supports && profile.x == 0 { // Support beams
-                    log.with_priority(4)
-                } else {
-                    wall
-                };
+            if let Some(block) = do_roof_wall(profile, 4, dist, center_offset.map(|e| e.abs()), tower_top, branch.attr.mansard) {
+                 cblock = cblock.resolve_with(block);
             }
         }
 
-        if dist < width { // Internals
-            if profile.y == ceil_height {
-                if profile.x == 0 {// Rafters
-                    return log;
-                } else if branch.attr.storey_fill.has_upper() { // Ceiling
-                    return floor;
-                }
-            } else if (!branch.attr.storey_fill.has_lower() && profile.y < ceil_height)
-                || (!branch.attr.storey_fill.has_upper() && profile.y >= ceil_height)
-            {
-                return empty;
-            } else {
-                return internal;
-            }
-        }
-
-        empty
+        cblock
     }
 }
