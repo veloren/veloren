@@ -144,14 +144,19 @@ impl Archetype for House {
             BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(r, g, b) + (nz & 0x0F) as u8 - 8), 2)
         };
 
-        let foundation = make_block(100, 100, 100).with_priority(5);
+        let facade_layer = 3;
+        let structural_layer = facade_layer + 1;
+        let foundation_layer = structural_layer + 1;
+        let floor_layer = foundation_layer + 1;
+
+        let foundation = make_block(100, 100, 100).with_priority(foundation_layer);
         let log = make_block(60, 45, 30);
         let floor = make_block(100, 75, 50).with_priority(7);
-        let wall = make_block(200, 180, 150);
-        let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b);
+        let wall = make_block(200, 180, 150).with_priority(facade_layer);
+        let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b).with_priority(facade_layer);
         let empty = BlockMask::nothing();
-        let internal = BlockMask::new(Block::empty(), 4);
-        let fire = BlockMask::new(Block::new(BlockKind::Ember, Rgb::white()), 2);
+        let internal = BlockMask::new(Block::empty(), structural_layer);
+        let fire = BlockMask::new(Block::new(BlockKind::Ember, Rgb::white()), foundation_layer);
 
         let ceil_height = 6;
         let lower_width = branch.locus - 1;
@@ -184,9 +189,9 @@ impl Archetype for House {
         if profile.y <= foundation_height && dist < width + 3 { // Foundations
             if branch.attr.storey_fill.has_lower() {
                 if dist == width - 1 { // Floor lining
-                    return log.with_priority(6);
+                    return log.with_priority(floor_layer);
                 } else if dist < width - 1 && profile.y == foundation_height { // Floor
-                    return floor;
+                    return floor.with_priority(floor_layer);
                 }
             }
 
@@ -205,7 +210,7 @@ impl Archetype for House {
                 RoofStyle::Hip => (Vec2::new(dist, profile.y), dist),
                 RoofStyle::Gable => (profile, dist),
                 RoofStyle::Rounded => {
-                    let circular_dist = (bound_offset.map(|e| e.pow(4) as f32).sum().powf(0.25) + 0.5).ceil() as i32;
+                    let circular_dist = (bound_offset.map(|e| e.pow(4) as f32).sum().powf(0.25) - 0.5).ceil() as i32;
                     (Vec2::new(circular_dist, profile.y), circular_dist)
                 },
             };
@@ -265,7 +270,7 @@ impl Archetype for House {
 
                     // Wall
                     return Some(if branch.attr.central_supports && profile.x == 0 { // Support beams
-                        log.with_priority(4)
+                        log.with_priority(structural_layer)
                     } else {
                         wall
                     });

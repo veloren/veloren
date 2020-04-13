@@ -632,7 +632,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             Some((river_dist - river_width * 0.5) as f32),
                             valley_alt,
                             new_alt,
-                            valley_alt + river_gouge,
+                            river_alt,
                             0.0,
                         ))
                     } else {
@@ -802,14 +802,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                     ))
                                 },
                                 RiverKind::River { .. } => {
-                                    let (_, _, _, (_, (river_pos, _), _)) =
+                                    let (_, _, river_width, (_, (river_pos, _), _)) =
                                         max_border_river_dist.unwrap();
                                     let river_dist = wposf.distance(river_pos);
 
                                     // FIXME: Make water altitude accurate.
                                     Some((
                                         river_scale_factor <= 1.0,
-                                        Some(river_dist as f32),
+                                        Some((river_dist - river_width * 0.5) as f32),
                                         alt_for_river,
                                         downhill_water_alt,
                                         alt_for_river,
