@@ -1,4 +1,5 @@
 use vek::*;
+use super::archetype::BlockMask;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Ori {
@@ -26,14 +27,15 @@ pub struct Branch<T> {
     pub len: i32,
     pub attr: T,
     pub locus: i32,
+    pub border: i32,
     pub children: Vec<(i32, Branch<T>)>,
 }
 
 impl<T> Branch<T> {
-    fn for_each<'a>(&'a self, node: Vec2<i32>, ori: Ori, f: &mut impl FnMut(Vec2<i32>, Ori, &'a Branch<T>)) {
-        f(node, ori, self);
+    fn for_each<'a>(&'a self, node: Vec2<i32>, ori: Ori, is_child: bool, parent_locus: i32, f: &mut impl FnMut(Vec2<i32>, Ori, &'a Branch<T>, bool, i32)) {
+        f(node, ori, self, is_child, parent_locus);
         for (offset, child) in &self.children {
-            child.for_each(node + ori.dir() * *offset, ori.flip(), f);
+            child.for_each(node + ori.dir() * *offset, ori.flip(), true, self.locus, f);
         }
     }
 }
@@ -45,27 +47,28 @@ pub struct Skeleton<T> {
 }
 
 impl<T> Skeleton<T> {
-    pub fn for_each<'a>(&'a self, mut f: impl FnMut(Vec2<i32>, Ori, &'a Branch<T>)) {
-        self.root.for_each(self.ori.dir() * self.offset, self.ori, &mut f);
+    pub fn for_each<'a>(&'a self, mut f: impl FnMut(Vec2<i32>, Ori, &'a Branch<T>, bool, i32)) {
+        self.root.for_each(self.ori.dir() * self.offset, self.ori, false, 0, &mut f);
     }
 
     pub fn bounds(&self) -> Aabr<i32> {
         let mut bounds = Aabr::new_empty(self.ori.dir() * self.offset);
-        self.for_each(|node, ori, branch| {
+        self.for_each(|node, ori, branch, _, _| {
             let node2 = node + ori.dir() * branch.len;
 
-            let a = node.map2(node2, |a, b| a.min(b)) - branch.locus;
-            let b = node.map2(node2, |a, b| a.max(b)) + branch.locus;
+            let a = node.map2(node2, |a, b| a.min(b)) - (branch.locus + branch.border);
+            let b = node.map2(node2, |a, b| a.max(b)) + (branch.locus + branch.border);
             bounds.expand_to_contain_point(a);
             bounds.expand_to_contain_point(b);
         });
         bounds
     }
 
-    pub fn closest<R: Clone>(&self, pos: Vec2<i32>, mut f: impl FnMut(i32, Vec2<i32>, Vec2<i32>, &Branch<T>) -> Option<R>) -> Option<R> {
-        let mut min = None;
-        self.for_each(|node, ori, branch| {
+    pub fn sample_closest(&self, pos: Vec2<i32>, mut f: impl FnMut(i32, Vec2<i32>, Vec2<i32>, &Branch<T>) -> BlockMask) -> BlockMask {
+        let mut min = None::<(_, BlockMask)>;
+        self.for_each(|node, ori, branch, is_child, parent_locus| {
             let node2 = node + ori.dir() * branch.len;
+            let node = node + if is_child { ori.dir() * branch.len.signum() * (branch.locus - parent_locus).clamped(0, branch.len.abs()) } else { Vec2::zero() };
             let bounds = Aabr::new_empty(node)
                 .expanded_to_contain_point(node2);
             let bound_offset = if ori == Ori::East {
@@ -86,10 +89,16 @@ impl<T> Skeleton<T> {
             };
             let dist = bound_offset.reduce_max();
             let dist_locus = dist - branch.locus;
-            if min.as_ref().map(|(min_dist_locus, _)| dist_locus < *min_dist_locus).unwrap_or(true) {
-                min = f(dist, bound_offset, center_offset, branch).map(|r| (dist_locus, r)).or(min.clone());
+            if !is_child || match ori {
+                Ori::East => (pos.x - node.x) * branch.len.signum() >= 0,
+                Ori::North => (pos.y - node.y) * branch.len.signum() >= 0,
+            } || true {
+                let new_bm = f(dist, bound_offset, center_offset, branch);
+                min = min
+                    .map(|(min_dist_locus, bm)| (dist_locus, bm.resolve_with(min_dist_locus, new_bm, dist_locus)))
+                    .or(Some((dist_locus, new_bm)));
             }
         });
-        min.map(|(_, r)| r)
+        min.map(|(_, bm)| bm).unwrap_or(BlockMask::nothing())
     }
 }
