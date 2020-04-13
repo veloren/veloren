@@ -610,6 +610,11 @@ pub fn block_from_structure(
         } else {
             Block::new(BlockKind::Apple, Rgb::new(1, 1, 1))
         }),
+        StructureBlock::Coconut => Some(if field.get(pos + structure_pos) % 3 > 0 {
+            Block::empty()
+        } else {
+            Block::new(BlockKind::Coconut, Rgb::new(1, 1, 1))
+        }),
         StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
             Block::empty()
         } else {

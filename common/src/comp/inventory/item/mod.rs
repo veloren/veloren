@@ -16,6 +16,7 @@ use std::{fs::File, io::BufReader};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
+    Coconut,
     Apple,
     Cheese,
     Potion,
@@ -126,6 +127,7 @@ impl Item {
                 Some(assets::load_expect_cloned("common.items.grasses.medium"))
             },
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
+            BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.coconut")),
             BlockKind::Chest => Some(assets::load_expect_cloned(
                 [
                     "common.items.apple",
