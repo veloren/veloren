@@ -6,6 +6,7 @@ use common::{
 };
 use super::{
     Archetype,
+    BlockMask,
     super::skeleton::*,
 };
 
@@ -22,12 +23,14 @@ impl Archetype for Keep {
             root: Branch {
                 len,
                 attr: Self::Attr::default(),
-                locus: 8 + rng.gen_range(0, 5),
+                locus: 5 + rng.gen_range(0, 5),
+                border: 3,
                 children: (0..rng.gen_range(0, 4))
                     .map(|_| (rng.gen_range(-5, len + 5).clamped(0, len.max(1) - 1), Branch {
                         len: rng.gen_range(5, 12) * if rng.gen() { 1 } else { -1 },
                         attr: Self::Attr::default(),
-                        locus: 8 + rng.gen_range(0, 3),
+                        locus: 5 + rng.gen_range(0, 3),
+                        border: 3,
                         children: Vec::new(),
                     }))
                     .collect(),
@@ -44,20 +47,20 @@ impl Archetype for Keep {
         center_offset: Vec2<i32>,
         z: i32,
         branch: &Branch<Self::Attr>,
-    ) -> Option<Option<Block>> {
+    ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);
 
         let make_block = |r, g, b| {
-            Some(Some(Block::new(BlockKind::Normal, Rgb::new(r, g, b))))
+            BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(r, g, b)), 2)
         };
 
         let foundation = make_block(100, 100, 100);
         let log = make_block(60, 45, 30);
         let wall = make_block(75, 100, 125);
         let roof = make_block(150, 120, 50);
-        let empty = Some(Some(Block::empty()));
+        let empty = BlockMask::new(Block::empty(), 2);
 
-        let width = 3 + branch.locus;
+        let width = branch.locus;
         let rampart_width = 5 + branch.locus;
         let roof_height = 12 + width;
         let ceil_height = 16;
