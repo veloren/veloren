@@ -144,9 +144,9 @@ impl Archetype for House {
             BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(r, g, b) + (nz & 0x0F) as u8 - 8), 2)
         };
 
-        let foundation = make_block(100, 100, 100);
+        let foundation = make_block(100, 100, 100).with_priority(5);
         let log = make_block(60, 45, 30);
-        let floor = make_block(100, 75, 50).with_priority(3);
+        let floor = make_block(100, 75, 50).with_priority(7);
         let wall = make_block(200, 180, 150);
         let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b);
         let empty = BlockMask::nothing();
@@ -184,7 +184,7 @@ impl Archetype for House {
         if profile.y <= foundation_height && dist < width + 3 { // Foundations
             if branch.attr.storey_fill.has_lower() {
                 if dist == width - 1 { // Floor lining
-                    return log;
+                    return log.with_priority(6);
                 } else if dist < width - 1 && profile.y == foundation_height { // Floor
                     return floor;
                 }
