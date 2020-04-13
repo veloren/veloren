@@ -205,7 +205,10 @@ impl MainMenuUi {
             rot_imgs,
             username: networking.username.clone(),
             password: "".to_owned(),
-            server_address: networking.servers[networking.default_server].clone(),
+            server_address: networking
+                .servers
+                .get(networking.default_server)
+                .map_or_else(|| String::new(), |address| address.clone()),
             popup: None,
             connecting: None,
             show_servers: false,
