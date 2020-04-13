@@ -679,7 +679,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             Some((river_dist - river_width * 0.5) as f32),
                                             alt_for_river.min(lake_water_alt - 1.0 - river_gouge),
                                             lake_water_alt - river_gouge,
-                                            alt_for_river.min(lake_water_alt - 1.0),
+                                            alt_for_river.max(lake_water_alt),
                                             0.0,
                                         ));
                                     }
@@ -753,7 +753,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             Some(lake_dist as f32),
                                             alt_for_river.min(lake_water_alt - 1.0 - river_gouge),
                                             lake_water_alt - river_gouge,
-                                            alt_for_river.min(lake_water_alt - 1.0),
+                                            alt_for_river.max(lake_water_alt),
                                             0.0,
                                         ));
                                     }
@@ -774,7 +774,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                 alt.min(lake_water_alt - 1.0 - river_gouge),
                                                 downhill_water_alt.max(lake_water_alt)
                                                     - river_gouge,
-                                                alt.min(lake_water_alt - 1.0),
+                                                alt.max(lake_water_alt),
                                                 0.0,
                                             ));
                                         } else {

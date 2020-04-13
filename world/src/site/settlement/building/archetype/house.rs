@@ -11,6 +11,20 @@ use super::{
     super::skeleton::*,
 };
 
+const COLOR_THEMES: [Rgb<u8>; 11] = [
+    Rgb::new(0x1D, 0x4D, 0x45),
+    Rgb::new(0xB3, 0x7D, 0x60),
+    Rgb::new(0xAC, 0x5D, 0x26),
+    Rgb::new(0x32, 0x46, 0x6B),
+    Rgb::new(0x2B, 0x19, 0x0F),
+    Rgb::new(0x93, 0x78, 0x51),
+    Rgb::new(0x92, 0x57, 0x24),
+    Rgb::new(0x4A, 0x4E, 0x4E),
+    Rgb::new(0x2F, 0x32, 0x47),
+    Rgb::new(0x8F, 0x35, 0x43),
+    Rgb::new(0x6D, 0x1E, 0x3A),
+];
+
 pub struct House {
     roof_color: Rgb<u8>,
     noise: RandomField,
@@ -116,11 +130,10 @@ impl Archetype for House {
         };
 
         let this = Self {
-            roof_color: Rgb::new(
-                rng.gen_range(50, 200),
-                rng.gen_range(50, 200),
-                rng.gen_range(50, 200),
-            ),
+            roof_color: COLOR_THEMES
+                .choose(rng)
+                .unwrap()
+                .map(|e| e.saturating_add(rng.gen_range(0, 20)) - 10),
             noise: RandomField::new(rng.gen()),
             roof_ribbing: rng.gen(),
             roof_ribbing_diagonal: rng.gen(),
@@ -141,7 +154,7 @@ impl Archetype for House {
 
         let make_block = |r, g, b| {
             let nz = self.noise.get(Vec3::new(center_offset.x, center_offset.y, z * 8));
-            BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(r, g, b) + (nz & 0x0F) as u8 - 8), 2)
+            BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(r, g, b).map(|e: u8| e.saturating_add((nz & 0x0F) as u8).saturating_sub(8))), 2)
         };
 
         let facade_layer = 3;
