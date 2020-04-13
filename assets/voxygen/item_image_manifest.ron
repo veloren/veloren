@@ -272,9 +272,13 @@
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     // Consumables
-    Consumable(Apple): VoxTrans(
+    Consumable(Apple):
+    VoxTrans(
         "element.icons.item_apple",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 1.0,
+    ),    
+    Consumable(Coconut): Png(
+        "element.icons.item_coconut",
     ),
     Consumable(PotionMinor): VoxTrans(
         "voxel.object.potion_red",

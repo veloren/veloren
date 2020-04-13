@@ -1,0 +1,13 @@
+Item(
+    name: "Mushroom",
+    description: "Reliable Source of water and fat.
+
+Restores 20 Health.",
+    kind: Consumable(
+        kind: Coconut,
+        effect: Health((
+            amount: 20,
+            cause: Item,
+        )),
+    ),
+)

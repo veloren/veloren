@@ -41,6 +41,11 @@ pub enum BlockKind {
     DeadBush,
     Blueberry,
     Ember,
+    Corn,
+    WheatYellow,
+    WheatGreen,
+    Cabbage,
+    Coconut,
 }
 
 impl BlockKind {
@@ -83,6 +88,11 @@ impl BlockKind {
             BlockKind::DeadBush => true,
             BlockKind::Blueberry => true,
             BlockKind::Ember => true,
+            BlockKind::Corn => true,
+            BlockKind::WheatYellow => true,
+            BlockKind::WheatGreen => true,
+            BlockKind::Cabbage => true,
+            BlockKind::Coconut => true,
             _ => false,
         }
     }
@@ -127,6 +137,11 @@ impl BlockKind {
             BlockKind::DeadBush => false,
             BlockKind::Blueberry => false,
             BlockKind::Ember => false,
+            BlockKind::Corn => false,
+            BlockKind::WheatYellow => false,
+            BlockKind::WheatGreen => false,
+            BlockKind::Cabbage => false,
+            BlockKind::Coconut => false,
             _ => true,
         }
     }
@@ -163,6 +178,11 @@ impl BlockKind {
             BlockKind::DeadBush => false,
             BlockKind::Blueberry => false,
             BlockKind::Ember => false,
+            BlockKind::Corn => false,
+            BlockKind::WheatYellow => false,
+            BlockKind::WheatGreen => false,
+            BlockKind::Cabbage => false,
+            BlockKind::Coconut => false,
             _ => true,
         }
     }
@@ -185,6 +205,7 @@ impl BlockKind {
             BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
             BlockKind::Pumpkin => true,
+            BlockKind::Coconut => true,
             _ => false,
         }
     }
