@@ -1303,7 +1303,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 ),
                 // Coconut
                 (
-                    (BlockKind::WheatGreen, 0),
+                    (BlockKind::Coconut, 0),
                     make_model(
                         "voxygen.voxel.sprite.fruit.coconut",
                         Vec3::new(-6.0, -6.0, 0.0),
