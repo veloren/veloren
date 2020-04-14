@@ -90,7 +90,25 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                             linear_to_srgb(srgb_to_linear(col) * light.min(ao)),
                         )
                     },
-                    &[[[1.0; 3]; 3]; 3],
+                    &{
+                        let mut ls = [[[0.0; 3]; 3]; 3];
+                        for x in 0..3 {
+                            for y in 0..3 {
+                                for z in 0..3 {
+                                    ls[z][y][x] = if self
+                                        .get(pos + Vec3::new(x as i32, y as i32, z as i32) - 1)
+                                        .map(|v| v.is_empty())
+                                        .unwrap_or(true)
+                                    {
+                                        1.0
+                                    } else {
+                                        0.0
+                                    };
+                                }
+                            }
+                        }
+                        ls
+                    },
                 );
             }
         }
