@@ -420,6 +420,13 @@ impl Settlement {
             let field = self.land.new_plot(Plot::Field {
                 farm,
                 seed: rng.gen(),
+                crop: match rng.gen_range(0, 5) {
+                    0 => Crop::Corn,
+                    1 => Crop::Wheat,
+                    2 => Crop::Cabbage,
+                    3 => Crop::Pumpkin,
+                    _ => Crop::Sunflower,
+                },
             });
             let tiles =
                 self.land
@@ -513,16 +520,67 @@ impl Settlement {
                     }
                 // Ground colour
                 } else if let Some(color) = self.get_color(rpos) {
-                    if col_sample.water_dist.map(|dist| dist > 2.0).unwrap_or(true) {
-                        for z in -8..6 {
-                            let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+                    let mut surface_block = None;
 
-                            if z >= 0 {
-                                if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                                    vol.set(pos, Block::empty());
+                    let color = match sample.plot {
+                        Some(Plot::Dirt) => Some(Rgb::new(90, 70, 50)),
+                        Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
+                        Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
+                        Some(Plot::Town) => Some(Rgb::new(150, 110, 60)
+                            .map2(Rgb::iota(), |e: u8, i: i32| e
+                                .saturating_add((self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 16) as u8)
+                                .saturating_sub(8))),
+                        Some(Plot::Field { seed, crop, .. }) => {
+                            let furrow_dirs = [
+                                Vec2::new(1, 0),
+                                Vec2::new(0, 1),
+                                Vec2::new(1, 1),
+                                Vec2::new(-1, 1),
+                            ];
+                            let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
+                            let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(6) < 3;
+
+                            let dirt = Rgb::new(70, 55, 35);
+                            let mound = Rgb::new(65, 75, 30);
+
+                            let roll = |seed, n| self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n;
+
+                            if in_furrow && roll(0, 5) == 0 {
+                                surface_block = match crop {
+                                    Crop::Corn => Some(BlockKind::Corn),
+                                    Crop::Wheat if roll(1, 2) == 0 => Some(BlockKind::WheatYellow),
+                                    Crop::Wheat => Some(BlockKind::WheatGreen),
+                                    Crop::Cabbage => Some(BlockKind::Cabbage),
+                                    Crop::Pumpkin if roll(2, 3) == 0 => Some(BlockKind::Pumpkin),
+                                    Crop::Sunflower => Some(BlockKind::Sunflower),
+                                    _ => None,
                                 }
+                                    .map(|kind| Block::new(kind, Rgb::white()));
+                            }
+
+                            Some(if in_furrow {
+                                dirt
                             } else {
-                                vol.set(pos, Block::new(BlockKind::Normal, noisy_color(color, 4)));
+                                mound
+                            })
+                        },
+                        _ => None,
+                    };
+
+                    if let Some(color) = color {
+                        if col_sample.water_dist.map(|dist| dist > 2.0).unwrap_or(true) {
+                            for z in -8..6 {
+                                let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+
+                                if let (0, Some(block)) = (z, surface_block) {
+                                    vol.set(pos, block);
+                                } else if z >= 0 {
+                                    if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                                        vol.set(pos, Block::empty());
+                                    }
+                                } else {
+                                    vol.set(pos, Block::new(BlockKind::Normal, noisy_color(color, 4)));
+                                }
                             }
                         }
                     }
@@ -659,13 +717,22 @@ impl Settlement {
 }
 
 #[derive(Copy, Clone, PartialEq)]
+pub enum Crop {
+    Corn,
+    Wheat,
+    Cabbage,
+    Pumpkin,
+    Sunflower,
+}
+
+#[derive(Copy, Clone, PartialEq)]
 pub enum Plot {
     Hazard,
     Dirt,
     Grass,
     Water,
     Town,
-    Field { farm: Id<Farm>, seed: u32 },
+    Field { farm: Id<Farm>, seed: u32, crop: Crop },
 }
 
 const CARDINALS: [Vec2<i32>; 4] = [
