@@ -184,7 +184,7 @@ impl Archetype for House {
                 return if profile.y == foundation_height + 1 {
                     fire
                 } else {
-                    internal
+                    internal.with_priority(foundation_layer)
                 };
             }
 

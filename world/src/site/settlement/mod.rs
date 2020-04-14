@@ -504,7 +504,7 @@ impl Settlement {
                     for z in inset - depth..inset {
                         vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
-                            if bridge_offset >= 2.0 && dist >= 2.5 || z < inset - 1 {
+                            if bridge_offset >= 2.0 && dist >= 3.0 || z < inset - 1 {
                                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
                             } else {
                                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 50, 30), 8))
@@ -542,8 +542,8 @@ impl Settlement {
 
                             let roll = |seed, n| self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n;
 
-                            let dirt = Rgb::new(80, 55, 35).map(|e| e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 8) as u8);
-                            let mound = Rgb::new(100, 130, 40).map(|e| e + roll(0, 8) as u8).map(|e| e + (self.noise.get(Vec3::broadcast((seed % 4096 + 1) as i32)) % 8) as u8);
+                            let dirt = Rgb::new(80, 55, 35).map(|e| e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 32) as u8);
+                            let mound = Rgb::new(70, 80, 30).map(|e| e + roll(0, 8) as u8).map(|e| e + (self.noise.get(Vec3::broadcast((seed % 4096 + 1) as i32)) % 32) as u8);
 
                             if in_furrow {
                                 if roll(0, 5) == 0 {
