@@ -538,24 +538,32 @@ impl Settlement {
                                 Vec2::new(-1, 1),
                             ];
                             let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
-                            let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(6) < 3;
-
-                            let dirt = Rgb::new(70, 55, 35);
-                            let mound = Rgb::new(65, 75, 30);
+                            let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(5) < 2;
 
                             let roll = |seed, n| self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n;
 
-                            if in_furrow && roll(0, 5) == 0 {
-                                surface_block = match crop {
-                                    Crop::Corn => Some(BlockKind::Corn),
-                                    Crop::Wheat if roll(1, 2) == 0 => Some(BlockKind::WheatYellow),
-                                    Crop::Wheat => Some(BlockKind::WheatGreen),
-                                    Crop::Cabbage if roll(2, 2) == 0 => Some(BlockKind::Cabbage),
-                                    Crop::Pumpkin if roll(3, 2) == 0 => Some(BlockKind::Pumpkin),
-                                    Crop::Sunflower => Some(BlockKind::Sunflower),
-                                    _ => None,
+                            let dirt = Rgb::new(80, 55, 35).map(|e| e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 8) as u8);
+                            let mound = Rgb::new(100, 130, 40).map(|e| e + roll(0, 8) as u8).map(|e| e + (self.noise.get(Vec3::broadcast((seed % 4096 + 1) as i32)) % 8) as u8);
+
+                            if in_furrow {
+                                if roll(0, 5) == 0 {
+                                    surface_block = match crop {
+                                        Crop::Corn => Some(BlockKind::Corn),
+                                        Crop::Wheat if roll(1, 2) == 0 => Some(BlockKind::WheatYellow),
+                                        Crop::Wheat => Some(BlockKind::WheatGreen),
+                                        Crop::Cabbage if roll(2, 2) == 0 => Some(BlockKind::Cabbage),
+                                        Crop::Pumpkin if roll(3, 2) == 0 => Some(BlockKind::Pumpkin),
+                                        Crop::Sunflower => Some(BlockKind::Sunflower),
+                                        _ => None,
+                                    }
+                                        .map(|kind| Block::new(kind, Rgb::white()));
                                 }
-                                    .map(|kind| Block::new(kind, Rgb::white()));
+                            } else {
+                                if roll(0, 30) == 0 {
+                                    surface_block = Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
+                                } else if roll(0, 30) == 0 {
+                                    surface_block = Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
+                                }
                             }
 
                             Some(if in_furrow {
