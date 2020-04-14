@@ -130,6 +130,7 @@ impl BlockKind {
             BlockKind::Velorite => false,
             BlockKind::VeloriteFrag => false,
             BlockKind::Chest => false,
+            BlockKind::Pumpkin => false,
             BlockKind::Welwitch => false,
             BlockKind::LingonBerry => false,
             BlockKind::LeafyPlant => false,
