@@ -550,8 +550,8 @@ impl Settlement {
                                     Crop::Corn => Some(BlockKind::Corn),
                                     Crop::Wheat if roll(1, 2) == 0 => Some(BlockKind::WheatYellow),
                                     Crop::Wheat => Some(BlockKind::WheatGreen),
-                                    Crop::Cabbage => Some(BlockKind::Cabbage),
-                                    Crop::Pumpkin if roll(2, 3) == 0 => Some(BlockKind::Pumpkin),
+                                    Crop::Cabbage if roll(2, 2) == 0 => Some(BlockKind::Cabbage),
+                                    Crop::Pumpkin if roll(3, 2) == 0 => Some(BlockKind::Pumpkin),
                                     Crop::Sunflower => Some(BlockKind::Sunflower),
                                     _ => None,
                                 }
