@@ -4,10 +4,12 @@ use common::{
     terrain::{Block, BlockKind},
     vol::Vox,
 };
-use crate::util::{RandomField, Sampler};
+use crate::{
+    util::{RandomField, Sampler},
+    site::BlockMask,
+};
 use super::{
     Archetype,
-    BlockMask,
     super::skeleton::*,
 };
 

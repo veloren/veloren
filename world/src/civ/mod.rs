@@ -19,7 +19,7 @@ use common::{
 };
 use crate::{
     sim::{WorldSim, SimChunk},
-    site::{Site as WorldSite, Settlement},
+    site::{Site as WorldSite, Settlement, Dungeon},
     util::seed_expan,
 };
 
@@ -76,6 +76,32 @@ impl Civs {
             }
         }
 
+        for _ in 0..256 {
+            attempt(5, || {
+                let loc = find_site_loc(&mut ctx, None)?;
+                this.establish_site(&mut ctx, loc, |place| Site {
+                    kind: SiteKind::Dungeon,
+                    center: loc,
+                    place,
+
+                    population: 0.0,
+
+                    stocks: Stocks::from_default(100.0),
+                    surplus: Stocks::from_default(0.0),
+                    values: Stocks::from_default(None),
+
+                    labors: MapVec::from_default(0.01),
+                    yields: MapVec::from_default(1.0),
+                    productivity: MapVec::from_default(1.0),
+
+                    last_exports: Stocks::from_default(0.0),
+                    export_targets: Stocks::from_default(0.0),
+                    trade_states: Stocks::default(),
+                    coin: 1000.0,
+                })
+            });
+        }
+
         // Tick
         const SIM_YEARS: usize = 1000;
         for _ in 0..SIM_YEARS {
@@ -91,6 +117,10 @@ impl Civs {
 
         // Flatten ground around sites
         for site in this.sites.iter() {
+            if let SiteKind::Settlement = &site.kind {} else {
+                continue;
+            }
+
             let radius = 48i32;
             let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
 
@@ -117,15 +147,18 @@ impl Civs {
 
         // Place sites in world
         for site in this.sites.iter() {
-            let radius = 48i32;
             let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
 
-            let settlement = WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), ctx.rng));
+            let world_site = match &site.kind {
+                SiteKind::Settlement => WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), ctx.rng)),
+                SiteKind::Dungeon => WorldSite::from(Dungeon::generate(wpos, Some(ctx.sim), ctx.rng)),
+            };
 
-            for pos in Spiral2d::new().map(|offs| site.center + offs).take(radius.pow(2) as usize) {
+            let radius_chunks = (world_site.radius() / TerrainChunkSize::RECT_SIZE.x as f32).ceil() as usize;
+            for pos in Spiral2d::new().map(|offs| site.center + offs).take((radius_chunks * 2).pow(2)) {
                 ctx.sim
                     .get_mut(pos)
-                    .map(|chunk| chunk.sites.push(settlement.clone()));
+                    .map(|chunk| chunk.sites.push(world_site.clone()));
             }
             println!("Placed site at {:?}", site.center);
         }
@@ -188,7 +221,26 @@ impl Civs {
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         let site = attempt(5, || {
             let loc = find_site_loc(ctx, None)?;
-            self.establish_site(ctx, loc)
+            self.establish_site(ctx, loc, |place| Site {
+                kind: SiteKind::Settlement,
+                center: loc,
+                place,
+
+                population: 24.0,
+
+                stocks: Stocks::from_default(100.0),
+                surplus: Stocks::from_default(0.0),
+                values: Stocks::from_default(None),
+
+                labors: MapVec::from_default(0.01),
+                yields: MapVec::from_default(1.0),
+                productivity: MapVec::from_default(1.0),
+
+                last_exports: Stocks::from_default(0.0),
+                export_targets: Stocks::from_default(0.0),
+                trade_states: Stocks::default(),
+                coin: 1000.0,
+            })
         })?;
 
         let civ = self.civs.insert(Civ {
@@ -242,7 +294,7 @@ impl Civs {
         Some(place)
     }
 
-    fn establish_site(&mut self, ctx: &mut GenCtx<impl Rng>, loc: Vec2<i32>) -> Option<Id<Site>> {
+    fn establish_site(&mut self, ctx: &mut GenCtx<impl Rng>, loc: Vec2<i32>, site_fn: impl FnOnce(Id<Place>) -> Site) -> Option<Id<Site>> {
         const SITE_AREA: Range<usize> = 64..256;
 
         let place = match ctx.sim.get(loc).and_then(|site| site.place) {
@@ -250,26 +302,7 @@ impl Civs {
             None => self.establish_place(ctx, loc, SITE_AREA)?,
         };
 
-        let site = self.sites.insert(Site {
-            kind: SiteKind::Settlement,
-            center: loc,
-            place: place,
-
-            population: 24.0,
-
-            stocks: Stocks::from_default(100.0),
-            surplus: Stocks::from_default(0.0),
-            values: Stocks::from_default(None),
-
-            labors: MapVec::from_default(0.01),
-            yields: MapVec::from_default(1.0),
-            productivity: MapVec::from_default(1.0),
-
-            last_exports: Stocks::from_default(0.0),
-            export_targets: Stocks::from_default(0.0),
-            trade_states: Stocks::default(),
-            coin: 1000.0,
-        });
+        let site = self.sites.insert(site_fn(place));
 
         // Find neighbors
         const MAX_NEIGHBOR_DISTANCE: f32 = 250.0;
@@ -531,6 +564,7 @@ impl fmt::Display for Site {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
             SiteKind::Settlement => writeln!(f, "Settlement")?,
+            SiteKind::Dungeon => writeln!(f, "Dungeon")?,
         }
         writeln!(f, "- population: {}", self.population.floor() as u32)?;
         writeln!(f, "- coin: {}", self.coin.floor() as u32)?;
@@ -558,6 +592,7 @@ impl fmt::Display for Site {
 #[derive(Debug)]
 pub enum SiteKind {
     Settlement,
+    Dungeon,
 }
 
 impl Site {

@@ -6,9 +6,9 @@ use common::{
 };
 use super::{
     Archetype,
-    BlockMask,
     super::skeleton::*,
 };
+use crate::site::BlockMask;
 
 pub struct Keep;
 
