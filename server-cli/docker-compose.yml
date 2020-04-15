@@ -3,22 +3,13 @@ version: "3.5"
 services:
   game-server:
     image: registry.gitlab.com/veloren/veloren:master-server
+    container_name: veloren-game-server-master
     ports:
       - "14004:14004"
       - "14005:14005"
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 2
-        delay: 10s
-        order: stop-first
-        failure_action: rollback
-      restart_policy:
-        condition: on-failure
+    restart: on-failure:0
   watchtower:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /root/.docker/config.json:/config.json
-    command: --interval 30 --cleanup
-
+    command: --interval 30 --cleanup veloren-game-server-master
