@@ -1,5 +1,5 @@
 use vek::*;
-use super::archetype::BlockMask;
+use crate::site::BlockMask;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Ori {

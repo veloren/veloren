@@ -451,6 +451,7 @@ impl Settlement {
                 .plot
                 .map(|p| if let Plot::Hazard = p { true } else { false })
                 .unwrap_or(true),
+            ..SpawnRules::default()
         }
     }
 
@@ -641,7 +642,7 @@ impl Settlement {
             // Skip this structure if it's not near this chunk
             if !bounds.collides_with_aabr(Aabr {
                 min: wpos2d - self.origin,
-                max: wpos2d - self.origin + vol.size_xy().map(|e| e as i32),
+                max: wpos2d - self.origin + vol.size_xy().map(|e| e as i32 + 1),
             }) {
                 continue;
             }
@@ -659,7 +660,7 @@ impl Settlement {
                                 continue;
                             };
 
-                            for z in bounds.min.z.min(col.alt as i32 - 1)..bounds.max.z + 1 {
+                            for z in bounds.min.z.min(col.alt.floor() as i32 - 1)..bounds.max.z + 1 {
                                 let rpos = Vec3::new(x, y, z);
                                 let wpos = Vec3::from(self.origin) + rpos;
                                 let coffs = wpos - Vec3::from(wpos2d);
