@@ -27,6 +27,7 @@
 *.rar
 *.log
 settings.ron
+server_settings.ron
 run.sh
 maps
 screenshots
