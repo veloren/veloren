@@ -20,10 +20,10 @@ impl compound_graphic::Renderer for IcedRenderer {
             Primitive::Group {
                 primitives: graphics
                     .map(|(bounds, kind)| match kind {
-                        GraphicKind::Image(handle) => Primitive::Image {
+                        GraphicKind::Image(handle, color) => Primitive::Image {
                             handle: (handle, Rotation::None),
                             bounds,
-                            color: Rgba::broadcast(255),
+                            color,
                         },
                         GraphicKind::Color(color) => Primitive::Rectangle { bounds, color },
                     })

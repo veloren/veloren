@@ -112,3 +112,29 @@ where
 {
     fn from(image: Image) -> Element<'a, M, R> { Element::new(image) }
 }
+
+impl<R> super::background_container::Background<R> for Image
+where
+    R: self::Renderer,
+{
+    fn width(&self) -> Length { self.width }
+
+    fn height(&self) -> Length { self.height }
+
+    fn aspect_ratio_fixed(&self) -> bool { self.fix_aspect_ratio }
+
+    fn pixel_dims(&self, renderer: &R) -> [u16; 2] {
+        let (w, h) = renderer.dimensions(self.handle);
+        [w as u16, h as u16]
+    }
+
+    fn draw(
+        &self,
+        renderer: &mut R,
+        _defaults: &R::Defaults,
+        layout: Layout<'_>,
+        _cursor_position: Point,
+    ) -> R::Output {
+        renderer.draw(self.handle, self.color, layout)
+    }
+}

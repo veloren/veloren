@@ -12,7 +12,7 @@ use vek::{Aabr, Rgba, Vec2};
 #[derive(Copy, Clone)]
 pub enum GraphicKind {
     // TODO: if there is a use case, allow coloring individual images
-    Image(Handle),
+    Image(Handle, Rgba<u8>),
     Color(Rgba<u8>),
 }
 
@@ -37,9 +37,22 @@ impl Graphic {
     }
 
     pub fn image(handle: Handle, size: [u16; 2], offset: [u16; 2]) -> Self {
-        Self::new(GraphicKind::Image(handle), size, offset)
+        Self::new(
+            GraphicKind::Image(handle, Rgba::broadcast(255)),
+            size,
+            offset,
+        )
     }
 
+    pub fn color(mut self, color: Rgba<u8>) -> Self {
+        match &mut self.kind {
+            GraphicKind::Image(_, c) => *c = color,
+            GraphicKind::Color(c) => *c = color,
+        }
+        self
+    }
+
+    // TODO: consider removing color here
     pub fn rect(color: Rgba<u8>, size: [u16; 2], offset: [u16; 2]) -> Self {
         Self::new(GraphicKind::Color(color), size, offset)
     }
@@ -95,6 +108,37 @@ impl CompoundGraphic {
     //    self.color = color;
     //    self
     //}
+
+    fn draw<R: self::Renderer>(
+        &self,
+        renderer: &mut R,
+        _defaults: &R::Defaults,
+        layout: Layout<'_>,
+        _cursor_position: Point,
+    ) -> R::Output {
+        let [pixel_w, pixel_h] = self.graphics_size;
+        let bounds = layout.bounds();
+        let scale = Vec2::new(
+            bounds.width / pixel_w as f32,
+            bounds.height / pixel_h as f32,
+        );
+        let graphics = self.graphics.iter().map(|graphic| {
+            let bounds = {
+                let Aabr { min, max } = graphic.aabr.map(|e| e as f32);
+                let min = min * scale;
+                let size = max * scale - min;
+                Rectangle {
+                    x: min.x + bounds.x,
+                    y: min.y + bounds.y,
+                    width: size.x,
+                    height: size.y,
+                }
+            };
+            (bounds, graphic.kind)
+        });
+
+        renderer.draw(graphics, /* self.color, */ layout)
+    }
 }
 
 impl<M, R> Widget<M, R> for CompoundGraphic
@@ -129,32 +173,11 @@ where
     fn draw(
         &self,
         renderer: &mut R,
-        _defaults: &R::Defaults,
+        defaults: &R::Defaults,
         layout: Layout<'_>,
-        _cursor_position: Point,
+        cursor_position: Point,
     ) -> R::Output {
-        let [pixel_w, pixel_h] = self.graphics_size;
-        let bounds = layout.bounds();
-        let scale = Vec2::new(
-            pixel_w as f32 / bounds.width,
-            pixel_h as f32 / bounds.height,
-        );
-        let graphics = self.graphics.iter().map(|graphic| {
-            let bounds = {
-                let Aabr { min, max } = graphic.aabr.map(|e| e as f32);
-                let min = min * scale;
-                let size = max * scale - min;
-                Rectangle {
-                    x: min.x + bounds.x,
-                    y: min.y + bounds.y,
-                    width: size.x,
-                    height: size.y,
-                }
-            };
-            (bounds, graphic.kind)
-        });
-
-        renderer.draw(graphics, /* self.color, */ layout)
+        Self::draw(self, renderer, defaults, layout, cursor_position)
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
@@ -186,5 +209,28 @@ where
 {
     fn from(compound_graphic: CompoundGraphic) -> Element<'a, M, R> {
         Element::new(compound_graphic)
+    }
+}
+
+impl<R> super::background_container::Background<R> for CompoundGraphic
+where
+    R: self::Renderer,
+{
+    fn width(&self) -> Length { self.width }
+
+    fn height(&self) -> Length { self.height }
+
+    fn aspect_ratio_fixed(&self) -> bool { self.fix_aspect_ratio }
+
+    fn pixel_dims(&self, _renderer: &R) -> [u16; 2] { self.graphics_size }
+
+    fn draw(
+        &self,
+        renderer: &mut R,
+        defaults: &R::Defaults,
+        layout: Layout<'_>,
+        cursor_position: Point,
+    ) -> R::Output {
+        Self::draw(self, renderer, defaults, layout, cursor_position)
     }
 }

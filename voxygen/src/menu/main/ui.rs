@@ -130,12 +130,12 @@ image_ids_ice! {
         v_logo: "voxygen.element.v_logo",
 
         info_frame: "voxygen.element.frames.info_frame_2",
-        banner: "voxygen.element.frames.banner",
 
-        banner_bottom: "voxygen.element.frames.banner_bottom",
-
+        //banner: "voxygen.element.frames.banner",
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
+        banner: "voxygen.element.frames.banner_png",
+        banner_bottom: "voxygen.element.frames.banner_bottom_png",
         banner_top: "voxygen.element.frames.banner_top",
         button: "voxygen.element.buttons.button",
         button_hover: "voxygen.element.buttons.button_hover",
@@ -194,7 +194,10 @@ pub type Message = Event;
 impl IcedState {
     pub fn view(&mut self) -> Element<Message> {
         use iced::{Align, Column, Container, Length, Row};
-        use ui::ice::Image;
+        use ui::ice::{
+            compound_graphic::{CompoundGraphic, Graphic},
+            BackgroundContainer, Image, Padding,
+        };
         use vek::*;
 
         let buttons = Column::with_children(vec![
@@ -214,14 +217,23 @@ impl IcedState {
             .padding(20);
 
         let banner_content =
-            Column::with_children(vec![Image::new(self.imgs.v_logo).fix_aspect_ratio().into()])
-                .padding(15);
+            Column::with_children(vec![Image::new(self.imgs.v_logo).fix_aspect_ratio().into()]);
+        //.padding(15);
 
-        let banner = ui::ice::BackgroundContainer::new(self.imgs.banner, banner_content)
-            .color(Rgba::new(255, 255, 255, 230))
+        let banner = BackgroundContainer::new(
+            CompoundGraphic::with_graphics(vec![
+                Graphic::image(self.imgs.banner_top, [138, 17], [0, 0]),
+                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 175], [4, 17]),
+                // Might need floats here
+                Graphic::image(self.imgs.banner, [130, 15], [4, 192])
+                    .color(Rgba::new(255, 255, 255, 230)),
+            ])
             .fix_aspect_ratio()
-            .max_width(300)
-            .height(Length::Fill);
+            .height(Length::Fill),
+            banner_content,
+        )
+        .padding(Padding::new().horizontal(16).top(21).bottom(4))
+        .max_width(330);
 
         let central_column = Container::new(banner)
             .width(Length::Fill)
@@ -237,10 +249,13 @@ impl IcedState {
                 .height(Length::Fill)
                 .spacing(10);
 
-        ui::ice::BackgroundContainer::new(self.imgs.bg, content)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
+        BackgroundContainer::new(
+            Image::new(self.imgs.bg)
+                .width(Length::Fill)
+                .height(Length::Fill),
+            content,
+        )
+        .into()
     }
 
     pub fn update(message: Message) {
