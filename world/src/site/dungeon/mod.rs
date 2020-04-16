@@ -12,6 +12,7 @@ use common::{
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::{BaseVol, RectSizedVol, RectVolSize, ReadVol, WriteVol, Vox},
     store::{Id, Store},
+    generation::{ChunkSupplement, EntityInfo, EntityKind},
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -50,7 +51,7 @@ impl Dungeon {
         let mut ctx = GenCtx { sim, rng };
         let mut this = Self {
             origin: wpos,
-            alt: ctx.sim.and_then(|sim| sim.get_alt_approx(wpos)).unwrap_or(0.0) as i32,
+            alt: ctx.sim.and_then(|sim| sim.get_alt_approx(wpos)).unwrap_or(0.0) as i32 + 6,
             noise: RandomField::new(ctx.rng.gen()),
             floors: (0..6)
                 .scan(Vec2::zero(), |stair_tile, level| {
@@ -98,7 +99,7 @@ impl Dungeon {
                 let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
                 let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
 
-                let mut z = self.alt + 6;
+                let mut z = self.alt;
                 for floor in &self.floors {
                     let mut sampler = floor.col_sampler(rpos);
 
@@ -110,6 +111,26 @@ impl Dungeon {
                     }
                 }
             }
+        }
+    }
+
+    pub fn apply_supplement<'a>(
+        &'a self,
+        wpos2d: Vec2<i32>,
+        mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+        supplement: &mut ChunkSupplement,
+    ) {
+        let rpos = wpos2d - self.origin;
+        let area = Aabr {
+            min: rpos,
+            max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+        };
+
+        let mut z = self.alt;
+        for floor in &self.floors {
+            z -= floor.total_depth();
+            let origin = Vec3::new(self.origin.x, self.origin.y, z);
+            floor.apply_supplement(area, origin, supplement);
         }
     }
 }
@@ -267,6 +288,31 @@ impl Floor {
         for pos in path.iter() {
             if let Some(tile @ Tile::Solid) = self.tiles.get_mut(*pos) {
                 *tile = Tile::Tunnel;
+            }
+        }
+    }
+
+    pub fn apply_supplement(&self, area: Aabr<i32>, origin: Vec3<i32>, supplement: &mut ChunkSupplement) {
+        let align = |e: i32| e.div_euclid(TILE_SIZE) + if e.rem_euclid(TILE_SIZE) > TILE_SIZE / 2 {
+            1
+        } else {
+            0
+        };
+        let aligned_area = Aabr {
+            min: area.min.map(align) + self.tile_offset,
+            max: area.max.map(align) + self.tile_offset,
+        };
+
+        for x in aligned_area.min.x..aligned_area.max.x {
+            for y in aligned_area.min.y..aligned_area.max.y {
+                let tile_pos = Vec2::new(x, y);
+                if let Some(Tile::Room) = self.tiles.get(tile_pos) {
+                    if tile_pos.x % 4 != 0 || tile_pos.y % 4 != 0 { continue; } // This is so bad
+                    supplement.add_entity(EntityInfo {
+                        pos: (origin + Vec3::from(self.tile_offset + tile_pos) * TILE_SIZE).map(|e| e as f32),
+                        kind: EntityKind::Boss,
+                    });
+                }
             }
         }
     }

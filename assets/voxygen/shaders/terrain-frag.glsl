@@ -30,7 +30,7 @@ void main() {
 	// Use an array to avoid conditional branching
 	vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
 
-	float ao = pow(f_ao, 0.5) * 0.9 + 0.1;
+	float ao = pow(f_ao, 0.6) * 0.9 + 0.1;
 
 	vec3 light, diffuse_light, ambient_light;
 	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);

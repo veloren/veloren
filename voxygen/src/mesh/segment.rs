@@ -31,11 +31,10 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
-                        let ao = ao * 0.95 + 0.05;
                         FigureVertex::new(
                             origin,
                             norm,
-                            linear_to_srgb(srgb_to_linear(col) * light.min(ao)),
+                            linear_to_srgb(srgb_to_linear(col) * light.min(ao.powf(0.5) * 0.75 + 0.25)),
                             0,
                         )
                     },
@@ -85,11 +84,10 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
-                        let ao = ao * 0.95 + 0.05;
                         SpriteVertex::new(
                             origin,
                             norm,
-                            linear_to_srgb(srgb_to_linear(col) * light.min(ao)),
+                            linear_to_srgb(srgb_to_linear(col) * light.min(ao.powf(0.5) * 0.75 + 0.25)),
                         )
                     },
                     &{
