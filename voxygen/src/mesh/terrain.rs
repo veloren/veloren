@@ -28,7 +28,7 @@ impl Blendable for BlockKind {
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
-) -> impl Fn(Vec3<i32>) -> f32 {
+) -> impl FnMut(Vec3<i32>) -> Option<f32> + '_ {
     const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;
     const SUNLIGHT: u8 = 24;
@@ -189,12 +189,20 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 
     move |wpos| {
-        let pos = wpos - outer.min;
-        light_map
-            .get(lm_idx(pos.x, pos.y, pos.z))
-            .filter(|l| **l != OPAQUE && **l != UNKNOWN)
-            .map(|l| *l as f32 / SUNLIGHT as f32)
-            .unwrap_or(0.0)
+        if vol_cached
+            .get(wpos)
+            .map(|block| block.is_opaque())
+            .unwrap_or(false)
+        {
+            None
+        } else {
+            let pos = wpos - outer.min;
+            Some(light_map
+                .get(lm_idx(pos.x, pos.y, pos.z))
+                .filter(|l| **l != OPAQUE && **l != UNKNOWN)
+                .map(|l| *l as f32 / SUNLIGHT as f32)
+                .unwrap_or(0.0))
+        }
     }
 }
 
@@ -212,7 +220,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         let mut opaque_mesh = Mesh::new();
         let mut fluid_mesh = Mesh::new();
 
-        let light = calc_light(range, self);
+        let mut light = calc_light(range, self);
 
         let mut lowest_opaque = range.size().d;
         let mut highest_opaque = 0;
@@ -292,7 +300,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         .min(range.size().d - 1);
         for x in 1..range.size().w - 1 {
             for y in 1..range.size().w - 1 {
-                let mut lights = [[[0.0; 3]; 3]; 3];
+                let mut lights = [[[None; 3]; 3]; 3];
                 for i in 0..3 {
                     for j in 0..3 {
                         for k in 0..3 {
@@ -373,8 +381,10 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
                             offs,
                             &colors,
-                            |pos, norm, col, ao, light| {
-                                let light = (light.min(ao) * 255.0) as u32;
+                            |pos, norm, col, light, ao| {
+                                //let light = (light.min(ao) * 255.0) as u32;
+                                let light = (light * 255.0) as u32;
+                                let ao = (ao * 255.0) as u32;
                                 let norm = if norm.x != 0.0 {
                                     if norm.x < 0.0 { 0 } else { 1 }
                                 } else if norm.y != 0.0 {
@@ -382,7 +392,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                                 } else {
                                     if norm.z < 0.0 { 4 } else { 5 }
                                 };
-                                TerrainVertex::new(norm, light, pos, col)
+                                TerrainVertex::new(norm, light, ao, pos, col)
                             },
                             &lights,
                         );
@@ -392,7 +402,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             faces_to_make(&blocks, false, |vox| vox.is_air()),
                             offs,
                             &colors,
-                            |pos, norm, col, _ao, light| {
+                            |pos, norm, col, light, _ao| {
                                 FluidVertex::new(pos, norm, col, light, 0.3)
                             },
                             &lights,
