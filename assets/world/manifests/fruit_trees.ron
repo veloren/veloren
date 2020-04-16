@@ -2,7 +2,7 @@
     [
         (
             specifier: "world.tree.fruit.1",
-            center: (5, 5, 7)
+            center: (6, 6, 7)
         ),
         (
             specifier: "world.tree.fruit.2",
