@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2019 Artem Polishchuk <ego.cordatus@gmail.com> -->
+<component type="desktop-application">
+  <id>net.veloren.veloren.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Veloren</name>
+  <provides>
+    <binary>veloren-voxygen</binary>
+  </provides>
+
+  <content_rating type="oars-1.0">
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-info">mild</content_attribute>
+    <content_attribute id="violence-cartoon">mild</content_attribute>
+    <content_attribute id="violence-fantasy">mild</content_attribute>
+  </content_rating>
+
+  <summary>
+    Veloren is a multiplayer voxel RPG written in Rust. It is inspired by games
+    such as Cube World, Legend of Zelda: Breath of the Wild, Dwarf Fortress and
+    Minecraft.
+  </summary>
+
+  <description>
+    <p>
+      Welcome To Veloren!
+    </p><p>
+      Veloren is a multiplayer voxel RPG written in Rust. Veloren takes
+      inspiration from games such as Cube World, Minecraft and Dwarf Fortress.
+      The game is currently under heavy development, but is playable.
+    </p><p>
+      Development
+    </p><p>
+      Currently the communication of contributors happens mainly on our official
+      Discord server (https://discord.gg/kjwJwjK). You can join it to keep up
+      with the development, talk to us or contribute something yourself. Anyone
+      who shows genuine effort to help is welcome in our team. You don't have to
+      know how to program to contribute!
+    </p>
+  </description>
+
+  <releases>
+    <release date="@DATE@" version="@VERSION@"></release>
+  </releases>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://veloren.net/screenshot1.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://veloren.net/screenshot2.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://veloren.net/screenshot3.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://veloren.net/screenshot4.png</image>
+    </screenshot>
+  </screenshots>
+
+  <keywords>
+    <keyword>multiplayer</keyword>
+    <keyword>sandbox</keyword>
+    <keyword>world</keyword>
+  </keywords>
+
+  <url type="bugtracker">https://gitlab.com/veloren/veloren/issues</url>
+  <url type="faq">https://gitlab.com/veloren/veloren#faq</url>
+  <url type="help">https://book.veloren.net/</url>
+  <url type="homepage">https://veloren.net</url>
+</component>
