@@ -118,9 +118,7 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
 
     let ao_map = ao;
 
-    if ao[0].min(ao[2]).min(darkness[0]).min(darkness[2])
-        < ao[1].min(ao[3]).min(darkness[1]).min(darkness[3])
-    {
+    if ao[0].min(ao[2]) < ao[1].min(ao[3]) {
         Quad::new(
             vcons(origin + unit_y, norm, cols[3], darkness[3], ao_map[3]),
             vcons(origin, norm, cols[0], darkness[0], ao_map[0]),

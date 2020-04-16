@@ -274,7 +274,7 @@ impl Floor {
         };
         let transition = |a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
             Some(Tile::Room) | Some(Tile::Tunnel) => 1.0,
-            Some(Tile::Solid) => ctx.rng.gen_range(1.0, 10.0),
+            Some(Tile::Solid) => 25.0,
             Some(Tile::UpStair) | Some(Tile::DownStair) => 0.0,
             _ => 100000.0,
         };
@@ -309,7 +309,7 @@ impl Floor {
                 if let Some(Tile::Room) = self.tiles.get(tile_pos) {
                     if tile_pos.x % 4 != 0 || tile_pos.y % 4 != 0 { continue; } // This is so bad
                     supplement.add_entity(EntityInfo {
-                        pos: (origin + Vec3::from(self.tile_offset + tile_pos) * TILE_SIZE).map(|e| e as f32),
+                        pos: (origin + Vec3::from(self.tile_offset + tile_pos) * TILE_SIZE + TILE_SIZE / 2).map(|e| e as f32),
                         kind: EntityKind::Boss,
                     });
                 }
