@@ -17,8 +17,7 @@ pub struct ChunkSupplement {
 }
 
 impl ChunkSupplement {
-    pub fn with_entity(mut self, entity: EntityInfo) -> Self {
+    pub fn add_entity(&mut self, entity: EntityInfo) {
         self.entities.push(entity);
-        self
     }
 }

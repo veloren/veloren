@@ -194,11 +194,26 @@ impl World {
         };
 
         if sim_chunk.contains_waypoint {
-            supplement = supplement.with_entity(EntityInfo {
+            supplement.add_entity(EntityInfo {
                 pos: gen_entity_pos(),
                 kind: EntityKind::Waypoint,
             });
         }
+
+        // Apply site supplementary information
+        sim_chunk.sites.iter().for_each(|site| {
+            site.apply_supplement(
+                chunk_wpos2d,
+                |offs| {
+                    zcache_grid
+                        .get(grid_border + offs)
+                        .map(Option::as_ref)
+                        .flatten()
+                        .map(|zc| &zc.sample)
+                },
+                &mut supplement,
+            )
+        });
 
         Ok((chunk, supplement))
     }

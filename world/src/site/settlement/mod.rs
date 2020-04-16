@@ -14,6 +14,7 @@ use common::{
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::{BaseVol, RectSizedVol, RectVolSize, ReadVol, WriteVol, Vox},
     store::{Id, Store},
+    generation::ChunkSupplement,
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -674,6 +675,15 @@ impl Settlement {
                 },
             }
         }
+    }
+
+    pub fn apply_supplement<'a>(
+        &'a self,
+        wpos2d: Vec2<i32>,
+        mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+        supplement: &mut ChunkSupplement,
+    ) {
+        // TODO
     }
 
     pub fn get_color(&self, pos: Vec2<i32>) -> Option<Rgb<u8>> {
