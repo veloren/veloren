@@ -5,22 +5,26 @@ use super::{
 use iced::{Element, Layout, Point};
 
 impl background_container::Renderer for IcedRenderer {
-    fn draw<M>(
+    fn draw<M, B>(
         &mut self,
         defaults: &Self::Defaults,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        background: image::Handle,
-        color: vek::Rgba<u8>,
+        background: &B,
+        background_layout: Layout<'_>,
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,
-    ) -> Self::Output {
-        let image_primitive = image::Renderer::draw(self, background, color, layout).0;
+        cursor_position: Point,
+    ) -> Self::Output
+    where
+        B: background_container::Background<Self>,
+    {
+        let back_primitive = background
+            .draw(self, defaults, background_layout, cursor_position)
+            .0;
         let (content_primitive, mouse_cursor) =
             content.draw(self, defaults, content_layout, cursor_position);
         (
             Primitive::Group {
-                primitives: vec![image_primitive, content_primitive],
+                primitives: vec![back_primitive, content_primitive],
             },
             mouse_cursor,
         )
