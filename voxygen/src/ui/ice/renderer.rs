@@ -1,5 +1,6 @@
 mod background_container;
 mod column;
+mod compound_graphic;
 mod container;
 mod image;
 mod row;
@@ -48,6 +49,7 @@ impl DrawCommand {
     }
 }
 
+#[derive(PartialEq)]
 enum State {
     Image(TexId),
     Plain,
@@ -60,6 +62,10 @@ pub enum Primitive {
     },
     Image {
         handle: (widget::image::Handle, Rotation),
+        bounds: iced::Rectangle,
+        color: Rgba<u8>,
+    },
+    Rectangle {
         bounds: iced::Rectangle,
         color: Rgba<u8>,
     },
@@ -265,6 +271,10 @@ impl IcedRenderer {
                 }
 
                 let color = srgba_to_linear(color.map(|e| e as f32 / 255.0));
+                // Don't draw a transparent image.
+                if color[3] == 0.0 {
+                    return;
+                }
 
                 let resolution = Vec2::new(
                     (gl_aabr.size().w * self.half_res.x).round() as u16,
@@ -311,30 +321,47 @@ impl IcedRenderer {
                     None => return,
                 };
 
-                match self.current_state {
-                    // Switch to the image state if we are not in it already.
-                    State::Plain => {
-                        self.draw_commands
-                            .push(DrawCommand::plain(self.start..self.mesh.vertices().len()));
-                        self.start = self.mesh.vertices().len();
-                        self.current_state = State::Image(tex_id);
-                    },
-                    // If the image is cached in a different texture switch to the new one
-                    State::Image(id) => {
-                        if id != tex_id {
-                            self.draw_commands.push(DrawCommand::image(
-                                self.start..self.mesh.vertices().len(),
-                                id,
-                            ));
-                            self.start = self.mesh.vertices().len();
-                            self.current_state = State::Image(tex_id);
-                        }
-                    },
-                }
+                // Switch to the image state if we are not in it already or if a different
+                // texture id was being used.
+                self.switch_state(State::Image(tex_id));
 
                 self.mesh
                     .push_quad(create_ui_quad(gl_aabr, uv_aabr, color, UiMode::Image));
             },
+            Primitive::Rectangle { bounds, color } => {
+                let color = srgba_to_linear(color.map(|e| e as f32 / 255.0));
+                // Don't draw a transparent rectangle.
+                if color[3] == 0.0 {
+                    return;
+                }
+
+                self.switch_state(State::Plain);
+
+                self.mesh.push_quad(create_ui_quad(
+                    self.gl_aabr(bounds),
+                    Aabr {
+                        min: Vec2::zero(),
+                        max: Vec2::zero(),
+                    },
+                    color,
+                    UiMode::Geometry,
+                ));
+            },
+        }
+    }
+
+    // Switches to the specified state if not already in it
+    // If switch occurs current state is converted into a draw command
+    fn switch_state(&mut self, state: State) {
+        if self.current_state != state {
+            let vert_range = self.start..self.mesh.vertices().len();
+            let draw_command = match self.current_state {
+                State::Plain => DrawCommand::plain(vert_range),
+                State::Image(id) => DrawCommand::image(vert_range, id),
+            };
+            self.draw_commands.push(draw_command);
+            self.start = self.mesh.vertices().len();
+            self.current_state = state;
         }
     }
 

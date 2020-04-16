@@ -83,7 +83,7 @@ where
     fn draw(
         &self,
         renderer: &mut R,
-        defaults: &R::Defaults,
+        _defaults: &R::Defaults,
         layout: Layout<'_>,
         _cursor_position: Point,
     ) -> R::Output {
@@ -91,8 +91,13 @@ where
     }
 
     fn hash_layout(&self, state: &mut Hasher) {
+        struct Marker;
+        std::any::TypeId::of::<Marker>().hash(state);
+
         self.width.hash(state);
         self.height.hash(state);
+        self.fix_aspect_ratio.hash(state);
+        // TODO: also depends on dims but we have no way to access
     }
 }
 

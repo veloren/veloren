@@ -214,19 +214,28 @@ impl IcedState {
             .padding(20);
 
         let banner_content =
-            Column::with_children(vec![Image::new(self.imgs.v_logo).fix_aspect_ratio().into()]);
+            Column::with_children(vec![Image::new(self.imgs.v_logo).fix_aspect_ratio().into()])
+                .padding(15);
+
         let banner = ui::ice::BackgroundContainer::new(self.imgs.banner, banner_content)
             .color(Rgba::new(255, 255, 255, 230))
             .fix_aspect_ratio()
-            .width(Length::Fill)
+            .max_width(300)
             .height(Length::Fill);
+
+        let central_column = Container::new(banner)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(Align::Center)
+            .align_y(Align::Center);
 
         let image3 = Image::new(self.imgs.banner_bottom).fix_aspect_ratio();
 
-        let content = Row::with_children(vec![buttons.into(), banner.into(), image3.into()])
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .spacing(10);
+        let content =
+            Row::with_children(vec![buttons.into(), central_column.into(), image3.into()])
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .spacing(10);
 
         ui::ice::BackgroundContainer::new(self.imgs.bg, content)
             .width(Length::Fill)

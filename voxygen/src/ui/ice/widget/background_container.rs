@@ -1,5 +1,5 @@
 use iced::{layout, Element, Hasher, Layout, Length, Point, Size, Widget};
-use std::u32;
+use std::{hash::Hash, u32};
 use vek::Rgba;
 
 // Note: it might be more efficient to make this generic over the content type
@@ -142,7 +142,18 @@ where
         )
     }
 
-    fn hash_layout(&self, state: &mut Hasher) { self.content.hash_layout(state); }
+    fn hash_layout(&self, state: &mut Hasher) {
+        struct Marker;
+        std::any::TypeId::of::<Marker>().hash(state);
+
+        self.width.hash(state);
+        self.height.hash(state);
+        self.max_width.hash(state);
+        self.max_height.hash(state);
+        self.fix_aspect_ratio.hash(state);
+
+        self.content.hash_layout(state);
+    }
 }
 
 pub trait Renderer: iced::Renderer + super::image::Renderer {
