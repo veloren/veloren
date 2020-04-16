@@ -1,5 +1,5 @@
-use super::{IcedRenderer, Primitive};
-use iced::{container, Element, Layout, MouseCursor, Point, Rectangle};
+use super::IcedRenderer;
+use iced::{container, Element, Layout, Point, Rectangle};
 
 impl container::Renderer for IcedRenderer {
     type Style = ();
@@ -7,7 +7,7 @@ impl container::Renderer for IcedRenderer {
     fn draw<M>(
         &mut self,
         defaults: &Self::Defaults,
-        bounds: Rectangle,
+        _bounds: Rectangle,
         cursor_position: Point,
         _style_sheet: &Self::Style,
         content: &Element<'_, M, Self>,

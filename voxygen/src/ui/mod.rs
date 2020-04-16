@@ -45,7 +45,7 @@ use conrod_core::{
     Rect, Scalar, UiBuilder, UiCell,
 };
 use core::{convert::TryInto, f32, f64, ops::Range};
-use graphic::{Rotation, TexId};
+use graphic::TexId;
 use hashbrown::hash_map::Entry;
 use std::{
     fs::File,
