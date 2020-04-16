@@ -1,7 +1,7 @@
 use crate::{
     column::ColumnSample,
     sim::{SimChunk, WorldSim},
-    util::{Grid, RandomField, Sampler, StructureGen2d},
+    util::{attempt, Grid, RandomField, Sampler, StructureGen2d},
     site::BlockMask,
 };
 use super::SpawnRules;
@@ -53,8 +53,8 @@ impl Dungeon {
             alt: ctx.sim.and_then(|sim| sim.get_alt_approx(wpos)).unwrap_or(0.0) as i32,
             noise: RandomField::new(ctx.rng.gen()),
             floors: (0..6)
-                .scan(Vec2::zero(), |stair_tile, _| {
-                    let (floor, st) = Floor::generate(&mut ctx, *stair_tile);
+                .scan(Vec2::zero(), |stair_tile, level| {
+                    let (floor, st) = Floor::generate(&mut ctx, *stair_tile, level);
                     *stair_tile = st;
                     Some(floor)
                 })
@@ -95,47 +95,18 @@ impl Dungeon {
                 };
                 let surface_z = col_sample.riverless_alt.floor() as i32;
 
-                let make_staircase = |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch| {
-                    if (pos.xy().magnitude_squared() as f32) < radius.powf(2.0) {
-                        if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z as f32) % stretch < 3.0
-                            || (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0)
-                        {
-                            BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(150, 150, 175)), 5)
-                        } else {
-                            BlockMask::new(Block::empty(), 1)
-                        }
-                    } else {
-                        BlockMask::nothing()
-                    }
-                };
-
                 let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
                 let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
 
-                let mut z = self.alt + 20;
+                let mut z = self.alt + 6;
                 for floor in &self.floors {
-                    match floor.sample(tile_pos) {
-                        Some(Tile::DownStair) | Some(Tile::Empty) => {
-                            z -= floor.solid_depth;
-                            for _ in 0..floor.hollow_depth {
-                                vol.set(Vec3::new(offs.x, offs.y, z), Block::empty());
-                                z -= 1;
-                            }
-                        },
-                        Some(Tile::UpStair) => {
-                            for i in 0..floor.solid_depth + floor.hollow_depth {
-                                let rtile_pos = rpos - tile_center;
-                                let mut block = make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), TILE_SIZE as f32 / 2.0, 1.5, 13.0);
-                                if i >= floor.solid_depth {
-                                    block = block.resolve_with(BlockMask::new(Block::empty(), 1));
-                                }
-                                if let Some(block) = block.finish() {
-                                    vol.set(Vec3::new(offs.x, offs.y, z), block);
-                                }
-                                z -= 1;
-                            }
-                        },
-                        None => z -= floor.solid_depth + floor.hollow_depth,
+                    let mut sampler = floor.col_sampler(rpos);
+
+                    z -= floor.total_depth();
+                    for rz in 0..floor.total_depth() {
+                        if let Some(block) = sampler(rz).finish() {
+                            vol.set(Vec3::new(offs.x, offs.y, z + rz), block);
+                        }
                     }
                 }
             }
@@ -150,49 +121,223 @@ const CARDINALS: [Vec2<i32>; 4] = [
     Vec2::new(-1, 0),
 ];
 
-const TILE_SIZE: i32 = 17;
+const DIRS: [Vec2<i32>; 8] = [
+    Vec2::new(0, 1),
+    Vec2::new(1, 0),
+    Vec2::new(0, -1),
+    Vec2::new(-1, 0),
+    Vec2::new(1, 1),
+    Vec2::new(1, -1),
+    Vec2::new(-1, 1),
+    Vec2::new(-1, -1),
+];
 
+const TILE_SIZE: i32 = 13;
+
+#[derive(Clone)]
 pub enum Tile {
     UpStair,
     DownStair,
-    Empty,
+    Room,
+    Tunnel,
+    Solid,
+}
+
+impl Tile {
+    fn is_passable(&self) -> bool {
+        match self {
+            Tile::UpStair => true,
+            Tile::DownStair => true,
+            Tile::Room => true,
+            Tile::Tunnel => true,
+            _ => false,
+        }
+    }
 }
 
 pub struct Floor {
     tile_offset: Vec2<i32>,
     tiles: Grid<Tile>,
+    rooms: Vec<Rect<i32, i32>>,
     solid_depth: i32,
     hollow_depth: i32,
+    stair_tile: Vec2<i32>,
 }
 
+const FLOOR_SIZE: Vec2<i32> = Vec2::new(18, 18);
+
 impl Floor {
-    pub fn generate(ctx: &mut GenCtx<impl Rng>, stair_tile: Vec2<i32>) -> (Self, Vec2<i32>) {
+    pub fn generate(ctx: &mut GenCtx<impl Rng>, stair_tile: Vec2<i32>, level: i32) -> (Self, Vec2<i32>) {
         let new_stair_tile = std::iter::from_fn(|| Some(FLOOR_SIZE.map(|sz| ctx.rng.gen_range(-sz / 2 + 1, sz / 2))))
-            .find(|pos| *pos != stair_tile)
+            .filter(|pos| *pos != stair_tile)
+            .take(8)
+            .max_by_key(|pos| (*pos - stair_tile).map(|e| e.abs()).sum())
             .unwrap();
 
-        const FLOOR_SIZE: Vec2<i32> = Vec2::new(12, 12);
         let tile_offset = -FLOOR_SIZE / 2;
-        let this = Floor {
+        let mut this = Floor {
             tile_offset,
-            tiles: Grid::populate_from(FLOOR_SIZE, |pos| {
-                let tile_pos = tile_offset + pos;
-                if tile_pos == stair_tile {
-                    Tile::UpStair
-                } else if tile_pos == new_stair_tile {
-                    Tile::DownStair
-                } else {
-                    Tile::Empty
-                }
-            }),
-            solid_depth: 13 * 3,
+            tiles: Grid::new(FLOOR_SIZE, Tile::Solid),
+            rooms: Vec::new(),
+            solid_depth: if level == 0 {
+                80
+            } else {
+                13 * 2
+            },
             hollow_depth: 13,
+            stair_tile: new_stair_tile - tile_offset,
         };
+        this.create_rooms(ctx, 10);
+        // Create routes between all rooms
+        let rooms = this.rooms.clone();
+        for a in rooms.iter() {
+            for b in rooms.iter() {
+                this.create_route(ctx, a.center(), b.center(), true);
+            }
+        }
+        this.create_route(ctx, stair_tile - tile_offset, new_stair_tile - tile_offset, false);
+
+        this.tiles.set(stair_tile - tile_offset, Tile::UpStair);
+        this.tiles.set(new_stair_tile - tile_offset, Tile::DownStair);
 
         (this, new_stair_tile)
     }
 
-    pub fn sample(&self, tile_pos: Vec2<i32>) -> Option<&Tile> {
-        self.tiles.get(tile_pos - self.tile_offset)
+    fn create_rooms(&mut self, ctx: &mut GenCtx<impl Rng>, n: usize) {
+        let dim_limits = (3, 8);
+
+        for _ in 0..n {
+            let room = match attempt(30, || {
+                let sz = Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(dim_limits.0, dim_limits.1));
+                let pos = FLOOR_SIZE.map2(sz, |floor_sz, room_sz| ctx.rng.gen_range(0, floor_sz + 1 - room_sz));
+                let room = Rect::from((pos, Extent2::from(sz)));
+                let room_border = Rect::from((pos - 1, Extent2::from(sz) + 2)); // The room, but with some personal space
+
+                // Ensure no overlap
+                if self.rooms
+                    .iter()
+                    .any(|r| r.collides_with_rect(room_border))// || r.contains_point(self.stair_tile))
+                {
+                    return None;
+                }
+
+                Some(room)
+            }) {
+                Some(room) => room,
+                None => return,
+            };
+
+            self.rooms.push(room);
+
+            for x in 0..room.extent().w {
+                for y in 0..room.extent().h {
+                    self.tiles.set(room.position() + Vec2::new(x, y), Tile::Room);
+                }
+            }
+        }
+    }
+
+    fn create_route(&mut self, ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>, optimise_longest: bool) {
+        let sim = &ctx.sim;
+        let heuristic = move |l: &Vec2<i32>| if optimise_longest {
+            (l.distance_squared(b) as f32).sqrt()
+        } else {
+            100.0 - (l.distance_squared(b) as f32).sqrt()
+        };
+        let neighbors = |l: &Vec2<i32>| {
+            let l = *l;
+            CARDINALS
+                .iter()
+                .map(move |dir| l + dir)
+                .filter(|pos| self.tiles.get(*pos).is_some())
+        };
+        let transition = |a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
+            Some(Tile::Room) | Some(Tile::Tunnel) => 1.0,
+            Some(Tile::Solid) => ctx.rng.gen_range(1.0, 10.0),
+            Some(Tile::UpStair) | Some(Tile::DownStair) => 0.0,
+            _ => 100000.0,
+        };
+        let satisfied = |l: &Vec2<i32>| *l == b;
+        let mut astar = Astar::new(20000, a, heuristic);
+        let path = astar
+            .poll(FLOOR_SIZE.product() as usize + 1, heuristic, neighbors, transition, satisfied)
+            .into_path()
+            .expect("No route between locations - this shouldn't be able to happen");
+
+        for pos in path.iter() {
+            if let Some(tile @ Tile::Solid) = self.tiles.get_mut(*pos) {
+                *tile = Tile::Tunnel;
+            }
+        }
+    }
+
+    pub fn total_depth(&self) -> i32 {
+        self.solid_depth + self.hollow_depth
+    }
+
+    pub fn nearest_wall(&self, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
+        let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
+        let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
+
+        DIRS
+            .iter()
+            .map(|dir| tile_pos + *dir)
+            .filter(|other_tile_pos| self.tiles.get(*other_tile_pos).filter(|tile| tile.is_passable()).is_none())
+            .map(|other_tile_pos| rpos.clamped(
+                other_tile_pos * TILE_SIZE,
+                (other_tile_pos + 1) * TILE_SIZE - 1,
+            ))
+            .min_by_key(|nearest| rpos.distance_squared(*nearest))
+    }
+
+    pub fn col_sampler(&self, pos: Vec2<i32>) -> impl FnMut(i32) -> BlockMask + '_ {
+        let rpos = pos - self.tile_offset * TILE_SIZE;
+        let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
+        let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
+        let rtile_pos = rpos - tile_center;
+
+        let empty = BlockMask::new(Block::empty(), 1);
+
+        let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
+            let stone = BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(150, 150, 175)), 5);
+
+            if (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0) {
+                stone
+            } else if (pos.xy().magnitude_squared() as f32) < radius.powf(2.0) {
+                if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z as f32).rem_euclid(stretch) < 1.5 {
+                    stone
+                } else {
+                    empty
+                }
+            } else {
+                BlockMask::nothing()
+            }
+        };
+
+        let tunnel_dist = self.nearest_wall(rpos).map(|nearest| 1.0 - (nearest.distance_squared(rpos) as f32).sqrt() / TILE_SIZE as f32).unwrap_or(0.0);
+
+        move |z| {
+            match self.tiles.get(tile_pos) {
+                Some(Tile::Solid) => BlockMask::nothing(),
+                Some(Tile::Tunnel) => {
+                    if (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0) {
+                        empty
+                    } else {
+                        BlockMask::nothing()
+                    }
+                },
+                Some(Tile::Room) | Some(Tile::DownStair) if z as f32 >= self.hollow_depth as f32 - 13.0 * tunnel_dist.powf(4.0) => BlockMask::nothing(),
+                Some(Tile::Room) => empty,
+                Some(Tile::DownStair) => make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), 0.0, 0.5, 9.0).resolve_with(empty),
+                Some(Tile::UpStair) => {
+                    let mut block = make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), TILE_SIZE as f32 / 2.0, 0.5, 9.0);
+                    if z < self.hollow_depth {
+                        block = block.resolve_with(empty);
+                    }
+                    block
+                },
+                None => BlockMask::nothing(),
+            }
+        }
     }
 }
