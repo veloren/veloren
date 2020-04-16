@@ -31,6 +31,7 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
+                        let ao = ao * 0.95 + 0.05;
                         FigureVertex::new(
                             origin,
                             norm,
@@ -39,7 +40,7 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                         )
                     },
                     &{
-                        let mut ls = [[[0.0; 3]; 3]; 3];
+                        let mut ls = [[[None; 3]; 3]; 3];
                         for x in 0..3 {
                             for y in 0..3 {
                                 for z in 0..3 {
@@ -48,9 +49,9 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                                         .map(|v| v.is_empty())
                                         .unwrap_or(true)
                                     {
-                                        1.0
+                                        Some(1.0)
                                     } else {
-                                        0.0
+                                        None
                                     };
                                 }
                             }
@@ -84,6 +85,7 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
+                        let ao = ao * 0.95 + 0.05;
                         SpriteVertex::new(
                             origin,
                             norm,
@@ -91,7 +93,7 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                         )
                     },
                     &{
-                        let mut ls = [[[0.0; 3]; 3]; 3];
+                        let mut ls = [[[None; 3]; 3]; 3];
                         for x in 0..3 {
                             for y in 0..3 {
                                 for z in 0..3 {
@@ -100,9 +102,9 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                                         .map(|v| v.is_empty())
                                         .unwrap_or(true)
                                     {
-                                        1.0
+                                        Some(1.0)
                                     } else {
-                                        0.0
+                                        None
                                     };
                                 }
                             }

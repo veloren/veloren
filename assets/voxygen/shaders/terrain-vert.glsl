@@ -16,6 +16,7 @@ out vec3 f_pos;
 flat out uint f_pos_norm;
 out vec3 f_col;
 out float f_light;
+out float f_ao;
 
 const float EXTRA_NEG_Z = 65536.0;
 
@@ -27,7 +28,8 @@ void main() {
 
 	f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
 
-	f_light = float(v_col_light & 0xFFu) / 255.0;
+	f_light = float(v_col_light & 0x3Fu) / 64.0;
+	f_ao = float((v_col_light >> 6u) & 3u) / 4.0;
 
 	f_pos_norm = v_pos_norm;
 

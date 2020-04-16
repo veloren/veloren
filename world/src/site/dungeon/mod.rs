@@ -216,7 +216,7 @@ impl Floor {
                 // Ensure no overlap
                 if self.rooms
                     .iter()
-                    .any(|r| r.collides_with_rect(room_border))// || r.contains_point(self.stair_tile))
+                    .any(|r| r.collides_with_rect(room_border) || r.contains_point(self.stair_tile))
                 {
                     return None;
                 }
