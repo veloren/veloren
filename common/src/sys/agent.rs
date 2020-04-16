@@ -1,5 +1,5 @@
 use crate::{
-    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Ori, Pos, Stats},
+    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Ori, Scale, Pos, Stats},
     path::Chaser,
     state::Time,
     sync::UidAllocator,
@@ -23,6 +23,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
+        ReadStorage<'a, Scale>,
         ReadStorage<'a, Stats>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
@@ -39,6 +40,7 @@ impl<'a> System<'a> for Sys {
             entities,
             positions,
             orientations,
+            scales,
             stats,
             terrain,
             alignments,
@@ -83,8 +85,10 @@ impl<'a> System<'a> for Sys {
             const MAX_FOLLOW_DIST: f32 = 12.0;
             const MAX_CHASE_DIST: f32 = 24.0;
             const SEARCH_DIST: f32 = 30.0;
-            const SIGHT_DIST: f32 = 64.0;
+            const SIGHT_DIST: f32 = 128.0;
             const MIN_ATTACK_DIST: f32 = 3.25;
+
+            let traversal_tolerance = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
             let mut do_idle = false;
             let mut choose_target = false;
@@ -143,7 +147,7 @@ impl<'a> System<'a> for Sys {
                             // Follow, or return to idle
                             if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
                                 if let Some(bearing) =
-                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, AVG_FOLLOW_DIST)
+                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, AVG_FOLLOW_DIST, traversal_tolerance)
                                 {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
@@ -202,7 +206,7 @@ impl<'a> System<'a> for Sys {
 
                                 // Long-range chase
                                 if let Some(bearing) =
-                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, 1.25)
+                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, 1.25, traversal_tolerance)
                                 {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
