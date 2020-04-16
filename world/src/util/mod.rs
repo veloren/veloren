@@ -19,3 +19,7 @@ pub use self::{
     structure::StructureGen2d,
     unit_chooser::UnitChooser,
 };
+
+pub fn attempt<T>(max_iters: usize, mut f: impl FnMut() -> Option<T>) -> Option<T> {
+    (0..max_iters).find_map(|_| f())
+}

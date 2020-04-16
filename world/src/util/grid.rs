@@ -17,7 +17,7 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn new(default_cell: T, size: Vec2<i32>) -> Self
+    pub fn new(size: Vec2<i32>, default_cell: T) -> Self
     where
         T: Clone,
     {
