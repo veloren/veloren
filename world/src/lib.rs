@@ -67,8 +67,21 @@ impl World {
         // TODO: misleading name
         mut should_continue: impl FnMut() -> bool,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
+        let mut sampler = self.sample_blocks();
+
+        let chunk_wpos2d = Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+        let grid_border = 4;
+        let zcache_grid =
+            Grid::populate_from(TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2, |offs| {
+                sampler.get_z_cache(chunk_wpos2d - grid_border + offs)
+            });
+
         let air = Block::empty();
-        let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
+        let stone = Block::new(BlockKind::Dense, zcache_grid
+            .get(grid_border + TerrainChunkSize::RECT_SIZE.map(|e| e as i32) / 2)
+            .and_then(|zcache| zcache.as_ref())
+            .map(|zcache| zcache.sample.stone_col)
+            .unwrap_or(Rgb::new(125, 120, 130)));
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
         let _chunk_size2d = TerrainChunkSize::RECT_SIZE;
@@ -97,14 +110,6 @@ impl World {
         };
 
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
-        let mut sampler = self.sample_blocks();
-
-        let chunk_wpos2d = Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-        let grid_border = 4;
-        let zcache_grid =
-            Grid::populate_from(TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2, |offs| {
-                sampler.get_z_cache(chunk_wpos2d - grid_border + offs)
-            });
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
         for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
@@ -116,7 +121,7 @@ impl World {
                 let offs = Vec2::new(x, y);
                 let wpos2d = chunk_wpos2d + offs;
 
-                let z_cache = match zcache_grid.get(offs + grid_border) {
+                let z_cache = match zcache_grid.get(grid_border + offs) {
                     Some(Some(z_cache)) => z_cache,
                     _ => continue,
                 };

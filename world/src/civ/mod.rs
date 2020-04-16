@@ -20,7 +20,7 @@ use common::{
 use crate::{
     sim::{WorldSim, SimChunk},
     site::{Site as WorldSite, Settlement, Dungeon},
-    util::seed_expan,
+    util::{seed_expan, attempt},
 };
 
 const CARDINALS: [Vec2<i32>; 4] = [
@@ -40,10 +40,6 @@ const DIAGONALS: [Vec2<i32>; 8] = [
     Vec2::new(0, -1),
     Vec2::new(-1, -1),
 ];
-
-fn attempt<T>(max_iters: usize, mut f: impl FnMut() -> Option<T>) -> Option<T> {
-    (0..max_iters).find_map(|_| f())
-}
 
 const INITIAL_CIV_COUNT: usize = 32;
 
