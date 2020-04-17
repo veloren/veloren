@@ -602,14 +602,14 @@ impl Settlement {
                                         Crop::Pumpkin if roll(3, 2) == 0 => {
                                             Some(BlockKind::Pumpkin)
                                         },
-                                        Crop::Flax if roll(4, 100) < 80 => Some(BlockKind::Flax),
-                                        Crop::Carrot if roll(5, 100) < 80 => {
+                                        Crop::Flax if roll(4, 2) == 80 => Some(BlockKind::Flax),
+                                        Crop::Carrot if roll(5, 2) == 80 => {
                                             Some(BlockKind::Carrot)
                                         },
-                                        Crop::Tomato if roll(6, 100) < 80 => {
+                                        Crop::Tomato if roll(6, 2) == 0 => {
                                             Some(BlockKind::Tomato)
                                         },
-                                        Crop::Radish if roll(7, 100) < 80 => {
+                                        Crop::Radish if roll(7, 2) == 0 => {
                                             Some(BlockKind::Radish)
                                         },
                                         Crop::Sunflower => Some(BlockKind::Sunflower),
