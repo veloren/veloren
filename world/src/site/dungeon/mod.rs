@@ -375,7 +375,9 @@ impl Floor {
             }
         };
 
-        let tunnel_dist = self.nearest_wall(rpos).map(|nearest| 1.0 - (nearest.distance_squared(rpos) as f32).sqrt() / TILE_SIZE as f32).unwrap_or(0.0);
+        let wall_thickness = 3.0;
+        let dist_to_wall = self.nearest_wall(rpos).map(|nearest| nearest.distance(rpos) as f32).unwrap_or(TILE_SIZE as f32);
+        let tunnel_dist = 1.0 - (dist_to_wall.powf(2.0) - wall_thickness).max(0.0).sqrt() / TILE_SIZE as f32;
 
         move |z| {
             match self.tiles.get(tile_pos) {
@@ -387,7 +389,7 @@ impl Floor {
                         BlockMask::nothing()
                     }
                 },
-                Some(Tile::Room(_)) | Some(Tile::DownStair) if z as f32 >= self.hollow_depth as f32 - 13.0 * tunnel_dist.powf(4.0) => BlockMask::nothing(),
+                Some(Tile::Room(_)) | Some(Tile::DownStair) if dist_to_wall < wall_thickness || z as f32 >= self.hollow_depth as f32 - 13.0 * tunnel_dist.powf(4.0) => BlockMask::nothing(),
                 Some(Tile::Room(room)) => {
                     let room = &self.rooms[*room];
                     if z == 0 && RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density) {
