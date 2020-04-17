@@ -579,7 +579,7 @@ impl Settlement {
 
                     if let Some(color) = color {
                         if col_sample.water_dist.map(|dist| dist > 2.0).unwrap_or(true) {
-                            for z in -8..6 {
+                            for z in -8..3 {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
 
                                 if let (0, Some(block)) = (z, surface_block) {
