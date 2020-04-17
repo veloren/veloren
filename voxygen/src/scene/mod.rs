@@ -240,7 +240,10 @@ impl Scene {
         );
 
         // Tick camera for interpolation.
-        self.camera.update(scene_data.state.get_time(), scene_data.state.get_delta_time());
+        self.camera.update(
+            scene_data.state.get_time(),
+            scene_data.state.get_delta_time(),
+        );
 
         // Compute camera matrices.
         self.camera.compute_dependents(&*scene_data.state.terrain());

@@ -1,20 +1,20 @@
 mod building;
 
+use self::building::HouseBuilding;
+use super::SpawnRules;
 use crate::{
     column::ColumnSample,
     sim::{SimChunk, WorldSim},
     util::{Grid, RandomField, Sampler, StructureGen2d},
 };
-use self::building::HouseBuilding;
-use super::SpawnRules;
 use common::{
     astar::Astar,
+    generation::ChunkSupplement,
     path::Path,
     spiral::Spiral2d,
-    terrain::{Block, BlockKind, TerrainChunkSize},
-    vol::{BaseVol, RectSizedVol, RectVolSize, ReadVol, WriteVol, Vox},
     store::{Id, Store},
-    generation::ChunkSupplement,
+    terrain::{Block, BlockKind, TerrainChunkSize},
+    vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -74,16 +74,13 @@ pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
 
 impl WorldSim {
     fn can_host_settlement(&self, pos: Vec2<i32>) -> bool {
-        self
-            .get(pos)
-            .map(|chunk| {
-                !chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake()
-            })
+        self.get(pos)
+            .map(|chunk| !chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake())
             .unwrap_or(false)
-        && self
-            .get_gradient_approx(pos)
-            .map(|grad| grad < 0.75)
-            .unwrap_or(false)
+            && self
+                .get_gradient_approx(pos)
+                .map(|grad| grad < 0.75)
+                .unwrap_or(false)
     }
 }
 
@@ -172,7 +169,8 @@ impl Settlement {
                         let cpos = wpos.map(|e| e.div_euclid(TerrainChunkSize::RECT_SIZE.x as i32));
                         !sim.can_host_settlement(cpos)
                     })
-                    || rng.gen_range(0, 16) == 0 // Randomly consider some tiles inaccessible
+                    || rng.gen_range(0, 16) == 0
+                // Randomly consider some tiles inaccessible
                 {
                     self.land.set(tile, hazard);
                 }
@@ -328,35 +326,49 @@ impl Settlement {
             return;
         };
 
-        for tile in Spiral2d::new().map(|offs| town_center + offs).take(16usize.pow(2)) {
+        for tile in Spiral2d::new()
+            .map(|offs| town_center + offs)
+            .take(16usize.pow(2))
+        {
             // This is a stupid way to decide how to place buildings
             for _ in 0..ctx.rng.gen_range(2, 5) {
                 for _ in 0..25 {
                     let house_pos = tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
-                        + Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(-(AREA_SIZE as i32) / 2, AREA_SIZE as i32 / 2));
+                        + Vec2::<i32>::zero().map(|_| {
+                            ctx.rng
+                                .gen_range(-(AREA_SIZE as i32) / 2, AREA_SIZE as i32 / 2)
+                        });
 
                     let tile_pos = house_pos.map(|e| e.div_euclid(AREA_SIZE as i32));
                     if !matches!(self.land.plot_at(tile_pos), Some(Plot::Town))
-                        || self.land.tile_at(tile_pos).map(|t| t.contains(WayKind::Path)).unwrap_or(true)
+                        || self
+                            .land
+                            .tile_at(tile_pos)
+                            .map(|t| t.contains(WayKind::Path))
+                            .unwrap_or(true)
                     {
                         continue;
                     }
 
                     let structure = Structure {
-                        kind: StructureKind::House(HouseBuilding::generate(ctx.rng, Vec3::new(
-                            house_pos.x,
-                            house_pos.y,
-                            ctx.sim
-                                .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
-                                .unwrap_or(0.0)
-                                .ceil() as i32,
-                        ))),
+                        kind: StructureKind::House(HouseBuilding::generate(
+                            ctx.rng,
+                            Vec3::new(
+                                house_pos.x,
+                                house_pos.y,
+                                ctx.sim
+                                    .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
+                                    .unwrap_or(0.0)
+                                    .ceil() as i32,
+                            ),
+                        )),
                     };
 
                     let bounds = structure.bounds_2d();
 
                     // Check for collision with other structures
-                    if self.structures
+                    if self
+                        .structures
                         .iter()
                         .any(|s| s.bounds_2d().collides_with_aabr(bounds))
                     {
@@ -385,12 +397,13 @@ impl Settlement {
 
                 // Farmhouses
                 // for _ in 0..ctx.rng.gen_range(1, 3) {
-                //     let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
-                //         + Vec2::new(ctx.rng.gen_range(-16, 16), ctx.rng.gen_range(-16, 16));
+                //     let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32
+                // / 2)         + Vec2::new(ctx.rng.gen_range(-16, 16),
+                // ctx.rng.gen_range(-16, 16));
 
                 //     self.structures.push(Structure {
-                //         kind: StructureKind::House(HouseBuilding::generate(ctx.rng, Vec3::new(
-                //             house_pos.x,
+                //         kind: StructureKind::House(HouseBuilding::generate(ctx.rng,
+                // Vec3::new(             house_pos.x,
                 //             house_pos.y,
                 //             ctx.sim
                 //                 .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
@@ -421,11 +434,15 @@ impl Settlement {
             let field = self.land.new_plot(Plot::Field {
                 farm,
                 seed: rng.gen(),
-                crop: match rng.gen_range(0, 5) {
+                crop: match rng.gen_range(0, 8) {
                     0 => Crop::Corn,
                     1 => Crop::Wheat,
                     2 => Crop::Cabbage,
                     3 => Crop::Pumpkin,
+                    4 => Crop::Flax,
+                    5 => Crop::Carrot,
+                    6 => Crop::Tomato,
+                    7 => Crop::Radish,
                     _ => Crop::Sunflower,
                 },
             });
@@ -447,7 +464,8 @@ impl Settlement {
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
-            trees: self.land
+            trees: self
+                .land
                 .get_at_block(wpos - self.origin)
                 .plot
                 .map(|p| if let Plot::Hazard = p { true } else { false })
@@ -484,19 +502,28 @@ impl Settlement {
 
                 let noisy_color = |col: Rgb<u8>, factor: u32| {
                     let nz = self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, surface_z));
-                    col.map(|e| (e as u32 + nz % (factor * 2)).saturating_sub(factor).min(255) as u8)
+                    col.map(|e| {
+                        (e as u32 + nz % (factor * 2))
+                            .saturating_sub(factor)
+                            .min(255) as u8
+                    })
                 };
 
                 // Paths
                 if let Some((WayKind::Path, dist, nearest)) = sample.way {
                     let inset = -1;
 
-                    // Try to use the column at the centre of the path for sampling to make them flatter
-                    let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos)).unwrap_or(col_sample);
+                    // Try to use the column at the centre of the path for sampling to make them
+                    // flatter
+                    let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos))
+                        .unwrap_or(col_sample);
                     let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
                         (
                             ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
-                            ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs()) * (col.riverless_alt + 5.0 - col.alt).max(0.0) * 1.75 + 3.0) as i32,
+                            ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
+                                * (col.riverless_alt + 5.0 - col.alt).max(0.0)
+                                * 1.75
+                                + 3.0) as i32,
                         )
                     } else {
                         (0.0, 3)
@@ -528,10 +555,15 @@ impl Settlement {
                         Some(Plot::Dirt) => Some(Rgb::new(90, 70, 50)),
                         Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
-                        Some(Plot::Town) => Some(Rgb::new(150, 110, 60)
-                            .map2(Rgb::iota(), |e: u8, i: i32| e
-                                .saturating_add((self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 16) as u8)
-                                .saturating_sub(8))),
+                        Some(Plot::Town) => {
+                            Some(Rgb::new(150, 110, 60).map2(Rgb::iota(), |e: u8, i: i32| {
+                                e.saturating_add(
+                                    (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 16)
+                                        as u8,
+                                )
+                                .saturating_sub(8)
+                            }))
+                        },
                         Some(Plot::Field { seed, crop, .. }) => {
                             let furrow_dirs = [
                                 Vec2::new(1, 0),
@@ -542,37 +574,60 @@ impl Settlement {
                             let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
                             let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(5) < 2;
 
-                            let roll = |seed, n| self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n;
+                            let roll = |seed, n| {
+                                self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n
+                            };
 
-                            let dirt = Rgb::new(80, 55, 35).map(|e| e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 32) as u8);
-                            let mound = Rgb::new(70, 80, 30).map(|e| e + roll(0, 8) as u8).map(|e| e + (self.noise.get(Vec3::broadcast((seed % 4096 + 1) as i32)) % 32) as u8);
+                            let dirt = Rgb::new(80, 55, 35).map(|e| {
+                                e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 32)
+                                    as u8
+                            });
+                            let mound =
+                                Rgb::new(70, 80, 30).map(|e| e + roll(0, 8) as u8).map(|e| {
+                                    e + (self.noise.get(Vec3::broadcast((seed % 4096 + 1) as i32))
+                                        % 32) as u8
+                                });
 
                             if in_furrow {
                                 if roll(0, 5) == 0 {
                                     surface_block = match crop {
                                         Crop::Corn => Some(BlockKind::Corn),
-                                        Crop::Wheat if roll(1, 2) == 0 => Some(BlockKind::WheatYellow),
+                                        Crop::Wheat if roll(1, 2) == 0 => {
+                                            Some(BlockKind::WheatYellow)
+                                        },
                                         Crop::Wheat => Some(BlockKind::WheatGreen),
-                                        Crop::Cabbage if roll(2, 2) == 0 => Some(BlockKind::Cabbage),
-                                        Crop::Pumpkin if roll(3, 2) == 0 => Some(BlockKind::Pumpkin),
+                                        Crop::Cabbage if roll(2, 2) == 0 => {
+                                            Some(BlockKind::Cabbage)
+                                        },
+                                        Crop::Pumpkin if roll(3, 2) == 0 => {
+                                            Some(BlockKind::Pumpkin)
+                                        },
+                                        Crop::Flax if roll(4, 100) < 80 => Some(BlockKind::Flax),
+                                        Crop::Carrot if roll(5, 100) < 80 => {
+                                            Some(BlockKind::Carrot)
+                                        },
+                                        Crop::Tomato if roll(6, 100) < 80 => {
+                                            Some(BlockKind::Tomato)
+                                        },
+                                        Crop::Radish if roll(7, 100) < 80 => {
+                                            Some(BlockKind::Radish)
+                                        },
                                         Crop::Sunflower => Some(BlockKind::Sunflower),
                                         _ => None,
                                     }
-                                        .map(|kind| Block::new(kind, Rgb::white()));
+                                    .map(|kind| Block::new(kind, Rgb::white()));
                                 }
                             } else {
                                 if roll(0, 30) == 0 {
-                                    surface_block = Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
+                                    surface_block =
+                                        Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
                                 } else if roll(0, 30) == 0 {
-                                    surface_block = Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
+                                    surface_block =
+                                        Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
                                 }
                             }
 
-                            Some(if in_furrow {
-                                dirt
-                            } else {
-                                mound
-                            })
+                            Some(if in_furrow { dirt } else { mound })
                         },
                         _ => None,
                     };
@@ -589,7 +644,10 @@ impl Settlement {
                                         vol.set(pos, Block::empty());
                                     }
                                 } else {
-                                    vol.set(pos, Block::new(BlockKind::Normal, noisy_color(color, 4)));
+                                    vol.set(
+                                        pos,
+                                        Block::new(BlockKind::Normal, noisy_color(color, 4)),
+                                    );
                                 }
                             }
                         }
@@ -613,9 +671,7 @@ impl Settlement {
                     } as i32;
 
                     for z in z_offset..12 {
-                        if dist / WayKind::Wall.width()
-                            < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0)
-                        {
+                        if dist / WayKind::Wall.width() < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0) {
                             vol.set(
                                 Vec3::new(offs.x, offs.y, surface_z + z),
                                 Block::new(BlockKind::Normal, color),
@@ -655,13 +711,16 @@ impl Settlement {
 
                     for x in bounds.min.x..bounds.max.x + 1 {
                         for y in bounds.min.y..bounds.max.y + 1 {
-                            let col = if let Some(col) = get_column(self.origin + Vec2::new(x, y) - wpos2d) {
+                            let col = if let Some(col) =
+                                get_column(self.origin + Vec2::new(x, y) - wpos2d)
+                            {
                                 col
                             } else {
                                 continue;
                             };
 
-                            for z in bounds.min.z.min(col.alt.floor() as i32 - 1)..bounds.max.z + 1 {
+                            for z in bounds.min.z.min(col.alt.floor() as i32 - 1)..bounds.max.z + 1
+                            {
                                 let rpos = Vec3::new(x, y, z);
                                 let wpos = Vec3::from(self.origin) + rpos;
                                 let coffs = wpos - Vec3::from(wpos2d);
@@ -705,10 +764,12 @@ impl Settlement {
             Some(Plot::Dirt) => return Some(Rgb::new(90, 70, 50)),
             Some(Plot::Grass) => return Some(Rgb::new(100, 200, 0)),
             Some(Plot::Water) => return Some(Rgb::new(100, 150, 250)),
-            Some(Plot::Town) => return Some(Rgb::new(150, 110, 60)
-                .map2(Rgb::iota(), |e: u8, i: i32| e
-                    .saturating_add((self.noise.get(Vec3::new(pos.x, pos.y, i * 5)) % 16) as u8)
-                    .saturating_sub(8))),
+            Some(Plot::Town) => {
+                return Some(Rgb::new(150, 110, 60).map2(Rgb::iota(), |e: u8, i: i32| {
+                    e.saturating_add((self.noise.get(Vec3::new(pos.x, pos.y, i * 5)) % 16) as u8)
+                        .saturating_sub(8)
+                }));
+            },
             Some(Plot::Field { seed, .. }) => {
                 let furrow_dirs = [
                     Vec2::new(1, 0),
@@ -741,6 +802,10 @@ pub enum Crop {
     Wheat,
     Cabbage,
     Pumpkin,
+    Flax,
+    Carrot,
+    Tomato,
+    Radish,
     Sunflower,
 }
 
@@ -751,7 +816,11 @@ pub enum Plot {
     Grass,
     Water,
     Town,
-    Field { farm: Id<Farm>, seed: u32, crop: Crop },
+    Field {
+        farm: Id<Farm>,
+        seed: u32,
+        crop: Crop,
+    },
 }
 
 const CARDINALS: [Vec2<i32>; 4] = [
@@ -855,7 +924,8 @@ impl Land {
                 let proj_point = line.projected_point(pos.map(|e| e as f32));
                 let dist = proj_point.distance(pos.map(|e| e as f32));
                 if dist < way.width() {
-                    sample.way = sample.way
+                    sample.way = sample
+                        .way
                         .filter(|(_, d, _)| *d < dist)
                         .or(Some((way, dist, proj_point)));
                 }

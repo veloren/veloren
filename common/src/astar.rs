@@ -139,9 +139,7 @@ impl<S: Clone + Eq + Hash> Astar<S> {
         }
     }
 
-    pub fn get_cheapest_cost(&self) -> Option<f32> {
-        self.cheapest_cost
-    }
+    pub fn get_cheapest_cost(&self) -> Option<f32> { self.cheapest_cost }
 
     fn reconstruct_path_to(&mut self, end: S) -> Path<S> {
         let mut path = vec![end.clone()];

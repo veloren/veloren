@@ -1,18 +1,17 @@
-mod settlement;
 mod dungeon;
+mod settlement;
 
 // Reexports
-pub use self::settlement::Settlement;
-pub use self::dungeon::Dungeon;
+pub use self::{dungeon::Dungeon, settlement::Settlement};
 
 use crate::{
     column::ColumnSample,
     util::{Grid, Sampler},
 };
 use common::{
-    terrain::Block,
-    vol::{Vox, BaseVol, RectSizedVol, ReadVol, WriteVol},
     generation::ChunkSupplement,
+    terrain::Block,
+    vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
 };
 use std::{fmt, sync::Arc};
 use vek::*;
@@ -24,9 +23,7 @@ pub struct BlockMask {
 }
 
 impl BlockMask {
-    pub fn new(block: Block, priority: i32) -> Self {
-        Self { block, priority }
-    }
+    pub fn new(block: Block, priority: i32) -> Self { Self { block, priority } }
 
     pub fn nothing() -> Self {
         Self {
@@ -62,11 +59,7 @@ pub struct SpawnRules {
 }
 
 impl Default for SpawnRules {
-    fn default() -> Self {
-        Self {
-            trees: true,
-        }
-    }
+    fn default() -> Self { Self { trees: true } }
 }
 
 #[derive(Clone)]
@@ -109,7 +102,9 @@ impl Site {
         supplement: &mut ChunkSupplement,
     ) {
         match self {
-            Site::Settlement(settlement) => settlement.apply_supplement(wpos2d, get_column, supplement),
+            Site::Settlement(settlement) => {
+                settlement.apply_supplement(wpos2d, get_column, supplement)
+            },
             Site::Dungeon(dungeon) => dungeon.apply_supplement(wpos2d, get_column, supplement),
         }
     }

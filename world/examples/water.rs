@@ -150,10 +150,14 @@ fn main() {
         }
         if win.get_mouse_down(minifb::MouseButton::Left) {
             if let Some((mx, my)) = win.get_mouse_pos(minifb::MouseMode::Clamp) {
-                let chunk_pos = (Vec2::<f64>::from(focus) + (Vec2::new(mx as f64, my as f64) * scale))
+                let chunk_pos = (Vec2::<f64>::from(focus)
+                    + (Vec2::new(mx as f64, my as f64) * scale))
                     .map(|e| e as i32);
                 let block_pos = chunk_pos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e * f as i32);
-                println!("Block: ({}, {}), Chunk: ({}, {})", block_pos.x, block_pos.y, chunk_pos.x, chunk_pos.y);
+                println!(
+                    "Block: ({}, {}), Chunk: ({}, {})",
+                    block_pos.x, block_pos.y, chunk_pos.x, chunk_pos.y
+                );
                 if let Some(chunk) = sampler.get(chunk_pos) {
                     //println!("Chunk info: {:#?}", chunk);
                     if let Some(id) = &chunk.place {
