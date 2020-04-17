@@ -1789,6 +1789,7 @@ pub struct SimChunk {
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
     pub river: RiverData,
+    pub warp_factor: f32,
 
     pub sites: Vec<Site>,
     pub place: Option<Id<Place>>,
@@ -2024,6 +2025,7 @@ impl SimChunk {
             },
             spawn_rate: 1.0,
             river,
+            warp_factor: 1.0,
 
             sites: Vec::new(),
             place: None,
