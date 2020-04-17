@@ -12,7 +12,8 @@ use common::{
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::{BaseVol, RectSizedVol, RectVolSize, ReadVol, WriteVol, Vox},
     store::{Id, Store},
-    generation::{ChunkSupplement, EntityInfo, EntityKind},
+    generation::{ChunkSupplement, EntityInfo},
+    comp::{Alignment},
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -159,7 +160,7 @@ const TILE_SIZE: i32 = 13;
 pub enum Tile {
     UpStair,
     DownStair,
-    Room,
+    Room(Id<Room>),
     Tunnel,
     Solid,
 }
@@ -169,17 +170,24 @@ impl Tile {
         match self {
             Tile::UpStair => true,
             Tile::DownStair => true,
-            Tile::Room => true,
+            Tile::Room(_) => true,
             Tile::Tunnel => true,
             _ => false,
         }
     }
 }
 
+pub struct Room {
+    seed: u32,
+    enemies: bool,
+    loot_density: f32,
+    area: Rect<i32, i32>,
+}
+
 pub struct Floor {
     tile_offset: Vec2<i32>,
     tiles: Grid<Tile>,
-    rooms: Vec<Rect<i32, i32>>,
+    rooms: Store<Room>,
     solid_depth: i32,
     hollow_depth: i32,
     stair_tile: Vec2<i32>,
@@ -199,7 +207,7 @@ impl Floor {
         let mut this = Floor {
             tile_offset,
             tiles: Grid::new(FLOOR_SIZE, Tile::Solid),
-            rooms: Vec::new(),
+            rooms: Store::default(),
             solid_depth: if level == 0 {
                 80
             } else {
@@ -208,11 +216,11 @@ impl Floor {
             hollow_depth: 13,
             stair_tile: new_stair_tile - tile_offset,
         };
-        this.create_rooms(ctx, 10);
+        this.create_rooms(ctx, level, 10);
         // Create routes between all rooms
-        let rooms = this.rooms.clone();
-        for a in rooms.iter() {
-            for b in rooms.iter() {
+        let room_areas = this.rooms.iter().map(|r| r.area).collect::<Vec<_>>();
+        for a in room_areas.iter() {
+            for b in room_areas.iter() {
                 this.create_route(ctx, a.center(), b.center(), true);
             }
         }
@@ -224,35 +232,40 @@ impl Floor {
         (this, new_stair_tile)
     }
 
-    fn create_rooms(&mut self, ctx: &mut GenCtx<impl Rng>, n: usize) {
+    fn create_rooms(&mut self, ctx: &mut GenCtx<impl Rng>, level: i32, n: usize) {
         let dim_limits = (3, 8);
 
         for _ in 0..n {
-            let room = match attempt(30, || {
+            let area = match attempt(30, || {
                 let sz = Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(dim_limits.0, dim_limits.1));
                 let pos = FLOOR_SIZE.map2(sz, |floor_sz, room_sz| ctx.rng.gen_range(0, floor_sz + 1 - room_sz));
-                let room = Rect::from((pos, Extent2::from(sz)));
-                let room_border = Rect::from((pos - 1, Extent2::from(sz) + 2)); // The room, but with some personal space
+                let area = Rect::from((pos, Extent2::from(sz)));
+                let area_border = Rect::from((pos - 1, Extent2::from(sz) + 2)); // The room, but with some personal space
 
                 // Ensure no overlap
                 if self.rooms
                     .iter()
-                    .any(|r| r.collides_with_rect(room_border) || r.contains_point(self.stair_tile))
+                    .any(|r| r.area.collides_with_rect(area_border) || r.area.contains_point(self.stair_tile))
                 {
                     return None;
                 }
 
-                Some(room)
+                Some(area)
             }) {
                 Some(room) => room,
                 None => return,
             };
 
-            self.rooms.push(room);
+            let room = self.rooms.insert(Room {
+                seed: ctx.rng.gen(),
+                enemies: ctx.rng.gen(),
+                loot_density: level as f32 * 0.00025,
+                area,
+            });
 
-            for x in 0..room.extent().w {
-                for y in 0..room.extent().h {
-                    self.tiles.set(room.position() + Vec2::new(x, y), Tile::Room);
+            for x in 0..area.extent().w {
+                for y in 0..area.extent().h {
+                    self.tiles.set(area.position() + Vec2::new(x, y), Tile::Room(room));
                 }
             }
         }
@@ -273,7 +286,7 @@ impl Floor {
                 .filter(|pos| self.tiles.get(*pos).is_some())
         };
         let transition = |a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
-            Some(Tile::Room) | Some(Tile::Tunnel) => 1.0,
+            Some(Tile::Room(_)) | Some(Tile::Tunnel) => 1.0,
             Some(Tile::Solid) => 25.0,
             Some(Tile::UpStair) | Some(Tile::DownStair) => 0.0,
             _ => 100000.0,
@@ -306,12 +319,14 @@ impl Floor {
         for x in aligned_area.min.x..aligned_area.max.x {
             for y in aligned_area.min.y..aligned_area.max.y {
                 let tile_pos = Vec2::new(x, y);
-                if let Some(Tile::Room) = self.tiles.get(tile_pos) {
-                    if tile_pos.x % 4 != 0 || tile_pos.y % 4 != 0 { continue; } // This is so bad
-                    supplement.add_entity(EntityInfo {
-                        pos: (origin + Vec3::from(self.tile_offset + tile_pos) * TILE_SIZE + TILE_SIZE / 2).map(|e| e as f32),
-                        kind: EntityKind::Boss,
-                    });
+                if let Some(Tile::Room(room)) = self.tiles.get(tile_pos) {
+                    let room = &self.rooms[*room];
+                    if room.enemies && tile_pos.x % 4 == 0 && tile_pos.y % 4 == 0 { // Bad
+                        let entity = EntityInfo::at((origin + Vec3::from(self.tile_offset + tile_pos) * TILE_SIZE + TILE_SIZE / 2).map(|e| e as f32))
+                            .into_giant()
+                            .with_alignment(Alignment::Enemy);
+                        supplement.add_entity(entity);
+                    }
                 }
             }
         }
@@ -372,8 +387,15 @@ impl Floor {
                         BlockMask::nothing()
                     }
                 },
-                Some(Tile::Room) | Some(Tile::DownStair) if z as f32 >= self.hollow_depth as f32 - 13.0 * tunnel_dist.powf(4.0) => BlockMask::nothing(),
-                Some(Tile::Room) => empty,
+                Some(Tile::Room(_)) | Some(Tile::DownStair) if z as f32 >= self.hollow_depth as f32 - 13.0 * tunnel_dist.powf(4.0) => BlockMask::nothing(),
+                Some(Tile::Room(room)) => {
+                    let room = &self.rooms[*room];
+                    if z == 0 && RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density) {
+                        BlockMask::new(Block::new(BlockKind::Chest, Rgb::white()), 1)
+                    } else {
+                        empty
+                    }
+                },
                 Some(Tile::DownStair) => make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), 0.0, 0.5, 9.0).resolve_with(empty),
                 Some(Tile::UpStair) => {
                     let mut block = make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), TILE_SIZE as f32 / 2.0, 0.5, 9.0);
