@@ -20,7 +20,8 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    generation::{ChunkSupplement, EntityInfo, EntityKind},
+    generation::{ChunkSupplement, EntityInfo},
+    comp::{Alignment},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -173,31 +174,28 @@ impl World {
             (Vec3::from(chunk_wpos2d) + lpos).map(|e: i32| e as f32) + 0.5
         };
 
+        let mut rng = rand::thread_rng();
+
         const SPAWN_RATE: f32 = 0.1;
         const BOSS_RATE: f32 = 0.03;
         let mut supplement = ChunkSupplement {
-            entities: if rand::thread_rng().gen::<f32>() < SPAWN_RATE
+            entities: if rng.gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater()
             {
-                vec![EntityInfo {
-                    pos: gen_entity_pos(),
-                    kind: if rand::thread_rng().gen::<f32>() < BOSS_RATE {
-                        EntityKind::Boss
-                    } else {
-                        EntityKind::Enemy
-                    },
-                }]
+                let entity = EntityInfo::at(gen_entity_pos())
+                    .with_alignment(Alignment::Wild)
+                    .do_if(rng.gen(), |e| e.into_giant());
+
+                vec![entity]
             } else {
                 Vec::new()
             },
         };
 
         if sim_chunk.contains_waypoint {
-            supplement.add_entity(EntityInfo {
-                pos: gen_entity_pos(),
-                kind: EntityKind::Waypoint,
-            });
+            supplement.add_entity(EntityInfo::at(gen_entity_pos())
+                .into_waypoint());
         }
 
         // Apply site supplementary information

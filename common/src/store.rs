@@ -1,6 +1,7 @@
 use std::{
     fmt,
     hash,
+    ops::{Index, IndexMut},
     cmp::{PartialEq, Eq},
     marker::PhantomData,
 };
@@ -64,4 +65,13 @@ impl<T> Store<T> {
         self.items.push(item);
         id
     }
+}
+
+impl<T> Index<Id<T>> for Store<T> {
+    type Output = T;
+    fn index(&self, id: Id<T>) -> &Self::Output { self.get(id) }
+}
+
+impl<T> IndexMut<Id<T>> for Store<T> {
+    fn index_mut(&mut self, id: Id<T>) -> &mut Self::Output { self.get_mut(id) }
 }

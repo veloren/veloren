@@ -4,6 +4,7 @@
 
 in vec3 f_pos;
 in vec3 f_col;
+in float f_ao;
 flat in vec3 f_norm;
 
 layout (std140)
@@ -39,6 +40,12 @@ void main() {
 	vec3 point_light = light_at(f_pos, f_norm);
 	light += point_light;
 	diffuse_light += point_light;
+
+	float ao = pow(f_ao, 0.5) * 0.85 + 0.15;
+
+	ambient_light *= ao;
+	diffuse_light *= ao;
+
 	vec3 surf_color = illuminate(srgb_to_linear(model_col.rgb * f_col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
@@ -48,7 +55,7 @@ void main() {
 
 	if ((flags & 1) == 1 && int(cam_mode) == 1) {
 		float distance = distance(vec3(cam_pos), vec3(model_mat * vec4(vec3(0), 1))) - 2;
-		
+
 		float opacity = clamp(distance / distance_divider, 0, 1);
 
 		if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
