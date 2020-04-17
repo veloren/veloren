@@ -19,6 +19,10 @@ out vec4 tgt_color;
 #include <sky.glsl>
 #include <light.glsl>
 
+float vmin(vec3 v) {
+	return min(v.x, min(v.y, v.z));
+}
+
 void main() {
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
@@ -30,7 +34,7 @@ void main() {
 	// Use an array to avoid conditional branching
 	vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
 
-	float ao = pow(f_ao, 0.6) * 0.9 + 0.1;
+	float ao = pow(f_ao, 0.5) * 0.9 + 0.1;
 
 	vec3 light, diffuse_light, ambient_light;
 	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
