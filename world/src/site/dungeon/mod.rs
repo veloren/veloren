@@ -376,7 +376,7 @@ impl Floor {
         };
 
         let wall_thickness = 3.0;
-        let dist_to_wall = self.nearest_wall(rpos).map(|nearest| nearest.distance(rpos) as f32).unwrap_or(TILE_SIZE as f32);
+        let dist_to_wall = self.nearest_wall(rpos).map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt()).unwrap_or(TILE_SIZE as f32);
         let tunnel_dist = 1.0 - (dist_to_wall.powf(2.0) - wall_thickness).max(0.0).sqrt() / TILE_SIZE as f32;
 
         move |z| {
