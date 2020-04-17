@@ -197,11 +197,13 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
             None
         } else {
             let pos = wpos - outer.min;
-            Some(light_map
-                .get(lm_idx(pos.x, pos.y, pos.z))
-                .filter(|l| **l != OPAQUE && **l != UNKNOWN)
-                .map(|l| *l as f32 / SUNLIGHT as f32)
-                .unwrap_or(0.0))
+            Some(
+                light_map
+                    .get(lm_idx(pos.x, pos.y, pos.z))
+                    .filter(|l| **l != OPAQUE && **l != UNKNOWN)
+                    .map(|l| *l as f32 / SUNLIGHT as f32)
+                    .unwrap_or(0.0),
+            )
         }
     }
 }

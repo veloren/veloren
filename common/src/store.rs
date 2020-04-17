@@ -26,9 +26,7 @@ impl<T> fmt::Debug for Id<T> {
     }
 }
 impl<T> hash::Hash for Id<T> {
-    fn hash<H: hash::Hasher>(&self, h: &mut H) {
-        self.0.hash(h);
-    }
+    fn hash<H: hash::Hasher>(&self, h: &mut H) { self.0.hash(h); }
 }
 
 pub struct Store<T> {
@@ -53,8 +51,7 @@ impl<T> Store<T> {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> { self.items.iter_mut() }
 
     pub fn iter_ids(&self) -> impl Iterator<Item = (Id<T>, &T)> {
-        self
-            .items
+        self.items
             .iter()
             .enumerate()
             .map(|(i, item)| (Id(i, PhantomData), item))

@@ -190,6 +190,22 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 3,
             wind_sway: 0.0,
         }),
+        BlockKind::Flax => Some(SpriteConfig {
+            variations: 6,
+            wind_sway: 0.4,
+        }),
+        BlockKind::Carrot => Some(SpriteConfig {
+            variations: 6,
+            wind_sway: 0.1,
+        }),
+        BlockKind::Tomato => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Radish => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 0.1,
+        }),
         BlockKind::Coconut => Some(SpriteConfig {
             variations: 1,
             wind_sway: 0.0,
@@ -1299,6 +1315,147 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.cabbage.cabbage-2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Flax
+                (
+                    (BlockKind::Flax, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Carrot
+                (
+                    (BlockKind::Carrot, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.0",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.1",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.2",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.3",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.4",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.5",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Tomato, 0),
+                    make_model("voxygen.voxel.sprite.tomato.0", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Tomato, 1),
+                    make_model("voxygen.voxel.sprite.tomato.1", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Tomato, 2),
+                    make_model("voxygen.voxel.sprite.tomato.2", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Tomato, 3),
+                    make_model("voxygen.voxel.sprite.tomato.3", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Tomato, 4),
+                    make_model("voxygen.voxel.sprite.tomato.4", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Radish, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.0",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Radish, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.1",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Radish, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.2",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Radish, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.3",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Radish, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.4",
+                        Vec3::new(-5.5, -5.5, -0.25),
                     ),
                 ),
                 // Coconut

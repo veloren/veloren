@@ -66,7 +66,11 @@ impl<'a> BlockGen<'a> {
                     // Conservative range of radius: [8, 47]
                     let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
-                    if cliff_sample.water_dist.map(|d| d > radius as f32).unwrap_or(true) {
+                    if cliff_sample
+                        .water_dist
+                        .map(|d| d > radius as f32)
+                        .unwrap_or(true)
+                    {
                         max_height.max(
                             if cliff_pos.map(|e| e as f32).distance_squared(wpos)
                                 < (radius as f32 + tolerance).powf(2.0)
