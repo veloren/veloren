@@ -8,7 +8,7 @@ use crate::{
 use common::{
     astar::Astar,
     comp::Alignment,
-    generation::{ChunkSupplement, EntityInfo, EntityKind},
+    generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
