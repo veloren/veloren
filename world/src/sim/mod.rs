@@ -24,17 +24,17 @@ pub use self::{
 use crate::{
     all::ForestKind,
     block::BlockGen,
+    civ::Place,
     column::ColumnGen,
     site::{Settlement, Site},
-    civ::Place,
     util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d},
     CONFIG,
 };
 use common::{
     assets,
+    store::Id,
     terrain::{BiomeKind, TerrainChunkSize},
     vol::RectVolSize,
-    store::Id,
 };
 use hashbrown::HashMap;
 use noise::{
@@ -1305,9 +1305,7 @@ impl WorldSim {
         this
     }
 
-    pub fn get_size(&self) -> Vec2<u32> {
-        WORLD_SIZE.map(|e| e as u32)
-    }
+    pub fn get_size(&self) -> Vec2<u32> { WORLD_SIZE.map(|e| e as u32) }
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
@@ -1558,9 +1556,11 @@ impl WorldSim {
     pub fn get_gradient_approx(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
         let a = self.get(chunk_pos)?;
         if let Some(downhill) = a.downhill {
-            let b = self.get(downhill.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                e / (sz as i32)
-            }))?;
+            let b = self.get(
+                downhill.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                    e / (sz as i32)
+                }),
+            )?;
             Some((a.alt - b.alt).abs() / TerrainChunkSize::RECT_SIZE.x as f32)
         } else {
             Some(0.0)
@@ -1868,7 +1868,8 @@ impl SimChunk {
             )
         };
 
-        //let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
+        //let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 +
+        // chaos * 0.2;
         let cliff = 0.0; // Disable cliffs
 
         // Logistic regression.  Make sure x ∈ (0, 1).
@@ -2033,7 +2034,9 @@ impl SimChunk {
         }
     }
 
-    pub fn is_underwater(&self) -> bool { self.water_alt > self.alt || self.river.river_kind.is_some() }
+    pub fn is_underwater(&self) -> bool {
+        self.water_alt > self.alt || self.river.river_kind.is_some()
+    }
 
     pub fn get_base_z(&self) -> f32 { self.alt - self.chaos * 50.0 - 16.0 }
 

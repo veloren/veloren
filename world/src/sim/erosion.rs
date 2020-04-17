@@ -218,9 +218,7 @@ impl RiverData {
 
     pub fn near_river(&self) -> bool { self.is_river() || self.neighbor_rivers.len() > 0 }
 
-    pub fn near_water(&self) -> bool {
-        self.near_river() || self.is_lake() || self.is_ocean()
-    }
+    pub fn near_water(&self) -> bool { self.near_river() || self.is_lake() || self.is_ocean() }
 }
 
 /// Draw rivers and assign them heights, widths, and velocities.  Take some

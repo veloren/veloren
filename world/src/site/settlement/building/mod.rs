@@ -1,13 +1,13 @@
-mod skeleton;
 mod archetype;
+mod skeleton;
 
 // Reexports
 pub use self::archetype::Archetype;
 
-use vek::*;
-use rand::prelude::*;
 use self::skeleton::*;
 use common::terrain::Block;
+use rand::prelude::*;
+use vek::*;
 
 pub type HouseBuilding = Building<archetype::house::House>;
 
@@ -19,7 +19,8 @@ pub struct Building<A: Archetype> {
 
 impl<A: Archetype> Building<A> {
     pub fn generate(rng: &mut impl Rng, origin: Vec3<i32>) -> Self
-        where A: Sized
+    where
+        A: Sized,
     {
         let len = rng.gen_range(-8, 12).max(0);
         let (archetype, skel) = A::generate(rng);
@@ -48,8 +49,11 @@ impl<A: Archetype> Building<A> {
 
     pub fn sample(&self, pos: Vec3<i32>) -> Option<Block> {
         let rpos = pos - self.origin;
-        self.skel.sample_closest(rpos.into(), |dist, bound_offset, center_offset, branch| {
-            self.archetype.draw(dist, bound_offset, center_offset, rpos.z, branch)
-        }).finish()
+        self.skel
+            .sample_closest(rpos.into(), |dist, bound_offset, center_offset, branch| {
+                self.archetype
+                    .draw(dist, bound_offset, center_offset, rpos.z, branch)
+            })
+            .finish()
     }
 }

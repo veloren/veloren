@@ -1,14 +1,11 @@
-use vek::*;
-use rand::prelude::*;
+use super::{super::skeleton::*, Archetype};
+use crate::site::BlockMask;
 use common::{
     terrain::{Block, BlockKind},
     vol::Vox,
 };
-use super::{
-    Archetype,
-    super::skeleton::*,
-};
-use crate::site::BlockMask;
+use rand::prelude::*;
+use vek::*;
 
 pub struct Keep;
 
@@ -26,13 +23,18 @@ impl Archetype for Keep {
                 locus: 5 + rng.gen_range(0, 5),
                 border: 3,
                 children: (0..rng.gen_range(0, 4))
-                    .map(|_| (rng.gen_range(-5, len + 5).clamped(0, len.max(1) - 1), Branch {
-                        len: rng.gen_range(5, 12) * if rng.gen() { 1 } else { -1 },
-                        attr: Self::Attr::default(),
-                        locus: 5 + rng.gen_range(0, 3),
-                        border: 3,
-                        children: Vec::new(),
-                    }))
+                    .map(|_| {
+                        (
+                            rng.gen_range(-5, len + 5).clamped(0, len.max(1) - 1),
+                            Branch {
+                                len: rng.gen_range(5, 12) * if rng.gen() { 1 } else { -1 },
+                                attr: Self::Attr::default(),
+                                locus: 5 + rng.gen_range(0, 3),
+                                border: 3,
+                                children: Vec::new(),
+                            },
+                        )
+                    })
                     .collect(),
             },
         };
@@ -50,9 +52,8 @@ impl Archetype for Keep {
     ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);
 
-        let make_block = |r, g, b| {
-            BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(r, g, b)), 2)
-        };
+        let make_block =
+            |r, g, b| BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(r, g, b)), 2);
 
         let foundation = make_block(100, 100, 100);
         let log = make_block(60, 45, 30);
@@ -65,7 +66,8 @@ impl Archetype for Keep {
         let roof_height = 12 + width;
         let ceil_height = 16;
 
-        if profile.y <= 1 - (dist - width - 1).max(0) && dist < width + 3 { // Foundations
+        if profile.y <= 1 - (dist - width - 1).max(0) && dist < width + 3 {
+            // Foundations
             foundation
         } else if profile.y == ceil_height && dist < rampart_width {
             roof

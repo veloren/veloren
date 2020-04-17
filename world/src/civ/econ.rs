@@ -1,5 +1,5 @@
-use rand::prelude::*;
 use super::GenCtx;
+use rand::prelude::*;
 
 pub struct SellOrder {
     pub quantity: f32,
@@ -42,25 +42,27 @@ impl Belief {
 
 pub fn buy_units<'a>(
     ctx: &mut GenCtx<impl Rng>,
-    sellers: impl Iterator<Item=&'a mut SellOrder>,
+    sellers: impl Iterator<Item = &'a mut SellOrder>,
     max_quantity: f32,
     max_price: f32,
     max_spend: f32,
 ) -> (f32, f32) {
-    let mut sell_orders = sellers
-        .filter(|so| so.quantity > 0.0)
-        .collect::<Vec<_>>();
+    let mut sell_orders = sellers.filter(|so| so.quantity > 0.0).collect::<Vec<_>>();
     // Sort sell orders by price, cheapest first
-    sell_orders.sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or_else(|| panic!("{} and {}", a.price, b.price)));
+    sell_orders.sort_by(|a, b| {
+        a.price
+            .partial_cmp(&b.price)
+            .unwrap_or_else(|| panic!("{} and {}", a.price, b.price))
+    });
 
     let mut quantity = 0.0;
     let mut spent = 0.0;
 
     for order in sell_orders {
-        if
-            quantity >= max_quantity || // We've purchased enough
+        if quantity >= max_quantity || // We've purchased enough
             spent >= max_spend || // We've spent enough
-            order.price > max_price // Price is too high
+            order.price > max_price
+        // Price is too high
         {
             break;
         } else {

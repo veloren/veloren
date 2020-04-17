@@ -45,6 +45,10 @@ pub enum BlockKind {
     WheatYellow,
     WheatGreen,
     Cabbage,
+    Flax,
+    Carrot,
+    Tomato,
+    Radish,
     Coconut,
 }
 
@@ -91,7 +95,12 @@ impl BlockKind {
             BlockKind::Corn => true,
             BlockKind::WheatYellow => true,
             BlockKind::WheatGreen => true,
-            BlockKind::Cabbage => true,
+            BlockKind::Cabbage => false,
+            BlockKind::Pumpkin => false,
+            BlockKind::Flax => true,
+            BlockKind::Carrot => true,
+            BlockKind::Tomato => false,
+            BlockKind::Radish => true,
             BlockKind::Coconut => true,
             _ => false,
         }
@@ -142,6 +151,10 @@ impl BlockKind {
             BlockKind::WheatYellow => false,
             BlockKind::WheatGreen => false,
             BlockKind::Cabbage => false,
+            BlockKind::Flax => false,
+            BlockKind::Carrot => false,
+            BlockKind::Tomato => false,
+            BlockKind::Radish => false,
             BlockKind::Coconut => false,
             _ => true,
         }
@@ -171,7 +184,7 @@ impl BlockKind {
             BlockKind::Mushroom => false,
             BlockKind::Liana => false,
             BlockKind::Chest => true,
-            BlockKind::Pumpkin => true,
+            BlockKind::Pumpkin => false,
             BlockKind::Welwitch => false,
             BlockKind::LingonBerry => false,
             BlockKind::LeafyPlant => false,
@@ -183,6 +196,10 @@ impl BlockKind {
             BlockKind::WheatYellow => false,
             BlockKind::WheatGreen => false,
             BlockKind::Cabbage => false,
+            BlockKind::Flax => false,
+            BlockKind::Carrot => false,
+            BlockKind::Tomato => true,
+            BlockKind::Radish => false,
             BlockKind::Coconut => false,
             _ => true,
         }
@@ -205,7 +222,6 @@ impl BlockKind {
             BlockKind::Velorite => true,
             BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
-            BlockKind::Pumpkin => true,
             BlockKind::Coconut => true,
             _ => false,
         }

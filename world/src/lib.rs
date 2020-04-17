@@ -4,12 +4,12 @@
 
 mod all;
 mod block;
+pub mod civ;
 mod column;
 pub mod config;
 pub mod sim;
 pub mod site;
 pub mod util;
-pub mod civ;
 
 // Reexports
 pub use crate::config::CONFIG;
@@ -72,17 +72,20 @@ impl World {
 
         let chunk_wpos2d = Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
         let grid_border = 4;
-        let zcache_grid =
-            Grid::populate_from(TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2, |offs| {
-                sampler.get_z_cache(chunk_wpos2d - grid_border + offs)
-            });
+        let zcache_grid = Grid::populate_from(
+            TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2,
+            |offs| sampler.get_z_cache(chunk_wpos2d - grid_border + offs),
+        );
 
         let air = Block::empty();
-        let stone = Block::new(BlockKind::Dense, zcache_grid
-            .get(grid_border + TerrainChunkSize::RECT_SIZE.map(|e| e as i32) / 2)
-            .and_then(|zcache| zcache.as_ref())
-            .map(|zcache| zcache.sample.stone_col)
-            .unwrap_or(Rgb::new(125, 120, 130)));
+        let stone = Block::new(
+            BlockKind::Dense,
+            zcache_grid
+                .get(grid_border + TerrainChunkSize::RECT_SIZE.map(|e| e as i32) / 2)
+                .and_then(|zcache| zcache.as_ref())
+                .map(|zcache| zcache.sample.stone_col)
+                .unwrap_or(Rgb::new(125, 120, 130)),
+        );
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
         let _chunk_size2d = TerrainChunkSize::RECT_SIZE;

@@ -1,15 +1,17 @@
 pub mod house;
 pub mod keep;
 
-use vek::*;
-use rand::prelude::*;
 use super::skeleton::*;
 use crate::site::BlockMask;
+use rand::prelude::*;
+use vek::*;
 
 pub trait Archetype {
     type Attr;
 
-    fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>) where Self: Sized;
+    fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>)
+    where
+        Self: Sized;
     fn draw(
         &self,
         dist: i32,
