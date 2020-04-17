@@ -233,6 +233,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
+        let chunk_warp_factor = sim.get_interpolated_monotone(wpos, |chunk| chunk.warp_factor)?;
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
         let my_chunk_idx = vec2_as_uniform_idx(chunk_pos);
@@ -831,6 +832,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             (false, None, alt_for_river, downhill_water_alt, alt_for_river, 1.0)
         };
+        let warp_factor = warp_factor * chunk_warp_factor;
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
 

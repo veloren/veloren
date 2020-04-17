@@ -66,13 +66,13 @@ impl Civs {
         let mut ctx = GenCtx { sim, rng: &mut rng };
 
         for _ in 0..INITIAL_CIV_COUNT {
-            println!("Creating civilisation...");
+            log::info!("Creating civilisation...");
             if let None = this.birth_civ(&mut ctx) {
-                println!("Failed to find starting site for civilisation.");
+                log::warn!("Failed to find starting site for civilisation.");
             }
         }
 
-        for _ in 0..256 {
+        for _ in 0..100 {
             attempt(5, || {
                 let loc = find_site_loc(&mut ctx, None)?;
                 this.establish_site(&mut ctx, loc, |place| Site {
@@ -136,6 +136,7 @@ impl Civs {
                             chunk.alt += diff;
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;
+                            chunk.warp_factor = 0.0;
                         });
                 }
             }
@@ -156,10 +157,10 @@ impl Civs {
                     .get_mut(pos)
                     .map(|chunk| chunk.sites.push(world_site.clone()));
             }
-            println!("Placed site at {:?}", site.center);
+            log::info!("Placed site at {:?}", site.center);
         }
 
-        this.display_info();
+        //this.display_info();
 
         this
     }
@@ -335,7 +336,6 @@ impl Civs {
     }
 
     fn tick(&mut self, ctx: &mut GenCtx<impl Rng>, years: f32) {
-        println!("Tick!");
         for site in self.sites.iter_mut() {
             site.simulate(years, &self.places.get(site.place).nat_res);
         }
