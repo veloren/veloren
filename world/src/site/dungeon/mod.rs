@@ -6,9 +6,10 @@ use crate::{
     util::{attempt, Grid, RandomField, Sampler, StructureGen2d},
 };
 use common::{
-    astar::Astar,
-    comp::Alignment,
+    assets,
+    comp,
     generation::{ChunkSupplement, EntityInfo},
+    astar::Astar,
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
@@ -118,6 +119,7 @@ impl Dungeon {
 
     pub fn apply_supplement<'a>(
         &'a self,
+        rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
@@ -132,7 +134,7 @@ impl Dungeon {
         for floor in &self.floors {
             z -= floor.total_depth();
             let origin = Vec3::new(self.origin.x, self.origin.y, z);
-            floor.apply_supplement(area, origin, supplement);
+            floor.apply_supplement(rng, area, origin, supplement);
         }
     }
 }
@@ -182,6 +184,7 @@ pub struct Room {
     seed: u32,
     enemies: bool,
     loot_density: f32,
+    enemy_density: f32,
     area: Rect<i32, i32>,
 }
 
@@ -242,10 +245,10 @@ impl Floor {
     }
 
     fn create_rooms(&mut self, ctx: &mut GenCtx<impl Rng>, level: i32, n: usize) {
-        let dim_limits = (3, 8);
+        let dim_limits = (3, 6);
 
         for _ in 0..n {
-            let area = match attempt(30, || {
+            let area = match attempt(64, || {
                 let sz = Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(dim_limits.0, dim_limits.1));
                 let pos = FLOOR_SIZE.map2(sz, |floor_sz, room_sz| {
                     ctx.rng.gen_range(0, floor_sz + 1 - room_sz)
@@ -269,7 +272,8 @@ impl Floor {
             let room = self.rooms.insert(Room {
                 seed: ctx.rng.gen(),
                 enemies: ctx.rng.gen(),
-                loot_density: level as f32 * 0.00025,
+                loot_density: 0.00005 + level as f32 * 0.00015,
+                enemy_density: 0.0005 + level as f32 * 0.00015,
                 area,
             });
 
@@ -332,6 +336,7 @@ impl Floor {
 
     pub fn apply_supplement(
         &self,
+        rng: &mut impl Rng,
         area: Aabr<i32>,
         origin: Vec3<i32>,
         supplement: &mut ChunkSupplement,
@@ -354,17 +359,39 @@ impl Floor {
                 let tile_pos = Vec2::new(x, y);
                 if let Some(Tile::Room(room)) = self.tiles.get(tile_pos) {
                     let room = &self.rooms[*room];
-                    if room.enemies && tile_pos.x % 4 == 0 && tile_pos.y % 4 == 0 {
-                        // Bad
-                        let entity = EntityInfo::at(
-                            (origin
-                                + Vec3::from(self.tile_offset + tile_pos) * TILE_SIZE
-                                + TILE_SIZE / 2)
-                                .map(|e| e as f32),
-                        )
-                        .into_giant()
-                        .with_alignment(Alignment::Enemy);
-                        supplement.add_entity(entity);
+
+                    for x in 0..TILE_SIZE {
+                        for y in 0..TILE_SIZE {
+                            let pos = tile_pos * TILE_SIZE + Vec2::new(x, y);
+
+                            if room.enemies && (pos.x + pos.y * TILE_SIZE * FLOOR_SIZE.x).rem_euclid(room.enemy_density.recip() as i32) == 0 {
+                                // Bad
+                                let entity = EntityInfo::at(
+                                    (origin
+                                        + Vec3::from(self.tile_offset + tile_pos) * TILE_SIZE
+                                        + TILE_SIZE / 2)
+                                        .map(|e| e as f32)
+                                    // Randomly displace them a little
+                                    + Vec3::<u32>::iota()
+                                        .map(|e| (RandomField::new(room.seed.wrapping_add(10 + e)).get(Vec3::from(tile_pos)) % 32) as i32 - 16)
+                                        .map(|e| e as f32 / 16.0),
+                                )
+                                .do_if(RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2), |e| e.into_giant())
+                                .with_alignment(comp::Alignment::Enemy)
+                                .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                                .with_automatic_name()
+                                .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
+                                    0 => "common.items.weapons.starter_axe",
+                                    1 => "common.items.weapons.starter_sword",
+                                    2 => "common.items.weapons.short_sword_0",
+                                    3 => "common.items.weapons.hammer_1",
+                                    4 => "common.items.weapons.starter_staff",
+                                    _ => "common.items.weapons.starter_bow",
+                                }));
+
+                                supplement.add_entity(entity);
+                            }
+                        }
                     }
                 }
             }

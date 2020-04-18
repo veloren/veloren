@@ -21,7 +21,7 @@ use crate::{
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
-    comp::{Alignment},
+    comp::{self, humanoid, quadruped_medium, bird_medium, critter, quadruped_small},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -150,25 +150,29 @@ impl World {
             }
         }
 
+        let sample_get = |offs| {
+            zcache_grid
+                .get(grid_border + offs)
+                .map(Option::as_ref)
+                .flatten()
+                .map(|zc| &zc.sample)
+        };
+
+        let mut rng = rand::thread_rng();
+
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {
             site.apply_to(
                 chunk_wpos2d,
-                |offs| {
-                    zcache_grid
-                        .get(grid_border + offs)
-                        .map(Option::as_ref)
-                        .flatten()
-                        .map(|zc| &zc.sample)
-                },
+                sample_get,
                 &mut chunk,
             )
         });
 
         let gen_entity_pos = || {
             let lpos2d = TerrainChunkSize::RECT_SIZE
-                .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz));
-            let mut lpos = Vec3::new(lpos2d.x as i32, lpos2d.y as i32, 0);
+                .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz) as i32);
+            let mut lpos = Vec3::new(lpos2d.x, lpos2d.y, sample_get(lpos2d).map(|s| s.alt as i32 - 32).unwrap_or(0));
 
             while chunk.get(lpos).map(|vox| !vox.is_empty()).unwrap_or(false) {
                 lpos.z += 1;
@@ -176,8 +180,6 @@ impl World {
 
             (Vec3::from(chunk_wpos2d) + lpos).map(|e: i32| e as f32) + 0.5
         };
-
-        let mut rng = rand::thread_rng();
 
         const SPAWN_RATE: f32 = 0.1;
         const BOSS_RATE: f32 = 0.03;
@@ -187,8 +189,15 @@ impl World {
                 && !sim_chunk.is_underwater()
             {
                 let entity = EntityInfo::at(gen_entity_pos())
-                    .with_alignment(Alignment::Wild)
-                    .do_if(rng.gen(), |e| e.into_giant());
+                    .with_alignment(comp::Alignment::Wild)
+                    .do_if(rng.gen_range(0, 8) == 0, |e| e.into_giant())
+                    .with_body(match rng.gen_range(0, 4) {
+                        0 => comp::Body::QuadrupedMedium(quadruped_medium::Body::random()),
+                        1 => comp::Body::BirdMedium(bird_medium::Body::random()),
+                        2 => comp::Body::Critter(critter::Body::random()),
+                        _ => comp::Body::QuadrupedSmall(quadruped_small::Body::random()),
+                    })
+                    .with_automatic_name();
 
                 vec![entity]
             } else {
@@ -204,14 +213,9 @@ impl World {
         // Apply site supplementary information
         sim_chunk.sites.iter().for_each(|site| {
             site.apply_supplement(
+                &mut rng,
                 chunk_wpos2d,
-                |offs| {
-                    zcache_grid
-                        .get(grid_border + offs)
-                        .map(Option::as_ref)
-                        .flatten()
-                        .map(|zc| &zc.sample)
-                },
+                sample_get,
                 &mut supplement,
             )
         });

@@ -8,8 +8,9 @@ use crate::{
     util::{Grid, RandomField, Sampler, StructureGen2d},
 };
 use common::{
+    comp::{self, humanoid, quadruped_medium, bird_medium, critter, quadruped_small},
+    generation::{ChunkSupplement, EntityInfo},
     astar::Astar,
-    generation::ChunkSupplement,
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
@@ -105,6 +106,7 @@ impl Structure {
 }
 
 pub struct Settlement {
+    seed: u32,
     origin: Vec2<i32>,
     land: Land,
     farms: Store<Farm>,
@@ -130,6 +132,7 @@ impl Settlement {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
         let mut this = Self {
+            seed: ctx.rng.gen(),
             origin: wpos,
             land: Land::new(ctx.rng),
             farms: Store::default(),
@@ -480,8 +483,6 @@ impl Settlement {
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
-        let rand_field = RandomField::new(0);
-
         for y in 0..vol.size_xy().y as i32 {
             for x in 0..vol.size_xy().x as i32 {
                 let offs = Vec2::new(x, y);
@@ -659,7 +660,7 @@ impl Settlement {
                     let color = Lerp::lerp(
                         Rgb::new(130i32, 100, 0),
                         Rgb::new(90, 70, 50),
-                        (rand_field.get(wpos2d.into()) % 256) as f32 / 256.0,
+                        (RandomField::new(0).get(wpos2d.into()) % 256) as f32 / 256.0,
                     )
                     .map(|e| (e % 256) as u8);
 
@@ -738,11 +739,69 @@ impl Settlement {
 
     pub fn apply_supplement<'a>(
         &'a self,
+        rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
     ) {
-        // TODO
+        for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
+            for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
+                let offs = Vec2::new(x, y);
+
+                let wpos2d = wpos2d + offs;
+                let rpos = wpos2d - self.origin;
+
+                // Sample terrain
+                let col_sample = if let Some(col_sample) = get_column(offs) {
+                    col_sample
+                } else {
+                    continue;
+                };
+                let surface_z = col_sample.riverless_alt.floor() as i32;
+
+                let sample = self.land.get_at_block(rpos);
+
+                let entity_wpos = Vec3::new(wpos2d.x as f32, wpos2d.y as f32, col_sample.alt + 3.0);
+
+                if matches!(sample.plot, Some(Plot::Town)) &&
+                    RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (32.0 * 32.0))
+                {
+                    let entity = EntityInfo::at(entity_wpos)
+                        .with_alignment(comp::Alignment::Npc)
+                        .with_body(match rng.gen_range(0, 4) {
+                            0 => {
+                                let species = match rng.gen_range(0, 3) {
+                                    0 => quadruped_small::Species::Pig,
+                                    1 => quadruped_small::Species::Sheep,
+                                    _ => quadruped_small::Species::Cat,
+                                };
+
+                                comp::Body::QuadrupedSmall(quadruped_small::Body::random_with(
+                                    rng,
+                                    &species,
+                                ))
+                            },
+                            1 => {
+                                let species = match rng.gen_range(0, 4) {
+                                    0 => bird_medium::Species::Duck,
+                                    1 => bird_medium::Species::Chicken,
+                                    2 => bird_medium::Species::Goose,
+                                    _ => bird_medium::Species::Peacock,
+                                };
+
+                                comp::Body::BirdMedium(bird_medium::Body::random_with(
+                                    rng,
+                                    &species,
+                                ))
+                            },
+                            _ => comp::Body::Humanoid(humanoid::Body::random()),
+                        })
+                        .with_automatic_name();
+
+                    supplement.add_entity(entity);
+                }
+            }
+        }
     }
 
     pub fn get_color(&self, pos: Vec2<i32>) -> Option<Rgb<u8>> {

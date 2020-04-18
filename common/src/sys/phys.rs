@@ -3,7 +3,7 @@ use crate::{
     event::{EventBus, ServerEvent},
     state::DeltaTime,
     sync::Uid,
-    terrain::{Block, TerrainGrid},
+    terrain::{Block, BlockKind, TerrainGrid},
     vol::ReadVol,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
@@ -110,7 +110,7 @@ impl<'a> System<'a> for Sys {
             // Neighbouring blocks iterator
             let near_iter = (-hdist..hdist + 1)
                 .map(move |i| {
-                    (-hdist..hdist + 1).map(move |j| (0..vdist + 1).map(move |k| (i, j, k)))
+                    (-hdist..hdist + 1).map(move |j| (1 - BlockKind::MAX_HEIGHT.ceil() as i32..vdist + 1).map(move |k| (i, j, k)))
                 })
                 .flatten()
                 .flatten();
@@ -154,14 +154,14 @@ impl<'a> System<'a> for Sys {
                 for (i, j, k) in near_iter {
                     let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
-                    if terrain.get(block_pos).map(hit).unwrap_or(false) {
+                    if let Some(block) = terrain.get(block_pos).ok().copied().filter(hit) {
                         let player_aabb = Aabb {
                             min: pos + Vec3::new(-player_rad, -player_rad, 0.0),
                             max: pos + Vec3::new(player_rad, player_rad, player_height),
                         };
                         let block_aabb = Aabb {
                             min: block_pos.map(|e| e as f32),
-                            max: block_pos.map(|e| e as f32) + 1.0,
+                            max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.get_height()),
                         };
 
                         if player_aabb.collides_with_aabb(block_aabb) {
@@ -204,22 +204,24 @@ impl<'a> System<'a> for Sys {
                         .clone()
                         // Calculate the block's position in world space
                         .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
-                        // Calculate the AABB of the block
-                        .map(|block_pos| {
-                            (
-                                block_pos,
-                                Aabb {
-                                    min: block_pos.map(|e| e as f32),
-                                    max: block_pos.map(|e| e as f32) + 1.0,
-                                },
-                            )
-                        })
                         // Make sure the block is actually solid
-                        .filter(|(block_pos, _)| {
-                            terrain
-                                .get(*block_pos)
-                                .map(|vox| vox.is_solid())
-                                .unwrap_or(false)
+                        .filter_map(|block_pos| {
+                            if let Some(block) = terrain
+                                .get(block_pos)
+                                .ok()
+                                .filter(|block| block.is_solid())
+                            {
+                                // Calculate block AABB
+                                Some((
+                                    block_pos,
+                                    Aabb {
+                                        min: block_pos.map(|e| e as f32),
+                                        max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.get_height()),
+                                    },
+                                ))
+                            } else {
+                                None
+                            }
                         })
                         // Determine whether the block's AABB collides with the player's AABB
                         .filter(|(_, block_aabb)| block_aabb.collides_with_aabb(player_aabb))

@@ -6,6 +6,7 @@
 in vec3 v_pos;
 in vec3 v_norm;
 in vec3 v_col;
+in float v_ao;
 in vec4 inst_mat0;
 in vec4 inst_mat1;
 in vec4 inst_mat2;
@@ -16,6 +17,7 @@ in float inst_wind_sway;
 out vec3 f_pos;
 flat out vec3 f_norm;
 out vec3 f_col;
+out float f_ao;
 out float f_light;
 
 const float SCALE = 1.0 / 11.0;
@@ -41,6 +43,7 @@ void main() {
 	f_norm = (inst_mat * vec4(v_norm, 0)).xyz;
 
 	f_col = srgb_to_linear(v_col) * srgb_to_linear(inst_col);
+	f_ao = v_ao;
 
 	// Select glowing
 	if (select_pos.w > 0 && select_pos.xyz == floor(sprite_pos)) {
