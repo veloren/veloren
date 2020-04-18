@@ -1,3 +1,4 @@
+use crate::comp::Alignment;
 use vek::*;
 use crate::{
     comp::{self, Alignment, Body, Item, humanoid},
@@ -7,6 +8,7 @@ use crate::{
 pub enum EntityTemplate {
     Traveller,
 }
+
 
 pub struct EntityInfo {
     pub pos: Vec3<f32>,

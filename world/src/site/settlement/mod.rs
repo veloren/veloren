@@ -604,15 +604,10 @@ impl Settlement {
                                             Some(BlockKind::Pumpkin)
                                         },
                                         Crop::Flax if roll(4, 2) == 80 => Some(BlockKind::Flax),
-                                        Crop::Carrot if roll(5, 2) == 80 => {
-                                            Some(BlockKind::Carrot)
-                                        },
-                                        Crop::Tomato if roll(6, 2) == 0 => {
-                                            Some(BlockKind::Tomato)
-                                        },
-                                        Crop::Radish if roll(7, 2) == 0 => {
-                                            Some(BlockKind::Radish)
-                                        },
+                                        Crop::Carrot if roll(5, 2) == 80 => Some(BlockKind::Carrot),
+                                        Crop::Tomato if roll(6, 2) == 0 => Some(BlockKind::Tomato),
+                                        Crop::Radish if roll(7, 2) == 0 => Some(BlockKind::Radish),
+                                        Crop::Turnip if roll(7, 2) == 0 => Some(BlockKind::Turnip),
                                         Crop::Sunflower => Some(BlockKind::Sunflower),
                                         _ => None,
                                     }

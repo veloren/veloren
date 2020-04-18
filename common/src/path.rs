@@ -59,7 +59,12 @@ impl Route {
 
     pub fn is_finished(&self) -> bool { self.next().is_none() }
 
-    pub fn traverse<V>(&mut self, vol: &V, pos: Vec3<f32>, traversal_tolerance: f32) -> Option<Vec3<f32>>
+    pub fn traverse<V>(
+        &mut self,
+        vol: &V,
+        pos: Vec3<f32>,
+        traversal_tolerance: f32,
+    ) -> Option<Vec3<f32>>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
@@ -68,7 +73,8 @@ impl Route {
             None
         } else {
             let next_tgt = next.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            if ((pos - next_tgt) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared() < traversal_tolerance.powf(2.0)
+            if ((pos - next_tgt) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared()
+                < traversal_tolerance.powf(2.0)
             {
                 self.next_idx += 1;
             }

@@ -10,6 +10,10 @@ pub enum BlockKind {
     Normal,
     Dense,
     Water,
+    Window1,
+    Window2,
+    Window3,
+    Window4,
     LargeCactus,
     BarrelCactus,
     RoundCactus,
@@ -49,6 +53,7 @@ pub enum BlockKind {
     Carrot,
     Tomato,
     Radish,
+    Turnip,
     Coconut,
 }
 
@@ -101,6 +106,7 @@ impl BlockKind {
             BlockKind::Carrot => true,
             BlockKind::Tomato => false,
             BlockKind::Radish => true,
+            BlockKind::Turnip => true,
             BlockKind::Coconut => true,
             _ => false,
         }
@@ -155,7 +161,12 @@ impl BlockKind {
             BlockKind::Carrot => false,
             BlockKind::Tomato => false,
             BlockKind::Radish => false,
+            BlockKind::Turnip => false,
             BlockKind::Coconut => false,
+            BlockKind::Window1 => false,
+            BlockKind::Window2 => false,
+            BlockKind::Window3 => false,
+            BlockKind::Window4 => false,
             _ => true,
         }
     }
@@ -200,6 +211,7 @@ impl BlockKind {
             BlockKind::Carrot => false,
             BlockKind::Tomato => true,
             BlockKind::Radish => false,
+            BlockKind::Turnip => false,
             BlockKind::Coconut => false,
             _ => true,
         }

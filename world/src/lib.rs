@@ -20,8 +20,10 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
+    comp::Alignment,
     generation::{ChunkSupplement, EntityInfo},
     comp::{self, humanoid, quadruped_medium, bird_medium, critter, quadruped_small},
+
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -206,8 +208,7 @@ impl World {
         };
 
         if sim_chunk.contains_waypoint {
-            supplement.add_entity(EntityInfo::at(gen_entity_pos())
-                .into_waypoint());
+            supplement.add_entity(EntityInfo::at(gen_entity_pos()).into_waypoint());
         }
 
         // Apply site supplementary information
