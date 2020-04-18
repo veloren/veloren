@@ -433,7 +433,7 @@ impl Floor {
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
-                if dist_to_wall < wall_thickness && (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0) {
+                if dist_to_wall >= wall_thickness && (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0) {
                     empty
                 } else {
                     BlockMask::nothing()
