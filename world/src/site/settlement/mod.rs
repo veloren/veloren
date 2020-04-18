@@ -603,8 +603,8 @@ impl Settlement {
                                         Crop::Pumpkin if roll(3, 2) == 0 => {
                                             Some(BlockKind::Pumpkin)
                                         },
-                                        Crop::Flax if roll(4, 2) == 80 => Some(BlockKind::Flax),
-                                        Crop::Carrot if roll(5, 2) == 80 => Some(BlockKind::Carrot),
+                                        Crop::Flax if roll(4, 2) == 0 => Some(BlockKind::Flax),
+                                        Crop::Carrot if roll(5, 2) == 0 => Some(BlockKind::Carrot),
                                         Crop::Tomato if roll(6, 2) == 0 => Some(BlockKind::Tomato),
                                         Crop::Radish if roll(7, 2) == 0 => Some(BlockKind::Radish),
                                         Crop::Turnip if roll(8, 2) == 0 => Some(BlockKind::Turnip),
@@ -614,10 +614,10 @@ impl Settlement {
                                     .map(|kind| Block::new(kind, Rgb::white()));
                                 }
                             } else {
-                                if roll(0, 30) == 0 {
+                                if roll(0, 20) == 0 {
                                     surface_block =
                                         Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
-                                } else if roll(0, 30) == 0 {
+                                } else if roll(1, 30) == 0 {
                                     surface_block =
                                         Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
                                 }
