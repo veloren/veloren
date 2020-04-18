@@ -61,6 +61,7 @@ pub enum Activity {
         chaser: Chaser,
         time: f64,
         been_close: bool,
+        powerup: f32,
     },
 }
 

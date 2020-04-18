@@ -1,7 +1,7 @@
 use crate::{
-    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Ori, Scale, Pos, Stats},
+    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Ori, Scale, Pos, Stats, Loadout, item::{ItemKind, tool::ToolKind}, CharacterState},
     path::Chaser,
-    state::Time,
+    state::{Time, DeltaTime},
     sync::UidAllocator,
     terrain::TerrainGrid,
     util::Dir,
@@ -20,11 +20,14 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, UidAllocator>,
         Read<'a, Time>,
+        Read<'a, DeltaTime>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, Loadout>,
+        ReadStorage<'a, CharacterState>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
         WriteStorage<'a, Agent>,
@@ -37,11 +40,14 @@ impl<'a> System<'a> for Sys {
         (
             uid_allocator,
             time,
+            dt,
             entities,
             positions,
             orientations,
             scales,
             stats,
+            loadouts,
+            character_states,
             terrain,
             alignments,
             mut agents,
@@ -49,11 +55,13 @@ impl<'a> System<'a> for Sys {
             mount_states,
         ): Self::SystemData,
     ) {
-        for (entity, pos, ori, alignment, agent, controller, mount_state) in (
+        for (entity, pos, ori, alignment, loadout, character_state, agent, controller, mount_state) in (
             &entities,
             &positions,
             &orientations,
             alignments.maybe(),
+            &loadouts,
+            &character_states,
             &mut agents,
             &mut controllers,
             mount_states.maybe(),
@@ -100,7 +108,7 @@ impl<'a> System<'a> for Sys {
                             thread_rng().gen::<f32>() - 0.5,
                             thread_rng().gen::<f32>() - 0.5,
                         ) * 0.1
-                            - *bearing * 0.01
+                            - *bearing * 0.003
                             - if let Some(patrol_origin) = agent.patrol_origin {
                                 Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
                             } else {
@@ -165,8 +173,24 @@ impl<'a> System<'a> for Sys {
                         target,
                         chaser,
                         been_close,
+                        powerup,
                         ..
                     } => {
+                        enum Tactic {
+                            Melee, // Attack: primary/secondary
+                            RangedPowerup,
+                            RangedConstant,
+                        }
+
+                        let tactic = match loadout.active_item
+                            .as_ref()
+                            .and_then(|ic| if let ItemKind::Tool(tool) = &ic.item.kind { Some(&tool.kind) } else { None})
+                        {
+                            Some(ToolKind::Bow(_)) => Tactic::RangedPowerup,
+                            Some(ToolKind::Staff(_)) => Tactic::RangedConstant,
+                            _ => Tactic::Melee,
+                        };
+
                         if let (Some(tgt_pos), Some(tgt_stats), tgt_alignment) = (
                             positions.get(*target),
                             stats.get(*target),
@@ -196,10 +220,35 @@ impl<'a> System<'a> for Sys {
                                     .try_normalized()
                                     .unwrap_or(Vec2::unit_y())
                                     * 0.7;
-                                inputs.primary.set_state(true);
+
+                                if let Tactic::Melee = tactic {
+                                    inputs.primary.set_state(true);
+                                } else if let Tactic::RangedPowerup = tactic {
+                                    inputs.primary.set_state(true);
+                                } else {
+                                    inputs.move_dir = -Vec2::from(tgt_pos.0 - pos.0)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::unit_y());
+                                }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
                                 || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
                             {
+                                if let Tactic::RangedPowerup = tactic {
+                                    if *powerup > 2.0 {
+                                        inputs.primary.set_state(false);
+                                        *powerup = 0.0;
+                                    } else {
+                                        inputs.primary.set_state(true);
+                                        *powerup += dt.0;
+                                    }
+                                } else if let Tactic::RangedConstant = tactic {
+                                    if !character_state.is_wield() {
+                                        inputs.primary.set_state(true);
+                                    }
+
+                                    inputs.secondary.set_state(true);
+                                }
+
                                 if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
                                     *been_close = true;
                                 }
@@ -257,6 +306,7 @@ impl<'a> System<'a> for Sys {
                         chaser: Chaser::default(),
                         time: time.0,
                         been_close: false,
+                        powerup: 0.0,
                     };
                 }
             }
@@ -280,6 +330,7 @@ impl<'a> System<'a> for Sys {
                                     chaser: Chaser::default(),
                                     time: time.0,
                                     been_close: false,
+                                    powerup: 0.0,
                                 };
                             }
                         }
@@ -310,6 +361,7 @@ impl<'a> System<'a> for Sys {
                                             chaser: Chaser::default(),
                                             time: time.0,
                                             been_close: false,
+                                            powerup: 0.0,
                                         };
                                     }
                                 }
