@@ -116,88 +116,92 @@ impl<'a> System<'a> for Sys {
                     &body_data.species[&species].generic
                 }
 
-                const SPAWN_NPCS: &'static [fn() -> (
-                    String,
-                    comp::Body,
-                    Option<comp::Item>,
-                    comp::Alignment,
-                )] = &[
-                    (|| {
-                        let body = comp::humanoid::Body::random();
-                        (
-                            format!(
-                                "{} Traveler",
-                                get_npc_name(&NPC_NAMES.humanoid, body.race)
-                            ),
-                            comp::Body::Humanoid(body),
-                            Some(assets::load_expect_cloned(
-                                "common.items.weapons.starter_axe",
-                            )),
-                            comp::Alignment::Npc,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::humanoid::Body::random();
-                        (
-                            format!("{} Bandit", get_npc_name(&NPC_NAMES.humanoid, body.race)),
-                            comp::Body::Humanoid(body),
-                            Some(assets::load_expect_cloned(
-                                "common.items.weapons.short_sword_0",
-                            )),
-                            comp::Alignment::Enemy,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::quadruped_medium::Body::random();
-                        (
-                            get_npc_name(&NPC_NAMES.quadruped_medium, body.species).into(),
-                            comp::Body::QuadrupedMedium(body),
-                            None,
-                            comp::Alignment::Enemy,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::bird_medium::Body::random();
-                        (
-                            get_npc_name(&NPC_NAMES.bird_medium, body.species).into(),
-                            comp::Body::BirdMedium(body),
-                            None,
-                            comp::Alignment::Wild,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::critter::Body::random();
-                        (
-                            get_npc_name(&NPC_NAMES.critter, body.species).into(),
-                            comp::Body::Critter(body),
-                            None,
-                            comp::Alignment::Wild,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::quadruped_small::Body::random();
-                        (
-                            get_npc_name(&NPC_NAMES.quadruped_small, body.species).into(),
-                            comp::Body::QuadrupedSmall(body),
-                            None,
-                            comp::Alignment::Wild,
-                        )
-                    }),
-                ];
-                let (name, mut body, main, mut alignment) = SPAWN_NPCS
-                    .choose(&mut rand::thread_rng())
-                    .expect("SPAWN_NPCS is nonempty")(
-                );
+                // const SPAWN_NPCS: &'static [fn() -> (
+                //     String,
+                //     comp::Body,
+                //     Option<comp::Item>,
+                //     comp::Alignment,
+                // )] = &[
+                //     (|| {
+                //         let body = comp::humanoid::Body::random();
+                //         (
+                //             format!(
+                //                 "{} Traveler",
+                //                 get_npc_name(&NPC_NAMES.humanoid, body.race)
+                //             ),
+                //             comp::Body::Humanoid(body),
+                //             Some(assets::load_expect_cloned(
+                //                 "common.items.weapons.starter_axe",
+                //             )),
+                //             comp::Alignment::Npc,
+                //         )
+                //     }) as _,
+                //     (|| {
+                //         let body = comp::humanoid::Body::random();
+                //         (
+                //             format!("{} Bandit", get_npc_name(&NPC_NAMES.humanoid, body.race)),
+                //             comp::Body::Humanoid(body),
+                //             Some(assets::load_expect_cloned(
+                //                 "common.items.weapons.short_sword_0",
+                //             )),
+                //             comp::Alignment::Enemy,
+                //         )
+                //     }) as _,
+                //     (|| {
+                //         let body = comp::quadruped_medium::Body::random();
+                //         (
+                //             get_npc_name(&NPC_NAMES.quadruped_medium, body.species).into(),
+                //             comp::Body::QuadrupedMedium(body),
+                //             None,
+                //             comp::Alignment::Enemy,
+                //         )
+                //     }) as _,
+                //     (|| {
+                //         let body = comp::bird_medium::Body::random();
+                //         (
+                //             get_npc_name(&NPC_NAMES.bird_medium, body.species).into(),
+                //             comp::Body::BirdMedium(body),
+                //             None,
+                //             comp::Alignment::Wild,
+                //         )
+                //     }) as _,
+                //     (|| {
+                //         let body = comp::critter::Body::random();
+                //         (
+                //             get_npc_name(&NPC_NAMES.critter, body.species).into(),
+                //             comp::Body::Critter(body),
+                //             None,
+                //             comp::Alignment::Wild,
+                //         )
+                //     }) as _,
+                //     (|| {
+                //         let body = comp::quadruped_small::Body::random();
+                //         (
+                //             get_npc_name(&NPC_NAMES.quadruped_small, body.species).into(),
+                //             comp::Body::QuadrupedSmall(body),
+                //             None,
+                //             comp::Alignment::Wild,
+                //         )
+                //     }),
+                // ];
+                // let (name, mut body, main, mut alignment) = SPAWN_NPCS
+                //     .choose(&mut rand::thread_rng())
+                //     .expect("SPAWN_NPCS is nonempty")(
+                // );
+
+                let mut body = entity.body;
+                let mut name = entity.name.unwrap_or("Unnamed".to_string());
+                let alignment = entity.alignment;
+                let main_tool = entity.main_tool;
+
                 let mut stats = comp::Stats::new(name, body);
 
-                let alignment = entity.alignment;
-
                 let active_item =
-                    if let Some(item::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
+                    if let Some(item::ItemKind::Tool(tool)) = main_tool.as_ref().map(|i| &i.kind) {
                         let mut abilities = tool.get_abilities();
                         let mut ability_drain = abilities.drain(..);
 
-                        main.map(|item| comp::ItemConfig {
+                        main_tool.map(|item| comp::ItemConfig {
                             item,
                             ability1: ability_drain.next(),
                             ability2: ability_drain.next(),

@@ -14,6 +14,7 @@ gfx_defines! {
         pos: [f32; 3] = "v_pos",
         norm: [f32; 3] = "v_norm",
         col: [f32; 3] = "v_col",
+        ao: f32 = "v_ao",
     }
 
     vertex Instance {
@@ -41,11 +42,12 @@ gfx_defines! {
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, ao: f32) -> Self {
         Self {
             pos: pos.into_array(),
             col: col.into_array(),
             norm: norm.into_array(),
+            ao,
         }
     }
 }

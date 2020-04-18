@@ -13,6 +13,7 @@ use common::{
     terrain::Block,
     vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
 };
+use rand::Rng;
 use std::{fmt, sync::Arc};
 use vek::*;
 
@@ -97,15 +98,16 @@ impl Site {
 
     pub fn apply_supplement<'a>(
         &'a self,
+        rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
         get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
     ) {
         match self {
             Site::Settlement(settlement) => {
-                settlement.apply_supplement(wpos2d, get_column, supplement)
+                settlement.apply_supplement(rng, wpos2d, get_column, supplement)
             },
-            Site::Dungeon(dungeon) => dungeon.apply_supplement(wpos2d, get_column, supplement),
+            Site::Dungeon(dungeon) => dungeon.apply_supplement(rng, wpos2d, get_column, supplement),
         }
     }
 }
