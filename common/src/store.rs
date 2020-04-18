@@ -1,9 +1,8 @@
 use std::{
-    fmt,
-    hash,
-    ops::{Index, IndexMut},
-    cmp::{PartialEq, Eq},
+    cmp::{Eq, PartialEq},
+    fmt, hash,
     marker::PhantomData,
+    ops::{Index, IndexMut},
 };
 
 pub struct Id<T>(usize, PhantomData<T>);
@@ -66,6 +65,7 @@ impl<T> Store<T> {
 
 impl<T> Index<Id<T>> for Store<T> {
     type Output = T;
+
     fn index(&self, id: Id<T>) -> &Self::Output { self.get(id) }
 }
 
