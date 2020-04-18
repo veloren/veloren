@@ -212,6 +212,7 @@ impl BlockKind {
         // Beware: the height *must* be <= `MAX_HEIGHT` or the collision system will not properly
         // detect it!
         match self {
+            BlockKind::Tomato => 1.65,
             BlockKind::LargeCactus => 2.5,
             _ => 1.0,
         }
