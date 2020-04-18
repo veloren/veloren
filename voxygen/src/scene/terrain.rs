@@ -59,6 +59,22 @@ struct SpriteConfig {
 
 fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
     match kind {
+        BlockKind::Window1 => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Window2 => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Window3 => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Window4 => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         BlockKind::LargeCactus => Some(SpriteConfig {
             variations: 2,
             wind_sway: 0.0,
@@ -206,6 +222,10 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 5,
             wind_sway: 0.1,
         }),
+        BlockKind::Turnip => Some(SpriteConfig {
+            variations: 6,
+            wind_sway: 0.1,
+        }),
         BlockKind::Coconut => Some(SpriteConfig {
             variations: 1,
             wind_sway: 0.0,
@@ -311,6 +331,35 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
             sprite_models: vec![
+                // Windows
+                (
+                    (BlockKind::Window1, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.window.window-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Window2, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.window.window-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Window3, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.window.window-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Window4, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.window.window-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
                 // Cacti
                 (
                     (BlockKind::LargeCactus, 0),
@@ -1423,6 +1472,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::Tomato, 4),
                     make_model("voxygen.voxel.sprite.tomato.4", Vec3::new(-5.5, -5.5, 0.0)),
                 ),
+                // Radish
                 (
                     (BlockKind::Radish, 0),
                     make_model(
@@ -1455,6 +1505,49 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::Radish, 4),
                     make_model(
                         "voxygen.voxel.sprite.radish.4",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                // Turnip
+                (
+                    (BlockKind::Turnip, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-0",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-1",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-2",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-3",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-4",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-5",
                         Vec3::new(-5.5, -5.5, -0.25),
                     ),
                 ),

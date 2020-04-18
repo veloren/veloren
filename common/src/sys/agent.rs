@@ -1,7 +1,13 @@
 use crate::{
-    comp::{self, agent::Activity, Agent, Alignment, Controller, ControlAction, MountState, Ori, Scale, Pos, Stats, Loadout, item::{ItemKind, tool::ToolKind}, CharacterState},
+    comp::{
+        self,
+        agent::Activity,
+        item::{tool::ToolKind, ItemKind},
+        Agent, Alignment, CharacterState, ControlAction, Controller, Loadout, MountState, Ori, Pos,
+        Scale, Stats,
+    },
     path::Chaser,
-    state::{Time, DeltaTime},
+    state::{DeltaTime, Time},
     sync::UidAllocator,
     terrain::TerrainGrid,
     util::Dir,
@@ -55,7 +61,17 @@ impl<'a> System<'a> for Sys {
             mount_states,
         ): Self::SystemData,
     ) {
-        for (entity, pos, ori, alignment, loadout, character_state, agent, controller, mount_state) in (
+        for (
+            entity,
+            pos,
+            ori,
+            alignment,
+            loadout,
+            character_state,
+            agent,
+            controller,
+            mount_state,
+        ) in (
             &entities,
             &positions,
             &orientations,
@@ -144,17 +160,17 @@ impl<'a> System<'a> for Sys {
                         }
 
                         // Put away weapon
-                        if thread_rng().gen::<f32>() < 0.005  {
+                        if thread_rng().gen::<f32>() < 0.005 {
                             controller.actions.push(ControlAction::Unwield);
                         }
 
                         // Sit
-                        if thread_rng().gen::<f32>() < 0.0035  {
+                        if thread_rng().gen::<f32>() < 0.0035 {
                             controller.actions.push(ControlAction::Sit);
                         }
 
                         // Sometimes try searching for new targets
-                        if thread_rng().gen::<f32>() < 0.1  {
+                        if thread_rng().gen::<f32>() < 0.1 {
                             choose_target = true;
                         }
                     },
@@ -165,9 +181,13 @@ impl<'a> System<'a> for Sys {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             // Follow, or return to idle
                             if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
-                                if let Some(bearing) =
-                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, AVG_FOLLOW_DIST, traversal_tolerance)
-                                {
+                                if let Some(bearing) = chaser.chase(
+                                    &*terrain,
+                                    pos.0,
+                                    tgt_pos.0,
+                                    AVG_FOLLOW_DIST,
+                                    traversal_tolerance,
+                                ) {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
                                         .unwrap_or(Vec2::zero());
@@ -193,10 +213,13 @@ impl<'a> System<'a> for Sys {
                             Staff,
                         }
 
-                        let tactic = match loadout.active_item
-                            .as_ref()
-                            .and_then(|ic| if let ItemKind::Tool(tool) = &ic.item.kind { Some(&tool.kind) } else { None})
-                        {
+                        let tactic = match loadout.active_item.as_ref().and_then(|ic| {
+                            if let ItemKind::Tool(tool) = &ic.item.kind {
+                                Some(&tool.kind)
+                            } else {
+                                None
+                            }
+                        }) {
                             Some(ToolKind::Bow(_)) => Tactic::RangedPowerup,
                             Some(ToolKind::Staff(_)) => Tactic::Staff,
                             _ => Tactic::Melee,
@@ -240,13 +263,16 @@ impl<'a> System<'a> for Sys {
                                     inputs.roll.set_state(true);
                                 }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                || (dist_sqrd < SIGHT_DIST.powf(2.0) && (!*been_close || !matches!(tactic, Tactic::Melee)))
+                                || (dist_sqrd < SIGHT_DIST.powf(2.0)
+                                    && (!*been_close || !matches!(tactic, Tactic::Melee)))
                             {
                                 let can_see_tgt = terrain
                                     .ray(pos.0 + Vec3::unit_z(), tgt_pos.0 + Vec3::unit_z())
                                     .until(|block| !block.is_air())
                                     .cast()
-                                    .0.powf(2.0) >= dist_sqrd;
+                                    .0
+                                    .powf(2.0)
+                                    >= dist_sqrd;
 
                                 if can_see_tgt {
                                     if let Tactic::RangedPowerup = tactic {
@@ -271,9 +297,13 @@ impl<'a> System<'a> for Sys {
                                 }
 
                                 // Long-range chase
-                                if let Some(bearing) =
-                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, 1.25, traversal_tolerance)
-                                {
+                                if let Some(bearing) = chaser.chase(
+                                    &*terrain,
+                                    pos.0,
+                                    tgt_pos.0,
+                                    1.25,
+                                    traversal_tolerance,
+                                ) {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
                                         .unwrap_or(Vec2::zero());
