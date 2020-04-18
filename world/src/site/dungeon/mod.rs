@@ -428,12 +428,12 @@ impl Floor {
             .map(|nearest| (nearest.distance_squared(rpos) as f32).sqrt())
             .unwrap_or(TILE_SIZE as f32);
         let tunnel_dist =
-            1.0 - (dist_to_wall.powf(2.0) - wall_thickness).max(0.0).sqrt() / TILE_SIZE as f32;
+            1.0 - (dist_to_wall - wall_thickness).max(0.0) / (TILE_SIZE as f32 - wall_thickness);
 
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
-                if (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0) {
+                if dist_to_wall < wall_thickness && (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0) {
                     empty
                 } else {
                     BlockMask::nothing()
