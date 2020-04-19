@@ -1,14 +1,12 @@
-use crate::comp::Alignment;
-use vek::*;
 use crate::{
-    comp::{self, Alignment, Body, Item, humanoid},
+    comp::{self, humanoid, Alignment, Body, Item},
     npc::{self, NPC_NAMES},
 };
+use vek::*;
 
 pub enum EntityTemplate {
     Traveller,
 }
-
 
 pub struct EntityInfo {
     pub pos: Vec3<f32>,
@@ -73,15 +71,22 @@ impl EntityInfo {
     pub fn with_automatic_name(mut self) -> Self {
         self.name = match &self.body {
             Body::Humanoid(body) => Some(get_npc_name(&NPC_NAMES.humanoid, body.race)),
-            Body::QuadrupedMedium(body) => Some(get_npc_name(&NPC_NAMES.quadruped_medium, body.species)),
+            Body::QuadrupedMedium(body) => {
+                Some(get_npc_name(&NPC_NAMES.quadruped_medium, body.species))
+            },
             Body::BirdMedium(body) => Some(get_npc_name(&NPC_NAMES.bird_medium, body.species)),
             Body::Critter(body) => Some(get_npc_name(&NPC_NAMES.critter, body.species)),
-            Body::QuadrupedSmall(body) => Some(get_npc_name(&NPC_NAMES.quadruped_small, body.species)),
+            Body::QuadrupedSmall(body) => {
+                Some(get_npc_name(&NPC_NAMES.quadruped_small, body.species))
+            },
             _ => None,
-        }.map(|s| if self.is_giant {
-            format!("Giant {}", s)
-        } else {
-            s.to_string()
+        }
+        .map(|s| {
+            if self.is_giant {
+                format!("Giant {}", s)
+            } else {
+                s.to_string()
+            }
         });
         self
     }

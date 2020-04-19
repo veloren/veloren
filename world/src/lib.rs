@@ -20,10 +20,8 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    comp::Alignment,
+    comp::{self, bird_medium, critter, humanoid, quadruped_medium, quadruped_small, Alignment},
     generation::{ChunkSupplement, EntityInfo},
-    comp::{self, humanoid, quadruped_medium, bird_medium, critter, quadruped_small},
-
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -163,18 +161,19 @@ impl World {
         let mut rng = rand::thread_rng();
 
         // Apply site generation
-        sim_chunk.sites.iter().for_each(|site| {
-            site.apply_to(
-                chunk_wpos2d,
-                sample_get,
-                &mut chunk,
-            )
-        });
+        sim_chunk
+            .sites
+            .iter()
+            .for_each(|site| site.apply_to(chunk_wpos2d, sample_get, &mut chunk));
 
         let gen_entity_pos = || {
             let lpos2d = TerrainChunkSize::RECT_SIZE
                 .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz) as i32);
-            let mut lpos = Vec3::new(lpos2d.x, lpos2d.y, sample_get(lpos2d).map(|s| s.alt as i32 - 32).unwrap_or(0));
+            let mut lpos = Vec3::new(
+                lpos2d.x,
+                lpos2d.y,
+                sample_get(lpos2d).map(|s| s.alt as i32 - 32).unwrap_or(0),
+            );
 
             while chunk.get(lpos).map(|vox| !vox.is_empty()).unwrap_or(false) {
                 lpos.z += 1;
@@ -213,12 +212,7 @@ impl World {
 
         // Apply site supplementary information
         sim_chunk.sites.iter().for_each(|site| {
-            site.apply_supplement(
-                &mut rng,
-                chunk_wpos2d,
-                sample_get,
-                &mut supplement,
-            )
+            site.apply_supplement(&mut rng, chunk_wpos2d, sample_get, &mut supplement)
         });
 
         Ok((chunk, supplement))

@@ -8,9 +8,9 @@ use crate::{
     util::{Grid, RandomField, Sampler, StructureGen2d},
 };
 use common::{
-    comp::{self, humanoid, quadruped_medium, bird_medium, critter, quadruped_small},
-    generation::{ChunkSupplement, EntityInfo},
     astar::Astar,
+    comp::{self, bird_medium, critter, humanoid, quadruped_medium, quadruped_small},
+    generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
@@ -758,8 +758,8 @@ impl Settlement {
 
                 let entity_wpos = Vec3::new(wpos2d.x as f32, wpos2d.y as f32, col_sample.alt + 3.0);
 
-                if matches!(sample.plot, Some(Plot::Town)) &&
-                    RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
+                if matches!(sample.plot, Some(Plot::Town))
+                    && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
                 {
                     let entity = EntityInfo::at(entity_wpos)
                         .with_alignment(comp::Alignment::Npc)
@@ -772,8 +772,7 @@ impl Settlement {
                                 };
 
                                 comp::Body::QuadrupedSmall(quadruped_small::Body::random_with(
-                                    rng,
-                                    &species,
+                                    rng, &species,
                                 ))
                             },
                             1 => {
@@ -785,8 +784,7 @@ impl Settlement {
                                 };
 
                                 comp::Body::BirdMedium(bird_medium::Body::random_with(
-                                    rng,
-                                    &species,
+                                    rng, &species,
                                 ))
                             },
                             _ => comp::Body::Humanoid(humanoid::Body::random()),
