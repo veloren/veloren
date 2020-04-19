@@ -1,9 +1,14 @@
 use super::Pipeline;
 
 /// A `Vec`-based mesh structure used to store mesh data on the CPU.
-#[derive(Clone)]
 pub struct Mesh<P: Pipeline> {
     verts: Vec<P::Vertex>,
+}
+
+impl<P: Pipeline> Clone for Mesh<P> where P::Vertex: Clone {
+    fn clone(&self) -> Self {
+        Self { verts: self.verts.clone() }
+    }
 }
 
 impl<P: Pipeline> Mesh<P> {
@@ -54,6 +59,23 @@ impl<P: Pipeline> Mesh<P> {
         for vert in other.vertices() {
             self.verts.push(f(vert.clone()));
         }
+    }
+
+    pub fn verts(&self) -> &[P::Vertex] {
+        &self.verts
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<P::Vertex> {
+        self.verts.iter()
+    }
+}
+
+impl<P: Pipeline> IntoIterator for Mesh<P> {
+    type Item = P::Vertex;
+    type IntoIter = std::vec::IntoIter<P::Vertex>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.verts.into_iter()
     }
 }
 
