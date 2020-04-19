@@ -7,9 +7,9 @@ use crate::{
 };
 use common::{
     assets,
+    astar::Astar,
     comp,
     generation::{ChunkSupplement, EntityInfo},
-    astar::Astar,
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
@@ -237,7 +237,8 @@ impl Floor {
             enemy_density: 0.0,
             area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
         });
-        this.tiles.set(new_stair_tile - tile_offset, Tile::DownStair);
+        this.tiles
+            .set(new_stair_tile - tile_offset, Tile::DownStair);
 
         this.create_rooms(ctx, level, 7);
         // Create routes between all rooms
@@ -256,7 +257,8 @@ impl Floor {
         let id = self.rooms.insert(room);
         for x in 0..area.extent().w {
             for y in 0..area.extent().h {
-                self.tiles.set(area.position() + Vec2::new(x, y), Tile::Room(id));
+                self.tiles
+                    .set(area.position() + Vec2::new(x, y), Tile::Room(id));
             }
         }
         id
@@ -275,9 +277,11 @@ impl Floor {
                 let area_border = Rect::from((pos - 1, Extent2::from(sz) + 2)); // The room, but with some personal space
 
                 // Ensure no overlap
-                if self.rooms.iter().any(|r| {
-                    r.area.collides_with_rect(area_border)
-                }) {
+                if self
+                    .rooms
+                    .iter()
+                    .any(|r| r.area.collides_with_rect(area_border))
+                {
                     return None;
                 }
 
@@ -296,12 +300,7 @@ impl Floor {
         }
     }
 
-    fn create_route(
-        &mut self,
-        ctx: &mut GenCtx<impl Rng>,
-        a: Vec2<i32>,
-        b: Vec2<i32>,
-    ) {
+    fn create_route(&mut self, ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) {
         let sim = &ctx.sim;
         let heuristic = move |l: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
         let neighbors = |l: &Vec2<i32>| {
@@ -367,7 +366,8 @@ impl Floor {
                         for y in 0..TILE_SIZE {
                             let pos = tile_pos * TILE_SIZE + Vec2::new(x, y);
 
-                            let nth_block = pos.x + TILE_SIZE + (pos.y + TILE_SIZE) * TILE_SIZE * FLOOR_SIZE.x;
+                            let nth_block =
+                                pos.x + TILE_SIZE + (pos.y + TILE_SIZE) * TILE_SIZE * FLOOR_SIZE.x;
                             if nth_block.rem_euclid(room.enemy_density.recip() as i32) == 0 {
                                 // Bad
                                 let entity = EntityInfo::at(
@@ -464,7 +464,8 @@ impl Floor {
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
-                if dist_to_wall >= wall_thickness && (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0) {
+                if dist_to_wall >= wall_thickness && (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0)
+                {
                     empty
                 } else {
                     BlockMask::nothing()
