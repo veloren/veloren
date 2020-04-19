@@ -154,7 +154,7 @@ impl<'a> System<'a> for Sys {
                         }
 
                         // Sometimes try searching for new targets
-                        if thread_rng().gen::<f32>() < 0.05  {
+                        if thread_rng().gen::<f32>() < 0.1  {
                             choose_target = true;
                         }
                     },
@@ -240,7 +240,7 @@ impl<'a> System<'a> for Sys {
                                     inputs.roll.set_state(true);
                                 }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                || (dist_sqrd < SIGHT_DIST.powf(2.0) && (!*been_close || !matches!(tactic, Tactic::Melee)))
                             {
                                 let can_see_tgt = terrain
                                     .ray(pos.0 + Vec3::unit_z(), tgt_pos.0 + Vec3::unit_z())
@@ -264,10 +264,10 @@ impl<'a> System<'a> for Sys {
 
                                         inputs.secondary.set_state(true);
                                     }
+                                }
 
-                                    if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
-                                        *been_close = true;
-                                    }
+                                if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
+                                    *been_close = true;
                                 }
 
                                 // Long-range chase
@@ -280,8 +280,9 @@ impl<'a> System<'a> for Sys {
                                     inputs.jump.set_state(bearing.z > 1.0);
                                 }
 
-                                if dist_sqrd < (MAX_CHASE_DIST * 0.65).powf(2.0)
-                                    && thread_rng().gen::<f32>() < 0.01
+                                if dist_sqrd < 16.0f32.powf(2.0)
+                                    && matches!(tactic, Tactic::Melee)
+                                    && thread_rng().gen::<f32>() < 0.02
                                 {
                                     inputs.roll.set_state(true);
                                 }
@@ -307,8 +308,11 @@ impl<'a> System<'a> for Sys {
                 let closest_entity = (&entities, &positions, &stats, alignments.maybe())
                     .join()
                     .filter(|(e, e_pos, e_stats, e_alignment)| {
-                        ((e_pos.0.distance_squared(pos.0) < SEARCH_DIST.powf(2.0) && (e_pos.0 - pos.0).try_normalized().map(|v| v.dot(*inputs.look_dir) > 0.3).unwrap_or(true))
-                            || e_pos.0.distance_squared(pos.0) < LISTEN_DIST.powf(2.0))
+                        ((e_pos.0.distance_squared(pos.0) < SEARCH_DIST.powf(2.0) &&
+                            // Within our view
+                            (e_pos.0 - pos.0).try_normalized().map(|v| v.dot(*inputs.look_dir) > 0.15).unwrap_or(true))
+                                // Within listen distance
+                                || e_pos.0.distance_squared(pos.0) < LISTEN_DIST.powf(2.0))
                             && *e != entity
                             && !e_stats.is_dead
                             && alignment
