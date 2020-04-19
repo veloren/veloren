@@ -764,7 +764,7 @@ impl Settlement {
                 let entity_wpos = Vec3::new(wpos2d.x as f32, wpos2d.y as f32, col_sample.alt + 3.0);
 
                 if matches!(sample.plot, Some(Plot::Town)) &&
-                    RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (32.0 * 32.0))
+                    RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
                 {
                     let entity = EntityInfo::at(entity_wpos)
                         .with_alignment(comp::Alignment::Npc)
