@@ -557,9 +557,9 @@ impl Settlement {
                         Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
                         Some(Plot::Town) => {
-                            Some(Rgb::new(150, 110, 60).map2(Rgb::iota(), |e: u8, i: i32| {
+                            Some(Rgb::new(100, 90, 75).map2(Rgb::iota(), |e: u8, i: i32| {
                                 e.saturating_add(
-                                    (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 16)
+                                    (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 1)
                                         as u8,
                                 )
                                 .saturating_sub(8)
