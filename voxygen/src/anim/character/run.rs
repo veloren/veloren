@@ -24,7 +24,6 @@ impl Animation for RunAnimation {
         let walkintensity = if speed > 5.0 { 1.0 } else { 0.7 };
         let walk = if speed > 5.0 { 1.0 } else { 0.5 };
         let lower = if speed > 5.0 { 0.0 } else { 2.0 };
-        let walk = if speed > 5.0 { 1.0 } else { 0.5 };
         let snapfoot = if speed > 5.0 { 1.1 } else { 2.0 };
         let lab = 1.0;
         let long = (((5.0)
