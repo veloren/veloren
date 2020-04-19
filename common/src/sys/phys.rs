@@ -110,7 +110,9 @@ impl<'a> System<'a> for Sys {
             // Neighbouring blocks iterator
             let near_iter = (-hdist..hdist + 1)
                 .map(move |i| {
-                    (-hdist..hdist + 1).map(move |j| (1 - BlockKind::MAX_HEIGHT.ceil() as i32..vdist + 1).map(move |k| (i, j, k)))
+                    (-hdist..hdist + 1).map(move |j| {
+                        (1 - BlockKind::MAX_HEIGHT.ceil() as i32..vdist + 1).map(move |k| (i, j, k))
+                    })
                 })
                 .flatten()
                 .flatten();
@@ -161,7 +163,8 @@ impl<'a> System<'a> for Sys {
                         };
                         let block_aabb = Aabb {
                             min: block_pos.map(|e| e as f32),
-                            max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.get_height()),
+                            max: block_pos.map(|e| e as f32)
+                                + Vec3::new(1.0, 1.0, block.get_height()),
                         };
 
                         if player_aabb.collides_with_aabb(block_aabb) {

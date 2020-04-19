@@ -58,6 +58,8 @@ pub enum BlockKind {
 }
 
 impl BlockKind {
+    pub const MAX_HEIGHT: f32 = 3.0;
+
     pub fn is_tangible(&self) -> bool {
         match self {
             BlockKind::Air => false,
@@ -217,12 +219,10 @@ impl BlockKind {
         }
     }
 
-    pub const MAX_HEIGHT: f32 = 3.0;
-
     // TODO: Integrate this into `is_solid` by returning an `Option<f32>`
     pub fn get_height(&self) -> f32 {
-        // Beware: the height *must* be <= `MAX_HEIGHT` or the collision system will not properly
-        // detect it!
+        // Beware: the height *must* be <= `MAX_HEIGHT` or the collision system will not
+        // properly detect it!
         match self {
             BlockKind::Tomato => 1.65,
             BlockKind::LargeCactus => 2.5,
