@@ -219,9 +219,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         &self,
         range: Self::Supplement,
     ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
-        let mut opaque_mesh = Mesh::new();
-        let mut fluid_mesh = Mesh::new();
-
         let mut light = calc_light(range, self);
 
         let mut lowest_opaque = range.size().d;
@@ -300,6 +297,12 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
             highest_opaque
         }
         .min(range.size().d - 1);
+
+        // We use multiple meshes and then combine them later such that we can group similar z
+        // levels together (better rendering performance)
+        let mut opaque_meshes = vec![Mesh::new(); ((z_end + 1 - z_start).clamped(1, 60) as usize / 10).max(1)];
+        let mut fluid_mesh = Mesh::new();
+
         for x in 1..range.size().w - 1 {
             for y in 1..range.size().w - 1 {
                 let mut lights = [[[None; 3]; 3]; 3];
@@ -376,10 +379,12 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                         [[[get_color(blocks[1][1][1].as_ref(), false); 3]; 3]; 3]
                     };
 
+                    let opaque_mesh_index = ((z - z_start) * opaque_meshes.len() as i32 / (z_end + 1 - z_start).max(1)) as usize;
+                    let selected_opaque_mesh = &mut opaque_meshes[opaque_mesh_index];
                     // Create mesh polygons
                     if block.map_or(false, |vox| vox.is_opaque()) {
                         vol::push_vox_verts(
-                            &mut opaque_mesh,
+                            selected_opaque_mesh,
                             faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
                             offs,
                             &colors,
@@ -413,6 +418,18 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                 }
             }
         }
+
+        let opaque_mesh = opaque_meshes
+            .into_iter()
+            .rev()
+            .fold(Mesh::new(), |mut opaque_mesh, m: Mesh<Self::Pipeline>| {
+                m.verts().chunks_exact(3).rev().for_each(|vs| {
+                    opaque_mesh.push(vs[0]);
+                    opaque_mesh.push(vs[1]);
+                    opaque_mesh.push(vs[2]);
+                });
+                opaque_mesh
+            });
 
         (opaque_mesh, fluid_mesh)
     }
