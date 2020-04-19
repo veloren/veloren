@@ -10,10 +10,6 @@ pub enum BlockKind {
     Normal,
     Dense,
     Water,
-    Window1,
-    Window2,
-    Window3,
-    Window4,
     LargeCactus,
     BarrelCactus,
     RoundCactus,
@@ -53,8 +49,12 @@ pub enum BlockKind {
     Carrot,
     Tomato,
     Radish,
-    Turnip,
     Coconut,
+    Turnip,
+    Window1,
+    Window2,
+    Window3,
+    Window4,
 }
 
 impl BlockKind {
