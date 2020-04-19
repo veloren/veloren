@@ -104,9 +104,10 @@ impl Dungeon {
 
                 let mut z = self.alt;
                 for floor in &self.floors {
-                    let mut sampler = floor.col_sampler(rpos);
-
                     z -= floor.total_depth();
+
+                    let mut sampler = floor.col_sampler(rpos, z);
+
                     for rz in 0..floor.total_depth() {
                         if let Some(block) = sampler(rz).finish() {
                             vol.set(Vec3::new(offs.x, offs.y, z + rz), block);
@@ -182,7 +183,6 @@ impl Tile {
 
 pub struct Room {
     seed: u32,
-    enemies: bool,
     loot_density: f32,
     enemy_density: f32,
     area: Rect<i32, i32>,
@@ -206,7 +206,7 @@ impl Floor {
         level: i32,
     ) -> (Self, Vec2<i32>) {
         let new_stair_tile = std::iter::from_fn(|| {
-            Some(FLOOR_SIZE.map(|sz| ctx.rng.gen_range(-sz / 2 + 1, sz / 2)))
+            Some(FLOOR_SIZE.map(|sz| ctx.rng.gen_range(-sz / 2 + 2, sz / 2 - 1)))
         })
         .filter(|pos| *pos != stair_tile)
         .take(8)
@@ -222,26 +222,44 @@ impl Floor {
             hollow_depth: 13,
             stair_tile: new_stair_tile - tile_offset,
         };
-        this.create_rooms(ctx, level, 10);
+
+        // Create rooms for entrance and exit
+        this.create_room(Room {
+            seed: ctx.rng.gen(),
+            loot_density: 0.0,
+            enemy_density: 0.0,
+            area: Rect::from((stair_tile - tile_offset - 1, Extent2::broadcast(3))),
+        });
+        this.tiles.set(stair_tile - tile_offset, Tile::UpStair);
+        this.create_room(Room {
+            seed: ctx.rng.gen(),
+            loot_density: 0.0,
+            enemy_density: 0.0,
+            area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
+        });
+        this.tiles.set(new_stair_tile - tile_offset, Tile::DownStair);
+
+        this.create_rooms(ctx, level, 7);
         // Create routes between all rooms
         let room_areas = this.rooms.iter().map(|r| r.area).collect::<Vec<_>>();
         for a in room_areas.iter() {
             for b in room_areas.iter() {
-                this.create_route(ctx, a.center(), b.center(), true);
+                this.create_route(ctx, a.center(), b.center());
             }
         }
-        this.create_route(
-            ctx,
-            stair_tile - tile_offset,
-            new_stair_tile - tile_offset,
-            false,
-        );
-
-        this.tiles.set(stair_tile - tile_offset, Tile::UpStair);
-        this.tiles
-            .set(new_stair_tile - tile_offset, Tile::DownStair);
 
         (this, new_stair_tile)
+    }
+
+    fn create_room(&mut self, room: Room) -> Id<Room> {
+        let area = room.area;
+        let id = self.rooms.insert(room);
+        for x in 0..area.extent().w {
+            for y in 0..area.extent().h {
+                self.tiles.set(area.position() + Vec2::new(x, y), Tile::Room(id));
+            }
+        }
+        id
     }
 
     fn create_rooms(&mut self, ctx: &mut GenCtx<impl Rng>, level: i32, n: usize) {
@@ -258,31 +276,23 @@ impl Floor {
 
                 // Ensure no overlap
                 if self.rooms.iter().any(|r| {
-                    r.area.collides_with_rect(area_border) || r.area.contains_point(self.stair_tile)
+                    r.area.collides_with_rect(area_border)
                 }) {
                     return None;
                 }
 
                 Some(area)
             }) {
-                Some(room) => room,
+                Some(area) => area,
                 None => return,
             };
 
-            let room = self.rooms.insert(Room {
+            self.create_room(Room {
                 seed: ctx.rng.gen(),
-                enemies: ctx.rng.gen(),
                 loot_density: 0.00005 + level as f32 * 0.00015,
                 enemy_density: 0.0005 + level as f32 * 0.00015,
                 area,
             });
-
-            for x in 0..area.extent().w {
-                for y in 0..area.extent().h {
-                    self.tiles
-                        .set(area.position() + Vec2::new(x, y), Tile::Room(room));
-                }
-            }
         }
     }
 
@@ -291,16 +301,9 @@ impl Floor {
         ctx: &mut GenCtx<impl Rng>,
         a: Vec2<i32>,
         b: Vec2<i32>,
-        optimise_longest: bool,
     ) {
         let sim = &ctx.sim;
-        let heuristic = move |l: &Vec2<i32>| {
-            if optimise_longest {
-                (l.distance_squared(b) as f32).sqrt()
-            } else {
-                100.0 - (l.distance_squared(b) as f32).sqrt()
-            }
-        };
+        let heuristic = move |l: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
         let neighbors = |l: &Vec2<i32>| {
             let l = *l;
             CARDINALS
@@ -364,7 +367,7 @@ impl Floor {
                         for y in 0..TILE_SIZE {
                             let pos = tile_pos * TILE_SIZE + Vec2::new(x, y);
 
-                            if room.enemies && (pos.x + pos.y * TILE_SIZE * FLOOR_SIZE.x).rem_euclid(room.enemy_density.recip() as i32) == 0 {
+                            if (pos.x + pos.y * TILE_SIZE * FLOOR_SIZE.x).rem_euclid(room.enemy_density.recip() as i32) == 0 {
                                 // Bad
                                 let entity = EntityInfo::at(
                                     (origin
@@ -421,7 +424,7 @@ impl Floor {
             .min_by_key(|nearest| rpos.distance_squared(*nearest))
     }
 
-    pub fn col_sampler(&self, pos: Vec2<i32>) -> impl FnMut(i32) -> BlockMask + '_ {
+    pub fn col_sampler(&self, pos: Vec2<i32>, floor_z: i32) -> impl FnMut(i32) -> BlockMask + '_ {
         let rpos = pos - self.tile_offset * TILE_SIZE;
         let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
         let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
@@ -436,7 +439,7 @@ impl Floor {
                 stone
             } else if (pos.xy().magnitude_squared() as f32) < radius.powf(2.0) {
                 if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch
-                    + pos.z as f32)
+                    + (floor_z + pos.z) as f32)
                     .rem_euclid(stretch)
                     < 1.5
                 {
