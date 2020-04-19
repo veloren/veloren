@@ -19,6 +19,8 @@ use common::{
 use conrod_core::{
     color,
     color::TRANSPARENT,
+    event::{Event as WorldEvent, Input},
+    input::{Button as ButtonType, Key},
     position::Relative,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
@@ -405,6 +407,26 @@ impl CharSelectionUi {
     // TODO: Split this into multiple modules or functions.
     fn update_layout(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
+
+        let can_enter_world = match &self.mode {
+            Mode::Select(opt) => opt.is_some(),
+            Mode::Create { .. } => false,
+        };
+
+        // Handle enter keypress to enter world
+        if can_enter_world {
+            for event in self.ui.ui.global_input().events() {
+                match event {
+                    // TODO allow this to be rebound
+                    WorldEvent::Raw(Input::Press(ButtonType::Keyboard(Key::Return)))
+                    | WorldEvent::Raw(Input::Press(ButtonType::Keyboard(Key::Return2)))
+                    | WorldEvent::Raw(Input::Press(ButtonType::Keyboard(Key::NumPadEnter))) => {
+                        events.push(Event::Play)
+                    },
+                    _ => {},
+                }
+            }
+        }
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         let version = format!(
             "{}-{}",
@@ -567,10 +589,7 @@ impl CharSelectionUi {
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_y(conrod_core::position::Relative::Scalar(3.0));
 
-                if match &self.mode {
-                    Mode::Select(opt) => opt.is_some(),
-                    Mode::Create { .. } => true,
-                } {
+                if can_enter_world {
                     if enter_button
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
