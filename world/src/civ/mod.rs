@@ -52,18 +52,27 @@ pub struct Civs {
 
 pub struct GenCtx<'a, R: Rng> {
     sim: &'a mut WorldSim,
-    rng: &'a mut R,
+    rng: R,
+}
+
+impl<'a, R: Rng> GenCtx<'a, R> {
+    pub fn reseed(&mut self) -> GenCtx<'_, impl Rng> {
+        GenCtx {
+            sim: self.sim,
+            rng: ChaChaRng::from_seed(self.rng.gen()),
+        }
+    }
 }
 
 impl Civs {
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
-        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-        let mut ctx = GenCtx { sim, rng: &mut rng };
+        let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+        let mut ctx = GenCtx { sim, rng };
 
         for _ in 0..INITIAL_CIV_COUNT {
             log::info!("Creating civilisation...");
-            if let None = this.birth_civ(&mut ctx) {
+            if let None = this.birth_civ(&mut ctx.reseed()) {
                 log::warn!("Failed to find starting site for civilisation.");
             }
         }
@@ -71,7 +80,7 @@ impl Civs {
         for _ in 0..100 {
             attempt(5, || {
                 let loc = find_site_loc(&mut ctx, None)?;
-                this.establish_site(&mut ctx, loc, |place| Site {
+                this.establish_site(&mut ctx.reseed(), loc, |place| Site {
                     kind: SiteKind::Dungeon,
                     center: loc,
                     place,
@@ -153,10 +162,10 @@ impl Civs {
 
             let world_site = match &site.kind {
                 SiteKind::Settlement => {
-                    WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), ctx.rng))
+                    WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), &mut ctx.rng))
                 },
                 SiteKind::Dungeon => {
-                    WorldSite::from(Dungeon::generate(wpos, Some(ctx.sim), ctx.rng))
+                    WorldSite::from(Dungeon::generate(wpos, Some(ctx.sim), &mut ctx.rng))
                 },
             };
 
@@ -285,7 +294,7 @@ impl Civs {
         alive.insert(loc);
 
         // Fill the surrounding area
-        while let Some(cloc) = alive.iter().choose(ctx.rng).copied() {
+        while let Some(cloc) = alive.iter().choose(&mut ctx.rng).copied() {
             for dir in CARDINALS.iter() {
                 if site_in_dir(&ctx.sim, cloc, *dir) {
                     let rloc = cloc + *dir;
@@ -409,8 +418,8 @@ impl Civs {
         //             let total_value = site.values.iter().map(|(_, v)|
         // (*v).unwrap_or(0.0)).sum::<f32>();             (
         //                 100000.0,//(site.values[stock].unwrap_or(0.1) /
-        // total_value * budget).min(budget),                 
-        // site.trade_states[stock].buy_belief.price,                 
+        // total_value * budget).min(budget),
+        // site.trade_states[stock].buy_belief.price,
         // -site.export_targets[stock].min(0.0),             )
         //         };
         //         let (quantity, spent) = econ::buy_units(ctx, sell_orders
@@ -437,7 +446,7 @@ impl Civs {
         //         if order.q_sold > 0.0 {
         //             site.stocks[stock] -= order.q_sold;
         //             site.last_exports[stock] = order.q_sold;
-        //             
+        //
         // site.trade_states[stock].sell_belief.update_seller(order.q_sold /
         // order.quantity);         }
         //     }
