@@ -290,7 +290,7 @@ impl Floor {
             self.create_room(Room {
                 seed: ctx.rng.gen(),
                 loot_density: 0.00005 + level as f32 * 0.00015,
-                enemy_density: 0.0005 + level as f32 * 0.00015,
+                enemy_density: 0.0005 + level as f32 * 0.00005,
                 area,
             });
         }
@@ -367,7 +367,8 @@ impl Floor {
                         for y in 0..TILE_SIZE {
                             let pos = tile_pos * TILE_SIZE + Vec2::new(x, y);
 
-                            if (pos.x + pos.y * TILE_SIZE * FLOOR_SIZE.x).rem_euclid(room.enemy_density.recip() as i32) == 0 {
+                            let nth_block = pos.x + TILE_SIZE + (pos.y + TILE_SIZE) * TILE_SIZE * FLOOR_SIZE.x;
+                            if nth_block.rem_euclid(room.enemy_density.recip() as i32) == 0 {
                                 // Bad
                                 let entity = EntityInfo::at(
                                     (origin
