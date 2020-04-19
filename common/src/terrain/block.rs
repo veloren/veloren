@@ -55,6 +55,7 @@ pub enum BlockKind {
     Window2,
     Window3,
     Window4,
+    Scarecrow,
 }
 
 impl BlockKind {
@@ -110,6 +111,7 @@ impl BlockKind {
             BlockKind::Radish => true,
             BlockKind::Turnip => true,
             BlockKind::Coconut => true,
+            BlockKind::Scarecrow => true,
             _ => false,
         }
     }
@@ -169,6 +171,7 @@ impl BlockKind {
             BlockKind::Window2 => false,
             BlockKind::Window3 => false,
             BlockKind::Window4 => false,
+            BlockKind::Scarecrow => false,
             _ => true,
         }
     }
@@ -215,6 +218,7 @@ impl BlockKind {
             BlockKind::Radish => false,
             BlockKind::Turnip => false,
             BlockKind::Coconut => false,
+            BlockKind::Scarecrow => true,
             _ => true,
         }
     }

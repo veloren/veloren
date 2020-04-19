@@ -230,6 +230,10 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 1,
             wind_sway: 0.0,
         }),
+        BlockKind::Scarecrow => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         _ => None,
     }
 }
@@ -1557,6 +1561,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.fruit.coconut",
                         Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Scarecrow
+                (
+                    (BlockKind::Scarecrow, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.misc.scarecrow",
+                        Vec3::new(-9.5, -3.0, -0.25),
                     ),
                 ),
             ]
