@@ -1,6 +1,14 @@
-use super::schema::{body, character};
+use super::schema::{body, character, stats};
 use crate::comp;
 use common::character::Character as CharacterData;
+
+/// When we want to build player stats from database data, we need data from the
+/// character, body and stats tables
+pub struct StatsJoinData<'a> {
+    pub character: &'a CharacterData,
+    pub body: &'a comp::Body,
+    pub stats: &'a Stats,
+}
 
 /// `Character` represents a playable character belonging to a player
 #[derive(Identifiable, Queryable, Debug)]
@@ -62,4 +70,46 @@ impl From<&Body> for comp::Body {
             eye_color: body.eye_color as u8,
         })
     }
+}
+
+/// `Stats` represents the stats for a character
+#[derive(Associations, Identifiable, Queryable, Debug, Insertable)]
+#[belongs_to(Character)]
+#[primary_key(character_id)]
+#[table_name = "stats"]
+pub struct Stats {
+    pub character_id: i32,
+    pub level: i32,
+    pub exp: i32,
+    pub endurance: i32,
+    pub fitness: i32,
+    pub willpower: i32,
+}
+
+impl From<StatsJoinData<'_>> for comp::Stats {
+    fn from(data: StatsJoinData) -> comp::Stats {
+        let mut base_stats = comp::Stats::new(String::from(&data.character.alias), *data.body);
+
+        base_stats.level.set_level(data.stats.level as u32);
+        base_stats.update_max_hp();
+
+        base_stats.exp.set_current(data.stats.exp as u32);
+
+        base_stats.endurance = data.stats.endurance as u32;
+        base_stats.fitness = data.stats.fitness as u32;
+        base_stats.willpower = data.stats.willpower as u32;
+
+        base_stats
+    }
+}
+
+#[derive(AsChangeset)]
+#[primary_key(character_id)]
+#[table_name = "stats"]
+pub struct StatsUpdate {
+    pub level: Option<i32>,
+    pub exp: Option<i32>,
+    pub endurance: Option<i32>,
+    pub fitness: Option<i32>,
+    pub willpower: Option<i32>,
 }
