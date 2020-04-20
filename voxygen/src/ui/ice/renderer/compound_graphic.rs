@@ -4,7 +4,6 @@ use super::{
 };
 use compound_graphic::GraphicKind;
 use iced::{MouseCursor, Rectangle};
-use vek::Rgba;
 
 impl compound_graphic::Renderer for IcedRenderer {
     fn draw<I>(

@@ -107,7 +107,7 @@ image_ids! {
         button: "voxygen.element.buttons.button",
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
-        input_bg: "voxygen.element.misc_bg.textbox_mid",
+        input_bg: "voxygen.element.misc_bg.textbox",
         //disclaimer: "voxygen.element.frames.disclaimer",
         loading_art: "voxygen.element.frames.loading_screen.loading_bg",
         loading_art_l: "voxygen.element.frames.loading_screen.loading_bg_l",
@@ -140,9 +140,7 @@ image_ids_ice! {
         button: "voxygen.element.buttons.button",
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
-        input_bg_top: "voxygen.element.misc_bg.textbox_top",
-        input_bg_mid: "voxygen.element.misc_bg.textbox_mid",
-        input_bg_bot: "voxygen.element.misc_bg.textbox_bot",
+        input_bg: "voxygen.element.misc_bg.textbox",
         disclaimer: "voxygen.element.frames.disclaimer",
 
         <BlankGraphic>
@@ -193,7 +191,7 @@ struct IcedState {
 pub type Message = Event;
 impl IcedState {
     pub fn view(&mut self) -> Element<Message> {
-        use iced::{Align, Column, Container, Length, Row};
+        use iced::{Align, Column, Container, Length, Row, Space};
         use ui::ice::{
             compound_graphic::{CompoundGraphic, Graphic},
             BackgroundContainer, Image, Padding,
@@ -216,23 +214,68 @@ impl IcedState {
             .align_y(Align::End)
             .padding(20);
 
-        let banner_content =
-            Column::with_children(vec![Image::new(self.imgs.v_logo).fix_aspect_ratio().into()]);
-        //.padding(15);
+        let banner_content = Column::with_children(vec![
+            Image::new(self.imgs.v_logo)
+                .fix_aspect_ratio()
+                .height(Length::FillPortion(20))
+                .into(),
+            Space::new(Length::Fill, Length::FillPortion(5)).into(),
+            Column::with_children(vec![
+                BackgroundContainer::new(
+                    CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 0, 0, 1])
+                        .fix_aspect_ratio(),
+                    Space::new(Length::Fill, Length::Fill),
+                )
+                .into(),
+                BackgroundContainer::new(
+                    CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 1, 0, 1])
+                        .fix_aspect_ratio(),
+                    Space::new(Length::Fill, Length::Fill),
+                )
+                .into(),
+                BackgroundContainer::new(
+                    CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 1, 0, 0])
+                        .fix_aspect_ratio(),
+                    Space::new(Length::Fill, Length::Fill),
+                )
+                .into(),
+            ])
+            .height(Length::FillPortion(50))
+            .into(),
+            Column::with_children(vec![
+                BackgroundContainer::new(
+                    CompoundGraphic::padded_image(self.imgs.button, [106, 26], [10, 0, 10, 2])
+                        .fix_aspect_ratio(),
+                    Space::new(Length::Fill, Length::Fill),
+                )
+                .into(),
+                BackgroundContainer::new(
+                    CompoundGraphic::padded_image(self.imgs.button, [106, 26], [10, 2, 10, 0])
+                        .fix_aspect_ratio(),
+                    Space::new(Length::Fill, Length::Fill),
+                )
+                .into(),
+            ])
+            .max_width(240)
+            .height(Length::FillPortion(25))
+            .into(),
+        ])
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_items(Align::Center);
 
         let banner = BackgroundContainer::new(
-            CompoundGraphic::with_graphics(vec![
+            CompoundGraphic::from_graphics(vec![
                 Graphic::image(self.imgs.banner_top, [138, 17], [0, 0]),
-                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 175], [4, 17]),
-                // Might need floats here
-                Graphic::image(self.imgs.banner, [130, 15], [4, 192])
+                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 195], [4, 17]),
+                Graphic::image(self.imgs.banner, [130, 15], [4, 212])
                     .color(Rgba::new(255, 255, 255, 230)),
             ])
             .fix_aspect_ratio()
             .height(Length::Fill),
             banner_content,
         )
-        .padding(Padding::new().horizontal(16).top(21).bottom(4))
+        .padding(Padding::new().horizontal(16).vertical(20))
         .max_width(330);
 
         let central_column = Container::new(banner)

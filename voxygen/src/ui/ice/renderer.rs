@@ -4,6 +4,7 @@ mod compound_graphic;
 mod container;
 mod image;
 mod row;
+mod space;
 
 use super::{
     super::{
@@ -69,6 +70,7 @@ pub enum Primitive {
         bounds: iced::Rectangle,
         color: Rgba<u8>,
     },
+    Nothing,
 }
 
 // Optimization idea inspired by what I think iced wgpu renderer may be doing
@@ -347,6 +349,7 @@ impl IcedRenderer {
                     UiMode::Geometry,
                 ));
             },
+            Primitive::Nothing => {},
         }
     }
 

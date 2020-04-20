@@ -192,7 +192,7 @@ image_ids! {
         selection_hover: "voxygen.element.frames.selection_hover",
         selection_press: "voxygen.element.frames.selection_press",
 
-        name_input: "voxygen.element.misc_bg.textbox_mid",
+        name_input: "voxygen.element.misc_bg.textbox",
 
         slider_range: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",

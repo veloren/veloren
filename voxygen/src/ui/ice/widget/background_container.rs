@@ -195,7 +195,6 @@ where
             } else {
                 limits.max_height((max_width / aspect_ratio) as u32)
             };
-            limits;
             // Account for padding at max size in the limits for the children
             let limits = limits.shrink({
                 let max = limits.max();
@@ -204,7 +203,6 @@ where
                     max.height * vertical_pad_frac,
                 )
             });
-            limits;
 
             // Get content size
             // again, why is loose() used here?
@@ -221,7 +219,7 @@ where
             let size = if content_aspect_ratio > aspect_ratio {
                 Size::new(content_size.width, content_size.width / aspect_ratio)
             } else {
-                Size::new(content_size.height * aspect_ratio, content_size.width)
+                Size::new(content_size.height * aspect_ratio, content_size.height)
             };
 
             // Move content to account for padding
@@ -229,7 +227,6 @@ where
                 left_pad_frac * size.width,
                 top_pad_frac * size.height,
             ));
-            size;
 
             (size, content)
         } else {
