@@ -556,11 +556,21 @@ impl Settlement {
                 } else if let Some(color) = self.get_color(rpos) {
                     let mut surface_block = None;
 
+                    let roll = |seed, n| {
+                        self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n
+                    };
+
                     let color = match sample.plot {
                         Some(Plot::Dirt) => Some(Rgb::new(90, 70, 50)),
                         Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
                         Some(Plot::Town) => {
+                            if (col_sample.path.map(|(dist, _)| dist > 7.0 && dist < 8.0).unwrap_or(false) && roll(0, 50) == 0)
+                                || roll(0, 2000) == 0
+                            {
+                                surface_block = Some(Block::new(BlockKind::StreetLamp, Rgb::white()));
+                            }
+
                             Some(Rgb::new(100, 90, 75).map2(Rgb::iota(), |e: u8, i: i32| {
                                 e.saturating_add(
                                     (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 1)
@@ -578,10 +588,6 @@ impl Settlement {
                             ];
                             let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
                             let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(5) < 2;
-
-                            let roll = |seed, n| {
-                                self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n
-                            };
 
                             let dirt = Rgb::new(80, 55, 35).map(|e| {
                                 e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 32)
@@ -616,7 +622,7 @@ impl Settlement {
                                         _ => None,
                                     }
                                     .or_else(|| {
-                                        if roll(9, 256) == 0 {
+                                        if roll(9, 400) == 0 {
                                             Some(BlockKind::Scarecrow)
                                         } else {
                                             None
