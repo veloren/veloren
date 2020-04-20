@@ -298,9 +298,10 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         }
         .min(range.size().d - 1);
 
-        // // We use multiple meshes and then combine them later such that we can group similar z
-        // // levels together (better rendering performance)
-        // let mut opaque_meshes = vec![Mesh::new(); ((z_end + 1 - z_start).clamped(1, 60) as usize / 10).max(1)];
+        // // We use multiple meshes and then combine them later such that we can group
+        // similar z // levels together (better rendering performance)
+        // let mut opaque_meshes = vec![Mesh::new(); ((z_end + 1 - z_start).clamped(1,
+        // 60) as usize / 10).max(1)];
         let mut opaque_mesh = Mesh::new();
         let mut fluid_mesh = Mesh::new();
 
@@ -380,12 +381,13 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                         [[[get_color(blocks[1][1][1].as_ref(), false); 3]; 3]; 3]
                     };
 
-                    // let opaque_mesh_index = ((z - z_start) * opaque_meshes.len() as i32 / (z_end + 1 - z_start).max(1)) as usize;
-                    // let selected_opaque_mesh = &mut opaque_meshes[opaque_mesh_index];
-                    // Create mesh polygons
+                    // let opaque_mesh_index = ((z - z_start) * opaque_meshes.len() as i32 / (z_end
+                    // + 1 - z_start).max(1)) as usize; let selected_opaque_mesh
+                    // = &mut opaque_meshes[opaque_mesh_index]; Create mesh
+                    // polygons
                     if block.map_or(false, |vox| vox.is_opaque()) {
                         vol::push_vox_verts(
-                            &mut opaque_mesh,//selected_opaque_mesh,
+                            &mut opaque_mesh, //selected_opaque_mesh,
                             faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
                             offs,
                             &colors,

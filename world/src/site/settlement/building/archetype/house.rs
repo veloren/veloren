@@ -171,10 +171,14 @@ impl Archetype for House {
         let profile = Vec2::new(bound_offset.x, z);
 
         let make_meta = |ori| {
-            Rgb::new(match ori {
-                Ori::East => 0,
-                Ori::North => 2,
-            }, 0, 0)
+            Rgb::new(
+                match ori {
+                    Ori::East => 0,
+                    Ori::North => 2,
+                },
+                0,
+                0,
+            )
         };
 
         let make_block = |r, g, b| {
@@ -204,7 +208,10 @@ impl Archetype for House {
             .with_priority(facade_layer);
         let empty = BlockMask::nothing();
         let internal = BlockMask::new(Block::empty(), structural_layer);
-        let end_window = BlockMask::new(Block::new(BlockKind::Window1, make_meta(ori.flip())), facade_layer);
+        let end_window = BlockMask::new(
+            Block::new(BlockKind::Window1, make_meta(ori.flip())),
+            structural_layer,
+        );
         let fire = BlockMask::new(Block::new(BlockKind::Ember, Rgb::white()), foundation_layer);
 
         let ceil_height = 6;
@@ -311,15 +318,21 @@ impl Archetype for House {
                         return Some(empty);
                     } else {
                         let (frame_bounds, frame_borders) = if profile.y >= ceil_height {
-                            (Aabr {
-                                min: Vec2::new(-1, ceil_height + 2),
-                                max: Vec2::new(1, ceil_height + 5),
-                            }, Vec2::new(1, 1))
+                            (
+                                Aabr {
+                                    min: Vec2::new(-1, ceil_height + 2),
+                                    max: Vec2::new(1, ceil_height + 5),
+                                },
+                                Vec2::new(1, 1),
+                            )
                         } else {
-                            (Aabr {
-                                min: Vec2::new(2, foundation_height + 2),
-                                max: Vec2::new(width - 2, ceil_height - 2),
-                            }, Vec2::new(1, 0))
+                            (
+                                Aabr {
+                                    min: Vec2::new(2, foundation_height + 2),
+                                    max: Vec2::new(width - 2, ceil_height - 2),
+                                },
+                                Vec2::new(1, 0),
+                            )
                         };
                         let window_bounds = Aabr {
                             min: (frame_bounds.min + frame_borders)
@@ -335,7 +348,7 @@ impl Archetype for House {
                             if window_bounds.contains_point(surface_pos) {
                                 return Some(end_window);
                             } else if frame_bounds.contains_point(surface_pos) {
-                                return Some(log.with_priority(facade_layer));
+                                return Some(log.with_priority(structural_layer));
                             };
                         }
 

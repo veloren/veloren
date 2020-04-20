@@ -268,9 +268,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                             let seed = wpos.x as u64 * 3
                                 + wpos.y as u64 * 7
                                 + wpos.x as u64 * wpos.y as u64; // Awful PRNG
-                            let ori = block
-                                .get_ori()
-                                .unwrap_or((seed % 8) as u8);
+                            let ori = block.get_ori().unwrap_or((seed % 8) as u8);
 
                             let instance = SpriteInstance::new(
                                 Mat4::identity()

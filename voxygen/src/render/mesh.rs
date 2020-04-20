@@ -5,9 +5,14 @@ pub struct Mesh<P: Pipeline> {
     verts: Vec<P::Vertex>,
 }
 
-impl<P: Pipeline> Clone for Mesh<P> where P::Vertex: Clone {
+impl<P: Pipeline> Clone for Mesh<P>
+where
+    P::Vertex: Clone,
+{
     fn clone(&self) -> Self {
-        Self { verts: self.verts.clone() }
+        Self {
+            verts: self.verts.clone(),
+        }
     }
 }
 
@@ -61,22 +66,16 @@ impl<P: Pipeline> Mesh<P> {
         }
     }
 
-    pub fn verts(&self) -> &[P::Vertex] {
-        &self.verts
-    }
+    pub fn verts(&self) -> &[P::Vertex] { &self.verts }
 
-    pub fn iter(&self) -> std::slice::Iter<P::Vertex> {
-        self.verts.iter()
-    }
+    pub fn iter(&self) -> std::slice::Iter<P::Vertex> { self.verts.iter() }
 }
 
 impl<P: Pipeline> IntoIterator for Mesh<P> {
-    type Item = P::Vertex;
     type IntoIter = std::vec::IntoIter<P::Vertex>;
+    type Item = P::Vertex;
 
-    fn into_iter(self) -> Self::IntoIter {
-        self.verts.into_iter()
-    }
+    fn into_iter(self) -> Self::IntoIter { self.verts.into_iter() }
 }
 
 /// Represents a triangle stored on the CPU.
