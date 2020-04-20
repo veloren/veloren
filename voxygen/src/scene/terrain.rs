@@ -167,7 +167,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.1,
         }),
         BlockKind::Pumpkin => Some(SpriteConfig {
-            variations: 5,
+            variations: 7,
             wind_sway: 0.0,
         }),
         BlockKind::LingonBerry => Some(SpriteConfig {
@@ -231,6 +231,14 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.0,
         }),
         BlockKind::Scarecrow => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::StreetLamp => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Door => Some(SpriteConfig {
             variations: 1,
             wind_sway: 0.0,
         }),
@@ -924,6 +932,20 @@ impl<V: RectRasterableVol> Terrain<V> {
                         Vec3::new(-6.0, -6.0, -0.0),
                     ),
                 ),
+                (
+                    (BlockKind::Pumpkin, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.6",
+                        Vec3::new(-7.0, -6.5, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.7",
+                        Vec3::new(-7.0, -9.5, -0.0),
+                    ),
+                ),
                 //Lingonberries
                 (
                     (BlockKind::LingonBerry, 0),
@@ -1570,6 +1592,22 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.misc.scarecrow",
                         Vec3::new(-9.5, -3.0, -0.25),
+                    ),
+                ),
+                // Street Light
+                (
+                    (BlockKind::StreetLamp, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.misc.street_lamp",
+                        Vec3::new(-4.5, -4.5, 0.0),
+                    ),
+                ),
+                // Door
+                (
+                    (BlockKind::Door, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.door.door-0",
+                        Vec3::new(-6.5, -6.5, 0.0),
                     ),
                 ),
             ]

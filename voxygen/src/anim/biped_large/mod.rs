@@ -145,10 +145,10 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
                 (Giant, _) => (6.0, 0.5, 2.5),
             },
             hand: match (body.species, body.body_type) {
-                (Giant, _) => (8.5, -1.0, 4.0),
+                (Giant, _) => (10.5, -1.0, 3.5),
             },
             leg: match (body.species, body.body_type) {
-                (Giant, _) => (3.5, 0.0, -5.0),
+                (Giant, _) => (0.0, 0.0, -6.0),
             },
             foot: match (body.species, body.body_type) {
                 (Giant, _) => (4.0, 0.5, 2.5),
