@@ -341,14 +341,19 @@ impl CharSelectionUi {
             Mode::Select(data) => data.clone(),
             Mode::Create {
                 name, body, tool, ..
-            } => Some(vec![CharacterItem {
-                character: Character {
-                    id: None,
-                    alias: name.clone(),
-                    tool: tool.map(|specifier| specifier.to_string()),
-                },
-                body: comp::Body::Humanoid(body.clone()),
-            }]),
+            } => {
+                let body = comp::Body::Humanoid(body.clone());
+
+                Some(vec![CharacterItem {
+                    character: Character {
+                        id: None,
+                        alias: name.clone(),
+                        tool: tool.map(|specifier| specifier.to_string()),
+                    },
+                    body,
+                    stats: comp::Stats::new(String::from(name), body),
+                }])
+            },
         }
     }
 
