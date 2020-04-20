@@ -491,6 +491,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
     if loc_suitable_for_walking(sim, a) && loc_suitable_for_walking(sim, a + dir) {
         let a_alt = sim.get(a)?.alt;
         let b_alt = sim.get(a + dir)?.alt;
+        let water_cost = if sim.get(a + dir)?.river.near_water() { 25.0 } else { 0.0 };
         Some((b_alt - a_alt).abs() / 2.5)
     } else {
         None

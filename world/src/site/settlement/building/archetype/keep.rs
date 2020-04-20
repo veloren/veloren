@@ -48,6 +48,7 @@ impl Archetype for Keep {
         bound_offset: Vec2<i32>,
         center_offset: Vec2<i32>,
         z: i32,
+        ori: Ori,
         branch: &Branch<Self::Attr>,
     ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);
