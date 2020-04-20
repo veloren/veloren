@@ -158,7 +158,7 @@ where
 {
     let is_walkable = |pos: &Vec3<i32>| {
         vol.get(*pos - Vec3::new(0, 0, 1))
-            .map(|b| b.is_solid())
+            .map(|b| b.is_solid() && b.get_height() == 1.0)
             .unwrap_or(false)
             && vol
                 .get(*pos + Vec3::new(0, 0, 0))
