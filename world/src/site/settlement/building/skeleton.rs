@@ -75,7 +75,7 @@ impl<T> Skeleton<T> {
     pub fn sample_closest(
         &self,
         pos: Vec2<i32>,
-        mut f: impl FnMut(i32, Vec2<i32>, Vec2<i32>, &Branch<T>) -> BlockMask,
+        mut f: impl FnMut(i32, Vec2<i32>, Vec2<i32>, Ori, &Branch<T>) -> BlockMask,
     ) -> BlockMask {
         let mut min = None::<(_, BlockMask)>;
         self.for_each(|node, ori, branch, is_child, parent_locus| {
@@ -115,7 +115,7 @@ impl<T> Skeleton<T> {
                 }
                 || true
             {
-                let new_bm = f(dist, bound_offset, center_offset, branch);
+                let new_bm = f(dist, bound_offset, center_offset, ori, branch);
                 min = min
                     .map(|(_, bm)| (dist_locus, bm.resolve_with(new_bm)))
                     .or(Some((dist_locus, new_bm)));
