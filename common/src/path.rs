@@ -38,6 +38,10 @@ impl<T> Path<T> {
     pub fn start(&self) -> Option<&T> { self.nodes.first() }
 
     pub fn end(&self) -> Option<&T> { self.nodes.last() }
+
+    pub fn nodes(&self) -> &[T] {
+        &self.nodes
+    }
 }
 
 // Route: A path that can be progressed along
@@ -74,7 +78,7 @@ impl Route {
         } else {
             let next_tgt = next.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
             if ((pos - next_tgt) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared()
-                < traversal_tolerance.powf(2.0)
+                < (traversal_tolerance * 2.0).powf(2.0)
             {
                 self.next_idx += 1;
             }
