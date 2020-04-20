@@ -611,10 +611,12 @@ impl Settlement {
                                         Crop::Sunflower => Some(BlockKind::Sunflower),
                                         _ => None,
                                     }
-                                    .or_else(|| if roll(9, 256) == 0 {
-                                        Some(BlockKind::Scarecrow)
-                                    } else {
-                                        None
+                                    .or_else(|| {
+                                        if roll(9, 256) == 0 {
+                                            Some(BlockKind::Scarecrow)
+                                        } else {
+                                            None
+                                        }
                                     })
                                     .map(|kind| Block::new(kind, Rgb::white()));
                                 }

@@ -39,9 +39,7 @@ impl<T> Path<T> {
 
     pub fn end(&self) -> Option<&T> { self.nodes.last() }
 
-    pub fn nodes(&self) -> &[T] {
-        &self.nodes
-    }
+    pub fn nodes(&self) -> &[T] { &self.nodes }
 }
 
 // Route: A path that can be progressed along

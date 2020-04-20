@@ -2,8 +2,8 @@ mod diffusion;
 mod erosion;
 mod location;
 mod map;
-mod util;
 mod path;
+mod util;
 
 // Reexports
 use self::erosion::Compute;
@@ -15,12 +15,12 @@ pub use self::{
     },
     location::Location,
     map::{MapConfig, MapDebug},
+    path::PathData,
     util::{
         cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, neighbors,
         uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
         NEIGHBOR_DELTA,
     },
-    path::PathData,
 };
 
 use crate::{
@@ -29,7 +29,10 @@ use crate::{
     civ::Place,
     column::ColumnGen,
     site::{Settlement, Site},
-    util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d, LOCALITY, CARDINAL_LOCALITY, NEIGHBORS},
+    util::{
+        seed_expan, FastNoise, RandomField, Sampler, StructureGen2d, CARDINAL_LOCALITY, LOCALITY,
+        NEIGHBORS,
+    },
     CONFIG,
 };
 use common::{
@@ -1777,15 +1780,18 @@ impl WorldSim {
         let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
             e.div_euclid(sz as i32)
         });
-        let get_chunk_centre = |chunk_pos: Vec2<i32>| chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-            e * sz as i32 + sz as i32 / 2
-        });
+        let get_chunk_centre = |chunk_pos: Vec2<i32>| {
+            chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                e * sz as i32 + sz as i32 / 2
+            })
+        };
 
         LOCALITY
             .iter()
             .filter_map(|ctrl| {
                 let chunk = self.get(chunk_pos + *ctrl)?;
-                let ctrl_pos = get_chunk_centre(chunk_pos + *ctrl).map(|e| e as f32) + chunk.path.offset;
+                let ctrl_pos =
+                    get_chunk_centre(chunk_pos + *ctrl).map(|e| e as f32) + chunk.path.offset;
 
                 let chunk_connections = chunk.path.neighbors.count_ones();
                 if chunk_connections == 0 {
@@ -1803,35 +1809,36 @@ impl WorldSim {
                         .unwrap();
                     let start_pos_chunk = chunk_pos + *ctrl + start_rpos;
                     (
-                        get_chunk_centre(start_pos_chunk).map(|e| e as f32) + self.get(start_pos_chunk)?.path.offset,
+                        get_chunk_centre(start_pos_chunk).map(|e| e as f32)
+                            + self.get(start_pos_chunk)?.path.offset,
                         Some(start_idx),
                     )
                 };
 
-                Some(NEIGHBORS
-                    .iter()
-                    .enumerate()
-                    .filter(move |(i, _)| chunk.path.neighbors & (1 << *i as u8) != 0)
-                    .filter_map(move |(i, end_rpos)| {
-                        let end_pos_chunk = chunk_pos + *ctrl + end_rpos;
-                        let end_pos = get_chunk_centre(end_pos_chunk).map(|e| e as f32) + self.get(end_pos_chunk)?.path.offset;
+                Some(
+                    NEIGHBORS
+                        .iter()
+                        .enumerate()
+                        .filter(move |(i, _)| chunk.path.neighbors & (1 << *i as u8) != 0)
+                        .filter_map(move |(i, end_rpos)| {
+                            let end_pos_chunk = chunk_pos + *ctrl + end_rpos;
+                            let end_pos = get_chunk_centre(end_pos_chunk).map(|e| e as f32)
+                                + self.get(end_pos_chunk)?.path.offset;
 
-                        let bez = QuadraticBezier2 {
-                            start: (start_pos + ctrl_pos) / 2.0,
-                            ctrl: ctrl_pos,
-                            end: (end_pos + ctrl_pos) / 2.0,
-                        };
-                        let nearest_interval = bez
-                            .binary_search_point_by_steps(
-                                wpos.map(|e| e as f32),
-                                6,
-                                0.01,
-                            )
-                            .0.clamped(0.0, 1.0);
-                        let pos = bez.evaluate(nearest_interval);
-                        let dist_sqrd = pos.distance_squared(wpos.map(|e| e as f32));
-                        Some((dist_sqrd, pos.map(|e| e.floor() as i32)))
-                    }))
+                            let bez = QuadraticBezier2 {
+                                start: (start_pos + ctrl_pos) / 2.0,
+                                ctrl: ctrl_pos,
+                                end: (end_pos + ctrl_pos) / 2.0,
+                            };
+                            let nearest_interval = bez
+                                .binary_search_point_by_steps(wpos.map(|e| e as f32), 6, 0.01)
+                                .0
+                                .clamped(0.0, 1.0);
+                            let pos = bez.evaluate(nearest_interval);
+                            let dist_sqrd = pos.distance_squared(wpos.map(|e| e as f32));
+                            Some((dist_sqrd, pos.map(|e| e.floor() as i32)))
+                        }),
+                )
             })
             .flatten()
             .min_by_key(|(dist_sqrd, _)| (dist_sqrd * 1024.0) as i32)
