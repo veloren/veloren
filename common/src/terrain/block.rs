@@ -111,6 +111,10 @@ impl BlockKind {
             BlockKind::Radish => true,
             BlockKind::Turnip => true,
             BlockKind::Coconut => true,
+            BlockKind::Window1 => true,
+            BlockKind::Window2 => true,
+            BlockKind::Window3 => true,
+            BlockKind::Window4 => true,
             BlockKind::Scarecrow => true,
             _ => false,
         }
@@ -230,6 +234,7 @@ impl BlockKind {
         match self {
             BlockKind::Tomato => 1.65,
             BlockKind::LargeCactus => 2.5,
+            BlockKind::Scarecrow => 3.0,
             _ => 1.0,
         }
     }
@@ -277,6 +282,16 @@ impl Block {
             Some(self.color.into())
         } else {
             None
+        }
+    }
+
+    pub fn get_ori(&self) -> Option<u8> {
+        match self.kind {
+            BlockKind::Window1
+            | BlockKind::Window2
+            | BlockKind::Window3
+            | BlockKind::Window4 => Some(self.color[0] & 0b111),
+            _ => None,
         }
     }
 

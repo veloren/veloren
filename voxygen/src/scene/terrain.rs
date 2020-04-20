@@ -262,16 +262,19 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                         let wpos = Vec3::from(pos * V::RECT_SIZE.map(|e: u32| e as i32))
                             + Vec3::new(x, y, z);
 
-                        let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
+                        let block = volume.get(wpos).ok().copied().unwrap_or(Block::empty());
 
-                        if let Some(cfg) = sprite_config_for(kind) {
+                        if let Some(cfg) = sprite_config_for(block.kind()) {
                             let seed = wpos.x as u64 * 3
                                 + wpos.y as u64 * 7
                                 + wpos.x as u64 * wpos.y as u64; // Awful PRNG
+                            let ori = block
+                                .get_ori()
+                                .unwrap_or((seed % 8) as u8);
 
                             let instance = SpriteInstance::new(
                                 Mat4::identity()
-                                    .rotated_z(f32::consts::PI * 0.5 * (seed % 4) as f32)
+                                    .rotated_z(f32::consts::PI * 0.25 * ori as f32)
                                     .translated_3d(
                                         wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
                                     ),
@@ -280,7 +283,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                             );
 
                             instances
-                                .entry((kind, seed as usize % cfg.variations))
+                                .entry((block.kind(), seed as usize % cfg.variations))
                                 .or_insert_with(|| Vec::new())
                                 .push(instance);
                         }
@@ -340,28 +343,28 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::Window1, 0),
                     make_model(
                         "voxygen.voxel.sprite.window.window-0",
-                        Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::new(-5.5, -5.5, 0.0),
                     ),
                 ),
                 (
                     (BlockKind::Window2, 0),
                     make_model(
                         "voxygen.voxel.sprite.window.window-1",
-                        Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::new(-5.5, -5.5, 0.0),
                     ),
                 ),
                 (
                     (BlockKind::Window3, 0),
                     make_model(
                         "voxygen.voxel.sprite.window.window-2",
-                        Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::new(-5.5, -5.5, 0.0),
                     ),
                 ),
                 (
                     (BlockKind::Window4, 0),
                     make_model(
                         "voxygen.voxel.sprite.window.window-3",
-                        Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::new(-5.5, -5.5, 0.0),
                     ),
                 ),
                 // Cacti
