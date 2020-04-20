@@ -3,7 +3,7 @@ use crate::{
     column::ColumnSample,
     sim::{SimChunk, WorldSim},
     site::BlockMask,
-    util::{attempt, Grid, RandomField, Sampler, StructureGen2d},
+    util::{attempt, DIRS, CARDINALS, Grid, RandomField, Sampler, StructureGen2d},
 };
 use common::{
     assets,
@@ -131,6 +131,19 @@ impl Dungeon {
             max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
         };
 
+        if area.contains_point(Vec2::zero()) {
+            let offs = Vec2::new(
+                rng.gen_range(-1.0, 1.0),
+                rng.gen_range(-1.0, 1.0),
+            ).try_normalized().unwrap_or(Vec2::unit_y()) * 16.0;
+            supplement.add_entity(EntityInfo::at(Vec3::new(
+                self.origin.x,
+                self.origin.y,
+                self.alt + 4,
+            ).map(|e| e as f32) + Vec3::from(offs))
+                .into_waypoint());
+        }
+
         let mut z = self.alt;
         for floor in &self.floors {
             z -= floor.total_depth();
@@ -139,24 +152,6 @@ impl Dungeon {
         }
     }
 }
-
-const CARDINALS: [Vec2<i32>; 4] = [
-    Vec2::new(0, 1),
-    Vec2::new(1, 0),
-    Vec2::new(0, -1),
-    Vec2::new(-1, 0),
-];
-
-const DIRS: [Vec2<i32>; 8] = [
-    Vec2::new(0, 1),
-    Vec2::new(1, 0),
-    Vec2::new(0, -1),
-    Vec2::new(-1, 0),
-    Vec2::new(1, 1),
-    Vec2::new(1, -1),
-    Vec2::new(-1, 1),
-    Vec2::new(-1, -1),
-];
 
 const TILE_SIZE: i32 = 13;
 
