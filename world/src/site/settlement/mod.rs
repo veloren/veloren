@@ -149,7 +149,7 @@ impl Settlement {
 
         this.place_farms(&mut ctx);
         this.place_town(&mut ctx);
-        this.place_paths(ctx.rng);
+        //this.place_paths(ctx.rng);
         this.place_buildings(&mut ctx);
 
         this
@@ -349,6 +349,10 @@ impl Settlement {
                             .tile_at(tile_pos)
                             .map(|t| t.contains(WayKind::Path))
                             .unwrap_or(true)
+                        || ctx.sim
+                            .and_then(|sim| sim.get_nearest_path(self.origin + house_pos))
+                            .map(|(dist, _)| dist < 28.0)
+                            .unwrap_or(false)
                     {
                         continue;
                     }

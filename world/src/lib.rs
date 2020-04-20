@@ -9,6 +9,7 @@ mod column;
 pub mod config;
 pub mod sim;
 pub mod site;
+pub mod layer;
 pub mod util;
 
 // Reexports
@@ -165,6 +166,9 @@ impl World {
             .sites
             .iter()
             .for_each(|site| site.apply_to(chunk_wpos2d, sample_get, &mut chunk));
+
+        // Apply paths
+        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk);
 
         let gen_entity_pos = || {
             let lpos2d = TerrainChunkSize::RECT_SIZE

@@ -59,7 +59,7 @@ impl Civs {
             }
         }
 
-        for _ in 0..100 {
+        for _ in 0..32 {
             attempt(5, || {
                 let loc = find_site_loc(&mut ctx, None)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {
@@ -498,7 +498,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
         } else {
             0.0
         };
-        Some((b_alt - a_alt).abs() / 2.5)
+        Some(1.0 + ((b_alt - a_alt).abs() / 2.5).powf(2.0) + water_cost)
     } else {
         None
     }
