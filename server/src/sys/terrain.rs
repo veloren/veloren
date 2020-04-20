@@ -9,7 +9,7 @@ use common::{
     state::TerrainChanges,
     terrain::TerrainGrid,
 };
-use rand::{seq::SliceRandom, Rng};
+use rand::Rng;
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
 use vek::*;
@@ -116,6 +116,7 @@ impl<'a> System<'a> for Sys {
                     &body_data.species[&species].generic
                 }
 
+                /*
                 const SPAWN_NPCS: &'static [fn() -> (
                     String,
                     comp::Body,
@@ -181,14 +182,14 @@ impl<'a> System<'a> for Sys {
                         )
                     }),
                 ];
-                let (name, mut body, main, mut alignment) = SPAWN_NPCS
+                let (name, mut body, main, alignment) = SPAWN_NPCS
                     .choose(&mut rand::thread_rng())
                     .expect("SPAWN_NPCS is nonempty")(
                 );
-                let mut stats = comp::Stats::new(name, body);
+                */
 
                 let mut body = entity.body;
-                let mut name = entity.name.unwrap_or("Unnamed".to_string());
+                let name = entity.name.unwrap_or("Unnamed".to_string());
                 let alignment = entity.alignment;
                 let main_tool = entity.main_tool;
 
