@@ -1118,18 +1118,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             5.0
         };
 
-        const PATH_WIDTH: f32 = 5.0;
-        let path_dist_factor = sim
-            .get_nearest_path(wpos)
-            .map(|(dist, _)| dist / PATH_WIDTH)
-            .unwrap_or(1.0)
-            .min(1.0);
-        let ground = Lerp::lerp(
-            sub_surface_color,
-            ground,
-            (path_dist_factor.max(0.8) - 0.8) / 0.2,
-        );
-        let alt = alt - if path_dist_factor < 0.8 { 1.0 } else { 0.0 };
+        let path = sim.get_nearest_path(wpos);
 
         Some(ColumnSample {
             alt,
@@ -1174,6 +1163,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             spawn_rate,
             stone_col,
             water_dist,
+            path,
 
             chunk: sim_chunk,
         })
@@ -1207,6 +1197,7 @@ pub struct ColumnSample<'a> {
     pub spawn_rate: f32,
     pub stone_col: Rgb<u8>,
     pub water_dist: Option<f32>,
+    pub path: Option<(f32, Vec2<i32>)>,
 
     pub chunk: &'a SimChunk,
 }
