@@ -43,8 +43,8 @@ void main() {
 	ambient_light *= point_shadow;
 	vec3 point_light = light_at(f_pos, f_norm);
 	light += point_light;
-	ambient_light *= min(f_light, ao);
-	diffuse_light *= min(f_light, ao);
+	ambient_light *= f_light * ao;
+	diffuse_light *= f_light * ao;
 	diffuse_light += point_light * ao;
 	vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
 
