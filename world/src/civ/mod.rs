@@ -3,7 +3,7 @@ mod econ;
 use crate::{
     sim::{SimChunk, WorldSim},
     site::{Dungeon, Settlement, Site as WorldSite},
-    util::{attempt, seed_expan},
+    util::{attempt, seed_expan, NEIGHBORS, CARDINALS},
 };
 use common::{
     astar::Astar,
@@ -18,24 +18,6 @@ use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use std::{fmt, hash::Hash, ops::Range};
 use vek::*;
-
-const CARDINALS: [Vec2<i32>; 4] = [
-    Vec2::new(1, 0),
-    Vec2::new(-1, 0),
-    Vec2::new(0, 1),
-    Vec2::new(0, -1),
-];
-
-const DIAGONALS: [Vec2<i32>; 8] = [
-    Vec2::new(1, 0),
-    Vec2::new(1, 1),
-    Vec2::new(-1, 0),
-    Vec2::new(-1, 1),
-    Vec2::new(0, 1),
-    Vec2::new(1, -1),
-    Vec2::new(0, -1),
-    Vec2::new(-1, -1),
-];
 
 const INITIAL_CIV_COUNT: usize = 32;
 
@@ -111,6 +93,30 @@ impl Civs {
 
         // Temporary!
         for track in this.tracks.iter() {
+            for locs in track.path.nodes().windows(3) {
+                let to_prev_idx = NEIGHBORS
+                    .iter()
+                    .enumerate()
+                    .find(|(_, dir)| **dir == locs[0] - locs[1])
+                    .expect("Track locations must be neighbors")
+                    .0;
+                let to_next_idx = NEIGHBORS
+                    .iter()
+                    .enumerate()
+                    .find(|(_, dir)| **dir == locs[2] - locs[1])
+                    .expect("Track locations must be neighbors")
+                    .0;
+
+                let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                chunk.path.neighbors |=
+                    (1 << (to_prev_idx as u8)) |
+                    (1 << (to_next_idx as u8));
+                chunk.path.offset = Vec2::new(
+                    ctx.rng.gen_range(-16.0, 16.0),
+                    ctx.rng.gen_range(-16.0, 16.0),
+                );
+            }
+
             for loc in track.path.iter() {
                 ctx.sim.get_mut(*loc).unwrap().place =
                     Some(this.civs.iter().next().unwrap().homeland);
@@ -158,7 +164,7 @@ impl Civs {
 
         // Place sites in world
         for site in this.sites.iter() {
-            let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
+            let wpos = site.center.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| e * sz as i32 + sz as i32 / 2);
 
             let world_site = match &site.kind {
                 SiteKind::Settlement => {
@@ -464,7 +470,7 @@ fn find_path(
     let heuristic = move |l: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
     let neighbors = |l: &Vec2<i32>| {
         let l = *l;
-        DIAGONALS
+        NEIGHBORS
             .iter()
             .filter(move |dir| walk_in_dir(sim, l, **dir).is_some())
             .map(move |dir| l + *dir)

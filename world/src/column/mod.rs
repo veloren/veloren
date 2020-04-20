@@ -141,7 +141,7 @@ fn river_spline_coeffs(
 /// curve"... hopefully this works out okay and gives us what we want (a
 /// river that extends outwards tangent to a quadratic curve, with width
 /// configured by distance along the line).
-fn quadratic_nearest_point(
+pub fn quadratic_nearest_point(
     spline: &Vec3<Vec2<f64>>,
     point: Vec2<f64>,
 ) -> Option<(f64, Vec2<f64>, f64)> {
@@ -1117,6 +1117,15 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             5.0
         };
+
+        const PATH_WIDTH: f32 = 5.0;
+        let path_dist_factor = sim.get_nearest_path(wpos).map(|(dist, _)| dist / PATH_WIDTH).unwrap_or(1.0).min(1.0);
+        let ground = Lerp::lerp(
+            sub_surface_color,
+            ground,
+            (path_dist_factor.max(0.8) - 0.8) / 0.2,
+        );
+        let alt = alt - if path_dist_factor < 0.8 { 1.0 } else { 0.0 };
 
         Some(ColumnSample {
             alt,
