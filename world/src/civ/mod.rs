@@ -3,7 +3,7 @@ mod econ;
 use crate::{
     sim::{SimChunk, WorldSim},
     site::{Dungeon, Settlement, Site as WorldSite},
-    util::{attempt, seed_expan, NEIGHBORS, CARDINALS},
+    util::{attempt, seed_expan, CARDINALS, NEIGHBORS},
 };
 use common::{
     astar::Astar,
@@ -108,9 +108,7 @@ impl Civs {
                     .0;
 
                 let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                chunk.path.neighbors |=
-                    (1 << (to_prev_idx as u8)) |
-                    (1 << (to_next_idx as u8));
+                chunk.path.neighbors |= (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
                 chunk.path.offset = Vec2::new(
                     ctx.rng.gen_range(-16.0, 16.0),
                     ctx.rng.gen_range(-16.0, 16.0),
@@ -164,7 +162,11 @@ impl Civs {
 
         // Place sites in world
         for site in this.sites.iter() {
-            let wpos = site.center.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| e * sz as i32 + sz as i32 / 2);
+            let wpos = site
+                .center
+                .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                    e * sz as i32 + sz as i32 / 2
+                });
 
             let world_site = match &site.kind {
                 SiteKind::Settlement => {
@@ -491,7 +493,11 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
     if loc_suitable_for_walking(sim, a) && loc_suitable_for_walking(sim, a + dir) {
         let a_alt = sim.get(a)?.alt;
         let b_alt = sim.get(a + dir)?.alt;
-        let water_cost = if sim.get(a + dir)?.river.near_water() { 25.0 } else { 0.0 };
+        let water_cost = if sim.get(a + dir)?.river.near_water() {
+            25.0
+        } else {
+            0.0
+        };
         Some((b_alt - a_alt).abs() / 2.5)
     } else {
         None

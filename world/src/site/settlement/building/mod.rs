@@ -50,10 +50,13 @@ impl<A: Archetype> Building<A> {
     pub fn sample(&self, pos: Vec3<i32>) -> Option<Block> {
         let rpos = pos - self.origin;
         self.skel
-            .sample_closest(rpos.into(), |dist, bound_offset, center_offset, ori, branch| {
-                self.archetype
-                    .draw(dist, bound_offset, center_offset, rpos.z, ori, branch)
-            })
+            .sample_closest(
+                rpos.into(),
+                |dist, bound_offset, center_offset, ori, branch| {
+                    self.archetype
+                        .draw(dist, bound_offset, center_offset, rpos.z, ori, branch)
+                },
+            )
             .finish()
     }
 }

@@ -1119,7 +1119,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         };
 
         const PATH_WIDTH: f32 = 5.0;
-        let path_dist_factor = sim.get_nearest_path(wpos).map(|(dist, _)| dist / PATH_WIDTH).unwrap_or(1.0).min(1.0);
+        let path_dist_factor = sim
+            .get_nearest_path(wpos)
+            .map(|(dist, _)| dist / PATH_WIDTH)
+            .unwrap_or(1.0)
+            .min(1.0);
         let ground = Lerp::lerp(
             sub_surface_color,
             ground,
