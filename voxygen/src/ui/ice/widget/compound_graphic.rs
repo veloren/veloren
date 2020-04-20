@@ -70,7 +70,7 @@ pub struct CompoundGraphic {
 }
 
 impl CompoundGraphic {
-    pub fn with_graphics(graphics: Vec<Graphic>) -> Self {
+    pub fn from_graphics(graphics: Vec<Graphic>) -> Self {
         let width = Length::Fill;
         let height = Length::Fill;
         let graphics_size = graphics
@@ -87,6 +87,14 @@ impl CompoundGraphic {
             fix_aspect_ratio: false,
             //color: Rgba::broadcast(255),
         }
+    }
+
+    pub fn padded_image(image: Handle, size: [u16; 2], pad: [u16; 4]) -> Self {
+        let image = Graphic::image(image, size, [pad[0], pad[1]]);
+        let mut this = Self::from_graphics(vec![image]);
+        this.graphics_size[0] += pad[2];
+        this.graphics_size[1] += pad[3];
+        this
     }
 
     pub fn width(mut self, width: Length) -> Self {
