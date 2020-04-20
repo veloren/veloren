@@ -56,6 +56,8 @@ pub enum BlockKind {
     Window3,
     Window4,
     Scarecrow,
+    StreetLamp,
+    Door,
 }
 
 impl BlockKind {
@@ -116,6 +118,8 @@ impl BlockKind {
             BlockKind::Window3 => true,
             BlockKind::Window4 => true,
             BlockKind::Scarecrow => true,
+            BlockKind::StreetLamp => true,
+            BlockKind::Door => false,
             _ => false,
         }
     }
@@ -176,6 +180,8 @@ impl BlockKind {
             BlockKind::Window3 => false,
             BlockKind::Window4 => false,
             BlockKind::Scarecrow => false,
+            BlockKind::StreetLamp => false,
+            BlockKind::Door => false,
             _ => true,
         }
     }
@@ -204,7 +210,7 @@ impl BlockKind {
             BlockKind::Mushroom => false,
             BlockKind::Liana => false,
             BlockKind::Chest => true,
-            BlockKind::Pumpkin => false,
+            BlockKind::Pumpkin => true,
             BlockKind::Welwitch => false,
             BlockKind::LingonBerry => false,
             BlockKind::LeafyPlant => false,
@@ -215,14 +221,16 @@ impl BlockKind {
             BlockKind::Corn => false,
             BlockKind::WheatYellow => false,
             BlockKind::WheatGreen => false,
-            BlockKind::Cabbage => false,
+            BlockKind::Cabbage => true,
             BlockKind::Flax => false,
-            BlockKind::Carrot => false,
+            BlockKind::Carrot => true,
             BlockKind::Tomato => true,
-            BlockKind::Radish => false,
-            BlockKind::Turnip => false,
-            BlockKind::Coconut => false,
+            BlockKind::Radish => true,
+            BlockKind::Turnip => true,
+            BlockKind::Coconut => true,
             BlockKind::Scarecrow => true,
+            BlockKind::StreetLamp => true,
+            BlockKind::Door => false,
             _ => true,
         }
     }
@@ -235,6 +243,14 @@ impl BlockKind {
             BlockKind::Tomato => 1.65,
             BlockKind::LargeCactus => 2.5,
             BlockKind::Scarecrow => 3.0,
+            BlockKind::Turnip => 0.36,
+            BlockKind::Pumpkin => 0.81,
+            BlockKind::Cabbage => 0.45,
+            BlockKind::Chest => 1.09,
+            BlockKind::StreetLamp => 3.0,
+            BlockKind::Carrot => 0.18,
+            BlockKind::Radish => 0.18,
+            BlockKind::Door => 3.0,
             _ => 1.0,
         }
     }

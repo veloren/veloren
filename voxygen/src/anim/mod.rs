@@ -81,7 +81,7 @@ impl SkeletonAttr {
             (Human, Female) => 0.75,
             (Elf, Male) => 0.85,
             (Elf, Female) => 0.8,
-            (Dwarf, Male) => 0.7,
+            (Dwarf, Male) => 0.1,
             (Dwarf, Female) => 0.65,
             (Undead, Male) => 0.8,
             (Undead, Female) => 0.75,
