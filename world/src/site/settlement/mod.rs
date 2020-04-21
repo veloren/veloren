@@ -566,7 +566,7 @@ impl Settlement {
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
                         Some(Plot::Town) => {
                             if let Some((path_dist, path_nearest)) = col_sample.path {
-                                let path_dir = (path_nearest - wpos2d).map(|e| e as f32).rotated_z(f32::consts::PI / 2.0).normalized();
+                                let path_dir = (path_nearest - wpos2d.map(|e| e as f32)).rotated_z(f32::consts::PI / 2.0).normalized();
                                 let is_lamp = if path_dir.x.abs() > path_dir.y.abs() {
                                     wpos2d.x as f32 % 20.0 / path_dir.dot(Vec2::unit_y()).abs() <= 1.0
                                 } else {

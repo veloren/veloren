@@ -221,7 +221,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
             sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
         ) * 12.0;
-        let wposf_turb = wposf + turb.map(|e| e as f64);
+        let wposf_turb = wposf;// + turb.map(|e| e as f64);
 
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
@@ -1197,7 +1197,7 @@ pub struct ColumnSample<'a> {
     pub spawn_rate: f32,
     pub stone_col: Rgb<u8>,
     pub water_dist: Option<f32>,
-    pub path: Option<(f32, Vec2<i32>)>,
+    pub path: Option<(f32, Vec2<f32>)>,
 
     pub chunk: &'a SimChunk,
 }

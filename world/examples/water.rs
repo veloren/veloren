@@ -24,8 +24,8 @@ fn main() {
 
     let world = World::generate(5284, WorldOpts {
         seed_elements: false,
-        world_file: sim::FileOpts::Load(map_path),
-        //world_file: sim::FileOpts::Save,
+        //world_file: sim::FileOpts::Load(map_path),
+        world_file: sim::FileOpts::Save,
         ..WorldOpts::default()
     });
 

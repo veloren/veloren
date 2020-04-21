@@ -3,6 +3,7 @@ use vek::*;
 use common::{
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
+    spiral::Spiral2d,
 };
 use crate::{
     column::ColumnSample,
@@ -42,7 +43,8 @@ pub fn apply_paths_to<'a>(
 
                 // Try to use the column at the centre of the path for sampling to make them
                 // flatter
-                let col = get_column(offs + path_nearest - wpos2d)
+                let col_pos = offs + path_nearest.map(|e| e.floor() as i32) - wpos2d;
+                let col = get_column(col_pos)
                     .unwrap_or(col_sample);
                 let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
                     (
