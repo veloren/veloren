@@ -270,7 +270,7 @@ fn attempt_login(
                 (server_address, server_port, false),
                 username,
                 Some(global_state.settings.graphics.view_distance),
-                { password },
+                password,
             ));
         }
     } else {
