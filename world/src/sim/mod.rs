@@ -70,8 +70,8 @@ use vek::*;
 // don't think we actually cast a chunk id to float, just coordinates... could
 // be wrong though!
 pub const WORLD_SIZE: Vec2<usize> = Vec2 {
-    x: 512 * 1,
-    y: 512 * 1,
+    x: 1024 * 1,
+    y: 1024 * 1,
 };
 
 /// A structure that holds cached noise values and cumulative distribution
@@ -1776,7 +1776,7 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<i32>)> {
+    pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>)> {
         let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
             e.div_euclid(sz as i32)
         });
@@ -1836,7 +1836,7 @@ impl WorldSim {
                                 .clamped(0.0, 1.0);
                             let pos = bez.evaluate(nearest_interval);
                             let dist_sqrd = pos.distance_squared(wpos.map(|e| e as f32));
-                            Some((dist_sqrd, pos.map(|e| e.floor() as i32)))
+                            Some((dist_sqrd, pos))
                         }),
                 )
             })
