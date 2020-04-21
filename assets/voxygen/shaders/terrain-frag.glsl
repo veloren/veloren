@@ -4,6 +4,7 @@
 #include <random.glsl>
 
 in vec3 f_pos;
+in vec3 f_chunk_pos;
 flat in uint f_pos_norm;
 in vec3 f_col;
 in float f_light;
@@ -48,7 +49,7 @@ void main() {
 	diffuse_light *= f_light * ao;
 	diffuse_light += point_light * ao;
 
-	vec3 col = f_col + hash(vec4(mod(floor(f_pos * 3.0), 100.0) * 10.0, 0)) * 0.02; // Small-scale noise
+	vec3 col = f_col + hash(vec4(floor(mod(f_chunk_pos, 100.0) * 3.0) * 10.0, 0)) * 0.02; // Small-scale noise
 	vec3 surf_color = illuminate(srgb_to_linear(col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
