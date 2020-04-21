@@ -565,10 +565,18 @@ impl Settlement {
                         Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
                         Some(Plot::Town) => {
-                            if (col_sample.path.map(|(dist, _)| dist > 7.0 && dist < 8.0).unwrap_or(false) && roll(0, 50) == 0)
-                                || roll(0, 2000) == 0
-                            {
-                                surface_block = Some(Block::new(BlockKind::StreetLamp, Rgb::white()));
+                            if let Some((path_dist, path_nearest)) = col_sample.path {
+                                let path_dir = (path_nearest - wpos2d).map(|e| e as f32).rotated_z(f32::consts::PI / 2.0).normalized();
+                                let is_lamp = if path_dir.x.abs() > path_dir.y.abs() {
+                                    wpos2d.x as f32 % 20.0 / path_dir.dot(Vec2::unit_y()).abs() <= 1.0
+                                } else {
+                                    wpos2d.y as f32 % 20.0 / path_dir.dot(Vec2::unit_x()).abs() <= 1.0
+                                };
+                                if (col_sample.path.map(|(dist, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
+                                    || roll(0, 2000) == 0
+                                {
+                                    surface_block = Some(Block::new(BlockKind::StreetLamp, Rgb::white()));
+                                }
                             }
 
                             Some(Rgb::new(100, 90, 75).map2(Rgb::iota(), |e: u8, i: i32| {
