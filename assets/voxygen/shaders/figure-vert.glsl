@@ -37,7 +37,7 @@ void main() {
 		combined_mat *
 		vec4(v_pos, 1)).xyz;
 
-	f_col = v_col;
+	f_col = srgb_to_linear(v_col);
 
 	// Calculate normal here rather than for each pixel in the fragment shader
 	f_norm = normalize((

@@ -1074,6 +1074,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     &assets::load_expect("voxygen.texture.waves"),
                     Some(gfx::texture::FilterMethod::Trilinear),
                     Some(gfx::texture::WrapMode::Tile),
+                    None,
                 )
                 .expect("Failed to create wave texture"),
             phantom: PhantomData,

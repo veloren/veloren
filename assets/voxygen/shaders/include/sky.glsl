@@ -7,7 +7,7 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.08, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0);
+const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0) * 3.0;
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
@@ -96,6 +96,7 @@ void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d,
     // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
     // Will be attenuated by k_d, which is assumed to carry any additional ambient occlusion information (e.g. about shadowing).
     float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
+    // float ambient_sides = 0.5 - 0.5 * abs(dot(-norm, sun_dir));
 
     emitted_light = k_a * (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light)) + PERSISTENT_AMBIANCE;
     // TODO: Add shadows.
@@ -111,7 +112,8 @@ void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d,
 	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
 }
 
-void get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
+// Returns computed maximum intensity.
+float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
 	const float SUN_AMBIANCE = 0.1;
 
 	float sun_light = get_sun_brightness(sun_dir);
@@ -129,7 +131,10 @@ void get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a
 
     // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
     // Will be attenuated by k_d, which is assumed to carry any additional ambient occlusion information (e.g. about shadowing).
-    float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
+    float ambient_sides = 0.0;
+    // float ambient_sides = 0.5 - 0.5 * min(abs(dot(-norm, sun_dir)), abs(dot(-norm, moon_dir)));
+    // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
+    // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
 
     emitted_light = k_a * (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light)) + PERSISTENT_AMBIANCE;
     // TODO: Add shadows.
@@ -143,6 +148,7 @@ void get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a
 		moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
 		PERSISTENT_AMBIANCE;
 	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
+    return 1.0;//sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 }
 
 
@@ -276,12 +282,28 @@ float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
 	return pow(clamp((max(fog, mist) - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
 }
 
+float rel_luminance(vec3 rgb)
+{
+    // https://en.wikipedia.org/wiki/Relative_luminance
+    const vec3 W = vec3(0.2126, 0.7152, 0.0722);
+    return dot(rgb, W);
+}
+
 /* vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
 	float avg_col = (color.r + color.g + color.b) / 3.0;
 	return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse + ambience);
 } */
-vec3 illuminate(vec3 emitted, vec3 reflected) {
+vec3 illuminate(/*vec3 max_light, */vec3 emitted, vec3 reflected) {
     const float gamma = /*0.5*/1.0;//1.0;
+    /* float light = length(emitted + reflected);
+    float color = srgb_to_linear(emitted + reflected);
+    float avg_col = (color.r + color.g + color.b) / 3.0;
+    return ((color - avg_col) * light + reflected * avg_col) * (emitted + reflected); */
+    // float max_intensity = vec3(1.0);
     vec3 color = emitted + reflected;
-    return srgb_to_linear(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
+    float lum = rel_luminance(color);
+
+    return color;//normalize(color) * lum / (1.0 + lum);
+    // float sum_col = color.r + color.g + color.b;
+    // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }

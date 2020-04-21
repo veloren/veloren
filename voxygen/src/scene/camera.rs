@@ -70,7 +70,7 @@ impl Camera {
     /// and position of the camera.
     pub fn compute_dependents(&mut self, terrain: &impl ReadVol) {
         let dist = {
-            /* let (start, end) = (
+            /*let (start, end) = (
                 self.focus
                     + (Vec3::new(
                         -f32::sin(self.ori.x) * f32::cos(self.ori.y),

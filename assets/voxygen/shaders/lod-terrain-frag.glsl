@@ -67,15 +67,17 @@ void main() {
     float shade_frac = sun_shade_frac + moon_shade_frac;
     // float brightness_denominator = (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light);
 
-    float alpha = 2.0;
+    float alpha = 1.0;//sqrt(2.0);
+    const float n2 = 1.01;
+    const float R_s = pow((1.0 - n2) / (1.0 + n2), 2);
 
 	vec3 emitted_light, reflected_light;
     // Use f_norm here for better shadows.
-    vec3 light_frac = light_reflection_factor(f_norm/*l_norm*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(1.0), alpha);
+    vec3 light_frac = light_reflection_factor(f_norm/*l_norm*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(/*1.0*/R_s), alpha);
 
 	// vec3 light, diffuse_light, ambient_light;
     // get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, (0.25 * shade_frac + 0.25 * light_frac) * f_col, 0.5 * shade_frac * f_col, 0.5 * shade_frac * /*vec3(1.0)*/f_col, 2.0, emitted_light, reflected_light);
-    get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, 1.0 * (0.5 * light_frac + vec3(0.5 * shade_frac)), vec3(shade_frac * 0.5), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(shade_frac * 0.5), alpha, emitted_light, reflected_light);
+    get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, 1.0 * (0.5 * light_frac + vec3(0.5 * shade_frac)), vec3(shade_frac * 1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(shade_frac * R_s), alpha, emitted_light, reflected_light);
     // emitted_light = vec3(1.0);
     // reflected_light = vec3(0.0);
 
@@ -96,9 +98,9 @@ void main() {
 	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
     // vec3 color = surf_color;
 
-	float mist_factor = max(1 - (f_pos.z + (texture(t_noise, f_pos.xy * 0.0005 + time_of_day.x * 0.0003).x - 0.5) * 128.0) / 400.0, 0.0);
-	//float mist_factor = f_norm.z * 2.0;
-	color = mix(color, vec3(1.0) * /*diffuse_light*/reflected_light, clamp(mist_factor * 0.00005 * distance(f_pos.xy, focus_pos.xy), 0, 0.3));
+	// float mist_factor = max(1 - (f_pos.z + (texture(t_noise, f_pos.xy * 0.0005 + time_of_day.x * 0.0003).x - 0.5) * 128.0) / 400.0, 0.0);
+	// //float mist_factor = f_norm.z * 2.0;
+	// color = mix(color, vec3(1.0) * /*diffuse_light*/reflected_light, clamp(mist_factor * 0.00005 * distance(f_pos.xy, focus_pos.xy), 0, 0.3));
     // color = surf_color;
 
 	tgt_color = vec4(color, 1.0);

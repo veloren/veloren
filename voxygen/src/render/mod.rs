@@ -31,7 +31,9 @@ pub use self::{
         },
         Globals, Light, Shadow,
     },
-    renderer::{LodColorFmt, Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt},
+    renderer::{
+        LodColorFmt, LodTextureFmt, Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt,
+    },
     texture::Texture,
 };
 pub use gfx::texture::{FilterMethod, WrapMode};

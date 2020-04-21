@@ -1312,10 +1312,16 @@ impl WorldSim {
         let mut map_config = MapConfig::default();
         map_config.lgain = 1.0;
         // Build a horizon map.
-        let scale_angle =
-            |angle: Alt| (angle.atan() * <Alt as FloatConst>::FRAC_2_PI() * 255.0).floor() as u8;
-        let scale_height =
-            |height: Alt| (height as Alt * 255.0 / self.max_height as Alt).floor() as u8;
+        let scale_angle = |angle: Alt| {
+            (/* 0.0.max( */angle /* ) */
+                .atan()
+                * <Alt as FloatConst>::FRAC_2_PI()
+                * 255.0)
+                .floor() as u8
+        };
+        let scale_height = |height: Alt| {
+            (/* 0.0.max( */height/*)*/ as Alt * 255.0 / self.max_height as Alt).floor() as u8
+        };
 
         let samples_data = {
             let column_sample = ColumnGen::new(self);
@@ -1340,6 +1346,7 @@ impl WorldSim {
                             32.0,
                         ));
                         sample.basement += sample.alt - alt;
+                        // sample.water_level = CONFIG.sea_level.max(sample.water_level);
 
                         Some(sample)
                     },

@@ -71,7 +71,8 @@ float shadow_at(vec3 wpos, vec3 wnorm) {
 	return min(shadow, 1.0);
 }
 
-void lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, inout vec3 emitted_light, inout vec3 reflected_light/*, out float shadow*/) {
+// Returns computed maximum intensity.
+float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, inout vec3 emitted_light, inout vec3 reflected_light/*, out float shadow*/) {
 	// shadow = 0.0;
     vec3 ambient_light = vec3(0.0);
 
@@ -122,4 +123,5 @@ void lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec3
     // shadow = shadow_at(wpos, wnorm);
     // float shadow = shadow_at(wpos, wnorm);
     emitted_light += k_a * ambient_light/* * shadow*/;// min(shadow, 1.0);
+    return 1.0;//ambient_light;
 }

@@ -1,34 +1,45 @@
 use crate::{
     render::{
         pipelines::lod_terrain::{Locals, Vertex},
-        Consts, FilterMethod, Globals, LodColorFmt, LodTerrainPipeline, Mesh, Model, Quad,
-        Renderer, Texture,
+        Consts, FilterMethod, Globals, LodColorFmt, LodTerrainPipeline, LodTextureFmt, Mesh, Model,
+        Quad, Renderer, Texture, WrapMode,
     },
     settings::Settings,
 };
 use client::Client;
-use common::spiral::Spiral2d;
+use common::{spiral::Spiral2d, util::srgba_to_linear};
 use vek::*;
 
 pub struct Lod {
     model: Option<(u32, Model<LodTerrainPipeline>)>,
     locals: Consts<Locals>,
     pub map: Texture<LodColorFmt>,
-    pub horizon: Texture<LodColorFmt>,
+    pub horizon: Texture<LodTextureFmt>,
     tgt_detail: u32,
 }
 
 impl Lod {
     pub fn new(renderer: &mut Renderer, client: &Client, settings: &Settings) -> Self {
+        let water_color = /*Rgba::new(0.2, 0.5, 1.0, 0.0)*/srgba_to_linear(Rgba::new(0.0, 0.25, 0.5, 0.0)/* * 0.5*/);
         Self {
             model: None,
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
             map: renderer
-                .create_texture(&client.lod_base, Some(FilterMethod::Bilinear), None)
+                .create_texture(
+                    &client.lod_base,
+                    Some(FilterMethod::Bilinear),
+                    Some(WrapMode::Border),
+                    Some([water_color.r, water_color.g, water_color.b, water_color.a].into()),
+                )
                 .expect("Failed to generate map texture"),
             horizon: renderer
-                .create_texture(&client.lod_horizon, Some(FilterMethod::Trilinear), None)
-                .expect("Failed to generate horizon texture"),
+                .create_texture(
+                    &client.lod_horizon,
+                    Some(FilterMethod::Trilinear),
+                    Some(WrapMode::Border),
+                    Some([0.0, 1.0, 0.0, 1.0].into()),
+                )
+                .expect("Failed to generate map texture"),
             tgt_detail: settings.graphics.lod_detail.max(100).min(2500),
         }
     }

@@ -65,6 +65,10 @@ pub struct Scene {
     terrain: Terrain<TerrainChunk>,
     pub lod: Lod,
     loaded_distance: f32,
+    /// x coordinate is sea level (minimum height for any land chunk), and y
+    /// coordinate is the maximum height above the mnimimum for any land
+    /// chunk.
+    map_bounds: Vec2<f32>,
     select_pos: Option<Vec3<i32>>,
 
     figure_mgr: FigureMgr,
@@ -110,6 +114,7 @@ impl Scene {
             terrain: Terrain::new(renderer),
             lod: Lod::new(renderer, client, settings),
             loaded_distance: 0.0,
+            map_bounds: client.world_map.2,
             select_pos: None,
 
             figure_mgr: FigureMgr::new(),
@@ -340,6 +345,7 @@ impl Scene {
                 cam_pos,
                 self.camera.get_focus_pos(),
                 self.loaded_distance,
+                self.map_bounds,
                 scene_data.state.get_time_of_day(),
                 scene_data.state.get_time(),
                 renderer.get_resolution(),

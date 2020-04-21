@@ -26,7 +26,7 @@ void main() {
 	f_pos.z *= min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0);
 	f_pos.z -= min(32.0, pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0));
 
-	f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
+	f_col = srgb_to_linear(vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0);
 
 	f_light = float(v_col_light & 0xFFu) / 255.0;
 

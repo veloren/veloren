@@ -41,8 +41,11 @@ pub type WinColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, Wi
 /// A handle to a window depth target.
 pub type WinDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, WinDepthFmt>;
 
-/// Represents the formt of LOD map color targets.
-pub type LodColorFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm); //[gfx::format::U8Norm; 4];
+/// Represents the format of LOD shadow targets.
+pub type LodTextureFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm); //[gfx::format::U8Norm; 4];
+
+/// Represents the format of LOD map color targets.
+pub type LodColorFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb); //[gfx::format::U8Norm; 4];
 
 /// A handle to a render color target as a resource.
 pub type TgtColorRes = gfx::handle::ShaderResourceView<
@@ -129,6 +132,7 @@ impl Renderer {
             &assets::load_expect("voxygen.texture.noise"),
             Some(gfx::texture::FilterMethod::Bilinear),
             Some(gfx::texture::WrapMode::Tile),
+            None,
         )?;
 
         Ok(Self {
@@ -424,13 +428,14 @@ impl Renderer {
         image: &image::DynamicImage,
         filter_method: Option<FilterMethod>,
         wrap_mode: Option<WrapMode>,
+        border: Option<gfx::texture::PackedColor>,
     ) -> Result<Texture<F>, RenderError>
     where
         F::Surface: gfx::format::TextureSurface,
         F::Channel: gfx::format::TextureChannel,
         <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
     {
-        Texture::new(&mut self.factory, image, filter_method, wrap_mode)
+        Texture::new(&mut self.factory, image, filter_method, wrap_mode, border)
     }
 
     /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the
@@ -533,7 +538,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         map: &Texture<LodColorFmt>,
-        horizon: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -570,7 +575,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         map: &Texture<LodColorFmt>,
-        horizon: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -606,7 +611,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         map: &Texture<LodColorFmt>,
-        horizon: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
         waves: &Texture,
     ) {
         self.encoder.draw(
@@ -644,7 +649,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         map: &Texture<LodColorFmt>,
-        horizon: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -678,7 +683,7 @@ impl Renderer {
         globals: &Consts<Globals>,
         locals: &Consts<lod_terrain::Locals>,
         map: &Texture<LodColorFmt>,
-        horizon: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {

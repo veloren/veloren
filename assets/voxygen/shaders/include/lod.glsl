@@ -55,7 +55,7 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
 }
 
 float alt_at(vec2 pos) {
-	return texture/*textureBicubic*/(t_map, pos_to_uv(pos)).a * (/*1300.0*/1278.7266845703125) + 140.0;
+	return texture/*textureBicubic*/(t_map, pos_to_uv(pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z;
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
 	return 0.0
@@ -67,7 +67,7 @@ float alt_at(vec2 pos) {
 float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec3 light_dir) {
     // vec3 sun_dir = get_sun_dir(time_of_day);
     const float PI_2 = 3.1415926535897932384626433832795 / 2.0;
-    const float MIN_LIGHT = 0.115/*0.0*/;
+    const float MIN_LIGHT = 0.0;//0.115/*0.0*/;
 
     // return 1.0;
 /*
@@ -116,8 +116,14 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec
     vec2 f_horizon = mix(f_horizons.rg, f_horizons.ba, bvec2(light_dir.x < 0.0));
     // vec2 f_horizon = mix(f_horizons.ba, f_horizons.rg, clamp(light_dir.x * 10000.0, 0.0, 1.0));
     // f_horizon = mix(f_horizons.ba, f_horizons.rg, bvec2(lessThan(light_dir.xx, vec2(0.0))));
+    /* if (f_horizon.x <= 0) {
+        return 1.0;
+    } */
     float angle = tan(f_horizon.x * PI_2);
-    float height = f_horizon.y * /*1300.0*/1278.7266845703125 + 140.0;
+    /* if (angle <= 0.0001) {
+        return 1.0;
+    } */
+    float height = f_horizon.y * /*1300.0*//*1278.7266845703125*/view_distance.w + view_distance.z;
     const float w = 0.1;
     float deltah = height - alt;
     //if (deltah < 0.0001/* || angle < 0.0001 || abs(light_dir.x) < 0.0001*/) {
@@ -125,11 +131,11 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec
     /*} else */{
         float lighta = /*max*/(-light_dir.z/*, 0.0*/) / max(abs(light_dir.x), 0.0001);
         // NOTE: Ideally, deltah <= 0.0 is a sign we have an oblique horizon angle.
-        float deltax = max(deltah, 0.0) / max(angle, 0.0001);
+        float deltax = deltah / max(angle, 0.0001)/*angle*/;
         float lighty = lighta * deltax;
         float deltay = lighty - deltah + max(pos.z - alt, 0.0);
         // NOTE: the "real" deltah should always be >= 0, so we know we're only handling the 0 case with max.
-        float s = max(min(max(deltay, 0.0) / max(deltax, 0.0001) / w, 1.0), 0.0);
+        float s = mix(max(min(max(deltay, 0.0) / max(deltax, 0.0001) / w, 1.0), 0.0), 1.0, deltah <= 0);
         return max(/*0.2 + 0.8 * */(s * s * (3.0 - 2.0 * s)), MIN_LIGHT);
         /* if (lighta >= angle) {
             return 1.0;

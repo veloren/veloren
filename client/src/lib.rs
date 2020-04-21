@@ -81,7 +81,12 @@ pub struct Client {
     /// this can be constructed dynamically by combining the layers of world
     /// map data (e.g. with shadow map data or river data), but at present
     /// we opt not to do this.
-    pub world_map: (Arc<DynamicImage>, Vec2<u32>),
+    ///
+    /// The second element of the tuple is the world size (as a 2D grid,
+    /// in chunks), and the third element holds the minimum height for any land
+    /// chunk (i.e. the sea level) in its x coordinate, and the maximum land
+    /// height above this height (i.e. the max height) in its y coordinate.
+    pub world_map: (Arc<DynamicImage>, Vec2<u32>, Vec2<f32>),
     pub player_list: HashMap<u64, String>,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
@@ -256,6 +261,11 @@ impl Client {
                         .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
                         .collect::<Vec<_>>();
                     let lod_horizon = make_raw(&horizons)?;
+                    // TODO: Get sea_level from server.
+                    let map_bounds = Vec2::new(
+                        /* map_config.focus.z */ world::CONFIG.sea_level,
+                        /* map_config.gain */ max_height,
+                    );
                     log::debug!("Done preparing image...");
 
                     (
@@ -264,7 +274,7 @@ impl Client {
                         server_info,
                         lod_base,
                         lod_horizon,
-                        (world_map, map_size),
+                        (world_map, map_size, map_bounds),
                     )
                 },
                 ServerMsg::TooManyPlayers => return Err(Error::TooManyPlayers),

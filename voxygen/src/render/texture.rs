@@ -31,6 +31,7 @@ where
         image: &DynamicImage,
         filter_method: Option<gfx::texture::FilterMethod>,
         wrap_mode: Option<gfx::texture::WrapMode>,
+        border: Option<gfx::texture::PackedColor>,
     ) -> Result<Self, RenderError> {
         let (tex, srv) = factory
             .create_texture_immutable_u8::<F>(
@@ -44,13 +45,15 @@ where
             )
             .map_err(|err| RenderError::CombinedError(err))?;
 
+        let mut sampler_info = gfx::texture::SamplerInfo::new(
+            filter_method.unwrap_or(gfx::texture::FilterMethod::Scale),
+            wrap_mode.unwrap_or(gfx::texture::WrapMode::Clamp),
+        );
+        sampler_info.border = border.unwrap_or([0.0, 0.0, 0.0, 1.0].into());
         Ok(Self {
             tex,
             srv,
-            sampler: factory.create_sampler(gfx::texture::SamplerInfo::new(
-                filter_method.unwrap_or(gfx::texture::FilterMethod::Scale),
-                wrap_mode.unwrap_or(gfx::texture::WrapMode::Clamp),
-            )),
+            sampler: factory.create_sampler(sampler_info),
         })
     }
 

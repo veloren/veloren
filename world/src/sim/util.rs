@@ -416,7 +416,7 @@ pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
                 let wposi =
                     bounds.min + Vec2::new((posi % map_size.x) as i32, (posi / map_size.x) as i32);
                 if wposi.reduce_partial_min() < 0
-                    || wposi.y as usize >= WORLD_SIZE.x
+                    || wposi.x as usize >= WORLD_SIZE.x
                     || wposi.y as usize >= WORLD_SIZE.y
                 {
                     return (to_angle(F::zero()), to_height(F::zero()));

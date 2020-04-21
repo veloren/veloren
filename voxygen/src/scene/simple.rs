@@ -62,6 +62,7 @@ pub struct Scene {
     skybox: Skybox,
     postprocess: PostProcess,
     lod: Lod,
+    map_bounds: Vec2<f32>,
     backdrop: Option<(Model<FigurePipeline>, FigureState<FixtureSkeleton>)>,
 
     figure_model_cache: FigureModelCache,
@@ -110,6 +111,7 @@ impl Scene {
                     .unwrap(),
             },
             lod: Lod::new(renderer, client, settings),
+            map_bounds: client.world_map.2,
 
             figure_model_cache: FigureModelCache::new(),
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
@@ -166,6 +168,7 @@ impl Scene {
             cam_pos,
         } = self.camera.dependents();
         const VD: f32 = 115.0; // View Distance
+        // const MAP_BOUNDS: Vec2<f32> = Vec2::new(140.0, 2048.0);
         const TIME: f64 = 43200.0; // 12 hours*3600 seconds
         if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
             view_mat,
@@ -173,6 +176,7 @@ impl Scene {
             cam_pos,
             self.camera.get_focus_pos(),
             VD,
+            self.map_bounds, //MAP_BOUNDS,
             TIME,
             scene_data.time,
             renderer.get_resolution(),

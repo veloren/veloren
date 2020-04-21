@@ -49,18 +49,23 @@ void main() {
     float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
     vec3 surf_color = /*srgb_to_linear*/(f_col);
+    float alpha = 1.0;
+    const float n2 = 1.01;
+    const float R_s = pow((1.0 - n2) / (1.0 + n2), 2);
     vec3 k_a = vec3(1.0);
-    vec3 k_d = vec3(0.5);
-    vec3 k_s = vec3(0.5);
-    float alpha = 2.0;
+    vec3 k_d = vec3(1.0);
+    vec3 k_s = vec3(R_s);
+    float max_light = 0.0;
 
     vec3 emitted_light, reflected_light;
     float point_shadow = shadow_at(f_pos, f_norm);
-    vec3 light_frac = light_reflection_factor(f_norm, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(1.0), alpha);
+    vec3 light_frac = /*vec3(1.0)*/light_reflection_factor(f_norm, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
 
-    get_sun_diffuse(f_norm, time_of_day.x, view_dir, k_a * f_light * point_shadow * (shade_frac * 0.5 + light_frac * 0.5), k_d * f_light * point_shadow * shade_frac, k_s * f_light * point_shadow * shade_frac, alpha, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, view_dir, k_a * (shade_frac * 0.5 + light_frac * 0.5), k_d * f_light * point_shadow * shade_frac, k_s * f_light * point_shadow * shade_frac, alpha, emitted_light, reflected_light);
 
-    lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    emitted_light *= f_light * point_shadow;
+
+    max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
     reflected_light += point_light; */
