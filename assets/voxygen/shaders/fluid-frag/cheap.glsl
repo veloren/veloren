@@ -51,8 +51,8 @@ void main() {
     const float R_s = pow((1.0 - n2) / (1.0 + n2), 2);
 
     vec3 k_a = vec3(1.0);
-    vec3 k_d = vec3(1.0) * water_color;
-    vec3 k_s = vec3(R_s) * water_color;
+    vec3 k_d = vec3(1.0);
+    vec3 k_s = vec3(R_s);
 
     vec3 emitted_light, reflected_light;
 
@@ -65,7 +65,8 @@ void main() {
     vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
 
 	// vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
-    get_sun_diffuse2(f_norm, /*time_of_day.x*/sun_dir, moon_dir, /*-cam_to_frag*/view_dir, k_a * (shade_frac * 0.5 + light_frac * 0.5), vec3(0.0), k_s * f_light * point_shadow * shade_frac, alpha, emitted_light, reflected_light);
+    get_sun_diffuse2(f_norm, /*time_of_day.x*/sun_dir, moon_dir, /*-cam_to_frag*/view_dir, k_a * (shade_frac * 0.5 + light_frac * 0.5), vec3(0.0), k_s, alpha, emitted_light, reflected_light);
+    reflected_light *= f_light * point_shadow * shade_frac;
     emitted_light *= f_light * point_shadow;
 	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
 	// diffuse_light *= f_light * point_shadow;
@@ -82,14 +83,15 @@ void main() {
     reflected_light += point_light; */
 
     vec3 diffuse_light_point = vec3(0.0);
-    lights_at(f_pos, f_norm, view_dir, k_a, vec3(1.0), vec3(0.0), alpha, emitted_light, diffuse_light_point);
+    lights_at(f_pos, f_norm, view_dir, k_a, vec3(1.0), vec3(k_s), alpha, emitted_light, diffuse_light_point);
 
     vec3 dump_light = vec3(0.0);
     vec3 specular_light_point = vec3(0.0);
-    lights_at(f_pos, f_norm, view_dir, vec3(0.0), vec3(0.0), vec3(1.0), alpha, dump_light, specular_light_point);
+    lights_at(f_pos, f_norm, view_dir, vec3(0.0), vec3(0.0), /*vec3(1.0)*/k_s, alpha, dump_light, specular_light_point);
+    diffuse_light_point -= specular_light_point;
 
     float reflected_light_point = length(diffuse_light_point) + f_light * point_shadow;
-    reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + k_s * specular_light_point;
+    reflected_light += water_color * k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + k_s * specular_light_point;
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

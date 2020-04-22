@@ -77,8 +77,9 @@ void main() {
 
 	// vec3 light, diffuse_light, ambient_light;
     // get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, (0.25 * shade_frac + 0.25 * light_frac) * f_col, 0.5 * shade_frac * f_col, 0.5 * shade_frac * /*vec3(1.0)*/f_col, 2.0, emitted_light, reflected_light);
-    get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, 1.0 * (0.5 * light_frac + vec3(0.5 * shade_frac)), vec3(shade_frac * 1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(shade_frac * R_s), alpha, emitted_light, reflected_light);
+    get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, 1.0 * (0.5 * light_frac + vec3(0.5 * shade_frac)), vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, emitted_light, reflected_light);
     // emitted_light = vec3(1.0);
+    reflected_light *= shade_frac;
     // reflected_light = vec3(0.0);
 
     // emitted_light += 0.5 * vec3(SUN_AMBIANCE * sun_shade_frac * sun_light + moon_shade_frac * moon_light) * f_col * (ambient_sides + 1.0);

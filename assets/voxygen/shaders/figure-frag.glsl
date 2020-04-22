@@ -67,7 +67,8 @@ void main() {
 	// vec3 point_light = light_at(f_pos, f_norm);
 	// vec3 light, diffuse_light, ambient_light;
     //get_sun_diffuse(f_norm, time_of_day.x, view_dir, k_a * point_shadow * (shade_frac * 0.5 + light_frac * 0.5), k_d * point_shadow * shade_frac, k_s * point_shadow * shade_frac, alpha, emitted_light, reflected_light);
-    get_sun_diffuse2(f_norm, sun_dir, moon_dir, view_dir, k_a * (shade_frac * 0.5 + light_frac * 0.5), k_d * point_shadow * shade_frac, k_s * point_shadow * shade_frac, alpha, emitted_light, reflected_light);
+    get_sun_diffuse2(f_norm, sun_dir, moon_dir, view_dir, k_a * (shade_frac * 0.5 + light_frac * 0.5), k_d, k_s, alpha, emitted_light, reflected_light);
+    reflected_light *= point_shadow * shade_frac;
     emitted_light *= point_shadow;
 
     lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
