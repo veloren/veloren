@@ -91,36 +91,6 @@ impl Civs {
             this.tick(&mut ctx, 1.0);
         }
 
-        // Temporary!
-        for track in this.tracks.iter() {
-            for locs in track.path.nodes().windows(3) {
-                let to_prev_idx = NEIGHBORS
-                    .iter()
-                    .enumerate()
-                    .find(|(_, dir)| **dir == locs[0] - locs[1])
-                    .expect("Track locations must be neighbors")
-                    .0;
-                let to_next_idx = NEIGHBORS
-                    .iter()
-                    .enumerate()
-                    .find(|(_, dir)| **dir == locs[2] - locs[1])
-                    .expect("Track locations must be neighbors")
-                    .0;
-
-                let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                chunk.path.neighbors |= (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-                chunk.path.offset = Vec2::new(
-                    ctx.rng.gen_range(-16.0, 16.0),
-                    ctx.rng.gen_range(-16.0, 16.0),
-                );
-            }
-
-            for loc in track.path.iter() {
-                ctx.sim.get_mut(*loc).unwrap().place =
-                    Some(this.civs.iter().next().unwrap().homeland);
-            }
-        }
-
         // Flatten ground around sites
         for site in this.sites.iter() {
             if let SiteKind::Settlement = &site.kind {
@@ -380,6 +350,30 @@ impl Civs {
                     .filter(|(_, route_cost)| *route_cost < cost * 3.0)
                     .is_none()
                 {
+                    // Write the track to the world as a path
+                    for locs in path.nodes().windows(3) {
+                        let to_prev_idx = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == locs[0] - locs[1])
+                            .expect("Track locations must be neighbors")
+                            .0;
+                        let to_next_idx = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == locs[2] - locs[1])
+                            .expect("Track locations must be neighbors")
+                            .0;
+
+                        let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                        chunk.path.neighbors |= (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+                        chunk.path.offset = Vec2::new(
+                            ctx.rng.gen_range(-16.0, 16.0),
+                            ctx.rng.gen_range(-16.0, 16.0),
+                        );
+                    }
+
+                    // Take note of the track
                     let track = self.tracks.insert(Track { cost, path });
                     self.track_map
                         .entry(site)
@@ -491,14 +485,21 @@ fn find_path(
 /// (TODO: by whom?)
 fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
     if loc_suitable_for_walking(sim, a) && loc_suitable_for_walking(sim, a + dir) {
-        let a_alt = sim.get(a)?.alt;
-        let b_alt = sim.get(a + dir)?.alt;
-        let water_cost = if sim.get(a + dir)?.river.near_water() {
-            25.0
+        let a_chunk = sim.get(a)?;
+        let b_chunk = sim.get(a + dir)?;
+
+        let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 2.5).powf(2.0);
+        let water_cost = if b_chunk.river.near_water() {
+            50.0
         } else {
             0.0
         };
-        Some(1.0 + ((b_alt - a_alt).abs() / 2.5).powf(2.0) + water_cost)
+        let wild_cost = if b_chunk.path.is_path() {
+            0.0 // Traversing existing paths has no additional cost!
+        } else {
+            2.0
+        };
+        Some(1.0 + hill_cost + water_cost + wild_cost)
     } else {
         None
     }
