@@ -7,6 +7,12 @@ pub struct PathData {
     pub neighbors: u8, // One bit for each neighbor
 }
 
+impl PathData {
+    pub fn is_path(&self) -> bool {
+        self.neighbors != 0
+    }
+}
+
 impl Default for PathData {
     fn default() -> Self {
         Self {

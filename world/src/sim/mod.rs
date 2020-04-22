@@ -1831,7 +1831,7 @@ impl WorldSim {
                                 end: (end_pos + ctrl_pos) / 2.0,
                             };
                             let nearest_interval = bez
-                                .binary_search_point_by_steps(wpos.map(|e| e as f32), 6, 0.01)
+                                .binary_search_point_by_steps(wpos.map(|e| e as f32), 16, 0.001)
                                 .0
                                 .clamped(0.0, 1.0);
                             let pos = bez.evaluate(nearest_interval);
