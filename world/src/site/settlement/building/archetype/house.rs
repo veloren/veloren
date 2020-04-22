@@ -309,6 +309,30 @@ impl Archetype for House {
                 // Wall
 
                 if dist == width && profile.y < roof_level {
+                    // Doors
+                    if center_offset.x > 0 && center_offset.y > 0
+                        && bound_offset.x > 0 && bound_offset.x < width
+                        && profile.y < ceil_height
+                        && branch.attr.storey_fill.has_lower()
+                    {
+                        return Some(if (bound_offset.x == (width - 1) / 2 || bound_offset.x == (width - 1) / 2 + 1) && profile.y <= foundation_height + 3 {
+                            if profile.y == foundation_height + 1 {
+                                BlockMask::new(
+                                    Block::new(BlockKind::Door, if bound_offset.x == (width - 1) / 2 {
+                                        make_meta(ori.flip())
+                                    } else {
+                                        make_meta(ori.flip()) + Rgb::new(4, 0, 0)
+                                    }),
+                                    structural_layer,
+                                )
+                            } else {
+                                empty.with_priority(structural_layer)
+                            }
+                        } else {
+                            wall
+                        });
+                    }
+
                     if bound_offset.x == bound_offset.y || profile.y == ceil_height {
                         // Support beams
                         return Some(log);
