@@ -32,7 +32,7 @@ vec2 cloud_at(vec3 pos) {
 	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 200.0, 0.0) * CLOUD_DENSITY;
 
 	const float SHADE_GRADIENT = 1.5 / (CLOUD_AVG_HEIGHT - CLOUD_HEIGHT_MIN);
-	float shade = ((pos.z - CLOUD_AVG_HEIGHT) / (CLOUD_HEIGHT_MAX - CLOUD_HEIGHT_MIN)) * 2.5 + 0.7;
+	float shade = ((pos.z - CLOUD_AVG_HEIGHT) / (CLOUD_HEIGHT_MAX - CLOUD_HEIGHT_MIN)) * 10.5 + 0.7;
 
 	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 5000));
 }

@@ -147,7 +147,7 @@ impl MapConfig {
                 let pos =
                     (focus_rect + Vec2::new(i as f64, j as f64) * scale).map(|e: f64| e as i32);
 
-                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind, place) =
+                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind, is_path) =
                     sampler
                         .get(pos)
                         .map(|sample| {
@@ -159,7 +159,7 @@ impl MapConfig {
                                 sample.temp,
                                 sample.downhill,
                                 sample.river.river_kind,
-                                sample.place,
+                                sample.path.is_path(),
                             )
                         })
                         .unwrap_or((
@@ -170,7 +170,7 @@ impl MapConfig {
                             0.0,
                             None,
                             None,
-                            None,
+                            false,
                         ));
                 let humidity = humidity.min(1.0).max(0.0);
                 let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
@@ -297,8 +297,8 @@ impl MapConfig {
                     ),
                 };
 
-                let rgba = if let Some(place) = place {
-                    (((place.id() * 64) % 256) as u8, 0, 0, 0)
+                let rgba = if is_path {
+                    (0x20, 0x19, 0x13, 255)
                 } else {
                     rgba
                 };
