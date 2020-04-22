@@ -126,13 +126,51 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
     //     (4 * AbsDot(wi, wh) *
     //      std::max(AbsCosTheta(wi), AbsCosTheta(wo))) *
     //      SchlickFresnel(Dot(wi, wh));
-    return mix(diffuse + specular, vec3(0.0), bvec3(all(equal(light_dir, dir))));
+    return mix(/*diffuse*//* + specular*/diffuse + specular, vec3(0.0), bvec3(all(equal(light_dir, dir))));
 }
 
 // Phong reflection.
 //
 // Note: norm, dir, light_dir must all be normalizd.
 vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3 k_s, float alpha) {
+    // TODO: These are supposed to be the differential changes in the point location p, in tangent space.
+    // That is, assuming we can parameterize a 2D surface by some function p : R² → R³, mapping from
+    // points in a plane to 3D points on the surface, we can define
+    // ∂p(u,v)/∂u and ∂p(u,v)/∂v representing the changes in the pont location as we move along these
+    // coordinates.
+    //
+    // Then we can define the normal at a point, n(u,v) = ∂p(u,v)/∂u × ∂p(u,v)/∂v.
+    //
+    // Additionally, we can define the change in *normals* at each point using the
+    // Weingarten equations (see http://www.pbr-book.org/3ed-2018/Shapes/Spheres.html):
+    //
+    // ∂n/∂u = (fF - eG) / (EG - F²) ∂p/∂u + (eF - fE) / (EG - F²) ∂p/∂v
+    // ∂n/∂v = (gF - fG) / (EG - F²) ∂p/∂u + (fF - gE) / (EG - F²) ∂p/∂v
+    //
+    // where
+    //
+    // E = |∂p/∂u ⋅ ∂p/∂u|
+    // F = ∂p/∂u ⋅ ∂p/∂u
+    // G = |∂p/∂v ⋅ ∂p/∂v|
+    //
+    // and
+    //
+    // e = n ⋅ ∂²p/∂u²
+    // f = n ⋅ ∂²p/(∂u∂v)
+    // g = n ⋅ ∂²p/∂v²
+    //
+    // For planes (see http://www.pbr-book.org/3ed-2018/Shapes/Triangle_Meshes.html) we have
+    // e = f = g = 0 (since the plane has no curvature of any sort) so we get:
+    //
+    // ∂n/∂u = (0, 0, 0)
+    // ∂n/∂v = (0, 0, 0)
+    //
+    // To find ∂p/∂u and ∂p/∂v, we first write p and u parametrically:
+    //    p(u, v) = p0 + u ∂p/∂u + v ∂p/∂v
+    //
+    // ( u₀ - u₂    v₀ - v₂
+    //   u₁ - u₂    v₁ - v₂ )
+    //
     // Basis: plane norm = norm = (0, 0, 1), x vector = any orthgonal vector on the plane.
     // vec3 w_i =
     // vec3 w_i = vec3(view_mat * vec4(-light_dir, 1.0));

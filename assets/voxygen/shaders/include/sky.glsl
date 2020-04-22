@@ -37,7 +37,7 @@ vec3 get_moon_dir(float time_of_day) {
 	return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 }
 
-const float PERSISTENT_AMBIANCE = 0.025; // 0.1; // 0.025; // 0.1;
+const float PERSISTENT_AMBIANCE = 0.0125; // 0.1;// 0.025; // 0.1;
 
 float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0) * 0.9;
@@ -75,7 +75,7 @@ vec3 get_moon_color(vec3 moon_dir) {
 // anything interesting here.
 // void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion
 void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-	const float SUN_AMBIANCE = 0.1;
+	const float SUN_AMBIANCE = 0.1 / 3.0;
 
 	vec3 sun_dir = get_sun_dir(time_of_day);
 	vec3 moon_dir = get_moon_dir(time_of_day);
@@ -114,7 +114,8 @@ void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d,
 
 // Returns computed maximum intensity.
 float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-	const float SUN_AMBIANCE = 0.1;
+	const float SUN_AMBIANCE = 0.1 / 3.0;
+	const float MOON_AMBIANCE = 0.1;
 
 	float sun_light = get_sun_brightness(sun_dir);
 	float moon_light = get_moon_brightness(moon_dir);
@@ -131,12 +132,13 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
 
     // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
     // Will be attenuated by k_d, which is assumed to carry any additional ambient occlusion information (e.g. about shadowing).
-    float ambient_sides = 0.0;
+    // float ambient_sides = 0.0;
     // float ambient_sides = 0.5 - 0.5 * min(abs(dot(-norm, sun_dir)), abs(dot(-norm, moon_dir)));
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
 
-    emitted_light = k_a * (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light)) + PERSISTENT_AMBIANCE;
+    emitted_light = k_a * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
+
     // TODO: Add shadows.
     reflected_light =
         sun_chroma * light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) +
@@ -303,7 +305,20 @@ vec3 illuminate(/*vec3 max_light, */vec3 emitted, vec3 reflected) {
     vec3 color = emitted + reflected;
     float lum = rel_luminance(color);
 
-    return color;//normalize(color) * lum / (1.0 + lum);
+    // Tone mapped value.
+    // vec3 T = /*color*//*lum*/color;//normalize(color) * lum / (1.0 + lum);
+    float alpha = 2.0;// 2.0;
+    float T = 1.0 - exp(-alpha * lum);//lum / (1.0 + lum);
+    // float T = lum;
+
+    // Heuristic desaturation
+    // float s = 0.5;
+    vec3 col_adjusted = (color / lum);
+    // vec3 c = pow(color / lum, vec3(s)) * T;
+    // vec3 c = sqrt(col_adjusted) * T;
+    vec3 c = col_adjusted * col_adjusted * T;
+
+    return c;
     // float sum_col = color.r + color.g + color.b;
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }

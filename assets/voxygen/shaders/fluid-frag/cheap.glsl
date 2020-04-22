@@ -46,7 +46,7 @@ void main() {
     float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
     float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
-    const float alpha = 0.255 / 4.0 / sqrt(2.0);
+    const float alpha = 0.255/* / 4.0 / sqrt(2.0)*/;
     const float n2 = 1.3325;
     const float R_s = pow((1.0 - n2) / (1.0 + n2), 2);
 
