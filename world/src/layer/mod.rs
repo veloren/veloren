@@ -48,27 +48,22 @@ pub fn apply_paths_to<'a>(
                 let col10 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 0));
                 let col01 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(0, 1));
                 let col11 = get_column(col_pos.map(|e| e.floor() as i32) + Vec2::new(1, 1));
-                let riverless_alt = match (col00, col10, col01, col11) {
+                let col_attr = |col: &ColumnSample| Vec3::new(col.riverless_alt, col.alt, col.water_dist.unwrap_or(1000.0));
+                let [riverless_alt, alt, water_dist] = match (col00, col10, col01, col11) {
                     (Some(col00), Some(col10), Some(col01), Some(col11)) => Lerp::lerp(
-                        Lerp::lerp(col00.riverless_alt, col10.riverless_alt, path_nearest.x.fract()),
-                        Lerp::lerp(col01.riverless_alt, col11.riverless_alt, path_nearest.x.fract()),
+                        Lerp::lerp(col_attr(col00), col_attr(col10), path_nearest.x.fract()),
+                        Lerp::lerp(col_attr(col01), col_attr(col11), path_nearest.x.fract()),
                         path_nearest.y.fract(),
                     ),
-                    _ => col_sample.riverless_alt,
-                };
-                let col = get_column(col_pos.map(|e| e.floor() as i32))
-                    .unwrap_or(col_sample);
-                let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
-                    (
-                        ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
-                        ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
-                            * (riverless_alt + 5.0 - col.alt).max(0.0)
-                            * 1.75
-                            + 3.0) as i32,
-                    )
-                } else {
-                    (0.0, 3)
-                };
+                    _ => col_attr(col_sample),
+                }.into_array();
+                let (bridge_offset, depth) = (
+                    ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
+                    ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
+                        * (riverless_alt + 5.0 - alt).max(0.0)
+                        * 1.75
+                        + 3.0) as i32,
+                );
                 let surface_z = (riverless_alt + bridge_offset).floor() as i32;
 
                 for z in inset - depth..inset {
