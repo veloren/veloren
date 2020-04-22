@@ -37,6 +37,7 @@ conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta
 euc = {git = "https://github.com/zesterer/euc.git"}
 iced = {package = "iced_native", git = "https://github.com/hecrj/iced"}
 window_clipboard = "0.1.1"
+glyph_brush = "0.6.3"
 
 # ECS
 specs = {git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818bad487695c66c43db88050a5"}

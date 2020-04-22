@@ -1,34 +1,34 @@
-use super::{IcedRenderer, Primitive};
-use iced::{column, Element, Layout, MouseCursor, Point};
+use super::{super::cache::FrameRenderer, Primitive};
+use iced::{column, mouse, Element, Layout, Point};
 
-impl column::Renderer for IcedRenderer {
+impl column::Renderer for FrameRenderer<'_> {
     fn draw<M>(
         &mut self,
         defaults: &Self::Defaults,
-        children: &[Element<'_, M, Self>],
+        content: &[Element<'_, M, Self>],
         layout: Layout<'_>,
         cursor_position: Point,
     ) -> Self::Output {
-        let mut mouse_cursor = MouseCursor::OutOfBounds;
+        let mut mouse_interaction = mouse::Interaction::default();
 
         (
             Primitive::Group {
-                primitives: children
+                primitives: content
                     .iter()
                     .zip(layout.children())
                     .map(|(child, layout)| {
-                        let (primitive, new_mouse_cursor) =
+                        let (primitive, new_mouse_interaction) =
                             child.draw(self, defaults, layout, cursor_position);
 
-                        if new_mouse_cursor > mouse_cursor {
-                            mouse_cursor = new_mouse_cursor;
+                        if new_mouse_interaction > mouse_interaction {
+                            mouse_interaction = new_mouse_interaction;
                         }
 
                         primitive
                     })
                     .collect(),
             },
-            mouse_cursor,
+            mouse_interaction,
         )
     }
 }

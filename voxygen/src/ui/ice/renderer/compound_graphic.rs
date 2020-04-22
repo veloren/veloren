@@ -1,11 +1,11 @@
 use super::{
-    super::{widget::compound_graphic, Rotation},
-    IcedRenderer, Primitive,
+    super::{cache::FrameRenderer, widget::compound_graphic, Rotation},
+    Primitive,
 };
 use compound_graphic::GraphicKind;
-use iced::{MouseCursor, Rectangle};
+use iced::{mouse, Rectangle};
 
-impl compound_graphic::Renderer for IcedRenderer {
+impl compound_graphic::Renderer for FrameRenderer<'_> {
     fn draw<I>(
         &mut self,
         graphics: I,
@@ -28,7 +28,7 @@ impl compound_graphic::Renderer for IcedRenderer {
                     })
                     .collect(),
             },
-            MouseCursor::OutOfBounds,
+            mouse::Interaction::default(),
         )
     }
 }

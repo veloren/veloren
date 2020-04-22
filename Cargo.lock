@@ -1857,6 +1857,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "glyph_brush"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5fca6f9d679bff1322c76c9a1ad4b8553b30a94f3f75bea6936e19032c2f2ec3"
+dependencies = [
+ "glyph_brush_layout",
+ "log",
+ "ordered-float",
+ "rustc-hash",
+ "rusttype 0.8.3",
+ "twox-hash",
+]
+
+[[package]]
+name = "glyph_brush_layout"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b70adc570f1dc71b6b32e241cbcc2b42175f5aea71951fbf41e68b04aec24c7"
+dependencies = [
+ "approx",
+ "rusttype 0.8.3",
+ "xi-unicode",
+]
+
+[[package]]
 name = "guillotiere"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5083,6 +5108,7 @@ dependencies = [
  "git2",
  "glsl-include",
  "glutin",
+ "glyph_brush",
  "guillotiere",
  "hashbrown 0.7.2",
  "iced_native",
@@ -5666,6 +5692,12 @@ name = "xdg"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d089681aa106a86fade1b0128fb5daf07d5867a509ab036d99988dec80429a57"
+
+[[package]]
+name = "xi-unicode"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e71b85d8b1b8bfaf4b5c834187554d201a8cd621c2bbfa33efd41a3ecabd48b2"
 
 [[package]]
 name = "xml-rs"
