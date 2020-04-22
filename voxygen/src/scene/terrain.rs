@@ -1607,7 +1607,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::Door, 0),
                     make_model(
                         "voxygen.voxel.sprite.door.door-0",
-                        Vec3::new(-6.5, -6.5, 0.0),
+                        Vec3::new(-5.5, -5.5, 0.0),
                     ),
                 ),
             ]
