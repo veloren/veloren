@@ -7,11 +7,9 @@ mod row;
 mod space;
 
 use super::{
-    super::{
-        cache::Cache,
-        graphic::{self, Graphic, TexId},
-    },
-    widget, Rotation,
+    super::graphic::{self, Graphic, TexId},
+    cache::Cache,
+    widget, Font, Rotation,
 };
 use crate::{
     render::{
@@ -70,10 +68,23 @@ pub enum Primitive {
         bounds: iced::Rectangle,
         color: Rgba<u8>,
     },
+    Text {
+        glyphs: Vec<(
+            glyph_brush::rusttype::PositionedGlyph<'static>,
+            glyph_brush::Color,
+            glyph_brush::FontId,
+        )>,
+        //size: f32,
+        bounds: iced::Rectangle,
+        linear_color: Rgba<f32>,
+        /*font: iced::Font,
+         *horizontal_alignment: iced::HorizontalAlignment,
+         *vertical_alignment: iced::VerticalAlignment, */
+    },
     Nothing,
 }
 
-// Optimization idea inspired by what I think iced wgpu renderer may be doing
+// Optimization idea inspired by what I think iced wgpu renderer may be doing:
 // Could have layers of things which don't intersect and thus can be reordered
 // arbitrarily
 
@@ -90,35 +101,51 @@ pub struct IcedRenderer {
 
     // Used to delay cache resizing until after current frame is drawn
     //need_cache_resize: bool,
+    // Half of physical resolution
     half_res: Vec2<f32>,
     // Pixel perfection alignment
     align: Vec2<f32>,
+    // Scale factor between physical and win dims
+    p_scale: f32,
     // Pretend dims :) (i.e. scaled)
     win_dims: Vec2<f32>,
 
     // Per-frame/update
     current_state: State,
     mesh: Mesh<UiPipeline>,
+    glyphs: Vec<(usize, usize, Rgba<f32>)>,
+    // Output from glyph_brush in the previous frame
+    // It can sometimes ask you to redraw with these instead (idk if that is done with
+    // pre-positioned glyphs)
+    last_glyph_verts: Vec<(Aabr<f32>, Aabr<f32>)>,
     start: usize,
     // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
     //current_scissor: Aabr<u16>,
 }
 impl IcedRenderer {
-    pub fn new(renderer: &mut Renderer, scaled_dims: Vec2<f32>) -> Result<Self, Error> {
-        let (half_res, align) = Self::calculate_resolution_dependents(renderer.get_resolution());
+    pub fn new(
+        renderer: &mut Renderer,
+        scaled_dims: Vec2<f32>,
+        default_font: Font,
+    ) -> Result<Self, Error> {
+        let (half_res, align, p_scale) =
+            Self::calculate_resolution_dependents(renderer.get_resolution(), scaled_dims);
 
         Ok(Self {
-            cache: Cache::new(renderer)?,
+            cache: Cache::new(renderer, default_font)?,
             draw_commands: Vec::new(),
             model: renderer.create_dynamic_model(100)?,
             interface_locals: renderer.create_consts(&[UiLocals::default()])?,
             default_globals: renderer.create_consts(&[Globals::default()])?,
             ingame_locals: Vec::new(),
             mesh: Mesh::new(),
+            glyphs: Vec::new(),
+            last_glyph_verts: Vec::new(),
             current_state: State::Plain,
             half_res,
             align,
+            p_scale,
             win_dims: scaled_dims,
             start: 0,
             //current_scissor: default_scissor(renderer),
@@ -144,6 +171,7 @@ impl IcedRenderer {
         // Re-use memory
         self.draw_commands.clear();
         self.mesh.clear();
+        self.glyphs.clear();
 
         self.current_state = State::Plain;
         self.start = 0;
@@ -177,6 +205,80 @@ impl IcedRenderer {
         self.draw_commands
             .push(DrawCommand::plain(start..mesh.vertices().len()));*/
 
+        // Fill in placeholder glyph quads
+        let (glyph_cache, cache_tex) = self.cache.glyph_cache_mut_and_tex();
+        let half_res = self.half_res;
+
+        let brush_result = glyph_cache.process_queued(
+            |rect, tex_data| {
+                let offset = [rect.min.x as u16, rect.min.y as u16];
+                let size = [rect.width() as u16, rect.height() as u16];
+
+                let new_data = tex_data
+                    .iter()
+                    .map(|x| [255, 255, 255, *x])
+                    .collect::<Vec<[u8; 4]>>();
+
+                if let Err(err) = renderer.update_texture(cache_tex, offset, size, &new_data) {
+                    log::warn!("Failed to update glyph cache texture: {:?}", err);
+                }
+            },
+            // Urgh more allocation we don't need
+            |vertex_data| {
+                let uv_rect = vertex_data.tex_coords;
+                let uv = Aabr {
+                    min: Vec2::new(uv_rect.min.x, uv_rect.max.y),
+                    max: Vec2::new(uv_rect.max.x, uv_rect.min.y),
+                };
+                let pixel_coords = vertex_data.pixel_coords;
+                let rect = Aabr {
+                    min: Vec2::new(
+                        pixel_coords.min.x as f32 / half_res.x - 1.0,
+                        pixel_coords.min.y as f32 / half_res.y - 1.0,
+                    ),
+                    max: Vec2::new(
+                        pixel_coords.max.x as f32 / half_res.x - 1.0,
+                        pixel_coords.max.y as f32 / half_res.y - 1.0,
+                    ),
+                };
+                (uv, rect)
+            },
+        );
+
+        match brush_result {
+            Ok(brush_action) => {
+                match brush_action {
+                    glyph_brush::BrushAction::Draw(verts) => self.last_glyph_verts = verts,
+                    glyph_brush::BrushAction::ReDraw => {},
+                }
+
+                let glyphs = &self.glyphs;
+                let mesh = &mut self.mesh;
+
+                glyphs
+                    .iter()
+                    .flat_map(|(mesh_index, glyph_count, linear_color)| {
+                        let mesh_index = *mesh_index;
+                        let linear_color = *linear_color;
+                        (0..*glyph_count).map(move |i| (mesh_index + i * 6, linear_color))
+                    })
+                    .zip(self.last_glyph_verts.iter())
+                    .for_each(|((mesh_index, linear_color), (uv, rect))| {
+                        mesh.replace_quad(
+                            mesh_index,
+                            create_ui_quad(*rect, *uv, linear_color, UiMode::Text),
+                        )
+                    });
+            },
+            Err(glyph_brush::BrushError::TextureTooSmall { suggested: (x, y) }) => {
+                log::error!(
+                    "Texture to small for all glyphs, would need one of the size: ({}, {})",
+                    x,
+                    y
+                );
+            },
+        }
+
         // Create a larger dynamic model if the mesh is larger than the current model
         // size.
         if self.model.vbuf.len() < self.mesh.vertices().len() {
@@ -203,17 +305,23 @@ impl IcedRenderer {
     }
 
     // Returns (half_res, align)
-    fn calculate_resolution_dependents(res: Vec2<u16>) -> (Vec2<f32>, Vec2<f32>) {
+    fn calculate_resolution_dependents(
+        res: Vec2<u16>,
+        win_dims: Vec2<f32>,
+    ) -> (Vec2<f32>, Vec2<f32>, f32) {
         let half_res = res.map(|e| e as f32 / 2.0);
         let align = align(res);
+        // Assume to be the same in x and y for now...
+        let p_scale = res.x as f32 / win_dims.x;
 
-        (half_res, align)
+        (half_res, align, p_scale)
     }
 
     fn update_resolution_dependents(&mut self, res: Vec2<u16>) {
-        let (half_res, align) = Self::calculate_resolution_dependents(res);
+        let (half_res, align, p_scale) = Self::calculate_resolution_dependents(res, self.win_dims);
         self.half_res = half_res;
         self.align = align;
+        self.p_scale = p_scale;
     }
 
     fn gl_aabr(&self, bounds: iced::Rectangle) -> Aabr<f32> {
@@ -349,6 +457,63 @@ impl IcedRenderer {
                     UiMode::Geometry,
                 ));
             },
+            Primitive::Text {
+                glyphs,
+                bounds, // iced::Rectangle
+                linear_color,
+                /*font,
+                 *horizontal_alignment,
+                 *vertical_alignment, */
+            } => {
+                self.switch_state(State::Plain);
+
+                // TODO: Scissor?
+
+                // TODO: makes sure we are not doing all this work for hidden text
+                // e.g. in chat
+                let glyph_cache = self.cache.glyph_cache_mut();
+
+                // Count glyphs
+                let glyph_count = glyphs.len();
+
+                // Queue the glyphs to be cached.
+                glyph_cache.queue_pre_positioned(
+                    glyphs,
+                    // Since we already passed in `bounds` to position the glyphs some of this
+                    // seems redundant...
+                    glyph_brush::rusttype::Rect {
+                        min: glyph_brush::rusttype::Point {
+                            x: bounds.x,
+                            y: bounds.y,
+                        },
+                        max: glyph_brush::rusttype::Point {
+                            x: bounds.x + bounds.width,
+                            y: bounds.y + bounds.height,
+                        },
+                    },
+                    0.0, // z (we don't use this)
+                );
+
+                // Leave ui and verts blank to fill in when processing cached glyphs
+                let zero_aabr = Aabr {
+                    min: Vec2::broadcast(0.0),
+                    max: Vec2::broadcast(0.0),
+                };
+                self.glyphs
+                    .push((self.mesh.vertices().len(), glyph_count, linear_color));
+                for _ in 0..glyph_count {
+                    // Push placeholder quad
+                    // Note: moving to some sort of layering / z based system would be an
+                    // alternative to this (and might help with reducing draw
+                    // calls)
+                    self.mesh.push_quad(create_ui_quad(
+                        zero_aabr,
+                        zero_aabr,
+                        linear_color,
+                        UiMode::Text,
+                    ));
+                }
+            },
             Primitive::Nothing => {},
         }
     }
@@ -414,24 +579,3 @@ fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
         },
     }
 }
-
-impl iced::Renderer for IcedRenderer {
-    // Default styling
-    type Defaults = ();
-    // TODO: use graph of primitives to enable diffing???
-    type Output = (Primitive, iced::MouseCursor);
-
-    fn layout<'a, M>(
-        &mut self,
-        element: &iced::Element<'a, M, Self>,
-        limits: &iced::layout::Limits,
-    ) -> iced::layout::Node {
-        let node = element.layout(self, limits);
-
-        // Trim text measurements cache?
-
-        node
-    }
-}
-
-// TODO: impl Debugger

@@ -1,8 +1,8 @@
-use super::{IcedRenderer, Primitive};
-use iced::{space, MouseCursor, Rectangle};
+use super::{super::cache::FrameRenderer, Primitive};
+use iced::{mouse, space, Rectangle};
 
-impl space::Renderer for IcedRenderer {
+impl space::Renderer for FrameRenderer<'_> {
     fn draw(&mut self, _bounds: Rectangle) -> Self::Output {
-        (Primitive::Nothing, MouseCursor::OutOfBounds)
+        (Primitive::Nothing, mouse::Interaction::default())
     }
 }

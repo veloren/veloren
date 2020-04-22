@@ -1,10 +1,7 @@
 // Using reference impl: https://github.com/hecrj/iced/blob/e1438774af809c2951c4c7446638500446c81111/winit/src/conversion.rs
 use iced::{
-    input::{
-        keyboard::{self, KeyCode, ModifiersState},
-        mouse, ButtonState,
-    },
-    window, Event,
+    keyboard::{self, KeyCode, ModifiersState},
+    mouse, window, Event,
 };
 
 /// Converts a winit event into an iced event.
@@ -28,10 +25,14 @@ pub fn window_event(event: winit::WindowEvent) -> Option<Event> {
                 y: position.y as f32,
             }))
         },
-        WindowEvent::MouseInput { button, state, .. } => Some(Event::Mouse(mouse::Event::Input {
-            button: mouse_button(button),
-            state: button_state(state),
-        })),
+        WindowEvent::MouseInput { button, state, .. } => {
+            let button = mouse_button(button);
+
+            Some(Event::Mouse(match state {
+                winit::ElementState::Pressed => mouse::Event::ButtonPressed(button),
+                winit::ElementState::Released => mouse::Event::ButtonReleased(button),
+            }))
+        },
         WindowEvent::MouseWheel { delta, .. } => match delta {
             winit::MouseScrollDelta::LineDelta(delta_x, delta_y) => {
                 Some(Event::Mouse(mouse::Event::WheelScrolled {
@@ -63,10 +64,20 @@ pub fn window_event(event: winit::WindowEvent) -> Option<Event> {
                     ..
                 },
             ..
-        } => Some(Event::Keyboard(keyboard::Event::Input {
-            key_code: key_code(virtual_keycode),
-            state: button_state(state),
-            modifiers: modifiers_state(modifiers),
+        } => Some(Event::Keyboard({
+            let key_code = key_code(virtual_keycode);
+            let modifiers = modifiers_state(modifiers);
+
+            match state {
+                winit::ElementState::Pressed => keyboard::Event::KeyPressed {
+                    key_code,
+                    modifiers,
+                },
+                winit::ElementState::Released => keyboard::Event::KeyReleased {
+                    key_code,
+                    modifiers,
+                },
+            }
         })),
         // iced also can use file hovering events but we don't need them right now
         _ => None,
@@ -82,14 +93,6 @@ fn mouse_button(mouse_button: winit::MouseButton) -> mouse::Button {
         winit::MouseButton::Right => mouse::Button::Right,
         winit::MouseButton::Middle => mouse::Button::Middle,
         winit::MouseButton::Other(other) => mouse::Button::Other(other),
-    }
-}
-
-/// Converts winit `ElementState` to an iced button state
-fn button_state(element_state: winit::ElementState) -> ButtonState {
-    match element_state {
-        winit::ElementState::Pressed => ButtonState::Pressed,
-        winit::ElementState::Released => ButtonState::Released,
     }
 }
 

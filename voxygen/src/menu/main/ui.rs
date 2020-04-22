@@ -378,7 +378,18 @@ impl<'a> MainMenuUi {
         let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
 
-        let mut ice_ui = IcedUi::new(window).unwrap();
+        // TODO: newtype Font
+        let ice_font = {
+            use std::io::Read;
+            let mut buf = Vec::new();
+            common::assets::load_file("voxygen.font.OpenSans-Regular", &["ttf"])
+                .unwrap()
+                .read_to_end(&mut buf)
+                .unwrap();
+            glyph_brush::rusttype::Font::from_bytes(buf).unwrap()
+        };
+
+        let mut ice_ui = IcedUi::new(window, ice_font).unwrap();
         let ice_state = IcedState {
             imgs: IcedImgs::load(&mut ice_ui).expect("Failed to load images"),
         };

@@ -1,7 +1,7 @@
-use super::IcedRenderer;
+use super::super::cache::FrameRenderer;
 use iced::{container, Element, Layout, Point, Rectangle};
 
-impl container::Renderer for IcedRenderer {
+impl container::Renderer for FrameRenderer<'_> {
     type Style = ();
 
     fn draw<M>(
@@ -13,10 +13,11 @@ impl container::Renderer for IcedRenderer {
         content: &Element<'_, M, Self>,
         content_layout: Layout<'_>,
     ) -> Self::Output {
-        let (content, mouse_cursor) = content.draw(self, defaults, content_layout, cursor_position);
+        let (content, mouse_interaction) =
+            content.draw(self, defaults, content_layout, cursor_position);
 
         // We may have more stuff here if styles are used
 
-        (content, mouse_cursor)
+        (content, mouse_interaction)
     }
 }

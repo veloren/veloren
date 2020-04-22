@@ -1,9 +1,11 @@
 //    tooltip_manager: TooltipManager,
+mod cache;
 mod clipboard;
 mod renderer;
 mod widget;
 mod winit_conversion;
 
+pub use cache::Font;
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
 pub use renderer::IcedRenderer;
@@ -19,14 +21,16 @@ use super::{
     scale::{Scale, ScaleMode},
 };
 use crate::{render::Renderer, window::Window, Error};
+use cache::{FrameRenderer, GlyphCalcCache};
 use clipboard::Clipboard;
-use iced::{Cache, MouseCursor, Size, UserInterface};
+use iced::{mouse, Cache, Size, UserInterface};
 use vek::*;
 
-pub type Element<'a, M> = iced::Element<'a, M, IcedRenderer>;
+pub type Element<'a, 'b, M> = iced::Element<'a, M, FrameRenderer<'b>>;
 
 pub struct IcedUi {
     renderer: IcedRenderer,
+    glyph_calc_cache: GlyphCalcCache,
     cache: Option<Cache>,
     events: Vec<Event>,
     clipboard: Clipboard,
@@ -35,14 +39,16 @@ pub struct IcedUi {
     window_resized: Option<Vec2<u32>>,
 }
 impl IcedUi {
-    pub fn new(window: &mut Window) -> Result<Self, Error> {
+    pub fn new(window: &mut Window, default_font: Font) -> Result<Self, Error> {
         let scale = Scale::new(window, ScaleMode::Absolute(1.0));
         let renderer = window.renderer_mut();
 
         let scaled_dims = scale.scaled_window_size().map(|e| e as f32);
 
+        // TODO: examine how much mem fonts take up and reduce clones if significant
         Ok(Self {
-            renderer: IcedRenderer::new(renderer, scaled_dims)?,
+            renderer: IcedRenderer::new(renderer, scaled_dims, default_font.clone())?,
+            glyph_calc_cache: GlyphCalcCache::new(default_font),
             cache: Some(Cache::new()),
             events: Vec::new(),
             // TODO: handle None
@@ -58,7 +64,7 @@ impl IcedUi {
     }
 
     pub fn handle_event(&mut self, event: Event) {
-        use iced::{input::mouse, window};
+        use iced::window;
         match event {
             // Intercept resizing events
             Event::Window(window::Event::Resized { width, height }) => {
@@ -93,11 +99,12 @@ impl IcedUi {
     }
 
     // TODO: produce root internally???
-    pub fn maintain<'a, M, E: Into<Element<'a, M>>>(
+    // TODO: see if this lifetime soup can be simplified
+    pub fn maintain<'a, 'b, M, E: Into<iced::Element<'a, M, FrameRenderer<'b>>>>(
         &mut self,
         root: E,
         renderer: &mut Renderer,
-    ) -> (Vec<M>, MouseCursor) {
+    ) -> (Vec<M>, mouse::Interaction) {
         // Handle window resizing
         if let Some(new_dims) = self.window_resized.take() {
             let old_scaled_dims = self.scale.scaled_window_size();
@@ -126,23 +133,28 @@ impl IcedUi {
         // TODO: convert to f32 at source
         let window_size = self.scale.scaled_window_size().map(|e| e as f32);
 
+        let mut frame_renderer = FrameRenderer::new(&mut self.renderer, &mut self.glyph_calc_cache);
+
         let mut user_interface = UserInterface::build(
             root,
             Size::new(window_size.x, window_size.y),
             self.cache.take().unwrap(),
-            &mut self.renderer,
+            &mut frame_renderer,
         );
 
-        let messages =
-            user_interface.update(self.events.drain(..), Some(&self.clipboard), &self.renderer);
+        let messages = user_interface.update(
+            self.events.drain(..),
+            Some(&self.clipboard),
+            &frame_renderer,
+        );
 
-        let (primitive, mouse_cursor) = user_interface.draw(&mut self.renderer);
-
-        self.renderer.draw(primitive, renderer);
+        let (primitive, mouse_interaction) = user_interface.draw(&mut frame_renderer);
 
         self.cache = Some(user_interface.into_cache());
 
-        (messages, mouse_cursor)
+        self.renderer.draw(primitive, renderer);
+
+        (messages, mouse_interaction)
     }
 
     pub fn render(&self, renderer: &mut Renderer) { self.renderer.render(renderer, None); }
