@@ -21,10 +21,6 @@ out vec4 tgt_color;
 #include <sky.glsl>
 #include <light.glsl>
 
-float vmin(vec3 v) {
-	return min(v.x, min(v.y, v.z));
-}
-
 void main() {
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
