@@ -1989,9 +1989,11 @@ impl<V: RectRasterableVol> Terrain<V> {
                 if *n >= chunks.len() {
                     None
                 } else {
-                    *n += 1;
                     let pos = focus_chunk + rpos;
-                    Some(chunks.get(&pos).map(|c| (pos, c)))
+                    Some(chunks.get(&pos).map(|c| {
+                        *n += 1;
+                        (pos, c)
+                    }))
                 }
             })
             .filter_map(|x| x);
