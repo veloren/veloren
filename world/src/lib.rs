@@ -21,7 +21,7 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    comp::{self, bird_medium, critter, humanoid, quadruped_medium, quadruped_small, Alignment},
+    comp::{self, bird_medium, critter, quadruped_medium, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
@@ -124,7 +124,6 @@ impl World {
                 };
 
                 let offs = Vec2::new(x, y);
-                let wpos2d = chunk_wpos2d + offs;
 
                 let z_cache = match zcache_grid.get(grid_border + offs) {
                     Some(Some(z_cache)) => z_cache,
@@ -187,7 +186,6 @@ impl World {
         };
 
         const SPAWN_RATE: f32 = 0.1;
-        const BOSS_RATE: f32 = 0.03;
         let mut supplement = ChunkSupplement {
             entities: if rng.gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5

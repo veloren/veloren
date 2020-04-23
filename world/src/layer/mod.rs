@@ -2,8 +2,7 @@ use std::f32;
 use vek::*;
 use common::{
     terrain::{Block, BlockKind},
-    vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
-    spiral::Spiral2d,
+    vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
 };
 use crate::{
     column::ColumnSample,
@@ -67,7 +66,7 @@ pub fn apply_paths_to<'a>(
                 let surface_z = (riverless_alt + bridge_offset).floor() as i32;
 
                 for z in inset - depth..inset {
-                    vol.set(
+                    let _ = vol.set(
                         Vec3::new(offs.x, offs.y, surface_z + z),
                         if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
                             Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
@@ -81,7 +80,7 @@ pub fn apply_paths_to<'a>(
                 for z in inset..inset + head_space {
                     let pos = Vec3::new(offs.x, offs.y, surface_z + z);
                     if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                        vol.set(pos, Block::empty());
+                        let _ = vol.set(pos, Block::empty());
                     }
                 }
             }

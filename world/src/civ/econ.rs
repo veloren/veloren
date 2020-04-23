@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::GenCtx;
 use rand::prelude::*;
 
@@ -25,7 +27,7 @@ impl Belief {
         self.price + ctx.rng.gen_range(-1.0, 1.0) * self.confidence
     }
 
-    pub fn update_buyer(&mut self, years: f32, new_price: f32) {
+    pub fn update_buyer(&mut self, _years: f32, new_price: f32) {
         if (self.price - new_price).abs() < self.confidence {
             self.confidence *= 0.8;
         } else {
@@ -41,7 +43,7 @@ impl Belief {
 }
 
 pub fn buy_units<'a>(
-    ctx: &mut GenCtx<impl Rng>,
+    _ctx: &mut GenCtx<impl Rng>,
     sellers: impl Iterator<Item = &'a mut SellOrder>,
     max_quantity: f32,
     max_price: f32,

@@ -25,12 +25,10 @@ pub use self::{
 
 use crate::{
     all::ForestKind,
-    block::BlockGen,
     civ::Place,
-    column::ColumnGen,
-    site::{Settlement, Site},
+    site::Site,
     util::{
-        seed_expan, FastNoise, RandomField, Sampler, StructureGen2d, CARDINAL_LOCALITY, LOCALITY,
+        seed_expan, FastNoise, RandomField, StructureGen2d, LOCALITY,
         NEIGHBORS,
     },
     CONFIG,
@@ -41,7 +39,6 @@ use common::{
     terrain::{BiomeKind, TerrainChunkSize},
     vol::RectVolSize,
 };
-use hashbrown::HashMap;
 use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
     Seedable, SuperSimplex, Worley,
@@ -57,7 +54,6 @@ use std::{
     io::{BufReader, BufWriter},
     ops::{Add, Div, Mul, Neg, Sub},
     path::PathBuf,
-    sync::Arc,
 };
 use vek::*;
 
@@ -1392,9 +1388,9 @@ impl WorldSim {
         });
 
         // Place the locations onto the world
+        /*
         let gen = StructureGen2d::new(self.seed, cell_size as u32, cell_size as u32 / 2);
 
-        /*
         self.chunks
             .par_iter_mut()
             .enumerate()
@@ -1432,69 +1428,6 @@ impl WorldSim {
                         .cloned()
                         .unwrap_or(None)
                         .map(|loc_idx| LocationInfo { loc_idx, near });
-
-                    let town_size = 200;
-                    let in_town = chunk
-                        .location
-                        .as_ref()
-                        .map(|l| {
-                            locations[l.loc_idx]
-                                .center
-                                .map(|e| e as i64)
-                                .distance_squared(block_pos.map(|e| e as i64))
-                                < town_size * town_size
-                        })
-                        .unwrap_or(false);
-
-                    if in_town {
-                        chunk.spawn_rate = 0.0;
-                    }
-                }
-            });
-        */
-
-        // Stage 2 - towns!
-        /*
-        let chunk_idx_center = |e: Vec2<i32>| {
-            e.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-                e * sz as i32 + sz as i32 / 2
-            })
-        };
-        let sites = self
-            .gen_ctx
-            .town_gen
-            .par_iter(
-                chunk_idx_center(Vec2::zero()),
-                chunk_idx_center(WORLD_SIZE.map(|e| e as i32)),
-            )
-            .map_init(
-                || (),
-                |_, (pos, seed)| {
-                    let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-                    (
-                        pos,
-                        Site::from(Settlement::generate(pos, Some(self), &mut rng)),
-                    )
-                },
-            )
-            .collect::<Vec<_>>();
-
-        let gen_ctx = &self.gen_ctx;
-        self.chunks
-            .par_iter_mut()
-            .enumerate()
-            .for_each(|(ij, chunk)| {
-                let chunk_pos = uniform_idx_as_vec2(ij);
-                let wpos = chunk_idx_center(chunk_pos);
-
-                if let Some((pos, site)) = sites
-                    .iter()
-                    .filter(|(pos, site)| {
-                        pos.map(|e| e as f32).distance(wpos.map(|e| e as f32)) < site.radius()
-                    })
-                    .min_by_key(|(pos, _)| wpos.distance_squared(*pos))
-                {
-                    chunk.sites.push(site.clone());
                 }
             });
         */
@@ -1798,7 +1731,7 @@ impl WorldSim {
                     return None;
                 }
 
-                let (start_pos, start_idx) = if chunk_connections != 2 {
+                let (start_pos, _start_idx) = if chunk_connections != 2 {
                     (ctrl_pos, None)
                 } else {
                     let (start_idx, start_rpos) = NEIGHBORS
@@ -1820,7 +1753,7 @@ impl WorldSim {
                         .iter()
                         .enumerate()
                         .filter(move |(i, _)| chunk.path.neighbors & (1 << *i as u8) != 0)
-                        .filter_map(move |(i, end_rpos)| {
+                        .filter_map(move |(_, end_rpos)| {
                             let end_pos_chunk = chunk_pos + *ctrl + end_rpos;
                             let end_pos = get_chunk_centre(end_pos_chunk).map(|e| e as f32)
                                 + self.get(end_pos_chunk)?.path.offset;
@@ -2116,7 +2049,7 @@ impl SimChunk {
 
     pub fn get_base_z(&self) -> f32 { self.alt - self.chaos * 50.0 - 16.0 }
 
-    pub fn get_name(&self, world: &WorldSim) -> Option<String> {
+    pub fn get_name(&self, _world: &WorldSim) -> Option<String> {
         // TODO
         None
 

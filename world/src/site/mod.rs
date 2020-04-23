@@ -4,10 +4,7 @@ mod settlement;
 // Reexports
 pub use self::{dungeon::Dungeon, settlement::Settlement};
 
-use crate::{
-    column::ColumnSample,
-    util::{Grid, Sampler},
-};
+use crate::column::ColumnSample;
 use common::{
     generation::ChunkSupplement,
     terrain::Block,

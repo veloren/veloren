@@ -172,7 +172,6 @@ impl<'a> BlockGen<'a> {
             close_cliffs,
             temp,
             humidity,
-            chunk,
             stone_col,
             ..
         } = sample;
@@ -181,7 +180,7 @@ impl<'a> BlockGen<'a> {
 
         let wposf = wpos.map(|e| e as f64);
 
-        let (block, height) = if !only_structures {
+        let (block, _height) = if !only_structures {
             let (_definitely_underground, height, on_cliff, basement_height, water_height) =
                 if (wposf.z as f32) < alt - 64.0 * chaos {
                     // Shortcut warping

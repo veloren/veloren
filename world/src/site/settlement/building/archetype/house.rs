@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::{super::skeleton::*, Archetype};
 use crate::{
     site::BlockMask,
