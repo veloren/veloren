@@ -4,11 +4,11 @@ use common::{
     assets,
     comp::{self, item, CharacterAbility, Item, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
+    generation::get_npc_name,
     msg::ServerMsg,
     npc::NPC_NAMES,
     state::TerrainChanges,
     terrain::TerrainGrid,
-    generation::get_npc_name,
 };
 use rand::Rng;
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};

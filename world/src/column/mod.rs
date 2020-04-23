@@ -221,7 +221,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
             sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
         ) * 12.0;
-        let wposf_turb = wposf;// + turb.map(|e| e as f64);
+        let wposf_turb = wposf; // + turb.map(|e| e as f64);
 
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
@@ -590,12 +590,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let near_cliffs = sim_chunk.near_cliffs;
 
         let river_gouge = 0.5;
-        let (_in_water, water_dist, alt_, water_level, riverless_alt, warp_factor) = if let Some((
-            max_border_river_pos,
-            river_chunk,
-            max_border_river,
-            max_border_river_dist,
-        )) =
+        let (_in_water, water_dist, alt_, water_level, riverless_alt, warp_factor) = if let Some(
+            (max_border_river_pos, river_chunk, max_border_river, max_border_river_dist),
+        ) =
             max_river
         {
             // This is flowing into a lake, or a lake, or is at least a non-ocean tile.

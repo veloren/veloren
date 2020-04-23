@@ -39,10 +39,8 @@ fn get_ao_quad(
             for x in 0..2 {
                 for y in 0..2 {
                     let dark_pos = shift + offs[0] * x + offs[1] * y + 1;
-                    if let Some(dark) = darknesses
-                            [dark_pos.z as usize]
-                            [dark_pos.y as usize]
-                            [dark_pos.x as usize]
+                    if let Some(dark) =
+                        darknesses[dark_pos.z as usize][dark_pos.y as usize][dark_pos.x as usize]
                     {
                         darkness += dark;
                         total += 1.0;

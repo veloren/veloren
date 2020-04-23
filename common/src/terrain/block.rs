@@ -303,9 +303,11 @@ impl Block {
 
     pub fn get_ori(&self) -> Option<u8> {
         match self.kind {
-            BlockKind::Window1 | BlockKind::Window2 | BlockKind::Window3 | BlockKind::Window4 | BlockKind::Door => {
-                Some(self.color[0] & 0b111)
-            },
+            BlockKind::Window1
+            | BlockKind::Window2
+            | BlockKind::Window3
+            | BlockKind::Window4
+            | BlockKind::Door => Some(self.color[0] & 0b111),
             _ => None,
         }
     }
