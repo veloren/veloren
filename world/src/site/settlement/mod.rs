@@ -147,6 +147,10 @@ impl Settlement {
         this
     }
 
+    pub fn get_origin(&self) -> Vec2<i32> {
+        self.origin
+    }
+
     /// Designate hazardous terrain based on world data
     pub fn designate_from_world(&mut self, sim: &WorldSim, rng: &mut impl Rng) {
         let tile_radius = self.radius() as i32 / AREA_SIZE as i32;
