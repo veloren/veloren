@@ -1,12 +1,12 @@
 Item(
     name: "Coconut",
-    description: "Reliable Source of water and fat.
+    description: "Reliable source of water and fat.
 
-Restores 20 Health.",
+Restores 30 health.",
     kind: Consumable(
         kind: Coconut,
         effect: Health((
-            amount: 20,
+            amount: 30,
             cause: Item,
         )),
     ),
