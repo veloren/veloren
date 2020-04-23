@@ -141,7 +141,7 @@ impl Server {
             // calculate the absolute position of the chunk in the world
             // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the midde of
             // the chunk)
-            let spawn_location = spawn_chunk * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+            let spawn_location = spawn_chunk.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 * sz as i32 + sz as i32 / 2);
 
             // get a z cache for the collumn in which we want to spawn
             let mut block_sampler = world.sample_blocks();
