@@ -632,8 +632,8 @@ pub struct Track {
 
 #[derive(Debug)]
 pub struct Site {
-    kind: SiteKind,
-    center: Vec2<i32>,
+    pub kind: SiteKind,
+    pub center: Vec2<i32>,
     pub place: Id<Place>,
 
     population: f32,
