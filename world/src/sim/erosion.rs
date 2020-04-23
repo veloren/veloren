@@ -110,6 +110,14 @@ pub enum RiverKind {
 }
 
 impl RiverKind {
+    pub fn is_ocean(&self) -> bool {
+        if let RiverKind::Ocean = *self {
+            true
+        } else {
+            false
+        }
+    }
+
     pub fn is_river(&self) -> bool {
         if let RiverKind::River { .. } = *self {
             true
@@ -187,6 +195,13 @@ pub struct RiverData {
 }
 
 impl RiverData {
+    pub fn is_ocean(&self) -> bool {
+        self.river_kind
+            .as_ref()
+            .map(RiverKind::is_ocean)
+            .unwrap_or(false)
+    }
+
     pub fn is_river(&self) -> bool {
         self.river_kind
             .as_ref()
@@ -200,6 +215,10 @@ impl RiverData {
             .map(RiverKind::is_lake)
             .unwrap_or(false)
     }
+
+    pub fn near_river(&self) -> bool { self.is_river() || self.neighbor_rivers.len() > 0 }
+
+    pub fn near_water(&self) -> bool { self.near_river() || self.is_lake() || self.is_ocean() }
 }
 
 /// Draw rivers and assign them heights, widths, and velocities.  Take some

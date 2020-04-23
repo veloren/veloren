@@ -56,7 +56,7 @@ fn main() {
     };
     scene.camera_mut().set_focus_pos(Vec3::unit_z() * 0.8);
     scene.camera_mut().set_distance(1.5);
-    scene.camera_mut().update(0.0);
+    scene.camera_mut().update(0.0, 1.0 / 60.0);
     scene.maintain(&mut renderer, scene_data);
 
     // Render

@@ -34,6 +34,15 @@ pub enum PathResult<T> {
     Pending,
 }
 
+impl<T> PathResult<T> {
+    pub fn into_path(self) -> Option<Path<T>> {
+        match self {
+            PathResult::Path(path) => Some(path),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Astar<S: Clone + Eq + Hash> {
     iter: usize,
@@ -43,7 +52,8 @@ pub struct Astar<S: Clone + Eq + Hash> {
     cheapest_scores: HashMap<S, f32>,
     final_scores: HashMap<S, f32>,
     visited: HashSet<S>,
-    lowest_cost: Option<S>,
+    cheapest_node: Option<S>,
+    cheapest_cost: Option<f32>,
 }
 
 impl<S: Clone + Eq + Hash> Astar<S> {
@@ -60,7 +70,8 @@ impl<S: Clone + Eq + Hash> Astar<S> {
             cheapest_scores: std::iter::once((start.clone(), 0.0)).collect(),
             final_scores: std::iter::once((start.clone(), heuristic(&start))).collect(),
             visited: std::iter::once(start).collect(),
-            lowest_cost: None,
+            cheapest_node: None,
+            cheapest_cost: None,
         }
     }
 
@@ -77,11 +88,12 @@ impl<S: Clone + Eq + Hash> Astar<S> {
     {
         let iter_limit = self.max_iters.min(self.iter + iters);
         while self.iter < iter_limit {
-            if let Some(PathEntry { node, .. }) = self.potential_nodes.pop() {
+            if let Some(PathEntry { node, cost }) = self.potential_nodes.pop() {
+                self.cheapest_cost = Some(cost);
                 if satisfied(&node) {
                     return PathResult::Path(self.reconstruct_path_to(node));
                 } else {
-                    self.lowest_cost = Some(node.clone());
+                    self.cheapest_node = Some(node.clone());
                     for neighbor in neighbors(&node) {
                         let node_cheapest = self.cheapest_scores.get(&node).unwrap_or(&f32::MAX);
                         let neighbor_cheapest =
@@ -105,7 +117,7 @@ impl<S: Clone + Eq + Hash> Astar<S> {
                 }
             } else {
                 return PathResult::None(
-                    self.lowest_cost
+                    self.cheapest_node
                         .clone()
                         .map(|lc| self.reconstruct_path_to(lc))
                         .unwrap_or_default(),
@@ -117,7 +129,7 @@ impl<S: Clone + Eq + Hash> Astar<S> {
 
         if self.iter >= self.max_iters {
             PathResult::Exhausted(
-                self.lowest_cost
+                self.cheapest_node
                     .clone()
                     .map(|lc| self.reconstruct_path_to(lc))
                     .unwrap_or_default(),
@@ -126,6 +138,8 @@ impl<S: Clone + Eq + Hash> Astar<S> {
             PathResult::Pending
         }
     }
+
+    pub fn get_cheapest_cost(&self) -> Option<f32> { self.cheapest_cost }
 
     fn reconstruct_path_to(&mut self, end: S) -> Path<S> {
         let mut path = vec![end.clone()];

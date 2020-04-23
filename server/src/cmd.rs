@@ -216,7 +216,7 @@ lazy_static! {
             "waypoint",
             "{}",
             "/waypoint : Set your waypoint to your current position",
-            false,
+            true,
             handle_waypoint,
         ),
         ChatCommand::new(

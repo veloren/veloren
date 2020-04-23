@@ -30,28 +30,25 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                     faces_to_make(self, pos, true, |vox| vox.is_empty()),
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
-                    |origin, norm, col, ao, light| {
+                    |origin, norm, col, light, ao| {
                         FigureVertex::new(
                             origin,
                             norm,
-                            linear_to_srgb(srgb_to_linear(col) * light.min(ao)),
+                            linear_to_srgb(srgb_to_linear(col) * light),
+                            ao,
                             0,
                         )
                     },
                     &{
-                        let mut ls = [[[0.0; 3]; 3]; 3];
+                        let mut ls = [[[None; 3]; 3]; 3];
                         for x in 0..3 {
                             for y in 0..3 {
                                 for z in 0..3 {
-                                    ls[z][y][x] = if self
+                                    ls[z][y][x] = self
                                         .get(pos + Vec3::new(x as i32, y as i32, z as i32) - 1)
                                         .map(|v| v.is_empty())
                                         .unwrap_or(true)
-                                    {
-                                        1.0
-                                    } else {
-                                        0.0
-                                    };
+                                        .then_some(1.0);
                                 }
                             }
                         }
@@ -83,14 +80,29 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                     faces_to_make(self, pos, true, |vox| vox.is_empty()),
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
-                    |origin, norm, col, ao, light| {
+                    |origin, norm, col, light, ao| {
                         SpriteVertex::new(
                             origin,
                             norm,
-                            linear_to_srgb(srgb_to_linear(col) * ao * light),
+                            linear_to_srgb(srgb_to_linear(col) * light),
+                            ao,
                         )
                     },
-                    &[[[1.0; 3]; 3]; 3],
+                    &{
+                        let mut ls = [[[None; 3]; 3]; 3];
+                        for x in 0..3 {
+                            for y in 0..3 {
+                                for z in 0..3 {
+                                    ls[z][y][x] = self
+                                        .get(pos + Vec3::new(x as i32, y as i32, z as i32) - 1)
+                                        .map(|v| v.is_empty())
+                                        .unwrap_or(true)
+                                        .then_some(1.0);
+                                }
+                            }
+                        }
+                        ls
+                    },
                 );
             }
         }

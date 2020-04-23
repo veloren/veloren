@@ -1,7 +1,7 @@
 float hash(vec4 p) {
-	p = fract( p*0.3183099+.1);
+	p = fract(p * 0.3183099 + 0.1);
 	p *= 17.0;
-    return (fract(p.x*p.y*p.z*p.w*(p.x+p.y+p.z+p.w)) - 0.5) * 2.0;
+    return (fract(p.x * p.y * p.z * p.w * (p.x + p.y + p.z + p.w)) - 0.5) * 2.0;
 }
 
 float snoise(in vec4 x) {
@@ -33,7 +33,7 @@ float snoise(in vec4 x) {
 }
 
 vec3 rand_perm_3(vec3 pos) {
-	return sin(pos * vec3(1473.7 * pos.z + 472.3, 8891.1 * pos.x + 723.1, 3813.3 * pos.y + 982.5));
+	return abs(sin(pos * vec3(1473.7 * pos.z + 472.3, 8891.1 * pos.x + 723.1, 3813.3 * pos.y + 982.5)));
 }
 
 vec4 rand_perm_4(vec4 pos) {

@@ -40,14 +40,16 @@ impl Vertex {
             .enumerate()
             .find(|(_i, e)| **e != 0.0)
             .unwrap_or((0, &1.0));
-        let norm_bits = (norm_axis << 1) | if *norm_dir > 0.0 { 1 } else { 0 };
+        let norm_bits = ((norm_axis << 1) | if *norm_dir > 0.0 { 1 } else { 0 }) as u32;
+
+        const EXTRA_NEG_Z: f32 = 65536.0;
 
         Self {
             pos_norm: 0
-                | ((pos.x as u32) & 0x00FF) << 0
-                | ((pos.y as u32) & 0x00FF) << 8
-                | ((pos.z.max(0.0).min((1 << 13) as f32) as u32) & 0x1FFF) << 16
-                | ((norm_bits as u32) & 0x7) << 29,
+                | ((pos.x as u32) & 0x003F) << 0
+                | ((pos.y as u32) & 0x003F) << 6
+                | (((pos.z + EXTRA_NEG_Z).max(0.0).min((1 << 17) as f32) as u32) & 0x1FFFF) << 12
+                | (norm_bits & 0x7) << 29,
             col_light: 0
                 | ((col.r.mul(200.0) as u32) & 0xFF) << 8
                 | ((col.g.mul(200.0) as u32) & 0xFF) << 16

@@ -12,19 +12,13 @@ use crate::render::{
 fn get_ao_quad(
     shift: Vec3<i32>,
     dirs: &[Vec3<i32>],
-    darknesses: &[[[f32; 3]; 3]; 3],
+    darknesses: &[[[Option<f32>; 3]; 3]; 3],
 ) -> Vec4<(f32, f32)> {
     dirs.windows(2)
         .map(|offs| {
             let vox_opaque = |pos: Vec3<i32>| {
                 let pos = (pos + 1).map(|e| e as usize);
-                unsafe {
-                    darknesses
-                        .get_unchecked(pos.z)
-                        .get_unchecked(pos.y)
-                        .get_unchecked(pos.x)
-                        <= &0.0
-                }
+                darknesses[pos.z][pos.y][pos.x].is_none()
             };
 
             let (s1, s2) = (
@@ -41,17 +35,19 @@ fn get_ao_quad(
             );
 
             let mut darkness = 0.0;
+            let mut total = 0.0f32;
             for x in 0..2 {
                 for y in 0..2 {
                     let dark_pos = shift + offs[0] * x + offs[1] * y + 1;
-                    darkness += unsafe {
-                        darknesses
-                            .get_unchecked(dark_pos.z as usize)
-                            .get_unchecked(dark_pos.y as usize)
-                            .get_unchecked(dark_pos.x as usize)
-                    } / 4.0;
+                    if let Some(dark) =
+                        darknesses[dark_pos.z as usize][dark_pos.y as usize][dark_pos.x as usize]
+                    {
+                        darkness += dark;
+                        total += 1.0;
+                    }
                 }
             }
+            let darkness = darkness / total.max(1.0);
 
             (
                 darkness,
@@ -60,7 +56,7 @@ fn get_ao_quad(
                 } else {
                     let corner = vox_opaque(shift + offs[0] + offs[1]);
                     // Map both 1 and 2 neighbors to 0.5 occlusion.
-                    if s1 || s2 || corner { 0.5 } else { 1.0 }
+                    if s1 || s2 || corner { 0.4 } else { 1.0 }
                 },
             )
         })
@@ -114,9 +110,7 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
 
     let ao_map = ao;
 
-    if ao[0].min(ao[2]).min(darkness[0]).min(darkness[2])
-        < ao[1].min(ao[3]).min(darkness[1]).min(darkness[3])
-    {
+    if ao[0].min(ao[2]) < ao[1].min(ao[3]) {
         Quad::new(
             vcons(origin + unit_y, norm, cols[3], darkness[3], ao_map[3]),
             vcons(origin, norm, cols[0], darkness[0], ao_map[0]),
@@ -151,7 +145,7 @@ pub fn push_vox_verts<P: Pipeline>(
     offs: Vec3<f32>,
     cols: &[[[Rgba<u8>; 3]; 3]; 3],
     vcons: impl Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
-    darknesses: &[[[f32; 3]; 3]; 3],
+    darknesses: &[[[Option<f32>; 3]; 3]; 3],
 ) {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
 

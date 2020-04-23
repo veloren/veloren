@@ -54,10 +54,14 @@ impl StructureGen2d {
         let pos = Vec3::from(center);
         (
             center
-                + Vec2::new(
-                    (x_field.get(pos) % spread_mul) as i32 - spread,
-                    (y_field.get(pos) % spread_mul) as i32 - spread,
-                ),
+                + if spread_mul > 0 {
+                    Vec2::new(
+                        (x_field.get(pos) % spread_mul) as i32 - spread,
+                        (y_field.get(pos) % spread_mul) as i32 - spread,
+                    )
+                } else {
+                    Vec2::zero()
+                },
             seed_field.get(pos),
         )
     }

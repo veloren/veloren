@@ -8,6 +8,7 @@ const FAR_PLANE: f32 = 100000.0;
 
 const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
+const LERP_ORI_RATE: f32 = 15.0;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
@@ -31,6 +32,7 @@ pub struct Dependents {
 pub struct Camera {
     tgt_focus: Vec3<f32>,
     focus: Vec3<f32>,
+    tgt_ori: Vec3<f32>,
     ori: Vec3<f32>,
     tgt_dist: f32,
     dist: f32,
@@ -49,6 +51,7 @@ impl Camera {
         Self {
             tgt_focus: Vec3::unit_z() * 10.0,
             focus: Vec3::unit_z() * 10.0,
+            tgt_ori: Vec3::zero(),
             ori: Vec3::zero(),
             tgt_dist: 10.0,
             dist: 10.0,
@@ -121,21 +124,33 @@ impl Camera {
     /// accordingly.
     pub fn rotate_by(&mut self, delta: Vec3<f32>) {
         // Wrap camera yaw
-        self.ori.x = (self.ori.x + delta.x) % (2.0 * PI);
+        self.tgt_ori.x = (self.tgt_ori.x + delta.x).rem_euclid(2.0 * PI);
         // Clamp camera pitch to the vertical limits
-        self.ori.y = (self.ori.y + delta.y).min(PI / 2.0).max(-PI / 2.0);
+        self.tgt_ori.y = (self.tgt_ori.y + delta.y)
+            .min(PI / 2.0 - 0.0001)
+            .max(-PI / 2.0 + 0.0001);
         // Wrap camera roll
-        self.ori.z = (self.ori.z + delta.z) % (2.0 * PI);
+        self.tgt_ori.z = (self.tgt_ori.z + delta.z).rem_euclid(2.0 * PI);
     }
 
     /// Set the orientation of the camera about its focus.
-    pub fn set_orientation(&mut self, orientation: Vec3<f32>) {
+    pub fn set_orientation(&mut self, ori: Vec3<f32>) {
         // Wrap camera yaw
-        self.ori.x = orientation.x % (2.0 * PI);
+        self.tgt_ori.x = ori.x.rem_euclid(2.0 * PI);
         // Clamp camera pitch to the vertical limits
-        self.ori.y = orientation.y.min(PI / 2.0).max(-PI / 2.0);
+        self.tgt_ori.y = ori.y.min(PI / 2.0 - 0.0001).max(-PI / 2.0 + 0.0001);
         // Wrap camera roll
-        self.ori.z = orientation.z % (2.0 * PI);
+        self.tgt_ori.z = ori.z.rem_euclid(2.0 * PI);
+    }
+
+    /// Set the orientation of the camera about its focus without lerping.
+    pub fn set_ori_instant(&mut self, ori: Vec3<f32>) {
+        // Wrap camera yaw
+        self.ori.x = ori.x.rem_euclid(2.0 * PI);
+        // Clamp camera pitch to the vertical limits
+        self.ori.y = ori.y.min(PI / 2.0 - 0.0001).max(-PI / 2.0 + 0.0001);
+        // Wrap camera roll
+        self.ori.z = ori.z.rem_euclid(2.0 * PI);
     }
 
     /// Zoom the camera by the given delta, limiting the input accordingly.
@@ -175,7 +190,7 @@ impl Camera {
     /// Set the distance of the camera from the target (i.e., zoom).
     pub fn set_distance(&mut self, dist: f32) { self.tgt_dist = dist; }
 
-    pub fn update(&mut self, time: f64) {
+    pub fn update(&mut self, time: f64, dt: f32) {
         // This is horribly frame time dependent, but so is most of the game
         let delta = self.last_time.replace(time).map_or(0.0, |t| time - t);
         if (self.dist - self.tgt_dist).abs() > 0.01 {
@@ -193,6 +208,20 @@ impl Camera {
                 (delta as f32) / self.interp_time(),
             );
         }
+
+        let lerp_angle = |a: f32, b: f32, rate: f32| {
+            let offs = [-2.0 * PI, 0.0, 2.0 * PI]
+                .iter()
+                .min_by_key(|offs: &&f32| ((a - (b + *offs)).abs() * 1000.0) as i32)
+                .unwrap();
+            Lerp::lerp(a, b + *offs, rate)
+        };
+
+        self.set_ori_instant(Vec3::new(
+            lerp_angle(self.ori.x, self.tgt_ori.x, LERP_ORI_RATE * dt),
+            Lerp::lerp(self.ori.y, self.tgt_ori.y, LERP_ORI_RATE * dt),
+            lerp_angle(self.ori.z, self.tgt_ori.z, LERP_ORI_RATE * dt),
+        ));
     }
 
     pub fn interp_time(&self) -> f32 {

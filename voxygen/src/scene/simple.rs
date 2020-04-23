@@ -146,7 +146,7 @@ impl Scene {
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: SceneData) {
-        self.camera.update(scene_data.time);
+        self.camera.update(scene_data.time, 1.0 / 60.0);
 
         self.camera.compute_dependents(&VoidVol);
         let camera::Dependents {
