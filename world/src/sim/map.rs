@@ -169,9 +169,11 @@ impl MapConfig {
                             sample.downhill,
                             sample.river.river_kind,
                             sample.path.is_path(),
-                            sample.sites
-                                .iter()
-                                .any(|site| site.get_origin().distance_squared(pos * TerrainChunkSize::RECT_SIZE.x as i32) < 64i32.pow(2)),
+                            sample.sites.iter().any(|site| {
+                                site.get_origin()
+                                    .distance_squared(pos * TerrainChunkSize::RECT_SIZE.x as i32)
+                                    < 64i32.pow(2)
+                            }),
                         )
                     })
                     .unwrap_or((
