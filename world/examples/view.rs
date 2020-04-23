@@ -71,6 +71,6 @@ fn main() {
             scale -= 6;
         }
 
-        win.update_with_buffer(&buf).unwrap();
+        win.update_with_buffer(&buf, W, H).unwrap();
     }
 }
