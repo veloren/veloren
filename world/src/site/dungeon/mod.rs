@@ -288,8 +288,8 @@ impl Floor {
 
             self.create_room(Room {
                 seed: ctx.rng.gen(),
-                loot_density: 0.00005 + level as f32 * 0.00015,
-                enemy_density: 0.0005 + level as f32 * 0.00005,
+                loot_density: 0.000025 + level as f32 * 0.00015,
+                enemy_density: 0.001 + level as f32 * 0.00004,
                 area,
             });
         }
