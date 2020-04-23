@@ -147,9 +147,7 @@ impl Settlement {
         this
     }
 
-    pub fn get_origin(&self) -> Vec2<i32> {
-        self.origin
-    }
+    pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
     /// Designate hazardous terrain based on world data
     pub fn designate_from_world(&mut self, sim: &WorldSim, rng: &mut impl Rng) {
