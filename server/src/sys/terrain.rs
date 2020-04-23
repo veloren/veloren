@@ -5,9 +5,10 @@ use common::{
     comp::{self, item, CharacterAbility, Item, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     msg::ServerMsg,
-    npc::{self, NPC_NAMES},
+    npc::NPC_NAMES,
     state::TerrainChanges,
     terrain::TerrainGrid,
+    generation::get_npc_name,
 };
 use rand::Rng;
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
@@ -104,89 +105,6 @@ impl<'a> System<'a> for Sys {
                     server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
                     continue;
                 }
-
-                fn get_npc_name<
-                    'a,
-                    Species,
-                    SpeciesData: for<'b> core::ops::Index<&'b Species, Output = npc::SpeciesNames>,
-                >(
-                    body_data: &'a comp::BodyData<npc::BodyNames, SpeciesData>,
-                    species: Species,
-                ) -> &'a str {
-                    &body_data.species[&species].generic
-                }
-
-                /*
-                const SPAWN_NPCS: &'static [fn() -> (
-                    String,
-                    comp::Body,
-                    Option<comp::Item>,
-                    comp::Alignment,
-                )] = &[
-                    (|| {
-                        let body = comp::humanoid::Body::random();
-                        (
-                            format!("{} Traveler", get_npc_name(&NPC_NAMES.humanoid, body.race)),
-                            comp::Body::Humanoid(body),
-                            Some(assets::load_expect_cloned(
-                                "common.items.weapons.starter_axe",
-                            )),
-                            comp::Alignment::Npc,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::humanoid::Body::random();
-                        (
-                            format!("{} Bandit", get_npc_name(&NPC_NAMES.humanoid, body.race)),
-                            comp::Body::Humanoid(body),
-                            Some(assets::load_expect_cloned(
-                                "common.items.weapons.short_sword_0",
-                            )),
-                            comp::Alignment::Enemy,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::quadruped_medium::Body::random();
-                        (
-                            get_npc_name(&NPC_NAMES.quadruped_medium, body.species).into(),
-                            comp::Body::QuadrupedMedium(body),
-                            None,
-                            comp::Alignment::Enemy,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::bird_medium::Body::random();
-                        (
-                            get_npc_name(&NPC_NAMES.bird_medium, body.species).into(),
-                            comp::Body::BirdMedium(body),
-                            None,
-                            comp::Alignment::Wild,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::critter::Body::random();
-                        (
-                            get_npc_name(&NPC_NAMES.critter, body.species).into(),
-                            comp::Body::Critter(body),
-                            None,
-                            comp::Alignment::Wild,
-                        )
-                    }) as _,
-                    (|| {
-                        let body = comp::quadruped_small::Body::random();
-                        (
-                            get_npc_name(&NPC_NAMES.quadruped_small, body.species).into(),
-                            comp::Body::QuadrupedSmall(body),
-                            None,
-                            comp::Alignment::Wild,
-                        )
-                    }),
-                ];
-                let (name, mut body, main, alignment) = SPAWN_NPCS
-                    .choose(&mut rand::thread_rng())
-                    .expect("SPAWN_NPCS is nonempty")(
-                );
-                */
 
                 let mut body = entity.body;
                 let name = entity.name.unwrap_or("Unnamed".to_string());

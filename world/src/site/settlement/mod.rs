@@ -44,19 +44,6 @@ pub fn intersect(a: [Vec2<f32>; 2], b: [Vec2<f32>; 2]) -> Option<Vec2<f32>> {
     }
 }
 
-pub fn dist_to_line(line: [Vec2<f32>; 2], p: Vec2<f32>) -> f32 {
-    let lsq = line[0].distance_squared(line[1]);
-
-    if lsq == 0.0 {
-        line[0].distance(p)
-    } else {
-        let t = ((p - line[0]).dot(line[1] - line[0]) / lsq)
-            .max(0.0)
-            .min(1.0);
-        p.distance(line[0] + (line[1] - line[0]) * t)
-    }
-}
-
 pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
     let ma = -1.0 / gradient([p[0], p[1]]);
     let mb = -1.0 / gradient([p[1], p[2]]);

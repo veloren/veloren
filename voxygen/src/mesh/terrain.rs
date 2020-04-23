@@ -28,7 +28,7 @@ impl Blendable for BlockKind {
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
-) -> impl FnMut(Vec3<i32>) -> Option<f32> + '_ {
+) -> impl FnMut(Vec3<i32>) -> f32 + '_ {
     const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;
     const SUNLIGHT: u8 = 24;
@@ -189,22 +189,12 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 
     move |wpos| {
-        if vol_cached
-            .get(wpos)
-            .map(|block| block.is_opaque())
-            .unwrap_or(false)
-        {
-            None
-        } else {
-            let pos = wpos - outer.min;
-            Some(
-                light_map
-                    .get(lm_idx(pos.x, pos.y, pos.z))
-                    .filter(|l| **l != OPAQUE && **l != UNKNOWN)
-                    .map(|l| *l as f32 / SUNLIGHT as f32)
-                    .unwrap_or(0.0),
-            )
-        }
+        let pos = wpos - outer.min;
+        light_map
+            .get(lm_idx(pos.x, pos.y, pos.z))
+            .filter(|l| **l != OPAQUE && **l != UNKNOWN)
+            .map(|l| *l as f32 / SUNLIGHT as f32)
+            .unwrap_or(0.0)
     }
 }
 
@@ -307,15 +297,32 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
         for x in 1..range.size().w - 1 {
             for y in 1..range.size().w - 1 {
+                let mut blocks = [[[None; 3]; 3]; 3];
+                for i in 0..3 {
+                    for j in 0..3 {
+                        for k in 0..3 {
+                            blocks[k][j][i] = Some(flat_get(
+                                Vec3::new(x, y, z_start)
+                                + Vec3::new(i as i32, j as i32, k as i32)
+                                - 1
+                            ));
+                        }
+                    }
+                }
+
                 let mut lights = [[[None; 3]; 3]; 3];
                 for i in 0..3 {
                     for j in 0..3 {
                         for k in 0..3 {
-                            lights[k][j][i] = light(
-                                Vec3::new(x + range.min.x, y + range.min.y, z_start + range.min.z)
-                                    + Vec3::new(i as i32, j as i32, k as i32)
-                                    - 1,
-                            );
+                            lights[k][j][i] = if blocks[k][j][i].map(|block| block.is_opaque()).unwrap_or(false) {
+                                None
+                            } else {
+                                Some(light(Vec3::new(
+                                    x + range.min.x,
+                                    y + range.min.y,
+                                    z_start + range.min.z,
+                                ) + Vec3::new(i as i32, j as i32, k as i32) - 1))
+                            };
                         }
                     }
                 }
@@ -328,19 +335,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                         .unwrap_or(Rgba::zero())
                 };
 
-                let mut blocks = [[[None; 3]; 3]; 3];
-                for i in 0..3 {
-                    for j in 0..3 {
-                        for k in 0..3 {
-                            let block = Some(flat_get(
-                                Vec3::new(x, y, z_start) + Vec3::new(i as i32, j as i32, k as i32)
-                                    - 1,
-                            ));
-                            blocks[k][j][i] = block;
-                        }
-                    }
-                }
-
                 for z in z_start..z_end + 1 {
                     let pos = Vec3::new(x, y, z);
                     let offs = (pos - Vec3::new(1, 1, -range.min.z)).map(|e| e as f32);
@@ -350,16 +344,20 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     blocks[0] = blocks[1];
                     blocks[1] = blocks[2];
 
-                    for i in 0..3 {
-                        for j in 0..3 {
-                            lights[2][j][i] =
-                                light(pos + range.min + Vec3::new(i as i32, j as i32, 2) - 1);
-                        }
-                    }
+
                     for i in 0..3 {
                         for j in 0..3 {
                             let block = Some(flat_get(pos + Vec3::new(i as i32, j as i32, 2) - 1));
                             blocks[2][j][i] = block;
+                        }
+                    }
+                    for i in 0..3 {
+                        for j in 0..3 {
+                            lights[2][j][i] = if blocks[2][j][i].map(|block| block.is_opaque()).unwrap_or(false) {
+                                None
+                            } else {
+                                Some(light(pos + range.min + Vec3::new(i as i32, j as i32, 2) - 1))
+                            };
                         }
                     }
 
