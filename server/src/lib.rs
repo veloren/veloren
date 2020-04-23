@@ -51,6 +51,7 @@ use vek::*;
 use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
     World,
+    civ::SiteKind,
 };
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
@@ -126,7 +127,17 @@ impl Server {
             // complaining)
 
             // spawn in the chunk, that is in the middle of the world
-            let spawn_chunk: Vec2<i32> = WORLD_SIZE.map(|e| e as i32) / 2;
+            let center_chunk: Vec2<i32> = WORLD_SIZE.map(|e| e as i32) / 2;
+
+            // Find a town to spawn in that's close to the centre of the world
+            let spawn_chunk = world
+                .civs()
+                .sites()
+                .filter(|site| matches!(site.kind, SiteKind::Settlement))
+                .map(|site| site.center)
+                .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
+                .unwrap_or(center_chunk);
+
             // calculate the absolute position of the chunk in the world
             // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the midde of
             // the chunk)
