@@ -8,9 +8,7 @@ pub struct PathData {
 }
 
 impl PathData {
-    pub fn is_path(&self) -> bool {
-        self.neighbors != 0
-    }
+    pub fn is_path(&self) -> bool { self.neighbors != 0 }
 }
 
 impl Default for PathData {

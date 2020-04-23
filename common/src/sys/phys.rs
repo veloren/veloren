@@ -317,13 +317,14 @@ impl<'a> System<'a> for Sys {
                 && was_on_ground
                 && !collision_with(
                     pos.0 - Vec3::unit_z() * 0.05,
-                    &|block| block.is_solid() && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0),
+                    &|block| {
+                        block.is_solid() && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
+                    },
                     near_iter.clone(),
                 )
             {
                 let snap_height = terrain
-                    .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.05)
-                        .map(|e| e.floor() as i32))
+                    .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.05).map(|e| e.floor() as i32))
                     .ok()
                     .filter(|block| block.is_solid())
                     .map(|block| block.get_height())
@@ -340,7 +341,11 @@ impl<'a> System<'a> for Sys {
             ];
 
             if let (wall_dir, true) = dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
-                if collision_with(pos.0 + *dir * 0.01, &|block| block.is_solid(), near_iter.clone()) {
+                if collision_with(
+                    pos.0 + *dir * 0.01,
+                    &|block| block.is_solid(),
+                    near_iter.clone(),
+                ) {
                     (a + dir, true)
                 } else {
                     (a, hit)
@@ -352,7 +357,8 @@ impl<'a> System<'a> for Sys {
             }
 
             // Figure out if we're in water
-            physics_state.in_fluid = collision_with(pos.0, &|block| block.is_fluid(), near_iter.clone());
+            physics_state.in_fluid =
+                collision_with(pos.0, &|block| block.is_fluid(), near_iter.clone());
 
             let _ = physics_states.insert(entity, physics_state);
         }

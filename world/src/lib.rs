@@ -7,9 +7,9 @@ mod block;
 pub mod civ;
 mod column;
 pub mod config;
+pub mod layer;
 pub mod sim;
 pub mod site;
-pub mod layer;
 pub mod util;
 
 // Reexports

@@ -147,31 +147,39 @@ impl MapConfig {
                 let pos =
                     (focus_rect + Vec2::new(i as f64, j as f64) * scale).map(|e: f64| e as i32);
 
-                let (alt, basement, water_alt, humidity, temperature, downhill, river_kind, is_path) =
-                    sampler
-                        .get(pos)
-                        .map(|sample| {
-                            (
-                                sample.alt,
-                                sample.basement,
-                                sample.water_alt,
-                                sample.humidity,
-                                sample.temp,
-                                sample.downhill,
-                                sample.river.river_kind,
-                                sample.path.is_path(),
-                            )
-                        })
-                        .unwrap_or((
-                            CONFIG.sea_level,
-                            CONFIG.sea_level,
-                            CONFIG.sea_level,
-                            0.0,
-                            0.0,
-                            None,
-                            None,
-                            false,
-                        ));
+                let (
+                    alt,
+                    basement,
+                    water_alt,
+                    humidity,
+                    temperature,
+                    downhill,
+                    river_kind,
+                    is_path,
+                ) = sampler
+                    .get(pos)
+                    .map(|sample| {
+                        (
+                            sample.alt,
+                            sample.basement,
+                            sample.water_alt,
+                            sample.humidity,
+                            sample.temp,
+                            sample.downhill,
+                            sample.river.river_kind,
+                            sample.path.is_path(),
+                        )
+                    })
+                    .unwrap_or((
+                        CONFIG.sea_level,
+                        CONFIG.sea_level,
+                        CONFIG.sea_level,
+                        0.0,
+                        0.0,
+                        None,
+                        None,
+                        false,
+                    ));
                 let humidity = humidity.min(1.0).max(0.0);
                 let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
                 let pos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);

@@ -8,6 +8,7 @@ use crate::{
     util::{RandomField, Sampler, StructureGen2d},
 };
 use common::{
+    assets,
     astar::Astar,
     comp::{self, bird_medium, humanoid, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
@@ -16,7 +17,6 @@ use common::{
     store::{Id, Store},
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
-    assets,
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -341,7 +341,8 @@ impl Settlement {
                             .tile_at(tile_pos)
                             .map(|t| t.contains(WayKind::Path))
                             .unwrap_or(true)
-                        || ctx.sim
+                        || ctx
+                            .sim
                             .and_then(|sim| sim.get_nearest_path(self.origin + house_pos))
                             .map(|(dist, _)| dist < 28.0)
                             .unwrap_or(false)
@@ -548,9 +549,8 @@ impl Settlement {
                 } else {
                     let mut surface_block = None;
 
-                    let roll = |seed, n| {
-                        self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n
-                    };
+                    let roll =
+                        |seed, n| self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n;
 
                     let color = match sample.plot {
                         Some(Plot::Dirt) => Some(Rgb::new(90, 70, 50)),
@@ -558,16 +558,21 @@ impl Settlement {
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
                         Some(Plot::Town) => {
                             if let Some((_, path_nearest)) = col_sample.path {
-                                let path_dir = (path_nearest - wpos2d.map(|e| e as f32)).rotated_z(f32::consts::PI / 2.0).normalized();
+                                let path_dir = (path_nearest - wpos2d.map(|e| e as f32))
+                                    .rotated_z(f32::consts::PI / 2.0)
+                                    .normalized();
                                 let is_lamp = if path_dir.x.abs() > path_dir.y.abs() {
-                                    wpos2d.x as f32 % 20.0 / path_dir.dot(Vec2::unit_y()).abs() <= 1.0
+                                    wpos2d.x as f32 % 20.0 / path_dir.dot(Vec2::unit_y()).abs()
+                                        <= 1.0
                                 } else {
-                                    wpos2d.y as f32 % 20.0 / path_dir.dot(Vec2::unit_x()).abs() <= 1.0
+                                    wpos2d.y as f32 % 20.0 / path_dir.dot(Vec2::unit_x()).abs()
+                                        <= 1.0
                                 };
                                 if (col_sample.path.map(|(dist, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
                                     || roll(0, 2000) == 0
                                 {
-                                    surface_block = Some(Block::new(BlockKind::StreetLamp, Rgb::white()));
+                                    surface_block =
+                                        Some(Block::new(BlockKind::StreetLamp, Rgb::white()));
                                 }
                             }
 
@@ -804,14 +809,18 @@ impl Settlement {
                             },
                             _ => comp::Body::Humanoid(humanoid::Body::random()),
                         })
-                        .do_if(rng.gen(), |entity| entity.with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
-                            0 => "common.items.weapons.starter_axe",
-                            1 => "common.items.weapons.starter_sword",
-                            2 => "common.items.weapons.short_sword_0",
-                            3 => "common.items.weapons.hammer_1",
-                            4 => "common.items.weapons.starter_staff",
-                            _ => "common.items.weapons.starter_bow",
-                        })))
+                        .do_if(rng.gen(), |entity| {
+                            entity.with_main_tool(assets::load_expect_cloned(
+                                match rng.gen_range(0, 6) {
+                                    0 => "common.items.weapons.starter_axe",
+                                    1 => "common.items.weapons.starter_sword",
+                                    2 => "common.items.weapons.short_sword_0",
+                                    3 => "common.items.weapons.hammer_1",
+                                    4 => "common.items.weapons.starter_staff",
+                                    _ => "common.items.weapons.starter_bow",
+                                },
+                            ))
+                        })
                         .with_automatic_name();
 
                     supplement.add_entity(entity);

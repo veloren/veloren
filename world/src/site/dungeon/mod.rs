@@ -3,7 +3,7 @@ use crate::{
     column::ColumnSample,
     sim::WorldSim,
     site::BlockMask,
-    util::{attempt, DIRS, CARDINALS, Grid, RandomField, Sampler},
+    util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
 };
 use common::{
     assets,
@@ -118,16 +118,17 @@ impl Dungeon {
         };
 
         if area.contains_point(Vec2::zero()) {
-            let offs = Vec2::new(
-                rng.gen_range(-1.0, 1.0),
-                rng.gen_range(-1.0, 1.0),
-            ).try_normalized().unwrap_or(Vec2::unit_y()) * 16.0;
-            supplement.add_entity(EntityInfo::at(Vec3::new(
-                self.origin.x,
-                self.origin.y,
-                self.alt + 4,
-            ).map(|e| e as f32) + Vec3::from(offs))
-                .into_waypoint());
+            let offs = Vec2::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0))
+                .try_normalized()
+                .unwrap_or(Vec2::unit_y())
+                * 16.0;
+            supplement.add_entity(
+                EntityInfo::at(
+                    Vec3::new(self.origin.x, self.origin.y, self.alt + 4).map(|e| e as f32)
+                        + Vec3::from(offs),
+                )
+                .into_waypoint(),
+            );
         }
 
         let mut z = self.alt;
