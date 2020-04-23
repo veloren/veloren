@@ -74,8 +74,8 @@ impl Route {
         if vol.get(next).map(|b| b.is_solid()).unwrap_or(false) {
             None
         } else {
-            let next_tgt = next.map(|e| e as f32) + 0.5;
-            if ((pos - next_tgt) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared()
+            let next_tgt = next.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
+            if ((pos - (next_tgt + Vec3::unit_z() * 0.5)) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared()
                 < (traversal_tolerance * 2.0).powf(2.0)
             {
                 self.next_idx += 1;

@@ -27,7 +27,7 @@ impl EntityInfo {
             alignment: Alignment::Wild,
             body: Body::Humanoid(humanoid::Body::random()),
             name: None,
-            main_tool: None,
+            main_tool: Some(Item::empty()),
         }
     }
 
