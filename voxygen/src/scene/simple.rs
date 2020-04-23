@@ -73,6 +73,7 @@ pub struct SceneData {
     pub tick: u64,
     pub body: Option<humanoid::Body>,
     pub gamma: f32,
+    pub mouse_smoothing: bool,
 }
 
 impl Scene {
@@ -146,7 +147,8 @@ impl Scene {
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: SceneData) {
-        self.camera.update(scene_data.time, 1.0 / 60.0);
+        self.camera
+            .update(scene_data.time, 1.0 / 60.0, scene_data.mouse_smoothing);
 
         self.camera.compute_dependents(&VoidVol);
         let camera::Dependents {

@@ -190,7 +190,7 @@ impl Camera {
     /// Set the distance of the camera from the target (i.e., zoom).
     pub fn set_distance(&mut self, dist: f32) { self.tgt_dist = dist; }
 
-    pub fn update(&mut self, time: f64, dt: f32) {
+    pub fn update(&mut self, time: f64, dt: f32, smoothing_enabled: bool) {
         // This is horribly frame time dependent, but so is most of the game
         let delta = self.last_time.replace(time).map_or(0.0, |t| time - t);
         if (self.dist - self.tgt_dist).abs() > 0.01 {
@@ -217,11 +217,15 @@ impl Camera {
             Lerp::lerp(a, b + *offs, rate)
         };
 
-        self.set_ori_instant(Vec3::new(
-            lerp_angle(self.ori.x, self.tgt_ori.x, LERP_ORI_RATE * dt),
-            Lerp::lerp(self.ori.y, self.tgt_ori.y, LERP_ORI_RATE * dt),
-            lerp_angle(self.ori.z, self.tgt_ori.z, LERP_ORI_RATE * dt),
-        ));
+        if smoothing_enabled {
+            self.set_ori_instant(Vec3::new(
+                lerp_angle(self.ori.x, self.tgt_ori.x, LERP_ORI_RATE * dt),
+                Lerp::lerp(self.ori.y, self.tgt_ori.y, LERP_ORI_RATE * dt),
+                lerp_angle(self.ori.z, self.tgt_ori.z, LERP_ORI_RATE * dt),
+            ));
+        } else {
+            self.set_ori_instant(self.tgt_ori)
+        };
     }
 
     pub fn interp_time(&self) -> f32 {
