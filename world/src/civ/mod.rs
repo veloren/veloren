@@ -61,7 +61,7 @@ impl Civs {
             }
         }
 
-        for _ in 0..32 {
+        for _ in 0..INITIAL_CIV_COUNT * 2 {
             attempt(5, || {
                 let loc = find_site_loc(&mut ctx, None)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {
@@ -343,45 +343,49 @@ impl Civs {
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        for (nearby, _) in nearby.into_iter().take(5) {
-            // Find a novel path
-            if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {
-                // Find a path using existing paths
-                if self
-                    .route_between(site, nearby)
-                    // If the novel path isn't efficient compared to existing routes, don't use it
-                    .filter(|(_, route_cost)| *route_cost < cost * 3.0)
-                    .is_none()
-                {
-                    // Write the track to the world as a path
-                    for locs in path.nodes().windows(3) {
-                        let to_prev_idx = NEIGHBORS
-                            .iter()
-                            .enumerate()
-                            .find(|(_, dir)| **dir == locs[0] - locs[1])
-                            .expect("Track locations must be neighbors")
-                            .0;
-                        let to_next_idx = NEIGHBORS
-                            .iter()
-                            .enumerate()
-                            .find(|(_, dir)| **dir == locs[2] - locs[1])
-                            .expect("Track locations must be neighbors")
-                            .0;
+        if let SiteKind::Settlement = self.sites[site].kind {
+            for (nearby, _) in nearby.into_iter().take(5) {
+                // Find a novel path
+                if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {
+                    // Find a path using existing paths
+                    if self
+                        .route_between(site, nearby)
+                        // If the novel path isn't efficient compared to existing routes, don't use it
+                        .filter(|(_, route_cost)| *route_cost < cost * 3.0)
+                        .is_none()
+                    {
+                        // Write the track to the world as a path
+                        for locs in path.nodes().windows(3) {
+                            let to_prev_idx = NEIGHBORS
+                                .iter()
+                                .enumerate()
+                                .find(|(_, dir)| **dir == locs[0] - locs[1])
+                                .expect("Track locations must be neighbors")
+                                .0;
+                            let to_next_idx = NEIGHBORS
+                                .iter()
+                                .enumerate()
+                                .find(|(_, dir)| **dir == locs[2] - locs[1])
+                                .expect("Track locations must be neighbors")
+                                .0;
 
-                        let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                        chunk.path.neighbors |= (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-                        chunk.path.offset = Vec2::new(
-                            ctx.rng.gen_range(-16.0, 16.0),
-                            ctx.rng.gen_range(-16.0, 16.0),
-                        );
+                            ctx.sim.get_mut(locs[0]).unwrap().path.neighbors |= 1 << ((to_prev_idx as u8 + 4) % 8);
+                            ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |= 1 << ((to_next_idx as u8 + 4) % 8);
+                            let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                            chunk.path.neighbors |= (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+                            chunk.path.offset = Vec2::new(
+                                ctx.rng.gen_range(-16.0, 16.0),
+                                ctx.rng.gen_range(-16.0, 16.0),
+                            );
+                        }
+
+                        // Take note of the track
+                        let track = self.tracks.insert(Track { cost, path });
+                        self.track_map
+                            .entry(site)
+                            .or_default()
+                            .insert(nearby, track);
                     }
-
-                    // Take note of the track
-                    let track = self.tracks.insert(Track { cost, path });
-                    self.track_map
-                        .entry(site)
-                        .or_default()
-                        .insert(nearby, track);
                 }
             }
         }
