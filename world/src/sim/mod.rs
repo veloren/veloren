@@ -27,10 +27,7 @@ use crate::{
     all::ForestKind,
     civ::Place,
     site::Site,
-    util::{
-        seed_expan, FastNoise, RandomField, StructureGen2d, LOCALITY,
-        NEIGHBORS,
-    },
+    util::{seed_expan, FastNoise, RandomField, StructureGen2d, LOCALITY, NEIGHBORS},
     CONFIG,
 };
 use common::{

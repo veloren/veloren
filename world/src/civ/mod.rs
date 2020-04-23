@@ -369,10 +369,13 @@ impl Civs {
                                 .expect("Track locations must be neighbors")
                                 .0;
 
-                            ctx.sim.get_mut(locs[0]).unwrap().path.neighbors |= 1 << ((to_prev_idx as u8 + 4) % 8);
-                            ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |= 1 << ((to_next_idx as u8 + 4) % 8);
+                            ctx.sim.get_mut(locs[0]).unwrap().path.neighbors |=
+                                1 << ((to_prev_idx as u8 + 4) % 8);
+                            ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |=
+                                1 << ((to_next_idx as u8 + 4) % 8);
                             let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                            chunk.path.neighbors |= (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+                            chunk.path.neighbors |=
+                                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
                             chunk.path.offset = Vec2::new(
                                 ctx.rng.gen_range(-16.0, 16.0),
                                 ctx.rng.gen_range(-16.0, 16.0),

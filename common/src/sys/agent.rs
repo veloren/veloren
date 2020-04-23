@@ -115,9 +115,10 @@ impl<'a> System<'a> for Sys {
 
             let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
-            // This controls how picky NPCs are about their pathfinding. Giants are larger and so
-            // can afford to be less precise when trying to move around the world (especially since
-            // they would otherwise get stuck on obstacles that smaller entities would not).
+            // This controls how picky NPCs are about their pathfinding. Giants are larger
+            // and so can afford to be less precise when trying to move around
+            // the world (especially since they would otherwise get stuck on
+            // obstacles that smaller entities would not).
             let traversal_tolerance = scale;
 
             let mut do_idle = false;
