@@ -105,6 +105,7 @@ unittests:
 
 coverage:
     stage: build-post
+    allow_failure: true
     when: delayed
     start_in: 5 seconds
     tags:
