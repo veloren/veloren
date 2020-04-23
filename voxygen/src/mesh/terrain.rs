@@ -28,7 +28,7 @@ impl Blendable for BlockKind {
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
-) -> impl Fn(Vec3<i32>) -> f32 {
+) -> impl FnMut(Vec3<i32>) -> f32 + '_ {
     const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;
     const SUNLIGHT: u8 = 24;
@@ -209,10 +209,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         &self,
         range: Self::Supplement,
     ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
-        let mut opaque_mesh = Mesh::new();
-        let mut fluid_mesh = Mesh::new();
-
-        let light = calc_light(range, self);
+        let mut light = calc_light(range, self);
 
         let mut lowest_opaque = range.size().d;
         let mut highest_opaque = 0;
@@ -290,17 +287,47 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
             highest_opaque
         }
         .min(range.size().d - 1);
+
+        // // We use multiple meshes and then combine them later such that we can group
+        // similar z // levels together (better rendering performance)
+        // let mut opaque_meshes = vec![Mesh::new(); ((z_end + 1 - z_start).clamped(1,
+        // 60) as usize / 10).max(1)];
+        let mut opaque_mesh = Mesh::new();
+        let mut fluid_mesh = Mesh::new();
+
         for x in 1..range.size().w - 1 {
             for y in 1..range.size().w - 1 {
-                let mut lights = [[[0.0; 3]; 3]; 3];
+                let mut blocks = [[[None; 3]; 3]; 3];
                 for i in 0..3 {
                     for j in 0..3 {
                         for k in 0..3 {
-                            lights[k][j][i] = light(
-                                Vec3::new(x + range.min.x, y + range.min.y, z_start + range.min.z)
-                                    + Vec3::new(i as i32, j as i32, k as i32)
+                            blocks[k][j][i] = Some(flat_get(
+                                Vec3::new(x, y, z_start) + Vec3::new(i as i32, j as i32, k as i32)
                                     - 1,
-                            );
+                            ));
+                        }
+                    }
+                }
+
+                let mut lights = [[[None; 3]; 3]; 3];
+                for i in 0..3 {
+                    for j in 0..3 {
+                        for k in 0..3 {
+                            lights[k][j][i] = if blocks[k][j][i]
+                                .map(|block| block.is_opaque())
+                                .unwrap_or(false)
+                            {
+                                None
+                            } else {
+                                Some(light(
+                                    Vec3::new(
+                                        x + range.min.x,
+                                        y + range.min.y,
+                                        z_start + range.min.z,
+                                    ) + Vec3::new(i as i32, j as i32, k as i32)
+                                        - 1,
+                                ))
+                            };
                         }
                     }
                 }
@@ -313,19 +340,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                         .unwrap_or(Rgba::zero())
                 };
 
-                let mut blocks = [[[None; 3]; 3]; 3];
-                for i in 0..3 {
-                    for j in 0..3 {
-                        for k in 0..3 {
-                            let block = Some(flat_get(
-                                Vec3::new(x, y, z_start) + Vec3::new(i as i32, j as i32, k as i32)
-                                    - 1,
-                            ));
-                            blocks[k][j][i] = block;
-                        }
-                    }
-                }
-
                 for z in z_start..z_end + 1 {
                     let pos = Vec3::new(x, y, z);
                     let offs = (pos - Vec3::new(1, 1, -range.min.z)).map(|e| e as f32);
@@ -337,14 +351,22 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
                     for i in 0..3 {
                         for j in 0..3 {
-                            lights[2][j][i] =
-                                light(pos + range.min + Vec3::new(i as i32, j as i32, 2) - 1);
+                            let block = Some(flat_get(pos + Vec3::new(i as i32, j as i32, 2) - 1));
+                            blocks[2][j][i] = block;
                         }
                     }
                     for i in 0..3 {
                         for j in 0..3 {
-                            let block = Some(flat_get(pos + Vec3::new(i as i32, j as i32, 2) - 1));
-                            blocks[2][j][i] = block;
+                            lights[2][j][i] = if blocks[2][j][i]
+                                .map(|block| block.is_opaque())
+                                .unwrap_or(false)
+                            {
+                                None
+                            } else {
+                                Some(light(
+                                    pos + range.min + Vec3::new(i as i32, j as i32, 2) - 1,
+                                ))
+                            };
                         }
                     }
 
@@ -366,15 +388,20 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                         [[[get_color(blocks[1][1][1].as_ref(), false); 3]; 3]; 3]
                     };
 
-                    // Create mesh polygons
+                    // let opaque_mesh_index = ((z - z_start) * opaque_meshes.len() as i32 / (z_end
+                    // + 1 - z_start).max(1)) as usize; let selected_opaque_mesh
+                    // = &mut opaque_meshes[opaque_mesh_index]; Create mesh
+                    // polygons
                     if block.map_or(false, |vox| vox.is_opaque()) {
                         vol::push_vox_verts(
-                            &mut opaque_mesh,
+                            &mut opaque_mesh, //selected_opaque_mesh,
                             faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
                             offs,
                             &colors,
-                            |pos, norm, col, ao, light| {
-                                let light = (light.min(ao) * 255.0) as u32;
+                            |pos, norm, col, light, ao| {
+                                //let light = (light.min(ao) * 255.0) as u32;
+                                let light = (light * 255.0) as u32;
+                                let ao = (ao * 255.0) as u32;
                                 let norm = if norm.x != 0.0 {
                                     if norm.x < 0.0 { 0 } else { 1 }
                                 } else if norm.y != 0.0 {
@@ -382,7 +409,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                                 } else {
                                     if norm.z < 0.0 { 4 } else { 5 }
                                 };
-                                TerrainVertex::new(norm, light, pos, col)
+                                TerrainVertex::new(norm, light, ao, pos, col)
                             },
                             &lights,
                         );
@@ -392,7 +419,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             faces_to_make(&blocks, false, |vox| vox.is_air()),
                             offs,
                             &colors,
-                            |pos, norm, col, _ao, light| {
+                            |pos, norm, col, light, _ao| {
                                 FluidVertex::new(pos, norm, col, light, 0.3)
                             },
                             &lights,
@@ -401,6 +428,18 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                 }
             }
         }
+
+        // let opaque_mesh = opaque_meshes
+        //     .into_iter()
+        //     .rev()
+        //     .fold(Mesh::new(), |mut opaque_mesh, m: Mesh<Self::Pipeline>| {
+        //         m.verts().chunks_exact(3).rev().for_each(|vs| {
+        //             opaque_mesh.push(vs[0]);
+        //             opaque_mesh.push(vs[1]);
+        //             opaque_mesh.push(vs[2]);
+        //         });
+        //         opaque_mesh
+        //     });
 
         (opaque_mesh, fluid_mesh)
     }

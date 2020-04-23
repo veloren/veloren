@@ -8,6 +8,10 @@ pub struct RandomField {
 
 impl RandomField {
     pub const fn new(seed: u32) -> Self { Self { seed } }
+
+    pub fn chance(&self, pos: Vec3<i32>, chance: f32) -> bool {
+        (self.get(pos) % (1 << 10)) as f32 / ((1 << 10) as f32) < chance
+    }
 }
 
 impl Sampler<'static> for RandomField {

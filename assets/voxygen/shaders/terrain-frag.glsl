@@ -1,11 +1,14 @@
 #version 330 core
 
 #include <globals.glsl>
+#include <random.glsl>
 
 in vec3 f_pos;
+in vec3 f_chunk_pos;
 flat in uint f_pos_norm;
 in vec3 f_col;
 in float f_light;
+in float f_ao;
 
 layout (std140)
 uniform u_locals {
@@ -29,15 +32,21 @@ void main() {
 	// Use an array to avoid conditional branching
 	vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
 
+	float ao = pow(f_ao, 0.5) * 0.9 + 0.1;
+
 	vec3 light, diffuse_light, ambient_light;
 	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
 	float point_shadow = shadow_at(f_pos, f_norm);
-	diffuse_light *= f_light * point_shadow;
-	ambient_light *= f_light * point_shadow;
+	diffuse_light *= point_shadow;
+	ambient_light *= point_shadow;
 	vec3 point_light = light_at(f_pos, f_norm);
 	light += point_light;
-	diffuse_light += point_light;
-	vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
+	ambient_light *= f_light * ao;
+	diffuse_light *= f_light * ao;
+	diffuse_light += point_light * ao;
+
+	vec3 col = f_col + hash(vec4(floor(f_chunk_pos * 3.0 + 0.5), 0)) * 0.02; // Small-scale noise
+	vec3 surf_color = illuminate(srgb_to_linear(col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

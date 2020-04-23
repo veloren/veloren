@@ -5,6 +5,7 @@
 in vec3 v_pos;
 in vec3 v_norm;
 in vec3 v_col;
+in float v_ao;
 in uint v_bone_idx;
 
 layout (std140)
@@ -27,6 +28,7 @@ uniform u_bones {
 
 out vec3 f_pos;
 out vec3 f_col;
+out float f_ao;
 flat out vec3 f_norm;
 
 void main() {
@@ -38,6 +40,8 @@ void main() {
 		vec4(v_pos, 1)).xyz;
 
 	f_col = v_col;
+
+	f_ao = v_ao;
 
 	// Calculate normal here rather than for each pixel in the fragment shader
 	f_norm = normalize((

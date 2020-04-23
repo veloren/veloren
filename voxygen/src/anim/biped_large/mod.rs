@@ -56,23 +56,19 @@ impl Skeleton for BipedLargeSkeleton {
         let torso_mat = self.torso.compute_base_matrix();
 
         [
-            FigureBoneData::new(torso_mat * self.head.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * upper_torso_mat * self.head.compute_base_matrix()),
             FigureBoneData::new(torso_mat * upper_torso_mat),
             FigureBoneData::new(
                 torso_mat * upper_torso_mat * self.lower_torso.compute_base_matrix(),
             ),
             FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_l_mat),
             FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_r_mat),
-            FigureBoneData::new(
-                torso_mat * upper_torso_mat * shoulder_l_mat * self.hand_l.compute_base_matrix(),
-            ),
-            FigureBoneData::new(
-                torso_mat * upper_torso_mat * shoulder_r_mat * self.hand_r.compute_base_matrix(),
-            ),
-            FigureBoneData::new(torso_mat * leg_l_mat),
-            FigureBoneData::new(torso_mat * leg_r_mat),
-            FigureBoneData::new(torso_mat * self.foot_l.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * self.foot_r.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * upper_torso_mat * self.hand_l.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * upper_torso_mat * self.hand_r.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * upper_torso_mat * leg_l_mat),
+            FigureBoneData::new(torso_mat * upper_torso_mat * leg_r_mat),
+            FigureBoneData::new(self.foot_l.compute_base_matrix()),
+            FigureBoneData::new(self.foot_r.compute_base_matrix()),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
@@ -137,10 +133,10 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
         use comp::biped_large::Species::*;
         Self {
             head: match (body.species, body.body_type) {
-                (Giant, _) => (0.0, 28.5),
+                (Giant, _) => (0.0, 10.0),
             },
             upper_torso: match (body.species, body.body_type) {
-                (Giant, _) => (0.0, 18.5),
+                (Giant, _) => (0.0, 20.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Giant, _) => (1.0, -9.5),
@@ -149,13 +145,13 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
                 (Giant, _) => (6.0, 0.5, 2.5),
             },
             hand: match (body.species, body.body_type) {
-                (Giant, _) => (3.5, -1.0, 3.0),
+                (Giant, _) => (10.5, -1.0, 3.5),
             },
             leg: match (body.species, body.body_type) {
-                (Giant, _) => (3.5, 0.0, 14.0),
+                (Giant, _) => (0.0, 0.0, -6.0),
             },
             foot: match (body.species, body.body_type) {
-                (Giant, _) => (4.0, 0.5, 11.0),
+                (Giant, _) => (4.0, 0.5, 2.5),
             },
         }
     }

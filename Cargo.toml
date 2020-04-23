@@ -14,10 +14,10 @@ members = [
 # default profile for devs, fast to compile, okay enough to run, no debug information
 [profile.dev]
 opt-level = 2
-overflow-checks = true 
+overflow-checks = true
 debug-assertions = true
 panic = "abort"
-debug = false 
+debug = false
 codegen-units = 8
 lto = false
 incremental = true

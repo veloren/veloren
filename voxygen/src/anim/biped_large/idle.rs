@@ -36,10 +36,10 @@ impl Animation for IdleAnimation {
         next.head.offset = Vec3::new(
             0.0,
             skeleton_attr.head.0,
-            skeleton_attr.head.1 + torso * 0.6,
-        ) / 8.0;
+            skeleton_attr.head.1 + torso * 0.2,
+        ) * 1.02;
         next.head.ori = Quaternion::rotation_z(look.x * 0.6) * Quaternion::rotation_x(look.y * 0.6);
-        next.head.scale = Vec3::one() / 8.0;
+        next.head.scale = Vec3::one() * 1.02;
 
         next.upper_torso.offset = Vec3::new(
             0.0,
@@ -52,7 +52,7 @@ impl Animation for IdleAnimation {
         next.lower_torso.offset = Vec3::new(
             0.0,
             skeleton_attr.lower_torso.0,
-            skeleton_attr.lower_torso.1 + torso * 0.35,
+            skeleton_attr.lower_torso.1 + torso * 0.15,
         );
         next.lower_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.lower_torso.scale = Vec3::one() * 1.02;
@@ -79,7 +79,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.hand.2 + torso * 0.6,
         );
         next.hand_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.hand_l.scale = Vec3::one();
+        next.hand_l.scale = Vec3::one() * 1.02;
 
         next.hand_r.offset = Vec3::new(
             skeleton_attr.hand.0,
@@ -87,23 +87,23 @@ impl Animation for IdleAnimation {
             skeleton_attr.hand.2 + torso * 0.6,
         );
         next.hand_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.hand_r.scale = Vec3::one();
+        next.hand_r.scale = Vec3::one() * 1.02;
 
         next.leg_l.offset = Vec3::new(
             -skeleton_attr.leg.0,
             skeleton_attr.leg.1,
             skeleton_attr.leg.2 + torso * 0.2,
-        ) / 8.0;
+        ) * 1.02;
         next.leg_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.leg_l.scale = Vec3::one() / 8.0;
+        next.leg_l.scale = Vec3::one() * 1.02;
 
         next.leg_r.offset = Vec3::new(
             skeleton_attr.leg.0,
             skeleton_attr.leg.1,
             skeleton_attr.leg.2 + torso * 0.2,
-        ) / 8.0;
+        ) * 1.02;
         next.leg_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.leg_r.scale = Vec3::one() / 8.0;
+        next.leg_r.scale = Vec3::one() * 1.02;
 
         next.foot_l.offset = Vec3::new(
             -skeleton_attr.foot.0,

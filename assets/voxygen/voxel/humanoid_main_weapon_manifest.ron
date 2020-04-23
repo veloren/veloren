@@ -55,4 +55,8 @@
         vox_spec: ("weapon.debug_wand", (-1.5, -9.5, -4.0)),
         color: None
     ),
+    Empty: (
+            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
+            color: None
+        ),
 })

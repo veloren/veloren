@@ -1,9 +1,9 @@
 uniform sampler2D t_noise;
 
 const float CLOUD_AVG_HEIGHT = 1025.0;
-const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 50.0;
-const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 50.0;
-const float CLOUD_THRESHOLD = 0.25;
+const float CLOUD_HEIGHT_MIN = CLOUD_AVG_HEIGHT - 60.0;
+const float CLOUD_HEIGHT_MAX = CLOUD_AVG_HEIGHT + 60.0;
+const float CLOUD_THRESHOLD = 0.27;
 const float CLOUD_SCALE = 5.0;
 const float CLOUD_DENSITY = 100.0;
 
@@ -15,27 +15,24 @@ vec2 cloud_at(vec3 pos) {
 	vec2 scaled_pos = pos.xy / CLOUD_SCALE;
 
 	float tick_offs = 0.0
-		+ texture(t_noise, scaled_pos * 0.0005 - time_of_day.x * 0.00002).x * 0.5
-		+ texture(t_noise, scaled_pos * 0.000015).x * 5.0;
+		+ texture(t_noise, scaled_pos * 0.0005 - time_of_day.x * 0.00001).x * 0.5
+		+ texture(t_noise, scaled_pos * 0.0015).x * 0.15;
 
 	float value = (
 		0.0
 		+ texture(t_noise, scaled_pos * 0.0003 + tick_offs).x
 		+ texture(t_noise, scaled_pos * 0.0015 - tick_offs * 2.0).x * 0.5
-		//+ texture(t_noise, scaled_pos * 0.0025 - time_of_day.x * 0.0002).x * 0.25
-        //+ texture(t_noise, scaled_pos * 0.008 + time_of_day.x * 0.0004).x * 0.15
-        //+ texture(t_noise, scaled_pos * 0.02 + tick_offs + time_of_day.x * 0.0004).x * 0.2
 	) / 3.0;
 
 	value += (0.0
-		+ texture(t_noise, scaled_pos * 0.008 + time_of_day.x * 0.0004).x * 0.25
-		+ texture(t_noise, scaled_pos * 0.02 + tick_offs + time_of_day.x * 0.0004).x * 0.15
+		+ texture(t_noise, scaled_pos * 0.008 + time_of_day.x * 0.0002).x * 0.25
+		+ texture(t_noise, scaled_pos * 0.02 + tick_offs + time_of_day.x * 0.0002).x * 0.15
 	) * value;
 
-	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 400.0, 0.0) * CLOUD_DENSITY;
+	float density = max((value - CLOUD_THRESHOLD) - abs(pos.z - CLOUD_AVG_HEIGHT) / 200.0, 0.0) * CLOUD_DENSITY;
 
 	const float SHADE_GRADIENT = 1.5 / (CLOUD_AVG_HEIGHT - CLOUD_HEIGHT_MIN);
-	float shade = ((pos.z - CLOUD_AVG_HEIGHT) / (CLOUD_HEIGHT_MAX - CLOUD_HEIGHT_MIN)) * 2.5 + 0.7;
+	float shade = (pos.z - CLOUD_AVG_HEIGHT) / (CLOUD_HEIGHT_MAX - CLOUD_HEIGHT_MIN) * 5.0 + 0.3;
 
 	return vec2(shade, density / (1.0 + vsum(abs(pos - cam_pos.xyz)) / 5000));
 }
@@ -67,7 +64,7 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 			cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
 			dist += INCR * delta;
 
-			if (passthrough < 0.05 || (passthrough > 0.8 && dist > (maxd + mind) * 0.7)) {
+			if (passthrough < 0.1) {
 				break;
 			}
 		}

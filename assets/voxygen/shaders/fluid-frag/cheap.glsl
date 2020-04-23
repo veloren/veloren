@@ -48,9 +48,9 @@ void main() {
 	vec4 clouds;
     vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 0.25, true, clouds);
 
-	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag), 0.5);
+	float passthrough = dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag);
 
-	vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 1.0 / (1.0 + diffuse_light * 0.25)), passthrough);
+	vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 1.0 / (1.0 + diffuse_light)), passthrough);
 
-    tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
+    tgt_color = mix(color, vec4(fog_color, 0.0), 0.0);
 }
