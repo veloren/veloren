@@ -1,27 +1,25 @@
 use super::SpawnRules;
 use crate::{
     column::ColumnSample,
-    sim::{SimChunk, WorldSim},
+    sim::WorldSim,
     site::BlockMask,
-    util::{attempt, DIRS, CARDINALS, Grid, RandomField, Sampler, StructureGen2d},
+    util::{attempt, DIRS, CARDINALS, Grid, RandomField, Sampler},
 };
 use common::{
     assets,
     astar::Astar,
     comp,
     generation::{ChunkSupplement, EntityInfo},
-    path::Path,
-    spiral::Spiral2d,
     store::{Id, Store},
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
-use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
-use std::{collections::VecDeque, f32};
+use std::f32;
 use vek::*;
 
 impl WorldSim {
+    #[allow(dead_code)]
     fn can_host_dungeon(&self, pos: Vec2<i32>) -> bool {
         self.get(pos)
             .map(|chunk| !chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake())
@@ -36,6 +34,7 @@ impl WorldSim {
 pub struct Dungeon {
     origin: Vec2<i32>,
     alt: i32,
+    #[allow(dead_code)]
     noise: RandomField,
     floors: Vec<Floor>,
 }
@@ -48,7 +47,7 @@ pub struct GenCtx<'a, R: Rng> {
 impl Dungeon {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
-        let mut this = Self {
+        let this = Self {
             origin: wpos,
             alt: ctx
                 .sim
@@ -70,7 +69,7 @@ impl Dungeon {
 
     pub fn radius(&self) -> f32 { 1200.0 }
 
-    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
+    pub fn spawn_rules(&self, _wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             ..SpawnRules::default()
         }
@@ -79,28 +78,15 @@ impl Dungeon {
     pub fn apply_to<'a>(
         &'a self,
         wpos2d: Vec2<i32>,
-        mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+        _get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
-        let rand_field = RandomField::new(0);
-
         for y in 0..vol.size_xy().y as i32 {
             for x in 0..vol.size_xy().x as i32 {
                 let offs = Vec2::new(x, y);
 
                 let wpos2d = wpos2d + offs;
                 let rpos = wpos2d - self.origin;
-
-                // Sample terrain
-                let col_sample = if let Some(col_sample) = get_column(offs) {
-                    col_sample
-                } else {
-                    continue;
-                };
-                let surface_z = col_sample.riverless_alt.floor() as i32;
-
-                let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
-                let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
 
                 let mut z = self.alt;
                 for floor in &self.floors {
@@ -110,7 +96,7 @@ impl Dungeon {
 
                     for rz in 0..floor.total_depth() {
                         if let Some(block) = sampler(rz).finish() {
-                            vol.set(Vec3::new(offs.x, offs.y, z + rz), block);
+                            let _ = vol.set(Vec3::new(offs.x, offs.y, z + rz), block);
                         }
                     }
                 }
@@ -122,7 +108,7 @@ impl Dungeon {
         &'a self,
         rng: &mut impl Rng,
         wpos2d: Vec2<i32>,
-        mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+        _get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
     ) {
         let rpos = wpos2d - self.origin;
@@ -189,6 +175,7 @@ pub struct Floor {
     rooms: Store<Room>,
     solid_depth: i32,
     hollow_depth: i32,
+    #[allow(dead_code)]
     stair_tile: Vec2<i32>,
 }
 
@@ -295,8 +282,7 @@ impl Floor {
         }
     }
 
-    fn create_route(&mut self, ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) {
-        let sim = &ctx.sim;
+    fn create_route(&mut self, _ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) {
         let heuristic = move |l: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
         let neighbors = |l: &Vec2<i32>| {
             let l = *l;
@@ -305,7 +291,7 @@ impl Floor {
                 .map(move |dir| l + dir)
                 .filter(|pos| self.tiles.get(*pos).is_some())
         };
-        let transition = |a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
+        let transition = |_a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
             Some(Tile::Room(_)) | Some(Tile::Tunnel) => 1.0,
             Some(Tile::Solid) => 25.0,
             Some(Tile::UpStair) | Some(Tile::DownStair) => 0.0,
@@ -401,7 +387,6 @@ impl Floor {
 
     pub fn nearest_wall(&self, rpos: Vec2<i32>) -> Option<Vec2<i32>> {
         let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
-        let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
 
         DIRS.iter()
             .map(|dir| tile_pos + *dir)

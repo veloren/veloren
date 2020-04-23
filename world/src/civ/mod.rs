@@ -1,7 +1,9 @@
+#![allow(dead_code)]
+
 mod econ;
 
 use crate::{
-    sim::{SimChunk, WorldSim},
+    sim::WorldSim,
     site::{Dungeon, Settlement, Site as WorldSite},
     util::{attempt, seed_expan, CARDINALS, NEIGHBORS},
 };
@@ -169,6 +171,7 @@ impl Civs {
 
     pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.iter() }
 
+    #[allow(dead_code)]
     fn display_info(&self) {
         for (id, civ) in self.civs.iter_ids() {
             println!("# Civilisation {:?}", id);
@@ -336,7 +339,7 @@ impl Civs {
             .sites
             .iter_ids()
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
-            .filter(|(p, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
+            .filter(|(_, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
@@ -386,7 +389,7 @@ impl Civs {
         Some(site)
     }
 
-    fn tick(&mut self, ctx: &mut GenCtx<impl Rng>, years: f32) {
+    fn tick(&mut self, _ctx: &mut GenCtx<impl Rng>, years: f32) {
         for site in self.sites.iter_mut() {
             site.simulate(years, &self.places.get(site.place).nat_res);
         }
@@ -761,7 +764,7 @@ impl Site {
         let stocks = &self.stocks;
         self.surplus = demand
             .clone()
-            .map(|stock, tgt| supply[stock] + stocks[stock] - demand[stock] - last_exports[stock]);
+            .map(|stock, _| supply[stock] + stocks[stock] - demand[stock] - last_exports[stock]);
 
         // Update values according to the surplus of each stock
         let values = &mut self.values;
@@ -783,7 +786,6 @@ impl Site {
             / values.iter().filter(|(_, v)| v.is_some()).count() as f32;
         let export_targets = &mut self.export_targets;
         let last_exports = &self.last_exports;
-        let trade_states = &self.trade_states;
         self.values.iter().for_each(|(stock, value)| {
             let rvalue = (*value).map(|v| v - value_avg).unwrap_or(0.0);
             //let factor = if export_targets[stock] > 0.0 { 1.0 / rvalue } else { rvalue };
@@ -823,7 +825,7 @@ impl Site {
                 .iter()
                 .map(|(stock, amount)| {
                     // What quantity is this order requesting?
-                    let quantity = *amount * scale;
+                    let _quantity = *amount * scale;
                     // What proportion of this order is the economy able to satisfy?
                     let satisfaction = (stocks_before[*stock] / demand[*stock]).min(1.0);
                     satisfaction
@@ -946,7 +948,7 @@ impl<K: Copy + Eq + Hash, T: Default + Clone> MapVec<K, T> {
 
     pub fn get(&self, entry: K) -> &T { self.entries.get(&entry).unwrap_or(&self.default) }
 
-    pub fn map<U: Default>(mut self, mut f: impl FnMut(K, T) -> U) -> MapVec<K, U> {
+    pub fn map<U: Default>(self, mut f: impl FnMut(K, T) -> U) -> MapVec<K, U> {
         MapVec {
             entries: self
                 .entries

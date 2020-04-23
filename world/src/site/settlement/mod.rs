@@ -4,12 +4,12 @@ use self::building::HouseBuilding;
 use super::SpawnRules;
 use crate::{
     column::ColumnSample,
-    sim::{SimChunk, WorldSim},
-    util::{Grid, RandomField, Sampler, StructureGen2d},
+    sim::WorldSim,
+    util::{RandomField, Sampler, StructureGen2d},
 };
 use common::{
     astar::Astar,
-    comp::{self, bird_medium, critter, humanoid, quadruped_medium, quadruped_small},
+    comp::{self, bird_medium, humanoid, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
@@ -23,11 +23,13 @@ use rand::prelude::*;
 use std::{collections::VecDeque, f32};
 use vek::*;
 
+#[allow(dead_code)]
 pub fn gradient(line: [Vec2<f32>; 2]) -> f32 {
     let r = (line[0].y - line[1].y) / (line[0].x - line[1].x);
     if r.is_nan() { 100000.0 } else { r }
 }
 
+#[allow(dead_code)]
 pub fn intersect(a: [Vec2<f32>; 2], b: [Vec2<f32>; 2]) -> Option<Vec2<f32>> {
     let ma = gradient(a);
     let mb = gradient(b);
@@ -45,6 +47,7 @@ pub fn intersect(a: [Vec2<f32>; 2], b: [Vec2<f32>; 2]) -> Option<Vec2<f32>> {
     }
 }
 
+#[allow(dead_code)]
 pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
     let ma = -1.0 / gradient([p[0], p[1]]);
     let mb = -1.0 / gradient([p[1], p[2]]);
@@ -108,6 +111,7 @@ pub struct Town {
 }
 
 pub struct Farm {
+    #[allow(dead_code)]
     base_tile: Vec2<i32>,
 }
 
@@ -524,7 +528,7 @@ impl Settlement {
                     let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
 
                     for z in inset - depth..inset {
-                        vol.set(
+                        let _ = vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
                             if bridge_offset >= 2.0 && dist >= 3.0 || z < inset - 1 {
                                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
@@ -537,11 +541,11 @@ impl Settlement {
                     for z in inset..inset + head_space {
                         let pos = Vec3::new(offs.x, offs.y, surface_z + z);
                         if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                            vol.set(pos, Block::empty());
+                            let _ = vol.set(pos, Block::empty());
                         }
                     }
                 // Ground colour
-                } else if let Some(color) = self.get_color(rpos) {
+                } else {
                     let mut surface_block = None;
 
                     let roll = |seed, n| {
@@ -553,7 +557,7 @@ impl Settlement {
                         Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
                         Some(Plot::Town) => {
-                            if let Some((path_dist, path_nearest)) = col_sample.path {
+                            if let Some((_, path_nearest)) = col_sample.path {
                                 let path_dir = (path_nearest - wpos2d.map(|e| e as f32)).rotated_z(f32::consts::PI / 2.0).normalized();
                                 let is_lamp = if path_dir.x.abs() > path_dir.y.abs() {
                                     wpos2d.x as f32 % 20.0 / path_dir.dot(Vec2::unit_y()).abs() <= 1.0
@@ -647,13 +651,13 @@ impl Settlement {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
 
                                 if let (0, Some(block)) = (z, surface_block) {
-                                    vol.set(pos, block);
+                                    let _ = vol.set(pos, block);
                                 } else if z >= 0 {
                                     if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                                        vol.set(pos, Block::empty());
+                                        let _ = vol.set(pos, Block::empty());
                                     }
                                 } else {
-                                    vol.set(
+                                    let _ = vol.set(
                                         pos,
                                         Block::new(BlockKind::Normal, noisy_color(color, 4)),
                                     );
@@ -681,7 +685,7 @@ impl Settlement {
 
                     for z in z_offset..12 {
                         if dist / WayKind::Wall.width() < ((1.0 - z as f32 / 12.0) * 2.0).min(1.0) {
-                            vol.set(
+                            let _ = vol.set(
                                 Vec3::new(offs.x, offs.y, surface_z + z),
                                 Block::new(BlockKind::Normal, color),
                             );
@@ -692,7 +696,7 @@ impl Settlement {
                 // Towers
                 if let Some((Tower::Wall, _pos)) = sample.tower {
                     for z in -2..16 {
-                        vol.set(
+                        let _ = vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
                             Block::new(BlockKind::Normal, Rgb::new(50, 50, 50)),
                         );
@@ -715,7 +719,6 @@ impl Settlement {
 
             match &structure.kind {
                 StructureKind::House(b) => {
-                    let centre = b.bounds_2d().center();
                     let bounds = b.bounds();
 
                     for x in bounds.min.x..bounds.max.x + 1 {
@@ -735,7 +738,7 @@ impl Settlement {
                                 let coffs = wpos - Vec3::from(wpos2d);
 
                                 if let Some(block) = b.sample(rpos) {
-                                    vol.set(coffs, block);
+                                    let _ = vol.set(coffs, block);
                                 }
                             }
                         }
@@ -765,7 +768,6 @@ impl Settlement {
                 } else {
                     continue;
                 };
-                let surface_z = col_sample.riverless_alt.floor() as i32;
 
                 let sample = self.land.get_at_block(rpos);
 
@@ -907,7 +909,7 @@ const CARDINALS: [Vec2<i32>; 4] = [
 #[derive(Copy, Clone, PartialEq)]
 pub enum WayKind {
     Path,
-    Hedge,
+    #[allow(dead_code)]
     Wall,
 }
 
@@ -915,14 +917,14 @@ impl WayKind {
     pub fn width(&self) -> f32 {
         match self {
             WayKind::Path => 4.0,
-            WayKind::Hedge => 1.5,
-            WayKind::Wall => 2.5,
+            WayKind::Wall => 3.0,
         }
     }
 }
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Tower {
+    #[allow(dead_code)]
     Wall,
 }
 
@@ -988,7 +990,7 @@ impl Land {
             }
         }
 
-        for (i, dir) in CARDINALS.iter().enumerate() {
+        for (i, _) in CARDINALS.iter().enumerate() {
             let map = [1, 5, 7, 3];
             let line = LineSegment2 {
                 start: neighbors[4].0.map(|e| e as f32),
@@ -1013,6 +1015,7 @@ impl Land {
 
     pub fn tile_at(&self, pos: Vec2<i32>) -> Option<&Tile> { self.tiles.get(&pos) }
 
+    #[allow(dead_code)]
     pub fn tile_at_mut(&mut self, pos: Vec2<i32>) -> Option<&mut Tile> { self.tiles.get_mut(&pos) }
 
     pub fn plot(&self, id: Id<Plot>) -> &Plot { self.plots.get(id) }
@@ -1046,6 +1049,7 @@ impl Land {
             .find(|pos| match_fn(self.plot_at(*pos)))
     }
 
+    #[allow(dead_code)]
     fn find_tile_dir(
         &self,
         origin: Vec2<i32>,
@@ -1081,7 +1085,7 @@ impl Land {
         &self,
         start: Vec2<i32>,
         max_size: usize,
-        rng: &mut impl Rng,
+        _rng: &mut impl Rng,
         mut match_fn: impl FnMut(Option<&Plot>) -> bool,
     ) -> HashSet<Vec2<i32>> {
         let mut open = VecDeque::new();
@@ -1137,7 +1141,7 @@ impl Land {
             if self.tile_at(tiles[0]).is_none() {
                 self.set(tiles[0], self.hazard);
             }
-            let mut plots = &self.plots;
+            let plots = &self.plots;
 
             self.tiles
                 .get_mut(&tiles[1])

@@ -19,8 +19,6 @@ impl Animation for RunAnimation {
 
         let lab = 10.0;
 
-        let legl = (anim_time as f32 * lab as f32).sin();
-        let legr = (anim_time as f32 * lab as f32 + PI).sin();
         let belt = (anim_time as f32 * lab as f32 + 1.5 * PI).sin();
 
         let foothoril = (anim_time as f32 * lab as f32 + PI * 1.4).sin();

@@ -46,9 +46,9 @@ impl Archetype for Keep {
         &self,
         dist: i32,
         bound_offset: Vec2<i32>,
-        center_offset: Vec2<i32>,
+        _center_offset: Vec2<i32>,
         z: i32,
-        ori: Ori,
+        _ori: Ori,
         branch: &Branch<Self::Attr>,
     ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);
@@ -57,14 +57,12 @@ impl Archetype for Keep {
             |r, g, b| BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(r, g, b)), 2);
 
         let foundation = make_block(100, 100, 100);
-        let log = make_block(60, 45, 30);
         let wall = make_block(75, 100, 125);
         let roof = make_block(150, 120, 50);
         let empty = BlockMask::new(Block::empty(), 2);
 
         let width = branch.locus;
         let rampart_width = 5 + branch.locus;
-        let roof_height = 12 + width;
         let ceil_height = 16;
 
         if profile.y <= 1 - (dist - width - 1).max(0) && dist < width + 3 {
