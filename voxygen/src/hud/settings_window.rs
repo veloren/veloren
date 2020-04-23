@@ -66,6 +66,8 @@ widget_ids! {
         mouse_zoom_invert_label,
         mouse_y_invert_button,
         mouse_y_invert_label,
+        smooth_pan_toggle_button,
+        smooth_pan_toggle_label,
         ch_title,
         ch_transp_slider,
         ch_transp_label,
@@ -205,6 +207,7 @@ pub enum Event {
     AdjustMouseZoom(u32),
     ToggleZoomInvert(bool),
     ToggleMouseYInvert(bool),
+    ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustFOV(u16),
     AdjustGamma(f32),
@@ -1239,7 +1242,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .right_from(state.ids.mouse_zoom_invert_button, 250.0)
+            .right_from(state.ids.mouse_zoom_invert_button, 175.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.mouse_y_invert_button, ui);
@@ -1261,6 +1264,36 @@ impl<'a> Widget for SettingsWindow<'a> {
             .graphics_for(state.ids.mouse_y_invert_button)
             .color(TEXT_COLOR)
             .set(state.ids.mouse_y_invert_label, ui);
+
+            // Mouse Smoothing Toggle
+            let smooth_pan_enabled = ToggleButton::new(
+                self.global_state.settings.gameplay.smooth_pan_enable,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.mouse_y_invert_button, 175.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.smooth_pan_toggle_button, ui);
+
+            if self.global_state.settings.gameplay.smooth_pan_enable != smooth_pan_enabled {
+                events.push(Event::ToggleSmoothPan(
+                    !self.global_state.settings.gameplay.smooth_pan_enable,
+                ));
+            }
+
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.enable_mouse_smoothing"),
+            )
+            .right_from(state.ids.smooth_pan_toggle_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.smooth_pan_toggle_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.smooth_pan_toggle_label, ui);
 
             // Free look behaviour
             Text::new(

@@ -579,6 +579,10 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.mouse_y_inversion = mouse_y_inverted;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ToggleSmoothPan(smooth_pan_enabled) => {
+                        global_state.settings.gameplay.smooth_pan_enable = smooth_pan_enabled;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::AdjustViewDistance(view_distance) => {
                         self.client.borrow_mut().set_view_distance(view_distance);
 
@@ -728,12 +732,13 @@ impl PlayState for SessionState {
                     view_distance: client.view_distance().unwrap_or(1),
                     tick: client.get_tick(),
                     thread_pool: client.thread_pool(),
+                    gamma: global_state.settings.graphics.gamma,
+                    mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                 };
                 self.scene.maintain(
                     global_state.window.renderer_mut(),
                     &mut global_state.audio,
                     &scene_data,
-                    global_state.settings.graphics.gamma,
                 );
             }
 
