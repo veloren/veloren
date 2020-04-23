@@ -66,8 +66,6 @@ impl<P: Pipeline> Mesh<P> {
         }
     }
 
-    pub fn verts(&self) -> &[P::Vertex] { &self.verts }
-
     pub fn iter(&self) -> std::slice::Iter<P::Vertex> { self.verts.iter() }
 }
 

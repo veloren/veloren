@@ -44,15 +44,11 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                         for x in 0..3 {
                             for y in 0..3 {
                                 for z in 0..3 {
-                                    ls[z][y][x] = if self
+                                    ls[z][y][x] = self
                                         .get(pos + Vec3::new(x as i32, y as i32, z as i32) - 1)
                                         .map(|v| v.is_empty())
                                         .unwrap_or(true)
-                                    {
-                                        Some(1.0)
-                                    } else {
-                                        None
-                                    };
+                                        .then_some(1.0);
                                 }
                             }
                         }
@@ -97,15 +93,11 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                         for x in 0..3 {
                             for y in 0..3 {
                                 for z in 0..3 {
-                                    ls[z][y][x] = if self
+                                    ls[z][y][x] = self
                                         .get(pos + Vec3::new(x as i32, y as i32, z as i32) - 1)
                                         .map(|v| v.is_empty())
                                         .unwrap_or(true)
-                                    {
-                                        Some(1.0)
-                                    } else {
-                                        None
-                                    };
+                                        .then_some(1.0);
                                 }
                             }
                         }

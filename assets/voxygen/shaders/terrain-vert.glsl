@@ -19,10 +19,10 @@ out vec3 f_col;
 out float f_light;
 out float f_ao;
 
-const float EXTRA_NEG_Z = 65536.0;
+const int EXTRA_NEG_Z = 65536;
 
 void main() {
-	f_chunk_pos = vec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0x1FFFFu)) - vec3(0, 0, EXTRA_NEG_Z);
+	f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0x1FFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
 	f_pos = f_chunk_pos + model_offs;
 
 	f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));

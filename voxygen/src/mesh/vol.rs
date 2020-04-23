@@ -18,13 +18,7 @@ fn get_ao_quad(
         .map(|offs| {
             let vox_opaque = |pos: Vec3<i32>| {
                 let pos = (pos + 1).map(|e| e as usize);
-                unsafe {
-                    darknesses
-                        .get_unchecked(pos.z)
-                        .get_unchecked(pos.y)
-                        .get_unchecked(pos.x)
-                        .is_none()
-                }
+                darknesses[pos.z][pos.y][pos.x].is_none()
             };
 
             let (s1, s2) = (
@@ -45,12 +39,11 @@ fn get_ao_quad(
             for x in 0..2 {
                 for y in 0..2 {
                     let dark_pos = shift + offs[0] * x + offs[1] * y + 1;
-                    if let Some(dark) = unsafe {
-                        darknesses
-                            .get_unchecked(dark_pos.z as usize)
-                            .get_unchecked(dark_pos.y as usize)
-                            .get_unchecked(dark_pos.x as usize)
-                    } {
+                    if let Some(dark) = darknesses
+                            [dark_pos.z as usize]
+                            [dark_pos.y as usize]
+                            [dark_pos.x as usize]
+                    {
                         darkness += dark;
                         total += 1.0;
                     }

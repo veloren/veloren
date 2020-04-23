@@ -54,7 +54,7 @@ impl Civs {
 
         for _ in 0..INITIAL_CIV_COUNT {
             log::info!("Creating civilisation...");
-            if let None = this.birth_civ(&mut ctx.reseed()) {
+            if this.birth_civ(&mut ctx.reseed()).is_none() {
                 log::warn!("Failed to find starting site for civilisation.");
             }
         }
@@ -481,8 +481,9 @@ fn find_path(
         .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
 }
 
-/// Return true if travel between a location and a chunk next to it is permitted
-/// (TODO: by whom?)
+/// Return Some if travel between a location and a chunk next to it is permitted
+/// If permitted, the approximate relative const of traversal is given
+// (TODO: by whom?)
 fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
     if loc_suitable_for_walking(sim, a) && loc_suitable_for_walking(sim, a + dir) {
         let a_chunk = sim.get(a)?;

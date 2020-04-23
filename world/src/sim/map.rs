@@ -298,7 +298,7 @@ impl MapConfig {
                 };
 
                 let rgba = if is_path {
-                    (0x20, 0x19, 0x13, 255)
+                    (0x20, 0x19, 0x13, 0xFF)
                 } else {
                     rgba
                 };

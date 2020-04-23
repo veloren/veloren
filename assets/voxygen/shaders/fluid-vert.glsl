@@ -27,7 +27,7 @@ void main() {
 
 	// Small waves
 	f_pos.xy += 0.01; // Avoid z-fighting
-	f_pos.z -= 0.1 * (sin(tick.x * 2.0 + f_pos.x * 2.0 + f_pos.y * 2.0) + 1.0) * 0.5 - 0.1;
+	f_pos.z -= 0.1 + 0.1 * (sin(tick.x * 2.0 + f_pos.x * 2.0 + f_pos.y * 2.0) + 1.0) * 0.5;
 
     f_col = vec3(
     	float((v_col_light >>  8) & 0xFFu),
@@ -38,8 +38,6 @@ void main() {
     f_light = float(v_col_light & 0xFFu) / 255.0;
 
 	f_pos_norm = v_pos_norm;
-
-	f_pos.z -= 0.2;
 
     gl_Position =
 		all_mat *
