@@ -16,6 +16,7 @@ use common::{
     store::{Id, Store},
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
+    assets,
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -801,6 +802,14 @@ impl Settlement {
                             },
                             _ => comp::Body::Humanoid(humanoid::Body::random()),
                         })
+                        .do_if(rng.gen(), |entity| entity.with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
+                            0 => "common.items.weapons.starter_axe",
+                            1 => "common.items.weapons.starter_sword",
+                            2 => "common.items.weapons.short_sword_0",
+                            3 => "common.items.weapons.hammer_1",
+                            4 => "common.items.weapons.starter_staff",
+                            _ => "common.items.weapons.starter_bow",
+                        })))
                         .with_automatic_name();
 
                     supplement.add_entity(entity);
