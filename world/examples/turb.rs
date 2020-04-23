@@ -34,7 +34,7 @@ fn main() {
             }
         }
 
-        win.update_with_buffer(&buf, W, H).unwrap();
+        win.update_with_buffer_size(&buf, W, H).unwrap();
 
         _time += 1.0 / 60.0;
     }
