@@ -34,25 +34,25 @@ pub const CARDINALS: [Vec2<i32>; 4] = [
 ];
 
 pub const DIRS: [Vec2<i32>; 8] = [
-    Vec2::new(0, 1),
     Vec2::new(1, 0),
-    Vec2::new(0, -1),
-    Vec2::new(-1, 0),
     Vec2::new(1, 1),
-    Vec2::new(1, -1),
+    Vec2::new(0, 1),
     Vec2::new(-1, 1),
+    Vec2::new(-1, 0),
     Vec2::new(-1, -1),
+    Vec2::new(0, -1),
+    Vec2::new(1, -1),
 ];
 
 pub const NEIGHBORS: [Vec2<i32>; 8] = [
-    Vec2::new(0, 1),
     Vec2::new(1, 0),
-    Vec2::new(0, -1),
-    Vec2::new(-1, 0),
     Vec2::new(1, 1),
-    Vec2::new(1, -1),
+    Vec2::new(0, 1),
     Vec2::new(-1, 1),
+    Vec2::new(-1, 0),
     Vec2::new(-1, -1),
+    Vec2::new(0, -1),
+    Vec2::new(1, -1),
 ];
 
 pub const LOCALITY: [Vec2<i32>; 9] = [
