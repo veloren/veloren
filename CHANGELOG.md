@@ -48,6 +48,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added dragging and right-click to use functionality to inventory, armor & hotbar slots
 - Added capes, lanterns, tabards, rings, helmets & necklaces as equippable armor
 - 6 new music tracks
+- Added basic world and civilisation simulation
+- Added overhauled towns
+- Added fields, crops and scarecrows
+- Added paths
+- Added bridges
+- Added procedural house generation
+- Added lampposts
+- Added NPCs that spawn in towns
+- Added simple dungeons
+- Added sub-voxel noise effect
+- Added waypoints next to dungeons
+- Made players spawn in towns
+- Added non-uniform block heights
 
 ### Changed
 
