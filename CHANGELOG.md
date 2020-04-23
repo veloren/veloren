@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made armor and hotbar slots actually function
 - Added dragging and right-click to use functionality to inventory, armor & hotbar slots
 - Added capes, lanterns, tabards, rings, helmets & necklaces as equippable armor
+- 6 new music tracks
 
 ### Changed
 
