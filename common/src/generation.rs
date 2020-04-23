@@ -101,7 +101,7 @@ impl ChunkSupplement {
     pub fn add_entity(&mut self, entity: EntityInfo) { self.entities.push(entity); }
 }
 
-fn get_npc_name<
+pub fn get_npc_name<
     'a,
     Species,
     SpeciesData: for<'b> core::ops::Index<&'b Species, Output = npc::SpeciesNames>,
