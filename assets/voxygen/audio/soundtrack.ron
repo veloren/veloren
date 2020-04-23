@@ -41,6 +41,48 @@
             length: 173.0,
             timing: Some(Night),
             artist: "Aeronic",
-        )
+        ),
+        (
+            title: "Rest Assured",
+            path: "voxygen.audio.soundtrack.rest_assured",
+            length: 185.0,
+            timing: Some(Day),
+            artist: "badbbad",
+        ),
+        (
+            title: "Just The Beginning",
+            path: "voxygen.audio.soundtrack.just_the_beginning",
+            length: 188.0,
+            timing: Some(Day),
+            artist: "badbbad",
+        ),
+        (
+            title: "Campfire Stories",
+            path: "voxygen.audio.soundtrack.campfire_stories",
+            length: 100.0,
+            timing: Some(Night),
+            artist: "badbbad",
+        ),
+        (
+            title: "Limits",
+            path: "voxygen.audio.soundtrack.limits",
+            length: 203.0,
+            timing: Some(Night),
+            artist: "badbbad",
+        ),
+        (
+            title: "Down The Rabbit Hole",
+            path: "voxygen.audio.soundtrack.down_the_rabbit_hole",
+            length: 244.0,
+            timing: Some(Night),
+            artist: "badbbad",
+        ),
+        (
+            title: "Between The Fairies",
+            path: "voxygen.audio.soundtrack.between_the_fairies",
+            length: 175.0,
+            timing: Some(Night),
+            artist: "badbbad",
+        ),
     ]
 )
