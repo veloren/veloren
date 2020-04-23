@@ -21,35 +21,44 @@ impl Animation for RunAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
 
+        let walkintensity = if speed > 5.0 { 1.0 } else { 0.7 };
+        let walk = if speed > 5.0 { 1.0 } else { 0.5 };
+        let lower = if speed > 5.0 { 0.0 } else { 2.0 };
+        let snapfoot = if speed > 5.0 { 1.1 } else { 2.0 };
         let lab = 1.0;
         let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
+            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 8.0 * walk).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
+            * ((anim_time as f32 * lab as f32 * 8.0 * walk).sin());
 
         let short = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
+            / (1.5
+                + 3.5 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 16.0).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin());
         let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
         let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
 
         let shorte = (((5.0)
-            / (4.0 + 1.0 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
+            / (4.0
+                + 1.0 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 16.0).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin());
 
         let shortalt = (((5.0)
             / (1.5
                 + 3.5
-                    * ((anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin()).powf(2.0 as f32)))
+                    * ((anim_time as f32 * lab as f32 * 16.0 * walk + PI / 2.0).sin())
+                        .powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0 * walk + PI / 2.0).sin());
 
         let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powf(2.0 as f32)))
+            / (snapfoot
+                + (5.0 - snapfoot)
+                    * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * lab as f32 * 16.0).sin());
+            * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin());
 
         let wave_stop = (anim_time as f32 * 26.0).min(PI / 2.0 / 2.0).sin();
 
@@ -89,8 +98,8 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
-        next.chest.offset = Vec3::new(0.0, 0.0, 10.5 + short * 1.1);
-        next.chest.ori = Quaternion::rotation_z(short * 0.3);
+        next.chest.offset = Vec3::new(0.0, 0.0, 10.5 + short * 1.1 - lower);
+        next.chest.ori = Quaternion::rotation_z(short * 0.3 * walkintensity);
         next.chest.scale = Vec3::one();
 
         next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
@@ -106,37 +115,37 @@ impl Animation for RunAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -6.0 + wave_stop * -1.0,
-            -0.25 + short * 3.0,
-            5.0 + short * -1.5,
+            -6.0 + wave_stop * -1.0 * walkintensity,
+            -0.25 + short * 3.0 * walkintensity,
+            5.0 + short * -1.5 * walkintensity,
         );
-        next.l_hand.ori =
-            Quaternion::rotation_x(0.8 + short * 1.2) * Quaternion::rotation_y(wave_stop * 0.1);
+        next.l_hand.ori = Quaternion::rotation_x(0.8 + short * 1.2 * walk)
+            * Quaternion::rotation_y(wave_stop * 0.1);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
-            6.0 + wave_stop * 1.0,
-            -0.25 + short * -3.0,
-            5.0 + short * 1.5,
+            6.0 + wave_stop * 1.0 * walkintensity,
+            -0.25 + short * -3.0 * walkintensity,
+            5.0 + short * 1.5 * walkintensity,
         );
-        next.r_hand.ori =
-            Quaternion::rotation_x(0.8 + short * -1.2) * Quaternion::rotation_y(wave_stop * -0.1);
+        next.r_hand.ori = Quaternion::rotation_x(0.8 + short * -1.2 * walk)
+            * Quaternion::rotation_y(wave_stop * -0.1);
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, foot * 1.0, 9.5);
-        next.l_foot.ori = Quaternion::rotation_x(foot * -1.2);
+        next.l_foot.ori = Quaternion::rotation_x(foot * -1.2 * walkintensity);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(3.4, foot * -1.0, 9.5);
-        next.r_foot.ori = Quaternion::rotation_x(foot * 1.2);
+        next.r_foot.ori = Quaternion::rotation_x(foot * 1.2 * walkintensity);
         next.r_foot.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, -1.0, 4.7);
-        next.l_shoulder.ori = Quaternion::rotation_x(short * 0.15);
+        next.l_shoulder.ori = Quaternion::rotation_x(short * 0.15 * walkintensity);
         next.l_shoulder.scale = Vec3::one() * 1.1;
 
         next.r_shoulder.offset = Vec3::new(5.0, -1.0, 4.7);
-        next.r_shoulder.ori = Quaternion::rotation_x(short * -0.15);
+        next.r_shoulder.ori = Quaternion::rotation_x(short * -0.15 * walkintensity);
         next.r_shoulder.scale = Vec3::one() * 1.1;
 
         next.glider.offset = Vec3::new(0.0, 0.0, 10.0);

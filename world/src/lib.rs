@@ -4,10 +4,12 @@
 
 mod all;
 mod block;
+pub mod civ;
 mod column;
 pub mod config;
-pub mod generator;
+pub mod layer;
 pub mod sim;
+pub mod site;
 pub mod util;
 
 // Reexports
@@ -16,10 +18,11 @@ pub use crate::config::CONFIG;
 use crate::{
     block::BlockGen,
     column::{ColumnGen, ColumnSample},
-    util::Sampler,
+    util::{Grid, Sampler},
 };
 use common::{
-    generation::{ChunkSupplement, EntityInfo, EntityKind},
+    comp::{self, bird_medium, critter, quadruped_medium, quadruped_small},
+    generation::{ChunkSupplement, EntityInfo},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
@@ -34,16 +37,19 @@ pub enum Error {
 
 pub struct World {
     sim: sim::WorldSim,
+    civs: civ::Civs,
 }
 
 impl World {
     pub fn generate(seed: u32, opts: sim::WorldOpts) -> Self {
-        Self {
-            sim: sim::WorldSim::generate(seed, opts),
-        }
+        let mut sim = sim::WorldSim::generate(seed, opts);
+        let civs = civ::Civs::generate(seed, &mut sim);
+        Self { sim, civs }
     }
 
     pub fn sim(&self) -> &sim::WorldSim { &self.sim }
+
+    pub fn civs(&self) -> &civ::Civs { &self.civs }
 
     pub fn tick(&self, _dt: Duration) {
         // TODO
@@ -63,8 +69,24 @@ impl World {
         // TODO: misleading name
         mut should_continue: impl FnMut() -> bool,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
+        let mut sampler = self.sample_blocks();
+
+        let chunk_wpos2d = Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+        let grid_border = 4;
+        let zcache_grid = Grid::populate_from(
+            TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2,
+            |offs| sampler.get_z_cache(chunk_wpos2d - grid_border + offs),
+        );
+
         let air = Block::empty();
-        let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
+        let stone = Block::new(
+            BlockKind::Dense,
+            zcache_grid
+                .get(grid_border + TerrainChunkSize::RECT_SIZE.map(|e| e as i32) / 2)
+                .and_then(|zcache| zcache.as_ref())
+                .map(|zcache| zcache.sample.stone_col)
+                .unwrap_or(Rgb::new(125, 120, 130)),
+        );
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
         let _chunk_size2d = TerrainChunkSize::RECT_SIZE;
@@ -93,9 +115,6 @@ impl World {
         };
 
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
-        let mut sampler = self.sample_blocks();
-
-        let chunk_block_pos = Vec3::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
         for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
@@ -103,12 +122,12 @@ impl World {
                 if should_continue() {
                     return Err(());
                 };
-                let wpos2d = Vec2::new(x, y)
-                    + Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
-                let z_cache = match sampler.get_z_cache(wpos2d) {
-                    Some(z_cache) => z_cache,
-                    None => continue,
+                let offs = Vec2::new(x, y);
+
+                let z_cache = match zcache_grid.get(grid_border + offs) {
+                    Some(Some(z_cache)) => z_cache,
+                    _ => continue,
                 };
 
                 let (min_z, only_structures_min_z, max_z) = z_cache.get_z_limits(&mut sampler);
@@ -119,7 +138,7 @@ impl World {
 
                 (min_z as i32..max_z as i32).for_each(|z| {
                     let lpos = Vec3::new(x, y, z);
-                    let wpos = chunk_block_pos + lpos;
+                    let wpos = Vec3::from(chunk_wpos2d) + lpos;
                     let only_structures = lpos.z >= only_structures_min_z as i32;
 
                     if let Some(block) =
@@ -131,44 +150,72 @@ impl World {
             }
         }
 
+        let sample_get = |offs| {
+            zcache_grid
+                .get(grid_border + offs)
+                .map(Option::as_ref)
+                .flatten()
+                .map(|zc| &zc.sample)
+        };
+
+        let mut rng = rand::thread_rng();
+
+        // Apply site generation
+        sim_chunk
+            .sites
+            .iter()
+            .for_each(|site| site.apply_to(chunk_wpos2d, sample_get, &mut chunk));
+
+        // Apply paths
+        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk);
+
         let gen_entity_pos = || {
             let lpos2d = TerrainChunkSize::RECT_SIZE
-                .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz));
-            let mut lpos = Vec3::new(lpos2d.x as i32, lpos2d.y as i32, 0);
+                .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz) as i32);
+            let mut lpos = Vec3::new(
+                lpos2d.x,
+                lpos2d.y,
+                sample_get(lpos2d).map(|s| s.alt as i32 - 32).unwrap_or(0),
+            );
 
             while chunk.get(lpos).map(|vox| !vox.is_empty()).unwrap_or(false) {
                 lpos.z += 1;
             }
 
-            (chunk_block_pos + lpos).map(|e| e as f32) + 0.5
+            (Vec3::from(chunk_wpos2d) + lpos).map(|e: i32| e as f32) + 0.5
         };
 
         const SPAWN_RATE: f32 = 0.1;
-        const BOSS_RATE: f32 = 0.03;
         let mut supplement = ChunkSupplement {
-            entities: if rand::thread_rng().gen::<f32>() < SPAWN_RATE
+            entities: if rng.gen::<f32>() < SPAWN_RATE
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater()
             {
-                vec![EntityInfo {
-                    pos: gen_entity_pos(),
-                    kind: if rand::thread_rng().gen::<f32>() < BOSS_RATE {
-                        EntityKind::Boss
-                    } else {
-                        EntityKind::Enemy
-                    },
-                }]
+                let entity = EntityInfo::at(gen_entity_pos())
+                    .with_alignment(comp::Alignment::Wild)
+                    .do_if(rng.gen_range(0, 8) == 0, |e| e.into_giant())
+                    .with_body(match rng.gen_range(0, 4) {
+                        0 => comp::Body::QuadrupedMedium(quadruped_medium::Body::random()),
+                        1 => comp::Body::BirdMedium(bird_medium::Body::random()),
+                        2 => comp::Body::Critter(critter::Body::random()),
+                        _ => comp::Body::QuadrupedSmall(quadruped_small::Body::random()),
+                    })
+                    .with_automatic_name();
+
+                vec![entity]
             } else {
                 Vec::new()
             },
         };
 
         if sim_chunk.contains_waypoint {
-            supplement = supplement.with_entity(EntityInfo {
-                pos: gen_entity_pos(),
-                kind: EntityKind::Waypoint,
-            });
+            supplement.add_entity(EntityInfo::at(gen_entity_pos()).into_waypoint());
         }
+
+        // Apply site supplementary information
+        sim_chunk.sites.iter().for_each(|site| {
+            site.apply_supplement(&mut rng, chunk_wpos2d, sample_get, &mut supplement)
+        });
 
         Ok((chunk, supplement))
     }

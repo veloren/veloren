@@ -3,7 +3,7 @@ use crate::{
     event::{EventBus, ServerEvent},
     state::DeltaTime,
     sync::Uid,
-    terrain::{Block, TerrainGrid},
+    terrain::{Block, BlockKind, TerrainGrid},
     vol::ReadVol,
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
@@ -110,7 +110,9 @@ impl<'a> System<'a> for Sys {
             // Neighbouring blocks iterator
             let near_iter = (-hdist..hdist + 1)
                 .map(move |i| {
-                    (-hdist..hdist + 1).map(move |j| (0..vdist + 1).map(move |k| (i, j, k)))
+                    (-hdist..hdist + 1).map(move |j| {
+                        (1 - BlockKind::MAX_HEIGHT.ceil() as i32..vdist + 1).map(move |k| (i, j, k))
+                    })
                 })
                 .flatten()
                 .flatten();
@@ -150,18 +152,19 @@ impl<'a> System<'a> for Sys {
 
             // Function for determining whether the player at a specific position collides
             // with the ground
-            let collision_with = |pos: Vec3<f32>, hit: fn(&Block) -> bool, near_iter| {
+            let collision_with = |pos: Vec3<f32>, hit: &dyn Fn(&Block) -> bool, near_iter| {
                 for (i, j, k) in near_iter {
                     let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
-                    if terrain.get(block_pos).map(hit).unwrap_or(false) {
+                    if let Some(block) = terrain.get(block_pos).ok().copied().filter(hit) {
                         let player_aabb = Aabb {
                             min: pos + Vec3::new(-player_rad, -player_rad, 0.0),
                             max: pos + Vec3::new(player_rad, player_rad, player_height),
                         };
                         let block_aabb = Aabb {
                             min: block_pos.map(|e| e as f32),
-                            max: block_pos.map(|e| e as f32) + 1.0,
+                            max: block_pos.map(|e| e as f32)
+                                + Vec3::new(1.0, 1.0, block.get_height()),
                         };
 
                         if player_aabb.collides_with_aabb(block_aabb) {
@@ -189,7 +192,7 @@ impl<'a> System<'a> for Sys {
                 const MAX_ATTEMPTS: usize = 16;
 
                 // While the player is colliding with the terrain...
-                while collision_with(pos.0, |vox| vox.is_solid(), near_iter.clone())
+                while collision_with(pos.0, &|block| block.is_solid(), near_iter.clone())
                     && attempts < MAX_ATTEMPTS
                 {
                     // Calculate the player's AABB
@@ -200,31 +203,34 @@ impl<'a> System<'a> for Sys {
 
                     // Determine the block that we are colliding with most (based on minimum
                     // collision axis)
-                    let (_block_pos, block_aabb) = near_iter
+                    let (_block_pos, block_aabb, block_height) = near_iter
                         .clone()
                         // Calculate the block's position in world space
                         .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
-                        // Calculate the AABB of the block
-                        .map(|block_pos| {
-                            (
-                                block_pos,
-                                Aabb {
-                                    min: block_pos.map(|e| e as f32),
-                                    max: block_pos.map(|e| e as f32) + 1.0,
-                                },
-                            )
-                        })
                         // Make sure the block is actually solid
-                        .filter(|(block_pos, _)| {
-                            terrain
-                                .get(*block_pos)
-                                .map(|vox| vox.is_solid())
-                                .unwrap_or(false)
+                        .filter_map(|block_pos| {
+                            if let Some(block) = terrain
+                                .get(block_pos)
+                                .ok()
+                                .filter(|block| block.is_solid())
+                            {
+                                // Calculate block AABB
+                                Some((
+                                    block_pos,
+                                    Aabb {
+                                        min: block_pos.map(|e| e as f32),
+                                        max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.get_height()),
+                                    },
+                                    block.get_height(),
+                                ))
+                            } else {
+                                None
+                            }
                         })
                         // Determine whether the block's AABB collides with the player's AABB
-                        .filter(|(_, block_aabb)| block_aabb.collides_with_aabb(player_aabb))
+                        .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
                         // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
-                        .min_by_key(|(_, block_aabb)| {
+                        .min_by_key(|(_, block_aabb, _)| {
                             ((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
                                 .map(|e| e.abs())
                                 .sum()
@@ -257,7 +263,7 @@ impl<'a> System<'a> for Sys {
 
                     // When the resolution direction is non-vertical, we must be colliding with a
                     // wall If the space above is free...
-                    if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), |vox| vox.is_solid(), near_iter.clone())
+                    if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &|block| block.is_solid(), near_iter.clone())
                         // ...and we're being pushed out horizontally...
                         && resolve_dir.z == 0.0
                         // ...and the vertical resolution direction is sufficiently great...
@@ -265,17 +271,17 @@ impl<'a> System<'a> for Sys {
                         // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
                         && (vel.0.z <= 0.0 || terrain
                             .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
-                            .map(|vox| vox.is_solid())
+                            .map(|block| block.is_solid())
                             .unwrap_or(false))
                         // ...and there is a collision with a block beneath our current hitbox...
                         && collision_with(
                             old_pos + resolve_dir - Vec3::unit_z() * 1.05,
-                            |vox| vox.is_solid(),
+                            &|block| block.is_solid(),
                             near_iter.clone(),
                         )
                     {
                         // ...block-hop!
-                        pos.0.z = (pos.0.z + 0.1).ceil();
+                        pos.0.z = (pos.0.z + 0.1).floor() + block_height;
                         vel.0.z = 0.0;
                         on_ground = true;
                         break;
@@ -304,20 +310,26 @@ impl<'a> System<'a> for Sys {
             // If the space below us is free, then "snap" to the ground
             } else if collision_with(
                 pos.0 - Vec3::unit_z() * 1.05,
-                |vox| vox.is_solid(),
+                &|block| block.is_solid(),
                 near_iter.clone(),
             ) && vel.0.z < 0.0
                 && vel.0.z > -1.5
                 && was_on_ground
-                && !terrain
-                    .get(
-                        Vec3::new(pos.0.x, pos.0.y, (pos.0.z - 0.05).floor())
-                            .map(|e| e.floor() as i32),
-                    )
-                    .map(|vox| vox.is_solid())
-                    .unwrap_or(false)
+                && !collision_with(
+                    pos.0 - Vec3::unit_z() * 0.05,
+                    &|block| {
+                        block.is_solid() && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
+                    },
+                    near_iter.clone(),
+                )
             {
-                pos.0.z = (pos.0.z - 0.05).floor();
+                let snap_height = terrain
+                    .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.05).map(|e| e.floor() as i32))
+                    .ok()
+                    .filter(|block| block.is_solid())
+                    .map(|block| block.get_height())
+                    .unwrap_or(0.0);
+                pos.0.z = (pos.0.z - 0.05).floor() + snap_height;
                 physics_state.on_ground = true;
             }
 
@@ -329,7 +341,11 @@ impl<'a> System<'a> for Sys {
             ];
 
             if let (wall_dir, true) = dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
-                if collision_with(pos.0 + *dir * 0.01, |vox| vox.is_solid(), near_iter.clone()) {
+                if collision_with(
+                    pos.0 + *dir * 0.01,
+                    &|block| block.is_solid(),
+                    near_iter.clone(),
+                ) {
                     (a + dir, true)
                 } else {
                     (a, hit)
@@ -341,7 +357,8 @@ impl<'a> System<'a> for Sys {
             }
 
             // Figure out if we're in water
-            physics_state.in_fluid = collision_with(pos.0, |vox| vox.is_fluid(), near_iter.clone());
+            physics_state.in_fluid =
+                collision_with(pos.0, &|block| block.is_fluid(), near_iter.clone());
 
             let _ = physics_states.insert(entity, physics_state);
         }

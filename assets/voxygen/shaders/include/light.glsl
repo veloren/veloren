@@ -25,7 +25,9 @@ vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
 }
 
 float attenuation_strength(vec3 rpos) {
-	return 1.0 / pow(rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z, 0.6);
+	// This is not how light attenuation works at all, but it produces visually pleasing and mechanically useful properties
+	float d2 = rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z;
+	return max(2.0 / pow(d2 + 10, 0.35) - pow(d2 / 50000.0, 0.8), 0.0);
 }
 
 vec3 light_at(vec3 wpos, vec3 wnorm) {
@@ -43,7 +45,7 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 		// Pre-calculate difference between light and fragment
 		vec3 difference = light_pos - wpos;
 
-		float strength = pow(attenuation_strength(difference), 0.6);
+		float strength = attenuation_strength(difference);
 
 		// Multiply the vec3 only once
 		vec3 color = srgb_to_linear(L.light_col.rgb) * (strength * L.light_col.a);

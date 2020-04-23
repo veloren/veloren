@@ -18,13 +18,13 @@ fn main() {
     let map_file =
         // "map_1575990726223.bin";
         // "map_1575987666972.bin";
-        "map_1576046079066.bin";
-    let mut _map_file = PathBuf::from("./maps");
-    _map_file.push(map_file);
+        "map_1585335358316.bin";
+    let mut map_path = PathBuf::from("./maps");
+    map_path.push(map_file);
 
     let world = World::generate(5284, WorldOpts {
         seed_elements: false,
-        // world_file: sim::FileOpts::Load(_map_file),
+        //world_file: sim::FileOpts::Load(map_path),
         world_file: sim::FileOpts::Save,
         ..WorldOpts::default()
     });
@@ -150,12 +150,25 @@ fn main() {
         }
         if win.get_mouse_down(minifb::MouseButton::Left) {
             if let Some((mx, my)) = win.get_mouse_pos(minifb::MouseMode::Clamp) {
-                let pos = (Vec2::<f64>::from(focus) + (Vec2::new(mx as f64, my as f64) * scale))
+                let chunk_pos = (Vec2::<f64>::from(focus)
+                    + (Vec2::new(mx as f64, my as f64) * scale))
                     .map(|e| e as i32);
+                let block_pos = chunk_pos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e * f as i32);
                 println!(
-                    "Chunk position: {:?}",
-                    pos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e * f as i32)
+                    "Block: ({}, {}), Chunk: ({}, {})",
+                    block_pos.x, block_pos.y, chunk_pos.x, chunk_pos.y
                 );
+                if let Some(chunk) = sampler.get(chunk_pos) {
+                    //println!("Chunk info: {:#?}", chunk);
+                    if let Some(id) = &chunk.place {
+                        let place = world.civs().place(*id);
+                        println!("Place {} info: {:#?}", id.id(), place);
+
+                        if let Some(site) = world.civs().sites().find(|site| site.place == *id) {
+                            println!("Site: {}", site);
+                        }
+                    }
+                }
             }
         }
         let is_camera = win.is_key_down(minifb::Key::C);
@@ -239,6 +252,6 @@ fn main() {
             }
         }
 
-        win.update_with_buffer(&buf).unwrap();
+        win.update_with_buffer(&buf, W, H).unwrap();
     }
 }

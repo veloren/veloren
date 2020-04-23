@@ -236,11 +236,14 @@ impl Scene {
         };
 
         self.camera.set_focus_pos(
-            player_pos + Vec3::unit_z() * (up + dist * 0.15 - tilt.min(0.0) * dist * 0.75),
+            player_pos + Vec3::unit_z() * (up + dist * 0.15 - tilt.min(0.0) * dist * 0.4),
         );
 
         // Tick camera for interpolation.
-        self.camera.update(scene_data.state.get_time());
+        self.camera.update(
+            scene_data.state.get_time(),
+            scene_data.state.get_delta_time(),
+        );
 
         // Compute camera matrices.
         self.camera.compute_dependents(&*scene_data.state.terrain());

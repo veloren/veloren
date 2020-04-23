@@ -33,9 +33,13 @@ impl<T> FromIterator<T> for Path<T> {
 impl<T> Path<T> {
     pub fn len(&self) -> usize { self.nodes.len() }
 
+    pub fn iter(&self) -> impl Iterator<Item = &T> { self.nodes.iter() }
+
     pub fn start(&self) -> Option<&T> { self.nodes.first() }
 
     pub fn end(&self) -> Option<&T> { self.nodes.last() }
+
+    pub fn nodes(&self) -> &[T] { &self.nodes }
 }
 
 // Route: A path that can be progressed along
@@ -57,7 +61,12 @@ impl Route {
 
     pub fn is_finished(&self) -> bool { self.next().is_none() }
 
-    pub fn traverse<V>(&mut self, vol: &V, pos: Vec3<f32>) -> Option<Vec3<f32>>
+    pub fn traverse<V>(
+        &mut self,
+        vol: &V,
+        pos: Vec3<f32>,
+        traversal_tolerance: f32,
+    ) -> Option<Vec3<f32>>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
@@ -66,7 +75,9 @@ impl Route {
             None
         } else {
             let next_tgt = next.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            if ((pos - next_tgt) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared() < 1.0f32.powf(2.0)
+            if ((pos - (next_tgt + Vec3::unit_z() * 0.5)) * Vec3::new(1.0, 1.0, 0.3))
+                .magnitude_squared()
+                < (traversal_tolerance * 2.0).powf(2.0)
             {
                 self.next_idx += 1;
             }
@@ -91,13 +102,14 @@ impl Chaser {
         pos: Vec3<f32>,
         tgt: Vec3<f32>,
         min_dist: f32,
+        traversal_tolerance: f32,
     ) -> Option<Vec3<f32>>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
         let pos_to_tgt = pos.distance(tgt);
 
-        if ((pos - tgt) * Vec3::new(1.0, 1.0, 0.3)).magnitude_squared() < min_dist.powf(2.0) {
+        if ((pos - tgt) * Vec3::new(1.0, 1.0, 0.15)).magnitude_squared() < min_dist.powf(2.0) {
             return None;
         }
 
@@ -111,7 +123,7 @@ impl Chaser {
                     self.route = Route::default();
                 }
 
-                self.route.traverse(vol, pos)
+                self.route.traverse(vol, pos, traversal_tolerance)
             }
         } else {
             None
@@ -145,7 +157,7 @@ where
 {
     let is_walkable = |pos: &Vec3<i32>| {
         vol.get(*pos - Vec3::new(0, 0, 1))
-            .map(|b| b.is_solid())
+            .map(|b| b.is_solid() && b.get_height() == 1.0)
             .unwrap_or(false)
             && vol
                 .get(*pos + Vec3::new(0, 0, 0))

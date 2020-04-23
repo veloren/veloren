@@ -5,8 +5,22 @@ pub struct Grid<T> {
     size: Vec2<i32>,
 }
 
-impl<T: Clone> Grid<T> {
-    pub fn new(default_cell: T, size: Vec2<i32>) -> Self {
+impl<T> Grid<T> {
+    pub fn populate_from(size: Vec2<i32>, mut f: impl FnMut(Vec2<i32>) -> T) -> Self {
+        Self {
+            cells: (0..size.y)
+                .map(|y| (0..size.x).map(move |x| Vec2::new(x, y)))
+                .flatten()
+                .map(&mut f)
+                .collect(),
+            size,
+        }
+    }
+
+    pub fn new(size: Vec2<i32>, default_cell: T) -> Self
+    where
+        T: Clone,
+    {
         Self {
             cells: vec![default_cell; size.product() as usize],
             size,

@@ -1,7 +1,13 @@
 use crate::{
-    comp::{self, agent::Activity, Agent, Alignment, Controller, MountState, Ori, Pos, Stats},
+    comp::{
+        self,
+        agent::Activity,
+        item::{tool::ToolKind, ItemKind},
+        Agent, Alignment, CharacterState, ControlAction, Controller, Loadout, MountState, Ori, Pos,
+        Scale, Stats,
+    },
     path::Chaser,
-    state::Time,
+    state::{DeltaTime, Time},
     sync::UidAllocator,
     terrain::TerrainGrid,
     util::Dir,
@@ -20,10 +26,14 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, UidAllocator>,
         Read<'a, Time>,
+        Read<'a, DeltaTime>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
+        ReadStorage<'a, Scale>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, Loadout>,
+        ReadStorage<'a, CharacterState>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
         WriteStorage<'a, Agent>,
@@ -36,10 +46,14 @@ impl<'a> System<'a> for Sys {
         (
             uid_allocator,
             time,
+            dt,
             entities,
             positions,
             orientations,
+            scales,
             stats,
+            loadouts,
+            character_states,
             terrain,
             alignments,
             mut agents,
@@ -47,11 +61,23 @@ impl<'a> System<'a> for Sys {
             mount_states,
         ): Self::SystemData,
     ) {
-        for (entity, pos, ori, alignment, agent, controller, mount_state) in (
+        for (
+            entity,
+            pos,
+            ori,
+            alignment,
+            loadout,
+            character_state,
+            agent,
+            controller,
+            mount_state,
+        ) in (
             &entities,
             &positions,
             &orientations,
             alignments.maybe(),
+            &loadouts,
+            &character_states,
             &mut agents,
             &mut controllers,
             mount_states.maybe(),
@@ -82,9 +108,18 @@ impl<'a> System<'a> for Sys {
             const AVG_FOLLOW_DIST: f32 = 6.0;
             const MAX_FOLLOW_DIST: f32 = 12.0;
             const MAX_CHASE_DIST: f32 = 24.0;
-            const SEARCH_DIST: f32 = 30.0;
-            const SIGHT_DIST: f32 = 64.0;
+            const LISTEN_DIST: f32 = 16.0;
+            const SEARCH_DIST: f32 = 48.0;
+            const SIGHT_DIST: f32 = 128.0;
             const MIN_ATTACK_DIST: f32 = 3.25;
+
+            let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
+
+            // This controls how picky NPCs are about their pathfinding. Giants are larger
+            // and so can afford to be less precise when trying to move around
+            // the world (especially since they would otherwise get stuck on
+            // obstacles that smaller entities would not).
+            let traversal_tolerance = scale;
 
             let mut do_idle = false;
             let mut choose_target = false;
@@ -96,19 +131,23 @@ impl<'a> System<'a> for Sys {
                             thread_rng().gen::<f32>() - 0.5,
                             thread_rng().gen::<f32>() - 0.5,
                         ) * 0.1
-                            - *bearing * 0.01
+                            - *bearing * 0.003
                             - if let Some(patrol_origin) = agent.patrol_origin {
                                 Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
                             } else {
                                 Vec2::zero()
                             };
+
                         // Stop if we're too close to a wall
                         *bearing *= 0.1
                             + if terrain
                                 .ray(
                                     pos.0 + Vec3::unit_z(),
                                     pos.0
-                                        + Vec3::from(*bearing).normalized() * 1.5
+                                        + Vec3::from(*bearing)
+                                            .try_normalized()
+                                            .unwrap_or(Vec3::unit_y())
+                                            * 5.0
                                         + Vec3::unit_z(),
                                 )
                                 .until(|block| block.is_solid())
@@ -122,9 +161,18 @@ impl<'a> System<'a> for Sys {
                                 0.0
                             };
 
-                        if bearing.magnitude_squared() > 0.25f32.powf(2.0) {
-                            inputs.move_dir =
-                                bearing.try_normalized().unwrap_or(Vec2::zero()) * 0.65;
+                        if bearing.magnitude_squared() > 0.5f32.powf(2.0) {
+                            inputs.move_dir = *bearing * 0.65;
+                        }
+
+                        // Put away weapon
+                        if thread_rng().gen::<f32>() < 0.005 {
+                            controller.actions.push(ControlAction::Unwield);
+                        }
+
+                        // Sit
+                        if thread_rng().gen::<f32>() < 0.0035 {
+                            controller.actions.push(ControlAction::Sit);
                         }
 
                         // Sometimes try searching for new targets
@@ -139,9 +187,13 @@ impl<'a> System<'a> for Sys {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             // Follow, or return to idle
                             if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
-                                if let Some(bearing) =
-                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, AVG_FOLLOW_DIST)
-                                {
+                                if let Some(bearing) = chaser.chase(
+                                    &*terrain,
+                                    pos.0,
+                                    tgt_pos.0,
+                                    AVG_FOLLOW_DIST,
+                                    traversal_tolerance,
+                                ) {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
                                         .unwrap_or(Vec2::zero());
@@ -158,8 +210,27 @@ impl<'a> System<'a> for Sys {
                         target,
                         chaser,
                         been_close,
+                        powerup,
                         ..
                     } => {
+                        enum Tactic {
+                            Melee,
+                            RangedPowerup,
+                            Staff,
+                        }
+
+                        let tactic = match loadout.active_item.as_ref().and_then(|ic| {
+                            if let ItemKind::Tool(tool) = &ic.item.kind {
+                                Some(&tool.kind)
+                            } else {
+                                None
+                            }
+                        }) {
+                            Some(ToolKind::Bow(_)) => Tactic::RangedPowerup,
+                            Some(ToolKind::Staff(_)) => Tactic::Staff,
+                            _ => Tactic::Melee,
+                        };
+
                         if let (Some(tgt_pos), Some(tgt_stats), tgt_alignment) = (
                             positions.get(*target),
                             stats.get(*target),
@@ -183,32 +254,68 @@ impl<'a> System<'a> for Sys {
                             }
 
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
-                            if dist_sqrd < MIN_ATTACK_DIST.powf(2.0) {
+                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
                                 // Close-range attack
                                 inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                     .try_normalized()
                                     .unwrap_or(Vec2::unit_y())
                                     * 0.7;
-                                inputs.primary.set_state(true);
+
+                                match tactic {
+                                    Tactic::Melee | Tactic::Staff => inputs.primary.set_state(true),
+                                    Tactic::RangedPowerup => inputs.roll.set_state(true),
+                                }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
-                                || (dist_sqrd < SIGHT_DIST.powf(2.0) && !*been_close)
+                                || (dist_sqrd < SIGHT_DIST.powf(2.0)
+                                    && (!*been_close || !matches!(tactic, Tactic::Melee)))
                             {
+                                let can_see_tgt = terrain
+                                    .ray(pos.0 + Vec3::unit_z(), tgt_pos.0 + Vec3::unit_z())
+                                    .until(|block| !block.is_air())
+                                    .cast()
+                                    .0
+                                    .powf(2.0)
+                                    >= dist_sqrd;
+
+                                if can_see_tgt {
+                                    if let Tactic::RangedPowerup = tactic {
+                                        if *powerup > 2.0 {
+                                            inputs.primary.set_state(false);
+                                            *powerup = 0.0;
+                                        } else {
+                                            inputs.primary.set_state(true);
+                                            *powerup += dt.0;
+                                        }
+                                    } else if let Tactic::Staff = tactic {
+                                        if !character_state.is_wield() {
+                                            inputs.primary.set_state(true);
+                                        }
+
+                                        inputs.secondary.set_state(true);
+                                    }
+                                }
+
                                 if dist_sqrd < MAX_CHASE_DIST.powf(2.0) {
                                     *been_close = true;
                                 }
 
                                 // Long-range chase
-                                if let Some(bearing) =
-                                    chaser.chase(&*terrain, pos.0, tgt_pos.0, 1.25)
-                                {
+                                if let Some(bearing) = chaser.chase(
+                                    &*terrain,
+                                    pos.0,
+                                    tgt_pos.0,
+                                    1.25,
+                                    traversal_tolerance,
+                                ) {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
                                         .unwrap_or(Vec2::zero());
                                     inputs.jump.set_state(bearing.z > 1.0);
                                 }
 
-                                if dist_sqrd < (MAX_CHASE_DIST * 0.65).powf(2.0)
-                                    && thread_rng().gen::<f32>() < 0.01
+                                if dist_sqrd < 16.0f32.powf(2.0)
+                                    && matches!(tactic, Tactic::Melee)
+                                    && thread_rng().gen::<f32>() < 0.02
                                 {
                                     inputs.roll.set_state(true);
                                 }
@@ -234,13 +341,23 @@ impl<'a> System<'a> for Sys {
                 let closest_entity = (&entities, &positions, &stats, alignments.maybe())
                     .join()
                     .filter(|(e, e_pos, e_stats, e_alignment)| {
-                        e_pos.0.distance_squared(pos.0) < SEARCH_DIST.powf(2.0)
+                        ((e_pos.0.distance_squared(pos.0) < SEARCH_DIST.powf(2.0) &&
+                            // Within our view
+                            (e_pos.0 - pos.0).try_normalized().map(|v| v.dot(*inputs.look_dir) > 0.15).unwrap_or(true))
+                                // Within listen distance
+                                || e_pos.0.distance_squared(pos.0) < LISTEN_DIST.powf(2.0))
                             && *e != entity
                             && !e_stats.is_dead
                             && alignment
                                 .and_then(|a| e_alignment.map(|b| a.hostile_towards(*b)))
                                 .unwrap_or(false)
                     })
+                    // Can we even see them?
+                    .filter(|(_, e_pos, _, _)| terrain
+                        .ray(pos.0 + Vec3::unit_z(), e_pos.0 + Vec3::unit_z())
+                        .until(|block| !block.is_air())
+                        .cast()
+                        .0 >= e_pos.0.distance(pos.0))
                     .min_by_key(|(_, e_pos, _, _)| (e_pos.0.distance_squared(pos.0) * 100.0) as i32)
                     .map(|(e, _, _, _)| e);
 
@@ -250,6 +367,7 @@ impl<'a> System<'a> for Sys {
                         chaser: Chaser::default(),
                         time: time.0,
                         been_close: false,
+                        powerup: 0.0,
                     };
                 }
             }
@@ -273,6 +391,7 @@ impl<'a> System<'a> for Sys {
                                     chaser: Chaser::default(),
                                     time: time.0,
                                     been_close: false,
+                                    powerup: 0.0,
                                 };
                             }
                         }
@@ -303,6 +422,7 @@ impl<'a> System<'a> for Sys {
                                             chaser: Chaser::default(),
                                             time: time.0,
                                             been_close: false,
+                                            powerup: 0.0,
                                         };
                                     }
                                 }
