@@ -208,6 +208,7 @@ pub enum Event {
     AdjustMouseZoom(u32),
     ToggleZoomInvert(bool),
     ToggleMouseYInvert(bool),
+    ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
@@ -1793,6 +1794,9 @@ impl Hud {
                     },
                     settings_window::Event::ToggleMouseYInvert(mouse_y_inverted) => {
                         events.push(Event::ToggleMouseYInvert(mouse_y_inverted));
+                    },
+                    settings_window::Event::ToggleSmoothPan(smooth_pan_enabled) => {
+                        events.push(Event::ToggleSmoothPan(smooth_pan_enabled));
                     },
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
