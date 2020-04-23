@@ -67,6 +67,8 @@ impl Dungeon {
         this
     }
 
+    pub fn get_origin(&self) -> Vec2<i32> { self.origin }
+
     pub fn radius(&self) -> f32 { 1200.0 }
 
     pub fn spawn_rules(&self, _wpos: Vec2<i32>) -> SpawnRules {
