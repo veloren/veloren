@@ -74,6 +74,8 @@ pub struct SceneData<'a> {
     pub view_distance: u32,
     pub tick: u64,
     pub thread_pool: &'a uvth::ThreadPool,
+    pub gamma: f32,
+    pub mouse_smoothing: bool,
 }
 
 impl Scene {
@@ -177,7 +179,6 @@ impl Scene {
         renderer: &mut Renderer,
         audio: &mut AudioFrontend,
         scene_data: &SceneData,
-        gamma: f32,
     ) {
         // Get player position.
         let ecs = scene_data.state.ecs();
@@ -243,6 +244,7 @@ impl Scene {
         self.camera.update(
             scene_data.state.get_time(),
             scene_data.state.get_delta_time(),
+            scene_data.mouse_smoothing,
         );
 
         // Compute camera matrices.
@@ -349,7 +351,7 @@ impl Scene {
                     .map(|b| b.kind())
                     .unwrap_or(BlockKind::Air),
                 self.select_pos,
-                gamma,
+                scene_data.gamma,
                 self.camera.get_mode(),
             )])
             .expect("Failed to update global constants");
