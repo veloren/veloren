@@ -113,7 +113,8 @@ impl<'a> System<'a> for Sys {
             const SIGHT_DIST: f32 = 128.0;
             const MIN_ATTACK_DIST: f32 = 3.25;
 
-            let traversal_tolerance = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
+            let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
+            let traversal_tolerance = scale;
 
             let mut do_idle = false;
             let mut choose_target = false;
@@ -248,19 +249,16 @@ impl<'a> System<'a> for Sys {
                             }
 
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
-                            if dist_sqrd < MIN_ATTACK_DIST.powf(2.0) {
+                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
                                 // Close-range attack
                                 inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                     .try_normalized()
                                     .unwrap_or(Vec2::unit_y())
                                     * 0.7;
 
-                                if let Tactic::Melee = tactic {
-                                    inputs.primary.set_state(true);
-                                } else if let Tactic::Staff = tactic {
-                                    inputs.primary.set_state(true);
-                                } else {
-                                    inputs.roll.set_state(true);
+                                match tactic {
+                                    Tactic::Melee | Tactic::Staff => inputs.primary.set_state(true),
+                                    Tactic::RangedPowerup => inputs.roll.set_state(true),
                                 }
                             } else if dist_sqrd < MAX_CHASE_DIST.powf(2.0)
                                 || (dist_sqrd < SIGHT_DIST.powf(2.0)
