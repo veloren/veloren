@@ -22,7 +22,6 @@ impl<A: Archetype> Building<A> {
     where
         A: Sized,
     {
-        let len = rng.gen_range(-8, 12).max(0);
         let (archetype, skel) = A::generate(rng);
         Self {
             skel,
