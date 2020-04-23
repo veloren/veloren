@@ -156,6 +156,7 @@ impl MapConfig {
                     downhill,
                     river_kind,
                     is_path,
+                    near_site,
                 ) = sampler
                     .get(pos)
                     .map(|sample| {
@@ -168,6 +169,9 @@ impl MapConfig {
                             sample.downhill,
                             sample.river.river_kind,
                             sample.path.is_path(),
+                            sample.sites
+                                .iter()
+                                .any(|site| site.get_origin().distance_squared(pos * TerrainChunkSize::RECT_SIZE.x as i32) < 64i32.pow(2)),
                         )
                     })
                     .unwrap_or((
@@ -178,6 +182,7 @@ impl MapConfig {
                         0.0,
                         None,
                         None,
+                        false,
                         false,
                     ));
                 let humidity = humidity.min(1.0).max(0.0);
@@ -305,7 +310,9 @@ impl MapConfig {
                     ),
                 };
 
-                let rgba = if is_path {
+                let rgba = if near_site {
+                    (0x57, 0x39, 0x33, 0xFF)
+                } else if is_path {
                     (0x37, 0x29, 0x23, 0xFF)
                 } else {
                     rgba

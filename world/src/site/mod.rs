@@ -74,6 +74,13 @@ impl Site {
         }
     }
 
+    pub fn get_origin(&self) -> Vec2<i32> {
+        match self {
+            Site::Settlement(s) => s.get_origin(),
+            Site::Dungeon(d) => d.get_origin(),
+        }
+    }
+
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         match self {
             Site::Settlement(s) => s.spawn_rules(wpos),
