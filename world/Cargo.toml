@@ -29,4 +29,4 @@ ron = "0.5.1"
 
 [dev-dependencies]
 pretty_env_logger = "0.3.0"
-minifb = "0.14.0"
+minifb = "0.16.0"
