@@ -353,17 +353,26 @@ fn handle_goto(
 
 fn handle_kill(
     server: &mut Server,
-    _client: EcsEntity,
+    client: EcsEntity,
     target: EcsEntity,
     _args: String,
     _action: &ChatCommand,
 ) {
+    let reason = if client == target {
+        comp::HealthSource::Suicide
+    } else {
+        if let Some(uid) = server.state.read_storage::<Uid>().get(client) {
+            comp::HealthSource::Attack { by: *uid }
+        } else {
+            comp::HealthSource::Command
+        }
+    };
     server
         .state
         .ecs_mut()
         .write_storage::<comp::Stats>()
         .get_mut(target)
-        .map(|s| s.health.set_to(0, comp::HealthSource::Suicide));
+        .map(|s| s.health.set_to(0, reason));
 }
 
 fn handle_time(
