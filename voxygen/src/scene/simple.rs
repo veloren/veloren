@@ -7,17 +7,20 @@ use crate::{
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Model,
         PostProcessLocals, PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
+        Mesh,
     },
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{load_mesh, FigureModelCache, FigureState},
     },
     window::{Event, PressState},
+    mesh::Meshable,
 };
 use common::{
     comp::{humanoid, Body, Loadout},
     terrain::BlockKind,
     vol::{BaseVol, ReadVol, Vox},
+    figure::Segment,
 };
 use log::error;
 use vek::*;
@@ -38,6 +41,10 @@ impl BaseVol for VoidVol {
 }
 impl ReadVol for VoidVol {
     fn get<'a>(&'a self, _pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> { Ok(&VoidVox) }
+}
+
+fn generate_mesh(segment: &Segment, offset: Vec3<f32>) -> Mesh<FigurePipeline> {
+    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(segment, (offset, Vec3::one())).0
 }
 
 struct Skybox {
@@ -107,7 +114,7 @@ impl Scene {
             backdrop: backdrop.map(|specifier| {
                 (
                     renderer
-                        .create_model(&load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0)))
+                        .create_model(&load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0), generate_mesh))
                         .unwrap(),
                     FigureState::new(renderer, FixtureSkeleton::new()),
                 )
@@ -229,7 +236,7 @@ impl Scene {
                 .0;
 
             renderer.render_figure(
-                model,
+                &model[0],
                 &self.globals,
                 self.figure_state.locals(),
                 self.figure_state.bone_consts(),
