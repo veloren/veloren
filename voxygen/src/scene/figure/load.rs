@@ -55,7 +55,7 @@ fn graceful_load_mat_segment_flipped(mesh_name: &str) -> MatSegment {
 }
 
 fn generate_mesh(segment: &Segment, offset: Vec3<f32>) -> Mesh<FigurePipeline> {
-    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(segment, offset).0
+    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(segment, (offset, Vec3::one())).0
 }
 
 pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
