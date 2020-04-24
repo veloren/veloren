@@ -16,12 +16,14 @@ impl<'a, V: ReadVol> ReadVol for Scaled<'a, V> {
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
         let pos = pos.map2(self.scale, |e, scale| (e as f32 / scale).trunc() as i32);
         let search_size = (Vec3::one() / self.scale).map(|e: f32| e.ceil() as i32);
-        let range_iter = |x| std::iter::successors(Some(0), |x| Some(if *x < 0 { -*x } else { -(*x + 1) })).take(x as usize * 2 + 1);
+        let range_iter = |x| {
+            std::iter::successors(Some(0), |x| Some(if *x < 0 { -*x } else { -(*x + 1) }))
+                .take((x as usize * 2).max(1) - 1)
+        };
         range_iter(search_size.x / 2)
             .map(|i| {
-                range_iter(search_size.y / 2).map(move |j| {
-                    range_iter(search_size.z / 2).map(move |k| Vec3::new(i, j, k))
-                })
+                range_iter(search_size.y / 2)
+                    .map(move |j| range_iter(search_size.z / 2).map(move |k| Vec3::new(i, j, k)))
             })
             .flatten()
             .flatten()
@@ -41,8 +43,8 @@ impl<'a, V: SizedVol> SizedVol for Scaled<'a, V> {
 
     #[inline(always)]
     fn upper_bound(&self) -> Vec3<i32> {
-        self.inner.upper_bound().map2(self.scale, |e, scale| {
-            (e as f32 * scale).ceil() as i32 + 1
-        })
+        self.inner
+            .upper_bound()
+            .map2(self.scale, |e, scale| (e as f32 * scale).ceil() as i32 + 1)
     }
 }
