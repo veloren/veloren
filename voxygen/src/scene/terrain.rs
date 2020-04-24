@@ -2010,9 +2010,9 @@ impl<V: RectRasterableVol> Terrain<V> {
         for (pos, chunk) in chunk_iter.clone() {
             if chunk.visible {
                 const SPRITE_RENDER_DISTANCE: f32 = 200.0;
-                const SPRITE_DETAIL_LOW_DISTANCE: f32 = 120.0;
-                const SPRITE_DETAIL_MID_DISTANCE: f32 = 64.0;
-                const SPRITE_DETAIL_HIGH_DISTANCE: f32 = 32.0;
+                const SPRITE_DETAIL_LOW_DISTANCE: f32 = SPRITE_RENDER_DISTANCE * 0.65;
+                const SPRITE_DETAIL_MID_DISTANCE: f32 = SPRITE_RENDER_DISTANCE * 0.4;
+                const SPRITE_DETAIL_HIGH_DISTANCE: f32 = SPRITE_RENDER_DISTANCE * 0.25;
 
                 let chunk_center =
                     pos.map2(V::RECT_SIZE, |e, sz: u32| (e as f32 + 0.5) * sz as f32);
