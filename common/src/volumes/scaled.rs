@@ -35,13 +35,13 @@ impl<'a, V: SizedVol> SizedVol for Scaled<'a, V> {
     fn lower_bound(&self) -> Vec3<i32> {
         self.inner
             .lower_bound()
-            .map2(self.scale, |e, scale| (e as f32 * scale).floor() as i32)
+            .map2(self.scale, |e, scale| (e as f32 * scale).ceil() as i32)
     }
 
     #[inline(always)]
     fn upper_bound(&self) -> Vec3<i32> {
         self.inner
             .upper_bound()
-            .map2(self.scale, |e, scale| (e as f32 * scale).floor() as i32)
+            .map2(self.scale, |e, scale| (e as f32 * scale).ceil() as i32)
     }
 }
