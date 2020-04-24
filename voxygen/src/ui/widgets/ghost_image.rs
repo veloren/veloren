@@ -8,7 +8,7 @@ use conrod_core::{
 };
 
 /// This widget is like conrod's `Image` widget except it always returns false
-/// for is_over
+/// for is_over so widgets under it are still interactable
 #[derive(WidgetCommon)]
 pub struct GhostImage {
     #[conrod(common_builder)]
