@@ -59,8 +59,8 @@ pub async fn network_participant_stream(
     Stream,
 ) {
     let pool = ThreadPoolBuilder::new().num_threads(2).build();
-    let n_a = Network::new(Pid::fake(1), &pool);
-    let n_b = Network::new(Pid::fake(2), &pool);
+    let n_a = Network::new(Pid::fake(1), &pool, None);
+    let n_b = Network::new(Pid::fake(2), &pool, None);
 
     n_a.listen(addr.clone()).await.unwrap();
     let p1_b = n_b.connect(addr).await.unwrap();

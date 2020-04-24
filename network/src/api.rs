@@ -1,5 +1,5 @@
 use crate::{
-    message::{self, InCommingMessage, OutGoingMessage},
+    message::{self, InCommingMessage, MessageBuffer, OutGoingMessage},
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Requestor::User, Sid},
 };
@@ -9,6 +9,7 @@ use futures::{
     sink::SinkExt,
     stream::StreamExt,
 };
+use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::HashMap,
@@ -78,12 +79,12 @@ pub struct Network {
 }
 
 impl Network {
-    pub fn new(participant_id: Pid, thread_pool: &ThreadPool) -> Self {
+    pub fn new(participant_id: Pid, thread_pool: &ThreadPool, registry: Option<&Registry>) -> Self {
         //let participants = RwLock::new(vec![]);
         let p = participant_id;
         debug!(?p, ?User, "starting Network");
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
-            Scheduler::new(participant_id);
+            Scheduler::new(participant_id, registry);
         thread_pool.execute(move || {
             trace!(?p, ?User, "starting sheduler in own thread");
             let _handle = task::block_on(
@@ -272,10 +273,14 @@ impl Stream {
     }
 
     pub fn send<M: Serialize>(&mut self, msg: M) -> Result<(), StreamError> {
-        let messagebuffer = Arc::new(message::serialize(&msg));
+        self.send_raw(Arc::new(message::serialize(&msg)))
+    }
+
+    pub fn send_raw(&mut self, messagebuffer: Arc<MessageBuffer>) -> Result<(), StreamError> {
         if self.closed.load(Ordering::Relaxed) {
             return Err(StreamError::StreamClosed);
         }
+        debug!(?messagebuffer, ?User, "sending a message");
         self.msg_send_sender
             .send((self.prio, self.pid, self.sid, OutGoingMessage {
                 buffer: messagebuffer,
@@ -288,13 +293,16 @@ impl Stream {
     }
 
     pub async fn recv<M: DeserializeOwned>(&mut self) -> Result<M, StreamError> {
+        Ok(message::deserialize(self.recv_raw().await?))
+    }
+
+    pub async fn recv_raw(&mut self) -> Result<MessageBuffer, StreamError> {
         //no need to access self.closed here, as when this stream is closed the Channel
         // is closed which will trigger a None
         let msg = self.msg_recv_receiver.next().await?;
-        info!(?msg, "delivering a message");
-        Ok(message::deserialize(msg.buffer))
+        info!(?msg, ?User, "delivering a message");
+        Ok(msg.buffer)
     }
-    //Todo: ERROR: TODO: implement me and the disconnecting!
 }
 
 impl Drop for Network {

@@ -1,10 +1,13 @@
+mod metrics;
+
 use clap::{App, Arg};
 use futures::executor::block_on;
-use network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED, MessageBuffer};
 use serde::{Deserialize, Serialize};
 use std::{
     thread,
     time::{Duration, Instant},
+    sync::Arc,
 };
 use tracing::*;
 use tracing_subscriber::EnvFilter;
@@ -55,7 +58,7 @@ fn main() {
                 .long("protocol")
                 .takes_value(true)
                 .default_value("tcp")
-                .possible_values(&["tcp", "upd", "mpsc"])
+                .possible_values(&["tcp", "udp", "mpsc"])
                 .help(
                     "underlying protocol used for this test, mpsc can only combined with mode=both",
                 ),
@@ -72,9 +75,10 @@ fn main() {
         .get_matches();
 
     let trace = matches.value_of("trace").unwrap();
-    let filter = EnvFilter::from_default_env().add_directive(trace.parse().unwrap()).add_directive("veloren_network::participant=debug".parse().unwrap()).add_directive("veloren_network::api=debug".parse().unwrap());
+    let filter = EnvFilter::from_default_env().add_directive(trace.parse().unwrap())/*
+    .add_directive("veloren_network::participant=debug".parse().unwrap()).add_directive("veloren_network::api=debug".parse().unwrap())*/;
     tracing_subscriber::FmtSubscriber::builder()
-        .with_max_level(Level::TRACE)
+        .with_max_level(Level::ERROR)
         .with_env_filter(filter)
         .init();
 
@@ -86,15 +90,16 @@ fn main() {
         _ => panic!("invalid mode, run --help!"),
     };
 
+    let mut m = metrics::SimpleMetrics::new();
     let mut background = None;
     match matches.value_of("mode") {
         Some("server") => server(address),
-        Some("client") => client(address),
+        Some("client") => client(address, &mut m),
         Some("both") => {
             let address1 = address.clone();
             background = Some(thread::spawn(|| server(address1)));
             thread::sleep(Duration::from_millis(200)); //start client after server
-            client(address)
+            client(address, &mut m);
         },
         _ => panic!("invalid mode, run --help!"),
     };
@@ -105,7 +110,7 @@ fn main() {
 
 fn server(address: Address) {
     let thread_pool = ThreadPoolBuilder::new().build();
-    let server = Network::new(Pid::new(), &thread_pool);
+    let server = Network::new(Pid::new(), &thread_pool, None);
     block_on(server.listen(address)).unwrap();
 
     loop {
@@ -115,7 +120,7 @@ fn server(address: Address) {
         block_on(async {
             let mut last = Instant::now();
             let mut id = 0u64;
-            while let Ok(_msg) = s1.recv::<Msg>().await {
+            while let Ok(_msg) = s1.recv_raw().await {
                 id += 1;
                 if id.rem_euclid(1000000) == 0 {
                     let new = Instant::now();
@@ -129,20 +134,23 @@ fn server(address: Address) {
     }
 }
 
-fn client(address: Address) {
+fn client(address: Address, metrics: &mut metrics::SimpleMetrics) {
     let thread_pool = ThreadPoolBuilder::new().build();
-    let client = Network::new(Pid::new(), &thread_pool);
+    let client = Network::new(Pid::new(), &thread_pool, Some(metrics.registry()));
+    metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
 
     let p1 = block_on(client.connect(address.clone())).unwrap(); //remote representation of p1
     let mut s1 = block_on(p1.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)).unwrap(); //remote representation of s1
     let mut last = Instant::now();
     let mut id = 0u64;
-    loop {
-        s1.send(Msg::Ping {
+    let raw_msg = Arc::new(MessageBuffer{
+        data: bincode::serialize(&Msg::Ping {
             id,
             data: vec![0; 1000],
-        })
-        .unwrap();
+        }).unwrap(),
+    });
+    loop {
+        s1.send_raw(raw_msg.clone()).unwrap();
         id += 1;
         if id.rem_euclid(1000000) == 0 {
             let new = Instant::now();

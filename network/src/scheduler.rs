@@ -2,6 +2,7 @@ use crate::{
     api::{Address, Participant},
     channel::Channel,
     message::OutGoingMessage,
+    metrics::NetworkMetrics,
     participant::BParticipant,
     prios::PrioManager,
     protocols::{Protocols, TcpProtocol, UdpProtocol},
@@ -19,6 +20,7 @@ use futures::{
     sink::SinkExt,
     stream::StreamExt,
 };
+use prometheus::Registry;
 use std::{
     collections::{HashMap, VecDeque},
     sync::{
@@ -62,11 +64,13 @@ pub struct Scheduler {
     channel_listener: RwLock<HashMap<Address, oneshot::Sender<()>>>,
     unknown_channels: Arc<RwLock<HashMap<Cid, UnknownChannelInfo>>>,
     prios: Arc<Mutex<PrioManager>>,
+    metrics: Arc<NetworkMetrics>,
 }
 
 impl Scheduler {
     pub fn new(
         local_pid: Pid,
+        registry: Option<&Registry>,
     ) -> (
         Self,
         mpsc::UnboundedSender<(Address, oneshot::Sender<io::Result<()>>)>,
@@ -90,6 +94,11 @@ impl Scheduler {
             prios_sender,
         });
 
+        let metrics = Arc::new(NetworkMetrics::new().unwrap());
+        if let Some(registry) = registry {
+            metrics.register(registry).unwrap();
+        }
+
         (
             Self {
                 local_pid,
@@ -102,6 +111,7 @@ impl Scheduler {
                 channel_listener: RwLock::new(HashMap::new()),
                 unknown_channels: Arc::new(RwLock::new(HashMap::new())),
                 prios: Arc::new(Mutex::new(prios)),
+                metrics,
             },
             listen_sender,
             connect_sender,
@@ -146,30 +156,43 @@ impl Scheduler {
 
     async fn listen_manager(
         &self,
-        mut listen_receiver: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
+        listen_receiver: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
         part_out_sender: mpsc::UnboundedSender<(Cid, Frame)>,
         configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
     ) {
         trace!("start listen_manager");
-        while let Some((address, result_sender)) = listen_receiver.next().await {
-            debug!(?address, "got request to open a channel_creator");
-            let (end_sender, end_receiver) = oneshot::channel::<()>();
-            self.channel_listener
-                .write()
-                .await
-                .insert(address.clone(), end_sender);
-            self.pool.spawn_ok(Self::channel_creator(
-                self.channel_ids.clone(),
-                self.local_pid,
-                address.clone(),
-                end_receiver,
-                self.pool.clone(),
-                part_out_sender.clone(),
-                configured_sender.clone(),
-                self.unknown_channels.clone(),
-                result_sender,
-            ));
-        }
+        listen_receiver
+            .for_each_concurrent(None, |(address, result_sender)| {
+                let address = address.clone();
+                let part_out_sender = part_out_sender.clone();
+                let configured_sender = configured_sender.clone();
+
+                async move {
+                    debug!(?address, "got request to open a channel_creator");
+                    self.metrics
+                        .listen_requests_total
+                        .with_label_values(&[match address {
+                            Address::Tcp(_) => "tcp",
+                            Address::Udp(_) => "udp",
+                            Address::Mpsc(_) => "mpsc",
+                        }])
+                        .inc();
+                    let (end_sender, end_receiver) = oneshot::channel::<()>();
+                    self.channel_listener
+                        .write()
+                        .await
+                        .insert(address.clone(), end_sender);
+                    self.channel_creator(
+                        address,
+                        end_receiver,
+                        part_out_sender.clone(),
+                        configured_sender.clone(),
+                        result_sender,
+                    )
+                    .await;
+                }
+            })
+            .await;
         trace!("stop listen_manager");
     }
 
@@ -184,8 +207,12 @@ impl Scheduler {
     ) {
         trace!("start connect_manager");
         while let Some((addr, pid_sender)) = connect_receiver.next().await {
-            match addr {
+            let (addr, protocol, handshake) = match addr {
                 Address::Tcp(addr) => {
+                    self.metrics
+                        .connect_requests_total
+                        .with_label_values(&["tcp"])
+                        .inc();
                     let stream = match net::TcpStream::connect(addr).await {
                         Ok(stream) => stream,
                         Err(e) => {
@@ -194,21 +221,14 @@ impl Scheduler {
                         },
                     };
                     info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
-                    Self::init_protocol(
-                        &self.channel_ids,
-                        self.local_pid,
-                        addr,
-                        &self.pool,
-                        &part_out_sender,
-                        &configured_sender,
-                        &self.unknown_channels,
-                        Protocols::Tcp(TcpProtocol::new(stream)),
-                        Some(pid_sender),
-                        false,
-                    )
-                    .await;
+                    let protocol = Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone()));
+                    (addr, protocol, false)
                 },
                 Address::Udp(addr) => {
+                    self.metrics
+                        .connect_requests_total
+                        .with_label_values(&["udp"])
+                        .inc();
                     let socket = match net::UdpSocket::bind("0.0.0.0:0").await {
                         Ok(socket) => Arc::new(socket),
                         Err(e) => {
@@ -222,28 +242,29 @@ impl Scheduler {
                     };
                     info!("Connecting Udp to: {}", addr);
                     let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
-                    let protocol =
-                        Protocols::Udp(UdpProtocol::new(socket.clone(), addr, udp_data_receiver));
+                    let protocol = Protocols::Udp(UdpProtocol::new(
+                        socket.clone(),
+                        addr,
+                        self.metrics.clone(),
+                        udp_data_receiver,
+                    ));
                     self.pool.spawn_ok(
                         Self::udp_single_channel_connect(socket.clone(), udp_data_sender)
                             .instrument(tracing::info_span!("udp", ?addr)),
                     );
-                    Self::init_protocol(
-                        &self.channel_ids,
-                        self.local_pid,
-                        addr,
-                        &self.pool,
-                        &part_out_sender,
-                        &configured_sender,
-                        &self.unknown_channels,
-                        protocol,
-                        Some(pid_sender),
-                        true,
-                    )
-                    .await;
+                    (addr, protocol, true)
                 },
                 _ => unimplemented!(),
-            }
+            };
+            self.init_protocol(
+                addr,
+                &part_out_sender,
+                &configured_sender,
+                protocol,
+                Some(pid_sender),
+                handshake,
+            )
+            .await;
         }
         trace!("stop connect_manager");
     }
@@ -286,6 +307,8 @@ impl Scheduler {
         trace!("stop send_outgoing");
     }
 
+    //TODO Why is this done in scheduler when it just redirecty everything to
+    // participant?
     async fn handle_frames(&self, mut part_out_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>) {
         trace!("start handle_frames");
         while let Some((cid, frame)) = part_out_receiver.next().await {
@@ -301,7 +324,9 @@ impl Scheduler {
         trace!("stop handle_frames");
     }
 
-    //
+    //TODO: //ERROR CHECK IF THIS SHOULD BE PUT IN A ASYNC FUNC WHICH IS SEND OVER
+    // TO CHANNEL OR NOT FOR RETURN VALUE!
+
     async fn channel_configurer(
         &self,
         mut connected_sender: mpsc::UnboundedSender<Participant>,
@@ -334,6 +359,7 @@ impl Scheduler {
                     ) = BParticipant::new(
                         pid,
                         offset_sid,
+                        self.metrics.clone(),
                         prios_sender.clone(),
                         stream_finished_request_sender.clone(),
                     );
@@ -352,6 +378,7 @@ impl Scheduler {
                         // noone is waiting on this Participant, return in to Network
                         connected_sender.send(participant).await.unwrap();
                     }
+                    self.metrics.participants_connected_total.inc();
                     transfer_channel_receiver
                         .send((cid, frame_sender))
                         .await
@@ -387,31 +414,22 @@ impl Scheduler {
     // more msg is in prio and return
     pub(crate) async fn stream_finished_manager(
         &self,
-        mut stream_finished_request_receiver: mpsc::UnboundedReceiver<(
-            Pid,
-            Sid,
-            oneshot::Sender<()>,
-        )>,
+        stream_finished_request_receiver: mpsc::UnboundedReceiver<(Pid, Sid, oneshot::Sender<()>)>,
     ) {
         trace!("start stream_finished_manager");
-        while let Some((pid, sid, sender)) = stream_finished_request_receiver.next().await {
-            //TODO: THERE MUST BE A MORE CLEVER METHOD THAN SPIN LOCKING! LIKE REGISTERING
-            // DIRECTLY IN PRIO AS A FUTURE WERE PRIO IS WAKER! TODO: also this
-            // has a great potential for handing network, if you create a network, send
-            // gigabytes close it then. Also i need a Mutex, which really adds
-            // to cost if alot strems want to close
-            let prios = self.prios.clone();
-            self.pool
-                .spawn_ok(Self::stream_finished_waiter(pid, sid, sender, prios));
-        }
+        stream_finished_request_receiver
+            .for_each_concurrent(None, async move |(pid, sid, sender)| {
+                //TODO: THERE MUST BE A MORE CLEVER METHOD THAN SPIN LOCKING! LIKE REGISTERING
+                // DIRECTLY IN PRIO AS A FUTURE WERE PRIO IS WAKER! TODO: also this
+                // has a great potential for handing network, if you create a network, send
+                // gigabytes close it then. Also i need a Mutex, which really adds
+                // to cost if alot strems want to close
+                self.stream_finished_waiter(pid, sid, sender).await;
+            })
+            .await;
     }
 
-    async fn stream_finished_waiter(
-        pid: Pid,
-        sid: Sid,
-        sender: oneshot::Sender<()>,
-        prios: Arc<Mutex<PrioManager>>,
-    ) {
+    async fn stream_finished_waiter(&self, pid: Pid, sid: Sid, sender: oneshot::Sender<()>) {
         const TICK_TIME: std::time::Duration = std::time::Duration::from_millis(5);
         //TODO: ARRRG, i need to wait for AT LEAST 1 TICK, because i am lazy i just
         // wait 15mn and tick count is 10ms because recv is only done with a
@@ -419,24 +437,21 @@ impl Scheduler {
         async_std::task::sleep(TICK_TIME * 3).await;
         let mut n = 0u64;
         loop {
-            if !prios.lock().await.contains_pid_sid(pid, sid) {
+            if !self.prios.lock().await.contains_pid_sid(pid, sid) {
                 trace!("prio is clear, go to close stream as requested from api");
                 sender.send(()).unwrap();
                 break;
             }
             n += 1;
-            if n > 200 {
-                warn!(
-                    ?pid,
-                    ?sid,
-                    ?n,
-                    "cant close stream, as it still queued, even after 1000ms, this starts to \
-                     take long"
-                );
-                async_std::task::sleep(TICK_TIME * 50).await;
-            } else {
-                async_std::task::sleep(TICK_TIME).await;
-            }
+            async_std::task::sleep(match n {
+                0..=199 => TICK_TIME,
+                n if n.rem_euclid(100) == 0 => {
+                    warn!(?pid, ?sid, ?n, "cant close stream, as it still queued");
+                    TICK_TIME * (n as f32 * (n as f32).sqrt() / 100.0) as u32
+                },
+                n => TICK_TIME * (n as f32 * (n as f32).sqrt() / 100.0) as u32,
+            })
+            .await;
         }
     }
 
@@ -454,14 +469,11 @@ impl Scheduler {
     }
 
     pub(crate) async fn channel_creator(
-        channel_ids: Arc<AtomicU64>,
-        local_pid: Pid,
+        &self,
         addr: Address,
         end_receiver: oneshot::Receiver<()>,
-        pool: Arc<ThreadPool>,
         part_out_sender: mpsc::UnboundedSender<(Cid, Frame)>,
         configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
-        unknown_channels: Arc<RwLock<HashMap<Cid, UnknownChannelInfo>>>,
         result_sender: oneshot::Sender<io::Result<()>>,
     ) {
         info!(?addr, "start up channel creator");
@@ -491,15 +503,11 @@ impl Scheduler {
                 } {
                     let stream = stream.unwrap();
                     info!("Accepting Tcp from: {}", stream.peer_addr().unwrap());
-                    Self::init_protocol(
-                        &channel_ids,
-                        local_pid,
+                    self.init_protocol(
                         addr,
-                        &pool,
                         &part_out_sender,
                         &configured_sender,
-                        &unknown_channels,
-                        Protocols::Tcp(TcpProtocol::new(stream)),
+                        Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone())),
                         None,
                         true,
                     )
@@ -541,16 +549,13 @@ impl Scheduler {
                         let protocol = Protocols::Udp(UdpProtocol::new(
                             socket.clone(),
                             remote_addr,
+                            self.metrics.clone(),
                             udp_data_receiver,
                         ));
-                        Self::init_protocol(
-                            &channel_ids,
-                            local_pid,
+                        self.init_protocol(
                             addr,
-                            &pool,
                             &part_out_sender,
                             &configured_sender,
-                            &unknown_channels,
                             protocol,
                             None,
                             true,
@@ -591,13 +596,10 @@ impl Scheduler {
     }
 
     async fn init_protocol(
-        channel_ids: &Arc<AtomicU64>,
-        local_pid: Pid,
+        &self,
         addr: std::net::SocketAddr,
-        pool: &Arc<ThreadPool>,
         part_out_sender: &mpsc::UnboundedSender<(Cid, Frame)>,
         configured_sender: &mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
-        unknown_channels: &Arc<RwLock<HashMap<Cid, UnknownChannelInfo>>>,
         protocol: Protocols,
         pid_sender: Option<oneshot::Sender<io::Result<Participant>>>,
         send_handshake: bool,
@@ -609,12 +611,12 @@ impl Scheduler {
           Contra: - DOS posibility because we answer fist
                   - Speed, because otherwise the message can be send with the creation
         */
-        let cid = channel_ids.fetch_add(1, Ordering::Relaxed);
-        let channel = Channel::new(cid, local_pid);
+        let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
+        let channel = Channel::new(cid, self.local_pid, self.metrics.clone());
         if send_handshake {
             channel.send_handshake(&mut part_in_sender).await;
         }
-        pool.spawn_ok(
+        self.pool.spawn_ok(
             channel
                 .run(
                     protocol,
@@ -624,7 +626,7 @@ impl Scheduler {
                 )
                 .instrument(tracing::info_span!("channel", ?addr)),
         );
-        unknown_channels
+        self.unknown_channels
             .write()
             .await
             .insert(cid, (part_in_sender, pid_sender));

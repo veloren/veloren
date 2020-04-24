@@ -174,7 +174,7 @@ impl PrioManager {
                 })));
             }
             frames.extend(std::iter::once((msg_pid, msg_sid, Frame::Data {
-                id: msg.mid,
+                mid: msg.mid,
                 start: msg.cursor,
                 data: msg.buffer.data[msg.cursor as usize..(msg.cursor + to_send) as usize]
                     .to_vec(),
@@ -316,8 +316,8 @@ mod tests {
             .pop_front()
             .expect("frames vecdeque doesn't contain enough frames!")
             .2;
-        if let Frame::Data { id, start, data } = frame {
-            assert_eq!(id, 1);
+        if let Frame::Data { mid, start, data } = frame {
+            assert_eq!(mid, 1);
             assert_eq!(start, f_start);
             assert_eq!(data, f_data);
         } else {

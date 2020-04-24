@@ -1,6 +1,7 @@
 use crate::{
     api::Stream,
     message::{InCommingMessage, MessageBuffer, OutGoingMessage},
+    metrics::NetworkMetrics,
     types::{Cid, Frame, Pid, Prio, Promises, Sid},
 };
 use async_std::sync::RwLock;
@@ -51,12 +52,14 @@ pub struct BParticipant {
         >,
     >,
     run_channels: Option<ControlChannels>,
+    metrics: Arc<NetworkMetrics>,
 }
 
 impl BParticipant {
     pub(crate) fn new(
         remote_pid: Pid,
         offset_sid: Sid,
+        metrics: Arc<NetworkMetrics>,
         send_outgoing: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
         stream_finished_request_sender: mpsc::UnboundedSender<(Pid, Sid, oneshot::Sender<()>)>,
     ) -> (
@@ -98,6 +101,7 @@ impl BParticipant {
                 channels: RwLock::new(vec![]),
                 streams: RwLock::new(HashMap::new()),
                 run_channels,
+                metrics,
             },
             stream_open_sender,
             stream_opened_receiver,
@@ -166,6 +170,8 @@ impl BParticipant {
         trace!("start handle_frames");
         let send_outgoing = { send_outgoing.lock().unwrap().clone() };
         let mut messages = HashMap::new();
+        let pid_u128: u128 = self.remote_pid.into();
+        let pid_string = pid_u128.to_string();
         while let Some(frame) = frame_recv_receiver.next().await {
             debug!("handling frame");
             match frame {
@@ -179,6 +185,9 @@ impl BParticipant {
                         .create_stream(sid, prio, promises, send_outgoing, &shutdown_api_sender)
                         .await;
                     stream_opened_sender.send(stream).await.unwrap();
+                    //TODO: Metrics
+                    //self.metrics.frames_in_total.with_label_values(&[&pid_string, &cid_string,
+                    // "Raw"]).inc();
                     trace!("opened frame from remote");
                 },
                 Frame::CloseStream { sid } => {
@@ -188,6 +197,11 @@ impl BParticipant {
                     // is dropped, so i need a way to notify the Stream that it's send messages will
                     // be dropped... from remote, notify local
                     if let Some((_, _, _, closed)) = self.streams.write().await.remove(&sid) {
+                        let pid_u128: u128 = self.remote_pid.into();
+                        self.metrics
+                            .streams_closed_total
+                            .with_label_values(&[&pid_u128.to_string()])
+                            .inc();
                         closed.store(true, Ordering::Relaxed);
                     } else {
                         error!(
@@ -207,19 +221,19 @@ impl BParticipant {
                     messages.insert(mid, imsg);
                 },
                 Frame::Data {
-                    id,
+                    mid,
                     start: _,
                     mut data,
                 } => {
-                    let finished = if let Some(imsg) = messages.get_mut(&id) {
+                    let finished = if let Some(imsg) = messages.get_mut(&mid) {
                         imsg.buffer.data.append(&mut data);
                         imsg.buffer.data.len() as u64 == imsg.length
                     } else {
                         false
                     };
                     if finished {
-                        debug!(?id, "finished receiving message");
-                        let imsg = messages.remove(&id).unwrap();
+                        debug!(?mid, "finished receiving message");
+                        let imsg = messages.remove(&mid).unwrap();
                         if let Some((_, _, sender, _)) =
                             self.streams.write().await.get_mut(&imsg.sid)
                         {
@@ -318,6 +332,7 @@ impl BParticipant {
             trace!(?sid, "shutting down Stream");
             closing.store(true, Ordering::Relaxed);
         }
+        self.metrics.participants_disconnected_total.inc();
         trace!("stop shutdown_manager");
     }
 
@@ -354,6 +369,11 @@ impl BParticipant {
                 .unwrap();
             receiver.await.unwrap();
             trace!(?sid, "stream was successfully flushed");
+            let pid_u128: u128 = self.remote_pid.into();
+            self.metrics
+                .streams_closed_total
+                .with_label_values(&[&pid_u128.to_string()])
+                .inc();
 
             self.streams.write().await.remove(&sid);
             //from local, notify remote
@@ -376,6 +396,11 @@ impl BParticipant {
             .write()
             .await
             .insert(sid, (prio, promises, msg_recv_sender, closed.clone()));
+        let pid_u128: u128 = self.remote_pid.into();
+        self.metrics
+            .streams_opened_total
+            .with_label_values(&[&pid_u128.to_string()])
+            .inc();
         Stream::new(
             self.remote_pid,
             sid,
