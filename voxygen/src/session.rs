@@ -208,18 +208,6 @@ impl PlayState for SessionState {
                 view_mat, cam_pos, ..
             } = self.scene.camera().dependents();
 
-            // Choose a spot above the player's head for item distance checks
-            let player_pos = match self
-                .client
-                .borrow()
-                .state()
-                .read_storage::<comp::Pos>()
-                .get(self.client.borrow().entity())
-            {
-                Some(pos) => pos.0 + (Vec3::unit_z() * 2.0),
-                _ => cam_pos, // Should never happen, but a safe fallback
-            };
-
             let (is_aiming, aim_dir_offset) = {
                 let client = self.client.borrow();
                 let is_aiming = client
@@ -243,30 +231,10 @@ impl PlayState for SessionState {
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
             // Check to see whether we're aiming at anything
-            let (build_pos, select_pos) = {
-                let client = self.client.borrow();
-                let terrain = client.state().terrain();
-
-                let cam_ray = terrain
-                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
-                    .until(|block| block.is_tangible())
-                    .cast();
-
-                let cam_dist = cam_ray.0;
-
-                match cam_ray.1 {
-                    Ok(Some(_))
-                        if player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
-                            <= MAX_PICKUP_RANGE_SQR =>
-                    {
-                        (
-                            Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
-                            Some((cam_pos + cam_dir * (cam_dist + 0.01)).map(|e| e.floor() as i32)),
-                        )
-                    },
-                    _ => (None, None),
-                }
-            };
+            let (build_pos, select_pos, target_entity) =
+                under_cursor(&self.client.borrow(), cam_pos, cam_dir);
+            // Throw out distance info, it will be useful in the future
+            let target_entity = target_entity.map(|x| x.0);
 
             let can_build = self
                 .client
@@ -708,6 +676,7 @@ impl PlayState for SessionState {
                         self.scene.camera().get_mode(),
                         camera::CameraMode::FirstPerson
                     ),
+                    target_entity,
                 },
             );
 
@@ -979,6 +948,7 @@ impl PlayState for SessionState {
                 let scene_data = SceneData {
                     state: client.state(),
                     player_entity: client.entity(),
+                    target_entity,
                     loaded_distance: client.loaded_distance(),
                     view_distance: client.view_distance().unwrap_or(1),
                     tick: client.get_tick(),
@@ -1054,4 +1024,103 @@ impl PlayState for SessionState {
         // Draw the UI to the screen
         self.hud.render(renderer, self.scene.globals());
     }
+}
+
+/// Max distance an entity can be "targeted"
+const MAX_TARGET_RANGE: f32 = 30.0;
+/// Calculate what the cursor is pointing at within the 3d scene
+fn under_cursor(
+    client: &Client,
+    cam_pos: Vec3<f32>,
+    cam_dir: Vec3<f32>,
+) -> (
+    Option<Vec3<i32>>,
+    Option<Vec3<i32>>,
+    Option<(specs::Entity, f32)>,
+) {
+    // Choose a spot above the player's head for item distance checks
+    let player_entity = client.entity();
+    let player_pos = match client
+        .state()
+        .read_storage::<comp::Pos>()
+        .get(player_entity)
+    {
+        Some(pos) => pos.0 + (Vec3::unit_z() * 2.0),
+        _ => cam_pos, // Should never happen, but a safe fallback
+    };
+    let terrain = client.state().terrain();
+
+    let cam_ray = terrain
+        .ray(cam_pos, cam_pos + cam_dir * 100.0)
+        .until(|block| block.is_tangible())
+        .cast();
+
+    let cam_dist = cam_ray.0;
+
+    // The ray hit something, is it within range?
+    let (build_pos, select_pos) = if matches!(cam_ray.1, Ok(Some(_)) if 
+        player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
+        <= MAX_PICKUP_RANGE_SQR)
+    {
+        (
+            Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
+            Some((cam_pos + cam_dir * (cam_dist + 0.01)).map(|e| e.floor() as i32)),
+        )
+    } else {
+        (None, None)
+    };
+
+    // See if ray hits entities
+    // Currently treated as spheres
+    let ecs = client.state().ecs();
+    // Don't cast through blocks
+    // Could check for intersection with entity from last frame to narrow this down
+    let cast_dist = if let Ok(Some(_)) = cam_ray.1 {
+        cam_dist.min(MAX_TARGET_RANGE)
+    } else {
+        MAX_TARGET_RANGE
+    };
+
+    // Need to raycast by distance to cam
+    // But also filter out by distance to the player (but this only needs to be done
+    // on final result)
+    let mut nearby = (
+        &ecs.entities(),
+        &ecs.read_storage::<comp::Pos>(),
+        ecs.read_storage::<comp::Scale>().maybe(),
+        &ecs.read_storage::<comp::Body>()
+    )
+        .join()
+        .filter(|(e, _, _, _)| *e != player_entity)
+        .map(|(e, p, s, b)| {
+            const RADIUS_SCALE: f32 = 1.2;
+            let radius = s.map_or(1.0, |s| s.0) * b.radius() * RADIUS_SCALE;
+            // Move position up from the feet
+            let pos = Vec3::new(p.0.x, p.0.y, p.0.z + radius);
+            let dist_sqr = pos.distance_squared(cam_pos);
+            (e, pos, radius, dist_sqr)
+        })
+        // Ignore entities intersecting the camera
+        .filter(|(_, _, r, d_sqr)| *d_sqr > r.powi(2))
+        .filter(|(_, _, r, d_sqr)| *d_sqr <= cast_dist.powi(2) + 2.0 * cast_dist * r + r.powi(2))
+        .map(|(e, p, r, d_sqr)| (e, p, r, d_sqr.sqrt() - r))
+        .collect::<Vec<_>>();
+    nearby.sort_unstable_by(|a, b| a.3.partial_cmp(&b.3).unwrap());
+
+    let seg_ray = LineSegment3 {
+        start: cam_pos,
+        end: cam_pos + cam_dir * cam_dist,
+    };
+    // TODO: fuzzy borders
+    let target_entity = nearby
+        .iter()
+        .map(|(e, p, r, _)| (e, *p, r))
+        .find(|(_, p, r)| seg_ray.projected_point(*p).distance_squared(*p) < r.powi(2))
+        .and_then(|(e, p, r)| {
+            let dist_to_player = p.distance(player_pos);
+            (dist_to_player - r < MAX_TARGET_RANGE).then_some((*e, dist_to_player))
+        });
+
+    // TODO: consider setting build/select to None when targeting an entity
+    (build_pos, select_pos, target_entity)
 }
