@@ -4,23 +4,22 @@ use crate::{
         fixture::FixtureSkeleton,
         Animation, Skeleton,
     },
+    mesh::Meshable,
     render::{
-        create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Model,
+        create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Mesh, Model,
         PostProcessLocals, PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
-        Mesh,
     },
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{load_mesh, FigureModelCache, FigureState},
     },
     window::{Event, PressState},
-    mesh::Meshable,
 };
 use common::{
     comp::{humanoid, Body, Loadout},
+    figure::Segment,
     terrain::BlockKind,
     vol::{BaseVol, ReadVol, Vox},
-    figure::Segment,
 };
 use log::error;
 use vek::*;
@@ -114,7 +113,11 @@ impl Scene {
             backdrop: backdrop.map(|specifier| {
                 (
                     renderer
-                        .create_model(&load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0), generate_mesh))
+                        .create_model(&load_mesh(
+                            specifier,
+                            Vec3::new(-55.0, -49.5, -2.0),
+                            generate_mesh,
+                        ))
                         .unwrap(),
                     FigureState::new(renderer, FixtureSkeleton::new()),
                 )
