@@ -198,15 +198,15 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 }
 
-impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeline, FluidPipeline>
-    for VolGrid2d<V>
+impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
+    Meshable<'a, TerrainPipeline, FluidPipeline> for VolGrid2d<V>
 {
     type Pipeline = TerrainPipeline;
     type Supplement = Aabb<i32>;
     type TranslucentPipeline = FluidPipeline;
 
     fn generate_mesh(
-        &self,
+        &'a self,
         range: Self::Supplement,
     ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
         let mut light = calc_light(range, self);
