@@ -117,7 +117,7 @@ impl FigureMgr {
             .get(scene_data.player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (
+        for (i, (
             entity,
             pos,
             interpolated,
@@ -129,7 +129,7 @@ impl FigureMgr {
             physics,
             stats,
             loadout,
-        ) in (
+        )) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Interpolated>().maybe(),
@@ -143,7 +143,20 @@ impl FigureMgr {
             ecs.read_storage::<Loadout>().maybe(),
         )
             .join()
+            .enumerate()
         {
+            // Maintaining figure data and sending new figure data to the GPU turns out to be a
+            // very expensive operation. We want to avoid doing it as much as possible, so we
+            // make the assumption that players don't care so much about the update *rate* for far
+            // away things. As the entity goes further and further away, we start to 'skip' update
+            // ticks.
+            // TODO: Investigate passing the velocity into the shader so we can at least
+            // interpolate motion
+            const MIN_PERFECT_RATE_DIST: f32 = 96.0;
+            if (i as u64 + tick) % 1 + ((pos.0.distance(camera.get_focus_pos()).powf(0.5) - MIN_PERFECT_RATE_DIST.powf(0.5)).max(0.0) / 5.0) as u64 != 0 {
+                continue;
+            }
+
             let is_player = scene_data.player_entity == entity;
 
             let (pos, ori) = interpolated
@@ -1385,7 +1398,7 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        for (entity, _, _, body, _, loadout, _) in (
+        for (entity, pos, _, body, _, loadout, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Ori>().maybe(),
@@ -1413,6 +1426,7 @@ impl FigureMgr {
                     body,
                     loadout,
                     false,
+                    pos.0,
                 );
             }
         }
@@ -1434,7 +1448,10 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        if let Some(body) = ecs.read_storage::<Body>().get(player_entity) {
+        if let (Some(pos), Some(body)) = (
+            ecs.read_storage::<Pos>().get(player_entity),
+            ecs.read_storage::<Body>().get(player_entity),
+        ) {
             let stats_storage = state.read_storage::<Stats>();
             let stats = stats_storage.get(player_entity);
 
@@ -1457,6 +1474,7 @@ impl FigureMgr {
                 body,
                 loadout,
                 true,
+                pos.0,
             );
         }
     }
@@ -1474,6 +1492,7 @@ impl FigureMgr {
         body: &Body,
         loadout: Option<&Loadout>,
         is_player: bool,
+        pos: Vec3<f32>,
     ) {
         let player_camera_mode = if is_player {
             camera.get_mode()
@@ -1686,6 +1705,17 @@ impl FigureMgr {
                 )
             }),
         } {
+            const FIGURE_LOD_LOW_DIST: f32 = 150.0;
+            const FIGURE_LOD_MID_DIST: f32 = 70.0;
+
+            let model = if pos.distance_squared(camera.get_focus_pos()) > FIGURE_LOD_LOW_DIST.powf(2.0) {
+                &model[2]
+            } else if pos.distance_squared(camera.get_focus_pos()) > FIGURE_LOD_MID_DIST.powf(2.0) {
+                &model[1]
+            } else {
+                &model[0]
+            };
+
             if is_player {
                 renderer.render_player(model, globals, locals, bone_consts, lights, shadows);
                 renderer.render_player_shadow(model, globals, locals, bone_consts, lights, shadows);
