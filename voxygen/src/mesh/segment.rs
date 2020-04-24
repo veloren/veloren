@@ -37,7 +37,7 @@ where
             })
             .flatten()
             .flatten()
-            .map(|pos| (pos, self.get(pos).unwrap()));
+            .map(|pos| (pos, self.get(pos).map(|x| *x).unwrap_or(Vox::empty())));
 
         for (pos, vox) in vol_iter {
             if let Some(col) = vox.get_color() {
@@ -103,7 +103,7 @@ where
             })
             .flatten()
             .flatten()
-            .map(|pos| (pos, self.get(pos).unwrap()));
+            .map(|pos| (pos, self.get(pos).map(|x| *x).unwrap_or(Vox::empty())));
 
         for (pos, vox) in vol_iter {
             if let Some(col) = vox.get_color() {
