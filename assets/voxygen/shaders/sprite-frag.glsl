@@ -13,7 +13,7 @@ out vec4 tgt_color;
 #include <sky.glsl>
 #include <light.glsl>
 
-const float RENDER_DIST = 112.0;
+const float RENDER_DIST = 180.0;
 const float FADE_DIST = 32.0;
 
 void main() {
