@@ -149,8 +149,8 @@ https://account.veloren.net."#,
 
         "hud.press_key_to_show_keybindings_fmt": "Press {key} to show keybindings",
         "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
-        "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toogle keybindings",
-        "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toogle debug info",
+        "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toggle keybindings",
+        "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
