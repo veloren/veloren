@@ -1,23 +1,24 @@
-use prometheus::{IntGauge, IntGaugeVec, Opts, Registry};
-use std::{
-    error::Error,
-    sync::{
-        atomic::{AtomicU64, Ordering},
-        Arc,
-    },
-};
+use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
+use std::error::Error;
 
 //TODO: switch over to Counter for frames_count, message_count, bytes_send,
 // frames_message_count 1 NetworkMetrics per Network
 #[allow(dead_code)]
 pub struct NetworkMetrics {
-    pub participants_connected: IntGauge,
+    pub listen_requests_total: IntCounterVec,
+    pub connect_requests_total: IntCounterVec,
+    pub participants_connected_total: IntCounter,
+    pub participants_disconnected_total: IntCounter,
     // opened Channels, seperated by PARTICIPANT
-    pub channels_connected: IntGauge,
+    pub channels_connected_total: IntCounterVec,
+    pub channels_disconnected_total: IntCounterVec,
     // opened streams, seperated by PARTICIPANT
-    pub streams_open: IntGauge,
+    pub streams_opened_total: IntCounterVec,
+    pub streams_closed_total: IntCounterVec,
     pub network_info: IntGauge,
     // Frames, seperated by CHANNEL (and PARTICIPANT) AND FRAME TYPE,
+    pub frames_out_total: IntCounterVec,
+    pub frames_in_total: IntCounterVec,
     pub frames_count: IntGaugeVec,
     // send Messages, seperated by STREAM (and PARTICIPANT, CHANNEL),
     pub message_count: IntGaugeVec,
@@ -33,24 +34,61 @@ pub struct NetworkMetrics {
     pub queued_bytes: IntGaugeVec,
     // ping calculated based on last msg seperated by PARTICIPANT
     pub participants_ping: IntGaugeVec,
-    tick: Arc<AtomicU64>,
 }
 
 impl NetworkMetrics {
     #[allow(dead_code)]
-    pub fn new(registry: &Registry, tick: Arc<AtomicU64>) -> Result<Self, Box<dyn Error>> {
-        let participants_connected = IntGauge::with_opts(Opts::new(
-            "participants_connected",
+    pub fn new() -> Result<Self, Box<dyn Error>> {
+        let listen_requests_total = IntCounterVec::new(
+            Opts::new(
+                "listen_requests_total",
+                "shows the number of listen requests to the scheduler",
+            ),
+            &["protocol"],
+        )?;
+        let connect_requests_total = IntCounterVec::new(
+            Opts::new(
+                "connect_requests_total",
+                "shows the number of connect requests to the scheduler",
+            ),
+            &["protocol"],
+        )?;
+        let participants_connected_total = IntCounter::with_opts(Opts::new(
+            "participants_connected_total",
             "shows the number of participants connected to the network",
         ))?;
-        let channels_connected = IntGauge::with_opts(Opts::new(
-            "channels_connected",
-            "number of all channels currently connected on the network",
+        let participants_disconnected_total = IntCounter::with_opts(Opts::new(
+            "participants_disconnected_total",
+            "shows the number of participants disconnected to the network",
         ))?;
-        let streams_open = IntGauge::with_opts(Opts::new(
-            "streams_open",
-            "number of all streams currently open on the network",
-        ))?;
+        let channels_connected_total = IntCounterVec::new(
+            Opts::new(
+                "channels_connected_total",
+                "number of all channels currently connected on the network",
+            ),
+            &["participant"],
+        )?;
+        let channels_disconnected_total = IntCounterVec::new(
+            Opts::new(
+                "channels_disconnected_total",
+                "number of all channels currently disconnected on the network",
+            ),
+            &["participant"],
+        )?;
+        let streams_opened_total = IntCounterVec::new(
+            Opts::new(
+                "streams_opened_total",
+                "number of all streams currently open on the network",
+            ),
+            &["participant"],
+        )?;
+        let streams_closed_total = IntCounterVec::new(
+            Opts::new(
+                "streams_closed_total",
+                "number of all streams currently open on the network",
+            ),
+            &["participant"],
+        )?;
         let opts = Opts::new("network_info", "Static Network information").const_label(
             "version",
             &format!(
@@ -61,71 +99,77 @@ impl NetworkMetrics {
             ),
         );
         let network_info = IntGauge::with_opts(opts)?;
+        let frames_out_total = IntCounterVec::new(
+            Opts::new("frames_out_total", "number of all frames send per channel"),
+            &["participant", "channel", "frametype"],
+        )?;
+        let frames_in_total = IntCounterVec::new(
+            Opts::new(
+                "frames_in_total",
+                "number of all frames received per channel",
+            ),
+            &["participant", "channel", "frametype"],
+        )?;
 
-        let frames_count = IntGaugeVec::from(IntGaugeVec::new(
+        let frames_count = IntGaugeVec::new(
             Opts::new(
                 "frames_count",
                 "number of all frames send by streams on the network",
             ),
             &["channel"],
-        )?);
-        let message_count = IntGaugeVec::from(IntGaugeVec::new(
+        )?;
+        let message_count = IntGaugeVec::new(
             Opts::new(
                 "message_count",
                 "number of messages send by streams on the network",
             ),
             &["channel"],
-        )?);
-        let bytes_send = IntGaugeVec::from(IntGaugeVec::new(
+        )?;
+        let bytes_send = IntGaugeVec::new(
             Opts::new("bytes_send", "bytes send by streams on the network"),
             &["channel"],
-        )?);
-        let frames_message_count = IntGaugeVec::from(IntGaugeVec::new(
+        )?;
+        let frames_message_count = IntGaugeVec::new(
             Opts::new(
                 "frames_message_count",
                 "bytes sends per message on the network",
             ),
             &["channel"],
-        )?);
-        let queued_count = IntGaugeVec::from(IntGaugeVec::new(
+        )?;
+        let queued_count = IntGaugeVec::new(
             Opts::new(
                 "queued_count",
                 "queued number of messages by participant on the network",
             ),
             &["channel"],
-        )?);
-        let queued_bytes = IntGaugeVec::from(IntGaugeVec::new(
+        )?;
+        let queued_bytes = IntGaugeVec::new(
             Opts::new(
                 "queued_bytes",
                 "queued bytes of messages by participant on the network",
             ),
             &["channel"],
-        )?);
-        let participants_ping = IntGaugeVec::from(IntGaugeVec::new(
+        )?;
+        let participants_ping = IntGaugeVec::new(
             Opts::new(
                 "participants_ping",
                 "ping time to participants on the network",
             ),
             &["channel"],
-        )?);
-
-        registry.register(Box::new(participants_connected.clone()))?;
-        registry.register(Box::new(channels_connected.clone()))?;
-        registry.register(Box::new(streams_open.clone()))?;
-        registry.register(Box::new(network_info.clone()))?;
-        registry.register(Box::new(frames_count.clone()))?;
-        registry.register(Box::new(message_count.clone()))?;
-        registry.register(Box::new(bytes_send.clone()))?;
-        registry.register(Box::new(frames_message_count.clone()))?;
-        registry.register(Box::new(queued_count.clone()))?;
-        registry.register(Box::new(queued_bytes.clone()))?;
-        registry.register(Box::new(participants_ping.clone()))?;
+        )?;
 
         Ok(Self {
-            participants_connected,
-            channels_connected,
-            streams_open,
+            listen_requests_total,
+            connect_requests_total,
+            participants_connected_total,
+            participants_disconnected_total,
+            channels_connected_total,
+            channels_disconnected_total,
+            streams_opened_total,
+            streams_closed_total,
             network_info,
+            frames_out_total,
+            frames_in_total,
             frames_count,
             message_count,
             bytes_send,
@@ -133,9 +177,38 @@ impl NetworkMetrics {
             queued_count,
             queued_bytes,
             participants_ping,
-            tick,
         })
     }
 
-    pub fn _is_100th_tick(&self) -> bool { self.tick.load(Ordering::Relaxed).rem_euclid(100) == 0 }
+    pub fn register(&self, registry: &Registry) -> Result<(), Box<dyn Error>> {
+        registry.register(Box::new(self.listen_requests_total.clone()))?;
+        registry.register(Box::new(self.connect_requests_total.clone()))?;
+        registry.register(Box::new(self.participants_connected_total.clone()))?;
+        registry.register(Box::new(self.participants_disconnected_total.clone()))?;
+        registry.register(Box::new(self.channels_connected_total.clone()))?;
+        registry.register(Box::new(self.channels_disconnected_total.clone()))?;
+        registry.register(Box::new(self.streams_opened_total.clone()))?;
+        registry.register(Box::new(self.streams_closed_total.clone()))?;
+        registry.register(Box::new(self.network_info.clone()))?;
+        registry.register(Box::new(self.frames_out_total.clone()))?;
+        registry.register(Box::new(self.frames_in_total.clone()))?;
+        registry.register(Box::new(self.frames_count.clone()))?;
+        registry.register(Box::new(self.message_count.clone()))?;
+        registry.register(Box::new(self.bytes_send.clone()))?;
+        registry.register(Box::new(self.frames_message_count.clone()))?;
+        registry.register(Box::new(self.queued_count.clone()))?;
+        registry.register(Box::new(self.queued_bytes.clone()))?;
+        registry.register(Box::new(self.participants_ping.clone()))?;
+        Ok(())
+    }
+
+    //pub fn _is_100th_tick(&self) -> bool {
+    // self.tick.load(Ordering::Relaxed).rem_euclid(100) == 0 }
+}
+
+impl std::fmt::Debug for NetworkMetrics {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "NetworkMetrics()")
+    }
 }

@@ -1,4 +1,5 @@
 use crate::{
+    metrics::NetworkMetrics,
     protocols::Protocols,
     types::{
         Cid, Frame, Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
@@ -11,12 +12,14 @@ use futures::{
     sink::SinkExt,
     stream::StreamExt,
 };
+use std::sync::Arc;
 use tracing::*;
 //use futures::prelude::*;
 
 pub(crate) struct Channel {
     cid: Cid,
     local_pid: Pid,
+    metrics: Arc<NetworkMetrics>,
     remote_pid: RwLock<Option<Pid>>,
     send_state: RwLock<ChannelState>,
     recv_state: RwLock<ChannelState>,
@@ -41,10 +44,11 @@ impl Channel {
                                          invalid version.\nWe don't know how to communicate with \
                                          you.\nClosing the connection";
 
-    pub fn new(cid: u64, local_pid: Pid) -> Self {
+    pub fn new(cid: u64, local_pid: Pid, metrics: Arc<NetworkMetrics>) -> Self {
         Self {
             cid,
             local_pid,
+            metrics,
             remote_pid: RwLock::new(None),
             send_state: RwLock::new(ChannelState::None),
             recv_state: RwLock::new(ChannelState::None),
@@ -103,6 +107,8 @@ impl Channel {
     ) {
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
                              something went wrong on network layer and connection will be closed";
+        let mut pid_string = "".to_string();
+        let cid_string = self.cid.to_string();
         while let Some(frame) = frames.next().await {
             match frame {
                 Frame::Handshake {
@@ -110,6 +116,10 @@ impl Channel {
                     version,
                 } => {
                     trace!(?magic_number, ?version, "recv handshake");
+                    self.metrics
+                        .frames_in_total
+                        .with_label_values(&["", &cid_string, "Handshake"])
+                        .inc();
                     if self
                         .verify_handshake(magic_number, version, &mut frame_sender)
                         .await
@@ -132,6 +142,12 @@ impl Channel {
                     *self.remote_pid.write().await = Some(pid);
                     *self.recv_state.write().await = ChannelState::Pid;
                     debug!(?pid, "Participant send their ID");
+                    let pid_u128: u128 = pid.into();
+                    pid_string = pid_u128.to_string();
+                    self.metrics
+                        .frames_in_total
+                        .with_label_values(&[&pid_string, &cid_string, "ParticipantId"])
+                        .inc();
                     let stream_id_offset = if *self.send_state.read().await != ChannelState::Pid {
                         self.send_pid(&mut frame_sender).await;
                         STREAM_ID_OFFSET2
@@ -139,6 +155,11 @@ impl Channel {
                         STREAM_ID_OFFSET1
                     };
                     info!(?pid, "this channel is now configured!");
+                    let pid_u128: u128 = pid.into();
+                    self.metrics
+                        .channels_connected_total
+                        .with_label_values(&[&pid_u128.to_string()])
+                        .inc();
                     let (sender, receiver) = oneshot::channel();
                     configured_sender
                         .send((self.cid, pid, stream_id_offset, sender))
@@ -156,12 +177,26 @@ impl Channel {
                 Frame::Shutdown => {
                     info!("shutdown signal received");
                     *self.recv_state.write().await = ChannelState::Shutdown;
+                    self.metrics
+                        .channels_disconnected_total
+                        .with_label_values(&[&pid_string])
+                        .inc();
+                    self.metrics
+                        .frames_in_total
+                        .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
+                        .inc();
                 },
                 /* Sending RAW is only used for debug purposes in case someone write a
                  * new API against veloren Server! */
-                Frame::Raw(bytes) => match std::str::from_utf8(bytes.as_slice()) {
-                    Ok(string) => error!(?string, ERR_S),
-                    _ => error!(?bytes, ERR_S),
+                Frame::Raw(bytes) => {
+                    self.metrics
+                        .frames_in_total
+                        .with_label_values(&[&pid_string, &cid_string, "Raw"])
+                        .inc();
+                    match std::str::from_utf8(bytes.as_slice()) {
+                        Ok(string) => error!(?string, ERR_S),
+                        _ => error!(?bytes, ERR_S),
+                    }
                 },
                 _ => {
                     trace!("forward frame");
@@ -173,7 +208,7 @@ impl Channel {
 
     async fn verify_handshake(
         &self,
-        magic_number: String,
+        magic_number: [u8; 7],
         version: [u32; 3],
         #[cfg(debug_assertions)] frame_sender: &mut mpsc::UnboundedSender<Frame>,
         #[cfg(not(debug_assertions))] _: &mut mpsc::UnboundedSender<Frame>,
@@ -221,7 +256,7 @@ impl Channel {
     pub(crate) async fn send_handshake(&self, part_in_sender: &mut mpsc::UnboundedSender<Frame>) {
         part_in_sender
             .send(Frame::Handshake {
-                magic_number: VELOREN_MAGIC_NUMBER.to_string(),
+                magic_number: VELOREN_MAGIC_NUMBER,
                 version: VELOREN_NETWORK_VERSION,
             })
             .await
