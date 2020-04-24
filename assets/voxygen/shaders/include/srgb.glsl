@@ -25,6 +25,8 @@ float pow5(float x) {
     return x2 * x2 * x;
 }
 
+// Fresnel angle for perfectly specular dialectric materials.
+
 // Schlick approximation
 vec3 schlick_fresnel(vec3 Rs, float cosTheta) {
     // auto pow5 = [](Float v) { return (v * v) * (v * v) * v; };
@@ -94,8 +96,8 @@ float BeckmannDistribution_G(vec3 norm, vec3 dir, vec3 light_dir, float alpha) {
 vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, float alpha) {
     const float PI = 3.1415926535897932384626433832795;
     alpha = alpha * sqrt(2.0);
-    float cos_wi = max(dot(-light_dir, norm), 0.0);
-    float cos_wo = max(dot(dir, norm), 0.0);
+    float cos_wi = /*max(*/dot(-light_dir, norm)/*, 0.0)*/;
+    float cos_wo = /*max(*/dot(dir, norm)/*, 0.0)*/;
     vec3 diffuse = (28.0 / (23.0 * PI)) * R_d *
         (1.0 - R_s) *
         (1.0 - pow5(1.0 - 0.5 * abs(cos_wi))) *
@@ -106,7 +108,7 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
         (1 - pow5(1 - .5f * AbsCosTheta(wo))); */
     // Vector3f wh = wi + wo;
     vec3 wh = -light_dir + dir;
-    if (cos_wi == 0.0 || cos_wo == 0.0) {
+    if (cos_wi <= 0.0 || cos_wo <= 0.0) {
         return vec3(0.0);
     }
     /* if (cos_wi == 0.0 || cos_wo == 0.0) {
@@ -120,7 +122,7 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
     float dot_wi_wh = dot(-light_dir, wh);
     vec3 specular = BeckmannDistribution_D(dot(wh, norm), alpha) /
         (4 * abs(dot_wi_wh)) *
-        max(/*abs*/(cos_wi), /*abs*/(cos_wo)) *
+        max(abs(cos_wi), abs(cos_wo)) *
         schlick_fresnel(R_s, dot_wi_wh);
     // Spectrum specular = distribution->D(wh) /
     //     (4 * AbsDot(wi, wh) *

@@ -114,7 +114,7 @@ void main() {
     float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
     float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
-    const float alpha = 0.255 / 4.0/* / 4.0 / sqrt(2.0)*/;
+    const float alpha = 0.255/*/ / 4.0*//* / 4.0 / sqrt(2.0)*/;
     const float n2 = 1.3325;
     const float R_s = pow((1.0 - n2) / (1.0 + n2), 2);
 
@@ -125,11 +125,11 @@ void main() {
 	vec3 emitted_light, reflected_light;
 	// vec3 light, diffuse_light, ambient_light;
 	float point_shadow = shadow_at(f_pos, f_norm);
-    vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
+    // vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
     // 0 = 100% reflection, 1 = translucent water
     float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag/*view_dir*/), -cam_to_frag/*view_dir*/), 0.5);
 
-    get_sun_diffuse2(norm, /*time_of_day.x*/sun_dir, moon_dir, view_dir, k_a * (shade_frac * 0.5 + light_frac * 0.5), vec3(0.0), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, emitted_light, reflected_light);
+    get_sun_diffuse2(norm, /*time_of_day.x*/sun_dir, moon_dir, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(0.0), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, emitted_light, reflected_light);
     reflected_light *= reflect_color * f_light * point_shadow * shade_frac;
     emitted_light *= f_light * point_shadow;
 
@@ -142,7 +142,7 @@ void main() {
     diffuse_light_point -= specular_light_point;
 
     float reflected_light_point = length(diffuse_light_point/*.r*/) + f_light * point_shadow;
-    reflected_light += water_color * k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + reflect_color * specular_light_point;
+    reflected_light += reflect_color * k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + reflect_color * specular_light_point;
 	/* vec3 point_light = light_at(f_pos, norm);
     emitted_light += point_light;
     reflected_light += point_light; */
@@ -155,7 +155,7 @@ void main() {
 	// diffuse_light += point_light;
     // reflected_light += point_light;
 	// vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
-    vec3 surf_color = illuminate(/*water_color * */emitted_light, reflected_light);
+    vec3 surf_color = illuminate(water_color * emitted_light, reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

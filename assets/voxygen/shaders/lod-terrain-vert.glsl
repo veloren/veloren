@@ -21,7 +21,7 @@ void main() {
 
 	// f_norm = lod_norm(f_pos.xy);
 
-    // f_shadow = textureBicubic(t_horizon, pos_to_uv(f_pos.xy));
+    // f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
 	//f_pos.z -= 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
 

@@ -5,9 +5,17 @@
 uniform sampler2D t_map;
 uniform sampler2D t_horizon;
 
-vec2 pos_to_uv(vec2 pos) {
-	vec2 uv_pos = (pos + 16) / 32768.0;
+vec2 pos_to_uv(sampler2D sampler, vec2 pos) {
+    // Want: (pixel + 0.5) / W
+    vec2 texSize = textureSize(sampler, 0);
+	vec2 uv_pos = (pos + 16) / (32.0 * texSize);
 	return vec2(uv_pos.x, 1.0 - uv_pos.y);
+}
+
+vec2 pos_to_tex(vec2 pos) {
+    // Want: (pixel + 0.5)
+	vec2 uv_pos = (pos + 16) / 32.0;
+	return vec2(uv_pos.x, uv_pos.y);
 }
 
 // textureBicubic from https://stackoverflow.com/a/42179924
@@ -21,11 +29,12 @@ vec4 cubic(float v) {
     return vec4(x, y, z, w) * (1.0/6.0);
 }
 
+// NOTE: We assume the sampled coordinates are already in "texture pixels".
 vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
    vec2 texSize = textureSize(sampler, 0);
    vec2 invTexSize = 1.0 / texSize;
 
-   texCoords = texCoords * texSize - 0.5;
+   texCoords = texCoords/* * texSize */ - 0.5;
 
 
     vec2 fxy = fract(texCoords);
@@ -35,16 +44,23 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
     vec4 ycubic = cubic(fxy.y);
 
     vec4 c = texCoords.xxyy + vec2 (-0.5, +1.5).xyxy;
+    // vec4 c = texCoords.xxyy + vec2 (-1, +1).xyxy;
 
     vec4 s = vec4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
     vec4 offset = c + vec4 (xcubic.yw, ycubic.yw) / s;
 
     offset *= invTexSize.xxyy;
+    // Correct for map rotaton.
+    offset.zw  = 1.0 - offset.zw;
 
     vec4 sample0 = texture(sampler, offset.xz);
     vec4 sample1 = texture(sampler, offset.yz);
     vec4 sample2 = texture(sampler, offset.xw);
     vec4 sample3 = texture(sampler, offset.yw);
+    // vec4 sample0 = texelFetch(sampler, offset.xz, 0);
+    // vec4 sample1 = texelFetch(sampler, offset.yz, 0);
+    // vec4 sample2 = texelFetch(sampler, offset.xw, 0);
+    // vec4 sample3 = texelFetch(sampler, offset.yw, 0);
 
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
@@ -55,14 +71,25 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
 }
 
 float alt_at(vec2 pos) {
-	return texture/*textureBicubic*/(t_map, pos_to_uv(pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z;
+	return texture/*textureBicubic*/(t_map, pos_to_uv(t_map, pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z;
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
-	return 0.0
-		+ pow(texture(t_noise, pos * 0.00005).x * 1.4, 3.0) * 1000.0
-		+ texture(t_noise, pos * 0.001).x * 100.0
-		+ texture(t_noise, pos * 0.003).x * 30.0;
+    // return 0.0
+    //     + pow(texture(t_noise, pos * 0.00005).x * 1.4, 3.0) * 1000.0
+    //     + texture(t_noise, pos * 0.001).x * 100.0
+    //     + texture(t_noise, pos * 0.003).x * 30.0;
 }
+
+float alt_at_real(vec2 pos) {
+	return textureBicubic(t_map, pos_to_tex(pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z;
+		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
+
+    // return 0.0
+    //     + pow(texture(t_noise, pos * 0.00005).x * 1.4, 3.0) * 1000.0
+    //     + texture(t_noise, pos * 0.001).x * 100.0
+    //     + texture(t_noise, pos * 0.003).x * 30.0;
+}
+
 
 float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec3 light_dir) {
     // vec3 sun_dir = get_sun_dir(time_of_day);
@@ -154,9 +181,9 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec
 }
 
 float horizon_at(vec3 pos, /*float time_of_day*/vec3 light_dir) {
-    vec4 f_horizons = textureBicubic(t_horizon, pos_to_uv(pos.xy));
+    vec4 f_horizons = textureBicubic(t_horizon, pos_to_tex(pos.xy));
     f_horizons.xyz = /*linear_to_srgb*/(f_horizons.xyz);
-    float alt = alt_at(pos.xy);
+    float alt = alt_at_real(pos.xy);
     return horizon_at2(f_horizons, alt, pos, light_dir);
 }
 
@@ -190,11 +217,11 @@ vec3 lod_pos(vec2 v_pos, vec2 focus_pos) {
 	}
 	hpos = hpos + normalize(nhpos - hpos + 0.001) * min(length(nhpos - hpos), 32);
 
-	return vec3(hpos, alt_at(hpos));
+	return vec3(hpos, alt_at_real(hpos));
 }
 
 vec3 lod_col(vec2 pos) {
 	//return vec3(0, 0.5, 0);
-	return /*linear_to_srgb*/(textureBicubic(t_map, pos_to_uv(pos)).rgb);
+	return /*linear_to_srgb*/(textureBicubic(t_map, pos_to_tex(pos)).rgb);
 		//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 }

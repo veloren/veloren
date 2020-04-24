@@ -7,7 +7,7 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.08, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0) * 3.0;
+const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0) * 1.8;//3.0;
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
@@ -75,7 +75,7 @@ vec3 get_moon_color(vec3 moon_dir) {
 // anything interesting here.
 // void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion
 void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-	const float SUN_AMBIANCE = 0.1 / 3.0;
+	const float SUN_AMBIANCE = 0.1 / 2.0;// 0.1 / 3.0;
 
 	vec3 sun_dir = get_sun_dir(time_of_day);
 	vec3 moon_dir = get_moon_dir(time_of_day);
@@ -114,8 +114,8 @@ void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d,
 
 // Returns computed maximum intensity.
 float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-	const float SUN_AMBIANCE = 0.1 / 3.0;
-	const float MOON_AMBIANCE = 0.1;
+	const float SUN_AMBIANCE = 0.23 / 1.8;// 0.1 / 3.0;
+	const float MOON_AMBIANCE = 0.23;//0.1;
 
 	float sun_light = get_sun_brightness(sun_dir);
 	float moon_light = get_moon_brightness(moon_dir);
@@ -126,6 +126,18 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
 	vec3 sun_chroma = sun_color * sun_light;
 	vec3 moon_chroma = moon_color * moon_light;
 
+    // https://en.m.wikipedia.org/wiki/Diffuse_sky_radiation
+    //
+    // HdRd radiation should come in at angle normal to us.
+    // const float H_d = 0.23;
+    // Assuming we are on the equator:
+    // R_b = (cos(h)cos(-β) / cos(h)) = cos(-β), the angle from horizontal.
+    // NOTE: cos(-β) = cos(β).
+    float cos_sun = dot(norm, -sun_dir);
+    float cos_moon = dot(norm, -moon_dir);
+    vec3 light_frac = /*vec3(1.0)*//*H_d * */
+        SUN_AMBIANCE * /*sun_light*/sun_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_sun) * 0.5), vec3(k_s * (1.0 - cos_sun) * 0.5), alpha) +
+        MOON_AMBIANCE * /*sun_light*/moon_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_moon) * 0.5), vec3(k_s * (1.0 - cos_moon) * 0.5), alpha);
     /* float NLsun = max(dot(-norm, sun_dir), 0);
     float NLmoon = max(dot(-norm, moon_dir), 0);
     vec3 E = -dir; */
@@ -137,12 +149,15 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
 
-    emitted_light = k_a * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
+
+    emitted_light = k_a * light_frac * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
 
     // TODO: Add shadows.
     reflected_light =
-        sun_chroma * light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) +
-        moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha);
+        (1.0 - SUN_AMBIANCE) * sun_chroma * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) /*+
+                      light_reflection_factor(norm, dir, normalize(sun_dir + vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha) +
+                      light_reflection_factor(norm, dir, normalize(sun_dir - vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha)*/) +
+        (1.0 - MOON_AMBIANCE) * moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha);
 
 	/* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 	diffuse_light =
@@ -296,7 +311,7 @@ float rel_luminance(vec3 rgb)
 	return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse + ambience);
 } */
 vec3 illuminate(/*vec3 max_light, */vec3 emitted, vec3 reflected) {
-    const float gamma = /*0.5*/1.0;//1.0;
+    const float gamma = /*0.5*//*1.*0*/1.0;//1.0;
     /* float light = length(emitted + reflected);
     float color = srgb_to_linear(emitted + reflected);
     float avg_col = (color.r + color.g + color.b) / 3.0;

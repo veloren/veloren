@@ -73,11 +73,11 @@ void main() {
 
 	vec3 emitted_light, reflected_light;
     // Use f_norm here for better shadows.
-    vec3 light_frac = light_reflection_factor(f_norm/*l_norm*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(/*1.0*/R_s), alpha);
+    // vec3 light_frac = light_reflection_factor(f_norm/*l_norm*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(/*1.0*/R_s), alpha);
 
 	// vec3 light, diffuse_light, ambient_light;
     // get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, (0.25 * shade_frac + 0.25 * light_frac) * f_col, 0.5 * shade_frac * f_col, 0.5 * shade_frac * /*vec3(1.0)*/f_col, 2.0, emitted_light, reflected_light);
-    get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, 1.0 * (0.5 * light_frac + vec3(0.5 * shade_frac)), vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, emitted_light, reflected_light);
+    get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, emitted_light, reflected_light);
     // emitted_light = vec3(1.0);
     reflected_light *= shade_frac;
     // reflected_light = vec3(0.0);

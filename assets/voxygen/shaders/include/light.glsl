@@ -20,7 +20,9 @@ uniform u_shadows {
 };
 
 float attenuation_strength(vec3 rpos) {
-	return 1.0 / pow(rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z, 0.6);
+    // Idea: we start off with attenuation strength equal to 1 at the source of the point light.
+	// return 1.0 / (1.0 + /*pow*/(rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z/*, 0.6*/));
+	return 1.0 / (/*pow*/(rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z/*, 0.6*/));
 }
 
 vec3 light_at(vec3 wpos, vec3 wnorm) {
@@ -87,11 +89,15 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
 
 		// Pre-calculate difference between light and fragment
 		vec3 difference = light_pos - wpos;
+        float distance_2 = dot(difference, difference);
 
-		float strength = pow(attenuation_strength(difference), 0.6);
+		// float strength = attenuation_strength(difference);// pow(attenuation_strength(difference), 0.6);
+        // // NOTE: This normalizes strength to 1.0 at the center of the point source.
+        // float strength = 1.0 / (1.0 + distance_2);
+        float strength = 1.0 / distance_2;
 
 		// Multiply the vec3 only once
-		vec3 color = /*srgb_to_linear*/(L.light_col.rgb) * (strength * L.light_col.a);
+		vec3 color = /*srgb_to_linear*/(L.light_col.rgb) * (13.0 * strength * L.light_col.a * L.light_col.a/* * L.light_col.a*/);
 
 		// // Only access the array once
 		// Shadow S = shadows[i];
@@ -109,19 +115,20 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
 		// shadow = min(shadow, shade);
 
         // Compute reflectance.
-        vec3 light_dir = normalize(-difference);
-        reflected_light += color * light_reflection_factor(wnorm, cam_to_frag, light_dir, k_d, k_s, alpha);
+        vec3 light_dir = -difference / sqrt(distance_2); // normalize(-difference);
+        // light_dir = faceforward(light_dir, wnorm, light_dir);
+        reflected_light += color * (strength == 0.0 ? vec3(1.0) : light_reflection_factor(wnorm, cam_to_frag, light_dir, k_d, k_s, alpha));
 
 		// light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIENCE);
         // Compute emiittance.
         // float ambient_sides = clamp(mix(0.15, 0.0, abs(dot(wnorm, light_dir)) * 10000.0), 0.0, 0.15);
-        float ambient_sides = max(dot(wnorm, light_dir) - 0.15, 0.15);
+        float ambient_sides = 0.0;// max(dot(wnorm, light_dir) - 0.15, 0.15);
         // float ambient_sides = 0.0;
         ambient_light += color * (ambient_sides + LIGHT_AMBIENCE);
 	}
 
     // shadow = shadow_at(wpos, wnorm);
     // float shadow = shadow_at(wpos, wnorm);
-    emitted_light += k_a * ambient_light/* * shadow*/;// min(shadow, 1.0);
+    // emitted_light += k_a * ambient_light/* * shadow*/;// min(shadow, 1.0);
     return 1.0;//ambient_light;
 }

@@ -62,10 +62,10 @@ void main() {
 	// vec3 light, diffuse_light, ambient_light;
 	float point_shadow = shadow_at(f_pos,f_norm);
     // float vert_light = f_light;
-    vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
+    // vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
 
 	// vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
-    get_sun_diffuse2(f_norm, /*time_of_day.x*/sun_dir, moon_dir, /*-cam_to_frag*/view_dir, k_a * (shade_frac * 0.5 + light_frac * 0.5), vec3(0.0), k_s, alpha, emitted_light, reflected_light);
+    get_sun_diffuse2(f_norm, /*time_of_day.x*/sun_dir, moon_dir, /*-cam_to_frag*/view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(0.0), k_s, alpha, emitted_light, reflected_light);
     reflected_light *= f_light * point_shadow * shade_frac;
     emitted_light *= f_light * point_shadow;
 	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
