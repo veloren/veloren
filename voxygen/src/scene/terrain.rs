@@ -326,11 +326,15 @@ impl<V: RectRasterableVol> Terrain<V> {
         // with worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
 
-        let mut make_models = |s, offset| {
-            let scaled = [1.0, 0.75, 0.3, 0.2];
+        let mut make_models = |s, offset, lod_axes: Vec3<f32>| {
+            let scaled = [1.0, 0.6, 0.4, 0.2];
             scaled
                 .iter()
-                .map(|lod_scale| Vec3::broadcast(*lod_scale))
+                .map(|lod_scale| if *lod_scale == 1.0 {
+                    Vec3::broadcast(1.0)
+                } else {
+                    lod_axes * *lod_scale + lod_axes.map(|e| if e == 0.0 { 1.0 } else { 0.0 })
+                })
                 .map(|lod_scale| {
                     renderer
                         .create_model(
@@ -358,6 +362,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.window.window-0",
                         Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -365,6 +370,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.window.window-1",
                         Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -372,6 +378,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.window.window-2",
                         Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -379,6 +386,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.window.window-3",
                         Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Cacti
@@ -387,6 +395,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cacti.large_cactus",
                         Vec3::new(-13.5, -5.5, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -394,6 +403,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cacti.tall",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -401,6 +411,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cacti.barrel_cactus",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -408,6 +419,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cacti.cactus_round",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -415,6 +427,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cacti.cactus_short",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -422,6 +435,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cacti.flat_cactus_med",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -429,6 +443,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cacti.flat_cactus_short",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Fruit
@@ -437,6 +452,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.fruit.apple",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Flowers
@@ -445,6 +461,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_blue_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -452,6 +469,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_blue_2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -459,6 +477,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_blue_3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -466,6 +485,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_blue_4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -473,6 +493,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_blue_5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -480,6 +501,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_blue_6",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -487,6 +509,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_blue_7",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -494,6 +517,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_pink_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -501,6 +525,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_pink_2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -508,6 +533,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_pink_3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -515,6 +541,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_pink_4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -522,6 +549,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_purple_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -529,6 +557,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_red_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -536,6 +565,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_red_2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -543,6 +573,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_red_3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -550,6 +581,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_white_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -557,6 +589,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_white_2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -564,6 +597,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_purple_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -571,6 +605,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.sunflower_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -578,6 +613,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.sunflower_2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Grass
@@ -586,6 +622,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_long_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -593,6 +630,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_long_2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -600,6 +638,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_long_3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -607,6 +646,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_long_4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -614,6 +654,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_long_5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -621,6 +662,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_long_6",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -628,6 +670,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_long_7",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -635,6 +678,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_med_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -642,6 +686,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_med_2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -649,6 +694,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_med_3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -656,6 +702,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_med_4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -663,6 +710,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_med_5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -670,6 +718,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_short_1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -677,6 +726,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_short_2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -684,6 +734,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_short_3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -691,6 +742,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_short_4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -698,6 +750,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.grass.grass_short_5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -705,6 +758,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-0",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -712,6 +766,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -719,6 +774,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -726,6 +782,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -733,6 +790,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -740,6 +798,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -747,6 +806,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-6",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -754,6 +814,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-7",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -761,6 +822,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-8",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -768,6 +830,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-9",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -775,6 +838,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-10",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -782,6 +846,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.lianas.liana-0",
                         Vec3::new(-1.5, -0.5, -88.0),
+                        Vec3::unit_z() * 0.5,
                     ),
                 ),
                 (
@@ -789,6 +854,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.lianas.liana-1",
                         Vec3::new(-1.0, -0.5, -55.0),
+                        Vec3::unit_z() * 0.5,
                     ),
                 ),
                 (
@@ -796,6 +862,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_ore",
                         Vec3::new(-5.0, -5.0, -5.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -803,6 +870,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_1",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -810,6 +878,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_2",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -817,6 +886,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_3",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -824,6 +894,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_4",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -831,6 +902,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_5",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -838,6 +910,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_6",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -845,6 +918,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_7",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -852,6 +926,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_8",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -859,6 +934,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_9",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -866,6 +942,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.velorite.velorite_10",
                         Vec3::new(-3.0, -5.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -873,6 +950,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.chests.chest",
                         Vec3::new(-7.0, -5.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -880,6 +958,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.chests.chest_gold",
                         Vec3::new(-7.0, -5.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -887,6 +966,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.chests.chest_dark",
                         Vec3::new(-7.0, -5.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -894,6 +974,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.chests.chest_vines",
                         Vec3::new(-7.0, -5.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 //Welwitch
@@ -902,6 +983,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.welwitch.1",
                         Vec3::new(-15.0, -17.0, -0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 //Pumpkins
@@ -910,6 +992,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.pumpkin.1",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -917,6 +1000,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.pumpkin.2",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -924,6 +1008,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.pumpkin.3",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -931,6 +1016,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.pumpkin.4",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -938,6 +1024,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.pumpkin.5",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -945,6 +1032,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.pumpkin.6",
                         Vec3::new(-7.0, -6.5, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -952,6 +1040,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.pumpkin.7",
                         Vec3::new(-7.0, -9.5, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 //Lingonberries
@@ -960,6 +1049,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.lingonberry.1",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -967,6 +1057,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.lingonberry.2",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -974,6 +1065,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.lingonberry.3",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Leafy Plants
@@ -982,6 +1074,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.1",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -989,6 +1082,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.2",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -996,6 +1090,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.3",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1003,6 +1098,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.4",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1010,6 +1106,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.5",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1017,6 +1114,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.6",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1024,6 +1122,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.7",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1031,6 +1130,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.8",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1038,6 +1138,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.9",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1045,56 +1146,105 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.leafy_plant.10",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Ferns
                 (
                     (BlockKind::Fern, 0),
-                    make_models("voxygen.voxel.sprite.ferns.1", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.1",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 1),
-                    make_models("voxygen.voxel.sprite.ferns.2", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.2",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 2),
-                    make_models("voxygen.voxel.sprite.ferns.3", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.3",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 3),
-                    make_models("voxygen.voxel.sprite.ferns.4", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.4",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 4),
-                    make_models("voxygen.voxel.sprite.ferns.5", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.5",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 5),
-                    make_models("voxygen.voxel.sprite.ferns.6", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.6",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 6),
-                    make_models("voxygen.voxel.sprite.ferns.7", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.7",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 7),
-                    make_models("voxygen.voxel.sprite.ferns.8", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.8",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 8),
-                    make_models("voxygen.voxel.sprite.ferns.9", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.9",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 9),
-                    make_models("voxygen.voxel.sprite.ferns.10", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.10",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 10),
-                    make_models("voxygen.voxel.sprite.ferns.11", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.11",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Fern, 11),
-                    make_models("voxygen.voxel.sprite.ferns.12", Vec3::new(-6.0, -6.0, -0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.12",
+                        Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 // Dead Bush
                 (
@@ -1102,6 +1252,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.dead_bush.1",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1109,6 +1260,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.dead_bush.2",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1116,6 +1268,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.dead_bush.3",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1123,6 +1276,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.dead_bush.4",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Blueberries
@@ -1131,6 +1285,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.1",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1138,6 +1293,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.2",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1145,6 +1301,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.3",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1152,6 +1309,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.4",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1159,6 +1317,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.5",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1166,6 +1325,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.6",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1173,6 +1333,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.7",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1180,6 +1341,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.8",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1187,12 +1349,17 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.blueberry.9",
                         Vec3::new(-6.0, -6.0, -0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Ember
                 (
                     (BlockKind::Ember, 0),
-                    make_models("voxygen.voxel.sprite.ember.1", Vec3::new(-7.0, -7.0, -2.9)),
+                    make_models(
+                        "voxygen.voxel.sprite.ember.1",
+                        Vec3::new(-7.0, -7.0, -2.9),
+                        Vec3::new(1.0, 1.0, 0.0),
+                    ),
                 ),
                 // Corn
                 (
@@ -1200,6 +1367,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.corn.corn-0",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1207,6 +1375,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.corn.corn-1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1214,6 +1383,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.corn.corn-2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1221,6 +1391,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.corn.corn-3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1228,6 +1399,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.corn.corn-4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1235,6 +1407,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.corn.corn-5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 // Yellow Wheat
@@ -1243,6 +1416,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-0",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1250,6 +1424,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1257,6 +1432,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1264,6 +1440,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1271,6 +1448,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1278,6 +1456,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1285,6 +1464,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-6",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1292,6 +1472,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-7",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1299,6 +1480,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-8",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1306,6 +1488,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_yellow.wheat-9",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 // Green Wheat
@@ -1314,6 +1497,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-0",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1321,6 +1505,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1328,6 +1513,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1335,6 +1521,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1342,6 +1529,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1349,6 +1537,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1356,6 +1545,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-6",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1363,6 +1553,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-7",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1370,6 +1561,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-8",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1377,6 +1569,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.wheat_green.wheat-9",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 // Cabbage
@@ -1385,6 +1578,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cabbage.cabbage-0",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1392,6 +1586,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cabbage.cabbage-1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1399,6 +1594,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.cabbage.cabbage-2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Flax
@@ -1407,6 +1603,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flax.flax-0",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1414,6 +1611,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flax.flax-1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1421,6 +1619,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flax.flax-2",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1428,6 +1627,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flax.flax-3",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1435,6 +1635,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flax.flax-4",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 (
@@ -1442,6 +1643,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flax.flax-5",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::unit_z() * 0.7,
                     ),
                 ),
                 // Carrot
@@ -1450,6 +1652,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.carrot.0",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1457,6 +1660,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.carrot.1",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1464,6 +1668,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.carrot.2",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1471,6 +1676,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.carrot.3",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1478,6 +1684,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.carrot.4",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1485,27 +1692,48 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.carrot.5",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
                     (BlockKind::Tomato, 0),
-                    make_models("voxygen.voxel.sprite.tomato.0", Vec3::new(-5.5, -5.5, 0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.tomato.0",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Tomato, 1),
-                    make_models("voxygen.voxel.sprite.tomato.1", Vec3::new(-5.5, -5.5, 0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.tomato.1",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Tomato, 2),
-                    make_models("voxygen.voxel.sprite.tomato.2", Vec3::new(-5.5, -5.5, 0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.tomato.2",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Tomato, 3),
-                    make_models("voxygen.voxel.sprite.tomato.3", Vec3::new(-5.5, -5.5, 0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.tomato.3",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 (
                     (BlockKind::Tomato, 4),
-                    make_models("voxygen.voxel.sprite.tomato.4", Vec3::new(-5.5, -5.5, 0.0)),
+                    make_models(
+                        "voxygen.voxel.sprite.tomato.4",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
                 ),
                 // Radish
                 (
@@ -1513,6 +1741,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.radish.0",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1520,6 +1749,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.radish.1",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1527,6 +1757,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.radish.2",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1534,6 +1765,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.radish.3",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1541,6 +1773,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.radish.4",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 // Turnip
@@ -1549,6 +1782,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.turnip.turnip-0",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1556,6 +1790,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.turnip.turnip-1",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1563,6 +1798,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.turnip.turnip-2",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1570,6 +1806,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.turnip.turnip-3",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1577,6 +1814,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.turnip.turnip-4",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 (
@@ -1584,6 +1822,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.turnip.turnip-5",
                         Vec3::new(-5.5, -5.5, -0.25),
+                        Vec3::one(),
                     ),
                 ),
                 // Coconut
@@ -1592,6 +1831,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.fruit.coconut",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
                     ),
                 ),
                 // Scarecrow
@@ -1600,6 +1840,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.misc.scarecrow",
                         Vec3::new(-9.5, -3.0, -0.25),
+                        Vec3::unit_z(),
                     ),
                 ),
                 // Street Light
@@ -1608,6 +1849,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.misc.street_lamp",
                         Vec3::new(-4.5, -4.5, 0.0),
+                        Vec3::unit_z(),
                     ),
                 ),
                 // Door
@@ -1616,6 +1858,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.door.door-0",
                         Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
                     ),
                 ),
             ]

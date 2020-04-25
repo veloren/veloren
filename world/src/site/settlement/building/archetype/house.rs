@@ -207,7 +207,7 @@ impl Archetype for House {
         let floor = make_block(100, 75, 50);
         let wall = make_block(200, 180, 150).with_priority(facade_layer);
         let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b)
-            .with_priority(facade_layer);
+            .with_priority(facade_layer - 1);
         let empty = BlockMask::nothing();
         let internal = BlockMask::new(Block::empty(), structural_layer);
         let end_window = BlockMask::new(
