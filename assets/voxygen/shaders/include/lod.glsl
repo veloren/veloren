@@ -194,17 +194,23 @@ vec2 splay(vec2 pos) {
 vec3 lod_norm(vec2 pos) {
 	const float SAMPLE_W = 32;
 
-	float altx0 = alt_at(pos + vec2(-1, 0) * SAMPLE_W);
-	float altx1 = alt_at(pos + vec2(1, 0) * SAMPLE_W);
-	float alty0 = alt_at(pos + vec2(0, -1) * SAMPLE_W);
-	float alty1 = alt_at(pos + vec2(0, 1) * SAMPLE_W);
+	float altx0 = alt_at(pos + vec2(-1.0, 0) * SAMPLE_W);
+	float altx1 = alt_at(pos + vec2(1.0, 0) * SAMPLE_W);
+	float alty0 = alt_at(pos + vec2(0, -1.0) * SAMPLE_W);
+	float alty1 = alt_at(pos + vec2(0, 1.0) * SAMPLE_W);
 	float slope = abs(altx1 - altx0) + abs(alty0 - alty1);
 
-	return normalize(vec3(
-		(altx0 - altx1) / SAMPLE_W,
-		(alty0 - alty1) / SAMPLE_W,
-		SAMPLE_W / (slope + 0.00001) // Avoid NaN
-	));
+    vec3 norm = normalize(cross(
+        vec3(2.0 * SAMPLE_W, 0.0, altx1 - altx0),
+        vec3(0.0, 2.0 * SAMPLE_W, alty1 - alty0)
+    ));
+	/* vec3 norm = normalize(vec3(
+		(altx0 - altx1) / (2.0 * SAMPLE_W),
+		(alty0 - alty1) / (2.0 * SAMPLE_W),
+		(2.0 * SAMPLE_W) / (slope + 0.00001) // Avoid NaN
+	)); */
+
+    return faceforward(norm, vec3(0.0, 0.0, -1.0), norm);
 }
 
 vec3 lod_pos(vec2 v_pos, vec2 focus_pos) {

@@ -5,6 +5,9 @@
 in vec3 f_pos;
 in vec3 f_col;
 flat in vec3 f_norm;
+in float f_ao;
+in float f_alt;
+in vec4 f_shadow;
 
 layout (std140)
 uniform u_locals {

@@ -14,7 +14,6 @@ uniform u_locals {
 
 out vec3 f_pos;
 flat out uint f_pos_norm;
-flat out vec3 f_norm;
 out vec3 f_col;
 out float f_light;
 

@@ -41,6 +41,8 @@ void main() {
 	// float moon_light = get_moon_brightness(moon_dir);
     /* float sun_shade_frac = horizon_at(f_pos, sun_dir);
     float moon_shade_frac = horizon_at(f_pos, moon_dir); */
+    // float f_alt = alt_at(f_pos.xy);
+    // vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
     float moon_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, moon_dir);
     // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
@@ -53,8 +55,13 @@ void main() {
 
     vec3 surf_color = /*srgb_to_linear*/(f_col);
     float alpha = 1.0;
+    // TODO: Possibly angle with water surface into account?  Since we can basically assume it's horizontal.
     const float n2 = 1.01;
-    const float R_s = pow((1.0 - n2) / (1.0 + n2), 2);
+    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
+    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
+    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
+    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
+    float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
     vec3 k_a = vec3(1.0);
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);

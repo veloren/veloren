@@ -8,6 +8,7 @@ flat in uint f_pos_norm;
 in vec3 f_col;
 in float f_light;
 
+
 layout (std140)
 uniform u_locals {
     vec3 model_offs;
@@ -42,13 +43,21 @@ void main() {
 
     vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x);
-    float sun_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, sun_dir);
-    float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
+    float f_alt = alt_at(f_pos.xy);
+    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
+    float moon_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, moon_dir);
+    // float sun_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, sun_dir);
+    // float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
     float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
     const float alpha = 0.255/* / 4.0 / sqrt(2.0)*/;
     const float n2 = 1.3325;
-    const float R_s = pow((1.0 - n2) / (1.0 + n2), 2);
+    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
+    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
+    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
+    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
+    float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
 
     vec3 k_a = vec3(1.0);
     vec3 k_d = vec3(1.0);

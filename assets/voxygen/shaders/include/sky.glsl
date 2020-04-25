@@ -27,6 +27,7 @@ vec3 get_sun_dir(float time_of_day) {
 	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
 
 	float sun_angle_rad = time_of_day * TIME_FACTOR;
+	// return vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
 	return vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
 }
 
@@ -34,6 +35,13 @@ vec3 get_moon_dir(float time_of_day) {
 	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
 
 	float moon_angle_rad = time_of_day * TIME_FACTOR;
+    // -cos((60+60*4)/360*2*pi)-0.5 = 0
+    // -cos((60+60*5)/360*2*pi)-0.5 = -0.5
+    // -cos((60+60*6)/360*2*pi)-0.5 = 0
+    //
+    // i.e. moon out from (60*5)/360*24 = 20:00 to (60*7/360*24) = 28:00 = 04:00.
+    //
+    // Then sun out from 04:00 to 20:00.
 	return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 }
 
@@ -130,14 +138,93 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
     //
     // HdRd radiation should come in at angle normal to us.
     // const float H_d = 0.23;
-    // Assuming we are on the equator:
-    // R_b = (cos(h)cos(-β) / cos(h)) = cos(-β), the angle from horizontal.
+    //
+    // Let β be the angle from horizontal
+    // (for objects exposed to the sky, where positive when sloping towards south and negative when sloping towards north):
+    //
+    //     sin β = (north ⋅ norm) / |north||norm|
+    //           = dot(vec3(0, 1, 0), norm)
+    //
+    //     cos β = sqrt(1.0 - dot(vec3(0, 1, 0), norm))
+    //
+    // Let h be the hour angle (180/0.0 at midnight, 90/1.0 at dawn, 0/0.0 at noon, -90/-1.0 at dusk, -180 at midnight/0.0):
+    //     cos h = (midnight ⋅ -light_dir) / |midnight||-light_dir|
+    //           = (noon ⋅ light_dir) / |noon||light_dir|
+    //           = dot(vec3(0, 0, 1), light_dir)
+    //
+    // Let φ be the latitude at this point. 0 at equator, -90 at south pole / 90 at north pole.
+    //
+    // Let δ be the solar declination (angular distance of the sun's rays north [or south[]
+    // of the equator), i.e. the angle made by the line joining the centers of the sun and Earth with its projection on the
+    // equatorial plane.  Caused by axial tilt, and 0 at equinoxes.  Normally varies between -23.45 and 23.45 degrees.
+    //
+    // Let α (the solar altitude / altitud3 angle) be the vertical angle between the projection of the sun's rays on the
+    // horizontal plane and the direction of the sun's rays (passing through a point).
+    //
+    // Let Θ_z be the vertical angle between sun's rays and a line perpendicular to the horizontal plane through a point,
+    // i.e.
+    //
+    // Θ_z = (π/2) - α
+    //
+    // i.e. cos Θ_z = sin α and
+    //      cos α = sin Θ_z
+    //
+    // Let γ_s be the horizontal angle measured from north to the horizontal projection of the sun's rays (positive when
+    // measured westwise).
+    //
+    // cos Θ_z = cos φ cos h cos δ + sin φ sin δ
+    // cos γ_s = sec α (cos φ sin δ - cos δ sin φ cos h)
+    //         = (1  / √(1 - cos² Θ_z)) (cos φ sin δ - cos δ sin φ cos h)
+    // sin γ_s = sec α cos δ sin h
+    //         = (1 / cos α) cos δ sin h
+    //         = (1 / sin Θ_z) cos δ sin h
+    //         = (1  / √(1 - cos² Θ_z)) cos δ sin h
+    //
+    // R_b = (sin(δ)sin(φ - β) + cos(δ)cos(h)cos(φ - β))/(sin(δ)sin(φ) + cos(δ)cos(h)cos(φ))
+    //
+    // Assuming we are on the equator (i.e. φ = 0), and there is no axial tilt or we are at an equinox (i.e. δ = 0):
+    //
+    // cos Θ_z = 1 * cos h * 1 + 0 * 0 = cos h
+    // cos γ_s = (1  / √(1 - cos² h)) (1 * 0 - 1 * 0 * cos h)
+    //         = (1  / √(1 - cos² h)) * 0
+    //         = 0
+    // sin γ_s = (1  / √(1 - cos² h)) * sin h
+    //         = sin h / sin h
+    //         = 1
+    //
+    // R_b = (0 * sin(0 - β) + 1 * cos(h) * cos(0 - β))/(0 * 0 + 1 * cos(h) * 1)
+    //     = (cos(h)cos(-β)) / cos(H)
+    //     = cos(-β), the angle from horizontal.
+    //
     // NOTE: cos(-β) = cos(β).
-    float cos_sun = dot(norm, -sun_dir);
-    float cos_moon = dot(norm, -moon_dir);
-    vec3 light_frac = /*vec3(1.0)*//*H_d * */
-        SUN_AMBIANCE * /*sun_light*/sun_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_sun) * 0.5), vec3(k_s * (1.0 - cos_sun) * 0.5), alpha) +
-        MOON_AMBIANCE * /*sun_light*/moon_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_moon) * 0.5), vec3(k_s * (1.0 - cos_moon) * 0.5), alpha);
+    // float cos_sun = dot(norm, /*-sun_dir*/vec3(0, 0, 1));
+    // float cos_moon = dot(norm, -moon_dir);
+    //
+    // Let ζ = diffuse reflectance of surrounding ground for solar radiation, then we have
+    //
+    // R_d = (1 + cos β) / 2
+    // R_r = ζ (1 - cos β) / 2
+    //
+    // H_t = H_b R_b + H_d R_d + (H_b + H_d) R_r
+    float sin_beta = dot(vec3(0, 1, 0), norm);
+    float R_b = sqrt(1.0 - sin_beta * sin_beta);
+    // Rough estimate of diffuse reflectance of rest of ground.
+    // NOTE: zeta should be close to 0.7 with snow cover, 0.2 normally?  Maybe?
+    vec3 zeta = max(vec3(0.2), k_d * (1.0 - k_s));//vec3(0.2);// k_d * (1.0 - k_s);
+    float R_d = (1 + R_b) * 0.5;
+    vec3 R_r = zeta * (1.0 - R_b) * 0.5;
+    //
+    // We can break this down into:
+    //      H_t_b = H_b * (R_b + R_r) = light_intensity * (R_b + R_r)
+    //      H_t_r = H_d * (R_d + R_r) = light_intensity * (R_d + R_r)
+    vec3 R_t_b = R_b + R_r;
+    vec3 R_t_r = R_d + R_r;
+
+    // vec3 half_vec = normalize(-norm + dir);
+    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * light_reflection_factor(norm, norm, /*-norm*/-norm, /*k_d*/k_d * (1.0 - k_s), /*k_s*/vec3(0.0), alpha);
+    // vec3 light_frac = /*vec3(1.0)*//*H_d * */
+    //     SUN_AMBIANCE * /*sun_light*/sun_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_sun) * 0.5), vec3(k_s * (1.0 - cos_sun) * 0.5), alpha) +
+    //     MOON_AMBIANCE * /*sun_light*/moon_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_moon) * 0.5), vec3(k_s * (1.0 - cos_moon) * 0.5), alpha);
     /* float NLsun = max(dot(-norm, sun_dir), 0);
     float NLmoon = max(dot(-norm, moon_dir), 0);
     vec3 E = -dir; */
@@ -149,15 +236,16 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
 
-
-    emitted_light = k_a * light_frac * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
+    emitted_light = k_a * light_frac + PERSISTENT_AMBIANCE;
+    // emitted_light = k_a * light_frac * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
 
     // TODO: Add shadows.
-    reflected_light =
+    reflected_light = R_t_r * (
         (1.0 - SUN_AMBIANCE) * sun_chroma * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) /*+
                       light_reflection_factor(norm, dir, normalize(sun_dir + vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha) +
                       light_reflection_factor(norm, dir, normalize(sun_dir - vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha)*/) +
-        (1.0 - MOON_AMBIANCE) * moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha);
+        (1.0 - MOON_AMBIANCE) * moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha)
+    );
 
 	/* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 	diffuse_light =
@@ -322,16 +410,17 @@ vec3 illuminate(/*vec3 max_light, */vec3 emitted, vec3 reflected) {
 
     // Tone mapped value.
     // vec3 T = /*color*//*lum*/color;//normalize(color) * lum / (1.0 + lum);
-    float alpha = 2.0;// 2.0;
+    float alpha = 2.0;
     float T = 1.0 - exp(-alpha * lum);//lum / (1.0 + lum);
     // float T = lum;
 
     // Heuristic desaturation
-    // float s = 0.5;
-    vec3 col_adjusted = (color / lum);
-    // vec3 c = pow(color / lum, vec3(s)) * T;
+    const float s = 0.8;
+    vec3 col_adjusted = lum == 0.0 ? vec3(0.0) : color / lum;
+    // vec3 c = pow(col_adjusted, vec3(s)) * T;
+    // vec3 c = col_adjusted * T;
     // vec3 c = sqrt(col_adjusted) * T;
-    vec3 c = col_adjusted * col_adjusted * T;
+    vec3 c = /*col_adjusted * */col_adjusted * T;
 
     return c;
     // float sum_col = color.r + color.g + color.b;

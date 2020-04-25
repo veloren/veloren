@@ -112,13 +112,21 @@ void main() {
 
     vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x);
-    float sun_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, sun_dir);
-    float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
+    float f_alt = alt_at(f_pos.xy);
+    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
+    float moon_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, moon_dir);
+    // float sun_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, sun_dir);
+    // float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
     float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
     const float alpha = 0.255/*/ / 4.0*//* / 4.0 / sqrt(2.0)*/;
     const float n2 = 1.3325;
-    const float R_s = pow((1.0 - n2) / (1.0 + n2), 2);
+    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
+    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
+    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
+    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
+    float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
 
     vec3 k_a = vec3(1.0);
     vec3 k_d = vec3(1.0);
@@ -143,7 +151,7 @@ void main() {
     lights_at(f_pos, norm, view_dir, vec3(0.0), vec3(0.0), /*vec3(1.0)*/k_s, alpha, dump_light, specular_light_point);
     diffuse_light_point -= specular_light_point;
 
-    float reflected_light_point = length(diffuse_light_point/*.r*/) + f_light * point_shadow;
+    float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
     reflected_light += reflect_color * k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + reflect_color * specular_light_point;
 	/* vec3 point_light = light_at(f_pos, norm);
     emitted_light += point_light;
