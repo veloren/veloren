@@ -76,6 +76,7 @@ pub struct SceneData<'a> {
     pub thread_pool: &'a uvth::ThreadPool,
     pub gamma: f32,
     pub mouse_smoothing: bool,
+    pub sprite_render_distance: f32,
 }
 
 impl Scene {
@@ -353,6 +354,7 @@ impl Scene {
                 self.select_pos,
                 scene_data.gamma,
                 self.camera.get_mode(),
+                scene_data.sprite_render_distance as f32 - 20.0,
             )])
             .expect("Failed to update global constants");
 
@@ -385,6 +387,7 @@ impl Scene {
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
+        scene_data: &SceneData,
     ) {
         // Render terrain and figures.
         self.terrain.render(
@@ -425,6 +428,7 @@ impl Scene {
             &self.lights,
             &self.shadows,
             self.camera.get_focus_pos(),
+            scene_data.sprite_render_distance,
         );
 
         renderer.render_post_process(

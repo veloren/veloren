@@ -330,10 +330,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             let scaled = [1.0, 0.6, 0.4, 0.2];
             scaled
                 .iter()
-                .map(|lod_scale| if *lod_scale == 1.0 {
-                    Vec3::broadcast(1.0)
-                } else {
-                    lod_axes * *lod_scale + lod_axes.map(|e| if e == 0.0 { 1.0 } else { 0.0 })
+                .map(|lod_scale| {
+                    if *lod_scale == 1.0 {
+                        Vec3::broadcast(1.0)
+                    } else {
+                        lod_axes * *lod_scale + lod_axes.map(|e| if e == 0.0 { 1.0 } else { 0.0 })
+                    }
                 })
                 .map(|lod_scale| {
                     renderer
@@ -2229,6 +2231,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         focus_pos: Vec3<f32>,
+        sprite_render_distance: f32,
     ) {
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
@@ -2252,22 +2255,21 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Terrain sprites
         for (pos, chunk) in chunk_iter.clone() {
             if chunk.visible {
-                const SPRITE_RENDER_DISTANCE: f32 = 200.0;
-                const SPRITE_DETAIL_LOW_DISTANCE: f32 = SPRITE_RENDER_DISTANCE * 0.65;
-                const SPRITE_DETAIL_MID_DISTANCE: f32 = SPRITE_RENDER_DISTANCE * 0.4;
-                const SPRITE_DETAIL_HIGH_DISTANCE: f32 = SPRITE_RENDER_DISTANCE * 0.25;
+                let sprite_detail_low_distance = sprite_render_distance * 0.65;
+                let sprite_detail_mid_distance = sprite_render_distance * 0.4;
+                let sprite_detail_high_distance = sprite_render_distance * 0.25;
 
                 let chunk_center =
                     pos.map2(V::RECT_SIZE, |e, sz: u32| (e as f32 + 0.5) * sz as f32);
                 let dist_sqrd = Vec2::from(focus_pos).distance_squared(chunk_center);
-                if dist_sqrd < SPRITE_RENDER_DISTANCE.powf(2.0) {
+                if dist_sqrd < sprite_render_distance.powf(2.0) {
                     for (kind, instances) in &chunk.sprite_instances {
                         renderer.render_sprites(
-                            if dist_sqrd < SPRITE_DETAIL_HIGH_DISTANCE.powf(2.0) {
+                            if dist_sqrd < sprite_detail_high_distance.powf(2.0) {
                                 &self.sprite_models[&kind][0]
-                            } else if dist_sqrd < SPRITE_DETAIL_MID_DISTANCE.powf(2.0) {
+                            } else if dist_sqrd < sprite_detail_mid_distance.powf(2.0) {
                                 &self.sprite_models[&kind][1]
-                            } else if dist_sqrd < SPRITE_DETAIL_LOW_DISTANCE.powf(2.0) {
+                            } else if dist_sqrd < sprite_detail_low_distance.powf(2.0) {
                                 &self.sprite_models[&kind][2]
                             } else {
                                 &self.sprite_models[&kind][3]

@@ -548,6 +548,7 @@ impl Default for Log {
 #[serde(default)]
 pub struct GraphicsSettings {
     pub view_distance: u32,
+    pub sprite_render_distance: u32,
     pub max_fps: u32,
     pub fov: u16,
     pub gamma: f32,
@@ -562,6 +563,7 @@ impl Default for GraphicsSettings {
     fn default() -> Self {
         Self {
             view_distance: 10,
+            sprite_render_distance: 250,
             max_fps: 60,
             fov: 50,
             gamma: 1.0,
