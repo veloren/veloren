@@ -234,6 +234,8 @@ impl<'a> MapConfig<'a> {
             downhill,
             river_kind,
             spline_derivative,
+            is_path,
+            near_site,
         ) = sampler
             .get(pos)
             .map(|sample| {
@@ -247,6 +249,12 @@ impl<'a> MapConfig<'a> {
                     sample.downhill,
                     sample.river.river_kind,
                     sample.river.spline_derivative,
+                    sample.path.is_path(),
+                    sample.sites.iter().any(|site| {
+                        site.get_origin()
+                            .distance_squared(pos * TerrainChunkSize::RECT_SIZE.x as i32)
+                            < 64i32.pow(2)
+                    }),
                 )
             })
             .unwrap_or((
@@ -259,6 +267,8 @@ impl<'a> MapConfig<'a> {
                 None,
                 None,
                 Vec2::zero(),
+                false,
+                false,
             ));
 
         let humidity = humidity.min(1.0).max(0.0);
@@ -367,6 +377,14 @@ impl<'a> MapConfig<'a> {
                     ((b_water - water_depth * b_water) * 1.0) as u8,
                 )
             },
+        };
+        // TODO: Make principled.
+        let rgb = if near_site {
+            Rgb::new(0x57, 0x39, 0x33)
+        } else if is_path {
+            Rgb::new(0x37, 0x29, 0x23)
+        } else {
+            rgb
         };
 
         MapSample {

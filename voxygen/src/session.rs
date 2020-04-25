@@ -286,9 +286,6 @@ impl PlayState for SessionState {
                         }
                     },
 
-                    Event::InputUpdate(GameInput::Ability3, state) => {
-                        self.inputs.ability3.set_state(state);
-                    },
                     Event::InputUpdate(GameInput::Roll, state) => {
                         let client = self.client.borrow();
                         if client
@@ -340,9 +337,9 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::ClimbDown, state) => {
                         self.key_state.climb_down = state;
                     },
-                    Event::InputUpdate(GameInput::WallLeap, state) => {
+                    /*Event::InputUpdate(GameInput::WallLeap, state) => {
                         self.inputs.wall_leap.set_state(state)
-                    },
+                    },*/
                     Event::InputUpdate(GameInput::ToggleWield, state)
                         if state != self.key_state.toggle_wield =>
                     {
@@ -424,9 +421,9 @@ impl PlayState for SessionState {
                             }
                         }
                     },
-                    Event::InputUpdate(GameInput::Charge, state) => {
+                    /*Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
-                    },
+                    },*/
                     Event::InputUpdate(GameInput::FreeLook, state) => {
                         match (global_state.settings.gameplay.free_look_behavior, state) {
                             (PressBehavior::Toggle, true) => {
@@ -586,6 +583,10 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.mouse_y_inversion = mouse_y_inverted;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ToggleSmoothPan(smooth_pan_enabled) => {
+                        global_state.settings.gameplay.smooth_pan_enable = smooth_pan_enabled;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::AdjustViewDistance(view_distance) => {
                         self.client.borrow_mut().set_view_distance(view_distance);
 
@@ -653,13 +654,10 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::UseInventorySlot(x) => self.client.borrow_mut().use_inventory_slot(x),
-                    HudEvent::SwapInventorySlots(a, b) => {
-                        self.client.borrow_mut().swap_inventory_slots(a, b)
-                    },
-                    HudEvent::DropInventorySlot(x) => {
-                        self.client.borrow_mut().drop_inventory_slot(x)
-                    },
+                    HudEvent::UseSlot(x) => self.client.borrow_mut().use_slot(x),
+                    HudEvent::SwapSlots(a, b) => self.client.borrow_mut().swap_slots(a, b),
+                    HudEvent::DropSlot(x) => self.client.borrow_mut().drop_slot(x),
+                    HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();
@@ -723,6 +721,9 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.window_size = new_size;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ChangeBinding(game_input) => {
+                        global_state.window.set_keybinding_mode(game_input);
+                    },
                     HudEvent::ChangeFreeLookBehavior(behavior) => {
                         global_state.settings.gameplay.free_look_behavior = behavior;
                     },
@@ -741,11 +742,12 @@ impl PlayState for SessionState {
                     view_distance: client.view_distance().unwrap_or(1),
                     tick: client.get_tick(),
                     thread_pool: client.thread_pool(),
+                    gamma: global_state.settings.graphics.gamma,
+                    mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                 };
                 self.scene.maintain(
                     global_state.window.renderer_mut(),
                     &mut global_state.audio,
-                    &global_state.settings,
                     &scene_data,
                 );
             }

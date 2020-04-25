@@ -2,12 +2,14 @@ mod bag;
 mod buttons;
 mod chat;
 mod esc_menu;
+mod hotbar;
 mod img_ids;
 mod item_imgs;
 mod map;
 mod minimap;
 mod settings_window;
 mod skillbar;
+mod slots;
 mod social;
 mod spell;
 
@@ -35,13 +37,14 @@ use crate::{
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
     scene::camera::{self, Camera},
-    ui::{fonts::ConrodVoxygenFonts, Graphic, Ingameable, ScaleMode, Ui},
+    ui::{fonts::ConrodVoxygenFonts, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
 use client::{Client, Event as ClientEvent};
 use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
+    position::Relative,
     text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
@@ -205,6 +208,7 @@ pub enum Event {
     AdjustMouseZoom(u32),
     ToggleZoomInvert(bool),
     ToggleMouseYInvert(bool),
+    ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustLodDetail(u32),
     AdjustMusicVolume(f32),
@@ -231,12 +235,14 @@ pub enum Event {
     ToggleDebug(bool),
     UiScale(ScaleChange),
     CharacterSelection,
-    UseInventorySlot(usize),
-    SwapInventorySlots(usize, usize),
-    DropInventorySlot(usize),
+    UseSlot(comp::slot::Slot),
+    SwapSlots(comp::slot::Slot, comp::slot::Slot),
+    DropSlot(comp::slot::Slot),
+    Ability3(bool),
     Logout,
     Quit,
     ChangeLanguage(LanguageMetadata),
+    ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
 }
 
@@ -306,6 +312,7 @@ pub struct Show {
 impl Show {
     fn bag(&mut self, open: bool) {
         self.bag = open;
+        self.map = false;
         self.want_grab = !open;
     }
 
@@ -362,6 +369,8 @@ impl Show {
             || self.map
             || self.social
             || self.spell
+            || self.help
+            || self.intro
             || match self.open_windows {
                 Windows::None => false,
                 _ => true,
@@ -369,6 +378,8 @@ impl Show {
         {
             self.bag = false;
             self.esc_menu = false;
+            self.help = false;
+            self.intro = false;
             self.map = false;
             self.social = false;
             self.spell = false;
@@ -434,6 +445,9 @@ pub struct Hud {
     pulse: f32,
     velocity: f32,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
+    slot_manager: slots::SlotManager,
+    hotbar: hotbar::State,
+    events: Vec<Event>,
 }
 
 impl Hud {
@@ -455,7 +469,7 @@ impl Hud {
         // Load rotation images.
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load rot images!");
         // Load item images.
-        let item_imgs = ItemImgs::new(&mut ui);
+        let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
         // Load language
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
@@ -463,6 +477,8 @@ impl Hud {
         // Load fonts.
         let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
+
+        let slot_manager = slots::SlotManager::new(ui.id_generator(), Vec2::broadcast(40.0));
 
         Self {
             ui,
@@ -502,6 +518,9 @@ impl Hud {
             pulse: 0.0,
             velocity: 0.0,
             voxygen_i18n,
+            slot_manager,
+            hotbar: hotbar::State::new(),
+            events: Vec::new(),
         }
     }
 
@@ -518,7 +537,7 @@ impl Hud {
         debug_info: DebugInfo,
         dt: Duration,
     ) -> Vec<Event> {
-        let mut events = Vec::new();
+        let mut events = std::mem::replace(&mut self.events, Vec::new());
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
@@ -1240,23 +1259,27 @@ impl Hud {
         if self.show.intro && !self.show.esc_menu && !self.intro_2 {
             match global_state.settings.gameplay.intro_show {
                 Intro::Show => {
-                    Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
-                        .top_left_with_margins_on(ui_widgets.window, 180.0, 10.0)
-                        .floating(true)
-                        .set(self.ids.intro_bg, ui_widgets);
+                    Rectangle::fill_with(
+                        [800.0 * 0.8, 850.0 * 0.8],
+                        Color::Rgba(0.0, 0.0, 0.0, 0.80),
+                    )
+                    .top_left_with_margins_on(ui_widgets.window, 180.0 * 0.8, 10.0 * 0.8)
+                    .floating(true)
+                    .set(self.ids.intro_bg, ui_widgets);
                     Text::new(intro_text)
                         .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
-                        .font_size(self.fonts.cyri.scale(20))
+                        .font_size(self.fonts.cyri.scale(16))
                         .font_id(self.fonts.cyri.conrod_id)
                         .color(TEXT_COLOR)
                         .set(self.ids.intro_text, ui_widgets);
                     if Button::image(self.imgs.button)
-                        .w_h(100.0, 50.0)
+                        .w_h(90.0, 35.0)
                         .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
                         .label(&self.voxygen_i18n.get("common.close"))
-                        .label_font_size(self.fonts.cyri.scale(20))
+                        .label_font_size(self.fonts.cyri.scale(16))
                         .label_font_id(self.fonts.cyri.conrod_id)
                         .label_color(TEXT_COLOR)
+                        .label_y(Relative::Scalar(4.0))
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
                         .set(self.ids.intro_close, ui_widgets)
@@ -1485,80 +1508,84 @@ impl Hud {
             .set(self.ids.num_figures, ui_widgets);
 
             // Help Window
-            Text::new(
-                &self
-                    .voxygen_i18n
-                    .get("hud.press_key_to_toggle_keybindings_fmt")
-                    .replace(
-                        "{key}",
-                        &format!("{:?}", global_state.settings.controls.help),
-                    ),
-            )
-            .color(TEXT_COLOR)
-            .down_from(self.ids.num_figures, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.help_info, ui_widgets);
+            if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_toggle_keybindings_fmt")
+                        .replace("{key}", help_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .down_from(self.ids.num_figures, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.help_info, ui_widgets);
+            }
             // Info about Debug Shortcut
-            Text::new(
-                &self
-                    .voxygen_i18n
-                    .get("hud.press_key_to_toggle_debug_info_fmt")
-                    .replace(
-                        "{key}",
-                        &format!("{:?}", global_state.settings.controls.toggle_debug),
-                    ),
-            )
-            .color(TEXT_COLOR)
-            .down_from(self.ids.help_info, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.debug_info, ui_widgets);
+            if let Some(toggle_debug_key) = global_state
+                .settings
+                .controls
+                .get_binding(GameInput::ToggleDebug)
+            {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_toggle_debug_info_fmt")
+                        .replace("{key}", toggle_debug_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .down_from(self.ids.help_info, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.debug_info, ui_widgets);
+            }
         } else {
             // Help Window
-            Text::new(
-                &self
-                    .voxygen_i18n
-                    .get("hud.press_key_to_show_keybindings_fmt")
-                    .replace(
-                        "{key}",
-                        &format!("{:?}", global_state.settings.controls.help),
-                    ),
-            )
-            .color(TEXT_COLOR)
-            .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(16))
-            .set(self.ids.help_info, ui_widgets);
+            if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_show_keybindings_fmt")
+                        .replace("{key}", help_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(16))
+                .set(self.ids.help_info, ui_widgets);
+            }
             // Info about Debug Shortcut
-            Text::new(
-                &self
-                    .voxygen_i18n
-                    .get("hud.press_key_to_show_debug_info_fmt")
-                    .replace(
-                        "{key}",
-                        &format!("{:?}", global_state.settings.controls.toggle_debug),
-                    ),
-            )
-            .color(TEXT_COLOR)
-            .down_from(self.ids.help_info, 5.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(12))
-            .set(self.ids.debug_info, ui_widgets);
+            if let Some(toggle_debug_key) = global_state
+                .settings
+                .controls
+                .get_binding(GameInput::ToggleDebug)
+            {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_show_debug_info_fmt")
+                        .replace("{key}", toggle_debug_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .down_from(self.ids.help_info, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(12))
+                .set(self.ids.debug_info, ui_widgets);
+            }
         }
 
         // Help Text
         if self.show.help && !self.show.map && !self.show.esc_menu {
             Image::new(self.imgs.help)
                 .middle_of(ui_widgets.window)
-                .w_h(1260.0 * 1.2, 519.0 * 1.2)
+                .w_h(1260.0, 519.0)
                 .set(self.ids.help, ui_widgets);
             // Show tips
-            if Button::image(self.imgs.button)
+            /*if Button::image(self.imgs.button)
                 .w_h(120.0, 50.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label(&self.voxygen_i18n.get("hud.show_tips"))
+                .label(&self.voxygen_i18n.get("common.close"))
                 .label_font_size(self.fonts.cyri.scale(20))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
@@ -1570,7 +1597,7 @@ impl Hud {
                 self.show.intro = false;
                 self.intro = false;
                 self.intro_2 = true;
-            };
+            };*/
             // X-button
             if Button::image(self.imgs.close_button)
                 .w_h(40.0, 40.0)
@@ -1631,6 +1658,7 @@ impl Hud {
                 &self.fonts,
                 &self.rot_imgs,
                 tooltip_manager,
+                &mut self.slot_manager,
                 self.pulse,
                 &self.voxygen_i18n,
                 &player_stats,
@@ -1638,7 +1666,6 @@ impl Hud {
             )
             .set(self.ids.bag, ui_widgets)
             {
-                Some(bag::Event::HudEvent(event)) => events.push(event),
                 Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
                 Some(bag::Event::Close) => {
                     self.show.bag(false);
@@ -1657,23 +1684,39 @@ impl Hud {
         let energies = ecs.read_storage::<comp::Energy>();
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
-        if let (Some(stats), Some(loadout), Some(energy), Some(character_state), Some(controller)) = (
+        let inventories = ecs.read_storage::<comp::Inventory>();
+        if let (
+            Some(stats),
+            Some(loadout),
+            Some(energy),
+            Some(character_state),
+            Some(controller),
+            Some(inventory),
+        ) = (
             stats.get(entity),
             loadouts.get(entity),
             energies.get(entity),
             character_states.get(entity),
             controllers.get(entity).map(|c| &c.inputs),
+            inventories.get(entity),
         ) {
             Skillbar::new(
                 global_state,
                 &self.imgs,
+                &self.item_imgs,
                 &self.fonts,
+                &self.rot_imgs,
                 &stats,
                 &loadout,
                 &energy,
                 &character_state,
                 self.pulse,
                 &controller,
+                &inventory,
+                &self.hotbar,
+                tooltip_manager,
+                &mut self.slot_manager,
+                &self.voxygen_i18n,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -1753,6 +1796,9 @@ impl Hud {
                     settings_window::Event::ToggleMouseYInvert(mouse_y_inverted) => {
                         events.push(Event::ToggleMouseYInvert(mouse_y_inverted));
                     },
+                    settings_window::Event::ToggleSmoothPan(smooth_pan_enabled) => {
+                        events.push(Event::ToggleSmoothPan(smooth_pan_enabled));
+                    },
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
                     },
@@ -1815,6 +1861,9 @@ impl Hud {
                     },
                     settings_window::Event::AdjustWindowSize(new_size) => {
                         events.push(Event::AdjustWindowSize(new_size));
+                    },
+                    settings_window::Event::ChangeBinding(game_input) => {
+                        events.push(Event::ChangeBinding(game_input));
                     },
                     settings_window::Event::ChangeFreeLookBehavior(behavior) => {
                         events.push(Event::ChangeFreeLookBehavior(behavior));
@@ -1937,6 +1986,54 @@ impl Hud {
                 .set(self.ids.free_look_txt, ui_widgets);
         }
 
+        // Maintain slot manager
+        for event in self.slot_manager.maintain(ui_widgets) {
+            use comp::slot::Slot;
+            use slots::SlotKind::*;
+            let to_slot = |slot_kind| match slot_kind {
+                Inventory(i) => Some(Slot::Inventory(i.0)),
+                Equip(e) => Some(Slot::Equip(e)),
+                Hotbar(_) => None,
+            };
+            match event {
+                slot::Event::Dragged(a, b) => {
+                    // Swap between slots
+                    if let (Some(a), Some(b)) = (to_slot(a), to_slot(b)) {
+                        events.push(Event::SwapSlots(a, b));
+                    } else if let (Inventory(i), Hotbar(h)) = (a, b) {
+                        self.hotbar.add_inventory_link(h, i.0);
+                    } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
+                        self.hotbar.swap(a, b);
+                    }
+                },
+                slot::Event::Dropped(from) => {
+                    // Drop item
+                    if let Some(from) = to_slot(from) {
+                        events.push(Event::DropSlot(from));
+                    } else if let Hotbar(h) = from {
+                        self.hotbar.clear_slot(h);
+                    }
+                },
+                slot::Event::Used(from) => {
+                    // Item used (selected and then clicked again)
+                    if let Some(from) = to_slot(from) {
+                        events.push(Event::UseSlot(from));
+                    } else if let Hotbar(h) = from {
+                        self.hotbar.get(h).map(|s| {
+                            match s {
+                                hotbar::SlotContents::Inventory(i) => {
+                                    events.push(Event::UseSlot(comp::slot::Slot::Inventory(i)));
+                                },
+                                hotbar::SlotContents::Ability3 => {}, /* Event::Ability3(true),
+                                                                       * sticks */
+                            }
+                        });
+                    }
+                },
+            }
+        }
+        self.hotbar.maintain_ability3(client);
+
         events
     }
 
@@ -1968,6 +2065,30 @@ impl Hud {
     }
 
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
+        // Helper
+        fn handle_slot(
+            slot: hotbar::Slot,
+            state: bool,
+            events: &mut Vec<Event>,
+            slot_manager: &mut slots::SlotManager,
+            hotbar: &mut hotbar::State,
+        ) {
+            if let Some(slots::SlotKind::Inventory(i)) = slot_manager.selected() {
+                hotbar.add_inventory_link(slot, i.0);
+                slot_manager.idle();
+            } else {
+                let just_pressed = hotbar.process_input(slot, state);
+                hotbar.get(slot).map(|s| match s {
+                    hotbar::SlotContents::Inventory(i) => {
+                        if just_pressed {
+                            events.push(Event::UseSlot(comp::slot::Slot::Inventory(i)));
+                        }
+                    },
+                    hotbar::SlotContents::Ability3 => events.push(Event::Ability3(state)),
+                });
+            }
+        }
+
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         let handled = match event {
             WinEvent::Ui(event) => {
@@ -2008,44 +2129,145 @@ impl Hud {
             },
 
             // Press key while not typing
-            WinEvent::InputUpdate(key, true) if !self.typing() => match key {
-                GameInput::Command => {
+            WinEvent::InputUpdate(key, state) if !self.typing() => match key {
+                GameInput::Command if state => {
                     self.force_chat_input = Some("/".to_owned());
                     self.force_chat_cursor = Some(Index { line: 0, char: 1 });
                     self.ui.focus_widget(Some(self.ids.chat));
                     true
                 },
-                GameInput::Map => {
+                GameInput::Map if state => {
                     self.show.toggle_map();
                     true
                 },
-                GameInput::Bag => {
+                GameInput::Bag if state => {
                     self.show.toggle_bag();
                     true
                 },
-                GameInput::Social => {
+                GameInput::Social if state => {
                     self.show.toggle_social();
                     true
                 },
-                GameInput::Spellbook => {
+                GameInput::Spellbook if state => {
                     self.show.toggle_spell();
                     true
                 },
-                GameInput::Settings => {
+                GameInput::Settings if state => {
                     self.show.toggle_settings();
                     true
                 },
-                GameInput::Help => {
+                GameInput::Help if state => {
                     self.show.toggle_help();
                     true
                 },
-                GameInput::ToggleDebug => {
+                GameInput::ToggleDebug if state => {
                     global_state.settings.gameplay.toggle_debug =
                         !global_state.settings.gameplay.toggle_debug;
                     true
                 },
-                GameInput::ToggleIngameUi => {
+                GameInput::ToggleIngameUi if state => {
                     self.show.ingame = !self.show.ingame;
+                    true
+                },
+                // Skillbar
+                GameInput::Slot1 => {
+                    handle_slot(
+                        hotbar::Slot::One,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot2 => {
+                    handle_slot(
+                        hotbar::Slot::Two,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot3 => {
+                    handle_slot(
+                        hotbar::Slot::Three,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot4 => {
+                    handle_slot(
+                        hotbar::Slot::Four,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot5 => {
+                    handle_slot(
+                        hotbar::Slot::Five,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot6 => {
+                    handle_slot(
+                        hotbar::Slot::Six,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot7 => {
+                    handle_slot(
+                        hotbar::Slot::Seven,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot8 => {
+                    handle_slot(
+                        hotbar::Slot::Eight,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot9 => {
+                    handle_slot(
+                        hotbar::Slot::Nine,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
+                    true
+                },
+                GameInput::Slot10 => {
+                    handle_slot(
+                        hotbar::Slot::Ten,
+                        state,
+                        &mut self.events,
+                        &mut self.slot_manager,
+                        &mut self.hotbar,
+                    );
                     true
                 },
                 _ => false,

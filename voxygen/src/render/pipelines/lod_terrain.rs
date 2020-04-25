@@ -1,10 +1,11 @@
 use super::{
-    super::{Pipeline, TgtColorFmt, TgtDepthFmt},
+    super::{Pipeline, TgtColorFmt, TgtDepthStencilFmt},
     Globals,
 };
 use gfx::{
     self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
     gfx_pipeline_inner, gfx_vertex_struct_meta,
+    state::{Comparison, Stencil, StencilOp},
 };
 use vek::*;
 
@@ -28,7 +29,7 @@ gfx_defines! {
         noise: gfx::TextureSampler<f32> = "t_noise",
 
         tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
+        tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
     }
 }
 

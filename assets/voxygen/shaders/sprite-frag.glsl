@@ -5,6 +5,7 @@
 in vec3 f_pos;
 flat in vec3 f_norm;
 in vec3 f_col;
+in float f_ao;
 in float f_light;
 
 out vec4 tgt_color;
@@ -76,6 +77,10 @@ void main() {
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
     reflected_light += point_light; */
+
+	float ao = pow(f_ao, 0.5) * 0.85 + 0.15;
+	emitted_light *= ao;
+	reflected_light *= ao;
 
 	surf_color = illuminate(surf_color * emitted_light, surf_color * reflected_light);
 	// vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);

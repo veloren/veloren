@@ -2,7 +2,6 @@ mod natural;
 
 use crate::{
     column::{ColumnGen, ColumnSample},
-    generator::{Generator, TownGen},
     util::{RandomField, Sampler, SmallCache},
     CONFIG,
 };
@@ -51,11 +50,7 @@ impl<'a> BlockGen<'a> {
                 cache,
                 Vec2::from(*cliff_pos),
             ) {
-                Some(cliff_sample)
-                    if cliff_sample.is_cliffs
-                        && cliff_sample.spawn_rate > 0.5
-                        && cliff_sample.spawn_rules.cliffs =>
-                {
+                Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
                     // Conservative range of height: [15.70, 49.33]
@@ -71,16 +66,24 @@ impl<'a> BlockGen<'a> {
                     // Conservative range of radius: [8, 47]
                     let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
-                    max_height.max(
-                        if cliff_pos.map(|e| e as f32).distance_squared(wpos)
-                            < (radius as f32 + tolerance).powf(2.0)
-                        {
-                            cliff_sample.alt + height * (1.0 - cliff_sample.chaos) + cliff_hill
-                        } else {
-                            0.0
-                        },
-                    )
-                }
+                    if cliff_sample
+                        .water_dist
+                        .map(|d| d > radius as f32)
+                        .unwrap_or(true)
+                    {
+                        max_height.max(
+                            if cliff_pos.map(|e| e as f32).distance_squared(wpos)
+                                < (radius as f32 + tolerance).powf(2.0)
+                            {
+                                cliff_sample.alt + height * (1.0 - cliff_sample.chaos) + cliff_hill
+                            } else {
+                                0.0
+                            },
+                        )
+                    } else {
+                        max_height
+                    }
+                },
                 _ => max_height,
             },
         )
@@ -169,7 +172,6 @@ impl<'a> BlockGen<'a> {
             close_cliffs,
             temp,
             humidity,
-            chunk,
             stone_col,
             ..
         } = sample;
@@ -178,7 +180,7 @@ impl<'a> BlockGen<'a> {
 
         let wposf = wpos.map(|e| e as f64);
 
-        let (block, height) = if !only_structures {
+        let (block, _height) = if !only_structures {
             let (_definitely_underground, height, on_cliff, basement_height, water_height) =
                 if (wposf.z as f32) < alt - 64.0 * chaos {
                     // Shortcut warping
@@ -397,14 +399,6 @@ impl<'a> BlockGen<'a> {
             (None, sample.alt)
         };
 
-        // Structures (like towns)
-        let block = chunk
-            .structures
-            .town
-            .as_ref()
-            .and_then(|town| TownGen.get((town, wpos, sample, height)))
-            .or(block);
-
         let block = structures
             .iter()
             .find_map(|st| {
@@ -419,7 +413,7 @@ impl<'a> BlockGen<'a> {
 
 pub struct ZCache<'a> {
     wpos: Vec2<i32>,
-    sample: ColumnSample<'a>,
+    pub sample: ColumnSample<'a>,
     structures: [Option<(StructureInfo, ColumnSample<'a>)>; 9],
 }
 
@@ -470,19 +464,6 @@ impl<'a> ZCache<'a> {
 
         let min = min + structure_min;
         let max = (ground_max + structure_max).max(self.sample.water_level + 2.0);
-
-        // Structures
-        let (min, max) = self
-            .sample
-            .chunk
-            .structures
-            .town
-            .as_ref()
-            .map(|town| {
-                let (town_min, town_max) = TownGen.get_z_limits(town, self.wpos, &self.sample);
-                (town_min.min(min), town_max.max(max))
-            })
-            .unwrap_or((min, max));
 
         let structures_only_min_z = ground_max.max(self.sample.water_level + 2.0);
 
@@ -579,9 +560,8 @@ pub fn block_from_structure(
 ) -> Option<Block> {
     let field = RandomField::new(structure_seed + 0);
 
-    let lerp = 0.5
-        + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.85
-        + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
+    let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.85
+        + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.15;
 
     match sblock {
         StructureBlock::None => None,
@@ -631,12 +611,17 @@ pub fn block_from_structure(
         StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 3 > 0 {
             Block::empty()
         } else {
-            Block::new(BlockKind::Apple, Rgb::new(194, 30, 37))
+            Block::new(BlockKind::Apple, Rgb::new(1, 1, 1))
+        }),
+        StructureBlock::Coconut => Some(if field.get(pos + structure_pos) % 3 > 0 {
+            Block::empty()
+        } else {
+            Block::new(BlockKind::Coconut, Rgb::new(1, 1, 1))
         }),
         StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
             Block::empty()
         } else {
-            Block::new(BlockKind::Chest, Rgb::new(0, 0, 0))
+            Block::new(BlockKind::Chest, Rgb::new(1, 1, 1))
         }),
         StructureBlock::Liana => Some(Block::new(
             BlockKind::Liana,

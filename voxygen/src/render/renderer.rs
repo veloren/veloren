@@ -15,6 +15,7 @@ use common::assets::{self, watch::ReloadIndicator};
 use gfx::{
     self,
     handle::Sampler,
+    state::{Comparison, Stencil, StencilOp},
     traits::{Device, Factory, FactoryExt},
 };
 use glsl_include::Context as IncludeContext;
@@ -23,8 +24,8 @@ use vek::*;
 
 /// Represents the format of the pre-processed color target.
 pub type TgtColorFmt = gfx::format::Srgba8;
-/// Represents the format of the pre-processed depth target.
-pub type TgtDepthFmt = gfx::format::Depth;
+/// Represents the format of the pre-processed depth and stencil target.
+pub type TgtDepthStencilFmt = gfx::format::DepthStencil;
 
 /// Represents the format of the window's color target.
 pub type WinColorFmt = gfx::format::Srgba8;
@@ -34,7 +35,8 @@ pub type WinDepthFmt = gfx::format::Depth;
 /// A handle to a pre-processed color target.
 pub type TgtColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, TgtColorFmt>;
 /// A handle to a pre-processed depth target.
-pub type TgtDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, TgtDepthFmt>;
+pub type TgtDepthStencilView =
+    gfx::handle::DepthStencilView<gfx_backend::Resources, TgtDepthStencilFmt>;
 
 /// A handle to a window color target.
 pub type WinColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, WinColorFmt>;
@@ -66,7 +68,7 @@ pub struct Renderer {
     win_depth_view: WinDepthView,
 
     tgt_color_view: TgtColorView,
-    tgt_depth_view: TgtDepthView,
+    tgt_depth_stencil_view: TgtDepthStencilView,
 
     tgt_color_res: TgtColorRes,
 
@@ -80,6 +82,7 @@ pub struct Renderer {
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
     lod_terrain_pipeline: GfxPipeline<lod_terrain::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
+    player_shadow_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
 
     shader_reload_indicator: ReloadIndicator,
 
@@ -113,6 +116,7 @@ impl Renderer {
             ui_pipeline,
             lod_terrain_pipeline,
             postprocess_pipeline,
+            player_shadow_pipeline,
         ) = create_pipelines(
             &mut factory,
             aa_mode,
@@ -122,7 +126,7 @@ impl Renderer {
         )?;
 
         let dims = win_color_view.get_dimensions();
-        let (tgt_color_view, tgt_depth_view, tgt_color_res) =
+        let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res) =
             Self::create_rt_views(&mut factory, (dims.0, dims.1), aa_mode)?;
 
         let sampler = factory.create_sampler_linear();
@@ -144,7 +148,7 @@ impl Renderer {
             win_depth_view,
 
             tgt_color_view,
-            tgt_depth_view,
+            tgt_depth_stencil_view,
 
             tgt_color_res,
             sampler,
@@ -157,6 +161,7 @@ impl Renderer {
             ui_pipeline,
             lod_terrain_pipeline,
             postprocess_pipeline,
+            player_shadow_pipeline,
 
             shader_reload_indicator,
 
@@ -171,8 +176,8 @@ impl Renderer {
     /// Get references to the internal render target views that get rendered to
     /// before post-processing.
     #[allow(dead_code)]
-    pub fn tgt_views(&self) -> (&TgtColorView, &TgtDepthView) {
-        (&self.tgt_color_view, &self.tgt_depth_view)
+    pub fn tgt_views(&self) -> (&TgtColorView, &TgtDepthStencilView) {
+        (&self.tgt_color_view, &self.tgt_depth_stencil_view)
     }
 
     /// Get references to the internal render target views that get displayed
@@ -185,8 +190,8 @@ impl Renderer {
     /// Get mutable references to the internal render target views that get
     /// rendered to before post-processing.
     #[allow(dead_code)]
-    pub fn tgt_views_mut(&mut self) -> (&mut TgtColorView, &mut TgtDepthView) {
-        (&mut self.tgt_color_view, &mut self.tgt_depth_view)
+    pub fn tgt_views_mut(&mut self) -> (&mut TgtColorView, &mut TgtDepthStencilView) {
+        (&mut self.tgt_color_view, &mut self.tgt_depth_stencil_view)
     }
 
     /// Get mutable references to the internal render target views that get
@@ -241,11 +246,11 @@ impl Renderer {
 
         // Avoid panics when creating texture with w,h of 0,0.
         if dims.0 != 0 && dims.1 != 0 {
-            let (tgt_color_view, tgt_depth_view, tgt_color_res) =
+            let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res) =
                 Self::create_rt_views(&mut self.factory, (dims.0, dims.1), self.aa_mode)?;
             self.tgt_color_res = tgt_color_res;
             self.tgt_color_view = tgt_color_view;
-            self.tgt_depth_view = tgt_depth_view;
+            self.tgt_depth_stencil_view = tgt_depth_stencil_view;
         }
 
         Ok(())
@@ -255,7 +260,7 @@ impl Renderer {
         factory: &mut gfx_device_gl::Factory,
         size: (u16, u16),
         aa_mode: AaMode,
-    ) -> Result<(TgtColorView, TgtDepthView, TgtColorRes), RenderError> {
+    ) -> Result<(TgtColorView, TgtDepthStencilView, TgtColorRes), RenderError> {
         let kind = match aa_mode {
             AaMode::None | AaMode::Fxaa => {
                 gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Single)
@@ -292,17 +297,18 @@ impl Renderer {
         )?;
         let tgt_color_view = factory.view_texture_as_render_target(&tgt_color_tex, 0, None)?;
 
-        let depth_cty = <<TgtDepthFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
-        let tgt_depth_tex = factory.create_texture(
+        let depth_stencil_cty = <<TgtDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
+        let tgt_depth_stencil_tex = factory.create_texture(
             kind,
             levels,
             gfx::memory::Bind::DEPTH_STENCIL,
             gfx::memory::Usage::Data,
-            Some(depth_cty),
+            Some(depth_stencil_cty),
         )?;
-        let tgt_depth_view = factory.view_texture_as_depth_stencil_trivial(&tgt_depth_tex)?;
+        let tgt_depth_stencil_view =
+            factory.view_texture_as_depth_stencil_trivial(&tgt_depth_stencil_tex)?;
 
-        Ok((tgt_color_view, tgt_depth_view, tgt_color_res))
+        Ok((tgt_color_view, tgt_depth_stencil_view, tgt_color_res))
     }
 
     /// Get the resolution of the render target.
@@ -316,7 +322,8 @@ impl Renderer {
     /// Queue the clearing of the depth target ready for a new frame to be
     /// rendered.
     pub fn clear(&mut self) {
-        self.encoder.clear_depth(&self.tgt_depth_view, 1.0);
+        self.encoder.clear_depth(&self.tgt_depth_stencil_view, 1.0);
+        self.encoder.clear_stencil(&self.tgt_depth_stencil_view, 0);
         self.encoder.clear_depth(&self.win_depth_view, 1.0);
     }
 
@@ -350,6 +357,7 @@ impl Renderer {
                 ui_pipeline,
                 lod_terrain_pipeline,
                 postprocess_pipeline,
+                player_shadow_pipeline,
             )) => {
                 self.skybox_pipeline = skybox_pipeline;
                 self.figure_pipeline = figure_pipeline;
@@ -359,6 +367,7 @@ impl Renderer {
                 self.ui_pipeline = ui_pipeline;
                 self.lod_terrain_pipeline = lod_terrain_pipeline;
                 self.postprocess_pipeline = postprocess_pipeline;
+                self.player_shadow_pipeline = player_shadow_pipeline;
             },
             Err(e) => error!(
                 "Could not recreate shaders from assets due to an error: {:#?}",
@@ -523,7 +532,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
-                tgt_depth: self.tgt_depth_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
             },
         );
     }
@@ -560,7 +569,81 @@ impl Renderer {
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
-                tgt_depth: self.tgt_depth_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
+            },
+        );
+    }
+
+    /// Queue the rendering of the player silhouette in the upcoming frame.
+    pub fn render_player_shadow(
+        &mut self,
+        model: &Model<figure::FigurePipeline>,
+        globals: &Consts<Globals>,
+        locals: &Consts<figure::Locals>,
+        bones: &Consts<figure::BoneData>,
+        lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
+    ) {
+        self.encoder.draw(
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
+            &self.player_shadow_pipeline.pso,
+            &figure::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                bones: bones.buf.clone(),
+                lights: lights.buf.clone(),
+                shadows: shadows.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (0, 0)),
+            },
+        );
+    }
+
+    /// Queue the rendering of the player model in the upcoming frame.
+    pub fn render_player(
+        &mut self,
+        model: &Model<figure::FigurePipeline>,
+        globals: &Consts<Globals>,
+        locals: &Consts<figure::Locals>,
+        bones: &Consts<figure::BoneData>,
+        lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
+    ) {
+        self.encoder.draw(
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
+            &self.figure_pipeline.pso,
+            &figure::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                bones: bones.buf.clone(),
+                lights: lights.buf.clone(),
+                shadows: shadows.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
             },
         );
     }
@@ -596,7 +679,7 @@ impl Renderer {
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
-                tgt_depth: self.tgt_depth_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
             },
         );
     }
@@ -634,7 +717,7 @@ impl Renderer {
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 waves: (waves.srv.clone(), waves.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
-                tgt_depth: self.tgt_depth_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
             },
         );
     }
@@ -670,7 +753,7 @@ impl Renderer {
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
-                tgt_depth: self.tgt_depth_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
             },
         );
     }
@@ -702,7 +785,7 @@ impl Renderer {
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
-                tgt_depth: self.tgt_depth_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
             },
         );
     }
@@ -795,6 +878,7 @@ fn create_pipelines(
         GfxPipeline<ui::pipe::Init<'static>>,
         GfxPipeline<lod_terrain::pipe::Init<'static>>,
         GfxPipeline<postprocess::pipe::Init<'static>>,
+        GfxPipeline<figure::pipe::Init<'static>>,
     ),
     RenderError,
 > {
@@ -965,6 +1049,31 @@ fn create_pipelines(
         gfx::state::CullFace::Back,
     )?;
 
+    // Construct a pipeline for rendering the player silhouette
+    let player_shadow_pipeline = create_pipeline(
+        factory,
+        figure::pipe::Init {
+            tgt_depth_stencil: (
+                gfx::preset::depth::PASS_TEST,
+                Stencil::new(
+                    Comparison::Equal,
+                    0xff,
+                    (StencilOp::Keep, StencilOp::Keep, StencilOp::Keep),
+                ),
+            ),
+            ..figure::pipe::new()
+        },
+        &assets::load_watched::<String>("voxygen.shaders.figure-vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>(
+            "voxygen.shaders.player-shadow-frag",
+            shader_reload_indicator,
+        )
+        .unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Back,
+    )?;
+
     Ok((
         skybox_pipeline,
         figure_pipeline,
@@ -974,6 +1083,7 @@ fn create_pipelines(
         ui_pipeline,
         lod_terrain_pipeline,
         postprocess_pipeline,
+        player_shadow_pipeline,
     ))
 }
 

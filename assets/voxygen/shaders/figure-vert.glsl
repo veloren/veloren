@@ -6,12 +6,16 @@
 in vec3 v_pos;
 in vec3 v_norm;
 in vec3 v_col;
+in float v_ao;
 in uint v_bone_idx;
 
 layout (std140)
 uniform u_locals {
 	mat4 model_mat;
 	vec4 model_col;
+	// bit 0 - is player
+	// bit 1-31 - unused
+	int flags;
 };
 
 struct BoneData {
@@ -25,6 +29,7 @@ uniform u_bones {
 
 out vec3 f_pos;
 out vec3 f_col;
+out float f_ao;
 flat out vec3 f_norm;
 out float f_alt;
 out vec4 f_shadow;
@@ -38,6 +43,8 @@ void main() {
 		vec4(v_pos, 1)).xyz;
 
 	f_col = srgb_to_linear(v_col);
+
+	f_ao = v_ao;
 
 	// Calculate normal here rather than for each pixel in the fragment shader
 	f_norm = normalize((

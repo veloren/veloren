@@ -25,6 +25,7 @@ impl Alignment {
     // Never attacks
     pub fn passive_towards(self, other: Alignment) -> bool {
         match (self, other) {
+            (Alignment::Enemy, Alignment::Enemy) => true,
             (Alignment::Owned(a), Alignment::Owned(b)) if a == b => true,
             _ => false,
         }
@@ -61,6 +62,7 @@ pub enum Activity {
         chaser: Chaser,
         time: f64,
         been_close: bool,
+        powerup: f32,
     },
 }
 

@@ -1,13 +1,16 @@
 #version 330 core
 
 #include <globals.glsl>
+#include <random.glsl>
 
 in vec3 f_pos;
+in vec3 f_chunk_pos;
 flat in uint f_pos_norm;
 in float f_alt;
 in vec4 f_shadow;
 in vec3 f_col;
 in float f_light;
+in float f_ao;
 
 out vec4 tgt_color;
 
@@ -65,6 +68,10 @@ void main() {
     reflected_light *= f_light * point_shadow * shade_frac;
 
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+
+	float ao = pow(f_ao, 0.5) * 0.9 + 0.1;
+	emitted_light *= ao;
+	reflected_light *= ao;
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
     reflected_light += point_light; */
@@ -87,7 +94,8 @@ void main() {
     // light_reflection_factorplight_reflection_factor
 
 	// vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
-	surf_color = illuminate(f_col * emitted_light, f_col * reflected_light);
+	vec3 col = srgb_to_linear(f_col + hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0)) * 0.02); // Small-scale noise
+	surf_color = illuminate(col * emitted_light, col * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

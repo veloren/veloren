@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added daily Mac builds
 - Allow spawning individual pet species, not just generic body kinds.
 - Configurable fonts
+- Configurable keybindings from the Controls menu
 - Tanslation status tracking
 - Added gamma setting
 - Added new orc hairstyles
@@ -40,6 +41,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fleshed out "attack" animation into alpha, beta and spin type attacks
 - Fleshed out range attack into charging and shooting anims for staff/bow
 - Customized attack animation for hammers and axes
+- German translation
+- Added a silhouette for players when they are occluded
+- Added transparency to the player when zooming in
+- Made armor and hotbar slots actually function
+- Added dragging and right-click to use functionality to inventory, armor & hotbar slots
+- Added capes, lanterns, tabards, rings, helmets & necklaces as equippable armor
+- 6 new music tracks
+- Added basic world and civilisation simulation
+- Added overhauled towns
+- Added fields, crops and scarecrows
+- Added paths
+- Added bridges
+- Added procedural house generation
+- Added lampposts
+- Added NPCs that spawn in towns
+- Added simple dungeons
+- Added sub-voxel noise effect
+- Added waypoints next to dungeons
+- Made players spawn in towns
+- Added non-uniform block heights
 
 ### Changed
 
@@ -54,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled icon art
 - Asset cleanup to lower client-size
 - Rewrote the humanoid skeleton to be more ideal for attack animations
-
+- Arrows can no longer hurt their owners
 
 ### Removed
 

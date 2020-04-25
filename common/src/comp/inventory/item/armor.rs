@@ -14,8 +14,9 @@ pub enum Chest {
     ClothPurple0 = 11,
     ClothBlue0 = 12,
     ClothGreen0 = 13,
+    Rugged0 = 14,
 }
-pub const ALL_CHESTS: [Chest; 13] = [
+pub const ALL_CHESTS: [Chest; 14] = [
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
@@ -29,6 +30,7 @@ pub const ALL_CHESTS: [Chest; 13] = [
     Chest::ClothPurple0,
     Chest::ClothBlue0,
     Chest::ClothGreen0,
+    Chest::Rugged0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -76,8 +78,9 @@ pub enum Pants {
     ClothPurple0 = 10,
     ClothBlue0 = 11,
     ClothGreen0 = 12,
+    Rugged0 = 13,
 }
-pub const ALL_PANTS: [Pants; 13] = [
+pub const ALL_PANTS: [Pants; 14] = [
     Pants::None,
     Pants::Blue,
     Pants::Brown,
@@ -91,6 +94,7 @@ pub const ALL_PANTS: [Pants; 13] = [
     Pants::ClothPurple0,
     Pants::ClothBlue0,
     Pants::ClothGreen0,
+    Pants::Rugged0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -118,7 +122,7 @@ pub const ALL_HANDS: [Hand; 7] = [
 #[repr(u32)]
 pub enum Foot {
     Dark = 1,
-    Sandal = 2,
+    Sandal0 = 2,
     Jester = 3,
     Assassin = 4,
     Plate0 = 5,
@@ -129,7 +133,7 @@ pub enum Foot {
 }
 pub const ALL_FEET: [Foot; 9] = [
     Foot::Dark,
-    Foot::Sandal,
+    Foot::Sandal0,
     Foot::Jester,
     Foot::Assassin,
     Foot::Plate0,
@@ -163,6 +167,38 @@ pub const ALL_SHOULDERS: [Shoulder; 9] = [
     Shoulder::ClothBlue0,
     Shoulder::ClothGreen0,
 ];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Back {
+    Short0 = 1,
+    Admin = 2,
+}
+pub const ALL_BACKS: [Back; 2] = [Back::Short0, Back::Admin];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Ring {
+    Ring0 = 1,
+}
+pub const ALL_RINGS: [Ring; 1] = [Ring::Ring0];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Neck {
+    Neck0 = 1,
+}
+pub const ALL_NECKS: [Neck; 1] = [Neck::Neck0];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Head {
+    Leather0 = 1,
+    AssaMask0 = 2,
+}
+pub const ALL_HEADS: [Head; 2] = [Head::Leather0, Head::AssaMask0];
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Tabard {
+    Admin = 1,
+}
+pub const ALL_TABARDS: [Tabard; 1] = [Tabard::Admin];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
@@ -172,6 +208,11 @@ pub enum Armor {
     Hand(Hand),
     Pants(Pants),
     Foot(Foot),
+    Back(Back),
+    Ring(Ring),
+    Neck(Neck),
+    Head(Head),
+    Tabard(Tabard),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

@@ -177,6 +177,8 @@ impl MainMenuUi {
             "voxygen.background.bg_7",
             "voxygen.background.bg_8",
             "voxygen.background.bg_9",
+            "voxygen.background.bg_10",
+            "voxygen.background.bg_11",
         ];
         let mut rng = thread_rng();
 
@@ -205,7 +207,10 @@ impl MainMenuUi {
             rot_imgs,
             username: networking.username.clone(),
             password: "".to_owned(),
-            server_address: networking.servers[networking.default_server].clone(),
+            server_address: networking
+                .servers
+                .get(networking.default_server)
+                .map_or_else(|| String::new(), |address| address.clone()),
             popup: None,
             connecting: None,
             show_servers: false,
@@ -534,8 +539,10 @@ impl MainMenuUi {
                     .set(self.ids.password_bg, ui_widgets);
                 for event in TextBox::new(&self.password)
                     .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.password_bg, 44.0 / 2.0)
-                    .font_size(self.fonts.cyri.scale(22))
+                    .mid_bottom_with_margin_on(self.ids.password_bg, 17.0)
+                    // the text is smaller to allow longer passwords, conrod limits text length
+                    // this allows 35 characters but can be increased, approximate formula: 420 / scale = length
+                    .font_size(self.fonts.cyri.scale(12))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
                     // transparent background
@@ -550,6 +557,7 @@ impl MainMenuUi {
                             self.password = password;
                         },
                         TextBoxEvent::Enter => {
+                            self.password.pop();
                             login!();
                         },
                     }

@@ -1,10 +1,11 @@
 use super::{
-    super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthFmt},
+    super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthStencilFmt},
     Globals, Light, Shadow,
 };
 use gfx::{
     self, gfx_defines, gfx_impl_struct_meta, gfx_pipeline, gfx_pipeline_inner,
-    gfx_vertex_struct_meta, state::ColorMask,
+    gfx_vertex_struct_meta,
+    state::{ColorMask, Comparison, Stencil, StencilOp},
 };
 use vek::*;
 
@@ -13,6 +14,7 @@ gfx_defines! {
         pos: [f32; 3] = "v_pos",
         norm: [f32; 3] = "v_norm",
         col: [f32; 3] = "v_col",
+        ao: f32 = "v_ao",
     }
 
     vertex Instance {
@@ -38,16 +40,17 @@ gfx_defines! {
         noise: gfx::TextureSampler<f32> = "t_noise",
 
         tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
+        tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
     }
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, ao: f32) -> Self {
         Self {
             pos: pos.into_array(),
             col: col.into_array(),
             norm: norm.into_array(),
+            ao,
         }
     }
 }

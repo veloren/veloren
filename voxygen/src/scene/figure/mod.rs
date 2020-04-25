@@ -144,6 +144,8 @@ impl FigureMgr {
         )
             .join()
         {
+            let is_player = scene_data.player_entity == entity;
+
             let (pos, ori) = interpolated
                 .map(|i| (Pos(i.pos), *i.ori))
                 .unwrap_or((*pos, Vec3::unit_y()));
@@ -380,7 +382,7 @@ impl FigureMgr {
             let col = stats
                 .map(|s| {
                     Rgba::broadcast(1.0)
-                        + Rgba::new(2.0, 2.0, 2.0, 0.0).map(|c| {
+                        + Rgba::new(2.0, 2.0, 2., 0.00).map(|c| {
                             (c / (1.0 + DAMAGE_FADE_COEFFICIENT * s.health.last_change.0)) as f32
                         })
                 })
@@ -627,6 +629,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::QuadrupedSmall(_) => {
@@ -707,6 +710,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::QuadrupedMedium(_) => {
@@ -789,6 +793,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::BirdMedium(_) => {
@@ -863,6 +868,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::FishMedium(_) => {
@@ -937,6 +943,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::Dragon(_) => {
@@ -1011,6 +1018,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::Critter(_) => {
@@ -1085,6 +1093,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::BirdSmall(_) => {
@@ -1159,6 +1168,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::FishSmall(_) => {
@@ -1233,6 +1243,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::BipedLarge(_) => {
@@ -1307,6 +1318,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
                 Body::Object(_) => {
@@ -1326,6 +1338,7 @@ impl FigureMgr {
                         state_animation_rate,
                         lpindex,
                         true,
+                        is_player,
                     );
                 },
             }
@@ -1387,201 +1400,121 @@ impl FigureMgr {
         .filter(|(_, _, _, _, stats, _, _)| stats.map_or(true, |s| !s.is_dead))
         {
             let is_player = entity == player_entity;
-            let player_camera_mode = if is_player {
-                camera.get_mode()
-            } else {
-                CameraMode::default()
-            };
-            let character_state = if is_player { character_state } else { None };
 
-            let FigureMgr {
-                model_cache,
-                critter_model_cache,
-                quadruped_small_model_cache,
-                quadruped_medium_model_cache,
-                bird_medium_model_cache,
-                bird_small_model_cache,
-                dragon_model_cache,
-                fish_medium_model_cache,
-                fish_small_model_cache,
-                biped_large_model_cache,
-                character_states,
-                quadruped_small_states,
-                quadruped_medium_states,
-                bird_medium_states,
-                fish_medium_states,
-                critter_states,
-                dragon_states,
-                bird_small_states,
-                fish_small_states,
-                biped_large_states,
-                object_states,
-            } = self;
-            if let Some((locals, bone_consts, model)) = match body {
-                Body::Humanoid(_) => character_states
-                    .get(&entity)
-                    .filter(|state| state.visible)
-                    .map(|state| {
-                        (
-                            state.locals(),
-                            state.bone_consts(),
-                            &model_cache
-                                .get_or_create_model(
-                                    renderer,
-                                    *body,
-                                    loadout,
-                                    tick,
-                                    player_camera_mode,
-                                    character_state,
-                                )
-                                .0,
-                        )
-                    }),
-                Body::QuadrupedSmall(_) => quadruped_small_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &quadruped_small_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::QuadrupedMedium(_) => quadruped_medium_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &quadruped_medium_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::BirdMedium(_) => bird_medium_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &bird_medium_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::FishMedium(_) => fish_medium_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &fish_medium_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::Critter(_) => critter_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &critter_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::Dragon(_) => dragon_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &dragon_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::BirdSmall(_) => bird_small_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &bird_small_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::FishSmall(_) => fish_small_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &fish_small_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::BipedLarge(_) => biped_large_states.get(&entity).map(|state| {
-                    (
-                        state.locals(),
-                        state.bone_consts(),
-                        &biped_large_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
-                    )
-                }),
-                Body::Object(_) => object_states.get(&entity).map(|state| {
+            if !is_player {
+                self.render_figure(
+                    renderer,
+                    tick,
+                    globals,
+                    lights,
+                    shadows,
+                    lod,
+                    camera,
+                    character_state,
+                    entity,
+                    body,
+                    loadout,
+                    false,
+                );
+            }
+        }
+    }
+
+    pub fn render_player(
+        &mut self,
+        renderer: &mut Renderer,
+        state: &State,
+        player_entity: EcsEntity,
+        tick: u64,
+        globals: &Consts<Globals>,
+        lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
+        lod: &Lod,
+        camera: &Camera,
+    ) {
+        let ecs = state.ecs();
+
+        let character_state_storage = state.read_storage::<common::comp::CharacterState>();
+        let character_state = character_state_storage.get(player_entity);
+
+        if let Some(body) = ecs.read_storage::<Body>().get(player_entity) {
+            let stats_storage = state.read_storage::<Stats>();
+            let stats = stats_storage.get(player_entity);
+
+            if stats.map_or(false, |s| s.is_dead) {
+                return;
+            }
+
+            let loadout_storage = ecs.read_storage::<Loadout>();
+            let loadout = loadout_storage.get(player_entity);
+
+            self.render_figure(
+                renderer,
+                tick,
+                globals,
+                lights,
+                shadows,
+                lod,
+                camera,
+                character_state,
+                player_entity,
+                body,
+                loadout,
+                true,
+            );
+        }
+    }
+
+    fn render_figure(
+        &mut self,
+        renderer: &mut Renderer,
+        tick: u64,
+        globals: &Consts<Globals>,
+        lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
+        lod: &Lod,
+        camera: &Camera,
+        character_state: Option<&CharacterState>,
+        entity: EcsEntity,
+        body: &Body,
+        loadout: Option<&Loadout>,
+        is_player: bool,
+    ) {
+        let player_camera_mode = if is_player {
+            camera.get_mode()
+        } else {
+            CameraMode::default()
+        };
+        let character_state = if is_player { character_state } else { None };
+
+        let FigureMgr {
+            model_cache,
+            critter_model_cache,
+            quadruped_small_model_cache,
+            quadruped_medium_model_cache,
+            bird_medium_model_cache,
+            bird_small_model_cache,
+            dragon_model_cache,
+            fish_medium_model_cache,
+            fish_small_model_cache,
+            biped_large_model_cache,
+            character_states,
+            quadruped_small_states,
+            quadruped_medium_states,
+            bird_medium_states,
+            fish_medium_states,
+            critter_states,
+            dragon_states,
+            bird_small_states,
+            fish_small_states,
+            biped_large_states,
+            object_states,
+        } = self;
+        if let Some((locals, bone_consts, model)) = match body {
+            Body::Humanoid(_) => character_states
+                .get(&entity)
+                .filter(|state| state.visible)
+                .map(|state| {
                     (
                         state.locals(),
                         state.bone_consts(),
@@ -1597,8 +1530,179 @@ impl FigureMgr {
                             .0,
                     )
                 }),
-            } {
-                renderer.render_figure(
+            Body::QuadrupedSmall(_) => quadruped_small_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &quadruped_small_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::QuadrupedMedium(_) => quadruped_medium_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &quadruped_medium_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::BirdMedium(_) => bird_medium_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &bird_medium_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::FishMedium(_) => fish_medium_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &fish_medium_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::Critter(_) => critter_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &critter_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::Dragon(_) => dragon_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &dragon_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::BirdSmall(_) => bird_small_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &bird_small_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::FishSmall(_) => fish_small_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &fish_small_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::BipedLarge(_) => biped_large_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &biped_large_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::Object(_) => object_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+        } {
+            if is_player {
+                renderer.render_player(
+                    model,
+                    globals,
+                    locals,
+                    bone_consts,
+                    lights,
+                    shadows,
+                    &lod.map,
+                    &lod.horizon,
+                );
+                renderer.render_player_shadow(
                     model,
                     globals,
                     locals,
@@ -1609,8 +1713,19 @@ impl FigureMgr {
                     &lod.horizon,
                 );
             } else {
-                trace!("Body has no saved figure");
+                renderer.render_figure(
+                    model,
+                    globals,
+                    locals,
+                    bone_consts,
+                    lights,
+                    shadows,
+                    &lod.map,
+                    &lod.horizon,
+                );
             }
+        } else {
+            trace!("Body has no saved figure");
         }
     }
 
@@ -1715,6 +1830,7 @@ impl<S: Skeleton> FigureState<S> {
         state_animation_rate: f32,
         lpindex: u8,
         visible: bool,
+        is_player: bool,
     ) {
         self.visible = visible;
         self.lpindex = lpindex;
@@ -1730,7 +1846,7 @@ impl<S: Skeleton> FigureState<S> {
             * Mat4::rotation_x(ori.z.atan2(Vec2::from(ori).magnitude()))
             * Mat4::scaling_3d(Vec3::from(0.8 * scale));
 
-        let locals = FigureLocals::new(mat, col);
+        let locals = FigureLocals::new(mat, col, is_player);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
         renderer

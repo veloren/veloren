@@ -179,11 +179,23 @@ impl StateExt for State {
                     }),
                     second_item: None,
                     shoulder: None,
-                    chest: None,
+                    chest: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.rugged_chest",
+                    )),
                     belt: None,
                     hand: None,
-                    pants: None,
-                    foot: None,
+                    pants: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.rugged_pants",
+                    )),
+                    foot: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.sandals_0",
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: None,
+                    head: None,
+                    tabard: None,
                 }
             } else {
                 comp::Loadout::default()

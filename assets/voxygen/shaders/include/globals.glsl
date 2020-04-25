@@ -13,4 +13,17 @@ uniform u_globals {
 	uvec4 medium;
 	ivec4 select_pos;
 	vec4 gamma;
+	// 0 - FirstPerson
+	// 1 - ThirdPerson
+	uint cam_mode;
 };
+
+// Specifies the pattern used in the player dithering
+mat4 threshold_matrix = mat4(
+	vec4(1.0 / 17.0,  9.0 / 17.0,  3.0 / 17.0, 11.0 / 17.0),
+	vec4(13.0 / 17.0,  5.0 / 17.0, 15.0 / 17.0,  7.0 / 17.0),
+	vec4(4.0 / 17.0, 12.0 / 17.0,  2.0 / 17.0, 10.0 / 17.0),
+	vec4(16.0 / 17.0,  8.0 / 17.0, 14.0 / 17.0,  6.0 / 17.0)
+);
+float distance_divider = 2;
+float shadow_dithering = 0.5;

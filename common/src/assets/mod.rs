@@ -297,7 +297,23 @@ lazy_static! {
 
         // System paths
         #[cfg(target_os = "linux")]
-        paths.push("/usr/share/veloren/assets".into());
+        {
+            if let Ok(result) = std::env::var("XDG_DATA_HOME") {
+                paths.push(format!("{}/veloren/assets", result).into());
+            } else if let Ok(result) = std::env::var("HOME") {
+                paths.push(format!("{}/.local/share/veloren/assets", result).into());
+            }
+
+            if let Ok(result) = std::env::var("XDG_DATA_DIRS") {
+                result.split(":").for_each(|x| paths.push(format!("{}/veloren/assets", x).into()));
+            } else {
+                // Fallback
+                let fallback_paths = vec!["/usr/local/share", "/usr/share"];
+                for fallback_path in fallback_paths {
+                    paths.push(format!("{}/veloren/assets", fallback_path).into());
+                }
+            }
+        }
 
         for path in paths.clone() {
             match find_folder::Search::ParentsThenKids(3, 1)

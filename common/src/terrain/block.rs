@@ -40,9 +40,29 @@ pub enum BlockKind {
     Fern,
     DeadBush,
     Blueberry,
+    Ember,
+    Corn,
+    WheatYellow,
+    WheatGreen,
+    Cabbage,
+    Flax,
+    Carrot,
+    Tomato,
+    Radish,
+    Coconut,
+    Turnip,
+    Window1,
+    Window2,
+    Window3,
+    Window4,
+    Scarecrow,
+    StreetLamp,
+    Door,
 }
 
 impl BlockKind {
+    pub const MAX_HEIGHT: f32 = 3.0;
+
     pub fn is_tangible(&self) -> bool {
         match self {
             BlockKind::Air => false,
@@ -81,6 +101,25 @@ impl BlockKind {
             BlockKind::Fern => true,
             BlockKind::DeadBush => true,
             BlockKind::Blueberry => true,
+            BlockKind::Ember => true,
+            BlockKind::Corn => true,
+            BlockKind::WheatYellow => true,
+            BlockKind::WheatGreen => true,
+            BlockKind::Cabbage => false,
+            BlockKind::Pumpkin => false,
+            BlockKind::Flax => true,
+            BlockKind::Carrot => true,
+            BlockKind::Tomato => false,
+            BlockKind::Radish => true,
+            BlockKind::Turnip => true,
+            BlockKind::Coconut => true,
+            BlockKind::Window1 => true,
+            BlockKind::Window2 => true,
+            BlockKind::Window3 => true,
+            BlockKind::Window4 => true,
+            BlockKind::Scarecrow => true,
+            BlockKind::StreetLamp => true,
+            BlockKind::Door => false,
             _ => false,
         }
     }
@@ -118,12 +157,31 @@ impl BlockKind {
             BlockKind::Velorite => false,
             BlockKind::VeloriteFrag => false,
             BlockKind::Chest => false,
+            BlockKind::Pumpkin => false,
             BlockKind::Welwitch => false,
             BlockKind::LingonBerry => false,
             BlockKind::LeafyPlant => false,
             BlockKind::Fern => false,
             BlockKind::DeadBush => false,
             BlockKind::Blueberry => false,
+            BlockKind::Ember => false,
+            BlockKind::Corn => false,
+            BlockKind::WheatYellow => false,
+            BlockKind::WheatGreen => false,
+            BlockKind::Cabbage => false,
+            BlockKind::Flax => false,
+            BlockKind::Carrot => false,
+            BlockKind::Tomato => false,
+            BlockKind::Radish => false,
+            BlockKind::Turnip => false,
+            BlockKind::Coconut => false,
+            BlockKind::Window1 => false,
+            BlockKind::Window2 => false,
+            BlockKind::Window3 => false,
+            BlockKind::Window4 => false,
+            BlockKind::Scarecrow => false,
+            BlockKind::StreetLamp => false,
+            BlockKind::Door => false,
             _ => true,
         }
     }
@@ -159,7 +217,41 @@ impl BlockKind {
             BlockKind::Fern => false,
             BlockKind::DeadBush => false,
             BlockKind::Blueberry => false,
+            BlockKind::Ember => false,
+            BlockKind::Corn => false,
+            BlockKind::WheatYellow => false,
+            BlockKind::WheatGreen => false,
+            BlockKind::Cabbage => true,
+            BlockKind::Flax => false,
+            BlockKind::Carrot => true,
+            BlockKind::Tomato => true,
+            BlockKind::Radish => true,
+            BlockKind::Turnip => true,
+            BlockKind::Coconut => true,
+            BlockKind::Scarecrow => true,
+            BlockKind::StreetLamp => true,
+            BlockKind::Door => false,
             _ => true,
+        }
+    }
+
+    // TODO: Integrate this into `is_solid` by returning an `Option<f32>`
+    pub fn get_height(&self) -> f32 {
+        // Beware: the height *must* be <= `MAX_HEIGHT` or the collision system will not
+        // properly detect it!
+        match self {
+            BlockKind::Tomato => 1.65,
+            BlockKind::LargeCactus => 2.5,
+            BlockKind::Scarecrow => 3.0,
+            BlockKind::Turnip => 0.36,
+            BlockKind::Pumpkin => 0.81,
+            BlockKind::Cabbage => 0.45,
+            BlockKind::Chest => 1.09,
+            BlockKind::StreetLamp => 3.0,
+            BlockKind::Carrot => 0.18,
+            BlockKind::Radish => 0.18,
+            BlockKind::Door => 3.0,
+            _ => 1.0,
         }
     }
 
@@ -180,7 +272,7 @@ impl BlockKind {
             BlockKind::Velorite => true,
             BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
-            BlockKind::Pumpkin => true,
+            BlockKind::Coconut => true,
             _ => false,
         }
     }
@@ -206,6 +298,17 @@ impl Block {
             Some(self.color.into())
         } else {
             None
+        }
+    }
+
+    pub fn get_ori(&self) -> Option<u8> {
+        match self.kind {
+            BlockKind::Window1
+            | BlockKind::Window2
+            | BlockKind::Window3
+            | BlockKind::Window4
+            | BlockKind::Door => Some(self.color[0] & 0b111),
+            _ => None,
         }
     }
 

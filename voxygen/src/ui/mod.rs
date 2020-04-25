@@ -16,6 +16,7 @@ pub use widgets::{
     image_slider::ImageSlider,
     ingame::{Ingame, Ingameable},
     radio_list::RadioList,
+    slot,
     toggle_button::ToggleButton,
     tooltip::{Tooltip, TooltipManager, Tooltipable},
 };
@@ -28,6 +29,7 @@ use crate::{
     window::Window,
     Error,
 };
+#[rustfmt::skip]
 use ::image::GenericImageView;
 use cache::Cache;
 use common::{assets, util::srgba_to_linear};

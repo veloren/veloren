@@ -2,6 +2,7 @@
 #![type_length_limit = "1664759"]
 #![feature(
     arbitrary_enum_discriminant,
+    option_unwrap_none,
     bool_to_option,
     label_break_value,
     trait_alias,
@@ -27,6 +28,7 @@ pub mod region;
 pub mod spiral;
 pub mod state;
 pub mod states;
+pub mod store;
 pub mod sync;
 pub mod sys;
 pub mod terrain;

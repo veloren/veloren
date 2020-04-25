@@ -1,4 +1,4 @@
-use crate::{sync::Uid, util::Dir};
+use crate::{comp::inventory::slot::Slot, sync::Uid, util::Dir};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
@@ -6,6 +6,15 @@ use vek::*;
 
 /// Default duration before an input is considered 'held'.
 pub const DEFAULT_HOLD_DURATION: Duration = Duration::from_millis(200);
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum InventoryManip {
+    Pickup(Uid),
+    Collect(Vec3<i32>),
+    Use(Slot),
+    Swap(Slot, Slot),
+    Drop(Slot),
+}
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlEvent {
@@ -229,13 +238,4 @@ pub struct Mounting(pub Uid);
 
 impl Component for Mounting {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum InventoryManip {
-    Pickup(Uid),
-    Collect(Vec3<i32>),
-    Use(usize),
-    Swap(usize, usize),
-    Drop(usize),
 }

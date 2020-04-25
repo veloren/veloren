@@ -6,12 +6,15 @@ use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, FluidMode},
     ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
+    window::GameInput,
     GlobalState,
 };
 use conrod_core::{
     color,
+    position::Relative,
     widget::{self, Button, DropDownList, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
+    WidgetCommon,
 };
 
 const FPS_CHOICES: [u32; 11] = [15, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500];
@@ -27,8 +30,9 @@ widget_ids! {
         settings_r,
         settings_l,
         settings_scrollbar,
-        controls_text,
-        controls_controls,
+        controls_texts[],
+        controls_buttons[],
+        controls_alignment_rectangle,
         button_help,
         button_help2,
         show_help_label,
@@ -62,6 +66,8 @@ widget_ids! {
         mouse_zoom_invert_label,
         mouse_y_invert_button,
         mouse_y_invert_label,
+        smooth_pan_toggle_button,
+        smooth_pan_toggle_label,
         ch_title,
         ch_transp_slider,
         ch_transp_label,
@@ -204,6 +210,7 @@ pub enum Event {
     AdjustMouseZoom(u32),
     ToggleZoomInvert(bool),
     ToggleMouseYInvert(bool),
+    ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustFOV(u16),
     AdjustLodDetail(u32),
@@ -225,6 +232,7 @@ pub enum Event {
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
     ChangeLanguage(LanguageMetadata),
+    ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
 }
 
@@ -1238,7 +1246,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .right_from(state.ids.mouse_zoom_invert_button, 250.0)
+            .right_from(state.ids.mouse_zoom_invert_button, 175.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.mouse_y_invert_button, ui);
@@ -1260,6 +1268,36 @@ impl<'a> Widget for SettingsWindow<'a> {
             .graphics_for(state.ids.mouse_y_invert_button)
             .color(TEXT_COLOR)
             .set(state.ids.mouse_y_invert_label, ui);
+
+            // Mouse Smoothing Toggle
+            let smooth_pan_enabled = ToggleButton::new(
+                self.global_state.settings.gameplay.smooth_pan_enable,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.mouse_y_invert_button, 175.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.smooth_pan_toggle_button, ui);
+
+            if self.global_state.settings.gameplay.smooth_pan_enable != smooth_pan_enabled {
+                events.push(Event::ToggleSmoothPan(
+                    !self.global_state.settings.gameplay.smooth_pan_enable,
+                ));
+            }
+
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.enable_mouse_smoothing"),
+            )
+            .right_from(state.ids.smooth_pan_toggle_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.smooth_pan_toggle_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.smooth_pan_toggle_label, ui);
 
             // Free look behaviour
             Text::new(
@@ -1332,142 +1370,86 @@ impl<'a> Widget for SettingsWindow<'a> {
         // Contents
         if let SettingsTab::Controls = self.show.settings_tab {
             let controls = &self.global_state.settings.controls;
-            Text::new(&self.localized_strings.get("hud.settings.control_names"))
-                .color(TEXT_COLOR)
-                .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(18))
-                .set(state.ids.controls_text, ui);
-            // TODO: Replace with buttons that show actual keybinds and allow the user to
-            // change them.
-            #[rustfmt::skip]
-            Text::new(&format!(
-                "{}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 \n\
-                 \n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 {}\n\
-                 \n\
-                 \n\
-                 {}\n\
-                 {}\n\
-                 \n\
-                 \n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 \n\
-                 \n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 {}\n\
-                 \n\
-                 \n\
-                 \n\
-                 {}\n\
-                 {}\n\
-                 \n\
-                 \n\
-                 {}\n\
-                 \n\
-                 \n\
-                 \n\
-                 \n\
-                 ",
-                controls.toggle_cursor,
-                controls.help,
-                controls.toggle_interface,
-                controls.toggle_debug,
-                controls.screenshot,
-                controls.toggle_ingame_ui,
-                controls.fullscreen,
-                controls.move_forward,
-                controls.move_left,
-                controls.move_back,
-                controls.move_right,
-                controls.jump,
-                controls.glide,
-                "??", // Dodge
-                controls.roll,
-                controls.climb,
-                controls.climb_down,
-                "??", // Auto Walk
-                controls.toggle_wield,
-                "??", // Put on/Remove Helmet
-                controls.sit,
-                controls.mount,
-                controls.interact,
-                controls.primary,
-                controls.secondary,
-                "1", // Skillbar Slot 1
-                "2", // Skillbar Slot 2
-                "3", // Skillbar Slot 3
-                "4", // Skillbar Slot 4
-                "5", // Skillbar Slot 5
-                "6", // Skillbar Slot 6
-                "7", // Skillbar Slot 7
-                "8", // Skillbar Slot 8
-                "9", // Skillbar Slot 9
-                "0", // Skillbar Slot 10
-                controls.escape,
-                controls.settings,
-                controls.social,
-                controls.map,
-                controls.spellbook,
-                //controls.character_window,
-                //controls.quest_log,
-                controls.bag,
-                controls.enter,
-                "Mouse Wheel", // Scroll chat
-                controls.free_look
-            ))
-            .color(TEXT_COLOR)
-            .right_from(state.ids.controls_text, 0.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(18))
-            .set(state.ids.controls_controls, ui);
+            if controls.keybindings.len() > state.ids.controls_texts.len()
+                || controls.keybindings.len() > state.ids.controls_buttons.len()
+            {
+                state.update(|s| {
+                    s.ids
+                        .controls_texts
+                        .resize(controls.keybindings.len(), &mut ui.widget_id_generator());
+                    s.ids
+                        .controls_buttons
+                        .resize(controls.keybindings.len(), &mut ui.widget_id_generator());
+                });
+            }
+            // Used for sequential placement in a flow-down pattern
+            let mut previous_text_id = None;
+            let mut keybindings_vec: Vec<&GameInput> = controls.keybindings.keys().collect();
+            keybindings_vec.sort();
+            // Loop all existing keybindings and the ids for text and button widgets
+            for (game_input, (&text_id, &button_id)) in keybindings_vec.into_iter().zip(
+                state
+                    .ids
+                    .controls_texts
+                    .iter()
+                    .zip(state.ids.controls_buttons.iter()),
+            ) {
+                if let Some(key) = controls.get_binding(*game_input) {
+                    let loc_key = self
+                        .localized_strings
+                        .get(game_input.get_localization_key());
+                    let key_string = match self.global_state.window.remapping_keybindings {
+                        Some(game_input_binding) => {
+                            if *game_input == game_input_binding {
+                                String::from(self.localized_strings.get("hud.settings.awaitingkey"))
+                            } else {
+                                key.to_string()
+                            }
+                        },
+                        None => key.to_string(),
+                    };
+
+                    let text_widget = Text::new(loc_key)
+                        .color(TEXT_COLOR)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(18));
+                    let button_widget = Button::new()
+                        .label(&key_string)
+                        .label_color(TEXT_COLOR)
+                        .label_font_id(self.fonts.cyri.conrod_id)
+                        .label_font_size(self.fonts.cyri.scale(15))
+                        .w(150.0)
+                        .rgba(0.0, 0.0, 0.0, 0.0)
+                        .border_rgba(0.0, 0.0, 0.0, 255.0)
+                        .label_y(Relative::Scalar(3.0));
+                    // Place top-left if it's the first text, else under the previous one
+                    let text_widget = match previous_text_id {
+                        None => text_widget.top_left_with_margins_on(
+                            state.ids.settings_content,
+                            10.0,
+                            5.0,
+                        ),
+                        Some(prev_id) => text_widget.down_from(prev_id, 10.0),
+                    };
+                    let text_width = text_widget.get_w(ui).unwrap_or(0.0);
+                    text_widget.set(text_id, ui);
+                    if button_widget
+                        .right_from(text_id, 350.0 - text_width)
+                        .set(button_id, ui)
+                        .was_clicked()
+                    {
+                        events.push(Event::ChangeBinding(*game_input));
+                    }
+                    // Set the previous id to the current one for the next cycle
+                    previous_text_id = Some(text_id);
+                }
+            }
+            // Add an empty text widget to simulate some bottom margin, because conrod sucks
+            if let Some(prev_id) = previous_text_id {
+                Rectangle::fill_with([1.0, 1.0], color::TRANSPARENT)
+                    .down_from(prev_id, 10.0)
+                    .set(state.ids.controls_alignment_rectangle, ui);
+            }
         }
 
         // 4) Video Tab -----------------------------------

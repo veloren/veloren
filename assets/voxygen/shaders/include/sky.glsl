@@ -4,8 +4,8 @@
 
 const float PI = 3.141592;
 
-const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
-const vec3 SKY_DAY_MID = vec3(0.02, 0.08, 0.8);
+const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
+const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
 const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0) * 1.8;//3.0;
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
@@ -270,7 +270,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 
 	// Clouds
 	clouds = get_cloud_color(dir, origin, time_of_day, f_dist, quality);
-	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 1.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 80.0 + get_moon_color(moon_dir));
+	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 1.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 80.0 + get_moon_color(moon_dir) + 0.25);
 
 	if (f_dist > 5000.0) {
 		sky_color += sun_light + moon_light;

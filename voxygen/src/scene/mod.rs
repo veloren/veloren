@@ -83,6 +83,8 @@ pub struct SceneData<'a> {
     pub view_distance: u32,
     pub tick: u64,
     pub thread_pool: &'a uvth::ThreadPool,
+    pub gamma: f32,
+    pub mouse_smoothing: bool,
 }
 
 impl Scene {
@@ -187,7 +189,6 @@ impl Scene {
         &mut self,
         renderer: &mut Renderer,
         audio: &mut AudioFrontend,
-        settings: &Settings,
         scene_data: &SceneData,
     ) {
         // Get player position.
@@ -247,11 +248,15 @@ impl Scene {
         };
 
         self.camera.set_focus_pos(
-            player_pos + Vec3::unit_z() * (up + dist * 0.15 - tilt.min(0.0) * dist * 0.75),
+            player_pos + Vec3::unit_z() * (up + dist * 0.15 - tilt.min(0.0) * dist * 0.4),
         );
 
         // Tick camera for interpolation.
-        self.camera.update(scene_data.state.get_time());
+        self.camera.update(
+            scene_data.state.get_time(),
+            scene_data.state.get_delta_time(),
+            scene_data.mouse_smoothing,
+        );
 
         // Compute camera matrices.
         self.camera.compute_dependents(&*scene_data.state.terrain());
@@ -358,7 +363,8 @@ impl Scene {
                     .map(|b| b.kind())
                     .unwrap_or(BlockKind::Air),
                 self.select_pos,
-                settings.graphics.gamma,
+                scene_data.gamma,
+                self.camera.get_mode(),
             )])
             .expect("Failed to update global constants");
 
@@ -405,7 +411,12 @@ impl Scene {
             &self.lod,
             self.camera.get_focus_pos(),
         );
-        self.figure_mgr.render(
+        self.lod.render(renderer, &self.globals);
+
+        // Render the skybox.
+        renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
+
+        self.figure_mgr.render_player(
             renderer,
             state,
             player_entity,
@@ -416,10 +427,6 @@ impl Scene {
             &self.lod,
             &self.camera,
         );
-        self.lod.render(renderer, &self.globals);
-
-        // Render the skybox.
-        renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         self.terrain.render_translucent(
             renderer,

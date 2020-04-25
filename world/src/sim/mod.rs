@@ -2,7 +2,7 @@ mod diffusion;
 mod erosion;
 mod location;
 mod map;
-mod settlement;
+mod path;
 mod util;
 
 // Reexports
@@ -15,7 +15,7 @@ pub use self::{
     },
     location::Location,
     map::{MapConfig, MapDebug, MapSample},
-    settlement::Settlement,
+    path::PathData,
     util::{
         cdf_irwin_hall, downhill, get_horizon_map, get_oceans, local_cells, map_edge_factor,
         neighbors, uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf,
@@ -26,18 +26,19 @@ pub use self::{
 use crate::{
     all::ForestKind,
     block::BlockGen,
+    civ::Place,
     column::ColumnGen,
-    generator::TownState,
-    util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d},
+    site::Site,
+    util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d, LOCALITY, NEIGHBORS},
     CONFIG,
 };
 use common::{
     assets,
     msg::server::WorldMapMsg,
+    store::Id,
     terrain::{BiomeKind, TerrainChunkSize},
     vol::RectVolSize,
 };
-use hashbrown::HashMap;
 use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
     Seedable, SuperSimplex, Worley,
@@ -53,7 +54,6 @@ use std::{
     io::{BufReader, BufWriter},
     ops::{Add, Div, Mul, Neg, Sub},
     path::PathBuf,
-    sync::Arc,
 };
 use vek::*;
 
@@ -1306,6 +1306,8 @@ impl WorldSim {
         this
     }
 
+    pub fn get_size(&self) -> Vec2<u32> { WORLD_SIZE.map(|e| e as u32) }
+
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
     pub fn get_map(&self) -> WorldMapMsg {
@@ -1478,6 +1480,7 @@ impl WorldSim {
         });
 
         // Place the locations onto the world
+        /*
         let gen = StructureGen2d::new(self.seed, cell_size as u32, cell_size as u32 / 2);
 
         self.chunks
@@ -1517,74 +1520,9 @@ impl WorldSim {
                         .cloned()
                         .unwrap_or(None)
                         .map(|loc_idx| LocationInfo { loc_idx, near });
-
-                    let town_size = 200;
-                    let in_town = chunk
-                        .location
-                        .as_ref()
-                        .map(|l| {
-                            locations[l.loc_idx]
-                                .center
-                                .map(|e| e as i64)
-                                .distance_squared(block_pos.map(|e| e as i64))
-                                < town_size * town_size
-                        })
-                        .unwrap_or(false);
-
-                    if in_town {
-                        chunk.spawn_rate = 0.0;
-                    }
                 }
             });
-
-        // Stage 2 - towns!
-        let chunk_idx_center = |e: Vec2<i32>| {
-            e.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-                e * sz as i32 + sz as i32 / 2
-            })
-        };
-        let maybe_towns = self
-            .gen_ctx
-            .town_gen
-            .par_iter(
-                chunk_idx_center(Vec2::zero()),
-                chunk_idx_center(WORLD_SIZE.map(|e| e as i32)),
-            )
-            .map_init(
-                || Box::new(BlockGen::new(ColumnGen::new(self))),
-                |mut block_gen, (pos, seed)| {
-                    let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-                    // println!("Town: {:?}", town);
-                    TownState::generate(pos, &mut block_gen, &mut rng).map(|t| (pos, Arc::new(t)))
-                },
-            )
-            .filter_map(|x| x)
-            .collect::<HashMap<_, _>>();
-
-        let gen_ctx = &self.gen_ctx;
-        self.chunks
-            .par_iter_mut()
-            .enumerate()
-            .for_each(|(ij, chunk)| {
-                let chunk_pos = uniform_idx_as_vec2(ij);
-                let wpos = chunk_idx_center(chunk_pos);
-
-                let near_towns = gen_ctx.town_gen.get(wpos);
-                let town = near_towns
-                    .iter()
-                    .min_by_key(|(pos, _seed)| wpos.distance_squared(*pos));
-
-                let maybe_town = town
-                    .and_then(|(pos, _seed)| maybe_towns.get(pos))
-                    // Only care if we're close to the town
-                    .filter(|town| {
-                        Vec2::from(town.center()).distance_squared(wpos)
-                            < town.radius().add(64).pow(2)
-                    })
-                    .cloned();
-
-                chunk.structures.town = maybe_town;
-            });
+        */
 
         // Create waypoints
         const WAYPOINT_EVERY: usize = 16;
@@ -1645,10 +1583,28 @@ impl WorldSim {
         }
     }
 
+    pub fn get_gradient_approx(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
+        let a = self.get(chunk_pos)?;
+        if let Some(downhill) = a.downhill {
+            let b = self.get(
+                downhill.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                    e / (sz as i32)
+                }),
+            )?;
+            Some((a.alt - b.alt).abs() / TerrainChunkSize::RECT_SIZE.x as f32)
+        } else {
+            Some(0.0)
+        }
+    }
+
+    pub fn get_alt_approx(&self, wpos: Vec2<i32>) -> Option<f32> {
+        self.get_interpolated(wpos, |chunk| chunk.alt)
+    }
+
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
         self.get(
             wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                e / sz as i32
+                e.div_euclid(sz as i32)
             }),
         )
     }
@@ -1844,8 +1800,78 @@ impl WorldSim {
 
         Some(z0 + z1 + z2 + z3)
     }
+
+    pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>)> {
+        let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+            e.div_euclid(sz as i32)
+        });
+        let get_chunk_centre = |chunk_pos: Vec2<i32>| {
+            chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                e * sz as i32 + sz as i32 / 2
+            })
+        };
+
+        LOCALITY
+            .iter()
+            .filter_map(|ctrl| {
+                let chunk = self.get(chunk_pos + *ctrl)?;
+                let ctrl_pos =
+                    get_chunk_centre(chunk_pos + *ctrl).map(|e| e as f32) + chunk.path.offset;
+
+                let chunk_connections = chunk.path.neighbors.count_ones();
+                if chunk_connections == 0 {
+                    return None;
+                }
+
+                let (start_pos, _start_idx) = if chunk_connections != 2 {
+                    (ctrl_pos, None)
+                } else {
+                    let (start_idx, start_rpos) = NEIGHBORS
+                        .iter()
+                        .copied()
+                        .enumerate()
+                        .find(|(i, _)| chunk.path.neighbors & (1 << *i as u8) != 0)
+                        .unwrap();
+                    let start_pos_chunk = chunk_pos + *ctrl + start_rpos;
+                    (
+                        get_chunk_centre(start_pos_chunk).map(|e| e as f32)
+                            + self.get(start_pos_chunk)?.path.offset,
+                        Some(start_idx),
+                    )
+                };
+
+                Some(
+                    NEIGHBORS
+                        .iter()
+                        .enumerate()
+                        .filter(move |(i, _)| chunk.path.neighbors & (1 << *i as u8) != 0)
+                        .filter_map(move |(_, end_rpos)| {
+                            let end_pos_chunk = chunk_pos + *ctrl + end_rpos;
+                            let end_pos = get_chunk_centre(end_pos_chunk).map(|e| e as f32)
+                                + self.get(end_pos_chunk)?.path.offset;
+
+                            let bez = QuadraticBezier2 {
+                                start: (start_pos + ctrl_pos) / 2.0,
+                                ctrl: ctrl_pos,
+                                end: (end_pos + ctrl_pos) / 2.0,
+                            };
+                            let nearest_interval = bez
+                                .binary_search_point_by_steps(wpos.map(|e| e as f32), 16, 0.001)
+                                .0
+                                .clamped(0.0, 1.0);
+                            let pos = bez.evaluate(nearest_interval);
+                            let dist_sqrd = pos.distance_squared(wpos.map(|e| e as f32));
+                            Some((dist_sqrd, pos))
+                        }),
+                )
+            })
+            .flatten()
+            .min_by_key(|(dist_sqrd, _)| (dist_sqrd * 1024.0) as i32)
+            .map(|(dist, pos)| (dist.sqrt(), pos))
+    }
 }
 
+#[derive(Debug)]
 pub struct SimChunk {
     pub chaos: f32,
     pub alt: f32,
@@ -1861,10 +1887,12 @@ pub struct SimChunk {
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
-    pub location: Option<LocationInfo>,
     pub river: RiverData,
+    pub warp_factor: f32,
 
-    pub structures: Structures,
+    pub sites: Vec<Site>,
+    pub place: Option<Id<Place>>,
+    pub path: PathData,
     pub contains_waypoint: bool,
 }
 
@@ -1874,17 +1902,6 @@ pub struct RegionInfo {
     pub block_pos: Vec2<i32>,
     pub dist: f32,
     pub seed: u32,
-}
-
-#[derive(Clone)]
-pub struct LocationInfo {
-    pub loc_idx: usize,
-    pub near: Vec<RegionInfo>,
-}
-
-#[derive(Clone)]
-pub struct Structures {
-    pub town: Option<Arc<TownState>>,
 }
 
 impl SimChunk {
@@ -1951,7 +1968,9 @@ impl SimChunk {
             )
         };
 
-        let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
+        //let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 +
+        // chaos * 0.2;
+        let cliff = 0.0; // Disable cliffs
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f64| x.ln() - x.neg().ln_1p();
@@ -2106,23 +2125,33 @@ impl SimChunk {
                 }
             },
             spawn_rate: 1.0,
-            location: None,
             river,
-            structures: Structures { town: None },
+            warp_factor: 1.0,
+
+            sites: Vec::new(),
+            place: None,
+            path: PathData::default(),
             contains_waypoint: false,
         }
     }
 
-    pub fn is_underwater(&self) -> bool { self.river.river_kind.is_some() }
+    pub fn is_underwater(&self) -> bool {
+        self.water_alt > self.alt || self.river.river_kind.is_some()
+    }
 
     pub fn get_base_z(&self) -> f32 { self.alt - self.chaos * 50.0 - 16.0 }
 
-    pub fn get_name(&self, world: &WorldSim) -> Option<String> {
+    pub fn get_name(&self, _world: &WorldSim) -> Option<String> {
+        // TODO
+        None
+
+        /*
         if let Some(loc) = &self.location {
             Some(world.locations[loc.loc_idx].name().to_string())
         } else {
             None
         }
+        */
     }
 
     pub fn get_biome(&self) -> BiomeKind {

@@ -52,6 +52,10 @@ impl Animation for SitAnimation {
         next.belt.ori = Quaternion::rotation_x(stop * 0.3);
         next.belt.scale = (Vec3::one() + slow_abs * 0.05) * 1.02;
 
+        next.back.offset = Vec3::new(0.0, -2.8, 7.25);
+        next.back.ori = Quaternion::rotation_z(0.0);
+        next.back.scale = Vec3::one() * 1.02;
+
         next.shorts.offset = Vec3::new(0.0, stop * 2.5, -5.0 + stop * 0.6);
         next.shorts.ori = Quaternion::rotation_x(stop * 0.6);
         next.shorts.scale = Vec3::one();

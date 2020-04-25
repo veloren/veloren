@@ -1,5 +1,7 @@
 use vek::*;
 
+/// An iterator of coordinates that create a rectangular spiral out from the
+/// origin
 #[derive(Clone)]
 pub struct Spiral2d {
     layer: i32,

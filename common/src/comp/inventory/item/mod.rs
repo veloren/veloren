@@ -16,6 +16,7 @@ use std::{fs::File, io::BufReader};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
+    Coconut,
     Apple,
     Cheese,
     Potion,
@@ -36,12 +37,21 @@ pub enum Ingredient {
     Grass,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Lantern {
+    Black0 = 1,
+    Green0 = 2,
+}
+pub const ALL_LANTERNS: [Lantern; 2] = [Lantern::Black0, Lantern::Green0];
+
 fn default_amount() -> u32 { 1 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(tool::Tool),
+    Lantern(Lantern),
     Armor {
         kind: armor::Armor,
         stats: armor::Stats,
@@ -117,6 +127,7 @@ impl Item {
                 Some(assets::load_expect_cloned("common.items.grasses.medium"))
             },
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
+            BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.coconut")),
             BlockKind::Chest => Some(assets::load_expect_cloned(
                 [
                     "common.items.apple",
@@ -164,6 +175,9 @@ impl Item {
                     "common.items.armor.pants.cloth_purple_0",
                     "common.items.armor.shoulder.cloth_purple_0",
                     "common.items.armor.hand.cloth_purple_0",
+                    "common.items.armor.ring.ring_0",
+                    "common.items.armor.back.short_0",
+                    "common.items.armor.neck.neck_0",
                 ]
                 .choose(&mut rand::thread_rng())
                 .unwrap(), // Can't fail

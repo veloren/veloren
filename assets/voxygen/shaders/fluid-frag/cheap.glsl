@@ -97,10 +97,10 @@ void main() {
 	vec4 clouds;
     vec3 fog_color = get_sky_color(cam_to_frag, time_of_day.x, cam_pos.xyz, f_pos, 0.25, true, clouds);
 
-	float passthrough = pow(dot(faceforward(f_norm, f_norm, cam_to_frag/*view_dir*/), -cam_to_frag/*view_dir*/), 0.5);
+	float passthrough = /*pow(*/dot(faceforward(f_norm, f_norm, cam_to_frag/*view_dir*/), -cam_to_frag/*view_dir*/)/*, 0.5)*/;
 
     vec3 surf_color = illuminate(water_color * emitted_light, /*surf_color * */reflected_light);
 	vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*//*(f_light * point_shadow + point_light)*/reflected_light_point/* * 0.25*/)), passthrough);
 
-    tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
+    tgt_color = mix(color, vec4(fog_color, 0.0), 0.0);
 }

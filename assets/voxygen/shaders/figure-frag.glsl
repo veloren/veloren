@@ -4,6 +4,7 @@
 
 in vec3 f_pos;
 in vec3 f_col;
+in float f_ao;
 flat in vec3 f_norm;
 in float f_alt;
 in vec4 f_shadow;
@@ -12,6 +13,9 @@ layout (std140)
 uniform u_locals {
 	mat4 model_mat;
 	vec4 model_col;
+	// bit 0 - is player
+	// bit 1-31 - unused
+	int flags;
 };
 
 struct BoneData {
@@ -72,6 +76,11 @@ void main() {
     emitted_light *= point_shadow;
 
     lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+
+	float ao = pow(f_ao, 0.5) * 0.85 + 0.15;
+
+	reflected_light *= ao;
+	emitted_light *= ao;
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
     reflected_light += point_light; */
@@ -91,6 +100,16 @@ void main() {
 	vec4 clouds;
 	vec3 fog_color = get_sky_color(cam_to_frag/*view_dir*/, time_of_day.x, cam_pos.xyz, f_pos, 0.5, true, clouds);
 	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
+
+	if ((flags & 1) == 1 && int(cam_mode) == 1) {
+		float distance = distance(vec3(cam_pos), vec3(model_mat * vec4(vec3(0), 1))) - 2;
+
+		float opacity = clamp(distance / distance_divider, 0, 1);
+
+		if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
+			discard;
+		}
+	}
 
 	tgt_color = vec4(color, 1.0);
 }

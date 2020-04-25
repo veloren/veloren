@@ -1,22 +1,32 @@
 use crate::{
     controller::*,
     render::{Renderer, WinColorFmt, WinDepthFmt},
-    settings::Settings,
+    settings::{ControlSettings, Settings},
     ui, Error,
 };
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
+
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use vek::*;
 
 /// Represents a key that the game recognises after input mapping.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
 pub enum GameInput {
     Primary,
     Secondary,
-    Ability3,
+    Slot1,
+    Slot2,
+    Slot3,
+    Slot4,
+    Slot5,
+    Slot6,
+    Slot7,
+    Slot8,
+    Slot9,
+    Slot10,
     ToggleCursor,
     MoveForward,
     MoveBack,
@@ -27,15 +37,13 @@ pub enum GameInput {
     Glide,
     Climb,
     ClimbDown,
-    WallLeap,
+    //WallLeap,
     Mount,
     Enter,
     Command,
     Escape,
     Map,
     Bag,
-    QuestLog,
-    CharacterWindow,
     Social,
     Spellbook,
     Settings,
@@ -49,9 +57,61 @@ pub enum GameInput {
     Respawn,
     Interact,
     ToggleWield,
-    Charge,
+    //Charge,
     SwapLoadout,
     FreeLook,
+}
+
+impl GameInput {
+    pub fn get_localization_key(&self) -> &str {
+        match *self {
+            GameInput::Primary => "gameinput.primary",
+            GameInput::Secondary => "gameinput.secondary",
+            GameInput::ToggleCursor => "gameinput.togglecursor",
+            GameInput::MoveForward => "gameinput.moveforward",
+            GameInput::MoveLeft => "gameinput.moveleft",
+            GameInput::MoveRight => "gameinput.moveright",
+            GameInput::MoveBack => "gameinput.moveback",
+            GameInput::Jump => "gameinput.jump",
+            GameInput::Sit => "gameinput.sit",
+            GameInput::Glide => "gameinput.glide",
+            GameInput::Climb => "gameinput.climb",
+            GameInput::ClimbDown => "gameinput.climbdown",
+            //GameInput::WallLeap => "gameinput.wallleap",
+            GameInput::Mount => "gameinput.mount",
+            GameInput::Enter => "gameinput.enter",
+            GameInput::Command => "gameinput.command",
+            GameInput::Escape => "gameinput.escape",
+            GameInput::Map => "gameinput.map",
+            GameInput::Bag => "gameinput.bag",
+            GameInput::Social => "gameinput.social",
+            GameInput::Spellbook => "gameinput.spellbook",
+            GameInput::Settings => "gameinput.settings",
+            GameInput::ToggleInterface => "gameinput.toggleinterface",
+            GameInput::Help => "gameinput.help",
+            GameInput::ToggleDebug => "gameinput.toggledebug",
+            GameInput::Fullscreen => "gameinput.fullscreen",
+            GameInput::Screenshot => "gameinput.screenshot",
+            GameInput::ToggleIngameUi => "gameinput.toggleingameui",
+            GameInput::Roll => "gameinput.roll",
+            GameInput::Respawn => "gameinput.respawn",
+            GameInput::Interact => "gameinput.interact",
+            GameInput::ToggleWield => "gameinput.togglewield",
+            //GameInput::Charge => "gameinput.charge",
+            GameInput::FreeLook => "gameinput.freelook",
+            GameInput::Slot1 => "gameinput.slot1",
+            GameInput::Slot2 => "gameinput.slot2",
+            GameInput::Slot3 => "gameinput.slot3",
+            GameInput::Slot4 => "gameinput.slot4",
+            GameInput::Slot5 => "gameinput.slot5",
+            GameInput::Slot6 => "gameinput.slot6",
+            GameInput::Slot7 => "gameinput.slot7",
+            GameInput::Slot8 => "gameinput.slot8",
+            GameInput::Slot9 => "gameinput.slot9",
+            GameInput::Slot10 => "gameinput.slot10",
+            GameInput::SwapLoadout => "gameinput.swaploadout",
+        }
+    }
 }
 
 /// Represents a key that the game menus recognise after input mapping
@@ -299,8 +359,8 @@ impl fmt::Display for KeyMouse {
             Key(Copy) => "Copy",
             Key(Paste) => "Paste",
             Key(Cut) => "Cut",
-            Mouse(MouseButton::Left) => "Mouse L-Click",
-            Mouse(MouseButton::Right) => "Mouse R-Click",
+            Mouse(MouseButton::Left) => "Mouse Left",
+            Mouse(MouseButton::Right) => "Mouse Right",
             Mouse(MouseButton::Middle) => "Mouse Middle-Click",
             Mouse(MouseButton::Other(button)) =>
                 return write!(f, "Unknown Mouse Button: {:?}", button),
@@ -319,8 +379,8 @@ pub struct Window {
     pub mouse_y_inversion: bool,
     fullscreen: bool,
     needs_refresh_resize: bool,
-    key_map: HashMap<KeyMouse, Vec<GameInput>>,
     keypress_map: HashMap<GameInput, glutin::ElementState>,
+    pub remapping_keybindings: Option<GameInput>,
     supplement_events: Vec<Event>,
     focused: bool,
     gilrs: Option<Gilrs>,
@@ -354,116 +414,6 @@ impl Window {
                 &events_loop,
             )
             .map_err(|err| Error::BackendError(Box::new(err)))?;
-
-        let mut map: HashMap<_, Vec<_>> = HashMap::new();
-        map.entry(settings.controls.primary)
-            .or_default()
-            .push(GameInput::Primary);
-        map.entry(settings.controls.secondary)
-            .or_default()
-            .push(GameInput::Secondary);
-        map.entry(settings.controls.ability3)
-            .or_default()
-            .push(GameInput::Ability3);
-        map.entry(settings.controls.toggle_cursor)
-            .or_default()
-            .push(GameInput::ToggleCursor);
-        map.entry(settings.controls.escape)
-            .or_default()
-            .push(GameInput::Escape);
-        map.entry(settings.controls.enter)
-            .or_default()
-            .push(GameInput::Enter);
-        map.entry(settings.controls.command)
-            .or_default()
-            .push(GameInput::Command);
-        map.entry(settings.controls.move_forward)
-            .or_default()
-            .push(GameInput::MoveForward);
-        map.entry(settings.controls.move_left)
-            .or_default()
-            .push(GameInput::MoveLeft);
-        map.entry(settings.controls.move_back)
-            .or_default()
-            .push(GameInput::MoveBack);
-        map.entry(settings.controls.move_right)
-            .or_default()
-            .push(GameInput::MoveRight);
-        map.entry(settings.controls.jump)
-            .or_default()
-            .push(GameInput::Jump);
-        map.entry(settings.controls.sit)
-            .or_default()
-            .push(GameInput::Sit);
-        map.entry(settings.controls.glide)
-            .or_default()
-            .push(GameInput::Glide);
-        map.entry(settings.controls.climb)
-            .or_default()
-            .push(GameInput::Climb);
-        map.entry(settings.controls.climb_down)
-            .or_default()
-            .push(GameInput::ClimbDown);
-        map.entry(settings.controls.wall_leap)
-            .or_default()
-            .push(GameInput::WallLeap);
-        map.entry(settings.controls.mount)
-            .or_default()
-            .push(GameInput::Mount);
-        map.entry(settings.controls.map)
-            .or_default()
-            .push(GameInput::Map);
-        map.entry(settings.controls.bag)
-            .or_default()
-            .push(GameInput::Bag);
-        map.entry(settings.controls.social)
-            .or_default()
-            .push(GameInput::Social);
-        map.entry(settings.controls.spellbook)
-            .or_default()
-            .push(GameInput::Spellbook);
-        map.entry(settings.controls.settings)
-            .or_default()
-            .push(GameInput::Settings);
-        map.entry(settings.controls.help)
-            .or_default()
-            .push(GameInput::Help);
-        map.entry(settings.controls.toggle_interface)
-            .or_default()
-            .push(GameInput::ToggleInterface);
-        map.entry(settings.controls.toggle_debug)
-            .or_default()
-            .push(GameInput::ToggleDebug);
-        map.entry(settings.controls.fullscreen)
-            .or_default()
-            .push(GameInput::Fullscreen);
-        map.entry(settings.controls.screenshot)
-            .or_default()
-            .push(GameInput::Screenshot);
-        map.entry(settings.controls.toggle_ingame_ui)
-            .or_default()
-            .push(GameInput::ToggleIngameUi);
-        map.entry(settings.controls.roll)
-            .or_default()
-            .push(GameInput::Roll);
-        map.entry(settings.controls.respawn)
-            .or_default()
-            .push(GameInput::Respawn);
-        map.entry(settings.controls.interact)
-            .or_default()
-            .push(GameInput::Interact);
-        map.entry(settings.controls.toggle_wield)
-            .or_default()
-            .push(GameInput::ToggleWield);
-        map.entry(settings.controls.swap_loadout)
-            .or_default()
-            .push(GameInput::SwapLoadout);
-        map.entry(settings.controls.charge)
-            .or_default()
-            .push(GameInput::Charge);
-        map.entry(settings.controls.free_look)
-            .or_default()
-            .push(GameInput::FreeLook);
 
         let keypress_map = HashMap::new();
 
@@ -510,8 +460,8 @@ impl Window {
             mouse_y_inversion: settings.gameplay.mouse_y_inversion,
             fullscreen: false,
             needs_refresh_resize: false,
-            key_map: map,
             keypress_map,
+            remapping_keybindings: None,
             supplement_events: vec![],
             focused: true,
             gilrs,
@@ -543,8 +493,9 @@ impl Window {
         let cursor_grabbed = self.cursor_grabbed;
         let renderer = &mut self.renderer;
         let window = &mut self.window;
+        let remapping_keybindings = &mut self.remapping_keybindings;
         let focused = &mut self.focused;
-        let key_map = &self.key_map;
+        let controls = &mut settings.controls;
         let keypress_map = &mut self.keypress_map;
         let pan_sensitivity = self.pan_sensitivity;
         let zoom_sensitivity = self.zoom_sensitivity;
@@ -577,9 +528,14 @@ impl Window {
                     },
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. } => {
-                        if let (true, Some(game_inputs)) =
-                            (cursor_grabbed, key_map.get(&KeyMouse::Mouse(button)))
-                        {
+                        if let (true, Some(game_inputs)) = (
+                            cursor_grabbed,
+                            Window::map_input(
+                                KeyMouse::Mouse(button),
+                                controls,
+                                remapping_keybindings,
+                            ),
+                        ) {
                             for game_input in game_inputs {
                                 events.push(Event::InputUpdate(
                                     *game_input,
@@ -589,11 +545,13 @@ impl Window {
                         }
                         events.push(Event::MouseButton(button, state));
                     },
-                    glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
-                    {
-                        Some(key) => {
-                            let game_inputs = key_map.get(&KeyMouse::Key(key));
-                            if let Some(game_inputs) = game_inputs {
+                    glutin::WindowEvent::KeyboardInput { input, .. } => {
+                        if let Some(key) = input.virtual_keycode {
+                            if let Some(game_inputs) = Window::map_input(
+                                KeyMouse::Key(key),
+                                controls,
+                                remapping_keybindings,
+                            ) {
                                 for game_input in game_inputs {
                                     match game_input {
                                         GameInput::Fullscreen => {
@@ -631,9 +589,9 @@ impl Window {
                                     }
                                 }
                             }
-                        },
-                        _ => {},
+                        }
                     },
+
                     glutin::WindowEvent::Focused(state) => {
                         *focused = state;
                         events.push(Event::Focused(state));
@@ -999,5 +957,34 @@ impl Window {
         state: glutin::ElementState,
     ) {
         map.insert(input, state);
+    }
+
+    // Function used to handle Mouse and Key events. It first checks if we're in
+    // remapping mode for a specific GameInput. If we are, we modify the binding
+    // of that GameInput with the KeyMouse passed. Else, we return an iterator of
+    // the GameInputs for that KeyMouse.
+    fn map_input<'a>(
+        key_mouse: KeyMouse,
+        controls: &'a mut ControlSettings,
+        remapping: &mut Option<GameInput>,
+    ) -> Option<impl Iterator<Item = &'a GameInput>> {
+        match *remapping {
+            Some(game_input) => {
+                controls.modify_binding(game_input, key_mouse);
+                *remapping = None;
+                None
+            },
+            None => {
+                if let Some(game_inputs) = controls.get_associated_game_inputs(&key_mouse) {
+                    Some(game_inputs.iter())
+                } else {
+                    None
+                }
+            },
+        }
+    }
+
+    pub fn set_keybinding_mode(&mut self, game_input: GameInput) {
+        self.remapping_keybindings = Some(game_input);
     }
 }

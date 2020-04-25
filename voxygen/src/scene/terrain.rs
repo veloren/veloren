@@ -59,6 +59,22 @@ struct SpriteConfig {
 
 fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
     match kind {
+        BlockKind::Window1 => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Window2 => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Window3 => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Window4 => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         BlockKind::LargeCactus => Some(SpriteConfig {
             variations: 2,
             wind_sway: 0.0,
@@ -151,7 +167,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.1,
         }),
         BlockKind::Pumpkin => Some(SpriteConfig {
-            variations: 5,
+            variations: 7,
             wind_sway: 0.0,
         }),
         BlockKind::LingonBerry => Some(SpriteConfig {
@@ -170,7 +186,62 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 4,
             wind_sway: 0.1,
         }),
-
+        BlockKind::Ember => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.8,
+        }),
+        BlockKind::Corn => Some(SpriteConfig {
+            variations: 6,
+            wind_sway: 0.4,
+        }),
+        BlockKind::WheatYellow => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.4,
+        }),
+        BlockKind::WheatGreen => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.4,
+        }),
+        BlockKind::Cabbage => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Flax => Some(SpriteConfig {
+            variations: 6,
+            wind_sway: 0.4,
+        }),
+        BlockKind::Carrot => Some(SpriteConfig {
+            variations: 6,
+            wind_sway: 0.1,
+        }),
+        BlockKind::Tomato => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Radish => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 0.1,
+        }),
+        BlockKind::Turnip => Some(SpriteConfig {
+            variations: 6,
+            wind_sway: 0.1,
+        }),
+        BlockKind::Coconut => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Scarecrow => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::StreetLamp => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Door => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         _ => None,
     }
 }
@@ -199,16 +270,17 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                         let wpos = Vec3::from(pos * V::RECT_SIZE.map(|e: u32| e as i32))
                             + Vec3::new(x, y, z);
 
-                        let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
+                        let block = volume.get(wpos).ok().copied().unwrap_or(Block::empty());
 
-                        if let Some(cfg) = sprite_config_for(kind) {
+                        if let Some(cfg) = sprite_config_for(block.kind()) {
                             let seed = wpos.x as u64 * 3
                                 + wpos.y as u64 * 7
                                 + wpos.x as u64 * wpos.y as u64; // Awful PRNG
+                            let ori = block.get_ori().unwrap_or((seed % 4) as u8 * 2);
 
                             let instance = SpriteInstance::new(
                                 Mat4::identity()
-                                    .rotated_z(f32::consts::PI * 0.5 * (seed % 4) as f32)
+                                    .rotated_z(f32::consts::PI * 0.25 * ori as f32)
                                     .translated_3d(
                                         wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
                                     ),
@@ -217,7 +289,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                             );
 
                             instances
-                                .entry((kind, seed as usize % cfg.variations))
+                                .entry((block.kind(), seed as usize % cfg.variations))
                                 .or_insert_with(|| Vec::new())
                                 .push(instance);
                         }
@@ -272,6 +344,35 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
             sprite_models: vec![
+                // Windows
+                (
+                    (BlockKind::Window1, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.window.window-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Window2, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.window.window-1",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Window3, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.window.window-2",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Window4, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.window.window-3",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                    ),
+                ),
                 // Cacti
                 (
                     (BlockKind::LargeCactus, 0),
@@ -831,6 +932,20 @@ impl<V: RectRasterableVol> Terrain<V> {
                         Vec3::new(-6.0, -6.0, -0.0),
                     ),
                 ),
+                (
+                    (BlockKind::Pumpkin, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.6",
+                        Vec3::new(-7.0, -6.5, -0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Pumpkin, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.pumpkin.7",
+                        Vec3::new(-7.0, -9.5, -0.0),
+                    ),
+                ),
                 //Lingonberries
                 (
                     (BlockKind::LingonBerry, 0),
@@ -1064,6 +1179,435 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.blueberry.9",
                         Vec3::new(-6.0, -6.0, -0.0),
+                    ),
+                ),
+                // Ember
+                (
+                    (BlockKind::Ember, 0),
+                    make_model("voxygen.voxel.sprite.ember.1", Vec3::new(-7.0, -7.0, -2.9)),
+                ),
+                // Corn
+                (
+                    (BlockKind::Corn, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Corn, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.corn.corn-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Yellow Wheat
+                (
+                    (BlockKind::WheatYellow, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-6",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-7",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-8",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatYellow, 9),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_yellow.wheat-9",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Green Wheat
+                (
+                    (BlockKind::WheatGreen, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-6",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-7",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-8",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::WheatGreen, 9),
+                    make_model(
+                        "voxygen.voxel.sprite.wheat_green.wheat-9",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Cabbage
+                (
+                    (BlockKind::Cabbage, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.cabbage.cabbage-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Cabbage, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.cabbage.cabbage-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Cabbage, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.cabbage.cabbage-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Flax
+                (
+                    (BlockKind::Flax, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Flax, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.flax.flax-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Carrot
+                (
+                    (BlockKind::Carrot, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.0",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.1",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.2",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.3",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.4",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Carrot, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.carrot.5",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Tomato, 0),
+                    make_model("voxygen.voxel.sprite.tomato.0", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Tomato, 1),
+                    make_model("voxygen.voxel.sprite.tomato.1", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Tomato, 2),
+                    make_model("voxygen.voxel.sprite.tomato.2", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Tomato, 3),
+                    make_model("voxygen.voxel.sprite.tomato.3", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                (
+                    (BlockKind::Tomato, 4),
+                    make_model("voxygen.voxel.sprite.tomato.4", Vec3::new(-5.5, -5.5, 0.0)),
+                ),
+                // Radish
+                (
+                    (BlockKind::Radish, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.0",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Radish, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.1",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Radish, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.2",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Radish, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.3",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Radish, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.radish.4",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                // Turnip
+                (
+                    (BlockKind::Turnip, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-0",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-1",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-2",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-3",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-4",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                (
+                    (BlockKind::Turnip, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.turnip.turnip-5",
+                        Vec3::new(-5.5, -5.5, -0.25),
+                    ),
+                ),
+                // Coconut
+                (
+                    (BlockKind::Coconut, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.fruit.coconut",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                // Scarecrow
+                (
+                    (BlockKind::Scarecrow, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.misc.scarecrow",
+                        Vec3::new(-9.5, -3.0, -0.25),
+                    ),
+                ),
+                // Street Light
+                (
+                    (BlockKind::StreetLamp, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.misc.street_lamp",
+                        Vec3::new(-4.5, -4.5, 0.0),
+                    ),
+                ),
+                // Door
+                (
+                    (BlockKind::Door, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.door.door-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
                     ),
                 ),
             ]
@@ -1479,6 +2023,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .as_ref()
                     .map(|model| (model, &chunk.locals))
             })
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev() // Render back-to-front
             .for_each(|(model, locals)| {
                 renderer.render_fluid_chunk(
                     model,

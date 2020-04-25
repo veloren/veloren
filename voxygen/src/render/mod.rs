@@ -32,7 +32,8 @@ pub use self::{
         Globals, Light, Shadow,
     },
     renderer::{
-        LodColorFmt, LodTextureFmt, Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt,
+        LodColorFmt, LodTextureFmt, Renderer, TgtColorFmt, TgtDepthStencilFmt, WinColorFmt,
+        WinDepthFmt,
     },
     texture::Texture,
 };

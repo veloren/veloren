@@ -4,13 +4,13 @@ use common::{
     assets,
     comp::{self, item, CharacterAbility, Item, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
-    generation::EntityKind,
+    generation::get_npc_name,
     msg::ServerMsg,
-    npc::{self, NPC_NAMES},
+    npc::NPC_NAMES,
     state::TerrainChanges,
     terrain::TerrainGrid,
 };
-use rand::{seq::SliceRandom, Rng};
+use rand::Rng;
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
 use vek::*;
@@ -101,271 +101,217 @@ impl<'a> System<'a> for Sys {
 
             // Handle chunk supplement
             for entity in supplement.entities {
-                if let EntityKind::Waypoint = entity.kind {
+                if entity.is_waypoint {
                     server_emitter.emit(ServerEvent::CreateWaypoint(entity.pos));
-                } else {
-                    fn get_npc_name<
-                        'a,
-                        Species,
-                        SpeciesData: for<'b> core::ops::Index<&'b Species, Output = npc::SpeciesNames>,
-                    >(
-                        body_data: &'a comp::BodyData<npc::BodyNames, SpeciesData>,
-                        species: Species,
-                    ) -> &'a str {
-                        &body_data.species[&species].generic
-                    }
+                    continue;
+                }
 
-                    const SPAWN_NPCS: &'static [fn() -> (
-                        String,
-                        comp::Body,
-                        Option<comp::Item>,
-                        comp::Alignment,
-                    )] = &[
-                        (|| {
-                            let body = comp::humanoid::Body::random();
-                            (
-                                format!(
-                                    "{} Traveler",
-                                    get_npc_name(&NPC_NAMES.humanoid, body.race)
-                                ),
-                                comp::Body::Humanoid(body),
-                                Some(assets::load_expect_cloned(
-                                    "common.items.weapons.starter_axe",
-                                )),
-                                comp::Alignment::Npc,
-                            )
-                        }) as _,
-                        (|| {
-                            let body = comp::humanoid::Body::random();
-                            (
-                                format!("{} Bandit", get_npc_name(&NPC_NAMES.humanoid, body.race)),
-                                comp::Body::Humanoid(body),
-                                Some(assets::load_expect_cloned(
-                                    "common.items.weapons.short_sword_0",
-                                )),
-                                comp::Alignment::Enemy,
-                            )
-                        }) as _,
-                        (|| {
-                            let body = comp::quadruped_medium::Body::random();
-                            (
-                                get_npc_name(&NPC_NAMES.quadruped_medium, body.species).into(),
-                                comp::Body::QuadrupedMedium(body),
-                                None,
-                                comp::Alignment::Enemy,
-                            )
-                        }) as _,
-                        (|| {
-                            let body = comp::bird_medium::Body::random();
-                            (
-                                get_npc_name(&NPC_NAMES.bird_medium, body.species).into(),
-                                comp::Body::BirdMedium(body),
-                                None,
-                                comp::Alignment::Wild,
-                            )
-                        }) as _,
-                        (|| {
-                            let body = comp::critter::Body::random();
-                            (
-                                get_npc_name(&NPC_NAMES.critter, body.species).into(),
-                                comp::Body::Critter(body),
-                                None,
-                                comp::Alignment::Wild,
-                            )
-                        }) as _,
-                        (|| {
-                            let body = comp::quadruped_small::Body::random();
-                            (
-                                get_npc_name(&NPC_NAMES.quadruped_small, body.species).into(),
-                                comp::Body::QuadrupedSmall(body),
-                                None,
-                                comp::Alignment::Wild,
-                            )
-                        }),
-                    ];
-                    let (name, mut body, main, mut alignment) = SPAWN_NPCS
-                        .choose(&mut rand::thread_rng())
-                        .expect("SPAWN_NPCS is nonempty")(
-                    );
-                    let mut stats = comp::Stats::new(name, body);
+                let mut body = entity.body;
+                let name = entity.name.unwrap_or("Unnamed".to_string());
+                let alignment = entity.alignment;
+                let main_tool = entity.main_tool;
 
-                    let active_item =
-                        if let Some(item::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
-                            let mut abilities = tool.get_abilities();
-                            let mut ability_drain = abilities.drain(..);
+                let mut stats = comp::Stats::new(name, body);
 
-                            main.map(|item| comp::ItemConfig {
-                                item,
-                                ability1: ability_drain.next(),
-                                ability2: ability_drain.next(),
-                                ability3: ability_drain.next(),
-                                block_ability: None,
-                                dodge_ability: Some(comp::CharacterAbility::Roll),
-                            })
-                        } else {
-                            Some(ItemConfig {
-                                // We need the empty item so npcs can attack
-                                item: Item::empty(),
-                                ability1: Some(CharacterAbility::BasicMelee {
-                                    energy_cost: 0,
-                                    buildup_duration: Duration::from_millis(0),
-                                    recover_duration: Duration::from_millis(400),
-                                    base_healthchange: -4,
-                                    range: 3.5,
-                                    max_angle: 60.0,
-                                }),
-                                ability2: None,
-                                ability3: None,
-                                block_ability: None,
-                                dodge_ability: None,
-                            })
-                        };
+                let active_item =
+                    if let Some(item::ItemKind::Tool(tool)) = main_tool.as_ref().map(|i| &i.kind) {
+                        let mut abilities = tool.get_abilities();
+                        let mut ability_drain = abilities.drain(..);
 
-                    let mut loadout = match alignment {
-                        comp::Alignment::Npc => comp::Loadout {
-                            active_item,
-                            second_item: None,
-                            shoulder: Some(assets::load_expect_cloned(
-                                "common.items.armor.shoulder.leather_0",
-                            )),
-                            chest: Some(assets::load_expect_cloned(
-                                "common.items.armor.chest.leather_0",
-                            )),
-                            belt: Some(assets::load_expect_cloned(
-                                "common.items.armor.belt.plate_0",
-                            )),
-                            hand: Some(assets::load_expect_cloned(
-                                "common.items.armor.hand.plate_0",
-                            )),
-                            pants: Some(assets::load_expect_cloned(
-                                "common.items.armor.pants.plate_green_0",
-                            )),
-                            foot: Some(assets::load_expect_cloned(
-                                "common.items.armor.foot.leather_0",
-                            )),
-                        },
-                        comp::Alignment::Enemy => comp::Loadout {
-                            active_item,
-                            second_item: None,
-                            shoulder: Some(assets::load_expect_cloned(
-                                "common.items.armor.shoulder.leather_0",
-                            )),
-                            chest: Some(assets::load_expect_cloned(
-                                "common.items.armor.chest.plate_green_0",
-                            )),
-                            belt: Some(assets::load_expect_cloned(
-                                "common.items.armor.belt.plate_0",
-                            )),
-                            hand: Some(assets::load_expect_cloned(
-                                "common.items.armor.hand.plate_0",
-                            )),
-                            pants: Some(assets::load_expect_cloned(
-                                "common.items.armor.pants.plate_green_0",
-                            )),
-                            foot: Some(assets::load_expect_cloned(
-                                "common.items.armor.foot.plate_0",
-                            )),
-                        },
-                        _ => comp::Loadout {
-                            active_item,
-                            second_item: None,
-                            shoulder: None,
-                            chest: None,
-                            belt: None,
-                            hand: None,
-                            pants: None,
-                            foot: None,
-                        },
+                        main_tool.map(|item| comp::ItemConfig {
+                            item,
+                            ability1: ability_drain.next(),
+                            ability2: ability_drain.next(),
+                            ability3: ability_drain.next(),
+                            block_ability: None,
+                            dodge_ability: Some(comp::CharacterAbility::Roll),
+                        })
+                    } else {
+                        Some(ItemConfig {
+                            // We need the empty item so npcs can attack
+                            item: Item::empty(),
+                            ability1: Some(CharacterAbility::BasicMelee {
+                                energy_cost: 0,
+                                buildup_duration: Duration::from_millis(0),
+                                recover_duration: Duration::from_millis(400),
+                                base_healthchange: -4,
+                                range: 3.5,
+                                max_angle: 60.0,
+                            }),
+                            ability2: None,
+                            ability3: None,
+                            block_ability: None,
+                            dodge_ability: None,
+                        })
                     };
 
-                    let mut scale = 1.0;
+                let mut loadout = match alignment {
+                    comp::Alignment::Npc => comp::Loadout {
+                        active_item,
+                        second_item: None,
+                        shoulder: Some(assets::load_expect_cloned(
+                            "common.items.armor.shoulder.leather_0",
+                        )),
+                        chest: Some(assets::load_expect_cloned(
+                            "common.items.armor.chest.leather_0",
+                        )),
+                        belt: Some(assets::load_expect_cloned(
+                            "common.items.armor.belt.plate_0",
+                        )),
+                        hand: Some(assets::load_expect_cloned(
+                            "common.items.armor.hand.plate_0",
+                        )),
+                        pants: Some(assets::load_expect_cloned(
+                            "common.items.armor.pants.plate_green_0",
+                        )),
+                        foot: Some(assets::load_expect_cloned(
+                            "common.items.armor.foot.leather_0",
+                        )),
+                        back: None,
+                        ring: None,
+                        neck: None,
+                        lantern: None,
+                        head: None,
+                        tabard: None,
+                    },
+                    comp::Alignment::Enemy => comp::Loadout {
+                        active_item,
+                        second_item: None,
+                        shoulder: Some(assets::load_expect_cloned(
+                            "common.items.armor.shoulder.leather_0",
+                        )),
+                        chest: Some(assets::load_expect_cloned(
+                            "common.items.armor.chest.plate_green_0",
+                        )),
+                        belt: Some(assets::load_expect_cloned(
+                            "common.items.armor.belt.plate_0",
+                        )),
+                        hand: Some(assets::load_expect_cloned(
+                            "common.items.armor.hand.plate_0",
+                        )),
+                        pants: Some(assets::load_expect_cloned(
+                            "common.items.armor.pants.plate_green_0",
+                        )),
+                        foot: Some(assets::load_expect_cloned(
+                            "common.items.armor.foot.plate_0",
+                        )),
+                        back: None,
+                        ring: None,
+                        neck: None,
+                        lantern: None,
+                        head: None,
+                        tabard: None,
+                    },
+                    _ => comp::Loadout {
+                        active_item,
+                        second_item: None,
+                        shoulder: None,
+                        chest: None,
+                        belt: None,
+                        hand: None,
+                        pants: None,
+                        foot: None,
+                        back: None,
+                        ring: None,
+                        neck: None,
+                        lantern: None,
+                        head: None,
+                        tabard: None,
+                    },
+                };
 
-                    // TODO: Remove this and implement scaling or level depending on stuff like
-                    // species instead
-                    stats.level.set_level(rand::thread_rng().gen_range(1, 9));
+                let mut scale = 1.0;
 
-                    // Replace stuff if it's a boss
-                    if let EntityKind::Boss = entity.kind {
-                        if rand::random::<f32>() < 0.65 {
-                            let body_new = comp::humanoid::Body::random();
-                            body = comp::Body::Humanoid(body_new);
-                            alignment = comp::Alignment::Npc;
-                            stats = comp::Stats::new(
-                                format!(
-                                    "Fearless Giant {}",
-                                    get_npc_name(&NPC_NAMES.humanoid, body_new.race)
-                                ),
-                                body,
-                            );
-                        }
-                        loadout = comp::Loadout {
-                            active_item: Some(comp::ItemConfig {
-                                item: assets::load_expect_cloned(
-                                    "common.items.weapons.zweihander_sword_0",
-                                ),
-                                ability1: Some(CharacterAbility::BasicMelee {
-                                    energy_cost: 0,
-                                    buildup_duration: Duration::from_millis(800),
-                                    recover_duration: Duration::from_millis(200),
-                                    base_healthchange: -13,
-                                    range: 3.5,
-                                    max_angle: 60.0,
-                                }),
-                                ability2: None,
-                                ability3: None,
-                                block_ability: None,
-                                dodge_ability: None,
+                // TODO: Remove this and implement scaling or level depending on stuff like
+                // species instead
+                stats.level.set_level(rand::thread_rng().gen_range(1, 9));
+
+                // Replace stuff if it's a boss
+                if entity.is_giant {
+                    if rand::random::<f32>() < 0.65 {
+                        let body_new = comp::humanoid::Body::random();
+                        body = comp::Body::Humanoid(body_new);
+                        stats = comp::Stats::new(
+                            format!(
+                                "Fearless Giant {}",
+                                get_npc_name(&NPC_NAMES.humanoid, body_new.race)
+                            ),
+                            body,
+                        );
+                    }
+                    loadout = comp::Loadout {
+                        active_item: Some(comp::ItemConfig {
+                            item: assets::load_expect_cloned(
+                                "common.items.weapons.zweihander_sword_0",
+                            ),
+                            ability1: Some(CharacterAbility::BasicMelee {
+                                energy_cost: 0,
+                                buildup_duration: Duration::from_millis(800),
+                                recover_duration: Duration::from_millis(200),
+                                base_healthchange: -13,
+                                range: 3.5,
+                                max_angle: 60.0,
                             }),
-                            second_item: None,
-                            shoulder: Some(assets::load_expect_cloned(
-                                "common.items.armor.shoulder.plate_0",
-                            )),
-                            chest: Some(assets::load_expect_cloned(
-                                "common.items.armor.chest.plate_green_0",
-                            )),
-                            belt: Some(assets::load_expect_cloned(
-                                "common.items.armor.belt.plate_0",
-                            )),
-                            hand: Some(assets::load_expect_cloned(
-                                "common.items.armor.hand.plate_0",
-                            )),
-                            pants: Some(assets::load_expect_cloned(
-                                "common.items.armor.pants.plate_green_0",
-                            )),
-                            foot: Some(assets::load_expect_cloned(
-                                "common.items.armor.foot.plate_0",
-                            )),
-                        };
+                            ability2: None,
+                            ability3: None,
+                            block_ability: None,
+                            dodge_ability: None,
+                        }),
+                        second_item: None,
+                        shoulder: Some(assets::load_expect_cloned(
+                            "common.items.armor.shoulder.plate_0",
+                        )),
+                        chest: Some(assets::load_expect_cloned(
+                            "common.items.armor.chest.plate_green_0",
+                        )),
+                        belt: Some(assets::load_expect_cloned(
+                            "common.items.armor.belt.plate_0",
+                        )),
+                        hand: Some(assets::load_expect_cloned(
+                            "common.items.armor.hand.plate_0",
+                        )),
+                        pants: Some(assets::load_expect_cloned(
+                            "common.items.armor.pants.plate_green_0",
+                        )),
+                        foot: Some(assets::load_expect_cloned(
+                            "common.items.armor.foot.plate_0",
+                        )),
+                        back: None,
+                        ring: None,
+                        neck: None,
+                        lantern: None,
+                        head: None,
+                        tabard: None,
+                    };
 
-                        stats.level.set_level(rand::thread_rng().gen_range(30, 35));
-                        scale = 2.0 + rand::random::<f32>();
-                    }
-
-                    stats.update_max_hp();
-
-                    stats
-                        .health
-                        .set_to(stats.health.maximum(), comp::HealthSource::Revive);
-
-                    // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
-                    // work because the damage is now saved in an ability
-                    /*
-                    if let Some(item::ItemKind::Tool(item::ToolData { base_damage, .. })) =
-                        &mut loadout.active_item.map(|i| i.item.kind)
-                    {
-                        *base_damage = stats.level.level() as u32 * 3;
-                    }
-                    */
-                    server_emitter.emit(ServerEvent::CreateNpc {
-                        pos: Pos(entity.pos),
-                        stats,
-                        loadout,
-                        body,
-                        alignment,
-                        agent: comp::Agent::default().with_patrol_origin(entity.pos),
-                        scale: comp::Scale(scale),
-                    })
+                    stats.level.set_level(rand::thread_rng().gen_range(30, 35));
+                    scale = 2.0 + rand::random::<f32>();
                 }
+
+                stats.update_max_hp();
+
+                stats
+                    .health
+                    .set_to(stats.health.maximum(), comp::HealthSource::Revive);
+
+                // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
+                // work because the damage is now saved in an ability
+                /*
+                if let Some(item::ItemKind::Tool(item::ToolData { base_damage, .. })) =
+                    &mut loadout.active_item.map(|i| i.item.kind)
+                {
+                    *base_damage = stats.level.level() as u32 * 3;
+                }
+                */
+                server_emitter.emit(ServerEvent::CreateNpc {
+                    pos: Pos(entity.pos),
+                    stats,
+                    loadout,
+                    body,
+                    alignment,
+                    agent: comp::Agent::default().with_patrol_origin(entity.pos),
+                    scale: comp::Scale(scale),
+                })
             }
         }
 

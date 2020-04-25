@@ -54,12 +54,31 @@
         "voxel.weapon.shield.wood-0",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
+    // Lanterns
+    Lantern(Black0): Png(
+        "element.icons.lantern_black-0",        
+    ),
+    Lantern(Green0): Png(
+        "element.icons.lantern_green-0",        
+    ),
     // Other
     Utility(Collar): Png(
         "element.icons.collar",
-    ),
-    
+    ),    
     // Armor
+    // Starter Parts
+    Armor(Foot(Sandal0)): VoxTrans(
+        "voxel.armor.foot.cloth_sandals",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Pants(Rugged0)): VoxTrans(
+        "voxel.armor.pants.rugged-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Chest(Rugged0)): VoxTrans(
+        "voxel.armor.chest.rugged-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
     // Assassin Set
     Armor(Chest(Assassin)): VoxTrans(
         "voxel.armor.chest.assa",
@@ -222,10 +241,44 @@
         "voxel.armor.shoulder.cloth_purple_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
+    // Backs
+    Armor(Back(Short0)): VoxTrans(
+        "voxel.armor.back.short-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    Armor(Back(Admin)): VoxTrans(
+        "voxel.armor.back.admin",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    // Rings
+    Armor(Ring(Ring0)): Png(
+        "element.icons.ring-0",        
+    ),
+    // Necks
+    Armor(Neck(Neck0)): Png(
+        "element.icons.neck-0",        
+    ),
+    // Tabards
+    Armor(Tabard(Admin)): Png(
+        "element.icons.tabard_admin",        
+    ),
+    // Heads
+    Armor(Head(Leather0)): VoxTrans(
+        "voxel.armor.head.leather-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    Armor(Head(AssaMask0)): VoxTrans(
+        "voxel.armor.head.assa_mask-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
     // Consumables
-    Consumable(Apple): VoxTrans(
+    Consumable(Apple):
+    VoxTrans(
         "element.icons.item_apple",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 1.0,
+    ),    
+    Consumable(Coconut): Png(
+        "element.icons.item_coconut",
     ),
     Consumable(PotionMinor): VoxTrans(
         "voxel.object.potion_red",

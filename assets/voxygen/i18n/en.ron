@@ -9,6 +9,8 @@
 ///
 /// To add a new language in Veloren, just write an additional `.ron` file in
 /// `assets/voxygen/i18n` and that's it!
+///
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for "global" English
 VoxygenLocalization(
@@ -147,22 +149,17 @@ https://account.veloren.net."#,
 
         "hud.press_key_to_show_keybindings_fmt": "Press {key} to show keybindings",
         "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
-        "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toogle keybindings",
-        "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toogle debug info",
+        "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toggle keybindings",
+        "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
 
         // Welcome message
-        "hud.welcome": r#"Welcome to the Veloren Alpha!,
+        "hud.welcome": r#"Welcome to the Veloren Alpha!
 
 
 Some tips before you start:
-
-
-MOST IMPORTANTLY: To set your respawn point type /waypoint into the chat.
-
-This can also be done when you are already dead!
 
 
 Press F1 to see the available key commands.
@@ -193,11 +190,26 @@ Enjoy your stay in the World of Veloren."#,
 
 
         // Inventory
-        "hud.bag.inventory": "'s Inventory",
-        "hud.bag.stats_title": "'s Stats",
+        "hud.bag.inventory": "{playername}'s Inventory",
+        "hud.bag.stats_title": "{playername}'s Stats",
         "hud.bag.exp": "Exp",
         "hud.bag.armor": "Armor",
         "hud.bag.stats": "Stats",
+        "hud.bag.head": "Head",
+        "hud.bag.neck": "Neck",
+        "hud.bag.tabard": "Tabard",
+        "hud.bag.shoulders": "Shoulders",
+        "hud.bag.chest": "Chest",
+        "hud.bag.hands": "Hands",
+        "hud.bag.lantern": "Lantern",
+        "hud.bag.belt": "Belt",
+        "hud.bag.ring": "Ring",
+        "hud.bag.back": "Back",
+        "hud.bag.legs": "Legs",
+        "hud.bag.feet": "Feet",
+        "hud.bag.mainhand": "Mainhand",
+        "hud.bag.offhand": "Offhand",    
+
 
         // Map and Questlog
         "hud.map.map_title": "Map",
@@ -228,13 +240,13 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.values": "Values",
         "hud.settings.percentages": "Percentages",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Background Transparency",
-        "hud.settings.none": "None",
+        "hud.settings.background_transparency": "Background Transparency",        
 
         "hud.settings.pan_sensitivity": "Pan Sensitivity",
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
         "hud.settings.invert_scroll_zoom": "Invert Scroll Zoom",
         "hud.settings.invert_mouse_y_axis": "Invert Mouse Y Axis",
+        "hud.settings.enable_mouse_smoothing": "Camera Smoothing",
         "hud.settings.free_look_behavior": "Free look behavior",
 
         "hud.settings.view_distance": "View Distance",
@@ -254,90 +266,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.sound_effect_volume": "Sound Effects Volume",
         "hud.settings.audio_device": "Audio Device",
 
-        // Control list
-        "hud.settings.control_names": r#"Free Cursor
-Toggle Help Window
-Toggle Interface
-Toggle FPS and Debug Info
-Take Screenshot
-Toggle Nametags
-Toggle Fullscreen
-
-
-Move Forward
-Move Left
-Move Right
-Move Backwards
-
-Jump
-
-Glider
-
-Dodge
-
-Roll
-
-Climb
-
-Climb down
-
-Auto Walk
-
-Sheathe/Draw Weapons
-
-Put on/Remove Helmet
-
-Sit
-
-Mount
-
-Interact
-
-
-Basic Attack
-Secondary Attack/Block/Aim
-
-
-Skillbar Slot 1
-Skillbar Slot 2
-Skillbar Slot 3
-Skillbar Slot 4
-Skillbar Slot 5
-Skillbar Slot 6
-Skillbar Slot 7
-Skillbar Slot 8
-Skillbar Slot 9
-Skillbar Slot 10
-
-
-Pause Menu
-Settings
-Social
-Map
-Spellbook
-Character
-Questlog
-Bag
-
-
-
-Send Chat Message
-Scroll Chat
-
-
-Free look
-
-
-Chat commands:  
-
-/alias [Name] - Change your Chat Name   
-/tp [Name] - Teleports you to another player    
-/jump <dx> <dy> <dz> - Offset your position
-/goto <x> <y> <z> - Teleport to a position  
-/kill - Kill yourself   
-/pig - Spawn pig NPC    
-/wolf - Spawn wolf NPC  
-/help - Display chat commands"#,
+        "hud.settings.awaitingkey": "Press a key...",
 
         "hud.social": "Social",
         "hud.social.online": "Online",
@@ -348,8 +277,60 @@ Chat commands:
 
         "hud.spell": "Spell",
 
-        "hud.free_look_indicator": "Free look active",
+        "hud.free_look_indicator": "Free look active",       
+
         /// End HUD section
+
+
+        /// Start GameInput section
+
+        "gameinput.primary": "Basic Attack",
+        "gameinput.secondary": "Secondary Attack/Block/Aim",
+       "gameinput.slot1": "Hotbar Slot 1",        
+        "gameinput.slot2": "Hotbar Slot 2",
+        "gameinput.slot3": "Hotbar Slot 3",
+        "gameinput.slot4": "Hotbar Slot 4",
+        "gameinput.slot5": "Hotbar Slot 5",
+        "gameinput.slot6": "Hotbar Slot 6",
+        "gameinput.slot7": "Hotbar Slot 7",
+        "gameinput.slot8": "Hotbar Slot 8",
+        "gameinput.slot9": "Hotbar Slot 9",
+        "gameinput.slot10": "Hotbar Slot 10",
+        "gameinput.swaploadout": "Swap Loadout",
+        "gameinput.togglecursor": "Toggle Cursor",
+        "gameinput.help": "Toggle Help Window",
+        "gameinput.toggleinterface": "Toggle Interface",
+        "gameinput.toggledebug": "Toggle FPS and Debug Info",
+        "gameinput.screenshot": "Take Screenshot",
+        "gameinput.toggleingameui": "Toggle Nametags",
+        "gameinput.fullscreen": "Toggle Fullscreen",
+        "gameinput.moveforward": "Move Forward",
+        "gameinput.moveleft": "Move Left",
+        "gameinput.moveright": "Move Right",
+        "gameinput.moveback": "Move Backwards",
+        "gameinput.jump": "Jump",
+        "gameinput.glide": "Glider",
+        "gameinput.roll": "Roll",
+        "gameinput.climb": "Climb",
+        "gameinput.climbdown": "Climb Down",
+        "gameinput.wallleap": "Wall Leap",
+        "gameinput.mount": "Mount",
+        "gameinput.enter": "Enter",
+        "gameinput.command": "Command",
+        "gameinput.escape": "Escape",
+        "gameinput.map": "Map",
+        "gameinput.bag": "Bag",
+        "gameinput.social": "Social",
+        "gameinput.sit": "Sit",
+        "gameinput.spellbook": "Spells",
+        "gameinput.settings": "Settings",
+        "gameinput.respawn": "Respawn",
+        "gameinput.charge": "Charge",
+        "gameinput.togglewield": "Toggle Wield",
+        "gameinput.interact": "Interact",
+        "gameinput.freelook": "Free Look",
+        
+        /// End GameInput section
 
 
         /// Start chracter selection section
