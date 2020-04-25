@@ -21,7 +21,7 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    comp::{self, bird_medium, critter, quadruped_medium, quadruped_small},
+    comp::{self, bird_medium, critter, quadruped_medium, quadruped_small, dragon},
     generation::{ChunkSupplement, EntityInfo},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},

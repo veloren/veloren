@@ -6,7 +6,8 @@ use common::{
         bird_medium::{BodyType as BMBodyType, Species as BMSpecies},
         bird_small,
         critter::{BodyType as CBodyType, Species as CSpecies},
-        dragon, fish_medium, fish_small,
+        dragon::{BodyType as DBodyType, Species as DSpecies},
+        fish_medium, fish_small,
         golem::{BodyType as GBodyType, Species as GSpecies},
         humanoid::{Body, BodyType, EyeColor, Race, Skin},
         item::{
@@ -1865,173 +1866,345 @@ pub fn mesh_fish_medium_fin_r(
     )
 }
 
-pub fn mesh_dragon_head(
-    head: dragon::Head,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match head {
-            dragon::Head::Default => "npc.dragon.head",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
+////
+
+#[derive(Serialize, Deserialize)]
+pub struct DragonCenterSpec(HashMap<(DSpecies, DBodyType), SidedDCenterVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedDCenterVoxSpec {
+    head: DragonCenterSubSpec,
+    chest_front: DragonCenterSubSpec,
+    chest_rear: DragonCenterSubSpec,
+    tail_front: DragonCenterSubSpec,
+    tail_rear: DragonCenterSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct DragonCenterSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    center: VoxSimple,
 }
 
-pub fn mesh_dragon_chest_front(
-    chest_front: dragon::ChestFront,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match chest_front {
-            dragon::ChestFront::Default => "npc.dragon.chest_front",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
+#[derive(Serialize, Deserialize)]
+pub struct DragonLateralSpec(HashMap<(DSpecies, DBodyType), SidedDLateralVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedDLateralVoxSpec {
+    wing_in_l: DragonLateralSubSpec,
+    wing_in_r: DragonLateralSubSpec,
+    wing_out_l: DragonLateralSubSpec,
+    wing_out_r: DragonLateralSubSpec,
+    foot_fl: DragonLateralSubSpec,
+    foot_fr: DragonLateralSubSpec,
+    foot_bl: DragonLateralSubSpec,
+    foot_br: DragonLateralSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct DragonLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
 }
 
-pub fn mesh_dragon_chest_rear(
-    chest_rear: dragon::ChestRear,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match chest_rear {
-            dragon::ChestRear::Default => "npc.dragon.chest_rear",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
+impl Asset for DragonCenterSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
 }
 
-pub fn mesh_dragon_tail_front(
-    tail_front: dragon::TailFront,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match tail_front {
-            dragon::TailFront::Default => "npc.dragon.tail_front",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
+impl Asset for DragonLateralSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
 }
 
-pub fn mesh_dragon_tail_rear(
-    tail_rear: dragon::TailRear,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match tail_rear {
-            dragon::TailRear::Default => "npc.dragon.tail_rear",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
-}
+impl DragonCenterSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.dragon_center_manifest", indicator)
+            .unwrap()
+    }
 
-pub fn mesh_dragon_wing_in_l(
-    wing_in_l: dragon::WingInL,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match wing_in_l {
-            dragon::WingInL::Default => "npc.dragon.wing_in_l",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
-}
+    pub fn mesh_head(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.head.center.0);
 
-pub fn mesh_dragon_wing_in_r(
-    wing_in_r: dragon::WingInR,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match wing_in_r {
-            dragon::WingInR::Default => "npc.dragon.wing_in_r",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
-}
+        generate_mesh(&center, Vec3::from(spec.head.offset))
+    }
 
-pub fn mesh_dragon_wing_out_l(
-    wing_out_l: dragon::WingOutL,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match wing_out_l {
-            dragon::WingOutL::Default => "npc.dragon.wing_out_l",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
-}
+    pub fn mesh_chest_front(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No chest front specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.chest_front.center.0);
 
-pub fn mesh_dragon_wing_out_r(
-    wing_out_r: dragon::WingOutR,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match wing_out_r {
-            dragon::WingOutR::Default => "npc.dragon.wing_out_r",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
-}
+        generate_mesh(&center, Vec3::from(spec.chest_front.offset))
+    }
+	
+    pub fn mesh_chest_rear(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No chest rear specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.chest_rear.center.0);
 
-pub fn mesh_dragon_foot_fl(
-    foot_fl: dragon::FootFL,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_fl {
-            dragon::FootFL::Default => "npc.dragon.foot_fl",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
-}
+        generate_mesh(&center, Vec3::from(spec.chest_rear.offset))
+    }
 
-pub fn mesh_dragon_foot_fr(
-    foot_fr: dragon::FootFR,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_fr {
-            dragon::FootFR::Default => "npc.dragon.foot_fr",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
-}
+    pub fn mesh_tail_front(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail front specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.tail_front.center.0);
 
-pub fn mesh_dragon_foot_bl(
-    foot_bl: dragon::FootBL,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_bl {
-            dragon::FootBL::Default => "npc.dragon.foot_bl",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
-}
+        generate_mesh(&center, Vec3::from(spec.tail_front.offset))
+    }
 
-pub fn mesh_dragon_foot_br(
-    foot_br: dragon::FootBR,
-    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot_br {
-            dragon::FootBR::Default => "npc.dragon.foot_br",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
-    )
+    pub fn mesh_tail_rear(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail rear specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.tail_rear.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.tail_rear.offset))
+    }
+}
+impl DragonLateralSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.dragon_lateral_manifest", indicator)
+            .unwrap()
+    }
+
+    pub fn mesh_wing_in_l(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_in_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.wing_in_l.offset))
+    }
+
+    pub fn mesh_wing_in_r(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.wing_in_r.offset))
+    }
+
+    pub fn mesh_wing_out_l(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_out_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.wing_out_l.offset))
+    }
+
+    pub fn mesh_wing_out_r(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_out_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.wing_out_r.offset))
+    }
+
+    pub fn mesh_foot_fl(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_fl.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_fl.offset))
+    }
+
+    pub fn mesh_foot_fr(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_fr.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_fr.offset))
+    }
+
+    pub fn mesh_foot_bl(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_bl.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_bl.offset))
+    }
+
+    pub fn mesh_foot_br(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_br.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_br.offset))
+    }
 }
 
 ////
