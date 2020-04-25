@@ -420,7 +420,7 @@ vec3 illuminate(/*vec3 max_light, */vec3 emitted, vec3 reflected) {
     // vec3 c = pow(col_adjusted, vec3(s)) * T;
     // vec3 c = col_adjusted * T;
     // vec3 c = sqrt(col_adjusted) * T;
-    vec3 c = /*col_adjusted * */col_adjusted * T;
+    vec3 c = col_adjusted * col_adjusted * T;
 
     return c;
     // float sum_col = color.r + color.g + color.b;
