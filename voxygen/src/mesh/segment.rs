@@ -3,27 +3,43 @@ use crate::{
     render::{self, FigurePipeline, Mesh, SpritePipeline},
 };
 use common::{
-    figure::Segment,
+    figure::Cell,
     util::{linear_to_srgb, srgb_to_linear},
-    vol::{IntoFullVolIterator, ReadVol, Vox},
+    vol::{BaseVol, ReadVol, SizedVol, Vox},
 };
 use vek::*;
 
 type FigureVertex = <FigurePipeline as render::Pipeline>::Vertex;
 type SpriteVertex = <SpritePipeline as render::Pipeline>::Vertex;
 
-impl Meshable<FigurePipeline, FigurePipeline> for Segment {
+impl<'a, V: 'a> Meshable<'a, FigurePipeline, FigurePipeline> for V
+where
+    V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
+    /* TODO: Use VolIterator instead of manually iterating
+     * &'a V: IntoVolIterator<'a> + IntoFullVolIterator<'a>,
+     * &'a V: BaseVol<Vox=Cell>, */
+{
     type Pipeline = FigurePipeline;
-    type Supplement = Vec3<f32>;
+    type Supplement = (Vec3<f32>, Vec3<f32>);
     type TranslucentPipeline = FigurePipeline;
 
     fn generate_mesh(
-        &self,
-        offs: Self::Supplement,
+        &'a self,
+        (offs, scale): Self::Supplement,
     ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
         let mut mesh = Mesh::new();
 
-        for (pos, vox) in self.full_vol_iter() {
+        let vol_iter = (self.lower_bound().x..self.upper_bound().x)
+            .map(|i| {
+                (self.lower_bound().y..self.upper_bound().y).map(move |j| {
+                    (self.lower_bound().z..self.upper_bound().z).map(move |k| Vec3::new(i, j, k))
+                })
+            })
+            .flatten()
+            .flatten()
+            .map(|pos| (pos, self.get(pos).map(|x| *x).unwrap_or(Vox::empty())));
+
+        for (pos, vox) in vol_iter {
             if let Some(col) = vox.get_color() {
                 vol::push_vox_verts(
                     &mut mesh,
@@ -32,7 +48,7 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, light, ao| {
                         FigureVertex::new(
-                            origin,
+                            origin * scale,
                             norm,
                             linear_to_srgb(srgb_to_linear(col) * light),
                             ao,
@@ -62,18 +78,34 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
     }
 }
 
-impl Meshable<SpritePipeline, SpritePipeline> for Segment {
+impl<'a, V: 'a> Meshable<'a, SpritePipeline, SpritePipeline> for V
+where
+    V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
+    /* TODO: Use VolIterator instead of manually iterating
+     * &'a V: IntoVolIterator<'a> + IntoFullVolIterator<'a>,
+     * &'a V: BaseVol<Vox=Cell>, */
+{
     type Pipeline = SpritePipeline;
-    type Supplement = Vec3<f32>;
+    type Supplement = (Vec3<f32>, Vec3<f32>);
     type TranslucentPipeline = SpritePipeline;
 
     fn generate_mesh(
-        &self,
-        offs: Self::Supplement,
+        &'a self,
+        (offs, scale): Self::Supplement,
     ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
         let mut mesh = Mesh::new();
 
-        for (pos, vox) in self.full_vol_iter() {
+        let vol_iter = (self.lower_bound().x..self.upper_bound().x)
+            .map(|i| {
+                (self.lower_bound().y..self.upper_bound().y).map(move |j| {
+                    (self.lower_bound().z..self.upper_bound().z).map(move |k| Vec3::new(i, j, k))
+                })
+            })
+            .flatten()
+            .flatten()
+            .map(|pos| (pos, self.get(pos).map(|x| *x).unwrap_or(Vox::empty())));
+
+        for (pos, vox) in vol_iter {
             if let Some(col) = vox.get_color() {
                 vol::push_vox_verts(
                     &mut mesh,
@@ -82,7 +114,7 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, light, ao| {
                         SpriteVertex::new(
-                            origin,
+                            origin * scale,
                             norm,
                             linear_to_srgb(srgb_to_linear(col) * light),
                             ao,

@@ -2,7 +2,9 @@ pub mod cell;
 pub mod mat_cell;
 pub use mat_cell::Material;
 
-use self::{cell::Cell, mat_cell::MatCell};
+// Reexport
+pub use self::{cell::Cell, mat_cell::MatCell};
+
 use crate::{
     vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::Dyna,

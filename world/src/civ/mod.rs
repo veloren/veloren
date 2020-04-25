@@ -140,12 +140,13 @@ impl Civs {
                     e * sz as i32 + sz as i32 / 2
                 });
 
+            let mut rng = ctx.reseed().rng;
             let world_site = match &site.kind {
                 SiteKind::Settlement => {
-                    WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), &mut ctx.rng))
+                    WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
                 },
                 SiteKind::Dungeon => {
-                    WorldSite::from(Dungeon::generate(wpos, Some(ctx.sim), &mut ctx.rng))
+                    WorldSite::from(Dungeon::generate(wpos, Some(ctx.sim), &mut rng))
                 },
             };
 

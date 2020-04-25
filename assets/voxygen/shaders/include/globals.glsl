@@ -16,6 +16,7 @@ uniform u_globals {
 	// 0 - FirstPerson
 	// 1 - ThirdPerson
 	uint cam_mode;
+	float sprite_render_distance;
 };
 
 // Specifies the pattern used in the player dithering
