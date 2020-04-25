@@ -410,24 +410,83 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                 None,
                 None,
             ],
-            Body::Dragon(body) => [
-                Some(mesh_dragon_head(body.head, generate_mesh)),
-                Some(mesh_dragon_chest_front(body.chest_front, generate_mesh)),
-                Some(mesh_dragon_chest_rear(body.chest_rear, generate_mesh)),
-                Some(mesh_dragon_tail_front(body.tail_front, generate_mesh)),
-                Some(mesh_dragon_tail_rear(body.tail_rear, generate_mesh)),
-                Some(mesh_dragon_wing_in_l(body.wing_in_l, generate_mesh)),
-                Some(mesh_dragon_wing_in_r(body.wing_in_r, generate_mesh)),
-                Some(mesh_dragon_wing_out_l(body.wing_out_l, generate_mesh)),
-                Some(mesh_dragon_wing_out_r(body.wing_out_r, generate_mesh)),
-                Some(mesh_dragon_foot_fl(body.foot_fl, generate_mesh)),
-                Some(mesh_dragon_foot_fr(body.foot_fr, generate_mesh)),
-                Some(mesh_dragon_foot_bl(body.foot_bl, generate_mesh)),
-                Some(mesh_dragon_foot_br(body.foot_br, generate_mesh)),
-                None,
-                None,
-                None,
-            ],
+            Body::Dragon(body) => {
+                let dragon_center_spec =
+                    DragonCenterSpec::load_watched(manifest_indicator);
+                let dragon_lateral_spec =
+                    DragonLateralSpec::load_watched(manifest_indicator);
+
+                [
+                    Some(dragon_center_spec.mesh_head(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_center_spec.mesh_chest_front(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_center_spec.mesh_chest_rear(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_center_spec.mesh_tail_front(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_center_spec.mesh_tail_rear(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_lateral_spec.mesh_wing_in_l(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_lateral_spec.mesh_wing_in_r(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_lateral_spec.mesh_wing_out_l(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_lateral_spec.mesh_wing_out_r(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_lateral_spec.mesh_foot_fl(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_lateral_spec.mesh_foot_fr(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_lateral_spec.mesh_foot_bl(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_lateral_spec.mesh_foot_br(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    None,
+                    None,
+                    None,
+                ]
+            },
             Body::BirdSmall(body) => [
                 Some(mesh_bird_small_head(body.head, generate_mesh)),
                 Some(mesh_bird_small_torso(body.torso, generate_mesh)),

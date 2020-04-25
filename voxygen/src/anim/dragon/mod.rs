@@ -10,7 +10,7 @@ use crate::render::FigureBoneData;
 use common::comp::{self};
 use vek::Vec3;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct DragonSkeleton {
     head: Bone,
     chest_front: Bone,
@@ -28,23 +28,7 @@ pub struct DragonSkeleton {
 }
 
 impl DragonSkeleton {
-    pub fn new() -> Self {
-        Self {
-            head: Bone::default(),
-            chest_front: Bone::default(),
-            chest_rear: Bone::default(),
-            tail_front: Bone::default(),
-            tail_rear: Bone::default(),
-            wing_in_l: Bone::default(),
-            wing_in_r: Bone::default(),
-            wing_out_l: Bone::default(),
-            wing_out_r: Bone::default(),
-            foot_fl: Bone::default(),
-            foot_fr: Bone::default(),
-            foot_bl: Bone::default(),
-            foot_br: Bone::default(),
-        }
-    }
+    pub fn new() -> Self { Self::default() }
 }
 
 impl Skeleton for DragonSkeleton {
@@ -98,7 +82,17 @@ impl Skeleton for DragonSkeleton {
     }
 }
 
-pub struct SkeletonAttr;
+pub struct SkeletonAttr {
+    head: (f32, f32),
+    chest_front: (f32, f32),
+    chest_rear: (f32, f32),
+    tail_front: (f32, f32),
+    tail_rear: (f32, f32),
+    wing_in: (f32, f32),
+    wing_out: (f32, f32),
+    feet_f: (f32, f32, f32),
+    feet_b: (f32, f32, f32),
+}
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
     type Error = ();
@@ -112,9 +106,52 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
 }
 
 impl Default for SkeletonAttr {
-    fn default() -> Self { Self }
+    fn default() -> Self {
+        Self {
+            head: (0.0, 0.0),
+            chest_front: (0.0, 0.0),
+            chest_rear: (0.0, 0.0),
+            tail_front: (0.0, 0.0),
+            tail_rear: (0.0, 0.0),
+            wing_in: (0.0, 0.0),
+            wing_out: (0.0, 0.0),
+            feet_f: (0.0, 0.0, 0.0),
+            feet_b: (0.0, 0.0, 0.0),
+        }
+    }
 }
 
 impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
-    fn from(_body: &'a comp::dragon::Body) -> Self { Self }
+    fn from(body: &'a comp::dragon::Body) -> Self { 
+        use comp::dragon::Species::*;
+        Self {
+            head: match (body.species, body.body_type) {
+                (Reddragon, _) => (4.0, 3.0),
+            },
+            chest_front: match (body.species, body.body_type) {
+                (Reddragon, _) => (0.0, 5.0),
+            },
+            chest_rear: match (body.species, body.body_type) {
+                (Reddragon, _) => (0.0, 5.0),
+            },
+            tail_front: match (body.species, body.body_type) {
+                (Reddragon, _) => (-3.0, 1.5),
+            },
+            tail_rear: match (body.species, body.body_type) {
+                (Reddragon, _) => (-3.0, 1.5),
+            },
+            wing_in: match (body.species, body.body_type) {
+                (Reddragon, _) => (2.75, 0.0),
+            },
+            wing_out: match (body.species, body.body_type) {
+                (Reddragon, _) => (2.75, 0.0),
+            },
+            feet_f: match (body.species, body.body_type) {
+                (Reddragon, _) => (2.0, -1.5, 4.0),
+            },
+            feet_b: match (body.species, body.body_type) {
+                (Reddragon, _) => (2.0, -1.5, 4.0),
+            },
+        }
+    }
 }
