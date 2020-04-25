@@ -1365,22 +1365,21 @@ fn handle_sudo(
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(player_alias), Some(mut cmd), cmd_args) =
+    if let (Some(player_alias), Some(cmd), cmd_args) =
         scan_fmt_some!(&args, action.arg_fmt, String, String, String)
     {
         let cmd_args = cmd_args.unwrap_or(String::from(""));
-        if cmd.chars().next() == Some('/') {
-            cmd.remove(0);
-        }
+        let cmd = if cmd.chars().next() == Some('/') {
+            cmd.chars().skip(1).collect()
+        } else {
+            cmd
+        };
         if let Some(action) = CHAT_COMMANDS.iter().find(|c| c.keyword == cmd) {
-            let mut entity_opt = None;
             let ecs = server.state.ecs();
-            for (ent, player) in (&ecs.entities(), &ecs.read_storage::<comp::Player>()).join() {
-                if player.alias == player_alias {
-                    entity_opt = Some(ent);
-                    break;
-                }
-            }
+            let entity_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+                .join()
+                .find(|(_, player)| player.alias == player_alias)
+                .map(|(entity, _)| entity);
             if let Some(entity) = entity_opt {
                 (action.handler)(server, client, entity, cmd_args, action);
             } else {
