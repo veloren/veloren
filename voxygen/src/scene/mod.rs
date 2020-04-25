@@ -411,6 +411,17 @@ impl Scene {
             &self.lod,
             self.camera.get_focus_pos(),
         );
+        self.figure_mgr.render(
+            renderer,
+            state,
+            player_entity,
+            tick,
+            &self.globals,
+            &self.lights,
+            &self.shadows,
+            &self.lod,
+            &self.camera,
+        );
         self.lod.render(renderer, &self.globals);
 
         // Render the skybox.
