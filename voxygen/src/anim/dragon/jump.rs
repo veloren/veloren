@@ -19,7 +19,7 @@ impl Animation for JumpAnimation {
 
         next.head.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
         next.head.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.head.scale = Vec3::one() / 10.88;
+        next.head.scale = Vec3::one() * 1.01;
 
         next.chest_front.offset = Vec3::new(0.0, 4.5, 2.0);
         next.chest_front.ori = Quaternion::rotation_x(0.0);
