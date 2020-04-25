@@ -94,6 +94,7 @@ impl Server {
             .insert(AuthProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
+
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
         state.ecs_mut().insert(sys::MessageTimer::default());
@@ -102,6 +103,14 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
+
+        // System schedulers to control execution of systems
+        state
+            .ecs_mut()
+            .insert(sys::StatsPersistenceScheduler::every(Duration::from_secs(
+                5,
+            )));
+
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();

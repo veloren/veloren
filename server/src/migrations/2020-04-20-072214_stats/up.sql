@@ -1,6 +1,5 @@
 CREATE TABLE "stats" (
-    id INTEGER NOT NULL PRIMARY KEY,
-    character_id INT NOT NULL,
+    character_id INT NOT NULL PRIMARY KEY,
     "level" INT NOT NULL DEFAULT 1,
     "exp" INT NOT NULL DEFAULT 0,
     endurance INT NOT NULL DEFAULT 0,

@@ -91,9 +91,12 @@ impl From<StatsJoinData<'_>> for comp::Stats {
         let mut base_stats = comp::Stats::new(String::from(&data.character.alias), *data.body);
 
         base_stats.level.set_level(data.stats.level as u32);
-        base_stats.update_max_hp();
-
         base_stats.exp.set_current(data.stats.exp as u32);
+
+        base_stats.update_max_hp();
+        base_stats
+            .health
+            .set_to(base_stats.health.maximum(), comp::HealthSource::Revive);
 
         base_stats.endurance = data.stats.endurance as u32;
         base_stats.fitness = data.stats.fitness as u32;

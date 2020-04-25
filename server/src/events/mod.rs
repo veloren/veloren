@@ -71,10 +71,11 @@ impl Server {
                 },
                 ServerEvent::SelectCharacter {
                     entity,
-                    name,
+                    character_id,
                     body,
                     main,
-                } => handle_create_character(self, entity, name, body, main),
+                    stats,
+                } => handle_create_character(self, entity, character_id, body, main, stats),
                 ServerEvent::ExitIngame { entity } => handle_exit_ingame(self, entity),
                 ServerEvent::CreateNpc {
                     pos,

@@ -1,4 +1,6 @@
 pub mod character;
+pub mod stats;
+
 mod error;
 mod models;
 mod schema;
