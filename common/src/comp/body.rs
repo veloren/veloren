@@ -60,6 +60,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
+    pub dragon: BodyData<BodyMeta, dragon::AllSpecies<SpeciesMeta>>,
 }
 
 /// Can only retrieve body metadata by direct index.
@@ -76,6 +77,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Ogre => &self.biped_large.body,
             NpcKind::StoneGolem => &self.golem.body,
             NpcKind::Rat => &self.critter.body,
+            NpcKind::Reddragon => &self.dragon.body,
         }
     }
 }
