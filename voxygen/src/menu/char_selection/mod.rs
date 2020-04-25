@@ -87,11 +87,14 @@ impl PlayState for CharSelectionState {
                         if let Some(selected_character) =
                             char_data.get(self.char_selection_ui.selected_character)
                         {
-                            self.client.borrow_mut().request_character(
-                                selected_character.character.alias.clone(),
-                                selected_character.body,
-                                selected_character.character.tool.clone(),
-                            );
+                            if let Some(character_id) = selected_character.character.id {
+                                self.client.borrow_mut().request_character(
+                                    character_id,
+                                    selected_character.body,
+                                    selected_character.character.tool.clone(),
+                                    selected_character.stats.clone(),
+                                );
+                            }
                         }
 
                         return PlayStateResult::Switch(Box::new(SessionState::new(

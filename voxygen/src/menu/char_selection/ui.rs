@@ -803,12 +803,10 @@ impl CharSelectionUi {
                         .color(TEXT_COLOR)
                         .set(self.ids.character_names[i], ui_widgets);
 
-                    Text::new(
-                        &self
-                            .voxygen_i18n
-                            .get("char_selection.level_fmt")
-                            .replace("{level_nb}", "1"),
-                    ) //TODO Insert real level here as soon as they get saved
+                    Text::new(&self.voxygen_i18n.get("char_selection.level_fmt").replace(
+                        "{level_nb}",
+                        &character_item.stats.level.level().to_string(),
+                    ))
                     .down_from(self.ids.character_names[i], 4.0)
                     .font_size(self.fonts.cyri.scale(17))
                     .font_id(self.fonts.cyri.conrod_id)
