@@ -56,7 +56,9 @@ impl Vertex {
 
         Self {
             pos: pos.into_array(),
-            col: col.map2(Rgb::new(0, 8, 16), |e, shift| ((e * 255.0) as u32) << shift).reduce_bitor(),
+            col: col
+                .map2(Rgb::new(0, 8, 16), |e, shift| ((e * 255.0) as u32) << shift)
+                .reduce_bitor(),
             norm_ao: norm_bits | (((ao * 3.9999) as u32) << 3),
         }
     }
