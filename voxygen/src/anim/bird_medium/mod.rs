@@ -27,6 +27,8 @@ impl BirdMediumSkeleton {
 impl Skeleton for BirdMediumSkeleton {
     type Attr = SkeletonAttr;
 
+    fn bone_count(&self) -> usize { 7 }
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let torso_mat = self.torso.compute_base_matrix();
 

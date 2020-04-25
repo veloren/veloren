@@ -49,6 +49,8 @@ impl DragonSkeleton {
 impl Skeleton for DragonSkeleton {
     type Attr = SkeletonAttr;
 
+    fn bone_count(&self) -> usize { 13 }
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let chest_front_mat = self.chest_front.compute_base_matrix();
         let wing_in_l_mat = self.wing_in_l.compute_base_matrix();

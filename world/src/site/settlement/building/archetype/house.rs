@@ -116,7 +116,7 @@ impl Archetype for House {
                     storey_fill: StoreyFill::All,
                     mansard: 0,
                     pillar: match rng.gen_range(0, 3) {
-                        0 => Pillar::Chimney(9 + locus + rng.gen_range(0, 4)),
+                        0 => Pillar::Chimney(10 + locus + rng.gen_range(0, 4)),
                         1 => Pillar::Tower(15 + locus + rng.gen_range(0, 4)),
                         _ => Pillar::None,
                     },
@@ -199,7 +199,8 @@ impl Archetype for House {
 
         let facade_layer = 3;
         let structural_layer = facade_layer + 1;
-        let foundation_layer = structural_layer + 1;
+        let internal_layer = structural_layer + 1;
+        let foundation_layer = internal_layer + 1;
         let floor_layer = foundation_layer + 1;
 
         let foundation = make_block(100, 100, 100).with_priority(foundation_layer);
@@ -207,9 +208,9 @@ impl Archetype for House {
         let floor = make_block(100, 75, 50);
         let wall = make_block(200, 180, 150).with_priority(facade_layer);
         let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b)
-            .with_priority(facade_layer);
+            .with_priority(facade_layer - 1);
         let empty = BlockMask::nothing();
-        let internal = BlockMask::new(Block::empty(), structural_layer);
+        let internal = BlockMask::new(Block::empty(), internal_layer);
         let end_window = BlockMask::new(
             Block::new(BlockKind::Window1, make_meta(ori.flip())),
             structural_layer,

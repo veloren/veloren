@@ -89,6 +89,9 @@ widget_ids! {
         vd_slider,
         vd_text,
         vd_value,
+        sprite_dist_slider,
+        sprite_dist_text,
+        sprite_dist_value,
         max_fps_slider,
         max_fps_text,
         max_fps_value,
@@ -209,6 +212,7 @@ pub enum Event {
     ToggleMouseYInvert(bool),
     ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
+    AdjustSpriteRenderDistance(u32),
     AdjustFOV(u16),
     AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
@@ -1612,7 +1616,43 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.gamma_value, ui);
+            // Sprites VD
+            if let Some(new_val) = ImageSlider::discrete(
+                self.global_state.settings.graphics.sprite_render_distance,
+                50,
+                500,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .right_from(state.ids.vd_slider, 50.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.sprite_dist_slider, ui)
+            {
+                events.push(Event::AdjustSpriteRenderDistance(new_val));
+            }
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.sprites_view_distance"),
+            )
+            .up_from(state.ids.sprite_dist_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.sprite_dist_text, ui);
 
+            Text::new(&format!(
+                "{}",
+                self.global_state.settings.graphics.sprite_render_distance
+            ))
+            .right_from(state.ids.sprite_dist_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.sprite_dist_value, ui);
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
                 .down_from(state.ids.gamma_slider, 8.0)
