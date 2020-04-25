@@ -569,7 +569,8 @@ impl PlayState for SessionState {
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::AdjustSpriteRenderDistance(sprite_render_distance) => {
-                        global_state.settings.graphics.sprite_render_distance = sprite_render_distance;
+                        global_state.settings.graphics.sprite_render_distance =
+                            sprite_render_distance;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::CrosshairTransp(crosshair_transp) => {
@@ -714,7 +715,8 @@ impl PlayState for SessionState {
                     thread_pool: client.thread_pool(),
                     gamma: global_state.settings.graphics.gamma,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
-                    sprite_render_distance: global_state.settings.graphics.sprite_render_distance as f32,
+                    sprite_render_distance: global_state.settings.graphics.sprite_render_distance
+                        as f32,
                 };
 
                 // Runs if either in a multiplayer server or the singleplayer server is unpaused
@@ -732,7 +734,13 @@ impl PlayState for SessionState {
                 // Clear the screen
                 renderer.clear();
                 // Render the screen using the global renderer
-                self.scene.render(renderer, client.state(), client.entity(), client.get_tick(), &scene_data);
+                self.scene.render(
+                    renderer,
+                    client.state(),
+                    client.entity(),
+                    client.get_tick(),
+                    &scene_data,
+                );
                 // Draw the UI to the screen
                 self.hud.render(renderer, self.scene.globals());
                 // Finish the frame
