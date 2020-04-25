@@ -1859,7 +1859,10 @@ impl<S: Skeleton> FigureState<S> {
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
         renderer
-            .update_consts(&mut self.bone_consts, &self.skeleton.compute_matrices()[0..self.skeleton.bone_count()])
+            .update_consts(
+                &mut self.bone_consts,
+                &self.skeleton.compute_matrices()[0..self.skeleton.bone_count()],
+            )
             .unwrap();
     }
 
