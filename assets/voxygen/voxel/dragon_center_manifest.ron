@@ -1,45 +1,45 @@
 ({
     (Reddragon, Male): (
         head: (
-            offset: (-7.0, -9.0, -5.5),
+            offset: (-4.5, -2.0, -7.5),
             center: ("npc.reddragon.male.head"),
         ),
         chest_front: (
-            offset: (-7.0, 4.5, 5.0),
+            offset: (-6.5, -6.0, -6.0),
             center: ("npc.reddragon.male.chest_front"),
         ),
         chest_rear: (
-            offset: (-7.0, -4.5, 5.0),
+            offset: (-6.5, -7.0, -6.0),
             center: ("npc.reddragon.male.chest_rear"),
         ),
         tail_front: (
-            offset: (-7.0, -4.5, -5.0),
+            offset: (-2.5, -5.5, -3.0),
             center: ("npc.reddragon.male.tail_front"),
         ),
         tail_rear: (
-            offset: (-7.0, -4.5, -5.0),
+            offset: (-1.5, -7.0, -2.5),
             center: ("npc.reddragon.male.tail_rear"),
         )
     ),
     (Reddragon, Female): (
         head: (
-            offset: (-7.0, -9.0, -5.5),
+            offset: (-4.5, -2.0, -7.5),
             center: ("npc.reddragon.female.head"),
         ),
         chest_front: (
-            offset: (-7.0, 4.5, 5.0),
+            offset: (-6.5, -6.0, -6.0),
             center: ("npc.reddragon.female.chest_front"),
         ),
         chest_rear: (
-            offset: (-7.0, -4.5, 5.0),
+            offset: (-6.5, -7.0, -6.0),
             center: ("npc.reddragon.female.chest_rear"),
         ),
         tail_front: (
-            offset: (-7.0, -4.5, -5.0),
+            offset: (-2.5, -5.5, -3.0),
             center: ("npc.reddragon.female.tail_front"),
         ),
         tail_rear: (
-            offset: (-7.0, -4.5, -5.0),
+            offset: (-1.5, -7.0, -2.5),
             center: ("npc.reddragon.female.tail_rear"),
         )
     ),
