@@ -20,15 +20,14 @@ impl<'a, V: ReadVol> ReadVol for Scaled<'a, V> {
         let ideal_search_size = Vec3::<f32>::one() / self.scale;
         let range_iter = |i: usize| {
             std::iter::successors(Some(0), |p| Some(if *p < 0 { -*p } else { -(*p + 1) }))
-                .take_while(move |p| (
-                    (ideal_pos[i] - ideal_search_size[i] / 2.0).round() as i32..(ideal_pos[i] + ideal_search_size[i] / 2.0).round() as i32
-                ).contains(&(pos[i] + *p)))
+                .take_while(move |p| {
+                    ((ideal_pos[i] - ideal_search_size[i] / 2.0).round() as i32
+                        ..(ideal_pos[i] + ideal_search_size[i] / 2.0).round() as i32)
+                        .contains(&(pos[i] + *p))
+                })
         };
         range_iter(0)
-            .map(|i| {
-                range_iter(1)
-                    .map(move |j| range_iter(2).map(move |k| Vec3::new(i, j, k)))
-            })
+            .map(|i| range_iter(1).map(move |j| range_iter(2).map(move |k| Vec3::new(i, j, k))))
             .flatten()
             .flatten()
             .map(|offs| self.inner.get(pos + offs))

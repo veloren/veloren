@@ -116,7 +116,7 @@ impl Archetype for House {
                     storey_fill: StoreyFill::All,
                     mansard: 0,
                     pillar: match rng.gen_range(0, 3) {
-                        0 => Pillar::Chimney(9 + locus + rng.gen_range(0, 4)),
+                        0 => Pillar::Chimney(10 + locus + rng.gen_range(0, 4)),
                         1 => Pillar::Tower(15 + locus + rng.gen_range(0, 4)),
                         _ => Pillar::None,
                     },
