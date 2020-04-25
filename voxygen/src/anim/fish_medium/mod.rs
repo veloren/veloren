@@ -35,6 +35,8 @@ impl FishMediumSkeleton {
 impl Skeleton for FishMediumSkeleton {
     type Attr = SkeletonAttr;
 
+    fn bone_count(&self) -> usize { 6 }
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let torso_mat = self.torso.compute_base_matrix();
         let rear_mat = self.rear.compute_base_matrix();

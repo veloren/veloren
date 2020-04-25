@@ -32,6 +32,8 @@ impl CritterSkeleton {
 impl Skeleton for CritterSkeleton {
     type Attr = CritterAttr;
 
+    fn bone_count(&self) -> usize { 5 }
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         [
             FigureBoneData::new(self.head.compute_base_matrix()),
