@@ -22,6 +22,7 @@ struct BoneData {
 
 layout (std140)
 uniform u_bones {
+	// Warning: might not actually be 16 elements long. Don't index out of bounds!
 	BoneData bones[16];
 };
 
