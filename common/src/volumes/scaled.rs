@@ -14,16 +14,20 @@ impl<'a, V: BaseVol> BaseVol for Scaled<'a, V> {
 impl<'a, V: ReadVol> ReadVol for Scaled<'a, V> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
-        let pos = pos.map2(self.scale, |e, scale| (e as f32 / scale).trunc() as i32);
-        let search_size = (Vec3::one() / self.scale).map(|e: f32| e.round() as i32);
-        let range_iter = |x| {
-            std::iter::successors(Some(0), |x| Some(if *x < 0 { -*x } else { -(*x + 1) }))
-                .take(x as usize * 2)
+        let ideal_pos = pos.map2(self.scale, |e, scale| e as f32 / scale);
+        let pos = ideal_pos.map(|e| e.trunc() as i32);
+
+        let ideal_search_size = Vec3::<f32>::one() / self.scale;
+        let range_iter = |i: usize| {
+            std::iter::successors(Some(0), |p| Some(if *p < 0 { -*p } else { -(*p + 1) }))
+                .take_while(move |p| (
+                    (ideal_pos[i] - ideal_search_size[i] / 2.0).round() as i32..(ideal_pos[i] + ideal_search_size[i] / 2.0).round() as i32
+                ).contains(&(pos[i] + *p)))
         };
-        range_iter(search_size.x / 2)
+        range_iter(0)
             .map(|i| {
-                range_iter(search_size.y / 2)
-                    .map(move |j| range_iter(search_size.z / 2).map(move |k| Vec3::new(i, j, k)))
+                range_iter(1)
+                    .map(move |j| range_iter(2).map(move |k| Vec3::new(i, j, k)))
             })
             .flatten()
             .flatten()
