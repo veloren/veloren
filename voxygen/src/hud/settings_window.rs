@@ -212,6 +212,7 @@ pub enum Event {
     ToggleMouseYInvert(bool),
     ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
+    AdjustSpriteRenderDistance(u32),
     AdjustFOV(u16),
     AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
@@ -1617,9 +1618,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.gamma_value, ui);
             // Sprites VD
             if let Some(new_val) = ImageSlider::discrete(
-                self.global_state.settings.graphics.view_distance,
-                1,
-                65,
+                self.global_state.settings.graphics.sprite_render_distance,
+                50,
+                500,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -1630,7 +1631,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.sprite_dist_slider, ui)
             {
-                events.push(Event::AdjustViewDistance(new_val));
+                events.push(Event::AdjustSpriteRenderDistance(new_val));
             }
             Text::new(
                 &self
@@ -1645,7 +1646,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new(&format!(
                 "{}",
-                self.global_state.settings.graphics.view_distance
+                self.global_state.settings.graphics.sprite_render_distance
             ))
             .right_from(state.ids.sprite_dist_slider, 8.0)
             .font_size(self.fonts.cyri.scale(14))
