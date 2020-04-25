@@ -2255,10 +2255,10 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Terrain sprites
         for (pos, chunk) in chunk_iter.clone() {
             if chunk.visible {
-                let sprite_detail_low_distance = sprite_render_distance * 0.75;
-                let sprite_detail_mid_distance = sprite_render_distance * 0.5;
-                let sprite_detail_hid_distance = sprite_render_distance * 0.35;
-                let sprite_detail_high_distance = sprite_render_distance * 0.15;
+                let sprite_low_detail_distance = sprite_render_distance * 0.75;
+                let sprite_mid_detail_distance = sprite_render_distance * 0.5;
+                let sprite_hid_detail_distance = sprite_render_distance * 0.35;
+                let sprite_high_detail_distance = sprite_render_distance * 0.15;
 
                 let chunk_center =
                     pos.map2(V::RECT_SIZE, |e, sz: u32| (e as f32 + 0.5) * sz as f32);
@@ -2266,13 +2266,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                 if dist_sqrd < sprite_render_distance.powf(2.0) {
                     for (kind, instances) in &chunk.sprite_instances {
                         renderer.render_sprites(
-                            if dist_sqrd < sprite_detail_high_distance.powf(2.0) {
+                            if dist_sqrd < sprite_high_detail_distance.powf(2.0) {
                                 &self.sprite_models[&kind][0]
-                            } else if dist_sqrd < sprite_detail_hid_distance.powf(2.0) {
+                            } else if dist_sqrd < sprite_hid_detail_distance.powf(2.0) {
                                 &self.sprite_models[&kind][1]
-                            } else if dist_sqrd < sprite_detail_mid_distance.powf(2.0) {
+                            } else if dist_sqrd < sprite_mid_detail_distance.powf(2.0) {
                                 &self.sprite_models[&kind][2]
-                            } else if dist_sqrd < sprite_detail_low_distance.powf(2.0) {
+                            } else if dist_sqrd < sprite_low_detail_distance.powf(2.0) {
                                 &self.sprite_models[&kind][3]
                             } else {
                                 &self.sprite_models[&kind][4]
