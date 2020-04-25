@@ -156,8 +156,8 @@ impl FigureMgr {
             // TODO: Investigate passing the velocity into the shader so we can at least
             // interpolate motion
             const MIN_PERFECT_RATE_DIST: f32 = 50.0;
-            if (i as u64 + tick) % (1
-                + ((pos.0.distance_squared(camera.get_focus_pos()).powf(0.25)
+            if (i as u64 + tick)
+                % (1 + ((pos.0.distance_squared(camera.get_focus_pos()).powf(0.25)
                     - MIN_PERFECT_RATE_DIST.powf(0.5))
                 .max(0.0)
                     / 3.0) as u64)
