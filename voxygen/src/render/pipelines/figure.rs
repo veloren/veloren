@@ -56,8 +56,11 @@ impl Vertex {
         };
         Self {
             pos_norm: pos
-                .map2(Vec3::new(0, 8, 16), |e, shift| ((e + 128.0) as u32) << shift)
-                .reduce_bitor() | (norm_bits << 24),
+                .map2(Vec3::new(0, 8, 16), |e, shift| {
+                    ((e + 128.0) as u32) << shift
+                })
+                .reduce_bitor()
+                | (norm_bits << 24),
             col: col
                 .map2(Rgb::new(0, 8, 16), |e, shift| ((e * 255.0) as u32) << shift)
                 .reduce_bitor(),
