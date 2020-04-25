@@ -126,31 +126,31 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
         use comp::dragon::Species::*;
         Self {
             head: match (body.species, body.body_type) {
-                (Reddragon, _) => (4.0, 3.0),
+                (Reddragon, _) => (0.0, 0.0),
             },
             chest_front: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 5.0),
+                (Reddragon, _) => (0.0, 0.0),
             },
             chest_rear: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 5.0),
+                (Reddragon, _) => (0.0, 0.0),
             },
             tail_front: match (body.species, body.body_type) {
-                (Reddragon, _) => (-3.0, 1.5),
+                (Reddragon, _) => (0.0, 0.0),
             },
             tail_rear: match (body.species, body.body_type) {
-                (Reddragon, _) => (-3.0, 1.5),
+                (Reddragon, _) => (0.0, 0.0),
             },
             wing_in: match (body.species, body.body_type) {
-                (Reddragon, _) => (2.75, 0.0),
+                (Reddragon, _) => (0.0, 0.0),
             },
             wing_out: match (body.species, body.body_type) {
-                (Reddragon, _) => (2.75, 0.0),
+                (Reddragon, _) => (0.0, 0.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Reddragon, _) => (2.0, -1.5, 4.0),
+                (Reddragon, _) => (0.0, 0.0, 0.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Reddragon, _) => (2.0, -1.5, 4.0),
+                (Reddragon, _) => (0.0, 0.0, 0.0),
             },
         }
     }
