@@ -142,16 +142,12 @@ impl Civs {
 
             let mut rng = ctx.reseed().rng;
             let world_site = match &site.kind {
-                SiteKind::Settlement => WorldSite::from(Settlement::generate(
-                    wpos,
-                    Some(ctx.sim),
-                    &mut rng,
-                )),
-                SiteKind::Dungeon => WorldSite::from(Dungeon::generate(
-                    wpos,
-                    Some(ctx.sim),
-                    &mut rng,
-                )),
+                SiteKind::Settlement => {
+                    WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
+                },
+                SiteKind::Dungeon => {
+                    WorldSite::from(Dungeon::generate(wpos, Some(ctx.sim), &mut rng))
+                },
             };
 
             let radius_chunks =
