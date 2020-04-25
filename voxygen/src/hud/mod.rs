@@ -143,6 +143,7 @@ widget_ids! {
         ping,
         coordinates,
         velocity,
+        orientation,
         loaded_distance,
         time,
         entity_count,
@@ -196,6 +197,7 @@ pub struct DebugInfo {
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
     pub velocity: Option<comp::Vel>,
+    pub ori: Option<comp::Ori>,
     pub num_chunks: u32,
     pub num_visible_chunks: u32,
     pub num_figures: u32,
@@ -1449,6 +1451,20 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.velocity, ui_widgets);
+            // Player's orientation vector
+            let orientation_text = match debug_info.ori {
+                Some(ori) => format!(
+                    "Orientation: ({:.1}, {:.1}, {:.1})",
+                    ori.0.x, ori.0.y, ori.0.z,
+                ),
+                None => "Player has no Ori component".to_owned(),
+            };
+            Text::new(&orientation_text)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.velocity, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.orientation, ui_widgets);
             // Loaded distance
             Text::new(&format!(
                 "View distance: {:.2} blocks ({:.2} chunks)",
@@ -1456,7 +1472,7 @@ impl Hud {
                 client.loaded_distance() / TerrainChunk::RECT_SIZE.x as f32,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.velocity, 5.0)
+            .down_from(self.ids.orientation, 5.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.loaded_distance, ui_widgets);
