@@ -47,6 +47,8 @@ impl BipedLargeSkeleton {
 impl Skeleton for BipedLargeSkeleton {
     type Attr = SkeletonAttr;
 
+    fn bone_count(&self) -> usize { 11 }
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();

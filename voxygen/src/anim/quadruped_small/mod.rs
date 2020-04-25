@@ -26,6 +26,8 @@ impl QuadrupedSmallSkeleton {
 impl Skeleton for QuadrupedSmallSkeleton {
     type Attr = SkeletonAttr;
 
+    fn bone_count(&self) -> usize { 6 }
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         [
             FigureBoneData::new(self.head.compute_base_matrix()),

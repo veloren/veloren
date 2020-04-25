@@ -1,4 +1,4 @@
-use crate::ray::Ray;
+use crate::{ray::Ray, volumes::scaled::Scaled};
 use std::fmt::Debug;
 use vek::*;
 
@@ -24,6 +24,13 @@ pub trait Vox: Sized + Clone + PartialEq {
 pub trait BaseVol {
     type Vox: Vox;
     type Error: Debug;
+
+    fn scaled_by(&self, scale: Vec3<f32>) -> Scaled<Self>
+    where
+        Self: Sized,
+    {
+        Scaled { inner: self, scale }
+    }
 }
 
 /// Implementing `BaseVol` for any `&'a BaseVol` makes it possible to implement
@@ -159,6 +166,7 @@ where
 /// Unfortunately we can't just implement `IntoIterator` in this generic way
 /// because it's defined in another crate. That's actually the only reason why
 /// the trait `IntoFullVolIterator` exists.
+// TODO: See whether relaxed orphan rules permit this to be replaced now
 impl<'a, T: 'a + SizedVol> IntoFullVolIterator<'a> for &'a T
 where
     Self: IntoVolIterator<'a>,

@@ -4,9 +4,8 @@
 #include <srgb.glsl>
 
 in vec3 v_pos;
-in vec3 v_norm;
-in vec3 v_col;
-in float v_ao;
+in uint v_col;
+in uint v_norm_ao;
 in vec4 inst_mat0;
 in vec4 inst_mat1;
 in vec4 inst_mat2;
@@ -32,6 +31,7 @@ void main() {
 	vec3 sprite_pos = (inst_mat * vec4(0, 0, 0, 1)).xyz;
 
 	f_pos = (inst_mat * vec4(v_pos * SCALE, 1)).xyz;
+	f_pos.z -= 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0);
 
 	// Wind waving
 	f_pos += inst_wind_sway * vec3(
@@ -40,10 +40,13 @@ void main() {
 		0.0
 	) * pow(abs(v_pos.z) * SCALE, 1.3) * 0.2;
 
-	f_norm = (inst_mat * vec4(v_norm, 0)).xyz;
+	// First 3 normals are negative, next 3 are positive
+	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
+	f_norm = (inst_mat * vec4(normals[(v_norm_ao >> 0) & 0x7u], 0)).xyz;
 
-	f_col = srgb_to_linear(v_col) * srgb_to_linear(inst_col);
-	f_ao = v_ao;
+	vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
+	f_col = srgb_to_linear(col) * srgb_to_linear(inst_col);
+	f_ao = float((v_norm_ao >> 3) & 0x3u) / 4.0;
 
 	// Select glowing
 	if (select_pos.w > 0 && select_pos.xyz == floor(sprite_pos)) {
