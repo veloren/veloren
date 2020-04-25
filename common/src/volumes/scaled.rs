@@ -15,7 +15,7 @@ impl<'a, V: ReadVol> ReadVol for Scaled<'a, V> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
         let pos = pos.map2(self.scale, |e, scale| (e as f32 / scale).trunc() as i32);
-        let search_size = (Vec3::one() / self.scale).map(|e: f32| e.ceil() as i32);
+        let search_size = (Vec3::one() / self.scale).map(|e: f32| e.round() as i32);
         let range_iter = |x| {
             std::iter::successors(Some(0), |x| Some(if *x < 0 { -*x } else { -(*x + 1) }))
                 .take(x as usize * 2)
