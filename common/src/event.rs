@@ -92,9 +92,10 @@ pub enum ServerEvent {
     Possess(Uid, Uid),
     SelectCharacter {
         entity: EcsEntity,
-        name: String,
+        character_id: i32,
         body: comp::Body,
         main: Option<String>,
+        stats: comp::Stats,
     },
     ExitIngame {
         entity: EcsEntity,

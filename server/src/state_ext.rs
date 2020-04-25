@@ -33,9 +33,10 @@ pub trait StateExt {
     fn create_player_character(
         &mut self,
         entity: EcsEntity,
-        name: String,
+        character_id: i32,
         body: comp::Body,
         main: Option<String>,
+        stats: comp::Stats,
         server_settings: &ServerSettings,
     );
     fn notify_registered_clients(&self, msg: ServerMsg);
@@ -152,9 +153,10 @@ impl StateExt for State {
     fn create_player_character(
         &mut self,
         entity: EcsEntity,
-        name: String,
+        character_id: i32, // TODO
         body: comp::Body,
         main: Option<String>,
+        stats: comp::Stats,
         server_settings: &ServerSettings,
     ) {
         // Give no item when an invalid specifier is given
@@ -163,7 +165,7 @@ impl StateExt for State {
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
         self.write_component(entity, body);
-        self.write_component(entity, comp::Stats::new(name, body));
+        self.write_component(entity, stats);
         self.write_component(entity, comp::Energy::new(1000));
         self.write_component(entity, comp::Controller::default());
         self.write_component(entity, comp::Pos(spawn_point));
@@ -221,6 +223,19 @@ impl StateExt for State {
                 comp::Loadout::default()
             },
         );
+
+        // Set the character id for the player
+        // TODO this results in a warning in the console: "Error modifying synced
+        // component, it doesn't seem to exist"
+        // It appears to be caused by the player not yet existing on the client at this
+        // point, despite being able to write the data on the server
+        &self
+            .ecs()
+            .write_storage::<comp::Player>()
+            .get_mut(entity)
+            .map(|player| {
+                player.character_id = Some(character_id);
+            });
 
         // Make sure physics are accepted.
         self.write_component(entity, comp::ForceUpdate);
