@@ -118,17 +118,20 @@ impl FigureMgr {
             .map_or(Vec3::zero(), |pos| pos.0);
 
         for (
-            entity,
-            pos,
-            interpolated,
-            vel,
-            scale,
-            body,
-            character,
-            last_character,
-            physics,
-            stats,
-            loadout,
+            i,
+            (
+                entity,
+                pos,
+                interpolated,
+                vel,
+                scale,
+                body,
+                character,
+                last_character,
+                physics,
+                stats,
+                loadout,
+            ),
         ) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -143,7 +146,26 @@ impl FigureMgr {
             ecs.read_storage::<Loadout>().maybe(),
         )
             .join()
+            .enumerate()
         {
+            // Maintaining figure data and sending new figure data to the GPU turns out to
+            // be a very expensive operation. We want to avoid doing it as much
+            // as possible, so we make the assumption that players don't care so
+            // much about the update *rate* for far away things. As the entity
+            // goes further and further away, we start to 'skip' update ticks.
+            // TODO: Investigate passing the velocity into the shader so we can at least
+            // interpolate motion
+            const MIN_PERFECT_RATE_DIST: f32 = 50.0;
+            if (i as u64 + tick)
+                % (1 + ((pos.0.distance_squared(camera.get_focus_pos()).powf(0.25)
+                    - MIN_PERFECT_RATE_DIST.powf(0.5))
+                .max(0.0)
+                    / 3.0) as u64)
+                != 0
+            {
+                continue;
+            }
+
             let is_player = scene_data.player_entity == entity;
 
             let (pos, ori) = interpolated
@@ -1386,7 +1408,7 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        for (entity, _, _, body, _, loadout, _) in (
+        for (entity, pos, _, body, _, loadout, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Ori>().maybe(),
@@ -1415,6 +1437,7 @@ impl FigureMgr {
                     body,
                     loadout,
                     false,
+                    pos.0,
                 );
             }
         }
@@ -1437,7 +1460,10 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        if let Some(body) = ecs.read_storage::<Body>().get(player_entity) {
+        if let (Some(pos), Some(body)) = (
+            ecs.read_storage::<Pos>().get(player_entity),
+            ecs.read_storage::<Body>().get(player_entity),
+        ) {
             let stats_storage = state.read_storage::<Stats>();
             let stats = stats_storage.get(player_entity);
 
@@ -1461,6 +1487,7 @@ impl FigureMgr {
                 body,
                 loadout,
                 true,
+                pos.0,
             );
         }
     }
@@ -1479,6 +1506,7 @@ impl FigureMgr {
         body: &Body,
         loadout: Option<&Loadout>,
         is_player: bool,
+        pos: Vec3<f32>,
     ) {
         let player_camera_mode = if is_player {
             camera.get_mode()
@@ -1691,6 +1719,19 @@ impl FigureMgr {
                 )
             }),
         } {
+            const FIGURE_LOW_LOD_DIST: f32 = 150.0;
+            const FIGURE_MID_LOD_DIST: f32 = 85.0;
+
+            let model = if pos.distance_squared(camera.get_focus_pos())
+                > FIGURE_LOW_LOD_DIST.powf(2.0)
+            {
+                &model[2]
+            } else if pos.distance_squared(camera.get_focus_pos()) > FIGURE_MID_LOD_DIST.powf(2.0) {
+                &model[1]
+            } else {
+                &model[0]
+            };
+
             if is_player {
                 renderer.render_player(
                     model,
@@ -1850,7 +1891,10 @@ impl<S: Skeleton> FigureState<S> {
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
         renderer
-            .update_consts(&mut self.bone_consts, &self.skeleton.compute_matrices())
+            .update_consts(
+                &mut self.bone_consts,
+                &self.skeleton.compute_matrices()[0..self.skeleton.bone_count()],
+            )
             .unwrap();
     }
 

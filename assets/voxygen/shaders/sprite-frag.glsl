@@ -14,7 +14,6 @@ out vec4 tgt_color;
 #include <light.glsl>
 #include <lod.glsl>
 
-const float RENDER_DIST = 112.0;
 const float FADE_DIST = 32.0;
 
 void main() {
@@ -98,5 +97,5 @@ void main() {
 	vec3 fog_color = get_sky_color(cam_to_frag/*view_dir*/, time_of_day.x, cam_pos.xyz, f_pos, 0.5, true, clouds);
 	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
 
-	tgt_color = vec4(color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (RENDER_DIST - FADE_DIST)) / FADE_DIST, 0, 1));
+	tgt_color = vec4(color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1));
 }

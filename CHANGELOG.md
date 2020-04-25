@@ -61,6 +61,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added waypoints next to dungeons
 - Made players spawn in towns
 - Added non-uniform block heights
+- Added `/sudo` command
+- Added a Level of Detail (LoD) system for terrain sprites and entities
 
 ### Changed
 

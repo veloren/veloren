@@ -250,6 +250,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.free_look_behavior": "Free look behavior",
 
         "hud.settings.view_distance": "View Distance",
+        "hud.settings.sprites_view_distance": "Sprites View Distance",
         "hud.settings.maximum_fps": "Maximum FPS",
         "hud.settings.fov": "Field of View (deg)",
         "hud.settings.gamma": "Gamma",

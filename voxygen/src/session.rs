@@ -4,7 +4,6 @@ use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
-    render::Renderer,
     scene::{camera, Scene, SceneData},
     settings::AudioOutput,
     window::{AnalogGameInput, Event, GameInput},
@@ -115,26 +114,6 @@ impl SessionState {
 
     /// Clean up the session (and the client attached to it) after a tick.
     pub fn cleanup(&mut self) { self.client.borrow_mut().cleanup(); }
-
-    /// Render the session to the screen.
-    ///
-    /// This method should be called once per frame.
-    pub fn render(&mut self, renderer: &mut Renderer) {
-        // Clear the screen
-        renderer.clear();
-
-        // Render the screen using the global renderer
-        {
-            let client = self.client.borrow();
-            self.scene
-                .render(renderer, client.state(), client.entity(), client.get_tick());
-        }
-        // Draw the UI to the screen
-        self.hud.render(renderer, self.scene.globals());
-
-        // Finish the frame
-        renderer.flush();
-    }
 }
 
 impl PlayState for SessionState {
@@ -599,6 +578,11 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.lod_detail = lod_detail;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::AdjustSpriteRenderDistance(sprite_render_distance) => {
+                        global_state.settings.graphics.sprite_render_distance =
+                            sprite_render_distance;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::CrosshairTransp(crosshair_transp) => {
                         global_state.settings.gameplay.crosshair_transp = crosshair_transp;
                         global_state.settings.save_to_file_warn();
@@ -730,9 +714,6 @@ impl PlayState for SessionState {
                 }
             }
 
-            // Runs if either in a multiplayer server or the singleplayer server is unpaused
-            if global_state.singleplayer.is_none()
-                || !global_state.singleplayer.as_ref().unwrap().is_paused()
             {
                 let client = self.client.borrow();
                 let scene_data = SceneData {
@@ -744,16 +725,37 @@ impl PlayState for SessionState {
                     thread_pool: client.thread_pool(),
                     gamma: global_state.settings.graphics.gamma,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
+                    sprite_render_distance: global_state.settings.graphics.sprite_render_distance
+                        as f32,
                 };
-                self.scene.maintain(
-                    global_state.window.renderer_mut(),
-                    &mut global_state.audio,
+
+                // Runs if either in a multiplayer server or the singleplayer server is unpaused
+                if global_state.singleplayer.is_none()
+                    || !global_state.singleplayer.as_ref().unwrap().is_paused()
+                {
+                    self.scene.maintain(
+                        global_state.window.renderer_mut(),
+                        &mut global_state.audio,
+                        &scene_data,
+                    );
+                }
+
+                let renderer = global_state.window.renderer_mut();
+                // Clear the screen
+                renderer.clear();
+                // Render the screen using the global renderer
+                self.scene.render(
+                    renderer,
+                    client.state(),
+                    client.entity(),
+                    client.get_tick(),
                     &scene_data,
                 );
+                // Draw the UI to the screen
+                self.hud.render(renderer, self.scene.globals());
+                // Finish the frame
+                renderer.flush();
             }
-
-            // Render the session.
-            self.render(global_state.window.renderer_mut());
 
             // Display the frame on the window.
             global_state

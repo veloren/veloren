@@ -12,9 +12,12 @@ use vek::*;
 gfx_defines! {
     vertex Vertex {
         pos: [f32; 3] = "v_pos",
-        norm: [f32; 3] = "v_norm",
-        col: [f32; 3] = "v_col",
-        ao: f32 = "v_ao",
+        // ____BBBBBBBBGGGGGGGGRRRRRRRR
+        col: u32 = "v_col",
+        // ...AANNN
+        // A = AO
+        // N = Normal
+        norm_ao: u32 = "v_norm_ao",
     }
 
     vertex Instance {
@@ -46,11 +49,20 @@ gfx_defines! {
 
 impl Vertex {
     pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, ao: f32) -> Self {
+        let norm_bits = if norm.x != 0.0 {
+            if norm.x < 0.0 { 0 } else { 1 }
+        } else if norm.y != 0.0 {
+            if norm.y < 0.0 { 2 } else { 3 }
+        } else {
+            if norm.z < 0.0 { 4 } else { 5 }
+        };
+
         Self {
             pos: pos.into_array(),
-            col: col.into_array(),
-            norm: norm.into_array(),
-            ao,
+            col: col
+                .map2(Rgb::new(0, 8, 16), |e, shift| ((e * 255.0) as u32) << shift)
+                .reduce_bitor(),
+            norm_ao: norm_bits | (((ao * 3.9999) as u32) << 3),
         }
     }
 }

@@ -31,6 +31,8 @@ impl QuadrupedMediumSkeleton {
 impl Skeleton for QuadrupedMediumSkeleton {
     type Attr = SkeletonAttr;
 
+    fn bone_count(&self) -> usize { 11 }
+
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let ears_mat = self.ears.compute_base_matrix();
         let head_upper_mat = self.head_upper.compute_base_matrix();

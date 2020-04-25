@@ -37,6 +37,7 @@ gfx_defines! {
         select_pos: [i32; 4] = "select_pos",
         gamma: [f32; 4] = "gamma",
         cam_mode: u32 = "cam_mode",
+        sprite_render_distance: f32 = "sprite_render_distance",
     }
 
     constant Light {
@@ -67,6 +68,7 @@ impl Globals {
         select_pos: Option<Vec3<i32>>,
         gamma: f32,
         cam_mode: CameraMode,
+        sprite_render_distance: f32,
     ) -> Self {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
@@ -86,6 +88,7 @@ impl Globals {
                 .into_array(),
             gamma: [gamma; 4],
             cam_mode: cam_mode as u32,
+            sprite_render_distance,
         }
     }
 }
@@ -108,6 +111,7 @@ impl Default for Globals {
             None,
             1.0,
             CameraMode::ThirdPerson,
+            250.0,
         )
     }
 }
