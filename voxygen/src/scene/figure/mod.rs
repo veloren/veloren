@@ -1714,14 +1714,14 @@ impl FigureMgr {
                 )
             }),
         } {
-            const FIGURE_LOD_LOW_DIST: f32 = 150.0;
-            const FIGURE_LOD_MID_DIST: f32 = 70.0;
+            const FIGURE_LOW_LOD_DIST: f32 = 150.0;
+            const FIGURE_MID_LOD_DIST: f32 = 85.0;
 
             let model = if pos.distance_squared(camera.get_focus_pos())
-                > FIGURE_LOD_LOW_DIST.powf(2.0)
+                > FIGURE_LOW_LOD_DIST.powf(2.0)
             {
                 &model[2]
-            } else if pos.distance_squared(camera.get_focus_pos()) > FIGURE_LOD_MID_DIST.powf(2.0) {
+            } else if pos.distance_squared(camera.get_focus_pos()) > FIGURE_MID_LOD_DIST.powf(2.0) {
                 &model[1]
             } else {
                 &model[0]
