@@ -27,7 +27,7 @@ void main() {
 
 	//f_pos.z -= 100.0 * pow(1.0 + 0.01 / view_distance.x, -pow(distance(focus_pos.xy, f_pos.xy), 2.0));
     // f_pos.z = mix(-f_pos.z, f_pos.z, view_distance.x <= distance(focus_pos.xy, f_pos.xy) + 32.0);
-	f_pos.z -= max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0);
+	f_pos.z -= max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0) * 65536;
 
 	// f_light = 1.0;
 

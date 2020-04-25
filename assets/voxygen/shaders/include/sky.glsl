@@ -7,7 +7,7 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0) * 3.0;
+const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0) * 1.8;
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
@@ -420,7 +420,7 @@ vec3 illuminate(/*vec3 max_light, */vec3 emitted, vec3 reflected) {
     // vec3 c = pow(col_adjusted, vec3(s)) * T;
     // vec3 c = col_adjusted * T;
     // vec3 c = sqrt(col_adjusted) * T;
-    vec3 c = col_adjusted * col_adjusted * T;
+    vec3 c = /*col_adjusted * */col_adjusted * T;
 
     return c;
     // float sum_col = color.r + color.g + color.b;
