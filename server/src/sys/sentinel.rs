@@ -1,7 +1,7 @@
 use super::SysTimer;
 use common::{
     comp::{
-        Body, CanBuild, CharacterState, Energy, Gravity, Item, LightEmitter, Loadout, Mass,
+        Body, CanBuild, CharacterState, Energy, Gravity, Item, LightEmitter, Loadout, Mass, Collider,
         MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
@@ -49,6 +49,7 @@ pub struct TrackedComps<'a> {
     pub mounting: ReadStorage<'a, Mounting>,
     pub mount_state: ReadStorage<'a, MountState>,
     pub mass: ReadStorage<'a, Mass>,
+    pub collider: ReadStorage<'a, Collider>,
     pub sticky: ReadStorage<'a, Sticky>,
     pub gravity: ReadStorage<'a, Gravity>,
     pub loadout: ReadStorage<'a, Loadout>,
@@ -104,6 +105,10 @@ impl<'a> TrackedComps<'a> {
             .cloned()
             .map(|c| comps.push(c.into()));
         self.mass.get(entity).copied().map(|c| comps.push(c.into()));
+        self.collider
+            .get(entity)
+            .copied()
+            .map(|c| comps.push(c.into()));
         self.sticky
             .get(entity)
             .copied()
@@ -142,6 +147,7 @@ pub struct ReadTrackers<'a> {
     pub mounting: ReadExpect<'a, UpdateTracker<Mounting>>,
     pub mount_state: ReadExpect<'a, UpdateTracker<MountState>>,
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
+    pub collider: ReadExpect<'a, UpdateTracker<Collider>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
     pub loadout: ReadExpect<'a, UpdateTracker<Loadout>>,
@@ -173,6 +179,7 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.mounting, &comps.mounting, filter)
             .with_component(&comps.uid, &*self.mount_state, &comps.mount_state, filter)
             .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
+            .with_component(&comps.uid, &*self.collider, &comps.collider, filter)
             .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
             .with_component(&comps.uid, &*self.gravity, &comps.gravity, filter)
             .with_component(&comps.uid, &*self.loadout, &comps.loadout, filter)
@@ -201,6 +208,7 @@ pub struct WriteTrackers<'a> {
     mounting: WriteExpect<'a, UpdateTracker<Mounting>>,
     mount_state: WriteExpect<'a, UpdateTracker<MountState>>,
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
+    collider: WriteExpect<'a, UpdateTracker<Collider>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
     loadout: WriteExpect<'a, UpdateTracker<Loadout>>,
@@ -221,6 +229,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.mounting.record_changes(&comps.mounting);
     trackers.mount_state.record_changes(&comps.mount_state);
     trackers.mass.record_changes(&comps.mass);
+    trackers.collider.record_changes(&comps.collider);
     trackers.sticky.record_changes(&comps.sticky);
     trackers.gravity.record_changes(&comps.gravity);
     trackers.loadout.record_changes(&comps.loadout);
@@ -242,6 +251,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Mounting>();
     world.register_tracker::<MountState>();
     world.register_tracker::<Mass>();
+    world.register_tracker::<Collider>();
     world.register_tracker::<Sticky>();
     world.register_tracker::<Gravity>();
     world.register_tracker::<Loadout>();

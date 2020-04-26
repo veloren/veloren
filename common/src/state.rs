@@ -118,6 +118,7 @@ impl State {
         ecs.register::<comp::Mounting>();
         ecs.register::<comp::MountState>();
         ecs.register::<comp::Mass>();
+        ecs.register::<comp::Collider>();
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Gravity>();
         ecs.register::<comp::CharacterState>();
