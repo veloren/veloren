@@ -474,9 +474,23 @@
             ]
         },
         "species": {
-            "giant": {
-                "keyword": "giant",
-                "generic": "Giant"
+            "ogre": {
+                "keyword": "ogre",
+                "generic": "Ogre"
+            }
+        }
+    },
+    "golem": {
+        "body": {
+            "keyword": "golem",
+            "names": [
+                "phil"
+            ]
+        },
+        "species": {
+            "stonegolem": {
+                "keyword": "stonegolem",
+                "generic": "StoneGolem"
             }
         }
     },

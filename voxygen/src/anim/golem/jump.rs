@@ -1,4 +1,4 @@
-use super::{super::Animation, BipedLargeSkeleton, SkeletonAttr};
+use super::{super::Animation, GolemSkeleton, SkeletonAttr};
 //use std::f32::consts::PI;
 use vek::*;
 
@@ -6,7 +6,7 @@ pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
     type Dependency = (f32, f64);
-    type Skeleton = BipedLargeSkeleton;
+    type Skeleton = GolemSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
@@ -28,14 +28,6 @@ impl Animation for JumpAnimation {
         ) / 8.0;
         next.upper_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.upper_torso.scale = Vec3::one() / 8.0;
-
-        next.lower_torso.offset = Vec3::new(
-            0.0,
-            skeleton_attr.lower_torso.0,
-            skeleton_attr.lower_torso.1,
-        );
-        next.lower_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.lower_torso.scale = Vec3::one() * 1.02;
 
         next.shoulder_l.offset = Vec3::new(
             -skeleton_attr.shoulder.0,

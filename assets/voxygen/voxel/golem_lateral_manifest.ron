@@ -1,0 +1,70 @@
+({
+    (StoneGolem, Male): (
+        shoulder_l: (
+            offset: (-4.5, -4.0, -5.0),
+            lateral: ("npc.stonegolem.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-4.5, -4.0, -5.0),
+            lateral: ("npc.stonegolem.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-3.0, -3.5, -14.0),
+            lateral: ("npc.stonegolem.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-3.0, -3.5, -14.0),
+            lateral: ("npc.stonegolem.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-2.5, -2.5, -6.0),
+            lateral: ("npc.stonegolem.male.leg_l"),
+        ),
+        leg_r: (
+            offset: (-2.5, -2.5, -6.0),
+            lateral: ("npc.stonegolem.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.0, -3.5, -9.5),
+            lateral: ("npc.stonegolem.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-3.0, -3.5, -9.5),
+            lateral: ("npc.stonegolem.male.foot_r"),
+        )
+    ),
+    (StoneGolem, Female): (
+        shoulder_l: (
+            offset: (-4.5, -4.0, -5.0),
+            lateral: ("npc.stonegolem.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-4.5, -4.0, -5.0),
+            lateral: ("npc.stonegolem.female.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-3.0, -3.5, -14.0),
+            lateral: ("npc.stonegolem.female.hand_l"),
+        ),
+        hand_r: (
+            offset: (-3.0, -3.5, -14.0),
+            lateral: ("npc.stonegolem.female.hand_r"),
+        ),
+        leg_l: (
+            offset: (-2.5, -2.5, -6.0),
+            lateral: ("npc.stonegolem.female.leg_l"),
+        ),
+        leg_r: (
+            offset: (-2.5, -2.5, -6.0),
+            lateral: ("npc.stonegolem.female.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.0, -3.5, -10.5),
+            lateral: ("npc.stonegolem.female.foot_l"),
+        ),
+        foot_r: (
+            offset: (-3.0, -3.5, -10.5),
+            lateral: ("npc.stonegolem.female.foot_r"),
+        )
+    ),
+})
