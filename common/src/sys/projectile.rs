@@ -57,28 +57,9 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            // Hit ground
-            if physics.on_ground {
-                for effect in projectile.hit_ground.drain(..) {
-                    match effect {
-                        projectile::Effect::Explode { power } => {
-                            server_emitter.emit(ServerEvent::Explosion {
-                                pos: pos.0,
-                                power,
-                                owner: projectile.owner,
-                            })
-                        },
-                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
-                            entity,
-                            cause: HealthSource::World,
-                        }),
-                        _ => {},
-                    }
-                }
-            }
-            // Hit wall
-            else if physics.on_wall.is_some() {
-                for effect in projectile.hit_wall.drain(..) {
+            // Hit something solid
+            if physics.on_wall.is_some() || physics.on_ground || physics.on_ceiling {
+                for effect in projectile.hit_solid.drain(..) {
                     match effect {
                         projectile::Effect::Explode { power } => {
                             server_emitter.emit(ServerEvent::Explosion {
