@@ -1,7 +1,6 @@
 Item(
     name: "Admin's Cape",
-   description: "With great power comes
-   great responsibility. ",
+   description: "Back\n\nArmor: 0\n\nWith great power comes\ngreat responsibility. ",
     kind: Armor(
         kind: Back(Admin),
         stats: (20),

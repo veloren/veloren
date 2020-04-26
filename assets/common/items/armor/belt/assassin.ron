@@ -1,6 +1,6 @@
 Item(
     name: "Assassin Belt",
-    description: "Only the best for a member of the creed.",
+    description: "Belt\n\nArmor: 0\n\nOnly the best for a member of the creed.\n\n<Right-Click to use>",
     kind: Armor(
         kind: Belt(Assassin),
         stats: (20),

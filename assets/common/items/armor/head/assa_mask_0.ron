@@ -1,6 +1,6 @@
 Item(
     name: "Dark Assassin Mask",
-   description: "WIP",
+   description: "Head\n\nArmor: 0\n\n<Right-Click to use>",
     kind: Armor(
         kind: Head(AssaMask0),
         stats: (20),

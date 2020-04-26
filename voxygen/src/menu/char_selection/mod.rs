@@ -107,6 +107,11 @@ impl PlayState for CharSelectionState {
                     body: humanoid_body.clone(),
                     gamma: global_state.settings.graphics.gamma,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
+                    figure_lod_render_distance: global_state
+                        .settings
+                        .graphics
+                        .figure_lod_render_distance
+                        as f32,
                 };
                 self.scene
                     .maintain(global_state.window.renderer_mut(), scene_data);

@@ -1,57 +1,83 @@
-use super::{img_ids::Imgs, Windows, BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR};
-use crate::ui::{fonts::ConrodVoxygenFonts, ToggleButton};
+use super::{
+    img_ids::{Imgs, ImgsRot},
+    BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR,
+};
+use crate::{
+    i18n::VoxygenLocalization,
+    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    window::GameInput,
+    GlobalState,
+};
 use client::Client;
+use common::comp::Stats;
 use conrod_core::{
-    widget::{self, Button, Image, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget::{self, Button, Text},
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
     struct Ids {
         bag,
         bag_text,
-        bag_space_bg,
+        bag_text_bg,
         bag_space,
+        bag_space_bg,
         bag_show_map,
         map_button,
+        map_text,
+        map_text_bg,
         settings_button,
+        settings_text,
+        settings_text_bg,
         social_button,
         social_button_bg,
+        social_text,
+        social_text_bg,
         spellbook_button,
         spellbook_button_bg,
+        spellbook_text,
+        spellbook_text_bg,
     }
 }
-
+const TOOLTIP_UPSHIFT: f64 = 40.0;
 #[derive(WidgetCommon)]
 pub struct Buttons<'a> {
     client: &'a Client,
-    open_windows: &'a Windows,
-    show_map: bool,
     show_bag: bool,
-
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    global_state: &'a GlobalState,
+    rot_imgs: &'a ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    stats: &'a Stats,
 }
 
 impl<'a> Buttons<'a> {
     pub fn new(
         client: &'a Client,
-        open_windows: &'a Windows,
-        show_map: bool,
         show_bag: bool,
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
+        global_state: &'a GlobalState,
+        rot_imgs: &'a ImgsRot,
+        tooltip_manager: &'a mut TooltipManager,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        stats: &'a Stats,
     ) -> Self {
         Self {
             client,
-            open_windows,
-            show_map,
             show_bag,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
+            global_state,
+            rot_imgs,
+            tooltip_manager,
+            localized_strings,
+            stats,
         }
     }
 }
@@ -88,33 +114,71 @@ impl<'a> Widget for Buttons<'a> {
             Some(inv) => inv,
             None => return None,
         };
-
+        let localized_strings = self.localized_strings;
+        let button_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .title_text_color(TEXT_COLOR)
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
         // Bag
-        if !self.show_map {
-            if self.show_bag
-                != ToggleButton::new(self.show_bag, self.imgs.bag, self.imgs.bag_open)
-                    .bottom_right_with_margins_on(ui.window, 5.0, 5.0)
-                    .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
-                    .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
-                    .w_h(420.0 / 10.0, 480.0 / 10.0)
-                    .set(state.ids.bag, ui)
-            {
-                return Some(Event::ToggleBag);
-            }
-
-            Text::new("B")
+        if Button::image(if !self.show_bag {
+            self.imgs.bag
+        } else {
+            self.imgs.bag_open
+        })
+        .bottom_right_with_margins_on(ui.window, 5.0, 5.0)
+        .hover_image(if !self.show_bag {
+            self.imgs.bag_hover
+        } else {
+            self.imgs.bag_open_hover
+        })
+        .press_image(if !self.show_bag {
+            self.imgs.bag_press
+        } else {
+            self.imgs.bag_open_press
+        })
+        .w_h(420.0 / 10.0, 480.0 / 10.0)
+        .with_tooltip(
+            self.tooltip_manager,
+            &localized_strings
+                .get("hud.bag.inventory")
+                .replace("{playername}", &self.stats.name.to_string().as_str()),
+            "",
+            &button_tooltip,
+        )
+        .bottom_offset(55.0)
+        .set(state.ids.bag, ui)
+        .was_clicked()
+        {
+            return Some(Event::ToggleBag);
+        };
+        if let Some(bag) = &self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Bag)
+        {
+            Text::new(bag.to_string().as_str())
                 .bottom_right_with_margins_on(state.ids.bag, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.bag_text, ui);
-        } else {
-            Image::new(self.imgs.bag)
-                .bottom_right_with_margins_on(ui.window, 5.0, 5.0)
-                .w_h(420.0 / 10.0, 480.0 / 10.0)
-                .set(state.ids.bag_show_map, ui);
-            Text::new("B")
-                .bottom_right_with_margins_on(state.ids.bag, 0.0, 0.0)
+                .color(BLACK)
+                .set(state.ids.bag_text_bg, ui);
+            Text::new(bag.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.bag_text_bg, 1.0, 1.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
@@ -144,100 +208,156 @@ impl<'a> Widget for Buttons<'a> {
                 })
                 .set(state.ids.bag_space, ui);
         }
-
-        // 0 Settings
+        // Settings
         if Button::image(self.imgs.settings)
             .w_h(29.0, 25.0)
             .bottom_right_with_margins_on(ui.window, 5.0, 57.0)
             .hover_image(self.imgs.settings_hover)
             .press_image(self.imgs.settings_press)
-            .label("N")
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .label_font_size(10)
-            .label_color(TEXT_COLOR)
-            .label_y(conrod_core::position::Relative::Scalar(-7.0))
-            .label_x(conrod_core::position::Relative::Scalar(10.0))
+            .with_tooltip(
+                self.tooltip_manager,
+                &localized_strings.get("common.settings"),
+                "",
+                &button_tooltip,
+            )
+            .bottom_offset(TOOLTIP_UPSHIFT)
             .set(state.ids.settings_button, ui)
             .was_clicked()
         {
             return Some(Event::ToggleSettings);
         };
+        if let Some(settings) = &self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Settings)
+        {
+            Text::new(settings.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.settings_button, 0.0, 0.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(BLACK)
+                .set(state.ids.settings_text_bg, ui);
+            Text::new(settings.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.settings_text_bg, 1.0, 1.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.settings_text, ui);
+        };
 
-        Image::new(self.imgs.social_button)
+        // Social
+        if Button::image(self.imgs.social)
             .w_h(25.0, 25.0)
             .left_from(state.ids.settings_button, 10.0)
-            .set(state.ids.social_button_bg, ui);
-
-        // 2 Map
+            .hover_image(self.imgs.social_hover)
+            .press_image(self.imgs.social_press)
+            .with_tooltip(
+                self.tooltip_manager,
+                &localized_strings.get("hud.social"),
+                "",
+                &button_tooltip,
+            )
+            .bottom_offset(TOOLTIP_UPSHIFT)
+            .set(state.ids.social_button, ui)
+            .was_clicked()
+        {
+            return Some(Event::ToggleSocial);
+        }
+        if let Some(social) = &self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Social)
+        {
+            Text::new(social.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.social_button, 0.0, 0.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(BLACK)
+                .set(state.ids.social_text_bg, ui);
+            Text::new(social.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.social_text_bg, 1.0, 1.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.social_text, ui);
+        };
+        // Map
         if Button::image(self.imgs.map_button)
             .w_h(22.0, 25.0)
-            .left_from(state.ids.social_button_bg, 10.0)
+            .left_from(state.ids.social_button, 10.0)
             .hover_image(self.imgs.map_hover)
             .press_image(self.imgs.map_press)
-            .label("M")
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .label_font_size(10)
-            .label_color(TEXT_COLOR)
-            .label_y(conrod_core::position::Relative::Scalar(-7.0))
-            .label_x(conrod_core::position::Relative::Scalar(10.0))
+            .with_tooltip(
+                self.tooltip_manager,
+                &localized_strings.get("hud.map.map_title"),
+                "",
+                &button_tooltip,
+            )
+            .bottom_offset(TOOLTIP_UPSHIFT)
             .set(state.ids.map_button, ui)
             .was_clicked()
         {
             return Some(Event::ToggleMap);
         };
-
-        // Other Windows can only be accessed when `Settings` is closed.
-        // Opening `Settings` will close all other Windows, including the `Bag`.
-        // Opening the `Map` won't close the previously displayed windows.
-        Image::new(self.imgs.social)
-            .w_h(25.0, 25.0)
-            .left_from(state.ids.settings_button, 10.0)
-            .set(state.ids.social_button_bg, ui);
-        Image::new(self.imgs.spellbook_button)
-            .w_h(28.0, 25.0)
-            .left_from(state.ids.map_button, 10.0)
-            .set(state.ids.spellbook_button_bg, ui);
-        // Other Windows can only be accessed when `Settings` is closed.
-        // Opening `Settings` will close all other Windows, including the `Bag`.
-        // Opening the `Map` won't close the previously displayed windows.
-        if !(*self.open_windows == Windows::Settings) && self.show_map == false {
-            // 1 Social
-            if Button::image(self.imgs.social)
-                .w_h(25.0, 25.0)
-                .left_from(state.ids.settings_button, 10.0)
-                .hover_image(self.imgs.social_hover)
-                .press_image(self.imgs.social_press)
-                .label("O")
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_font_size(10)
-                .label_color(TEXT_COLOR)
-                .label_y(conrod_core::position::Relative::Scalar(-7.0))
-                .label_x(conrod_core::position::Relative::Scalar(10.0))
-                .set(state.ids.social_button, ui)
-                .was_clicked()
-            {
-                return Some(Event::ToggleSocial);
-            }
-
-            // 3 Spellbook
-            if Button::image(self.imgs.spellbook_button)
-                .w_h(28.0, 25.0)
-                .left_from(state.ids.map_button, 10.0)
-                .hover_image(self.imgs.spellbook_hover)
-                .press_image(self.imgs.spellbook_press)
-                .label("P")
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_font_size(10)
-                .label_color(TEXT_COLOR)
-                .label_y(conrod_core::position::Relative::Scalar(-7.0))
-                .label_x(conrod_core::position::Relative::Scalar(10.0))
-                .set(state.ids.spellbook_button, ui)
-                .was_clicked()
-            {
-                return Some(Event::ToggleSpell);
-            }
+        if let Some(map) = &self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Map)
+        {
+            Text::new(map.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.map_button, 0.0, 0.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(BLACK)
+                .set(state.ids.map_text_bg, ui);
+            Text::new(map.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.map_text_bg, 1.0, 1.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.map_text, ui);
         }
 
+        // Spellbook
+        if Button::image(self.imgs.spellbook_button)
+            .w_h(28.0, 25.0)
+            .left_from(state.ids.map_button, 10.0)
+            .hover_image(self.imgs.spellbook_hover)
+            .press_image(self.imgs.spellbook_press)
+            .with_tooltip(
+                self.tooltip_manager,
+                &localized_strings.get("hud.spell"),
+                "",
+                &button_tooltip,
+            )
+            .bottom_offset(TOOLTIP_UPSHIFT)
+            .set(state.ids.spellbook_button, ui)
+            .was_clicked()
+        {
+            return Some(Event::ToggleSpell);
+        }
+        if let Some(spell) = &self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Spellbook)
+        {
+            Text::new(spell.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.spellbook_button, 0.0, 0.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(BLACK)
+                .set(state.ids.spellbook_text_bg, ui);
+            Text::new(spell.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.spellbook_text_bg, 1.0, 1.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.spellbook_text, ui);
+        }
         None
     }
 }
