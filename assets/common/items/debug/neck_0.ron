@@ -1,8 +1,0 @@
-Item(
-    name: "Plain Necklace",
-   description: "WIP",
-    kind: Armor(
-        kind: Neck(Neck0),
-        stats: (20),
-    ),
-)

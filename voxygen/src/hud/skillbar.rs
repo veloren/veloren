@@ -790,7 +790,11 @@ impl<'a> Widget for Skillbar<'a> {
                         .1
                         .get(i)
                         .map(|item| (item.name(), item.description())),
-                    hotbar::SlotContents::Ability3 => Some(("Something something fireball", "")),
+                    hotbar::SlotContents::Ability3 => Some((
+                        "Firebomb",
+                        "\nWhirls a big fireball into the air. \nExplodes the ground and does\na \
+                         big amount of damage",
+                    )),
                 })
         };
         const SLOT_TOOLTIP_UPSHIFT: f64 = 70.0;

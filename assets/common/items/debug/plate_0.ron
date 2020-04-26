@@ -1,6 +1,6 @@
 Item(
     name: "Iron Belt",
-    description: "WIP",
+    description: "Belt\n\nArmor: 0\n\n",
     kind: Armor(
         kind: Belt(Plate0),
         stats: (20),

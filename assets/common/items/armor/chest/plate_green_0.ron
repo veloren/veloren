@@ -1,6 +1,6 @@
 Item(
     name: "Iron Chestplate",
-    description: "Arrows to the stomach are soooo last update.",
+    description: "Chest\n\nArmor: 0\n\n<Right-Click to use>",
     kind: Armor(
         kind: Chest(PlateGreen0),
         stats: (20),

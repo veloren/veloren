@@ -573,6 +573,11 @@ impl PlayState for SessionState {
                             sprite_render_distance;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::AdjustFigureLoDRenderDistance(figure_lod_render_distance) => {
+                        global_state.settings.graphics.figure_lod_render_distance =
+                            figure_lod_render_distance;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::CrosshairTransp(crosshair_transp) => {
                         global_state.settings.gameplay.crosshair_transp = crosshair_transp;
                         global_state.settings.save_to_file_warn();
@@ -716,6 +721,11 @@ impl PlayState for SessionState {
                     gamma: global_state.settings.graphics.gamma,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                     sprite_render_distance: global_state.settings.graphics.sprite_render_distance
+                        as f32,
+                    figure_lod_render_distance: global_state
+                        .settings
+                        .graphics
+                        .figure_lod_render_distance
                         as f32,
                 };
 

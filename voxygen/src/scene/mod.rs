@@ -77,6 +77,7 @@ pub struct SceneData<'a> {
     pub gamma: f32,
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
+    pub figure_lod_render_distance: f32,
 }
 
 impl Scene {
@@ -406,6 +407,7 @@ impl Scene {
             &self.lights,
             &self.shadows,
             &self.camera,
+            scene_data.figure_lod_render_distance,
         );
 
         // Render the skybox.
@@ -420,6 +422,7 @@ impl Scene {
             &self.lights,
             &self.shadows,
             &self.camera,
+            scene_data.figure_lod_render_distance,
         );
 
         self.terrain.render_translucent(
