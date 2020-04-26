@@ -1500,6 +1500,7 @@ impl FigureMgr {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         camera: &Camera,
+        figure_lod_render_distance: f32,
     ) {
         let ecs = state.ecs();
 
@@ -1535,6 +1536,7 @@ impl FigureMgr {
                     loadout,
                     false,
                     pos.0,
+                    figure_lod_render_distance,
                 );
             }
         }
@@ -1550,6 +1552,7 @@ impl FigureMgr {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         camera: &Camera,
+        figure_lod_render_distance: f32,
     ) {
         let ecs = state.ecs();
 
@@ -1583,6 +1586,7 @@ impl FigureMgr {
                 loadout,
                 true,
                 pos.0,
+                figure_lod_render_distance,
             );
         }
     }
@@ -1601,6 +1605,7 @@ impl FigureMgr {
         loadout: Option<&Loadout>,
         is_player: bool,
         pos: Vec3<f32>,
+        figure_lod_render_distance: f32,
     ) {
         let player_camera_mode = if is_player {
             camera.get_mode()
@@ -1831,14 +1836,16 @@ impl FigureMgr {
                 )
             }),
         } {
-            const FIGURE_LOW_LOD_DIST: f32 = 150.0;
-            const FIGURE_MID_LOD_DIST: f32 = 85.0;
+            let figure_low_detail_distance = figure_lod_render_distance * 0.75;
+            let figure_mid_detail_distance = figure_lod_render_distance * 0.5;
 
             let model = if pos.distance_squared(camera.get_focus_pos())
-                > FIGURE_LOW_LOD_DIST.powf(2.0)
+                > figure_low_detail_distance.powf(2.0)
             {
                 &model[2]
-            } else if pos.distance_squared(camera.get_focus_pos()) > FIGURE_MID_LOD_DIST.powf(2.0) {
+            } else if pos.distance_squared(camera.get_focus_pos())
+                > figure_mid_detail_distance.powf(2.0)
+            {
                 &model[1]
             } else {
                 &model[0]

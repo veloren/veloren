@@ -1,7 +1,6 @@
 Item(
     name: "Vicious Gladius",
-    description: "    
-    Power: 15",
+    description: "Two-Hand Sword\n\nPower: 2-10\n\n<Right-Click to use>",
     kind: Tool(
         (
             kind: Sword(Short0),    

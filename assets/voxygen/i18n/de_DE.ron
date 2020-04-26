@@ -100,18 +100,16 @@ VoxygenLocalization(
 
 Bevor es losgeht noch einige Infos:
 
-Dies ist eine frühe Alpha. Ihr werdet auf Bugs, unfertiges Gameplay und Mechaniken, sowie fehlende Features stoï¿½en.
+Dies ist eine frühe Alpha. Ihr werdet auf Bugs, unfertiges Gameplay und Mechaniken, sowie fehlende Features stoßen.
 
 Für konstruktives Feedback und Bug-Reports könnt ihr uns via Reddit, Gitlab oder unseren Discord Server kontaktieren.
 
-Veloren hat die GPL 3 Open-Source Lizenz. Das heißt ihr könnt es kostenlos spielen, aber auch modifizieren (solange die Mods auch die selbe Lizenz tragen) und das Spiel an andere weiterschicken.
+Veloren hat die GPL 3 Open-Source Lizenz. Das heißt ihr könnt es kostenlos spielen, 
+aber auch modifizieren (solange die Mods auch die selbe Lizenz tragen) und das Spiel an andere weiterschicken.
 
 Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
 
 Wenn euch die Idee gefällt, dann schließt euch doch einfach unserem Dev- oder Art-Team an!
-
-Voxel RPGs haben sich (Genau wie First Person Shooter, die lange nur Doom-Klone genannt wurden) zu einem eigenen Genre entwickelt. 
-Dieses Spiel ist alles andere, als ein Klon bereits vorhandener Spiele und wird sich in seine ganz eigene Richtung entwickeln.
 
 Danke, dass ihr euch die Zeit genommen habt diese Zeilen zu lesen und wir hoffen, dass euch Veloren gefällt!
 
@@ -244,16 +242,18 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "hud.settings.values": "Werte",
         "hud.settings.percentages": "Prozent",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Hintergrund Sichtbarkeit",        
+        "hud.settings.background_transparency": "Hintergrund Kontrast",        
 
         "hud.settings.pan_sensitivity": "Schwenk Sensibilität",
         "hud.settings.zoom_sensitivity": "Zoom Sensibilität",
         "hud.settings.invert_scroll_zoom": "Scroll-Zoom invertieren",
         "hud.settings.invert_mouse_y_axis": "Maus Y-Achse invertieren",
+        "hud.settings.enable_mouse_smoothing": "Kamera Glättung",
         "hud.settings.free_look_behavior": "Freies Umsehen",
 
         "hud.settings.view_distance": "Gelände Sichtweite",
         "hud.settings.sprites_view_distance": "Objekt Sichtweite",
+        "hud.settings.figures_view_distance": "Einheiten Sichtweite",
         "hud.settings.maximum_fps": "Maximale FPS",
         "hud.settings.fov": "Sichtfeld (Grad)",
         "hud.settings.gamma": "Gamma",

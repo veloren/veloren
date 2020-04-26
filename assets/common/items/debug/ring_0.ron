@@ -1,8 +1,0 @@
-Item(
-    name: "Scratched Ring",
-   description: "WIP",
-    kind: Armor(
-        kind: Ring(Ring0),
-        stats: (20),
-    ),
-)

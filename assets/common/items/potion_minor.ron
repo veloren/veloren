@@ -1,8 +1,6 @@
 Item(
     name: "Minor Potion",
-    description: "Restores a small amount of Health.
-
-Restores 50 Health.",
+    description: "Restores 50 Health\n\n<Right-Click to use>",
     kind: Consumable(
         kind: PotionMinor,
         effect: Health((

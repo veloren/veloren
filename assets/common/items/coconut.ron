@@ -1,8 +1,6 @@
 Item(
     name: "Coconut",
-    description: "Reliable source of water and fat.
-
-Restores 30 health.",
+    description: "Restores 30 health\n\nReliable source of water and fat\n\n<Right-Click to use>",
     kind: Consumable(
         kind: Coconut,
         effect: Health((
