@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Gravity, Mass, Collider, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
+    comp::{Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
     sync::Uid,
@@ -93,7 +93,7 @@ impl<'a> System<'a> for Sys {
         {
             let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
 
-            if sticky.is_some() && (physics_state.on_ground || physics_state.on_wall.is_some()) {
+            if sticky.is_some() && (physics_state.on_ground || physics_state.on_ceiling || physics_state.on_wall.is_some()) {
                 continue;
             }
 
@@ -133,7 +133,11 @@ impl<'a> System<'a> for Sys {
             };
 
             match collider {
-                Collider::Box { radius, z_min, z_max } => {
+                Collider::Box {
+                    radius,
+                    z_min,
+                    z_max,
+                } => {
                     // Scale collider
                     let radius = *radius * scale;
                     let z_min = *z_min * scale;
@@ -145,7 +149,9 @@ impl<'a> System<'a> for Sys {
                     let near_iter = (-hdist..hdist + 1)
                         .map(move |i| {
                             (-hdist..hdist + 1).map(move |j| {
-                                (1 - BlockKind::MAX_HEIGHT.ceil() as i32 + z_min.floor() as i32..z_max.ceil() as i32 + 1).map(move |k| (i, j, k))
+                                (1 - BlockKind::MAX_HEIGHT.ceil() as i32 + z_min.floor() as i32
+                                    ..z_max.ceil() as i32 + 1)
+                                    .map(move |k| (i, j, k))
                             })
                         })
                         .flatten()
@@ -153,7 +159,9 @@ impl<'a> System<'a> for Sys {
 
                     // Function for determining whether the player at a specific position collides
                     // with the ground
-                    let collision_with = |pos: Vec3<f32>, hit: &dyn Fn(&Block) -> bool, near_iter| {
+                    let collision_with = |pos: Vec3<f32>,
+                                          hit: &dyn Fn(&Block) -> bool,
+                                          near_iter| {
                         for (i, j, k) in near_iter {
                             let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
@@ -243,8 +251,8 @@ impl<'a> System<'a> for Sys {
                             // Find the intrusion vector of the collision
                             let dir = player_aabb.collision_vector_with_aabb(block_aabb);
 
-                            // Determine an appropriate resolution vector (i.e: the minimum distance needed
-                            // to push out of the block)
+                            // Determine an appropriate resolution vector (i.e: the minimum distance
+                            // needed to push out of the block)
                             let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
                             let resolve_dir = -dir.map(|e| {
                                 if e.abs().to_bits() == max_axis.to_bits() {
@@ -254,19 +262,21 @@ impl<'a> System<'a> for Sys {
                                 }
                             });
 
-                            // When the resolution direction is pointing upwards, we must be on the ground
+                            // When the resolution direction is pointing upwards, we must be on the
+                            // ground
                             if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
                                 on_ground = true;
 
                                 if !was_on_ground {
-                                    event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
+                                    event_emitter
+                                        .emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
                                 }
                             } else if resolve_dir.z < 0.0 && vel.0.z >= 0.0 {
                                 on_ceiling = true;
                             }
 
-                            // When the resolution direction is non-vertical, we must be colliding with a
-                            // wall If the space above is free...
+                            // When the resolution direction is non-vertical, we must be colliding
+                            // with a wall If the space above is free...
                             if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &|block| block.is_solid(), near_iter.clone())
                                 // ...and we're being pushed out horizontally...
                                 && resolve_dir.z == 0.0
@@ -291,10 +301,9 @@ impl<'a> System<'a> for Sys {
                                 break;
                             } else {
                                 // Correct the velocity
-                                vel.0 = vel.0.map2(
-                                    resolve_dir,
-                                    |e, d| if d * e.signum() < 0.0 { 0.0 } else { e },
-                                );
+                                vel.0 = vel.0.map2(resolve_dir, |e, d| {
+                                    if d * e.signum() < 0.0 { 0.0 } else { e }
+                                });
                             }
 
                             // Resolve the collision normally
@@ -326,13 +335,17 @@ impl<'a> System<'a> for Sys {
                         && !collision_with(
                             pos.0 - Vec3::unit_z() * 0.05,
                             &|block| {
-                                block.is_solid() && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
+                                block.is_solid()
+                                    && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
                             },
                             near_iter.clone(),
                         )
                     {
                         let snap_height = terrain
-                            .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.05).map(|e| e.floor() as i32))
+                            .get(
+                                Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.05)
+                                    .map(|e| e.floor() as i32),
+                            )
                             .ok()
                             .filter(|block| block.is_solid())
                             .map(|block| block.get_height())
@@ -348,17 +361,19 @@ impl<'a> System<'a> for Sys {
                         -Vec3::unit_y(),
                     ];
 
-                    if let (wall_dir, true) = dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
-                        if collision_with(
-                            pos.0 + *dir * 0.01,
-                            &|block| block.is_solid(),
-                            near_iter.clone(),
-                        ) {
-                            (a + dir, true)
-                        } else {
-                            (a, hit)
-                        }
-                    }) {
+                    if let (wall_dir, true) =
+                        dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
+                            if collision_with(
+                                pos.0 + *dir * 0.01,
+                                &|block| block.is_solid(),
+                                near_iter.clone(),
+                            ) {
+                                (a + dir, true)
+                            } else {
+                                (a, hit)
+                            }
+                        })
+                    {
                         physics_state.on_wall = Some(wall_dir);
                     } else {
                         physics_state.on_wall = None;
@@ -369,33 +384,36 @@ impl<'a> System<'a> for Sys {
                         collision_with(pos.0, &|block| block.is_fluid(), near_iter.clone());
                 },
                 Collider::Point => {
-                    let (dist, block) = terrain
-                        .ray(pos.0, pos.0 + pos_delta)
-                        .ignore_error()
-                        .cast();
+                    let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta).ignore_error().cast();
 
                     pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
 
-                    if block.unwrap().is_some() { // Can't fail
+                    if block.unwrap().is_some() {
+                        // Can't fail
                         if sticky.is_some() {
                             vel.0 = Vec3::zero();
 
                             let block_center = pos.0.map(|e| e.floor()) + 0.5;
-                            let block_rpos = (pos.0 - block_center).try_normalized().unwrap_or(Vec3::zero());
+                            let block_rpos = (pos.0 - block_center)
+                                .try_normalized()
+                                .unwrap_or(Vec3::zero());
 
                             // See whether we're on the top/bottom of a block, or the side
-                            if block_rpos.z.abs() > block_rpos.xy().map(|e| e.abs()).reduce_partial_max() {
+                            if block_rpos.z.abs()
+                                > block_rpos.xy().map(|e| e.abs()).reduce_partial_max()
+                            {
                                 if block_rpos.z > 0.0 {
                                     physics_state.on_ground = true;
                                 } else {
                                     physics_state.on_ceiling = true;
                                 }
                             } else {
-                                physics_state.on_wall = Some(if block_rpos.x.abs() > block_rpos.y.abs() {
-                                    Vec3::unit_x() * -block_rpos.x.signum()
-                                } else {
-                                    Vec3::unit_y() * -block_rpos.y.signum()
-                                });
+                                physics_state.on_wall =
+                                    Some(if block_rpos.x.abs() > block_rpos.y.abs() {
+                                        Vec3::unit_x() * -block_rpos.x.signum()
+                                    } else {
+                                        Vec3::unit_y() * -block_rpos.y.signum()
+                                    });
                             }
                         }
                     }
