@@ -3,6 +3,7 @@
 mod econ;
 
 use crate::{
+    config::CONFIG,
     sim::WorldSim,
     site::{Dungeon, Settlement, Site as WorldSite},
     util::{attempt, seed_expan, CARDINALS, NEIGHBORS},
@@ -123,6 +124,11 @@ impl Civs {
                         .filter(|chunk| !chunk.river.near_water())
                         .map(|chunk| {
                             let diff = Lerp::lerp_precise(chunk.alt, center_alt, factor) - chunk.alt;
+                            // Make sure we don't fall below sea level (fortunately, we don't have
+                            // to worry about the case where water_alt is already set to a correct
+                            // value higher than alt, since this chunk should have been filtered
+                            // out in that case).
+                            chunk.water_alt = CONFIG.sea_level.max(chunk.water_alt + diff);
                             chunk.alt += diff;
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;

@@ -599,8 +599,8 @@ pub fn block_from_structure(
         StructureBlock::PineLeaves => Some(Block::new(
             BlockKind::Leaves,
             Lerp::lerp(
-                saturate_leaves(Rgb::new(0.0, 60.0, 50.0)),
-                saturate_leaves(Rgb::new(30.0, 100.0, 10.0)),
+                Rgb::new(0.0, 60.0, 50.0),
+                Rgb::new(30.0, 100.0, 10.0),
                 lerp,
             )
             .map(|e| e as u8),
