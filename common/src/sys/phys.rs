@@ -409,11 +409,14 @@ impl<'a> System<'a> for Sys {
                             } else {
                                 physics_state.on_ceiling = true;
                             }
+                            vel.0.z = 0.0;
                         } else {
                             physics_state.on_wall =
                                 Some(if block_rpos.x.abs() > block_rpos.y.abs() {
+                                    vel.0.x = 0.0;
                                     Vec3::unit_x() * -block_rpos.x.signum()
                                 } else {
+                                    vel.0.y = 0.0;
                                     Vec3::unit_y() * -block_rpos.y.signum()
                                 });
                         }
