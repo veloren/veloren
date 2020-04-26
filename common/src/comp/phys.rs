@@ -46,11 +46,7 @@ impl Component for Mass {
 // Mass
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Collider {
-    Box {
-        radius: f32,
-        z_min: f32,
-        z_max: f32,
-    },
+    Box { radius: f32, z_min: f32, z_max: f32 },
     Point,
 }
 
