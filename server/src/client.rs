@@ -18,6 +18,7 @@ pub struct Client {
     pub network_error: AtomicBool,
     pub last_ping: f64,
     pub login_msg_sent: bool,
+    pub invited_to_group: Option<specs::Entity>,
 }
 
 impl Component for Client {

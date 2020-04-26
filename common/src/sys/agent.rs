@@ -2,6 +2,7 @@ use crate::{
     comp::{
         self,
         agent::Activity,
+        group,
         item::{tool::ToolKind, ItemKind},
         Agent, Alignment, Body, CharacterState, ChatMsg, ControlAction, Controller, Loadout,
         MountState, Ori, PhysicsState, Pos, Scale, Stats, Vel,
@@ -29,6 +30,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, UidAllocator>,
         Read<'a, Time>,
         Read<'a, DeltaTime>,
+        Read<'a, group::GroupManager>,
         Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
@@ -40,6 +42,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CharacterState>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Uid>,
+        ReadStorage<'a, group::Group>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
         ReadStorage<'a, Body>,
@@ -55,6 +58,7 @@ impl<'a> System<'a> for Sys {
             uid_allocator,
             time,
             dt,
+            group_manager,
             event_bus,
             entities,
             positions,
@@ -66,6 +70,7 @@ impl<'a> System<'a> for Sys {
             character_states,
             physics_states,
             uids,
+            groups,
             terrain,
             alignments,
             bodies,
@@ -88,6 +93,7 @@ impl<'a> System<'a> for Sys {
             agent,
             controller,
             mount_state,
+            group,
         ) in (
             &entities,
             &positions,
@@ -102,9 +108,19 @@ impl<'a> System<'a> for Sys {
             &mut agents,
             &mut controllers,
             mount_states.maybe(),
+            groups.maybe(),
         )
             .join()
         {
+            // Hack, replace with better system when groups are more sophisticated
+            // Override alignment if in a group
+            let alignment = group
+                .and_then(|g| group_manager.group_info(*g))
+                .and_then(|info| uids.get(info.leader))
+                .copied()
+                .map(Alignment::Owned)
+                .or(alignment.copied());
+
             // Skip mounted entities
             if mount_state
                 .map(|ms| *ms != MountState::Unmounted)
@@ -117,7 +133,7 @@ impl<'a> System<'a> for Sys {
 
             let mut inputs = &mut controller.inputs;
 
-            // Default to looking in orientation direction
+            // Default to looking in orientation direction (can be overriden below)
             inputs.look_dir = ori.0;
 
             const AVG_FOLLOW_DIST: f32 = 6.0;
@@ -148,11 +164,9 @@ impl<'a> System<'a> for Sys {
                             thread_rng().gen::<f32>() - 0.5,
                         ) * 0.1
                             - *bearing * 0.003
-                            - if let Some(patrol_origin) = agent.patrol_origin {
-                                Vec2::<f32>::from(pos.0 - patrol_origin) * 0.0002
-                            } else {
-                                Vec2::zero()
-                            };
+                            - agent.patrol_origin.map_or(Vec2::zero(), |patrol_origin| {
+                                (pos.0 - patrol_origin).xy() * 0.0002
+                            });
 
                         // Stop if we're too close to a wall
                         *bearing *= 0.1
@@ -169,8 +183,7 @@ impl<'a> System<'a> for Sys {
                                 .until(|block| block.is_solid())
                                 .cast()
                                 .1
-                                .map(|b| b.is_none())
-                                .unwrap_or(true)
+                                .map_or(true, |b| b.is_none())
                             {
                                 0.9
                             } else {
@@ -269,8 +282,7 @@ impl<'a> System<'a> for Sys {
                             // Don't attack entities we are passive towards
                             // TODO: This is here, it's a bit of a hack
                             if let Some(alignment) = alignment {
-                                if (*alignment).passive_towards(tgt_alignment) || tgt_stats.is_dead
-                                {
+                                if alignment.passive_towards(tgt_alignment) || tgt_stats.is_dead {
                                     do_idle = true;
                                     break 'activity;
                                 }
@@ -437,7 +449,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Follow owner if we're too far, or if they're under attack
-            if let Some(Alignment::Owned(owner)) = alignment.copied() {
+            if let Some(Alignment::Owned(owner)) = alignment {
                 (|| {
                     let owner = uid_allocator.retrieve_entity_internal(owner.id())?;
 

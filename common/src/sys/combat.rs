@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Alignment, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange,
-        HealthSource, Loadout, Ori, Pos, Scale, Stats,
+        group, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange, HealthSource,
+        Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
@@ -26,10 +26,10 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
-        ReadStorage<'a, Alignment>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Loadout>,
+        ReadStorage<'a, group::Group>,
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, CharacterState>,
     );
@@ -44,10 +44,10 @@ impl<'a> System<'a> for Sys {
             positions,
             orientations,
             scales,
-            alignments,
             bodies,
             stats,
             loadouts,
+            groups,
             mut attacking_storage,
             character_states,
         ): Self::SystemData,
@@ -71,23 +71,12 @@ impl<'a> System<'a> for Sys {
             attack.applied = true;
 
             // Go through all other entities
-            for (
-                b,
-                uid_b,
-                pos_b,
-                ori_b,
-                scale_b_maybe,
-                alignment_b_maybe,
-                character_b,
-                stats_b,
-                body_b,
-            ) in (
+            for (b, uid_b, pos_b, ori_b, scale_b_maybe, character_b, stats_b, body_b) in (
                 &entities,
                 &uids,
                 &positions,
                 &orientations,
                 scales.maybe(),
-                alignments.maybe(),
                 character_states.maybe(),
                 &stats,
                 &bodies,
@@ -111,6 +100,17 @@ impl<'a> System<'a> for Sys {
                     && pos.0.distance_squared(pos_b.0) < (rad_b + scale * attack.range).powi(2)
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
                 {
+                    // See if entities are in the same group
+                    let same_group = groups
+                        .get(entity)
+                        .map(|group_a| Some(group_a) == groups.get(b))
+                        .unwrap_or(false);
+                    // Don't heal if outside group
+                    // Don't damage in the same group
+                    if same_group != (attack.base_healthchange > 0) {
+                        continue;
+                    }
+
                     // Weapon gives base damage
                     let source = if attack.base_healthchange > 0 {
                         DamageSource::Healing
@@ -121,28 +121,6 @@ impl<'a> System<'a> for Sys {
                         healthchange: attack.base_healthchange as f32,
                         source,
                     };
-                    let mut knockback = attack.knockback;
-
-                    // TODO: remove this, either it will remain unused or be used as a temporary
-                    // gameplay balance
-                    //// NPCs do less damage
-                    //if agent_maybe.is_some() {
-                    //    healthchange = (healthchange / 1.5).min(-1.0);
-                    //}
-
-                    // TODO: remove this when there is a better way to deal with alignment
-                    // Don't heal NPCs
-                    if (damage.healthchange > 0.0 && alignment_b_maybe
-                        .map(|a| !a.is_friendly_to_players())
-                        .unwrap_or(true))
-                        // Don't hurt pets
-                    || (damage.healthchange < 0.0 && alignment_b_maybe
-                        .map(|b| Alignment::Owned(*uid).passive_towards(*b))
-                        .unwrap_or(false))
-                    {
-                        damage.healthchange = 0.0;
-                        knockback = 0.0;
-                    }
 
                     let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
@@ -160,10 +138,10 @@ impl<'a> System<'a> for Sys {
                             },
                         });
                     }
-                    if knockback != 0.0 {
+                    if attack.knockback != 0.0 {
                         local_emitter.emit(LocalEvent::ApplyForce {
                             entity: b,
-                            force: knockback
+                            force: attack.knockback
                                 * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
                         });
                     }

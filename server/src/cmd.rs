@@ -2,7 +2,7 @@
 //! To implement a new command, add an instance of `ChatCommand` to
 //! `CHAT_COMMANDS` and provide a handler function.
 
-use crate::{Server, StateExt};
+use crate::{client::Client, Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
     assets,
@@ -556,6 +556,42 @@ fn handle_spawn(
                             }
 
                             let new_entity = entity_base.build();
+
+                            // Add to group system if a pet
+                            if matches!(alignment, comp::Alignment::Owned { .. }) {
+                                let state = server.state();
+                                let mut clients = state.ecs().write_storage::<Client>();
+                                let uids = state.ecs().read_storage::<Uid>();
+                                let mut group_manager =
+                                    state.ecs().write_resource::<comp::group::GroupManager>();
+                                group_manager.new_pet(
+                                    new_entity,
+                                    target,
+                                    &mut state.ecs().write_storage(),
+                                    &state.ecs().entities(),
+                                    &mut |entity, group_change| {
+                                        clients
+                                            .get_mut(entity)
+                                            .and_then(|c| {
+                                                group_change
+                                                    .try_map(|e| uids.get(e).copied())
+                                                    .map(|g| (g, c))
+                                            })
+                                            .map(|(g, c)| c.notify(ServerMsg::GroupUpdate(g)));
+                                    },
+                                );
+                            } else if let Some(group) = match alignment {
+                                comp::Alignment::Wild => None,
+                                comp::Alignment::Enemy => Some(comp::group::ENEMY),
+                                comp::Alignment::Npc | comp::Alignment::Tame => {
+                                    Some(comp::group::NPC)
+                                },
+                                // TODO: handle
+                                comp::Alignment::Owned(_) => unreachable!(),
+                            } {
+                                let _ =
+                                    server.state.ecs().write_storage().insert(new_entity, group);
+                            }
 
                             if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
                                 server.notify_client(
@@ -1161,7 +1197,7 @@ fn handle_group(
         return;
     }
     let ecs = server.state.ecs();
-    if let Some(comp::Group(group)) = ecs.read_storage().get(client) {
+    if let Some(comp::ChatGroup(group)) = ecs.read_storage().get(client) {
         let mode = comp::ChatMode::Group(group.to_string());
         let _ = ecs.write_storage().insert(client, mode.clone());
         if !msg.is_empty() {
@@ -1352,7 +1388,7 @@ fn handle_join_group(
                 .state
                 .ecs()
                 .write_storage()
-                .insert(client, comp::Group(group.clone()))
+                .insert(client, comp::ChatGroup(group.clone()))
                 .ok()
                 .flatten()
                 .map(|f| f.0);
@@ -1369,7 +1405,7 @@ fn handle_join_group(
                 .ecs()
                 .write_storage()
                 .remove(client)
-                .map(|comp::Group(f)| f)
+                .map(|comp::ChatGroup(f)| f)
         };
         if let Some(group) = group_leave {
             server.state.send_chat(

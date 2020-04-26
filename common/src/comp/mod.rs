@@ -7,6 +7,7 @@ mod chat;
 mod controller;
 mod damage;
 mod energy;
+pub mod group;
 mod inputs;
 mod inventory;
 mod last;
@@ -28,13 +29,17 @@ pub use body::{
     humanoid, object, quadruped_low, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
-pub use chat::{ChatMode, ChatMsg, ChatType, Faction, Group, SpeechBubble, SpeechBubbleType};
+// TODO: replace chat::Group functionality with group::Group
+pub use chat::{
+    ChatMode, ChatMsg, ChatType, Faction, Group as ChatGroup, SpeechBubble, SpeechBubbleType,
+};
 pub use controller::{
-    Climb, ControlAction, ControlEvent, Controller, ControllerInputs, Input, InventoryManip,
-    MountState, Mounting,
+    Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, Input,
+    InventoryManip, MountState, Mounting,
 };
 pub use damage::{Damage, DamageSource};
 pub use energy::{Energy, EnergySource};
+pub use group::Group;
 pub use inputs::CanBuild;
 pub use inventory::{
     item,

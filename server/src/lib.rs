@@ -656,6 +656,7 @@ impl Server {
                 network_error: std::sync::atomic::AtomicBool::new(false),
                 last_ping: self.state.get_time(),
                 login_msg_sent: false,
+                invited_to_group: None,
             };
 
             if self.settings().max_players

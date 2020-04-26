@@ -69,6 +69,8 @@ pub enum ServerMsg {
     /// An error occured while creating or deleting a character
     CharacterActionError(String),
     PlayerListUpdate(PlayerListUpdate),
+    GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
+    GroupInvite(sync::Uid),
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
     /// Trigger cleanup for when the client goes back to the `Registered` state
     /// from an ingame state
