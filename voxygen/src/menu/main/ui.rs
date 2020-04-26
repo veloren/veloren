@@ -83,7 +83,6 @@ image_ids! {
         <VoxelGraphic>
         v_logo: "voxygen.element.v_logo",
 
-        disclaimer: "voxygen.element.frames.disclaimer",
         info_frame: "voxygen.element.frames.info_frame_2",
         banner: "voxygen.element.frames.banner",
 
@@ -98,6 +97,7 @@ image_ids! {
         input_bg_top: "voxygen.element.misc_bg.textbox_top",
         input_bg_mid: "voxygen.element.misc_bg.textbox_mid",
         input_bg_bot: "voxygen.element.misc_bg.textbox_bot",
+        disclaimer: "voxygen.element.frames.disclaimer",
 
 
 

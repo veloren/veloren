@@ -1,8 +1,6 @@
 Item(
     name: "Uneven Bow",
-    description: "Someone carved his initials into it...
-    
-    Power: 15",
+    description: "Bow\n\nPower: 5\n\nSomeone carved his initials into it...\n\n<Right-Click to use>",  
     kind: Tool(
         (
             kind: Bow(BasicBow),    

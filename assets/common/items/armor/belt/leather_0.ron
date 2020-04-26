@@ -1,6 +1,6 @@
 Item(
     name: "Swift Belt",
-    description: "Swift like the wind.",
+    description: "Belt\n\nArmor: 0\n\nSwift like the wind.\n\n<Right-Click to use>",
     kind: Armor(
         kind: Belt(Leather0),
         stats: (20),
