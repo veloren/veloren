@@ -13,6 +13,7 @@ uniform u_locals {
 
 out vec3 f_pos;
 out vec3 f_norm;
+out vec2 v_pos_orig;
 // out vec4 f_square;
 // out vec4 f_shadow;
 // out float f_light;
@@ -23,6 +24,7 @@ void main() {
     vec2 dims = vec2(1.0 / view_distance.y);
     vec4 f_square = focus_pos.xyxy + vec4(splay(v_pos - dims), splay(v_pos + dims));
     f_norm = lod_norm(f_pos.xy, f_square);
+    v_pos_orig = v_pos;
 
 	// f_pos = lod_pos(focus_pos.xy + splay(v_pos) * /*1000000.0*/(1 << 20), square);
 

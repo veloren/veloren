@@ -7,7 +7,7 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0) * 6.0;
+const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0);
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
@@ -123,12 +123,13 @@ void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d,
 // Returns computed maximum intensity.
 float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
 	const float SUN_AMBIANCE = 0.23 / 3.0;/* / 1.8*/;// 0.1 / 3.0;
+    const float SUN_COLOR_FACTOR = 6.0;
 	const float MOON_AMBIANCE = 0.23;//0.1;
 
 	float sun_light = get_sun_brightness(sun_dir);
 	float moon_light = get_moon_brightness(moon_dir);
 
-	vec3 sun_color = get_sun_color(sun_dir);
+	vec3 sun_color = get_sun_color(sun_dir) * SUN_COLOR_FACTOR;
 	vec3 moon_color = get_moon_color(moon_dir);
 
 	vec3 sun_chroma = sun_color * sun_light;

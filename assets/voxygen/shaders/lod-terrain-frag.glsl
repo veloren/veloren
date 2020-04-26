@@ -6,6 +6,7 @@
 
 in vec3 f_pos;
 in vec3 f_norm;
+in vec2 v_pos_orig;
 // in vec4 f_shadow;
 // in vec4 f_square;
 
@@ -116,6 +117,7 @@ void main() {
 	// vec3 light, diffuse_light, ambient_light;
 	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
 	// vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
+	f_col = f_col + hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0/* - round(f_norm) * 0.5*/, 0)) * 0.05; // Small-scale noise
     vec3 surf_color = /*illuminate(emitted_light, reflected_light)*/illuminate(f_col * emitted_light, f_col * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
