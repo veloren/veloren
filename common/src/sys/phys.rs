@@ -93,7 +93,12 @@ impl<'a> System<'a> for Sys {
         {
             let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
 
-            if sticky.is_some() && (physics_state.on_ground || physics_state.on_ceiling || physics_state.on_wall.is_some()) {
+            if sticky.is_some()
+                && (physics_state.on_ground
+                    || physics_state.on_ceiling
+                    || physics_state.on_wall.is_some())
+            {
+                vel.0 = Vec3::zero();
                 continue;
             }
 
@@ -388,33 +393,29 @@ impl<'a> System<'a> for Sys {
 
                     pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
 
+                    // Can't fair since we do ignore_error above
                     if block.unwrap().is_some() {
-                        // Can't fail
-                        if sticky.is_some() {
-                            vel.0 = Vec3::zero();
+                        let block_center = pos.0.map(|e| e.floor()) + 0.5;
+                        let block_rpos = (pos.0 - block_center)
+                            .try_normalized()
+                            .unwrap_or(Vec3::zero());
 
-                            let block_center = pos.0.map(|e| e.floor()) + 0.5;
-                            let block_rpos = (pos.0 - block_center)
-                                .try_normalized()
-                                .unwrap_or(Vec3::zero());
-
-                            // See whether we're on the top/bottom of a block, or the side
-                            if block_rpos.z.abs()
-                                > block_rpos.xy().map(|e| e.abs()).reduce_partial_max()
-                            {
-                                if block_rpos.z > 0.0 {
-                                    physics_state.on_ground = true;
-                                } else {
-                                    physics_state.on_ceiling = true;
-                                }
+                        // See whether we're on the top/bottom of a block, or the side
+                        if block_rpos.z.abs()
+                            > block_rpos.xy().map(|e| e.abs()).reduce_partial_max()
+                        {
+                            if block_rpos.z > 0.0 {
+                                physics_state.on_ground = true;
                             } else {
-                                physics_state.on_wall =
-                                    Some(if block_rpos.x.abs() > block_rpos.y.abs() {
-                                        Vec3::unit_x() * -block_rpos.x.signum()
-                                    } else {
-                                        Vec3::unit_y() * -block_rpos.y.signum()
-                                    });
+                                physics_state.on_ceiling = true;
                             }
+                        } else {
+                            physics_state.on_wall =
+                                Some(if block_rpos.x.abs() > block_rpos.y.abs() {
+                                    Vec3::unit_x() * -block_rpos.x.signum()
+                                } else {
+                                    Vec3::unit_y() * -block_rpos.y.signum()
+                                });
                         }
                     }
                 },
