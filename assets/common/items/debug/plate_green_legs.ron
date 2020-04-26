@@ -1,6 +1,6 @@
 Item(
     name: "Iron Legguards",
-    description: "WIP",
+    description: "Legs\n\nArmor: 0\n\n",
     kind: Armor(
         kind: Pants(PlateGreen0),
         stats: (20),

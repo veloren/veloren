@@ -54,7 +54,7 @@ VoxygenLocalization(
         "common.interface": "Interface",
         "common.gameplay": "Gameplay",
         "common.controls": "Controls",
-        "common.video": "Video",
+        "common.video": "Graphics",
         "common.sound": "Sound",
         "common.resume": "Resume",
         "common.characters": "Characters",
@@ -102,14 +102,14 @@ Is the client up to date?"#,
 Before you dive into the fun, please keep a few things in mind:
 
 - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features.
+
 - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
+
 - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
  you wish (provided derived work is also under GPL 3).
+
 - Veloren is a non-profit community project, and everybody working on it is a volunteer.
 If you like what you see, you're welcome to join the development or art teams!
-- 'Voxel RPG' is a genre in its own right. First-person shooters used to be called Doom clones.
-
-Like them, we're trying to build a niche. This game is not a clone, and its development will diverge from existing games in the future.
 
 Thanks for taking the time to read this notice, we hope you enjoy the game!
 
@@ -251,6 +251,7 @@ Enjoy your stay in the World of Veloren."#,
 
         "hud.settings.view_distance": "View Distance",
         "hud.settings.sprites_view_distance": "Sprites View Distance",
+        "hud.settings.figures_view_distance": "Entities View Distance",
         "hud.settings.maximum_fps": "Maximum FPS",
         "hud.settings.fov": "Field of View (deg)",
         "hud.settings.gamma": "Gamma",
@@ -276,7 +277,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.social.faction": "Faction",
         "hud.social.play_online_fmt": "{nb_player} player(s) online",
 
-        "hud.spell": "Spell",
+        "hud.spell": "Spells",
 
         "hud.free_look_indicator": "Free look active",       
 

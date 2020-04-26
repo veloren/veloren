@@ -1,6 +1,6 @@
 Item(
     name: "A Shield",
-    description: "Legends tell this item is useless.",
+    description: "WIP",
     kind: Tool (
         (
             kind: Shield(BasicShield),

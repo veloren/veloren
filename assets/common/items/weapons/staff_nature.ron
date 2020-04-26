@@ -1,7 +1,6 @@
 Item(
     name: "Sceptre of Regeneration",
-    description: " Infused by the power of Nature.   
-    Power: 25",
+    description: "Healing-Sceptre\n\nPower 15-18\n\nHeals your allies with the power of nature.\n\n<Right-Click to use>",      
     kind: Tool(
         (
             kind: Staff(Sceptre),    

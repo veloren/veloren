@@ -1,5 +1,0 @@
-Item(
-    name: "Lime Zest Lantern",
-    description: "It has an opening that could fit a ring...",
-    kind: Lantern(Green0),
-)

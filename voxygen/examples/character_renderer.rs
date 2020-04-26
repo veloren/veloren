@@ -54,6 +54,7 @@ fn main() {
         body: Some(body.clone()),
         gamma: 1.0,
         mouse_smoothing: true,
+        figure_lod_render_distance: 250.0,
     };
     scene.camera_mut().set_focus_pos(Vec3::unit_z() * 0.8);
     scene.camera_mut().set_distance(1.5);

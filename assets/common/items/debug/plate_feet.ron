@@ -1,6 +1,6 @@
 Item(
     name: "Iron Feet",
-    description: "WIP",
+    description: "Feet\n\nArmor: 0\n\n",
     kind: Armor(
         kind: Foot(Plate0),
         stats: (20),

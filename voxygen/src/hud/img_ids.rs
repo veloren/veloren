@@ -65,12 +65,6 @@ image_ids! {
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
 
-        // Minimap
-
-        // Map
-        indicator_mmap_2: "voxygen.element.buttons.indicator_mmap_2",
-        indicator_mmap_3: "voxygen.element.buttons.indicator_mmap_3",
-
         // Checkboxes and Radio buttons
         check: "voxygen.element.buttons.radio.inactive",
         check_mo: "voxygen.element.buttons.radio.inactive_hover",
@@ -83,26 +77,6 @@ image_ids! {
         checkbox_checked: "voxygen.element.buttons.checkbox.active",
         checkbox_checked_mo: "voxygen.element.buttons.checkbox.hover",
 
-        // Grid
-        grid: "voxygen.element.buttons.grid",
-        grid_hover: "voxygen.element.buttons.grid",
-        grid_press: "voxygen.element.buttons.grid",
-
-        settings: "voxygen.element.buttons.settings",
-        settings_hover: "voxygen.element.buttons.settings_hover",
-        settings_press: "voxygen.element.buttons.settings_press",
-
-        social: "voxygen.element.buttons.social",
-        social_hover: "voxygen.element.buttons.social_hover",
-        social_press: "voxygen.element.buttons.social_press",
-
-        map_button: "voxygen.element.buttons.map",
-        map_hover: "voxygen.element.buttons.map_hover",
-        map_press: "voxygen.element.buttons.map_press",
-
-        spellbook_button: "voxygen.element.buttons.spellbook",
-        spellbook_hover: "voxygen.element.buttons.spellbook_hover",
-        spellbook_press: "voxygen.element.buttons.spellbook_press",
 
         // Charwindow
         xp_charwindow: "voxygen.element.frames.xp_charwindow",
@@ -120,6 +94,23 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+        // Buttons
+
+        settings: "voxygen.element.buttons.settings",
+        settings_hover: "voxygen.element.buttons.settings_hover",
+        settings_press: "voxygen.element.buttons.settings_press",
+
+        social: "voxygen.element.buttons.social",
+        social_hover: "voxygen.element.buttons.social_hover",
+        social_press: "voxygen.element.buttons.social_press",
+
+        map_button: "voxygen.element.buttons.map",
+        map_hover: "voxygen.element.buttons.map_hover",
+        map_press: "voxygen.element.buttons.map_press",
+
+        spellbook_button: "voxygen.element.buttons.spellbook",
+        spellbook_hover: "voxygen.element.buttons.spellbook_hover",
+        spellbook_press: "voxygen.element.buttons.spellbook_press",
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",
