@@ -7,6 +7,7 @@ pub mod dragon;
 pub mod fish_medium;
 pub mod fish_small;
 pub mod fixture;
+pub mod golem;
 pub mod object;
 pub mod quadruped_medium;
 pub mod quadruped_small;
