@@ -1,9 +1,9 @@
+pub mod fly;
 pub mod idle;
-pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
+pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
@@ -120,11 +120,11 @@ impl<'a> From<&'a comp::bird_medium::Body> for SkeletonAttr {
                 (Eagle, _) => (-8.0, -4.0),
             },
             wing: match (body.species, body.body_type) {
-                (Duck, _) => (2.75, 0.0, 6.0),
-                (Chicken, _) => (2.75, 0.0, 6.0),
-                (Goose, _) => (3.75, -1.0, 9.0),
-                (Peacock, _) => (3.0, 0.0, 9.0),
-                (Eagle, _) => (3.0, -8.0, 5.0),
+                (Duck, _) => (2.75, 0.0, 1.0),
+                (Chicken, _) => (2.75, 0.0, 1.0),
+                (Goose, _) => (3.75, -1.0, 2.0),
+                (Peacock, _) => (3.0, 0.0, 1.0),
+                (Eagle, _) => (3.0, -8.0, 4.0),
             },
             foot: match (body.species, body.body_type) {
                 (Duck, _) => (2.0, -1.5, 4.0),
