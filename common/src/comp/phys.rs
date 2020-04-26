@@ -43,6 +43,21 @@ impl Component for Mass {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
+// Mass
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum Collider {
+    Box {
+        radius: f32,
+        z_min: f32,
+        z_max: f32,
+    },
+    Point,
+}
+
+impl Component for Collider {
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+}
+
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Gravity(pub f32);
 
@@ -61,6 +76,7 @@ impl Component for Sticky {
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsState {
     pub on_ground: bool,
+    pub on_ceiling: bool,
     pub on_wall: Option<Vec3<f32>>,
     pub touch_entity: Option<Uid>,
     pub in_fluid: bool,
