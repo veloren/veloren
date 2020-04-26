@@ -92,11 +92,21 @@ impl StateExt for State {
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
+            .with(comp::Collider::Box {
+                radius: 0.4,
+                z_min: 0.0,
+                z_max: 1.75,
+            })
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
             .with(comp::Alignment::Npc)
             .with(comp::Energy::new(500))
+            .with(comp::Collider::Box {
+                radius: 0.4,
+                z_min: 0.0,
+                z_max: 1.75,
+            })
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(loadout)
@@ -111,6 +121,11 @@ impl StateExt for State {
             .with(comp::Ori::default())
             .with(comp::Body::Object(object))
             .with(comp::Mass(100.0))
+            .with(comp::Collider::Box {
+                radius: 0.4,
+                z_min: 0.0,
+                z_max: 0.9,
+            })
             .with(comp::Gravity(1.0))
         //.with(comp::LightEmitter::default())
     }
@@ -129,6 +144,7 @@ impl StateExt for State {
             .with(vel)
             .with(comp::Ori(Dir::from_unnormalized(vel.0).unwrap_or_default()))
             .with(comp::Mass(0.0))
+            .with(comp::Collider::Point)
             .with(body)
             .with(projectile)
             .with(comp::Sticky)
@@ -154,6 +170,11 @@ impl StateExt for State {
         self.write_component(entity, comp::Pos(spawn_point));
         self.write_component(entity, comp::Vel(Vec3::zero()));
         self.write_component(entity, comp::Ori::default());
+        self.write_component(entity, comp::Collider::Box {
+            radius: 0.4,
+            z_min: 0.0,
+            z_max: 1.75,
+        });
         self.write_component(entity, comp::Gravity(1.0));
         self.write_component(entity, comp::CharacterState::default());
         self.write_component(entity, comp::Alignment::Owned(entity));

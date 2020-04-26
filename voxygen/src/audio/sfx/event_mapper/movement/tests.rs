@@ -88,6 +88,7 @@ fn maps_idle() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -111,6 +112,7 @@ fn maps_run_with_sufficient_velocity() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -134,6 +136,7 @@ fn does_not_map_run_with_insufficient_velocity() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -157,6 +160,7 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: false,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -183,6 +187,7 @@ fn maps_roll() {
         }),
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -206,6 +211,7 @@ fn maps_land_on_ground_to_run() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -229,6 +235,7 @@ fn maps_glider_open() {
         &CharacterState::Glide {},
         &PhysicsState {
             on_ground: false,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -252,6 +259,7 @@ fn maps_glide() {
         &CharacterState::Glide {},
         &PhysicsState {
             on_ground: false,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -275,6 +283,7 @@ fn maps_glider_close_when_closing_mid_flight() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: false,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -299,6 +308,7 @@ fn maps_glider_close_when_landing() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -335,6 +345,7 @@ fn maps_wield_while_equipping() {
         }),
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -369,6 +380,7 @@ fn maps_unwield() {
         &CharacterState::default(),
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
@@ -391,6 +403,7 @@ fn maps_quadrupeds_running() {
     let result = MovementEventMapper::map_non_humanoid_movement_event(
         &PhysicsState {
             on_ground: true,
+            on_ceiling: false,
             on_wall: None,
             touch_entity: None,
             in_fluid: false,
