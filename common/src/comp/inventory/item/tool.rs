@@ -120,8 +120,7 @@ impl Tool {
                 prepare_duration: Duration::from_millis(100),
                 recover_duration: Duration::from_millis(500),
                 projectile: Projectile {
-                    hit_ground: vec![projectile::Effect::Stick],
-                    hit_wall: vec![projectile::Effect::Stick],
+                    hit_solid: vec![projectile::Effect::Stick],
                     hit_entity: vec![
                         projectile::Effect::Damage(HealthChange {
                             // TODO: This should not be fixed (?)
@@ -162,8 +161,7 @@ impl Tool {
                     prepare_duration: Duration::from_millis(0),
                     recover_duration: Duration::from_millis(200),
                     projectile: Projectile {
-                        hit_ground: vec![projectile::Effect::Vanish],
-                        hit_wall: vec![projectile::Effect::Vanish],
+                        hit_solid: vec![projectile::Effect::Vanish],
                         hit_entity: vec![
                             projectile::Effect::Damage(HealthChange {
                                 // TODO: This should not be fixed (?)
@@ -190,11 +188,7 @@ impl Tool {
                     prepare_duration: Duration::from_millis(800),
                     recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
-                        hit_ground: vec![
-                            projectile::Effect::Explode { power: 1.4 },
-                            projectile::Effect::Vanish,
-                        ],
-                        hit_wall: vec![
+                        hit_solid: vec![
                             projectile::Effect::Explode { power: 1.4 },
                             projectile::Effect::Vanish,
                         ],
@@ -250,8 +244,7 @@ impl Tool {
                     prepare_duration: Duration::from_millis(0),
                     recover_duration: Duration::from_millis(300),
                     projectile: Projectile {
-                        hit_ground: vec![projectile::Effect::Stick],
-                        hit_wall: vec![projectile::Effect::Stick],
+                        hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![projectile::Effect::Stick, projectile::Effect::Possess],
                         time_left: Duration::from_secs(10),
                         owner: None,
