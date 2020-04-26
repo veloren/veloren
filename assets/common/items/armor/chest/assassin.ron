@@ -1,6 +1,6 @@
 Item(
     name: "Assassin Chest",
-    description: "Only the best for a member of the creed.",
+    description: "Chest\n\nArmor: 0\n\nOnly the best for a member of the creed.\n\n<Right-Click to use>",
     kind: Armor(
         kind: Chest(Assassin),
         stats: (20),

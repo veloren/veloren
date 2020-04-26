@@ -211,6 +211,7 @@ pub enum Event {
     ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustSpriteRenderDistance(u32),
+    AdjustFigureLoDRenderDistance(u32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -1580,24 +1581,6 @@ impl Hud {
                 .middle_of(ui_widgets.window)
                 .w_h(1260.0, 519.0)
                 .set(self.ids.help, ui_widgets);
-            // Show tips
-            /*if Button::image(self.imgs.button)
-                .w_h(120.0, 50.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label(&self.voxygen_i18n.get("common.close"))
-                .label_font_size(self.fonts.cyri.scale(20))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_color(TEXT_COLOR)
-                .mid_bottom_with_margin_on(self.ids.help, 20.0)
-                .set(self.ids.button_help3, ui_widgets)
-                .was_clicked()
-            {
-                self.show.help = false;
-                self.show.intro = false;
-                self.intro = false;
-                self.intro_2 = true;
-            };*/
             // X-button
             if Button::image(self.imgs.close_button)
                 .w_h(40.0, 40.0)
@@ -1613,13 +1596,22 @@ impl Hud {
         }
 
         // Bag button and nearby icons
+        let ecs = client.state().ecs();
+        let stats = ecs.read_storage::<comp::Stats>();
+        let player_stats = match stats.get(client.entity()) {
+            Some(stats) => stats,
+            None => return events,
+        };
         match Buttons::new(
             client,
-            &self.show.open_windows,
-            self.show.map,
             self.show.bag,
             &self.imgs,
             &self.fonts,
+            global_state,
+            &self.rot_imgs,
+            tooltip_manager,
+            &self.voxygen_i18n,
+            &player_stats,
         )
         .set(self.ids.buttons, ui_widgets)
         {
@@ -1650,7 +1642,10 @@ impl Hud {
         if self.show.bag {
             let ecs = client.state().ecs();
             let stats = ecs.read_storage::<comp::Stats>();
-            let player_stats = stats.get(client.entity()).unwrap();
+            let player_stats = match stats.get(client.entity()) {
+                Some(stats) => stats,
+                None => return events,
+            };
             match Bag::new(
                 client,
                 &self.imgs,
@@ -1804,6 +1799,9 @@ impl Hud {
                     },
                     settings_window::Event::AdjustSpriteRenderDistance(view_distance) => {
                         events.push(Event::AdjustSpriteRenderDistance(view_distance));
+                    },
+                    settings_window::Event::AdjustFigureLoDRenderDistance(view_distance) => {
+                        events.push(Event::AdjustFigureLoDRenderDistance(view_distance));
                     },
                     settings_window::Event::CrosshairTransp(crosshair_transp) => {
                         events.push(Event::CrosshairTransp(crosshair_transp));

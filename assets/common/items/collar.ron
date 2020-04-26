@@ -1,6 +1,6 @@
 Item(
     name: "Collar",
-    description: "Tames wild animals within 5 blocks.",
+    description: "Tames wild animals within 5 blocks\n\n<Right-Click to use>",
     kind: Utility(
         kind: Collar,
     ),
