@@ -27,11 +27,7 @@ pub struct Projectile {
 impl Projectile {
     pub fn set_owner(&mut self, new_owner: Uid) {
         self.owner = Some(new_owner);
-        for e in self
-            .hit_solid
-            .iter_mut()
-            .chain(self.hit_entity.iter_mut())
-        {
+        for e in self.hit_solid.iter_mut().chain(self.hit_entity.iter_mut()) {
             if let Effect::Damage(comp::HealthChange {
                 cause: comp::HealthSource::Projectile { owner, .. },
                 ..
