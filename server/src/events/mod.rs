@@ -8,6 +8,7 @@ use entity_manipulation::{
     handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_level_up,
     handle_respawn,
 };
+use group_manip::handle_group;
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
 use inventory_manip::handle_inventory;
 use player::{handle_client_disconnect, handle_exit_ingame};
@@ -15,6 +16,7 @@ use specs::{Entity as EcsEntity, WorldExt};
 
 mod entity_creation;
 mod entity_manipulation;
+mod group_manip;
 mod interaction;
 mod inventory_manip;
 mod player;
@@ -62,6 +64,7 @@ impl Server {
                 ServerEvent::Damage { uid, change } => handle_damage(&self, uid, change),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
+                ServerEvent::GroupManip(entity, manip) => handle_group(self, entity, manip),
                 ServerEvent::Respawn(entity) => handle_respawn(&self, entity),
                 ServerEvent::LandOnGround { entity, vel } => {
                     handle_land_on_ground(&self, entity, vel)

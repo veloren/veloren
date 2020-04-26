@@ -35,6 +35,7 @@ pub enum ServerEvent {
         cause: comp::HealthSource,
     },
     InventoryManip(EcsEntity, comp::InventoryManip),
+    GroupManip(EcsEntity, comp::GroupManip),
     Respawn(EcsEntity),
     Shoot {
         entity: EcsEntity,

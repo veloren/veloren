@@ -1,10 +1,11 @@
-use crate::{Server, StateExt};
+use crate::{client::Client, Server, StateExt};
 use common::{
     comp::{
         self, item,
         slot::{self, Slot},
         Pos, MAX_PICKUP_RANGE_SQR,
     },
+    msg::ServerMsg,
     recipe::default_recipe_book,
     sync::{Uid, WorldSyncExt},
     terrain::block::Block,
@@ -222,6 +223,33 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .ecs()
                                             .write_storage()
                                             .insert(tameable_entity, comp::Alignment::Owned(uid));
+
+                                        // Add to group system
+                                        let mut clients = state.ecs().write_storage::<Client>();
+                                        let uids = state.ecs().read_storage::<Uid>();
+                                        let mut group_manager = state
+                                            .ecs()
+                                            .write_resource::<comp::group::GroupManager>(
+                                        );
+                                        group_manager.new_pet(
+                                            tameable_entity,
+                                            entity,
+                                            &mut state.ecs().write_storage(),
+                                            &state.ecs().entities(),
+                                            &mut |entity, group_change| {
+                                                clients
+                                                    .get_mut(entity)
+                                                    .and_then(|c| {
+                                                        group_change
+                                                            .try_map(|e| uids.get(e).copied())
+                                                            .map(|g| (g, c))
+                                                    })
+                                                    .map(|(g, c)| {
+                                                        c.notify(ServerMsg::GroupUpdate(g))
+                                                    });
+                                            },
+                                        );
+
                                         let _ = state
                                             .ecs()
                                             .write_storage()

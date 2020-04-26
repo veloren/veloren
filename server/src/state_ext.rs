@@ -320,7 +320,7 @@ impl StateExt for State {
             comp::ChatType::GroupMeta(s) | comp::ChatType::Group(_, s) => {
                 for (client, group) in (
                     &mut ecs.write_storage::<Client>(),
-                    &ecs.read_storage::<comp::Group>(),
+                    &ecs.read_storage::<comp::ChatGroup>(),
                 )
                     .join()
                 {
@@ -346,6 +346,30 @@ impl StateExt for State {
         &mut self,
         entity: EcsEntity,
     ) -> Result<(), specs::error::WrongGeneration> {
+        // Remove entity from a group if they are in one
+        {
+            let mut clients = self.ecs().write_storage::<Client>();
+            let uids = self.ecs().read_storage::<Uid>();
+            let mut group_manager = self.ecs().write_resource::<comp::group::GroupManager>();
+            group_manager.remove_from_group(
+                entity,
+                &mut self.ecs().write_storage(),
+                &self.ecs().read_storage(),
+                &uids,
+                &self.ecs().entities(),
+                &mut |entity, group_change| {
+                    clients
+                        .get_mut(entity)
+                        .and_then(|c| {
+                            group_change
+                                .try_map(|e| uids.get(e).copied())
+                                .map(|g| (g, c))
+                        })
+                        .map(|(g, c)| c.notify(ServerMsg::GroupUpdate(g)));
+                },
+            );
+        }
+
         let (maybe_uid, maybe_pos) = (
             self.ecs().read_storage::<Uid>().get(entity).copied(),
             self.ecs().read_storage::<comp::Pos>().get(entity).copied(),

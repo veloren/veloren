@@ -17,8 +17,8 @@ use byteorder::{ByteOrder, LittleEndian};
 use common::{
     character::CharacterItem,
     comp::{
-        self, ControlAction, ControlEvent, Controller, ControllerInputs, InventoryManip,
-        InventoryUpdateEvent,
+        self, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
+        InventoryManip, InventoryUpdateEvent,
     },
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
@@ -74,10 +74,14 @@ pub struct Client {
     pub server_info: ServerInfo,
     pub world_map: (Arc<DynamicImage>, Vec2<u32>),
     pub player_list: HashMap<Uid, PlayerInfo>,
+    pub group_members: HashSet<Uid>,
     pub character_list: CharacterList,
     pub active_character_id: Option<i32>,
     recipe_book: RecipeBook,
     available_recipes: HashSet<String>,
+
+    group_invite: Option<Uid>,
+    group_leader: Option<Uid>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -208,10 +212,14 @@ impl Client {
             server_info,
             world_map,
             player_list: HashMap::new(),
+            group_members: HashSet::new(),
             character_list: CharacterList::default(),
             active_character_id: None,
             recipe_book,
             available_recipes: HashSet::default(),
+
+            group_invite: None,
+            group_leader: None,
 
             _network: network,
             participant: Some(participant),
@@ -422,6 +430,53 @@ impl Client {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::ToggleLantern))
             .unwrap();
+    }
+
+    pub fn group_invite(&self) -> Option<Uid> { self.group_invite }
+
+    pub fn group_leader(&self) -> Option<Uid> { self.group_leader }
+
+    pub fn accept_group_invite(&mut self) {
+        // Clear invite
+        self.group_invite.take();
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Accept,
+            ))).unwrap();
+    }
+
+    pub fn reject_group_invite(&mut self) {
+        // Clear invite
+        self.group_invite.take();
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Reject,
+            ))).unwrap();
+    }
+
+    pub fn leave_group(&mut self) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Leave,
+            ))).unwrap();
+    }
+
+    pub fn kick_from_group(&mut self, entity: specs::Entity) {
+        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+            self.singleton_stream
+                .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                    GroupManip::Kick(uid),
+                ))).unwrap();
+        }
+    }
+
+    pub fn assign_group_leader(&mut self, entity: specs::Entity) {
+        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+            self.singleton_stream
+                .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                    GroupManip::AssignLeader(uid),
+                ))).unwrap();
+        }
     }
 
     pub fn is_mounted(&self) -> bool {
@@ -935,7 +990,46 @@ impl Client {
                         );
                     }
                 },
-
+                ServerMsg::GroupUpdate(change_notification) => {
+                        use comp::group::ChangeNotification::*;
+                        // Note: we use a hashmap since this would not work with entities outside
+                        // the view distance
+                        match change_notification {
+                            Added(uid) => {
+                                warn!("message to add: {}", uid);
+                                if !self.group_members.insert(uid) {
+                                    warn!(
+                                        "Received msg to add uid {} to the group members but they \
+                                         were already there",
+                                        uid
+                                    );
+                                }
+                            },
+                            Removed(uid) => {
+                                if !self.group_members.remove(&uid) {
+                                    warn!(
+                                        "Received msg to remove uid {} from group members but by \
+                                         they weren't in there!",
+                                        uid
+                                    );
+                                }
+                            },
+                            NewLeader(leader) => {
+                                self.group_leader = Some(leader);
+                            },
+                            NewGroup { leader, members } => {
+                                self.group_leader = Some(leader);
+                                self.group_members = members.into_iter().collect();
+                            },
+                            NoGroup => {
+                                self.group_leader = None;
+                                self.group_members = HashSet::new();
+                            }
+                        }
+                },
+                ServerMsg::GroupInvite(uid) => {
+                    self.group_invite = Some(uid);
+                },
                 ServerMsg::Ping => {
                     self.singleton_stream.send(ClientMsg::Pong)?;
                 },

@@ -4,7 +4,7 @@ use crate::{
 };
 use common::{
     comp,
-    comp::Player,
+    comp::{group, Player},
     msg::{ClientState, PlayerListUpdate, ServerMsg},
     sync::{Uid, UidAllocator},
 };
@@ -22,6 +22,11 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     let maybe_client = state.ecs().write_storage::<Client>().remove(entity);
     let maybe_uid = state.read_component_cloned::<Uid>(entity);
     let maybe_player = state.ecs().write_storage::<comp::Player>().remove(entity);
+    let maybe_group = state
+        .ecs()
+        .write_storage::<group::Group>()
+        .get(entity)
+        .cloned();
     if let (Some(mut client), Some(uid), Some(player)) = (maybe_client, maybe_uid, maybe_player) {
         // Tell client its request was successful
         client.allow_state(ClientState::Registered);
@@ -29,13 +34,37 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         client.notify(ServerMsg::ExitIngameCleanup);
 
         let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
+
+        let entity_builder = match maybe_group {
+            Some(group) => entity_builder.with(group),
+            None => entity_builder,
+        };
+
         // Ensure UidAllocator maps this uid to the new entity
         let uid = entity_builder
             .world
             .write_resource::<UidAllocator>()
             .allocate(entity_builder.entity, Some(uid.into()));
-        entity_builder.with(uid).build();
+        let new_entity = entity_builder.with(uid).build();
+        if let Some(group) = maybe_group {
+            let mut group_manager = state.ecs().write_resource::<group::GroupManager>();
+            if group_manager
+                .group_info(group)
+                .map(|info| info.leader == entity)
+                .unwrap_or(false)
+            {
+                group_manager.assign_leader(
+                    new_entity,
+                    &state.ecs().read_storage(),
+                    &state.ecs().entities(),
+                    // Nothing actually changing
+                    |_, _| {},
+                );
+            }
+        }
     }
+    // Erase group component to avoid group restructure when deleting the entity
+    state.ecs().write_storage::<group::Group>().remove(entity);
     // Delete old entity
     if let Err(e) = state.delete_entity_recorded(entity) {
         error!(

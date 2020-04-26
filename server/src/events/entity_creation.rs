@@ -1,7 +1,7 @@
 use crate::{sys, Server, StateExt};
 use common::{
     comp::{
-        self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
+        self, group, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
         Projectile, Scale, Stats, Vel, WaypointArea,
     },
     util::Dir,
@@ -36,11 +36,25 @@ pub fn handle_create_npc(
     scale: Scale,
     drop_item: Option<Item>,
 ) {
+    let group = match alignment {
+        Alignment::Wild => None,
+        Alignment::Enemy => Some(group::ENEMY),
+        Alignment::Npc | Alignment::Tame => Some(group::NPC),
+        // TODO: handle
+        Alignment::Owned(_) => None,
+    };
+
     let entity = server
         .state
         .create_npc(pos, stats, loadout, body)
         .with(scale)
         .with(alignment);
+
+    let entity = if let Some(group) = group {
+        entity.with(group)
+    } else {
+        entity
+    };
 
     let entity = if let Some(agent) = agent.into() {
         entity.with(agent)
