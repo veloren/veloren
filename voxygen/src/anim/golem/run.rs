@@ -1,4 +1,4 @@
-use super::{super::Animation, BipedLargeSkeleton, SkeletonAttr};
+use super::{super::Animation, GolemSkeleton, SkeletonAttr};
 use std::f32::consts::PI;
 use vek::*;
 
@@ -6,7 +6,7 @@ pub struct RunAnimation;
 
 impl Animation for RunAnimation {
     type Dependency = (f32, f64);
-    type Skeleton = BipedLargeSkeleton;
+    type Skeleton = GolemSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
@@ -20,10 +20,7 @@ impl Animation for RunAnimation {
         let lab = 10.0;
 
         let belt = (anim_time as f32 * lab as f32 + 1.5 * PI).sin();
-        let beltsnap = (((5.0)
-            / (1.0 + (4.0) * ((anim_time as f32 * lab as f32 + PI * 1.5).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 + PI * 1.5).sin());
+
         let foothoril = (anim_time as f32 * lab as f32 + PI * 1.4).sin();
         let foothorir = (anim_time as f32 * lab as f32 + PI * 0.4).sin();
 
@@ -52,14 +49,6 @@ impl Animation for RunAnimation {
         next.upper_torso.ori = Quaternion::rotation_z(belt * 0.40) * Quaternion::rotation_x(0.0);
         next.upper_torso.scale = Vec3::one() / 8.0;
 
-        next.lower_torso.offset = Vec3::new(
-            0.0,
-            skeleton_attr.lower_torso.0,
-            skeleton_attr.lower_torso.1,
-        );
-        next.lower_torso.ori = Quaternion::rotation_z(belt * -0.55) * Quaternion::rotation_x(0.0);
-        next.lower_torso.scale = Vec3::one() * 1.02;
-
         next.shoulder_l.offset = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
@@ -84,7 +73,7 @@ impl Animation for RunAnimation {
             skeleton_attr.hand.2,
         );
         next.hand_l.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.3 + foothoril * -0.6);
+            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.3 + footrotl * -0.8);
         next.hand_l.scale = Vec3::one() * 1.02;
 
         next.hand_r.offset = Vec3::new(
@@ -93,7 +82,7 @@ impl Animation for RunAnimation {
             skeleton_attr.hand.2,
         );
         next.hand_r.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.3 + foothorir * -0.6);
+            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.3 + footrotr * -0.8);
         next.hand_r.scale = Vec3::one() * 1.02;
 
         next.leg_l.offset = Vec3::new(
@@ -101,8 +90,7 @@ impl Animation for RunAnimation {
             skeleton_attr.leg.1,
             skeleton_attr.leg.2,
         ) * 1.02;
-        next.leg_l.ori =
-            Quaternion::rotation_z(belt * -0.8) * Quaternion::rotation_x(foothoril * 0.2);
+        next.leg_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.leg_l.scale = Vec3::one() * 1.02;
 
         next.leg_r.offset = Vec3::new(
@@ -111,8 +99,7 @@ impl Animation for RunAnimation {
             skeleton_attr.leg.2,
         ) * 1.02;
 
-        next.leg_r.ori =
-            Quaternion::rotation_z(belt * -0.8) * Quaternion::rotation_x(foothorir * 0.2);
+        next.leg_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.leg_r.scale = Vec3::one() * 1.02;
 
         next.foot_l.offset = Vec3::new(
@@ -120,7 +107,7 @@ impl Animation for RunAnimation {
             skeleton_attr.foot.1 + foothoril * 8.0 + 3.0,
             skeleton_attr.foot.2 + footvertl * 4.0,
         ) / 8.0;
-        next.foot_l.ori = Quaternion::rotation_x(footrotl * 0.5);
+        next.foot_l.ori = Quaternion::rotation_x(footrotl * 0.7);
         next.foot_l.scale = Vec3::one() / 8.0 * 0.98;
 
         next.foot_r.offset = Vec3::new(
@@ -128,10 +115,10 @@ impl Animation for RunAnimation {
             skeleton_attr.foot.1 + foothorir * 8.0 + 3.0,
             skeleton_attr.foot.2 + footvertr * 4.0,
         ) / 8.0;
-        next.foot_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(footrotr * 0.5);
+        next.foot_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(footrotr * 0.7);
         next.foot_r.scale = Vec3::one() / 8.0 * 0.98;
 
-        next.torso.offset = Vec3::new(0.0, 0.0, beltsnap * 0.25);
+        next.torso.offset = Vec3::new(0.0, 0.0, belt * 0.15);
         next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.2);
         next.torso.scale = Vec3::one();
         next
