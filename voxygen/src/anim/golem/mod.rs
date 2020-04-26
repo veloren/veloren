@@ -10,10 +10,9 @@ use crate::render::FigureBoneData;
 use common::comp::{self};
 
 #[derive(Clone)]
-pub struct BipedLargeSkeleton {
+pub struct GolemSkeleton {
     head: Bone,
     upper_torso: Bone,
-    lower_torso: Bone,
     shoulder_l: Bone,
     shoulder_r: Bone,
     hand_l: Bone,
@@ -25,12 +24,11 @@ pub struct BipedLargeSkeleton {
     torso: Bone,
 }
 
-impl BipedLargeSkeleton {
+impl GolemSkeleton {
     pub fn new() -> Self {
         Self {
             head: Bone::default(),
             upper_torso: Bone::default(),
-            lower_torso: Bone::default(),
             shoulder_l: Bone::default(),
             shoulder_r: Bone::default(),
             hand_l: Bone::default(),
@@ -44,10 +42,8 @@ impl BipedLargeSkeleton {
     }
 }
 
-impl Skeleton for BipedLargeSkeleton {
+impl Skeleton for GolemSkeleton {
     type Attr = SkeletonAttr;
-
-    fn bone_count(&self) -> usize { 11 }
 
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
@@ -56,21 +52,20 @@ impl Skeleton for BipedLargeSkeleton {
         let leg_l_mat = self.leg_l.compute_base_matrix();
         let leg_r_mat = self.leg_r.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
-
+        let foot_l_mat = self.foot_l.compute_base_matrix();
+        let foot_r_mat = self.foot_r.compute_base_matrix();
         [
             FigureBoneData::new(torso_mat * upper_torso_mat * self.head.compute_base_matrix()),
             FigureBoneData::new(torso_mat * upper_torso_mat),
-            FigureBoneData::new(
-                torso_mat * upper_torso_mat * self.lower_torso.compute_base_matrix(),
-            ),
             FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_l_mat),
             FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_r_mat),
             FigureBoneData::new(torso_mat * upper_torso_mat * self.hand_l.compute_base_matrix()),
             FigureBoneData::new(torso_mat * upper_torso_mat * self.hand_r.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * upper_torso_mat * leg_l_mat),
-            FigureBoneData::new(torso_mat * upper_torso_mat * leg_r_mat),
-            FigureBoneData::new(self.foot_l.compute_base_matrix()),
-            FigureBoneData::new(self.foot_r.compute_base_matrix()),
+            FigureBoneData::new(foot_l_mat * leg_l_mat),
+            FigureBoneData::new(foot_r_mat * leg_r_mat),
+            FigureBoneData::new(foot_l_mat),
+            FigureBoneData::new(foot_r_mat),
+            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
@@ -82,7 +77,6 @@ impl Skeleton for BipedLargeSkeleton {
     fn interpolate(&mut self, target: &Self, dt: f32) {
         self.head.interpolate(&target.head, dt);
         self.upper_torso.interpolate(&target.upper_torso, dt);
-        self.lower_torso.interpolate(&target.lower_torso, dt);
         self.shoulder_l.interpolate(&target.shoulder_l, dt);
         self.shoulder_r.interpolate(&target.shoulder_r, dt);
         self.hand_l.interpolate(&target.hand_l, dt);
@@ -98,7 +92,6 @@ impl Skeleton for BipedLargeSkeleton {
 pub struct SkeletonAttr {
     head: (f32, f32),
     upper_torso: (f32, f32),
-    lower_torso: (f32, f32),
     shoulder: (f32, f32, f32),
     hand: (f32, f32, f32),
     leg: (f32, f32, f32),
@@ -110,7 +103,7 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
 
     fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {
         match body {
-            comp::Body::BipedLarge(body) => Ok(SkeletonAttr::from(body)),
+            comp::Body::Golem(body) => Ok(SkeletonAttr::from(body)),
             _ => Err(()),
         }
     }
@@ -121,7 +114,6 @@ impl Default for SkeletonAttr {
         Self {
             head: (0.0, 0.0),
             upper_torso: (0.0, 0.0),
-            lower_torso: (0.0, 0.0),
             shoulder: (0.0, 0.0, 0.0),
             hand: (0.0, 0.0, 0.0),
             leg: (0.0, 0.0, 0.0),
@@ -130,30 +122,27 @@ impl Default for SkeletonAttr {
     }
 }
 
-impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
-    fn from(body: &'a comp::biped_large::Body) -> Self {
-        use comp::biped_large::Species::*;
+impl<'a> From<&'a comp::golem::Body> for SkeletonAttr {
+    fn from(body: &'a comp::golem::Body) -> Self {
+        use comp::golem::Species::*;
         Self {
             head: match (body.species, body.body_type) {
-                (Ogre, _) => (3.0, 6.0),
+                (StoneGolem, _) => (0.0, 16.0),
             },
             upper_torso: match (body.species, body.body_type) {
-                (Ogre, _) => (0.0, 20.0),
-            },
-            lower_torso: match (body.species, body.body_type) {
-                (Ogre, _) => (1.0, -9.5),
+                (StoneGolem, _) => (0.0, 33.0),
             },
             shoulder: match (body.species, body.body_type) {
-                (Ogre, _) => (6.1, 0.5, 2.5),
+                (StoneGolem, _) => (8.0, -0.5, 7.5),
             },
             hand: match (body.species, body.body_type) {
-                (Ogre, _) => (10.5, -1.0, 0.5),
+                (StoneGolem, _) => (9.5, -1.0, 4.5),
             },
             leg: match (body.species, body.body_type) {
-                (Ogre, _) => (0.0, 0.0, -6.0),
+                (StoneGolem, _) => (-1.0, 0.0, 9.0),
             },
             foot: match (body.species, body.body_type) {
-                (Ogre, _) => (4.0, 0.5, 2.5),
+                (StoneGolem, _) => (4.0, 0.5, 11.0),
             },
         }
     }

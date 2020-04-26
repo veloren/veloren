@@ -533,6 +533,65 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     None,
                 ]
             },
+            Body::Golem(body) => {
+                let golem_center_spec = GolemCenterSpec::load_watched(manifest_indicator);
+                let golem_lateral_spec = GolemLateralSpec::load_watched(manifest_indicator);
+
+                [
+                    Some(golem_center_spec.mesh_head(body.species, body.body_type, generate_mesh)),
+                    Some(golem_center_spec.mesh_torso_upper(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(golem_lateral_spec.mesh_shoulder_l(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(golem_lateral_spec.mesh_shoulder_r(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(golem_lateral_spec.mesh_hand_l(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(golem_lateral_spec.mesh_hand_r(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(golem_lateral_spec.mesh_leg_l(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(golem_lateral_spec.mesh_leg_r(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(golem_lateral_spec.mesh_foot_l(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(golem_lateral_spec.mesh_foot_r(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                ]
+            },
             Body::Critter(body) => {
                 let critter_center_spec = CritterCenterSpec::load_watched(manifest_indicator);
 
