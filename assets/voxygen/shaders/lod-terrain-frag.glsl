@@ -5,20 +5,38 @@
 #include <lod.glsl>
 
 in vec3 f_pos;
-// in vec3 f_norm;
+in vec3 f_norm;
 // in vec4 f_shadow;
+// in vec4 f_square;
 
 out vec4 tgt_color;
 
 #include <sky.glsl>
 
 void main() {
-	vec3 f_norm = lod_norm(f_pos.xy);
-
+    // vec3 f_pos = lod_pos(f_pos.xy);
 	vec3 f_col = lod_col(f_pos.xy);
 
     // vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
+
+    float my_alt = /*f_pos.z;*/alt_at_real(f_pos.xy);
+    // vec3 f_pos = vec3(f_pos.xy, max(my_alt, f_pos.z));
+	/* gl_Position =
+		proj_mat *
+		view_mat *
+		vec4(f_pos, 1);
+	gl_Position.z = -1000.0 / (gl_Position.z + 10000.0); */
+    vec3 my_pos = vec3(f_pos.xy, my_alt);
+	vec3 my_norm = lod_norm(f_pos.xy/*, f_square*/);
+
+    float which_norm = dot(my_norm, normalize(cam_pos.xyz - my_pos));
+    // which_norm = 0.5 + which_norm * 0.5;
+    which_norm = pow(max(0.0, which_norm), /*0.03125*/1 / 8.0);// * 0.5;
+    // which_norm = mix(0.0, 1.0, which_norm > 0.0);
+    vec3 f_norm = mix(faceforward(f_norm, cam_pos.xyz - f_pos, -f_norm), my_norm, which_norm);
+    vec3 f_pos = mix(f_pos, my_pos, which_norm);
+
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     vec3 view_dir = -cam_to_frag;
     // vec3 view_dir = normalize(f_pos - cam_pos.xyz);
@@ -53,11 +71,13 @@ void main() {
     vec3 moon_dir = get_moon_dir(time_of_day.x);
     // float sun_light = get_sun_brightness(sun_dir);
 	// float moon_light = get_moon_brightness(moon_dir);
-    float my_alt = f_pos.z;//alt_at(f_pos.xy);
+    // float my_alt = f_pos.z;//alt_at_real(f_pos.xy);
+    // vec3 f_norm = my_norm;
     vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
     // float my_alt = alt_at(f_pos.xy);
-    float sun_shade_frac = horizon_at2(f_shadow, my_alt, f_pos, sun_dir);
-    float moon_shade_frac = horizon_at2(f_shadow, my_alt, f_pos, moon_dir);
+    float shadow_alt = /*f_pos.z;*/alt_at(f_pos.xy);
+    float sun_shade_frac = horizon_at2(f_shadow, shadow_alt, f_pos, sun_dir);
+    float moon_shade_frac = horizon_at2(f_shadow, shadow_alt, f_pos, moon_dir);
     // float sun_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, sun_dir);
     // float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
     // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).

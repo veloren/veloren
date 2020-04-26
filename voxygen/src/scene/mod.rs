@@ -351,6 +351,7 @@ impl Scene {
                 cam_pos,
                 self.camera.get_focus_pos(),
                 self.loaded_distance,
+                self.lod.tgt_detail as f32,
                 self.map_bounds,
                 scene_data.state.get_time_of_day(),
                 scene_data.state.get_time(),

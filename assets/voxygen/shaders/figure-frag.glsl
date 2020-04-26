@@ -83,7 +83,7 @@ void main() {
 
     lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
-	float ao = pow(f_ao, 0.5) * 0.85 + 0.15;
+	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 
 	reflected_light *= ao;
 	emitted_light *= ao;

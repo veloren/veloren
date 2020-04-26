@@ -93,13 +93,20 @@ pub fn hsv_to_rgb(hsv: Vec3<f32>) -> Rgb<f32> {
     Rgb::new(r + m, g + m, b + m)
 }
 
+/// Convert linear rgb to CIEXYZ
+#[inline(always)]
+pub fn rgb_to_xyz(rgb: Rgb<f32>) -> Vec3<f32> {
+    // XYZ
+    Mat3::new(
+        0.4124, 0.3576, 0.1805, 0.2126, 0.7152, 0.0722, 0.0193, 0.1192, 0.9504,
+    ) * Vec3::from(rgb)
+}
+
 /// Convert linear rgb to CIExyY
 #[inline(always)]
 pub fn rgb_to_xyy(rgb: Rgb<f32>) -> Vec3<f32> {
     // XYZ
-    let xyz = Mat3::new(
-        0.4124, 0.3576, 0.1805, 0.2126, 0.7152, 0.0722, 0.0193, 0.1192, 0.9504,
-    ) * Vec3::from(rgb);
+    let xyz = rgb_to_xyz(rgb);
 
     let sum = xyz.sum();
     Vec3::new(xyz.x / sum, xyz.y / sum, xyz.y)

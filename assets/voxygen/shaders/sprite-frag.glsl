@@ -56,7 +56,8 @@ void main() {
     vec3 emitted_light, reflected_light;
 
 	float point_shadow = shadow_at(f_pos, f_norm);
-    float vert_light = f_light;
+    // To account for prior saturation.
+    float vert_light = pow(f_light, 1.5);
     // vec3 light_frac = light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
     /* light_frac += light_reflection_factor(f_norm, view_dir, vec3(1.0, 0, 0.0), vec3(1.0), vec3(1.0), 2.0);
     light_frac += light_reflection_factor(f_norm, view_dir, vec3(-1.0, 0, 0.0), vec3(1.0), vec3(1.0), 2.0);
@@ -85,7 +86,7 @@ void main() {
     emitted_light += point_light;
     reflected_light += point_light; */
 
-	float ao = pow(f_ao, 0.5) * 0.85 + 0.15;
+	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 	emitted_light *= ao;
 	reflected_light *= ao;
 

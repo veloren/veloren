@@ -180,6 +180,7 @@ impl Scene {
             cam_pos,
         } = self.camera.dependents();
         const VD: f32 = 115.0; // View Distance
+        const LOD: f32 = 100.0; // LOD detail
         // const MAP_BOUNDS: Vec2<f32> = Vec2::new(140.0, 2048.0);
         const TIME: f64 = 43200.0; // 12 hours*3600 seconds
         if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
@@ -188,6 +189,7 @@ impl Scene {
             cam_pos,
             self.camera.get_focus_pos(),
             VD,
+            LOD,
             self.map_bounds, //MAP_BOUNDS,
             TIME,
             scene_data.time,

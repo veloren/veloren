@@ -7,6 +7,7 @@ use crate::{
 };
 use common::{
     terrain::{structure::StructureBlock, Block, BlockKind, Structure},
+    util::{linear_to_srgb, srgb_to_linear},
     vol::{ReadVol, Vox},
 };
 use std::ops::{Add, Div, Mul, Neg};
@@ -563,21 +564,46 @@ pub fn block_from_structure(
     let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.85
         + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.15;
 
+    let saturate_leaves = |col: Rgb<f32>| {
+        // /*saturate_srgb(col / 255.0, 0.65)*/
+        let rgb = srgb_to_linear(col / 255.0);
+        /* let mut xyy = rgb_to_xyy(rgb);
+        xyy.x *= xyy.x;
+        xyy.y *= xyy.y;
+        linear_to_srgb(xyy_to_rgb(xyy).map(|e| e.min(1.0).max(0.0))).map(|e| e * 255.0) */
+        /* let xyz = rgb_to_xyz(rgb);
+        let col_adjusted = if xyz.y == 0.0 {
+            Rgb::zero()
+        } else {
+            rgb / xyz.y
+        };
+        let col = col_adjusted * col_adjusted * xyz.y;
+        linear_to_srgb(col).map(|e| e * 255.0) */
+        /* let mut hsv = rgb_to_hsv(rgb);
+        hsv.y *= hsv.y;
+        linear_to_srgb(hsv_to_rgb(hsv).map(|e| e.min(1.0).max(0.0))).map(|e| e * 255.0) */
+        linear_to_srgb(rgb * rgb).map(|e| e * 255.0)
+    };
+
     match sblock {
         StructureBlock::None => None,
         StructureBlock::TemperateLeaves => Some(Block::new(
             BlockKind::Leaves,
             Lerp::lerp(
-                Rgb::new(0.0, 132.0, 94.0),
-                Rgb::new(142.0, 181.0, 0.0),
+                saturate_leaves(Rgb::new(0.0, 132.0, 94.0)),
+                saturate_leaves(Rgb::new(142.0, 181.0, 0.0)),
                 lerp,
             )
             .map(|e| e as u8),
         )),
         StructureBlock::PineLeaves => Some(Block::new(
             BlockKind::Leaves,
-            Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
-                .map(|e| e as u8),
+            Lerp::lerp(
+                saturate_leaves(Rgb::new(0.0, 60.0, 50.0)),
+                saturate_leaves(Rgb::new(30.0, 100.0, 10.0)),
+                lerp,
+            )
+            .map(|e| e as u8),
         )),
         StructureBlock::PalmLeavesInner => Some(Block::new(
             BlockKind::Leaves,
@@ -597,8 +623,14 @@ pub fn block_from_structure(
             )
             .map(|e| e as u8),
         )),
-        StructureBlock::Water => Some(Block::new(BlockKind::Water, Rgb::new(100, 150, 255))),
-        StructureBlock::GreenSludge => Some(Block::new(BlockKind::Water, Rgb::new(30, 126, 23))),
+        StructureBlock::Water => Some(Block::new(
+            BlockKind::Water,
+            saturate_leaves(Rgb::new(100.0, 150.0, 255.0)).map(|e| e as u8),
+        )),
+        StructureBlock::GreenSludge => Some(Block::new(
+            BlockKind::Water,
+            saturate_leaves(Rgb::new(30.0, 126.0, 23.0)).map(|e| e as u8),
+        )),
         StructureBlock::Acacia => Some(Block::new(
             BlockKind::Normal,
             Lerp::lerp(
@@ -626,16 +658,20 @@ pub fn block_from_structure(
         StructureBlock::Liana => Some(Block::new(
             BlockKind::Liana,
             Lerp::lerp(
-                Rgb::new(0.0, 125.0, 107.0),
-                Rgb::new(0.0, 155.0, 129.0),
+                saturate_leaves(Rgb::new(0.0, 125.0, 107.0)),
+                saturate_leaves(Rgb::new(0.0, 155.0, 129.0)),
                 lerp,
             )
             .map(|e| e as u8),
         )),
         StructureBlock::Mangrove => Some(Block::new(
             BlockKind::Normal,
-            Lerp::lerp(Rgb::new(32.0, 56.0, 22.0), Rgb::new(57.0, 69.0, 27.0), lerp)
-                .map(|e| e as u8),
+            Lerp::lerp(
+                saturate_leaves(Rgb::new(32.0, 56.0, 22.0)),
+                saturate_leaves(Rgb::new(57.0, 69.0, 27.0)),
+                lerp,
+            )
+            .map(|e| e as u8),
         )),
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Normal(color) => {

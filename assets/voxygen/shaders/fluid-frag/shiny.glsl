@@ -107,6 +107,8 @@ void main() {
     /* vec4 reflect_ray_dir4 = view_mat * vec4(reflect_ray_dir, 1.0);
     reflect_ray_dir = normalize(vec3(reflect_ray_dir4) / reflect_ray_dir4.w); */
 	// vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
+    // Squared to account for prior saturation.
+    float f_light = pow(f_light, 1.5);
 	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
     /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
 

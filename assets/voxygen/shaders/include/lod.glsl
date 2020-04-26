@@ -188,21 +188,33 @@ float horizon_at(vec3 pos, /*float time_of_day*/vec3 light_dir) {
 }
 
 vec2 splay(vec2 pos) {
-	return pos * pow(length(pos) * 0.5, 3.0);
+    const float SPLAY_MULT = 1048576.0;
+	return pos * pow(length(pos) * 0.5, 3.0) * SPLAY_MULT;
 }
 
-vec3 lod_norm(vec2 pos) {
-	const float SAMPLE_W = 32;
+vec3 lod_norm(vec2 f_pos/*vec3 pos*/, vec4 square) {
+	// const float SAMPLE_W = 32;
 
-	float altx0 = alt_at(pos + vec2(-1.0, 0) * SAMPLE_W);
-	float altx1 = alt_at(pos + vec2(1.0, 0) * SAMPLE_W);
-	float alty0 = alt_at(pos + vec2(0, -1.0) * SAMPLE_W);
-	float alty1 = alt_at(pos + vec2(0, 1.0) * SAMPLE_W);
+    // vec2 f_pos = pos.xy;
+	// float altx0 = alt_at_real(f_pos + vec2(-1.0, 0) * SAMPLE_W);
+	// float altx1 = alt_at_real(f_pos + vec2(1.0, 0) * SAMPLE_W);
+	// float alty0 = alt_at_real(f_pos + vec2(0, -1.0) * SAMPLE_W);
+	// float alty1 = alt_at_real(f_pos + vec2(0, 1.0) * SAMPLE_W);
+	float altx0 = alt_at(vec2(square.x, f_pos.y));
+	float altx1 = alt_at(vec2(square.z, f_pos.y));
+	float alty0 = alt_at(vec2(f_pos.x, square.y));
+	float alty1 = alt_at(vec2(f_pos.x, square.w));
 	float slope = abs(altx1 - altx0) + abs(alty0 - alty1);
 
-    vec3 norm = normalize(cross(
-        vec3(2.0 * SAMPLE_W, 0.0, altx1 - altx0),
-        vec3(0.0, 2.0 * SAMPLE_W, alty1 - alty0)
+    // vec3 norm = normalize(cross(
+    //     vec3(/*2.0 * SAMPLE_W*/square.z - square.x, 0.0, altx1 - altx0),
+    //     vec3(0.0, /*2.0 * SAMPLE_W*/square.w - square.y, alty1 - alty0)
+    // ));
+    vec3 norm = normalize(vec3(
+		(altx0 - altx1) / (square.z - square.x),
+		(alty0 - alty1) / (square.w - square.y),
+        1.0
+		//(abs(square.w - square.y) + abs(square.z - square.x)) / (slope + 0.00001) // Avoid NaN
     ));
 	/* vec3 norm = normalize(vec3(
 		(altx0 - altx1) / (2.0 * SAMPLE_W),
@@ -210,15 +222,22 @@ vec3 lod_norm(vec2 pos) {
 		(2.0 * SAMPLE_W) / (slope + 0.00001) // Avoid NaN
 	)); */
 
-    return faceforward(norm, vec3(0.0, 0.0, -1.0), norm);
+    return faceforward(norm, vec3(0.0, 0.0, -1.0)/*pos - cam_pos.xyz*/, norm);
 }
 
-vec3 lod_pos(vec2 v_pos, vec2 focus_pos) {
-	vec2 hpos = focus_pos.xy + splay(v_pos) * 1000000.0;
+vec3 lod_norm(vec2 f_pos/*vec3 pos*/) {
+    const float SAMPLE_W = 32;
 
+    return lod_norm(f_pos, vec4(f_pos - vec2(SAMPLE_W), f_pos + vec2(SAMPLE_W)));
+}
+
+
+vec3 lod_pos(vec2 pos, vec2 focus_pos) {
 	// Remove spiking by "pushing" vertices towards local optima
+    vec2 hpos = focus_pos + splay(pos);
 	vec2 nhpos = hpos;
 	for (int i = 0; i < 3; i ++) {
+        // vec4 square = focus_pos.xy + vec4(splay(pos - vec2(1.0, 1.0), splay(pos + vec2(1.0, 1.0))));
 		nhpos -= lod_norm(hpos).xy * 15.0;
 	}
 	hpos = hpos + normalize(nhpos - hpos + 0.001) * min(length(nhpos - hpos), 32);

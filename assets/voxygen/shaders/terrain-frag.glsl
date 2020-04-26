@@ -68,6 +68,8 @@ void main() {
     float max_light = 0.0;
 
     vec3 emitted_light, reflected_light;
+    // To account for prior saturation
+    float f_light = pow(f_light, 1.5);
     float point_shadow = shadow_at(f_pos, f_norm);
     max_light += get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
 
@@ -76,7 +78,7 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
-	float ao = pow(f_ao, 0.5) * 0.9 + 0.1;
+	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.9 + 0.1;
 	emitted_light *= ao;
 	reflected_light *= ao;
     /* vec3 point_light = light_at(f_pos, f_norm);

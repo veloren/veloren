@@ -15,7 +15,7 @@ pub struct Lod {
     locals: Consts<Locals>,
     pub map: Texture<LodColorFmt>,
     pub horizon: Texture<LodTextureFmt>,
-    tgt_detail: u32,
+    pub tgt_detail: u32,
 }
 
 impl Lod {

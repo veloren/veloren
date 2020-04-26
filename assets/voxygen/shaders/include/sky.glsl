@@ -122,7 +122,7 @@ void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d,
 
 // Returns computed maximum intensity.
 float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-	const float SUN_AMBIANCE = 0.23 / 1.8;// 0.1 / 3.0;
+	const float SUN_AMBIANCE = 0.23 / 3.0;/* / 1.8*/;// 0.1 / 3.0;
 	const float MOON_AMBIANCE = 0.23;//0.1;
 
 	float sun_light = get_sun_brightness(sun_dir);
@@ -221,7 +221,7 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
     vec3 R_t_r = R_d + R_r;
 
     // vec3 half_vec = normalize(-norm + dir);
-    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * light_reflection_factor(norm, norm, /*-norm*/-norm, /*k_d*/k_d * (1.0 - k_s), /*k_s*/vec3(0.0), alpha);
+    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * light_reflection_factor(norm, /*norm*/dir, /*-norm*/-dir, /*k_d*/k_d * (1.0 - k_s), /*k_s*/vec3(0.0), alpha);
     // vec3 light_frac = /*vec3(1.0)*//*H_d * */
     //     SUN_AMBIANCE * /*sun_light*/sun_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_sun) * 0.5), vec3(k_s * (1.0 - cos_sun) * 0.5), alpha) +
     //     MOON_AMBIANCE * /*sun_light*/moon_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_moon) * 0.5), vec3(k_s * (1.0 - cos_moon) * 0.5), alpha);
@@ -265,7 +265,7 @@ float is_star_at(vec3 dir) {
 	vec3 pos = (floor(dir * star_scale) - 0.5) / star_scale;
 
 	// Noisy offsets
-	pos += (3.0 / star_scale) * rand_perm_3(pos);
+	pos += (3.0 / star_scale) * /*rand_perm_3*/hash(vec4(pos, 1.0));
 
 	// Find distance to fragment
 	float dist = length(normalize(pos) - dir);

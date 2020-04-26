@@ -70,7 +70,8 @@ float shadow_at(vec3 wpos, vec3 wnorm) {
 
 		shadow = min(shadow, shade);
 	}
-	return min(shadow, 1.0);
+    // NOTE: Squared to compenate for prior saturation.
+	return min(shadow * shadow, 1.0);
 }
 
 // Returns computed maximum intensity.
@@ -78,7 +79,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
 	// shadow = 0.0;
     vec3 ambient_light = vec3(0.0);
 
-	const float LIGHT_AMBIENCE = 0.025;
+	const float LIGHT_AMBIENCE = 0.5;
 
 	for (uint i = 0u; i < light_shadow_count.x; i ++) {
 
@@ -97,7 +98,10 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
         float strength = 1.0 / distance_2;
 
 		// Multiply the vec3 only once
-		vec3 color = /*srgb_to_linear*/(L.light_col.rgb) * (13.0 * strength * L.light_col.a * L.light_col.a/* * L.light_col.a*/);
+        const float PI = 3.1415926535897932384626433832795;
+        const float PI_2 = 2 * PI;
+        float square_factor = /*2.0 * PI_2 * */2.0 * L.light_col.a;
+		vec3 color = /*srgb_to_linear*/L.light_col.rgb;
 
 		// // Only access the array once
 		// Shadow S = shadows[i];
@@ -117,18 +121,21 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
         // Compute reflectance.
         vec3 light_dir = -difference / sqrt(distance_2); // normalize(-difference);
         // light_dir = faceforward(light_dir, wnorm, light_dir);
-        reflected_light += color * (strength == 0.0 ? vec3(1.0) : light_reflection_factor(wnorm, cam_to_frag, light_dir, k_d, k_s, alpha));
-
+        bool is_direct = dot(-light_dir, wnorm) > 0.0;
+        // reflected_light += color * (distance_2 == 0.0 ? vec3(1.0) : light_reflection_factor(wnorm, cam_to_frag, light_dir, k_d, k_s, alpha));
+        vec3 direct_light = color * strength * square_factor * light_reflection_factor(wnorm, cam_to_frag, is_direct ? light_dir : -light_dir, k_d, k_s, alpha);
+        reflected_light += is_direct ? direct_light * square_factor : vec3(0.0);
+        ambient_light += is_direct ? vec3(0.0) : direct_light * LIGHT_AMBIENCE;
 		// light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIENCE);
         // Compute emiittance.
         // float ambient_sides = clamp(mix(0.15, 0.0, abs(dot(wnorm, light_dir)) * 10000.0), 0.0, 0.15);
-        float ambient_sides = 0.0;// max(dot(wnorm, light_dir) - 0.15, 0.15);
-        // float ambient_sides = 0.0;
-        ambient_light += color * (ambient_sides + LIGHT_AMBIENCE);
+        // float ambient_sides = 0.0;// max(dot(wnorm, light_dir) - 0.15, 0.15);
+        // // float ambient_sides = 0.0;
+        // ambient_light += color * (ambient_sides + LIGHT_AMBIENCE);
 	}
 
     // shadow = shadow_at(wpos, wnorm);
     // float shadow = shadow_at(wpos, wnorm);
-    // emitted_light += k_a * ambient_light/* * shadow*/;// min(shadow, 1.0);
+    emitted_light += k_a * ambient_light/* * shadow*/;// min(shadow, 1.0);
     return 1.0;//ambient_light;
 }

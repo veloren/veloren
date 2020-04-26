@@ -23,7 +23,8 @@ gfx_defines! {
         /// NOTE: max_intensity is computed as the ratio between the brightest and least bright
         /// intensities among all lights in the scene.
         // hdr_ratio: [f32; 4] = "max_intensity",
-        /// NOTE: view_distance.x is the horizontal view distance, view_distance.z is the
+        /// NOTE: view_distance.x is the horizontal view distance, view_distance.y is the LOD
+        /// detail, view_distance.z is the
         /// minimum height over any land chunk (i.e. the sea level), and view_distance.w is the
         /// maximum height over this minimum height.
         ///
@@ -58,6 +59,7 @@ impl Globals {
         cam_pos: Vec3<f32>,
         focus_pos: Vec3<f32>,
         view_distance: f32,
+        tgt_detail: f32,
         map_bounds: Vec2<f32>,
         time_of_day: f64,
         tick: f64,
@@ -76,7 +78,7 @@ impl Globals {
             all_mat: arr_to_mat((proj_mat * view_mat).into_col_array()),
             cam_pos: Vec4::from(cam_pos).into_array(),
             focus_pos: Vec4::from(focus_pos).into_array(),
-            view_distance: [view_distance, 0.0, map_bounds.x, map_bounds.y],
+            view_distance: [view_distance, tgt_detail, map_bounds.x, map_bounds.y],
             time_of_day: [time_of_day as f32; 4],
             tick: [tick as f32; 4],
             screen_res: Vec4::from(screen_res.map(|e| e as f32)).into_array(),
@@ -101,6 +103,7 @@ impl Default for Globals {
             Vec3::zero(),
             Vec3::zero(),
             0.0,
+            100.0,
             Vec2::new(140.0, 2048.0),
             0.0,
             0.0,

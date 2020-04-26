@@ -70,6 +70,8 @@ void main() {
 	// vec3 emitted_light, reflected_light;
 	// vec3 light, diffuse_light, ambient_light;
 	float point_shadow = shadow_at(f_pos,f_norm);
+    // Squared to account for prior saturation.
+    float f_light = pow(f_light, 1.5);
     // float vert_light = f_light;
     // vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
 
