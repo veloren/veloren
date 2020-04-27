@@ -129,15 +129,15 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
         directed_light += is_direct ? direct_light * square_factor : vec3(0.0);
         ambient_light += is_direct ? vec3(0.0) : direct_light * LIGHT_AMBIENCE;
 
-        vec3 cam_light_diff = light_pos - cam_pos.xyz;
+        vec3 cam_light_diff = light_pos - focus_pos.xyz;
         float cam_distance_2 = dot(cam_light_diff, cam_light_diff);// + 0.0001;
         float cam_strength = 1.0 / (/*4.0 * *//*PI * *//*1.0 + */cam_distance_2);
 
-        vec3 cam_pos_diff  = cam_to_frag.xyz - wpos;
-        float pos_distance_2 = dot(cam_pos_diff, cam_pos_diff);// + 0.0001;
+        // vec3 cam_pos_diff  = cam_to_frag.xyz - wpos;
+        // float pos_distance_2 = dot(cam_pos_diff, cam_pos_diff);// + 0.0001;
 
-        float cam_distance = sqrt(cam_distance_2);
-        float distance = sqrt(distance_2);
+        // float cam_distance = sqrt(cam_distance_2);
+        // float distance = sqrt(distance_2);
         float both_strength = cam_distance_2 == 0.0 ? distance_2 == 0.0 ? 0.0 : strength/* * strength*//*1.0*/ : distance_2 == 0.0 ? cam_strength/* * cam_strength*//*1.0*/ :
             // 1.0 / (cam_distance * distance);
             // sqrt(cam_strength * strength);

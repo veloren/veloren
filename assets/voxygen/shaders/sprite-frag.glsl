@@ -6,7 +6,7 @@ in vec3 f_pos;
 flat in vec3 f_norm;
 in vec3 f_col;
 in float f_ao;
-in float f_light;
+// in float f_light;
 
 out vec4 tgt_color;
 
@@ -57,7 +57,7 @@ void main() {
 
 	float point_shadow = shadow_at(f_pos, f_norm);
     // To account for prior saturation.
-    float vert_light = pow(f_light, 1.5);
+    // float vert_light = pow(f_light, 1.5);
     // vec3 light_frac = light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
     /* light_frac += light_reflection_factor(f_norm, view_dir, vec3(1.0, 0, 0.0), vec3(1.0), vec3(1.0), 2.0);
     light_frac += light_reflection_factor(f_norm, view_dir, vec3(-1.0, 0, 0.0), vec3(1.0), vec3(1.0), 2.0);
@@ -72,9 +72,9 @@ void main() {
     // vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     float max_light = 0.0;
     max_light += get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, /*cam_to_frag*/view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
-    reflected_light *= vert_light * point_shadow * shade_frac;
-    emitted_light *= vert_light * point_shadow * max(shade_frac, MIN_SHADOW);
-    max_light *= vert_light * point_shadow * shade_frac;
+    reflected_light *= /*vert_light * */point_shadow * shade_frac;
+    emitted_light *= /*vert_light * */point_shadow * max(shade_frac, MIN_SHADOW);
+    max_light *= /*vert_light * */point_shadow * shade_frac;
 	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
 	// float point_shadow = shadow_at(f_pos, f_norm);
 	// diffuse_light *= f_light * point_shadow;
@@ -83,7 +83,7 @@ void main() {
 	// diffuse_light += point_light;
     // reflected_light += point_light;
 
-    max_light += lights_at(f_pos, f_norm, cam_to_frag, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
     reflected_light += point_light; */

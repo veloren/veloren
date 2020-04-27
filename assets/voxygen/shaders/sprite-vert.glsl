@@ -17,7 +17,7 @@ out vec3 f_pos;
 flat out vec3 f_norm;
 out vec3 f_col;
 out float f_ao;
-out float f_light;
+// out float f_light;
 
 const float SCALE = 1.0 / 11.0;
 
@@ -53,7 +53,7 @@ void main() {
 		f_col *= 4.0;
 	}
 
-	f_light = 1.0;
+	// f_light = 1.0;
 
 	gl_Position =
 		all_mat *
