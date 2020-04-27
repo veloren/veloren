@@ -125,10 +125,31 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
         // light_dir = faceforward(light_dir, wnorm, light_dir);
         bool is_direct = dot(-light_dir, wnorm) > 0.0;
         // reflected_light += color * (distance_2 == 0.0 ? vec3(1.0) : light_reflection_factor(wnorm, cam_to_frag, light_dir, k_d, k_s, alpha));
-        vec3 direct_light = color * strength * square_factor * light_reflection_factor(wnorm, cam_to_frag, is_direct ? light_dir : -light_dir, k_d, k_s, alpha);
+        vec3 direct_light = PI * color * strength * square_factor * light_reflection_factor(wnorm, cam_to_frag, is_direct ? light_dir : -light_dir, k_d, k_s, alpha);
         directed_light += is_direct ? direct_light * square_factor : vec3(0.0);
         ambient_light += is_direct ? vec3(0.0) : direct_light * LIGHT_AMBIENCE;
-        max_light += square_factor * square_factor * color;
+
+        vec3 cam_light_diff = light_pos - cam_pos.xyz;
+        float cam_distance_2 = dot(cam_light_diff, cam_light_diff);// + 0.0001;
+        float cam_strength = 1.0 / (/*4.0 * *//*PI * *//*1.0 + */cam_distance_2);
+
+        vec3 cam_pos_diff  = cam_to_frag.xyz - wpos;
+        float pos_distance_2 = dot(cam_pos_diff, cam_pos_diff);// + 0.0001;
+
+        float cam_distance = sqrt(cam_distance_2);
+        float distance = sqrt(distance_2);
+        float both_strength = cam_distance_2 == 0.0 ? distance_2 == 0.0 ? 0.0 : strength/* * strength*//*1.0*/ : distance_2 == 0.0 ? cam_strength/* * cam_strength*//*1.0*/ :
+            // 1.0 / (cam_distance * distance);
+            // sqrt(cam_strength * strength);
+            cam_strength + strength;
+            // (cam_strength * strength);
+            // max(cam_strength, strength);
+            // mix(cam_strength, strength, distance_2 / (cam_distance_2 + distance_2));
+            // mix(cam_strength, strength, cam_distance_2 / (cam_distance_2 + distance_2));
+            // max(cam_strength, strength);//mix(cam_strength, strength, clamp(distance_2 / /*pos_distance_2*/cam_distance_2, 0.0, 1.0));
+        // float both_strength = mix(cam_strength, strength, cam_distance_2 / sqrt(cam_distance_2 + distance_2));
+        max_light += /*max(1.0, cam_strength)*//*min(cam_strength, 1.0)*//*max*//*max(both_strength, 1.0) * *//*cam_strength*/both_strength * square_factor * square_factor * PI * color;
+        // max_light += /*max(1.0, cam_strength)*//*min(cam_strength, 1.0)*//*max*/max(cam_strength, 1.0/*, strength*//*1.0*/) * square_factor * square_factor * PI * color;
 		// light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIENCE);
         // Compute emiittance.
         // float ambient_sides = clamp(mix(0.15, 0.0, abs(dot(wnorm, light_dir)) * 10000.0), 0.0, 0.15);

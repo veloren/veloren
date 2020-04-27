@@ -22,6 +22,8 @@ const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.004, 0.004);
 const vec3 NIGHT_LIGHT   = vec3(0.002, 0.01, 0.03);
 // const vec3 NIGHT_LIGHT   = vec3(0.0, 0.0, 0.0);
 
+const float SUN_COLOR_FACTOR = 6.0;//1.8;
+
 const float UNDERWATER_MIST_DIST = 100.0;
 
 vec3 get_sun_dir(float time_of_day) {
@@ -124,7 +126,6 @@ vec3 get_moon_color(vec3 moon_dir) {
 // Returns computed maximum intensity.
 float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
 	const float SUN_AMBIANCE = 0.23;/* / 1.8*/;// 0.1 / 3.0;
-    const float SUN_COLOR_FACTOR = 6.0;//1.8;
 	const float MOON_AMBIANCE = 0.23;//0.1;
 
 	float sun_light = get_sun_brightness(sun_dir);
@@ -255,7 +256,7 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
 		moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
 		PERSISTENT_AMBIANCE;
 	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
-    return rel_luminance(emitted_light + reflected_light);//sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
+    return 0.0;//rel_luminance(emitted_light + reflected_light);//sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 }
 
 
@@ -395,11 +396,11 @@ float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
 } */
 vec3 illuminate(float max_light, /*vec3 max_light, */vec3 emitted, vec3 reflected) {
     const float NIGHT_EXPOSURE = 10.0;
-    const float DUSK_EXPOSURE = 1.0;//0.8;
-    const float DAY_EXPOSURE = 2.0;//0.7;
+    const float DUSK_EXPOSURE = 2.0;//0.8;
+    const float DAY_EXPOSURE = 1.0;//0.7;
 
     const float DAY_SATURATION = 1.0;
-    const float DUSK_SATURATION = 1.0;
+    const float DUSK_SATURATION = 0.5;
     const float NIGHT_SATURATION = 0.1;
 
     const float gamma = /*0.5*//*1.*0*/1.0;//1.0;
@@ -410,11 +411,17 @@ vec3 illuminate(float max_light, /*vec3 max_light, */vec3 emitted, vec3 reflecte
     // float max_intensity = vec3(1.0);
     vec3 color = emitted + reflected;
     float lum = rel_luminance(color);
+    // float lum_sky = lum - max_light;
+
+    vec3 sun_dir = get_sun_dir(time_of_day.x);
+    vec3 moon_dir = get_moon_dir(time_of_day.x);
+    float sky_light = rel_luminance(
+            get_sun_color(sun_dir) * get_sun_brightness(sun_dir) * SUN_COLOR_FACTOR +
+            get_moon_color(moon_dir) * get_moon_brightness(moon_dir));
 
     // Tone mapped value.
     // vec3 T = /*color*//*lum*/color;//normalize(color) * lum / (1.0 + lum);
     // float alpha = 0.5;//2.0;
-    vec3 sun_dir = get_sun_dir(time_of_day.x);
     float alpha = mix(
 		mix(
 			DUSK_EXPOSURE,
@@ -424,7 +431,9 @@ vec3 illuminate(float max_light, /*vec3 max_light, */vec3 emitted, vec3 reflecte
 		DAY_EXPOSURE,
 		max(-sun_dir.z, 0)
 	);
-    alpha = min(alpha, alpha / /*(1.0 + max_light)*/(1.0 + lum));
+    float alph = sky_light > 0.0 && max_light > 0.0 ? mix(1.0 / log(/*1.0*//*1.0 + *//*lum_sky + */1.0 + max_light / (0.0 + sky_light)), 1.0, clamp(max_light - sky_light, 0.0, 1.0)) : 1.0;
+    alpha = alpha * min(alph, 1.0);//((max_light > 0.0 && max_light > sky_light /* && sky_light > 0.0*/) ? /*1.0*/1.0 / log(/*1.0*//*1.0 + *//*lum_sky + */1.0 + max_light - (0.0 + sky_light)) : 1.0);
+    // alpha = alpha * min(1.0, (max_light == 0.0 ? 1.0 : (1.0 + abs(lum_sky)) / /*(1.0 + max_light)*/max_light));
 
     vec3 col_adjusted = lum == 0.0 ? vec3(0.0) : color / lum;
 
