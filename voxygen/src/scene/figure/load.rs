@@ -2645,7 +2645,10 @@ pub fn mesh_object(
     use object::Body;
 
     let (name, offset) = match obj {
-        Body::Arrow => ("weapon.projectile.simple-arrow", Vec3::new(-5.5, -5.5, 0.0)),
+        Body::Arrow => (
+            "weapon.projectile.simple-arrow",
+            Vec3::new(-0.5, -6.0, -1.5),
+        ),
         Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
         Body::Scarecrow => ("object.scarecrow", Vec3::new(-9.5, -4.0, 0.0)),
         Body::Cauldron => ("object.cauldron", Vec3::new(-10.0, -10.0, 0.0)),
