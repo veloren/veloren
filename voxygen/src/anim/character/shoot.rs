@@ -32,27 +32,31 @@ impl Animation for ShootAnimation {
 
         let exp = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
 
-        next.head.offset = Vec3::new(
-            0.0 + skeleton_attr.neck_right,
-            -2.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 14.0,
-        );
+        next.head.offset = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.ori = Quaternion::rotation_z(exp * -0.4)
             * Quaternion::rotation_x(0.0)
             * Quaternion::rotation_y(exp * 0.1);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
-        next.chest.offset = Vec3::new(0.0, 0.0 - exp * 1.5, 7.0);
+        next.chest.offset = Vec3::new(
+            0.0,
+            skeleton_attr.chest.0 - exp * 1.5,
+            skeleton_attr.chest.1,
+        );
         next.chest.ori = Quaternion::rotation_z(0.4 + exp * 1.0)
             * Quaternion::rotation_x(0.0 + exp * 0.2)
             * Quaternion::rotation_y(exp * -0.08);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(0.0, 0.0 + exp * 1.0, -2.0);
+        next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0 + exp * 1.0, skeleton_attr.belt.1);
         next.belt.ori = next.chest.ori * -0.1;
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(0.0, exp * 1.0, -5.0);
+        next.shorts.offset = Vec3::new(
+            0.0,
+            skeleton_attr.shorts.0 + exp * 1.0,
+            skeleton_attr.shorts.1,
+        );
         next.shorts.ori = next.chest.ori * -0.08;
         next.shorts.scale = Vec3::one();
 
@@ -154,7 +158,11 @@ impl Animation for ShootAnimation {
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        next.lantern.offset = Vec3::new(-5.0, 2.5, 5.5);
+        next.lantern.offset = Vec3::new(
+            skeleton_attr.lantern.0,
+            skeleton_attr.lantern.1,
+            skeleton_attr.lantern.2,
+        );
         next.lantern.ori =
             Quaternion::rotation_x(exp * -0.7 + 0.4) * Quaternion::rotation_y(exp * 0.4);
         next.lantern.scale = Vec3::one() * 0.65;

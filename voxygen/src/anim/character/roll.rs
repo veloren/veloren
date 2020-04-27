@@ -40,29 +40,41 @@ impl Animation for RollAnimation {
         } * 1.3;
 
         next.head.offset = Vec3::new(
-            0.0 + skeleton_attr.neck_right,
-            -2.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 12.0 + wave_dub * -8.0,
+            0.0,
+            -2.0 + skeleton_attr.head.0,
+            skeleton_attr.head.1 + wave_dub * -8.0,
         );
         next.head.ori = Quaternion::rotation_x(wave_dub * 0.4);
         next.head.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + wave_dub * -5.0);
+        next.chest.offset = Vec3::new(
+            0.0,
+            skeleton_attr.chest.0,
+            skeleton_attr.chest.1 + wave_dub * -5.0,
+        );
         next.chest.ori = Quaternion::rotation_x(wave_dub * 0.4);
         next.chest.scale = Vec3::one() * 1.01;
 
-        next.belt.offset = Vec3::new(0.0, 0.0, -2.0 + wave_dub * -3.0);
+        next.belt.offset = Vec3::new(
+            0.0,
+            skeleton_attr.belt.0,
+            skeleton_attr.belt.0 + wave_dub * -3.0,
+        );
         next.belt.ori = Quaternion::rotation_x(0.0 + wave_dub * 0.4);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(0.0, 0.0, -5.0 + wave_dub * -2.0);
+        next.shorts.offset = Vec3::new(
+            0.0,
+            skeleton_attr.shorts.0,
+            skeleton_attr.shorts.0 + wave_dub * -2.0,
+        );
         next.shorts.ori = Quaternion::rotation_x(0.0 + wave_dub * 0.4);
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -5.5 + wave * -0.5,
-            -2.0 + wave_quick_cos * -5.5,
-            1.0 + wave_quick * 0.5,
+            -skeleton_attr.chest.0 + wave * -0.5,
+            skeleton_attr.hand.1 + wave_quick_cos * -5.5,
+            skeleton_attr.hand.2 + wave_quick * 0.5,
         );
 
         next.l_hand.ori =
@@ -70,53 +82,61 @@ impl Animation for RollAnimation {
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
-            5.5 + wave * 0.5,
-            -2.0 + wave_quick_cos * 2.5,
-            1.0 + wave_quick * 3.0,
+            skeleton_attr.hand.0 + wave * 0.5,
+            skeleton_attr.hand.1 + wave_quick_cos * 2.5,
+            skeleton_attr.hand.2 + wave_quick * 3.0,
         );
         next.r_hand.ori =
             Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(wave * 0.3);
         next.r_hand.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, -0.1, 10.0 - 0.0 + wave_dub * -1.2 + wave_slow * 4.0);
+        next.l_foot.offset = Vec3::new(
+            -skeleton_attr.foot.0,
+            skeleton_attr.foot.1,
+            skeleton_attr.foot.2 + wave_dub * -1.2 + wave_slow * 4.0,
+        );
         next.l_foot.ori = Quaternion::rotation_x(wave * 0.6);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, -0.1, 10.0 - 0.0 + wave_dub * -1.0 + wave_slow * 4.0);
+        next.r_foot.offset = Vec3::new(
+            skeleton_attr.foot.0,
+            skeleton_attr.foot.1,
+            skeleton_attr.foot.2 + wave_dub * -1.0 + wave_slow * 4.0,
+        );
         next.r_foot.ori = Quaternion::rotation_x(wave * -0.4);
         next.r_foot.scale = Vec3::one();
 
-        next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
+        next.l_shoulder.offset = Vec3::new(
+            -skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.2,
+        );
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
         next.l_shoulder.scale = Vec3::one() * 1.1;
 
-        next.r_shoulder.offset = Vec3::new(5.0, 0.0, 4.7);
+        next.r_shoulder.offset = Vec3::new(
+            skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.2,
+        );
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one() * 1.1;
 
-        next.glider.offset = Vec3::new(0.0, 5.0, 0.0);
-        next.glider.ori = Quaternion::rotation_y(0.0);
+        next.glider.offset = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        next.main.offset = Vec3::new(
-            -7.0 + skeleton_attr.weapon_x,
-            -5.0 + skeleton_attr.weapon_y,
-            15.0,
-        );
-        next.main.ori = Quaternion::rotation_y(2.5)
-            * Quaternion::rotation_z(1.57)
-            * Quaternion::rotation_x(0.0);
+        next.main.offset = Vec3::new(-7.0, -5.0, 15.0);
+        next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         next.main.scale = Vec3::one();
 
-        next.second.offset = Vec3::new(
-            0.0 + skeleton_attr.weapon_x,
-            0.0 + skeleton_attr.weapon_y,
-            0.0,
-        );
-        next.second.ori = Quaternion::rotation_y(0.0);
+        next.second.offset = Vec3::new(0.0, 0.0, 0.0);
         next.second.scale = Vec3::one() * 0.0;
 
-        next.lantern.offset = Vec3::new(-5.0, 2.5, 5.5);
+        next.lantern.offset = Vec3::new(
+            skeleton_attr.lantern.0,
+            skeleton_attr.lantern.1,
+            skeleton_attr.lantern.2,
+        );
         next.lantern.ori = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
         next.lantern.scale = Vec3::one() * 0.65;
 
