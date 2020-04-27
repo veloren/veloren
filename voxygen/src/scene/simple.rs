@@ -94,13 +94,13 @@ impl Scene {
         settings: &Settings,
         backdrop: Option<&str>,
     ) -> Self {
+        let start_angle = 90.0f32.to_radians();
         let resolution = renderer.get_resolution().map(|e| e as f32);
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
         camera.set_focus_pos(Vec3::unit_z() * 1.5);
         camera.set_distance(3.0); // 4.2
-        camera.set_orientation(Vec3::new(0.0, 0.0, 0.0));
-
+        camera.set_orientation(Vec3::new(start_angle, 0.0, 0.0));
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
@@ -124,6 +124,19 @@ impl Scene {
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
 
             backdrop: backdrop.map(|specifier| {
+                let mut state = FigureState::new(renderer, FixtureSkeleton::new());
+                state.update(
+                    renderer,
+                    Vec3::zero(),
+                    Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
+                    1.0,
+                    Rgba::broadcast(1.0),
+                    15.0, // Want to get there immediately.
+                    1.0,
+                    0,
+                    true,
+                    false,
+                );
                 (
                     renderer
                         .create_model(&load_mesh(
@@ -132,12 +145,12 @@ impl Scene {
                             generate_mesh,
                         ))
                         .unwrap(),
-                    FigureState::new(renderer, FixtureSkeleton::new()),
+                    state
                 )
             }),
 
             turning: false,
-            char_ori: 0.0,
+            char_ori: /*0.0*/-start_angle,
         }
     }
 
@@ -170,8 +183,11 @@ impl Scene {
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: SceneData) {
-        self.camera
-            .update(scene_data.time, 1.0 / 60.0, scene_data.mouse_smoothing);
+        self.camera.update(
+            scene_data.time,
+            /* 1.0 / 60.0 */ scene_data.delta_time,
+            scene_data.mouse_smoothing,
+        );
 
         self.camera.compute_dependents(&VoidVol);
         let camera::Dependents {
@@ -180,16 +196,16 @@ impl Scene {
             cam_pos,
         } = self.camera.dependents();
         const VD: f32 = 115.0; // View Distance
-        const LOD: f32 = 100.0; // LOD detail
         // const MAP_BOUNDS: Vec2<f32> = Vec2::new(140.0, 2048.0);
-        const TIME: f64 = 43200.0; // 12 hours*3600 seconds
+        const TIME: f64 = 10.0 * 60.0 * 60.0; //43200.0; // 12 hours*3600 seconds
+
         if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
             view_mat,
             proj_mat,
             cam_pos,
             self.camera.get_focus_pos(),
             VD,
-            LOD,
+            self.lod.tgt_detail as f32,
             self.map_bounds, //MAP_BOUNDS,
             TIME,
             scene_data.time,
@@ -226,7 +242,7 @@ impl Scene {
             Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
             1.0,
             Rgba::broadcast(1.0),
-            1.0 / 60.0, // TODO: Use actual deltatime here?
+            scene_data.delta_time,
             1.0,
             0,
             true,

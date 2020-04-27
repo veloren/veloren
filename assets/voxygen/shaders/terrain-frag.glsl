@@ -75,6 +75,7 @@ void main() {
 
     emitted_light *= f_light * point_shadow;
     reflected_light *= f_light * point_shadow * shade_frac;
+    max_light *= f_light * point_shadow * shade_frac;
 
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
@@ -104,7 +105,7 @@ void main() {
 
 	// vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
 	vec3 col = srgb_to_linear(f_col + hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0)) * 0.02); // Small-scale noise
-	surf_color = illuminate(col * emitted_light, col * reflected_light);
+	surf_color = illuminate(max_light, col * emitted_light, col * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

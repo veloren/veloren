@@ -16,7 +16,7 @@ out vec4 tgt_color;
 
 void main() {
     // vec3 f_pos = lod_pos(f_pos.xy);
-	vec3 f_col = lod_col(f_pos.xy);
+	// vec3 f_col = lod_col(f_pos.xy);
 
     // vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
@@ -35,8 +35,53 @@ void main() {
     // which_norm = 0.5 + which_norm * 0.5;
     which_norm = pow(max(0.0, which_norm), /*0.03125*/1 / 8.0);// * 0.5;
     // which_norm = mix(0.0, 1.0, which_norm > 0.0);
+	// vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
     vec3 f_norm = mix(faceforward(f_norm, cam_pos.xyz - f_pos, -f_norm), my_norm, which_norm);
     vec3 f_pos = mix(f_pos, my_pos, which_norm);
+    // vec3 fract_pos = fract(f_pos);
+    /* if (length(f_pos - cam_pos.xyz) <= view_distance.x + 32.0) {
+        vec4 new_f_pos;
+        float depth = 10000000.0;
+        vec4 old_coord = all_mat * vec4(f_pos.xyz, 1.0);
+        for (int i = 0; i < 6; i ++) {
+            // vec4 square = focus_pos.xy + vec4(splay(pos - vec2(1.0, 1.0), splay(pos + vec2(1.0, 1.0))));
+            vec3 my_f_norm = normals[i];
+            vec3 my_f_tan = normals[(i + 2) % 6];
+            vec3 my_f_bitan = normals[(i + 4) % 6];
+            mat4 foo = mat4(vec4(my_f_tan, 0), vec4(my_f_bitan, 0), vec4(my_f_norm, 0), vec4(0, 0, 0, 1));
+            mat4 invfoo = foo * inverse(foo * all_mat);
+            vec4 my_f_pos = invfoo * (old_coord);//vec4(f_pos, 1.0);
+            vec4 my_f_proj = all_mat * my_f_pos;
+            if (my_f_proj.z <= depth) {
+                new_f_pos = my_f_pos;
+                f_norm = my_f_norm;
+                depth = my_f_proj.z;
+            }
+	    }
+        // f_pos = new_f_pos.xyz;
+    } */
+
+    // Test for distance to all 6 sides of the enclosing cube.
+    // if (/*any(lessThan(fract(f_pos.xy), 0.01))*/fract_pos.x <= 0.1) {
+    //     f_norm = faceforward(vec3(-1, 0, 0), f_norm, vec3(1, 0, 0));
+    //     f_tan = vec3(0, 1, 0);
+    // } else if (fract_pos.y <= 0.1) {
+    //     f_norm = faceforward(vec3(0, -1, 0), f_norm, vec3(0, 1, 0));
+    //     f_tan = vec3(0, 0, 1);
+    // } else {
+    //     f_norm = faceforward(vec3(0, 0, -1), f_norm, vec3(0, 0, 1));
+    //     f_tan = vec3(1, 0, 0);
+    // }
+    // vec3 f_bitan = cross(f_norm, f_tan);
+
+    // mat4 foo = mat4(vec4(f_tan, 0), vec4(f_bitan, 0), vec4(f_norm, 0), vec4(0, 0, 0, 1));
+    // mat4 invfoo = foo * inverse(foo * all_mat);
+    // vec3 old_coord = all_mat * vec4(f_pos.xyz, 1.0);
+    // vec4 new_f_pos = invfoo * (old_coord);//vec4(f_pos, 1.0);
+	vec3 f_col = lod_col(f_pos.xy);
+    // vec3 f_norm = faceforward(f_norm, cam_pos.xyz - f_pos, -f_norm);
+    // vec3 f_up = faceforward(cam_pos.xyz - f_pos, vec3(0.0, 0.0, -1.0), cam_pos.xyz - f_pos);
+    // vec3 f_norm = faceforward(f_norm, /*vec3(cam_pos.xyz - f_pos.xyz)*/vec3(0.0, 0.0, -1.0), f_norm);
 
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     vec3 view_dir = -cam_to_frag;
@@ -90,7 +135,7 @@ void main() {
     float shade_frac = sun_shade_frac + moon_shade_frac;
     // float brightness_denominator = (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light);
 
-    float alpha = 1.0;//sqrt(2.0);
+    float alpha = 1.0;//0.1;//0.2;///1.0;//sqrt(2.0);
     const float n2 = 1.01;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
     const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
@@ -104,9 +149,11 @@ void main() {
 
 	// vec3 light, diffuse_light, ambient_light;
     // get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, (0.25 * shade_frac + 0.25 * light_frac) * f_col, 0.5 * shade_frac * f_col, 0.5 * shade_frac * /*vec3(1.0)*/f_col, 2.0, emitted_light, reflected_light);
-    get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, emitted_light, reflected_light);
+    float max_light = 0.0;
+    max_light += get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, emitted_light, reflected_light);
     // emitted_light = vec3(1.0);
     reflected_light *= shade_frac;
+    max_light *= shade_frac;
     // reflected_light = vec3(0.0);
 
     // emitted_light += 0.5 * vec3(SUN_AMBIANCE * sun_shade_frac * sun_light + moon_shade_frac * moon_light) * f_col * (ambient_sides + 1.0);
@@ -117,8 +164,8 @@ void main() {
 	// vec3 light, diffuse_light, ambient_light;
 	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
 	// vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
-	f_col = f_col + hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0/* - round(f_norm) * 0.5*/, 0)) * 0.05; // Small-scale noise
-    vec3 surf_color = /*illuminate(emitted_light, reflected_light)*/illuminate(f_col * emitted_light, f_col * reflected_light);
+	// f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
+    vec3 surf_color = /*illuminate(emitted_light, reflected_light)*/illuminate(max_light, f_col * emitted_light, f_col * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 

@@ -109,8 +109,11 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
     // Vector3f wh = wi + wo;
     vec3 wh = -light_dir + dir;
     if (cos_wi <= 0.0 || cos_wo <= 0.0) {
-        return vec3(0.0);
+        return vec3(/*diffuse*/0.0);
     }
+    // if (cos_wo < 0.0) {
+    //     return /*vec3(0.0)*/diffuse;
+    // }
     /* if (cos_wi == 0.0 || cos_wo == 0.0) {
         return vec3(0.0);
     } */
@@ -196,4 +199,11 @@ vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3
     //     // return k_d * ndotL + mix(k_s * pow(max(dot(norm, H), 0.0), alpha * 4.0), vec3(0.0), bvec3(ndotL == 0.0));
     // // }
     // // return vec3(0.0);
+}
+
+float rel_luminance(vec3 rgb)
+{
+    // https://en.wikipedia.org/wiki/Relative_luminance
+    const vec3 W = vec3(0.2126, 0.7152, 0.0722);
+    return dot(rgb, W);
 }

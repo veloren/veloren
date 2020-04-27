@@ -188,8 +188,26 @@ float horizon_at(vec3 pos, /*float time_of_day*/vec3 light_dir) {
 }
 
 vec2 splay(vec2 pos) {
-    const float SPLAY_MULT = 1048576.0;
-	return pos * pow(length(pos) * 0.5, 3.0) * SPLAY_MULT;
+    // const float SPLAY_MULT = 1048576.0;
+    float len = length(pos);
+	// vec2 splayed = pos * pow(len * 0.5, 3.0) * SPLAY_MULT;
+    const float SQRT_2 = sqrt(2.0) / 2.0;
+    // /const float CBRT_2 = cbrt(2.0) / 2.0;
+	// vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len * 0.5, 3.0) * (SPLAY_MULT - view_distance.x));
+	vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len/* * SQRT_2*//* * 0.5*/, 3.0) * (textureSize(t_map, 0) * 32.0 - view_distance.x));
+    return splayed;
+
+    // Radial: pos.x = r - view_distance.x from focus_pos, pos.y = θ from cam_pos to focus_pos on xy plane.
+    // const float PI_2 = 3.1415926535897932384626433832795;
+    // float squared = pos.x * pos.x;
+	// // // vec2 splayed2 = pos * vec2(squared * (SPLAY_MULT - view_distance.x), PI);
+	// vec2 splayed2 = pos * vec2(squared * (textureSize(t_map, 0).x * 32.0 - view_distance.x), PI);
+    // float r = splayed2.x + view_distance.x;
+    // vec2 theta = vec2(cos(splayed2.y), sin(splayed2.y));
+    // return r * theta;
+    // // mat2 rot_mat = mat2(vec2(theta.x, -theta.y), theta.yx);
+    // // return r * /*normalize(normalize(focus_pos.xy - cam_pos.xy) + theta);*/rot_mat * normalize(focus_pos.xy - cam_pos.xy);
+    // return splayed;
 }
 
 vec3 lod_norm(vec2 f_pos/*vec3 pos*/, vec4 square) {
@@ -250,6 +268,7 @@ vec3 lod_pos(vec2 pos, vec2 focus_pos) {
 
 vec3 lod_col(vec2 pos) {
 	//return vec3(0, 0.5, 0);
-	return /*linear_to_srgb*/(textureBicubic(t_map, pos_to_tex(pos)).rgb);
+	return /*linear_to_srgb*/(textureBicubic(t_map, pos_to_tex(pos)).rgb)
+		+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 		//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 }

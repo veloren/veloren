@@ -7,7 +7,6 @@ use crate::{
 };
 use common::{
     terrain::{structure::StructureBlock, Block, BlockKind, Structure},
-    util::{linear_to_srgb, srgb_to_linear},
     vol::{ReadVol, Vox},
 };
 use std::ops::{Add, Div, Mul, Neg};
@@ -566,7 +565,7 @@ pub fn block_from_structure(
 
     let saturate_leaves = |col: Rgb<f32>| {
         // /*saturate_srgb(col / 255.0, 0.65)*/
-        let rgb = srgb_to_linear(col / 255.0);
+        /* let rgb = srgb_to_linear(col / 255.0);
         /* let mut xyy = rgb_to_xyy(rgb);
         xyy.x *= xyy.x;
         xyy.y *= xyy.y;
@@ -582,7 +581,8 @@ pub fn block_from_structure(
         /* let mut hsv = rgb_to_hsv(rgb);
         hsv.y *= hsv.y;
         linear_to_srgb(hsv_to_rgb(hsv).map(|e| e.min(1.0).max(0.0))).map(|e| e * 255.0) */
-        linear_to_srgb(rgb * rgb).map(|e| e * 255.0)
+        linear_to_srgb(rgb * rgb).map(|e| e * 255.0) */
+        col
     };
 
     match sblock {
@@ -598,12 +598,8 @@ pub fn block_from_structure(
         )),
         StructureBlock::PineLeaves => Some(Block::new(
             BlockKind::Leaves,
-            Lerp::lerp(
-                Rgb::new(0.0, 60.0, 50.0),
-                Rgb::new(30.0, 100.0, 10.0),
-                lerp,
-            )
-            .map(|e| e as u8),
+            Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
+                .map(|e| e as u8),
         )),
         StructureBlock::PalmLeavesInner => Some(Block::new(
             BlockKind::Leaves,

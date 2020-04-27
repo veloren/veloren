@@ -77,11 +77,13 @@ void main() {
 	// vec3 point_light = light_at(f_pos, f_norm);
 	// vec3 light, diffuse_light, ambient_light;
     //get_sun_diffuse(f_norm, time_of_day.x, view_dir, k_a * point_shadow * (shade_frac * 0.5 + light_frac * 0.5), k_d * point_shadow * shade_frac, k_s * point_shadow * shade_frac, alpha, emitted_light, reflected_light);
-    get_sun_diffuse2(f_norm, sun_dir, moon_dir, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
+    float max_light = 0.0;
+    max_light += get_sun_diffuse2(f_norm, sun_dir, moon_dir, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
     reflected_light *= point_shadow * shade_frac;
     emitted_light *= point_shadow;
+    max_light *= point_shadow * shade_frac;
 
-    lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
 	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 
@@ -100,7 +102,7 @@ void main() {
 	// diffuse_light += point_light;
     // reflected_light += point_light;
 	// vec3 surf_color = illuminate(srgb_to_linear(model_col.rgb * f_col), light, diffuse_light, ambient_light);
-	surf_color = illuminate(surf_color * emitted_light, surf_color * reflected_light);
+	surf_color = illuminate(max_light, surf_color * emitted_light, surf_color * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

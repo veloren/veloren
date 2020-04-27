@@ -70,9 +70,11 @@ void main() {
 	// vec3 point_light = light_at(f_pos, f_norm);
 	// vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
-    get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, /*cam_to_frag*/view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
+    float max_light = 0.0;
+    max_light += get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, /*cam_to_frag*/view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
     reflected_light *= vert_light * point_shadow * shade_frac;
     emitted_light *= vert_light * point_shadow;
+    max_light *= vert_light * point_shadow * shade_frac;
 	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
 	// float point_shadow = shadow_at(f_pos, f_norm);
 	// diffuse_light *= f_light * point_shadow;
@@ -81,7 +83,7 @@ void main() {
 	// diffuse_light += point_light;
     // reflected_light += point_light;
 
-    lights_at(f_pos, f_norm, cam_to_frag, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += lights_at(f_pos, f_norm, cam_to_frag, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
     reflected_light += point_light; */
@@ -90,7 +92,7 @@ void main() {
 	emitted_light *= ao;
 	reflected_light *= ao;
 
-	surf_color = illuminate(surf_color * emitted_light, surf_color * reflected_light);
+	surf_color = illuminate(max_light, surf_color * emitted_light, surf_color * reflected_light);
 	// vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);

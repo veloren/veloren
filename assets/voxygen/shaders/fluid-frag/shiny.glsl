@@ -141,12 +141,14 @@ void main() {
     // 0 = 100% reflection, 1 = translucent water
     float passthrough = /*pow(*/dot(faceforward(f_norm, f_norm, cam_to_frag/*view_dir*/), -cam_to_frag/*view_dir*/)/*, 0.5)*/;
 
-    get_sun_diffuse2(norm, /*time_of_day.x*/sun_dir, moon_dir, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(0.0), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, emitted_light, reflected_light);
+    float max_light = 0.0;
+    max_light += get_sun_diffuse2(norm, /*time_of_day.x*/sun_dir, moon_dir, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(0.0), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, emitted_light, reflected_light);
     reflected_light *= reflect_color * f_light * point_shadow * shade_frac;
     emitted_light *= f_light * point_shadow;
+    max_light *= f_light * point_shadow * shade_frac;
 
     vec3 diffuse_light_point = vec3(0.0);
-    lights_at(f_pos, norm, view_dir, k_a, vec3(1.0), /*vec3(0.0)*/k_s, alpha, emitted_light, diffuse_light_point);
+    max_light += lights_at(f_pos, norm, view_dir, k_a, vec3(1.0), /*vec3(0.0)*/k_s, alpha, emitted_light, diffuse_light_point);
 
     vec3 dump_light = vec3(0.0);
     vec3 specular_light_point = vec3(0.0);
@@ -167,7 +169,7 @@ void main() {
 	// diffuse_light += point_light;
     // reflected_light += point_light;
 	// vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
-    vec3 surf_color = illuminate(water_color * emitted_light, reflected_light);
+    vec3 surf_color = illuminate(max_light, water_color * emitted_light, reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
