@@ -30,7 +30,7 @@ pub use self::{
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
-use common::comp::{self, item::ToolKind};
+use common::comp;
 
 #[derive(Clone, Default)]
 pub struct CharacterSkeleton {
@@ -124,12 +124,46 @@ impl Skeleton for CharacterSkeleton {
 pub struct SkeletonAttr {
     scaler: f32,
     head_scale: f32,
-    neck_height: f32,
-    neck_forward: f32,
-    neck_right: f32,
-    weapon_x: f32,
-    weapon_y: f32,
+    head: (f32, f32),
+    chest: (f32, f32),
+    belt: (f32, f32),
+    back: (f32, f32),
+    shorts: (f32, f32),
+    hand: (f32, f32, f32),
+    foot: (f32, f32, f32),
+    shoulder: (f32, f32, f32),
+    lantern: (f32, f32, f32),
 }
+
+impl Default for SkeletonAttr {
+    fn default() -> Self {
+        Self {
+            scaler: 0.0,
+            head_scale: 0.0,
+            head: (0.0, 0.0),
+            chest: (0.0, 0.0),
+            belt: (0.0, 0.0),
+            back: (0.0, 0.0),
+            shorts: (0.0, 0.0),
+            hand: (0.0, 0.0, 0.0),
+            foot: (0.0, 0.0, 0.0),
+            shoulder: (0.0, 0.0, 0.0),
+            lantern: (0.0, 0.0, 0.0),
+        }
+    }
+}
+
+impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
+    type Error = ();
+
+    fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {
+        match body {
+            comp::Body::Humanoid(body) => Ok(SkeletonAttr::from(body)),
+            _ => Err(()),
+        }
+    }
+}
+
 impl SkeletonAttr {
     pub fn calculate_scale(body: &comp::humanoid::Body) -> f32 {
         use comp::humanoid::{BodyType::*, Race::*};
@@ -146,31 +180,6 @@ impl SkeletonAttr {
             (Undead, Female) => 0.75,
             (Danari, Male) => 0.58,
             (Danari, Female) => 0.58,
-        }
-    }
-}
-
-impl Default for SkeletonAttr {
-    fn default() -> Self {
-        Self {
-            scaler: 1.0,
-            head_scale: 1.0,
-            neck_height: 1.0,
-            neck_forward: 1.0,
-            neck_right: 1.0,
-            weapon_x: 1.0,
-            weapon_y: 1.0,
-        }
-    }
-}
-
-impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
-    type Error = ();
-
-    fn try_from(body: &'a comp::Body) -> Result<Self, Self::Error> {
-        match body {
-            comp::Body::Humanoid(body) => Ok(SkeletonAttr::from(body)),
-            _ => Err(()),
         }
     }
 }
@@ -194,69 +203,43 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Male) => 1.15,
                 (Danari, Female) => 1.15,
             },
-            neck_height: match (body.race, body.body_type) {
-                (Orc, Male) => 0.0,
-                (Orc, Female) => 0.0,
-                (Human, Male) => 0.0,
-                (Human, Female) => 0.0,
-                (Elf, Male) => 0.0,
-                (Elf, Female) => 0.0,
-                (Dwarf, Male) => 0.0,
-                (Dwarf, Female) => 0.0,
-                (Undead, Male) => 0.5,
-                (Undead, Female) => 0.5,
-                (Danari, Male) => 0.5,
-                (Danari, Female) => 0.5,
+            head: match (body.race, body.body_type) {
+                (Orc, Male) => (0.0, 14.0),
+                (Orc, Female) => (0.0, 14.0),
+                (Human, Male) => (0.0, 14.5),
+                (Human, Female) => (0.0, 14.0),
+                (Elf, Male) => (0.0, 14.5),
+                (Elf, Female) => (0.0, 14.5),
+                (Dwarf, Male) => (0.0, 14.5),
+                (Dwarf, Female) => (0.0, 14.0),
+                (Undead, Male) => (0.5, 14.5),
+                (Undead, Female) => (0.5, 14.5),
+                (Danari, Male) => (0.5, 14.0),
+                (Danari, Female) => (0.5, 14.0),
             },
-            neck_forward: match (body.race, body.body_type) {
-                (Orc, Male) => 0.0,
-                (Orc, Female) => 0.0,
-                (Human, Male) => 0.5,
-                (Human, Female) => 0.0,
-                (Elf, Male) => 0.5,
-                (Elf, Female) => 0.5,
-                (Dwarf, Male) => 0.5,
-                (Dwarf, Female) => 0.0,
-                (Undead, Male) => 0.5,
-                (Undead, Female) => 0.5,
-                (Danari, Male) => 0.0,
-                (Danari, Female) => 0.0,
+            chest: match (body.race, body.body_type) {
+                (_, _) => (0.0, 7.0),
             },
-            neck_right: match (body.race, body.body_type) {
-                (Orc, Male) => 0.0,
-                (Orc, Female) => 0.0,
-                (Human, Male) => 0.0,
-                (Human, Female) => 0.0,
-                (Elf, Male) => 0.0,
-                (Elf, Female) => 0.0,
-                (Dwarf, Male) => 0.0,
-                (Dwarf, Female) => 0.0,
-                (Undead, Male) => 0.0,
-                (Undead, Female) => 0.0,
-                (Danari, Male) => 0.0,
-                (Danari, Female) => 0.0,
+            belt: match (body.race, body.body_type) {
+                (_, _) => (0.0, -2.0),
             },
-            weapon_x: match ToolKind::Empty {
-                ToolKind::Sword(_) => 0.0,
-                ToolKind::Axe(_) => 3.0,
-                ToolKind::Hammer(_) => 0.0,
-                ToolKind::Shield(_) => 3.0,
-                ToolKind::Staff(_) => 3.0,
-                ToolKind::Bow(_) => 0.0,
-                ToolKind::Dagger(_) => 0.0,
-                ToolKind::Debug(_) => 0.0,
-                ToolKind::Empty => 0.0,
+            back: match (body.race, body.body_type) {
+                (_, _) => (-3.1, 7.25),
             },
-            weapon_y: match ToolKind::Empty {
-                ToolKind::Sword(_) => -1.25,
-                ToolKind::Axe(_) => 0.0,
-                ToolKind::Hammer(_) => -2.0,
-                ToolKind::Shield(_) => 0.0,
-                ToolKind::Staff(_) => 0.0,
-                ToolKind::Bow(_) => -2.0,
-                ToolKind::Dagger(_) => -2.0,
-                ToolKind::Debug(_) => 0.0,
-                ToolKind::Empty => 0.0,
+            shorts: match (body.race, body.body_type) {
+                (_, _) => (0.0, -5.0),
+            },
+            hand: match (body.race, body.body_type) {
+                (_, _) => (7.0, -0.25, 5.0),
+            },
+            foot: match (body.race, body.body_type) {
+                (_, _) => (3.4, -0.1, 8.0),
+            },
+            shoulder: match (body.race, body.body_type) {
+                (_, _) => (5.0, 0.0, 5.0),
+            },
+            lantern: match (body.race, body.body_type) {
+                (_, _) => (5.0, 2.5, 5.5),
             },
         }
     }
