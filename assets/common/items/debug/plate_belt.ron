@@ -1,8 +1,0 @@
-Item(
-    name: "Iron Belt",
-    description: "WIP",
-    kind: Armor(
-        kind: Belt(Plate0),
-        stats: (20),
-    ),
-)

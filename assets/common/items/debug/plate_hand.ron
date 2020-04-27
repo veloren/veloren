@@ -1,0 +1,8 @@
+Item(
+    name: "Iron Handguards",
+    description: "Hands\n\nArmor: 0\n\n",
+    kind: Armor(
+        kind: Hand(Plate0),
+        stats: (20),
+    ),
+)

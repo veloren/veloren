@@ -20,7 +20,10 @@ impl Animation for RunAnimation {
         let lab = 10.0;
 
         let belt = (anim_time as f32 * lab as f32 + 1.5 * PI).sin();
-
+        let beltsnap = (((5.0)
+            / (1.0 + (4.0) * ((anim_time as f32 * lab as f32 + PI * 1.5).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * lab as f32 + PI * 1.5).sin());
         let foothoril = (anim_time as f32 * lab as f32 + PI * 1.4).sin();
         let foothorir = (anim_time as f32 * lab as f32 + PI * 0.4).sin();
 
@@ -81,7 +84,7 @@ impl Animation for RunAnimation {
             skeleton_attr.hand.2,
         );
         next.hand_l.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.3 + footrotl * -0.8);
+            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.3 + foothoril * -0.6);
         next.hand_l.scale = Vec3::one() * 1.02;
 
         next.hand_r.offset = Vec3::new(
@@ -90,7 +93,7 @@ impl Animation for RunAnimation {
             skeleton_attr.hand.2,
         );
         next.hand_r.ori =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.3 + footrotr * -0.8);
+            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.3 + foothorir * -0.6);
         next.hand_r.scale = Vec3::one() * 1.02;
 
         next.leg_l.offset = Vec3::new(
@@ -128,7 +131,7 @@ impl Animation for RunAnimation {
         next.foot_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(footrotr * 0.5);
         next.foot_r.scale = Vec3::one() / 8.0 * 0.98;
 
-        next.torso.offset = Vec3::new(0.0, 0.0, belt * 0.15);
+        next.torso.offset = Vec3::new(0.0, 0.0, beltsnap * 0.25);
         next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.2);
         next.torso.scale = Vec3::one();
         next

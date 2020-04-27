@@ -7,6 +7,7 @@ use common::{
         bird_small,
         critter::{BodyType as CBodyType, Species as CSpecies},
         dragon, fish_medium, fish_small,
+        golem::{BodyType as GBodyType, Species as GSpecies},
         humanoid::{Body, BodyType, EyeColor, Eyebrows, Race, Skin},
         item::{
             armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard},
@@ -2367,6 +2368,276 @@ impl BipedLargeLateralSpec {
     }
 }
 ////
+#[derive(Serialize, Deserialize)]
+pub struct GolemCenterSpec(HashMap<(GSpecies, GBodyType), SidedGCenterVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedGCenterVoxSpec {
+    head: GolemCenterSubSpec,
+    torso_upper: GolemCenterSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct GolemCenterSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    center: VoxSimple,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GolemLateralSpec(HashMap<(GSpecies, GBodyType), SidedGLateralVoxSpec>);
+
+#[derive(Serialize, Deserialize)]
+struct SidedGLateralVoxSpec {
+    shoulder_l: GolemLateralSubSpec,
+    shoulder_r: GolemLateralSubSpec,
+    hand_l: GolemLateralSubSpec,
+    hand_r: GolemLateralSubSpec,
+    leg_l: GolemLateralSubSpec,
+    leg_r: GolemLateralSubSpec,
+    foot_l: GolemLateralSubSpec,
+    foot_r: GolemLateralSubSpec,
+}
+#[derive(Serialize, Deserialize)]
+struct GolemLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
+}
+
+impl Asset for GolemCenterSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
+}
+
+impl Asset for GolemLateralSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
+}
+
+impl GolemCenterSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.golem_center_manifest", indicator).unwrap()
+    }
+
+    pub fn mesh_head(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.head.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.head.offset))
+    }
+
+    pub fn mesh_torso_upper(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No torso upper specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.torso_upper.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.torso_upper.offset))
+    }
+}
+impl GolemLateralSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.golem_lateral_manifest", indicator).unwrap()
+    }
+
+    pub fn mesh_shoulder_l(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No shoulder specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.shoulder_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.shoulder_l.offset))
+    }
+
+    pub fn mesh_shoulder_r(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No shoulder specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.shoulder_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.shoulder_r.offset))
+    }
+
+    pub fn mesh_hand_l(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No hand specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.hand_l.offset))
+    }
+
+    pub fn mesh_hand_r(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No hand specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.hand_r.offset))
+    }
+
+    pub fn mesh_leg_l(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.leg_l.offset))
+    }
+
+    pub fn mesh_leg_r(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.leg_r.offset))
+    }
+
+    pub fn mesh_foot_l(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_l.offset))
+    }
+
+    pub fn mesh_foot_r(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+
+        generate_mesh(&lateral, Vec3::from(spec.foot_r.offset))
+    }
+}
 pub fn mesh_object(
     obj: object::Body,
     generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
@@ -2374,7 +2645,10 @@ pub fn mesh_object(
     use object::Body;
 
     let (name, offset) = match obj {
-        Body::Arrow => ("weapon.projectile.simple-arrow", Vec3::new(-5.5, -5.5, 0.0)),
+        Body::Arrow => (
+            "weapon.projectile.simple-arrow",
+            Vec3::new(-0.5, -6.0, -1.5),
+        ),
         Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
         Body::Scarecrow => ("object.scarecrow", Vec3::new(-9.5, -4.0, 0.0)),
         Body::Cauldron => ("object.cauldron", Vec3::new(-10.0, -10.0, 0.0)),

@@ -86,6 +86,7 @@ pub struct SceneData<'a> {
     pub gamma: f32,
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
+    pub figure_lod_render_distance: f32,
 }
 
 impl Scene {
@@ -425,6 +426,7 @@ impl Scene {
             &self.shadows,
             &self.lod,
             &self.camera,
+            scene_data.figure_lod_render_distance,
         );
         self.lod.render(renderer, &self.globals);
 
@@ -441,6 +443,7 @@ impl Scene {
             &self.shadows,
             &self.lod,
             &self.camera,
+            scene_data.figure_lod_render_distance,
         );
 
         self.terrain.render_translucent(

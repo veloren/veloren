@@ -1,30 +1,30 @@
 ({
-    (Giant, Male): (
+    (Ogre, Male): (
         head: (
-            offset: (-9.0, -6.0, -6.5),
-            center: ("npc.giant.male.head"),
+            offset: (-8.0, -5.0, -6.0),
+            center: ("npc.ogre.male.head"),
         ),
         torso_upper: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.giant.male.torso_upper"),
+            center: ("npc.ogre.male.torso_upper"),
         ),
         torso_lower: (
             offset: (-5.0, -4.5, -4.5),
-            center: ("npc.giant.male.torso_lower"),
+            center: ("npc.ogre.male.torso_lower"),
         )
     ),
-    (Giant, Female): (
+    (Ogre, Female): (
         head: (
-            offset: (-9.0, -6.0, -6.5),
-            center: ("npc.giant.female.head"),
+            offset: (-8.0, -5.0, -6.0),
+            center: ("npc.ogre.female.head"),
         ),
         torso_upper: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.giant.female.torso_upper"),
+            center: ("npc.ogre.female.torso_upper"),
         ),
         torso_lower: (
             offset: (-5.0, -4.5, -4.5),
-            center: ("npc.giant.female.torso_lower"),
+            center: ("npc.ogre.female.torso_lower"),
         )
     ),
 })

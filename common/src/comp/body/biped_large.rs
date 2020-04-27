@@ -27,7 +27,7 @@ impl From<Body> for super::Body {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Species {
-    Giant = 0,
+    Ogre = 0,
 }
 
 /// Data representing per-species generic data.
@@ -35,7 +35,7 @@ pub enum Species {
 /// NOTE: Deliberately don't (yet?) implement serialize.
 #[derive(Clone, Debug, Deserialize)]
 pub struct AllSpecies<SpeciesMeta> {
-    pub giant: SpeciesMeta,
+    pub ogre: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -44,12 +44,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     #[inline]
     fn index(&self, &index: &'a Species) -> &Self::Output {
         match index {
-            Species::Giant => &self.giant,
+            Species::Ogre => &self.ogre,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 1] = [Species::Giant];
+pub const ALL_SPECIES: [Species; 1] = [Species::Ogre];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type Item = Species;

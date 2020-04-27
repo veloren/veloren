@@ -9,7 +9,7 @@ use crate::{
         self, biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
         bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
         dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-        object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
+        golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
         quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
     },
     ecs::comp::Interpolated,
@@ -50,6 +50,7 @@ pub struct FigureMgr {
     fish_medium_model_cache: FigureModelCache<FishMediumSkeleton>,
     fish_small_model_cache: FigureModelCache<FishSmallSkeleton>,
     biped_large_model_cache: FigureModelCache<BipedLargeSkeleton>,
+    golem_model_cache: FigureModelCache<GolemSkeleton>,
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_small_states: HashMap<EcsEntity, FigureState<QuadrupedSmallSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
@@ -60,6 +61,7 @@ pub struct FigureMgr {
     bird_small_states: HashMap<EcsEntity, FigureState<BirdSmallSkeleton>>,
     fish_small_states: HashMap<EcsEntity, FigureState<FishSmallSkeleton>>,
     biped_large_states: HashMap<EcsEntity, FigureState<BipedLargeSkeleton>>,
+    golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
@@ -76,6 +78,7 @@ impl FigureMgr {
             fish_medium_model_cache: FigureModelCache::new(),
             fish_small_model_cache: FigureModelCache::new(),
             biped_large_model_cache: FigureModelCache::new(),
+            golem_model_cache: FigureModelCache::new(),
             character_states: HashMap::new(),
             quadruped_small_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
@@ -86,6 +89,7 @@ impl FigureMgr {
             bird_small_states: HashMap::new(),
             fish_small_states: HashMap::new(),
             biped_large_states: HashMap::new(),
+            golem_states: HashMap::new(),
             object_states: HashMap::new(),
         }
     }
@@ -101,6 +105,7 @@ impl FigureMgr {
         self.fish_medium_model_cache.clean(tick);
         self.fish_small_model_cache.clean(tick);
         self.biped_large_model_cache.clean(tick);
+        self.golem_model_cache.clean(tick);
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData, camera: &Camera) {
@@ -212,6 +217,9 @@ impl FigureMgr {
                     Body::BipedLarge(_) => {
                         self.biped_large_states.remove(&entity);
                     },
+                    Body::Golem(_) => {
+                        self.biped_large_states.remove(&entity);
+                    },
                     Body::Object(_) => {
                         self.object_states.remove(&entity);
                     },
@@ -269,6 +277,11 @@ impl FigureMgr {
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
                     },
+                    Body::Golem(_) => {
+                        self.golem_states
+                            .get_mut(&entity)
+                            .map(|state| state.visible = false);
+                    },
                     Body::Object(_) => {
                         self.object_states
                             .get_mut(&entity)
@@ -322,6 +335,9 @@ impl FigureMgr {
                                 .biped_large_states
                                 .get(&entity)
                                 .map(|state| state.lpindex),
+                            Body::Golem(_) => {
+                                self.golem_states.get(&entity).map(|state| state.lpindex)
+                            },
                             Body::Object(_) => {
                                 self.object_states.get(&entity).map(|state| state.lpindex)
                             },
@@ -387,6 +403,12 @@ impl FigureMgr {
                     },
                     Body::BipedLarge(_) => {
                         self.biped_large_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
+                    },
+                    Body::Golem(_) => {
+                        self.golem_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
@@ -867,7 +889,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // In air
-                        (false, _, false) => anim::bird_medium::JumpAnimation::update_skeleton(
+                        (false, _, false) => anim::bird_medium::FlyAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.state_time,
@@ -1343,6 +1365,81 @@ impl FigureMgr {
                         is_player,
                     );
                 },
+                Body::Golem(_) => {
+                    let skeleton_attr = &self
+                        .golem_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            CameraMode::default(),
+                            None,
+                        )
+                        .1;
+
+                    let state = self
+                        .golem_states
+                        .entry(entity)
+                        .or_insert_with(|| FigureState::new(renderer, GolemSkeleton::new()));
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.same_variant(&last_character.0) {
+                        state.state_time = 0.0;
+                    }
+
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::golem::IdleAnimation::update_skeleton(
+                            &GolemSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // Running
+                        (true, true, false) => anim::golem::RunAnimation::update_skeleton(
+                            &GolemSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // In air
+                        (false, _, false) => anim::golem::JumpAnimation::update_skeleton(
+                            &GolemSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_base, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        ori,
+                        scale,
+                        col,
+                        dt,
+                        state_animation_rate,
+                        lpindex,
+                        true,
+                        is_player,
+                    );
+                },
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -1387,6 +1484,8 @@ impl FigureMgr {
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.biped_large_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.golem_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.object_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
     }
@@ -1402,6 +1501,7 @@ impl FigureMgr {
         shadows: &Consts<Shadow>,
         lod: &Lod,
         camera: &Camera,
+        figure_lod_render_distance: f32,
     ) {
         let ecs = state.ecs();
 
@@ -1438,6 +1538,7 @@ impl FigureMgr {
                     loadout,
                     false,
                     pos.0,
+                    figure_lod_render_distance,
                 );
             }
         }
@@ -1454,6 +1555,7 @@ impl FigureMgr {
         shadows: &Consts<Shadow>,
         lod: &Lod,
         camera: &Camera,
+        figure_lod_render_distance: f32,
     ) {
         let ecs = state.ecs();
 
@@ -1488,6 +1590,7 @@ impl FigureMgr {
                 loadout,
                 true,
                 pos.0,
+                figure_lod_render_distance,
             );
         }
     }
@@ -1507,6 +1610,7 @@ impl FigureMgr {
         loadout: Option<&Loadout>,
         is_player: bool,
         pos: Vec3<f32>,
+        figure_lod_render_distance: f32,
     ) {
         let player_camera_mode = if is_player {
             camera.get_mode()
@@ -1526,6 +1630,7 @@ impl FigureMgr {
             fish_medium_model_cache,
             fish_small_model_cache,
             biped_large_model_cache,
+            golem_model_cache,
             character_states,
             quadruped_small_states,
             quadruped_medium_states,
@@ -1536,6 +1641,7 @@ impl FigureMgr {
             bird_small_states,
             fish_small_states,
             biped_large_states,
+            golem_states,
             object_states,
         } = self;
         if let Some((locals, bone_consts, model)) = match body {
@@ -1702,6 +1808,22 @@ impl FigureMgr {
                         .0,
                 )
             }),
+            Body::Golem(_) => golem_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &golem_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
             Body::Object(_) => object_states.get(&entity).map(|state| {
                 (
                     state.locals(),
@@ -1719,14 +1841,16 @@ impl FigureMgr {
                 )
             }),
         } {
-            const FIGURE_LOW_LOD_DIST: f32 = 150.0;
-            const FIGURE_MID_LOD_DIST: f32 = 85.0;
+            let figure_low_detail_distance = figure_lod_render_distance * 0.75;
+            let figure_mid_detail_distance = figure_lod_render_distance * 0.5;
 
             let model = if pos.distance_squared(camera.get_focus_pos())
-                > FIGURE_LOW_LOD_DIST.powf(2.0)
+                > figure_low_detail_distance.powf(2.0)
             {
                 &model[2]
-            } else if pos.distance_squared(camera.get_focus_pos()) > FIGURE_MID_LOD_DIST.powf(2.0) {
+            } else if pos.distance_squared(camera.get_focus_pos())
+                > figure_mid_detail_distance.powf(2.0)
+            {
                 &model[1]
             } else {
                 &model[0]
@@ -1782,6 +1906,7 @@ impl FigureMgr {
             + self.bird_small_states.len()
             + self.fish_small_states.len()
             + self.biped_large_states.len()
+            + self.golem_states.len()
             + self.object_states.len()
     }
 
@@ -1831,6 +1956,7 @@ impl FigureMgr {
                 .iter()
                 .filter(|(_, c)| c.visible)
                 .count()
+            + self.golem_states.iter().filter(|(_, c)| c.visible).count()
             + self.object_states.iter().filter(|(_, c)| c.visible).count()
     }
 }

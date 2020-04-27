@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Body, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
+    comp::{Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
     sync::Uid,
@@ -47,8 +47,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Sticky>,
         ReadStorage<'a, Mass>,
+        ReadStorage<'a, Collider>,
         ReadStorage<'a, Gravity>,
-        ReadStorage<'a, Body>,
         WriteStorage<'a, PhysicsState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -67,8 +67,8 @@ impl<'a> System<'a> for Sys {
             scales,
             stickies,
             masses,
+            colliders,
             gravities,
-            bodies,
             mut physics_states,
             mut positions,
             mut velocities,
@@ -79,11 +79,11 @@ impl<'a> System<'a> for Sys {
         let mut event_emitter = event_bus.emitter();
 
         // Apply movement inputs
-        for (entity, scale, sticky, _b, mut pos, mut vel, _ori, _) in (
+        for (entity, scale, sticky, collider, mut pos, mut vel, _ori, _) in (
             &entities,
             scales.maybe(),
             stickies.maybe(),
-            &bodies,
+            &colliders,
             &mut positions,
             &mut velocities,
             &mut orientations,
@@ -93,29 +93,16 @@ impl<'a> System<'a> for Sys {
         {
             let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
 
-            if sticky.is_some() && (physics_state.on_wall.is_some() || physics_state.on_ground) {
+            if sticky.is_some()
+                && (physics_state.on_ground
+                    || physics_state.on_ceiling
+                    || physics_state.on_wall.is_some())
+            {
+                vel.0 = Vec3::zero();
                 continue;
             }
 
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
-
-            // Basic collision with terrain
-            // TODO: rename this, not just the player entity
-            let player_rad = 0.3 * scale; // half-width of the player's AABB
-            let player_height = 1.5 * scale;
-
-            // Probe distances
-            let hdist = player_rad.ceil() as i32;
-            let vdist = player_height.ceil() as i32;
-            // Neighbouring blocks iterator
-            let near_iter = (-hdist..hdist + 1)
-                .map(move |i| {
-                    (-hdist..hdist + 1).map(move |j| {
-                        (1 - BlockKind::MAX_HEIGHT.ceil() as i32..vdist + 1).map(move |k| (i, j, k))
-                    })
-                })
-                .flatten()
-                .flatten();
 
             let old_vel = *vel;
             // Integrate forces
@@ -150,215 +137,292 @@ impl<'a> System<'a> for Sys {
                 Vec3::zero()
             };
 
-            // Function for determining whether the player at a specific position collides
-            // with the ground
-            let collision_with = |pos: Vec3<f32>, hit: &dyn Fn(&Block) -> bool, near_iter| {
-                for (i, j, k) in near_iter {
-                    let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
+            match collider {
+                Collider::Box {
+                    radius,
+                    z_min,
+                    z_max,
+                } => {
+                    // Scale collider
+                    let radius = *radius * scale;
+                    let z_min = *z_min * scale;
+                    let z_max = *z_max * scale;
 
-                    if let Some(block) = terrain.get(block_pos).ok().copied().filter(hit) {
-                        let player_aabb = Aabb {
-                            min: pos + Vec3::new(-player_rad, -player_rad, 0.0),
-                            max: pos + Vec3::new(player_rad, player_rad, player_height),
-                        };
-                        let block_aabb = Aabb {
-                            min: block_pos.map(|e| e as f32),
-                            max: block_pos.map(|e| e as f32)
-                                + Vec3::new(1.0, 1.0, block.get_height()),
-                        };
+                    // Probe distances
+                    let hdist = radius.ceil() as i32;
+                    // Neighbouring blocks iterator
+                    let near_iter = (-hdist..hdist + 1)
+                        .map(move |i| {
+                            (-hdist..hdist + 1).map(move |j| {
+                                (1 - BlockKind::MAX_HEIGHT.ceil() as i32 + z_min.floor() as i32
+                                    ..z_max.ceil() as i32 + 1)
+                                    .map(move |k| (i, j, k))
+                            })
+                        })
+                        .flatten()
+                        .flatten();
 
-                        if player_aabb.collides_with_aabb(block_aabb) {
-                            return true;
+                    // Function for determining whether the player at a specific position collides
+                    // with the ground
+                    let collision_with = |pos: Vec3<f32>,
+                                          hit: &dyn Fn(&Block) -> bool,
+                                          near_iter| {
+                        for (i, j, k) in near_iter {
+                            let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
+
+                            if let Some(block) = terrain.get(block_pos).ok().copied().filter(hit) {
+                                let player_aabb = Aabb {
+                                    min: pos + Vec3::new(-radius, -radius, z_min),
+                                    max: pos + Vec3::new(radius, radius, z_max),
+                                };
+                                let block_aabb = Aabb {
+                                    min: block_pos.map(|e| e as f32),
+                                    max: block_pos.map(|e| e as f32)
+                                        + Vec3::new(1.0, 1.0, block.get_height()),
+                                };
+
+                                if player_aabb.collides_with_aabb(block_aabb) {
+                                    return true;
+                                }
+                            }
                         }
-                    }
-                }
-                false
-            };
-
-            let was_on_ground = physics_state.on_ground;
-            physics_state.on_ground = false;
-
-            let mut on_ground = false;
-            let mut attempts = 0; // Don't loop infinitely here
-
-            // Don't jump too far at once
-            let increments = (pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3)
-                .ceil()
-                .max(1.0);
-            let old_pos = pos.0;
-            for _ in 0..increments as usize {
-                pos.0 += pos_delta / increments;
-
-                const MAX_ATTEMPTS: usize = 16;
-
-                // While the player is colliding with the terrain...
-                while collision_with(pos.0, &|block| block.is_solid(), near_iter.clone())
-                    && attempts < MAX_ATTEMPTS
-                {
-                    // Calculate the player's AABB
-                    let player_aabb = Aabb {
-                        min: pos.0 + Vec3::new(-player_rad, -player_rad, 0.0),
-                        max: pos.0 + Vec3::new(player_rad, player_rad, player_height),
+                        false
                     };
 
-                    // Determine the block that we are colliding with most (based on minimum
-                    // collision axis)
-                    let (_block_pos, block_aabb, block_height) = near_iter
-                        .clone()
-                        // Calculate the block's position in world space
-                        .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
-                        // Make sure the block is actually solid
-                        .filter_map(|block_pos| {
-                            if let Some(block) = terrain
-                                .get(block_pos)
-                                .ok()
-                                .filter(|block| block.is_solid())
-                            {
-                                // Calculate block AABB
-                                Some((
-                                    block_pos,
-                                    Aabb {
-                                        min: block_pos.map(|e| e as f32),
-                                        max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.get_height()),
-                                    },
-                                    block.get_height(),
-                                ))
-                            } else {
-                                None
+                    let was_on_ground = physics_state.on_ground;
+                    physics_state.on_ground = false;
+
+                    let mut on_ground = false;
+                    let mut on_ceiling = false;
+                    let mut attempts = 0; // Don't loop infinitely here
+
+                    // Don't jump too far at once
+                    let increments = (pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3)
+                        .ceil()
+                        .max(1.0);
+                    let old_pos = pos.0;
+                    for _ in 0..increments as usize {
+                        pos.0 += pos_delta / increments;
+
+                        const MAX_ATTEMPTS: usize = 16;
+
+                        // While the player is colliding with the terrain...
+                        while collision_with(pos.0, &|block| block.is_solid(), near_iter.clone())
+                            && attempts < MAX_ATTEMPTS
+                        {
+                            // Calculate the player's AABB
+                            let player_aabb = Aabb {
+                                min: pos.0 + Vec3::new(-radius, -radius, z_min),
+                                max: pos.0 + Vec3::new(radius, radius, z_max),
+                            };
+
+                            // Determine the block that we are colliding with most (based on minimum
+                            // collision axis)
+                            let (_block_pos, block_aabb, block_height) = near_iter
+                                .clone()
+                                // Calculate the block's position in world space
+                                .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
+                                // Make sure the block is actually solid
+                                .filter_map(|block_pos| {
+                                    if let Some(block) = terrain
+                                        .get(block_pos)
+                                        .ok()
+                                        .filter(|block| block.is_solid())
+                                    {
+                                        // Calculate block AABB
+                                        Some((
+                                            block_pos,
+                                            Aabb {
+                                                min: block_pos.map(|e| e as f32),
+                                                max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.get_height()),
+                                            },
+                                            block.get_height(),
+                                        ))
+                                    } else {
+                                        None
+                                    }
+                                })
+                                // Determine whether the block's AABB collides with the player's AABB
+                                .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
+                                // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
+                                .min_by_key(|(_, block_aabb, _)| {
+                                    ((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
+                                        .map(|e| e.abs())
+                                        .sum()
+                                        * 1_000_000.0) as i32
+                                })
+                                .expect("Collision detected, but no colliding blocks found!");
+
+                            // Find the intrusion vector of the collision
+                            let dir = player_aabb.collision_vector_with_aabb(block_aabb);
+
+                            // Determine an appropriate resolution vector (i.e: the minimum distance
+                            // needed to push out of the block)
+                            let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
+                            let resolve_dir = -dir.map(|e| {
+                                if e.abs().to_bits() == max_axis.to_bits() {
+                                    e
+                                } else {
+                                    0.0
+                                }
+                            });
+
+                            // When the resolution direction is pointing upwards, we must be on the
+                            // ground
+                            if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
+                                on_ground = true;
+
+                                if !was_on_ground {
+                                    event_emitter
+                                        .emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
+                                }
+                            } else if resolve_dir.z < 0.0 && vel.0.z >= 0.0 {
+                                on_ceiling = true;
                             }
-                        })
-                        // Determine whether the block's AABB collides with the player's AABB
-                        .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
-                        // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
-                        .min_by_key(|(_, block_aabb, _)| {
-                            ((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
-                                .map(|e| e.abs())
-                                .sum()
-                                * 1_000_000.0) as i32
-                        })
-                        .expect("Collision detected, but no colliding blocks found!");
 
-                    // Find the intrusion vector of the collision
-                    let dir = player_aabb.collision_vector_with_aabb(block_aabb);
+                            // When the resolution direction is non-vertical, we must be colliding
+                            // with a wall If the space above is free...
+                            if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &|block| block.is_solid(), near_iter.clone())
+                                // ...and we're being pushed out horizontally...
+                                && resolve_dir.z == 0.0
+                                // ...and the vertical resolution direction is sufficiently great...
+                                && -dir.z > 0.1
+                                // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
+                                && (vel.0.z <= 0.0 || terrain
+                                    .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
+                                    .map(|block| block.is_solid())
+                                    .unwrap_or(false))
+                                // ...and there is a collision with a block beneath our current hitbox...
+                                && collision_with(
+                                    old_pos + resolve_dir - Vec3::unit_z() * 1.05,
+                                    &|block| block.is_solid(),
+                                    near_iter.clone(),
+                                )
+                            {
+                                // ...block-hop!
+                                pos.0.z = (pos.0.z + 0.1).floor() + block_height;
+                                vel.0.z = 0.0;
+                                on_ground = true;
+                                break;
+                            } else {
+                                // Correct the velocity
+                                vel.0 = vel.0.map2(resolve_dir, |e, d| {
+                                    if d * e.signum() < 0.0 { 0.0 } else { e }
+                                });
+                            }
 
-                    // Determine an appropriate resolution vector (i.e: the minimum distance needed
-                    // to push out of the block)
-                    let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
-                    let resolve_dir = -dir.map(|e| {
-                        if e.abs().to_bits() == max_axis.to_bits() {
-                            e
-                        } else {
-                            0.0
+                            // Resolve the collision normally
+                            pos.0 += resolve_dir;
+
+                            attempts += 1;
                         }
-                    });
 
-                    // When the resolution direction is pointing upwards, we must be on the ground
-                    if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
-                        on_ground = true;
-
-                        if !was_on_ground {
-                            event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
+                        if attempts == MAX_ATTEMPTS {
+                            pos.0 = old_pos;
+                            break;
                         }
                     }
 
-                    // When the resolution direction is non-vertical, we must be colliding with a
-                    // wall If the space above is free...
-                    if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &|block| block.is_solid(), near_iter.clone())
-                        // ...and we're being pushed out horizontally...
-                        && resolve_dir.z == 0.0
-                        // ...and the vertical resolution direction is sufficiently great...
-                        && -dir.z > 0.1
-                        // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
-                        && (vel.0.z <= 0.0 || terrain
-                            .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
-                            .map(|block| block.is_solid())
-                            .unwrap_or(false))
-                        // ...and there is a collision with a block beneath our current hitbox...
-                        && collision_with(
-                            old_pos + resolve_dir - Vec3::unit_z() * 1.05,
-                            &|block| block.is_solid(),
+                    if on_ceiling {
+                        physics_state.on_ceiling = true;
+                    }
+
+                    if on_ground {
+                        physics_state.on_ground = true;
+                    // If the space below us is free, then "snap" to the ground
+                    } else if collision_with(
+                        pos.0 - Vec3::unit_z() * 1.05,
+                        &|block| block.is_solid(),
+                        near_iter.clone(),
+                    ) && vel.0.z < 0.0
+                        && vel.0.z > -1.5
+                        && was_on_ground
+                        && !collision_with(
+                            pos.0 - Vec3::unit_z() * 0.05,
+                            &|block| {
+                                block.is_solid()
+                                    && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
+                            },
                             near_iter.clone(),
                         )
                     {
-                        // ...block-hop!
-                        pos.0.z = (pos.0.z + 0.1).floor() + block_height;
-                        vel.0.z = 0.0;
-                        on_ground = true;
-                        break;
-                    } else {
-                        // Correct the velocity
-                        vel.0 = vel.0.map2(
-                            resolve_dir,
-                            |e, d| if d * e.signum() < 0.0 { 0.0 } else { e },
-                        );
+                        let snap_height = terrain
+                            .get(
+                                Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.05)
+                                    .map(|e| e.floor() as i32),
+                            )
+                            .ok()
+                            .filter(|block| block.is_solid())
+                            .map(|block| block.get_height())
+                            .unwrap_or(0.0);
+                        pos.0.z = (pos.0.z - 0.05).floor() + snap_height;
+                        physics_state.on_ground = true;
                     }
 
-                    // Resolve the collision normally
-                    pos.0 += resolve_dir;
+                    let dirs = [
+                        Vec3::unit_x(),
+                        Vec3::unit_y(),
+                        -Vec3::unit_x(),
+                        -Vec3::unit_y(),
+                    ];
 
-                    attempts += 1;
-                }
+                    if let (wall_dir, true) =
+                        dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
+                            if collision_with(
+                                pos.0 + *dir * 0.01,
+                                &|block| block.is_solid(),
+                                near_iter.clone(),
+                            ) {
+                                (a + dir, true)
+                            } else {
+                                (a, hit)
+                            }
+                        })
+                    {
+                        physics_state.on_wall = Some(wall_dir);
+                    } else {
+                        physics_state.on_wall = None;
+                    }
 
-                if attempts == MAX_ATTEMPTS {
-                    pos.0 = old_pos;
-                    break;
-                }
+                    // Figure out if we're in water
+                    physics_state.in_fluid =
+                        collision_with(pos.0, &|block| block.is_fluid(), near_iter.clone());
+                },
+                Collider::Point => {
+                    let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta).ignore_error().cast();
+
+                    pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
+
+                    // Can't fair since we do ignore_error above
+                    if block.unwrap().is_some() {
+                        let block_center = pos.0.map(|e| e.floor()) + 0.5;
+                        let block_rpos = (pos.0 - block_center)
+                            .try_normalized()
+                            .unwrap_or(Vec3::zero());
+
+                        // See whether we're on the top/bottom of a block, or the side
+                        if block_rpos.z.abs()
+                            > block_rpos.xy().map(|e| e.abs()).reduce_partial_max()
+                        {
+                            if block_rpos.z > 0.0 {
+                                physics_state.on_ground = true;
+                            } else {
+                                physics_state.on_ceiling = true;
+                            }
+                            vel.0.z = 0.0;
+                        } else {
+                            physics_state.on_wall =
+                                Some(if block_rpos.x.abs() > block_rpos.y.abs() {
+                                    vel.0.x = 0.0;
+                                    Vec3::unit_x() * -block_rpos.x.signum()
+                                } else {
+                                    vel.0.y = 0.0;
+                                    Vec3::unit_y() * -block_rpos.y.signum()
+                                });
+                        }
+                    }
+                },
             }
-
-            if on_ground {
-                physics_state.on_ground = true;
-            // If the space below us is free, then "snap" to the ground
-            } else if collision_with(
-                pos.0 - Vec3::unit_z() * 1.05,
-                &|block| block.is_solid(),
-                near_iter.clone(),
-            ) && vel.0.z < 0.0
-                && vel.0.z > -1.5
-                && was_on_ground
-                && !collision_with(
-                    pos.0 - Vec3::unit_z() * 0.05,
-                    &|block| {
-                        block.is_solid() && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
-                    },
-                    near_iter.clone(),
-                )
-            {
-                let snap_height = terrain
-                    .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.05).map(|e| e.floor() as i32))
-                    .ok()
-                    .filter(|block| block.is_solid())
-                    .map(|block| block.get_height())
-                    .unwrap_or(0.0);
-                pos.0.z = (pos.0.z - 0.05).floor() + snap_height;
-                physics_state.on_ground = true;
-            }
-
-            let dirs = [
-                Vec3::unit_x(),
-                Vec3::unit_y(),
-                -Vec3::unit_x(),
-                -Vec3::unit_y(),
-            ];
-
-            if let (wall_dir, true) = dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
-                if collision_with(
-                    pos.0 + *dir * 0.01,
-                    &|block| block.is_solid(),
-                    near_iter.clone(),
-                ) {
-                    (a + dir, true)
-                } else {
-                    (a, hit)
-                }
-            }) {
-                physics_state.on_wall = Some(wall_dir);
-            } else {
-                physics_state.on_wall = None;
-            }
-
-            // Figure out if we're in water
-            physics_state.in_fluid =
-                collision_with(pos.0, &|block| block.is_fluid(), near_iter.clone());
 
             let _ = physics_states.insert(entity, physics_state);
         }
@@ -369,7 +433,7 @@ impl<'a> System<'a> for Sys {
             scales.maybe(),
             masses.maybe(),
             &mut velocities,
-            &bodies,
+            &colliders,
             !&mountings,
             stickies.maybe(),
             &mut physics_states,
@@ -389,7 +453,7 @@ impl<'a> System<'a> for Sys {
                 &positions,
                 scales.maybe(),
                 masses.maybe(),
-                &bodies,
+                &colliders,
                 !&mountings,
             )
                 .join()

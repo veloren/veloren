@@ -84,6 +84,7 @@ pub struct SceneData {
     pub tick: u64,
     pub body: Option<humanoid::Body>,
     pub gamma: f32,
+    pub figure_lod_render_distance: f32,
     pub mouse_smoothing: bool,
 }
 

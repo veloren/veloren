@@ -1,6 +1,6 @@
 Item(
     name: "Assassin Boots",
-    description: "Only the best for a member of the creed.",
+    description: "Feet\n\nArmor: 0\n\nOnly the best for a member of the creed.\n\n<Right-Click to use>",
     kind: Armor(
         kind: Foot(Assassin),
         stats: (20),

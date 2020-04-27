@@ -1,8 +1,0 @@
-Item(
-    name: "Iron Legguards",
-    description: "WIP",
-    kind: Armor(
-        kind: Pants(PlateGreen0),
-        stats: (20),
-    ),
-)

@@ -5,6 +5,7 @@ pub mod critter;
 pub mod dragon;
 pub mod fish_medium;
 pub mod fish_small;
+pub mod golem;
 pub mod humanoid;
 pub mod object;
 pub mod quadruped_medium;
@@ -31,7 +32,8 @@ pub enum Body {
     FishSmall(fish_small::Body) = 7,
     BipedLarge(biped_large::Body) = 8,
     Object(object::Body) = 9,
-    Critter(critter::Body) = 10,
+    Golem(golem::Body) = 10,
+    Critter(critter::Body) = 11,
 }
 
 /// Data representing data generic to the body together with per-species data.
@@ -56,6 +58,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub quadruped_medium: BodyData<BodyMeta, quadruped_medium::AllSpecies<SpeciesMeta>>,
     pub bird_medium: BodyData<BodyMeta, bird_medium::AllSpecies<SpeciesMeta>>,
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
+    pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
 }
 
@@ -70,7 +73,8 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Pig => &self.quadruped_small.body,
             NpcKind::Wolf => &self.quadruped_medium.body,
             NpcKind::Duck => &self.bird_medium.body,
-            NpcKind::Giant => &self.biped_large.body,
+            NpcKind::Ogre => &self.biped_large.body,
+            NpcKind::StoneGolem => &self.golem.body,
             NpcKind::Rat => &self.critter.body,
         }
     }
@@ -110,7 +114,8 @@ impl Body {
             Body::Dragon(_) => 2.5,
             Body::BirdSmall(_) => 0.2,
             Body::FishSmall(_) => 0.2,
-            Body::BipedLarge(_) => 1.0,
+            Body::BipedLarge(_) => 2.0,
+            Body::Golem(_) => 2.5,
             Body::Object(_) => 0.3,
         }
     }

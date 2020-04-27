@@ -20,8 +20,8 @@ pub use ability::{CharacterAbility, ItemConfig, Loadout};
 pub use admin::Admin;
 pub use agent::{Agent, Alignment};
 pub use body::{
-    biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, humanoid,
-    object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
+    biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, golem,
+    humanoid, object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
 pub use controller::{
@@ -35,7 +35,7 @@ pub use inventory::{
 };
 pub use last::Last;
 pub use location::{Waypoint, WaypointArea};
-pub use phys::{ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
+pub use phys::{Collider, ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::Player;
 pub use projectile::Projectile;
 pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};

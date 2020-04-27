@@ -1,0 +1,8 @@
+Item(
+    name: "Admin's Tabard",
+   description: "Tabard\n\nWith great power comes\ngreat responsibility. ",
+    kind: Armor(
+        kind: Tabard(Admin),
+        stats: (20),
+    ),
+)

@@ -95,6 +95,9 @@ widget_ids! {
         sprite_dist_slider,
         sprite_dist_text,
         sprite_dist_value,
+        figure_dist_slider,
+        figure_dist_text,
+        figure_dist_value,
         max_fps_slider,
         max_fps_text,
         max_fps_value,
@@ -216,6 +219,7 @@ pub enum Event {
     ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustSpriteRenderDistance(u32),
+    AdjustFigureLoDRenderDistance(u32),
     AdjustFOV(u16),
     AdjustLodDetail(u32),
     AdjustGamma(f32),
@@ -1250,7 +1254,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .right_from(state.ids.mouse_zoom_invert_button, 175.0)
+            .right_from(state.ids.mouse_zoom_invert_label, 10.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.mouse_y_invert_button, ui);
@@ -1280,7 +1284,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .right_from(state.ids.mouse_y_invert_button, 175.0)
+            .right_from(state.ids.mouse_y_invert_label, 10.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.smooth_pan_toggle_button, ui);
@@ -1695,6 +1699,50 @@ impl<'a> Widget for SettingsWindow<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.sprite_dist_value, ui);
+            // Figure VD
+            if let Some(new_val) = ImageSlider::discrete(
+                self.global_state
+                    .settings
+                    .graphics
+                    .figure_lod_render_distance,
+                50,
+                500,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .right_from(state.ids.sprite_dist_slider, 50.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.figure_dist_slider, ui)
+            {
+                events.push(Event::AdjustFigureLoDRenderDistance(new_val));
+            }
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.figures_view_distance"),
+            )
+            .up_from(state.ids.figure_dist_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.figure_dist_text, ui);
+
+            Text::new(&format!(
+                "{}",
+                self.global_state
+                    .settings
+                    .graphics
+                    .figure_lod_render_distance
+            ))
+            .right_from(state.ids.figure_dist_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.figure_dist_value, ui);
+
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
                 .down_from(state.ids.gamma_slider, 8.0)
