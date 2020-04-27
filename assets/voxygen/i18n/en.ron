@@ -377,7 +377,8 @@ magically infused items?"#,
         "gameinput.freelook": "Free Look",
         "gameinput.autowalk": "Auto Walk",
         "gameinput.dance": "Dance",
-
+        "gameinput.select": "Select Entity",
+        
         /// End GameInput section
 
 

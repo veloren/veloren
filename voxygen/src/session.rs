@@ -52,6 +52,8 @@ pub struct SessionState {
     free_look: bool,
     auto_walk: bool,
     is_aiming: bool,
+    target_entity: Option<specs::Entity>,
+    selected_entity: Option<specs::Entity>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -86,6 +88,8 @@ impl SessionState {
             free_look: false,
             auto_walk: false,
             is_aiming: false,
+            target_entity: None,
+            selected_entity: None,
         }
     }
 
@@ -234,7 +238,7 @@ impl PlayState for SessionState {
             let (build_pos, select_pos, target_entity) =
                 under_cursor(&self.client.borrow(), cam_pos, cam_dir);
             // Throw out distance info, it will be useful in the future
-            let target_entity = target_entity.map(|x| x.0);
+            self.target_entity = target_entity.map(|x| x.0);
 
             let can_build = self
                 .client
@@ -527,6 +531,11 @@ impl PlayState for SessionState {
                         let camera = self.scene.camera_mut();
                         camera.next_mode(self.client.borrow().is_admin());
                     },
+                    Event::InputUpdate(GameInput::Select, state) => {
+                        if !state {
+                            self.selected_entity = self.target_entity;
+                        }
+                    },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
                             self.key_state.analog_matrix.x = v;
@@ -676,7 +685,8 @@ impl PlayState for SessionState {
                         self.scene.camera().get_mode(),
                         camera::CameraMode::FirstPerson
                     ),
-                    target_entity,
+                    target_entity: self.target_entity,
+                    selected_entity: self.selected_entity,
                 },
             );
 
@@ -948,7 +958,7 @@ impl PlayState for SessionState {
                 let scene_data = SceneData {
                     state: client.state(),
                     player_entity: client.entity(),
-                    target_entity,
+                    target_entity: self.target_entity,
                     loaded_distance: client.loaded_distance(),
                     view_distance: client.view_distance().unwrap_or(1),
                     tick: client.get_tick(),
@@ -1003,6 +1013,7 @@ impl PlayState for SessionState {
             let scene_data = SceneData {
                 state: client.state(),
                 player_entity: client.entity(),
+                target_entity: self.target_entity,
                 loaded_distance: client.loaded_distance(),
                 view_distance: client.view_distance().unwrap_or(1),
                 tick: client.get_tick(),
@@ -1097,14 +1108,18 @@ fn under_cursor(
             let radius = s.map_or(1.0, |s| s.0) * b.radius() * RADIUS_SCALE;
             // Move position up from the feet
             let pos = Vec3::new(p.0.x, p.0.y, p.0.z + radius);
+            // Distance squared from camera to the entity
             let dist_sqr = pos.distance_squared(cam_pos);
             (e, pos, radius, dist_sqr)
         })
+        // Roughly filter out entities farther than ray distance
+        .filter(|(_, _, r, d_sqr)| *d_sqr <= cast_dist.powi(2) + 2.0 * cast_dist * r + r.powi(2))
         // Ignore entities intersecting the camera
         .filter(|(_, _, r, d_sqr)| *d_sqr > r.powi(2))
-        .filter(|(_, _, r, d_sqr)| *d_sqr <= cast_dist.powi(2) + 2.0 * cast_dist * r + r.powi(2))
+        // Substract sphere radius from distance to the camera
         .map(|(e, p, r, d_sqr)| (e, p, r, d_sqr.sqrt() - r))
         .collect::<Vec<_>>();
+    // Sort by distance
     nearby.sort_unstable_by(|a, b| a.3.partial_cmp(&b.3).unwrap());
 
     let seg_ray = LineSegment3 {
@@ -1115,6 +1130,7 @@ fn under_cursor(
     let target_entity = nearby
         .iter()
         .map(|(e, p, r, _)| (e, *p, r))
+        // Find first one that intersects the ray segment
         .find(|(_, p, r)| seg_ray.projected_point(*p).distance_squared(*p) < r.powi(2))
         .and_then(|(e, p, r)| {
             let dist_to_player = p.distance(player_pos);

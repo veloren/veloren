@@ -996,7 +996,6 @@ impl Client {
                         // the view distance
                         match change_notification {
                             Added(uid) => {
-                                warn!("message to add: {}", uid);
                                 if !self.group_members.insert(uid) {
                                     warn!(
                                         "Received msg to add uid {} to the group members but they \
