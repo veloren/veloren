@@ -123,7 +123,7 @@ vec3 get_moon_color(vec3 moon_dir) {
 
 // Returns computed maximum intensity.
 float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-	const float SUN_AMBIANCE = 0.23 / 3.0;/* / 1.8*/;// 0.1 / 3.0;
+	const float SUN_AMBIANCE = 0.23;/* / 1.8*/;// 0.1 / 3.0;
     const float SUN_COLOR_FACTOR = 6.0;//1.8;
 	const float MOON_AMBIANCE = 0.23;//0.1;
 

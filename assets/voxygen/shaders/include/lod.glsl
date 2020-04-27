@@ -5,6 +5,8 @@
 uniform sampler2D t_map;
 uniform sampler2D t_horizon;
 
+const float MIN_SHADOW = 0.33;
+
 vec2 pos_to_uv(sampler2D sampler, vec2 pos) {
     // Want: (pixel + 0.5) / W
     vec2 texSize = textureSize(sampler, 0);

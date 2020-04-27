@@ -152,6 +152,7 @@ void main() {
     float max_light = 0.0;
     max_light += get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, emitted_light, reflected_light);
     // emitted_light = vec3(1.0);
+    emitted_light *= max(shade_frac, MIN_SHADOW);
     reflected_light *= shade_frac;
     max_light *= shade_frac;
     // reflected_light = vec3(0.0);

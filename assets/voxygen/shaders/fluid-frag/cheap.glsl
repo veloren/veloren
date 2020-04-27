@@ -79,7 +79,7 @@ void main() {
     float max_light = 0.0;
     max_light += get_sun_diffuse2(f_norm, /*time_of_day.x*/sun_dir, moon_dir, /*-cam_to_frag*/view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(0.0), k_s, alpha, emitted_light, reflected_light);
     reflected_light *= f_light * point_shadow * shade_frac;
-    emitted_light *= f_light * point_shadow;
+    emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     max_light *= f_light * point_shadow * shade_frac;
 	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 0.0);
 	// diffuse_light *= f_light * point_shadow;
