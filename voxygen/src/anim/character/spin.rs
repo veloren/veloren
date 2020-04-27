@@ -56,15 +56,14 @@ impl Animation for SpinAnimation {
                     * Quaternion::rotation_z(1.4 + spin * 0.1);
                 next.control.scale = Vec3::one();
                 next.head.offset = Vec3::new(
-                    0.0 + skeleton_attr.neck_right,
-                    -2.0 + skeleton_attr.neck_forward + spin * -0.8,
-                    skeleton_attr.neck_height + 14.0,
+                    0.0,
+                    -2.0 + skeleton_attr.head.0 + spin * -0.8,
+                    skeleton_attr.head.1,
                 );
                 next.head.ori = Quaternion::rotation_z(spin * -0.25)
                     * Quaternion::rotation_x(0.0 + spin * -0.1)
                     * Quaternion::rotation_y(spin * -0.2);
-                next.head.scale = Vec3::one() * skeleton_attr.head_scale;
-                next.chest.offset = Vec3::new(0.0, 0.0, 7.0);
+                next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1);
                 next.chest.ori = Quaternion::rotation_z(spin * 0.1)
                     * Quaternion::rotation_x(0.0 + spin * 0.1)
                     * Quaternion::rotation_y(decel * -0.2);
@@ -106,7 +105,11 @@ impl Animation for SpinAnimation {
         next.glider.ori = Quaternion::rotation_y(0.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        next.lantern.offset = Vec3::new(-5.0, 2.5, 5.5);
+        next.lantern.offset = Vec3::new(
+            skeleton_attr.lantern.0,
+            skeleton_attr.lantern.1,
+            skeleton_attr.lantern.2,
+        );
         next.lantern.ori =
             Quaternion::rotation_x(spin * -0.7 + 0.4) * Quaternion::rotation_y(spin * 0.4);
         next.lantern.scale = Vec3::one() * 0.65;
