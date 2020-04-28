@@ -114,15 +114,15 @@
     (Eagle, Male): (
         head: (
             offset: (-2.0, -2.0, -3.5),
-            center: ("npc.eagle.female.head"),
+            center: ("npc.eagle.male.head"),
         ),
         torso: (
             offset: (-3.0, -4.5, -4.5),
-            center: ("npc.eagle.female.torso"),
+            center: ("npc.eagle.male.torso"),
         ),
         tail: (
             offset: (-2.0, -3.5, -3.5),
-            center: ("npc.eagle.female.tail"),
+            center: ("npc.eagle.male.tail"),
         )
     ),
     (Eagle, Female): (
@@ -139,5 +139,60 @@
             center: ("npc.eagle.female.tail"),
         )
     ),
+    (Snowyowl, Male): (
+        head: (
+            offset: (-3.5, -4.5, -4.0),
+            center: ("npc.snowyowl.male.head"),
+        ),
+        torso: (
+            offset: (-3.5, -5.0, -3.0),
+            center: ("npc.snowyowl.male.torso"),
+        ),
+        tail: (
+            offset: (-2.5, -3.0, -2.0),
+            center: ("npc.snowyowl.male.tail"),
+        )
+    ),
+    (Snowyowl, Female): (
+        head: (
+            offset: (-3.5, -4.5, -4.0),
+            center: ("npc.snowyowl.female.head"),
+        ),
+        torso: (
+            offset: (-3.5, -5.0, -3.0),
+            center: ("npc.snowyowl.female.torso"),
+        ),
+        tail: (
+            offset: (-2.5, -3.0, -2.0),
+            center: ("npc.snowyowl.female.tail"),
+        )
+    ),
+    (Parrot, Male): (
+        head: (
+            offset: (-1.5, -1.5, -2.5),
+            center: ("npc.parrot.male.head"),
+        ),
+        torso: (
+            offset: (-1.5, -3.5, -3.5),
+            center: ("npc.parrot.male.torso"),
+        ),
+        tail: (
+            offset: (-1.5, -4.5, -1.5),
+            center: ("npc.parrot.male.tail"),
+        )
+    ),
+    (Parrot, Female): (
+        head: (
+            offset: (-1.5, -1.5, -2.5),
+            center: ("npc.parrot.female.head"),
+        ),
+        torso: (
+            offset: (-1.5, -3.5, -3.5),
+            center: ("npc.parrot.female.torso"),
+        ),
+        tail: (
+            offset: (-1.5, -4.5, -1.5),
+            center: ("npc.parrot.female.tail"),
+        )
+    ),
 })
-
