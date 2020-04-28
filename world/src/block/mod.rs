@@ -538,7 +538,6 @@ impl StructureInfo {
                     .and_then(|b| {
                         block_from_structure(
                             *b,
-                            volume.default_kind(),
                             block_pos,
                             self.pos.into(),
                             self.seed,
@@ -552,11 +551,10 @@ impl StructureInfo {
 
 pub fn block_from_structure(
     sblock: StructureBlock,
-    default_kind: BlockKind,
     pos: Vec3<i32>,
     structure_pos: Vec2<i32>,
     structure_seed: u32,
-    _sample: &ColumnSample,
+    sample: &ColumnSample,
 ) -> Option<Block> {
     let field = RandomField::new(structure_seed + 0);
 
@@ -565,6 +563,7 @@ pub fn block_from_structure(
 
     match sblock {
         StructureBlock::None => None,
+        StructureBlock::Grass => Some(Block::new(BlockKind::Normal, sample.surface_color.map(|e| (e * 255.0) as u8))),
         StructureBlock::TemperateLeaves => Some(Block::new(
             BlockKind::Leaves,
             Lerp::lerp(
@@ -639,7 +638,7 @@ pub fn block_from_structure(
         )),
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Normal(color) => {
-            Some(Block::new(default_kind, color)).filter(|block| !block.is_empty())
+            Some(Block::new(BlockKind::Normal, color)).filter(|block| !block.is_empty())
         },
     }
 }
