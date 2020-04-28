@@ -95,16 +95,16 @@ impl Civs {
 
         // Flatten ground around sites
         for site in this.sites.iter() {
-            if let SiteKind::Settlement = &site.kind {
-            } else {
-                continue;
-            }
-
             let radius = 48i32;
+
             let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
 
             // Flatten ground
-            let flatten_radius = 10.0;
+            let flatten_radius = match &site.kind {
+                SiteKind::Settlement => 10.0,
+                SiteKind::Dungeon => 2.0,
+            };
+
             if let Some(center_alt) = ctx.sim.get_alt_approx(wpos) {
                 for offs in Spiral2d::new().take(radius.pow(2) as usize) {
                     let center_alt = center_alt
@@ -335,7 +335,7 @@ impl Civs {
         let site = self.sites.insert(site_fn(place));
 
         // Find neighbors
-        const MAX_NEIGHBOR_DISTANCE: f32 = 250.0;
+        const MAX_NEIGHBOR_DISTANCE: f32 = 500.0;
         let mut nearby = self
             .sites
             .iter_ids()
