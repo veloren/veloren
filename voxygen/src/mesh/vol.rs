@@ -96,13 +96,14 @@ fn get_col_quad(dirs: &[Vec3<i32>], cols: &[[[Rgba<u8>; 3]; 3]; 3]) -> Vec4<Rgb<
 }
 
 // Utility function
-fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex>(
+fn create_quad<P: Pipeline, M, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32, &M) -> P::Vertex>(
     origin: Vec3<f32>,
     unit_x: Vec3<f32>,
     unit_y: Vec3<f32>,
     norm: Vec3<f32>,
     cols: Vec4<Rgb<f32>>,
     darkness_ao: Vec4<(f32, f32)>,
+    meta: &M,
     vcons: &F,
 ) -> Quad<P> {
     let darkness = darkness_ao.map(|e| e.0);
@@ -112,45 +113,47 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
 
     if ao[0].min(ao[2]) < ao[1].min(ao[3]) {
         Quad::new(
-            vcons(origin + unit_y, norm, cols[3], darkness[3], ao_map[3]),
-            vcons(origin, norm, cols[0], darkness[0], ao_map[0]),
-            vcons(origin + unit_x, norm, cols[1], darkness[1], ao_map[1]),
+            vcons(origin + unit_y, norm, cols[3], darkness[3], ao_map[3], meta),
+            vcons(origin, norm, cols[0], darkness[0], ao_map[0], meta),
+            vcons(origin + unit_x, norm, cols[1], darkness[1], ao_map[1], meta),
             vcons(
                 origin + unit_x + unit_y,
                 norm,
                 cols[2],
                 darkness[2],
                 ao_map[2],
+                meta,
             ),
         )
     } else {
         Quad::new(
-            vcons(origin, norm, cols[0], darkness[0], ao_map[0]),
-            vcons(origin + unit_x, norm, cols[1], darkness[1], ao_map[1]),
+            vcons(origin, norm, cols[0], darkness[0], ao_map[0], meta),
+            vcons(origin + unit_x, norm, cols[1], darkness[1], ao_map[1], meta),
             vcons(
                 origin + unit_x + unit_y,
                 norm,
                 cols[2],
                 darkness[2],
                 ao_map[2],
+                meta,
             ),
-            vcons(origin + unit_y, norm, cols[3], darkness[3], ao_map[3]),
+            vcons(origin + unit_y, norm, cols[3], darkness[3], ao_map[3], meta),
         )
     }
 }
 
-pub fn push_vox_verts<P: Pipeline>(
+pub fn push_vox_verts<P: Pipeline, M>(
     mesh: &mut Mesh<P>,
-    faces: [bool; 6],
+    faces: [Option<M>; 6],
     offs: Vec3<f32>,
     cols: &[[[Rgba<u8>; 3]; 3]; 3],
-    vcons: impl Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
+    vcons: impl Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32, &M) -> P::Vertex,
     darknesses: &[[[Option<f32>; 3]; 3]; 3],
 ) {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
 
     // -x
-    if faces[0] {
+    if let Some(meta) = &faces[0] {
         mesh.push_quad(create_quad(
             offs,
             Vec3::unit_z(),
@@ -158,11 +161,12 @@ pub fn push_vox_verts<P: Pipeline>(
             -Vec3::unit_x(),
             get_col_quad(&[-z, -y, z, y, -z], cols),
             get_ao_quad(-Vec3::unit_x(), &[-z, -y, z, y, -z], darknesses),
+            meta,
             &vcons,
         ));
     }
     // +x
-    if faces[1] {
+    if let Some(meta) = &faces[1] {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_x(),
             Vec3::unit_y(),
@@ -170,11 +174,12 @@ pub fn push_vox_verts<P: Pipeline>(
             Vec3::unit_x(),
             get_col_quad(&[-y, -z, y, z, -y], cols),
             get_ao_quad(Vec3::unit_x(), &[-y, -z, y, z, -y], darknesses),
+            meta,
             &vcons,
         ));
     }
     // -y
-    if faces[2] {
+    if let Some(meta) = &faces[2] {
         mesh.push_quad(create_quad(
             offs,
             Vec3::unit_x(),
@@ -182,11 +187,12 @@ pub fn push_vox_verts<P: Pipeline>(
             -Vec3::unit_y(),
             get_col_quad(&[-x, -z, x, z, -x], cols),
             get_ao_quad(-Vec3::unit_y(), &[-x, -z, x, z, -x], darknesses),
+            meta,
             &vcons,
         ));
     }
     // +y
-    if faces[3] {
+    if let Some(meta) = &faces[3] {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_y(),
             Vec3::unit_z(),
@@ -194,11 +200,12 @@ pub fn push_vox_verts<P: Pipeline>(
             Vec3::unit_y(),
             get_col_quad(&[-z, -x, z, x, -z], cols),
             get_ao_quad(Vec3::unit_y(), &[-z, -x, z, x, -z], darknesses),
+            meta,
             &vcons,
         ));
     }
     // -z
-    if faces[4] {
+    if let Some(meta) = &faces[4] {
         mesh.push_quad(create_quad(
             offs,
             Vec3::unit_y(),
@@ -206,11 +213,12 @@ pub fn push_vox_verts<P: Pipeline>(
             -Vec3::unit_z(),
             get_col_quad(&[-y, -x, y, x, -y], cols),
             get_ao_quad(-Vec3::unit_z(), &[-y, -x, y, x, -y], darknesses),
+            meta,
             &vcons,
         ));
     }
     // +z
-    if faces[5] {
+    if let Some(meta) = &faces[5] {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_z(),
             Vec3::unit_x(),
@@ -218,6 +226,7 @@ pub fn push_vox_verts<P: Pipeline>(
             Vec3::unit_z(),
             get_col_quad(&[-x, -y, x, y, -x], cols),
             get_ao_quad(Vec3::unit_z(), &[-x, -y, x, y, -x], darknesses),
+            meta,
             &vcons,
         ));
     }

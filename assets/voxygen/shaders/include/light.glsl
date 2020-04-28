@@ -25,6 +25,41 @@ float attenuation_strength(vec3 rpos) {
 	return max(2.0 / pow(d2 + 10, 0.35) - pow(d2 / 50000.0, 0.8), 0.0);
 }
 
+// Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
+// See https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water
+const vec3 MU_WATER = vec3(0.6, 0.04, 0.01);
+
+// // Compute attenuation due to light passing through a substance that fills an area below a horizontal plane
+// // (e.g. in most cases, water below the water surface depth).
+// //
+// // wpos is the position of the point being hit.
+// // ray_dir is the reversed direction of the ray (going "out" of the point being hit).
+// // surface_alt is the estimated altitude of the horizontal surface separating the substance from air.
+// // defaultpos is the position to use in computing the distance along material at this point if there was a failure.
+// //
+// // Ideally, defaultpos is set so we can avoid branching on error.
+// float compute_attenuation_beam(vec3 wpos, vec3 ray_dir, float surface_alt, vec3 defaultpos, float attenuation_depth) {
+//     vec3 water_intersection_surface_camera = vec3(cam_pos);
+//     bool _water_intersects_surface_camera = IntersectRayPlane(f_pos, view_dir, vec3(0.0, 0.0, /*f_alt*/f_pos.z + f_light), cam_surface_dir, water_intersection_surface_camera);
+//     // Should work because we set it up so that if IntersectRayPlane returns false for camera, its default intersection point is cam_pos.
+//     float water_depth_to_camera = length(water_intersection_surface_camera - f_pos);
+//
+//     vec3 water_intersection_surface_light = f_pos;
+//     bool _light_intersects_surface_water = IntersectRayPlane(f_pos, sun_dir.z <= 0.0 ? sun_dir : moon_dir, vec3(0.0, 0.0, /*f_alt*/f_pos.z + f_light), vec3(0.0, 0.0, 1.0), water_intersection_surface_light);
+//     // Should work because we set it up so that if IntersectRayPlane returns false for light, its default intersection point is f_pos--
+//     // i.e. if a light ray can't hit the water, it shouldn't contribute to coloring at all.
+//     float water_depth_to_light = length(water_intersection_surface_light - f_pos);
+//
+//     // For ambient color, we just take the distance to the surface out of laziness.
+//     float water_depth_to_vertical = max(/*f_alt - f_pos.z*/f_light, 0.0);
+//
+//     // Color goes down with distance...
+//     // See https://en.wikipedia.org/wiki/Beer%E2%80%93Lambert_law.
+//     vec3 water_color_direct = exp(-water_attenuation * (water_depth_to_light + water_depth_to_camera));
+//     vec3 water_color_ambient = exp(-water_attenuation * (water_depth_to_vertical + water_depth_to_camera));
+//
+// }
+
 vec3 light_at(vec3 wpos, vec3 wnorm) {
 	const float LIGHT_AMBIENCE = 0.025;
 
@@ -75,7 +110,11 @@ float shadow_at(vec3 wpos, vec3 wnorm) {
 }
 
 // Returns computed maximum intensity.
-float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, inout vec3 emitted_light, inout vec3 reflected_light/*, out float shadow*/) {
+//
+// mu is the attenuation coefficient for any substance on a horizontal plane.
+// cam_attenuation is the total light attenuation due to the substance for beams between the point and the camera.
+// surface_alt is the altitude of the attenuating surface.
+float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, inout vec3 emitted_light, inout vec3 reflected_light/*, out float shadow*/) {
 	// shadow = 0.0;
     vec3 ambient_light = vec3(0.0);
     vec3 directed_light = vec3(0.0);
@@ -125,7 +164,13 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
         // light_dir = faceforward(light_dir, wnorm, light_dir);
         bool is_direct = dot(-light_dir, wnorm) > 0.0;
         // reflected_light += color * (distance_2 == 0.0 ? vec3(1.0) : light_reflection_factor(wnorm, cam_to_frag, light_dir, k_d, k_s, alpha));
-        vec3 direct_light = PI * color * strength * square_factor * light_reflection_factor(wnorm, cam_to_frag, is_direct ? light_dir : -light_dir, k_d, k_s, alpha);
+        vec3 direct_light_dir = is_direct ? light_dir : -light_dir;
+        // Compute attenuation due to fluid.
+        // Default is light_pos, so we take the whole segment length for this beam if it never intersects the surface, unlesss the beam itself
+        // is above the surface, in which case we take zero (wpos).
+        color *= cam_attenuation * compute_attenuation_point(wpos, -direct_light_dir, mu, surface_alt, light_pos.z < surface_alt ? light_pos : wpos);
+
+        vec3 direct_light = PI * color * strength * square_factor * light_reflection_factor(wnorm, cam_to_frag, direct_light_dir, k_d, k_s, alpha);
         directed_light += is_direct ? direct_light * square_factor : vec3(0.0);
         ambient_light += is_direct ? vec3(0.0) : direct_light * LIGHT_AMBIENCE;
 
@@ -163,4 +208,9 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec
     reflected_light += directed_light;
     emitted_light += k_a * ambient_light/* * shadow*/;// min(shadow, 1.0);
     return /*rel_luminance(ambient_light + directed_light)*/rel_luminance(max_light);//ambient_light;
+}
+
+// Same as lights_at, but with no assumed attenuation due to fluid.
+float lights_at(vec3 wpos, vec3 wnorm, vec3 cam_to_frag, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, inout vec3 emitted_light, inout vec3 reflected_light) {
+    return lights_at(wpos, wnorm, cam_to_frag, vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 }

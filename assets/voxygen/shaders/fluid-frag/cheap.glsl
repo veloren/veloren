@@ -40,6 +40,7 @@ void main() {
     vec3 view_dir = -cam_to_frag;
 	// vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
     /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
+    // /*const */vec3 water_color = srgb_to_linear(vec3(0.0, 0.25, 0.5));
 
     vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x);
@@ -112,7 +113,7 @@ void main() {
 
 	float passthrough = /*pow(*/dot(faceforward(f_norm, f_norm, cam_to_frag/*view_dir*/), -cam_to_frag/*view_dir*/)/*, 0.5)*/;
 
-    vec3 surf_color = illuminate(max_light, water_color * emitted_light, /*surf_color * */fog_color * reflected_light);
+    vec3 surf_color = illuminate(max_light, water_color * fog_color * emitted_light, /*surf_color * */water_color * reflected_light);
 	vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*//*(f_light * point_shadow + point_light)*/reflected_light_point/* * 0.25*/)), passthrough);
 
     tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);

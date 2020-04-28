@@ -207,3 +207,68 @@ float rel_luminance(vec3 rgb)
     const vec3 W = vec3(0.2126, 0.7152, 0.0722);
     return dot(rgb, W);
 }
+
+// From https://discourse.vvvv.org/t/infinite-ray-intersects-with-infinite-plane/10537
+// out of laziness.
+bool IntersectRayPlane(vec3 rayOrigin, vec3 rayDirection, vec3 posOnPlane, vec3 planeNormal, inout vec3 intersectionPoint)
+{
+  float rDotn = dot(rayDirection, planeNormal);
+
+  //parallel to plane or pointing away from plane?
+  if (rDotn < 0.0000001 )
+    return false;
+
+  float s = dot(planeNormal, (posOnPlane - rayOrigin)) / rDotn;
+
+  intersectionPoint = rayOrigin + s * rayDirection;
+
+  return true;
+}
+
+// Compute uniform attenuation due to beam passing through a substance that fills an area below a horizontal plane
+// (e.g. in most cases, water below the water surface depth) using the simplest form of the Beer-Lambert law
+// (https://en.wikipedia.org/wiki/Beer%E2%80%93Lambert_law):
+//
+// I(z) = I₀ e^(-μz)
+//
+// We compute this value, except for the initial intensity which may be multiplied out later.
+//
+// wpos is the position of the point being hit.
+// ray_dir is the reversed direction of the ray (going "out" of the point being hit).
+// mu is the attenuation coefficient for R, G, and B wavelenghts.
+// surface_alt is the estimated altitude of the horizontal surface separating the substance from air.
+// defaultpos is the position to use in computing the distance along material at this point if there was a failure.
+//
+// Ideally, defaultpos is set so we can avoid branching on error.
+vec3 compute_attenuation(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, vec3 defaultpos) {
+    // return vec3(1.0);
+    /*if (dot(mu, mu) == 0.0) {
+        return vec3(1.0);
+    }*//* else {
+        return vec3(0.0);
+    }*/
+    // return vec3(0.0);
+    vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, -1.0);
+    // vec3 surface_dir = faceforward(vec3(0.0, 0.0, 1.0), ray_dir, vec3(0.0, 0.0, 1.0));
+    bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
+    float depth = length(defaultpos - wpos);
+    return exp(-mu * depth);
+}
+
+// Same as compute_attenuation but since both point are known, set a maximum to make sure we don't exceed the length
+// from the default point.
+vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, vec3 defaultpos) {
+    // return vec3(1.0);
+    /*if (dot(mu, mu) == 0.0) {
+        return vec3(1.0);
+    }*//* else {
+        return vec3(0.0);
+    }*/
+    // return vec3(0.0);
+    vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, -1.0);
+    // vec3 surface_dir = faceforward(vec3(0.0, 0.0, 1.0), ray_dir, vec3(0.0, 0.0, 1.0));
+    float max_length = dot(defaultpos - wpos, defaultpos - wpos);
+    bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
+    float depth2 = min(max_length, dot(defaultpos - wpos, defaultpos - wpos));
+    return exp(-mu * sqrt(depth2));
+}

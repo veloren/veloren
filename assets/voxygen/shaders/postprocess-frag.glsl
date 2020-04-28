@@ -46,9 +46,9 @@ void main() {
 
 	vec4 final_color = pow(aa_color, gamma);
 
-	if (medium.x == 1u) {
+	/* if (medium.x == 1u) {
 		final_color *= vec4(0.2, 0.2, 0.8, 1.0);
-	}
+	} */
 
 	tgt_color = vec4(final_color.rgb, 1);
 }

@@ -40,14 +40,22 @@ gfx_defines! {
 }
 
 impl Vertex {
-    pub fn new(norm_bits: u32, light: u32, ao: u32, pos: Vec3<f32>, col: Rgb<f32>) -> Self {
-        const EXTRA_NEG_Z: f32 = 65536.0;
+    pub fn new(
+        norm_bits: u32,
+        light: u32,
+        ao: u32,
+        pos: Vec3<f32>,
+        col: Rgb<f32>,
+        meta: bool,
+    ) -> Self {
+        const EXTRA_NEG_Z: f32 = 32768.0;
 
         Self {
             pos_norm: 0
                 | ((pos.x as u32) & 0x003F) << 0
                 | ((pos.y as u32) & 0x003F) << 6
-                | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 17) as f32) as u32) & 0xFFFFF) << 12
+                | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
+                | if meta { 1 } else { 0 } << 28
                 | (norm_bits & 0x7) << 29,
             col_light: 0
                 | ((col.r.mul(255.0) as u32) & 0xFF) << 8

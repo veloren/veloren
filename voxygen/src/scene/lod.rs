@@ -10,12 +10,46 @@ use client::Client;
 use common::{spiral::Spiral2d, util::srgba_to_linear};
 use vek::*;
 
-pub struct Lod {
-    model: Option<(u32, Model<LodTerrainPipeline>)>,
-    locals: Consts<Locals>,
+pub struct LodData {
     pub map: Texture<LodColorFmt>,
     pub horizon: Texture<LodTextureFmt>,
     pub tgt_detail: u32,
+}
+
+pub struct Lod {
+    model: Option<(u32, Model<LodTerrainPipeline>)>,
+    locals: Consts<Locals>,
+    data: LodData,
+}
+
+impl LodData {
+    pub fn new(
+        renderer: &mut Renderer,
+        lod_base: &image::DynamicImage,
+        lod_horizon: &image::DynamicImage,
+        tgt_detail: u32,
+        border_color: gfx::texture::PackedColor,
+    ) -> Self {
+        Self {
+            map: renderer
+                .create_texture(
+                    lod_base,
+                    Some(FilterMethod::Bilinear),
+                    Some(WrapMode::Border),
+                    Some(border_color),
+                )
+                .expect("Failed to generate map texture"),
+            horizon: renderer
+                .create_texture(
+                    lod_horizon,
+                    Some(FilterMethod::Trilinear),
+                    Some(WrapMode::Border),
+                    Some([0.0, 1.0, 0.0, 1.0].into()),
+                )
+                .expect("Failed to generate map texture"),
+            tgt_detail,
+        }
+    }
 }
 
 impl Lod {
@@ -24,39 +58,31 @@ impl Lod {
         Self {
             model: None,
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
-            map: renderer
-                .create_texture(
-                    &client.lod_base,
-                    Some(FilterMethod::Bilinear),
-                    Some(WrapMode::Border),
-                    Some([water_color.r, water_color.g, water_color.b, water_color.a].into()),
-                )
-                .expect("Failed to generate map texture"),
-            horizon: renderer
-                .create_texture(
-                    &client.lod_horizon,
-                    Some(FilterMethod::Trilinear),
-                    Some(WrapMode::Border),
-                    Some([0.0, 1.0, 0.0, 1.0].into()),
-                )
-                .expect("Failed to generate map texture"),
-            tgt_detail: settings.graphics.lod_detail.max(100).min(2500),
+            data: LodData::new(
+                renderer,
+                &client.lod_base,
+                &client.lod_horizon,
+                settings.graphics.lod_detail.max(100).min(2500),
+                [water_color.r, water_color.g, water_color.b, water_color.a].into(),
+            ),
         }
     }
 
-    pub fn set_detail(&mut self, detail: u32) { self.tgt_detail = detail.max(100).min(2500); }
+    pub fn get_data(&self) -> &LodData { &self.data }
+
+    pub fn set_detail(&mut self, detail: u32) { self.data.tgt_detail = detail.max(100).min(2500); }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, _time_of_day: f64) {
         if self
             .model
             .as_ref()
-            .map(|(detail, _)| *detail != self.tgt_detail)
+            .map(|(detail, _)| *detail != self.data.tgt_detail)
             .unwrap_or(true)
         {
             self.model = Some((
-                self.tgt_detail,
+                self.data.tgt_detail,
                 renderer
-                    .create_model(&create_lod_terrain_mesh(self.tgt_detail))
+                    .create_model(&create_lod_terrain_mesh(self.data.tgt_detail))
                     .unwrap(),
             ));
         }
@@ -64,7 +90,13 @@ impl Lod {
 
     pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
         if let Some((_, model)) = self.model.as_ref() {
-            renderer.render_lod_terrain(&model, globals, &self.locals, &self.map, &self.horizon);
+            renderer.render_lod_terrain(
+                &model,
+                globals,
+                &self.locals,
+                &self.data.map,
+                &self.data.horizon,
+            );
         }
     }
 }

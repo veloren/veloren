@@ -46,7 +46,7 @@ where
                     faces_to_make(self, pos, true, |vox| vox.is_empty()),
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
-                    |origin, norm, col, light, ao| {
+                    |origin, norm, col, light, ao, _meta| {
                         FigureVertex::new(
                             origin * scale,
                             norm,
@@ -112,7 +112,7 @@ where
                     faces_to_make(self, pos, true, |vox| vox.is_empty()),
                     offs + pos.map(|e| e as f32),
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
-                    |origin, norm, col, light, ao| {
+                    |origin, norm, col, light, ao, _meta| {
                         SpriteVertex::new(
                             origin * scale,
                             norm,
@@ -150,12 +150,14 @@ fn faces_to_make<V: ReadVol>(
     pos: Vec3<i32>,
     error_makes_face: bool,
     should_add: impl Fn(&V::Vox) -> bool,
-) -> [bool; 6] {
+) -> [Option<()>; 6] {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
     let make_face = |offset| {
-        seg.get(pos + offset)
+        let res = seg
+            .get(pos + offset)
             .map(|v| should_add(v))
-            .unwrap_or(error_makes_face)
+            .unwrap_or(error_makes_face);
+        if res { Some(()) } else { None }
     };
     [
         make_face(-x),

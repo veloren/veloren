@@ -1,13 +1,14 @@
 #include <random.glsl>
 #include <srgb.glsl>
 #include <cloud.glsl>
+#include <srgb.glsl>
 
 const float PI = 3.141592;
 
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.2, 1.0, 1.0);
+const vec3 DAY_LIGHT   = vec3(1.0, 1.0, 1.0);
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
@@ -19,8 +20,13 @@ const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.0);
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
 const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.004, 0.004);
-const vec3 NIGHT_LIGHT   = vec3(0.002, 0.01, 0.03);
+const vec3 NIGHT_LIGHT   = vec3(0.002, 0.02, 0.02);
 // const vec3 NIGHT_LIGHT   = vec3(0.0, 0.0, 0.0);
+
+// Linear RGB, scattering coefficients for atmosphere at roughly R, G, B wavelengths.
+//
+// See https://en.wikipedia.org/wiki/Diffuse_sky_radiation
+const vec3 MU_SCATTER = vec3(0.05, 0.10, 0.23);
 
 const float SUN_COLOR_FACTOR = 6.0;//1.8;
 
@@ -48,7 +54,7 @@ vec3 get_moon_dir(float time_of_day) {
 	return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 }
 
-const float PERSISTENT_AMBIANCE = 0.00125; // 0.1;// 0.025; // 0.1;
+const float PERSISTENT_AMBIANCE = 1.0 / 512;// 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
 
 float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0) * 0.9;
@@ -124,9 +130,14 @@ vec3 get_moon_color(vec3 moon_dir) {
 // }
 
 // Returns computed maximum intensity.
-float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-	const float SUN_AMBIANCE = 0.23;/* / 1.8*/;// 0.1 / 3.0;
-	const float MOON_AMBIANCE = 0.23;//0.1;
+//
+// wpos is the position of this fragment.
+// mu is the attenuation coefficient for any substance on a horizontal plane.
+// cam_attenuation is the total light attenuation due to the substance for beams between the point and the camera.
+// surface_alt is the altitude of the attenuating surface.
+float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wpos, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
+	const vec3 SUN_AMBIANCE = MU_SCATTER;//0.23;/* / 1.8*/;// 0.1 / 3.0;
+	const vec3 MOON_AMBIANCE = MU_SCATTER;//0.23;//0.1;
 
 	float sun_light = get_sun_brightness(sun_dir);
 	float moon_light = get_moon_brightness(moon_dir);
@@ -134,8 +145,12 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
 	vec3 sun_color = get_sun_color(sun_dir) * SUN_COLOR_FACTOR;
 	vec3 moon_color = get_moon_color(moon_dir);
 
-	vec3 sun_chroma = sun_color * sun_light;
-	vec3 moon_chroma = moon_color * moon_light;
+    // If the sun is facing the wrong way, we currently just want zero light, hence default point is wpos.
+    vec3 sun_attenuation = compute_attenuation(wpos, -sun_dir, mu, surface_alt, wpos);
+    vec3 moon_attenuation = compute_attenuation(wpos, -moon_dir, mu, surface_alt, wpos);
+
+	vec3 sun_chroma = sun_color * sun_light * cam_attenuation * sun_attenuation;
+	vec3 moon_chroma = moon_color * moon_light * cam_attenuation * moon_attenuation;
 
     // https://en.m.wikipedia.org/wiki/Diffuse_sky_radiation
     //
@@ -256,9 +271,12 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_
 		moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
 		PERSISTENT_AMBIANCE;
 	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
-    return 0.0;//rel_luminance(emitted_light + reflected_light);//sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
+    return rel_luminance(emitted_light + reflected_light);//rel_luminance(emitted_light + reflected_light);//sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 }
 
+float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
+    return get_sun_diffuse2(norm, sun_dir, moon_dir, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+}
 
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
@@ -399,8 +417,8 @@ vec3 illuminate(float max_light, /*vec3 max_light, */vec3 emitted, vec3 reflecte
     const float DUSK_EXPOSURE = 2.0;//0.8;
     const float DAY_EXPOSURE = 1.0;//0.7;
 
-    const float DAY_SATURATION = 1.0;
-    const float DUSK_SATURATION = 0.5;
+    const float DAY_SATURATION = 1.1;
+    const float DUSK_SATURATION = 0.6;
     const float NIGHT_SATURATION = 0.1;
 
     const float gamma = /*0.5*//*1.*0*/1.0;//1.0;

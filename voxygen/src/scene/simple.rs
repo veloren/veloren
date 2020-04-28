@@ -12,12 +12,10 @@ use crate::{
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{load_mesh, FigureModelCache, FigureState},
-        Lod,
+        LodData,
     },
-    settings::Settings,
     window::{Event, PressState},
 };
-use client::Client;
 use common::{
     comp::{humanoid, Body, Loadout},
     figure::Segment,
@@ -67,7 +65,7 @@ pub struct Scene {
 
     skybox: Skybox,
     postprocess: PostProcess,
-    lod: Lod,
+    lod: LodData,
     map_bounds: Vec2<f32>,
     backdrop: Option<(Model<FigurePipeline>, FigureState<FixtureSkeleton>)>,
 
@@ -89,14 +87,22 @@ pub struct SceneData {
 }
 
 impl Scene {
-    pub fn new(
-        renderer: &mut Renderer,
-        client: &Client,
-        settings: &Settings,
-        backdrop: Option<&str>,
-    ) -> Self {
+    pub fn new(renderer: &mut Renderer, backdrop: Option<&str>) -> Self {
         let start_angle = 90.0f32.to_radians();
         let resolution = renderer.get_resolution().map(|e| e as f32);
+
+        let map_bounds = Vec2::new(-65536.0, 131071.0);
+        let map_border = [0.0, 0.0, 0.0, 0.0];
+        let map_image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
+            1,
+            1,
+            image::Rgba([0, 0, 0, 0]),
+        ));
+        let horizon_image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
+            1,
+            1,
+            image::Rgba([0, 1, 0, 1]),
+        ));
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
         camera.set_focus_pos(Vec3::unit_z() * 1.5);
@@ -118,8 +124,8 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
-            lod: Lod::new(renderer, client, settings),
-            map_bounds: client.world_map.2,
+            lod: LodData::new(renderer, &map_image, &horizon_image, 1, map_border.into()),// Lod::new(renderer, client, settings),
+            map_bounds,//: client.world_map.2,
 
             figure_model_cache: FigureModelCache::new(),
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),

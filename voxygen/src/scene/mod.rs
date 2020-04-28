@@ -7,7 +7,7 @@ pub mod terrain;
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
-    lod::Lod,
+    lod::{Lod, LodData},
     terrain::Terrain,
 };
 use crate::{
@@ -352,7 +352,7 @@ impl Scene {
                 cam_pos,
                 self.camera.get_focus_pos(),
                 self.loaded_distance,
-                self.lod.tgt_detail as f32,
+                self.lod.get_data().tgt_detail as f32,
                 self.map_bounds,
                 scene_data.state.get_time_of_day(),
                 scene_data.state.get_time(),
@@ -413,7 +413,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
-            &self.lod,
+            self.lod.get_data(),
             self.camera.get_focus_pos(),
         );
         self.figure_mgr.render(
@@ -424,7 +424,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
-            &self.lod,
+            self.lod.get_data(),
             &self.camera,
             scene_data.figure_lod_render_distance,
         );
@@ -441,7 +441,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
-            &self.lod,
+            self.lod.get_data(),
             &self.camera,
             scene_data.figure_lod_render_distance,
         );
@@ -451,7 +451,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
-            &self.lod,
+            self.lod.get_data(),
             self.camera.get_focus_pos(),
             scene_data.sprite_render_distance,
         );

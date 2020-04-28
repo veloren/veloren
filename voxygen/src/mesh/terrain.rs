@@ -395,10 +395,16 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                     if block.map_or(false, |vox| vox.is_opaque()) {
                         vol::push_vox_verts(
                             &mut opaque_mesh, //selected_opaque_mesh,
-                            faces_to_make(&blocks, false, |vox| !vox.is_opaque()),
+                            faces_to_make(&blocks, None, |vox| {
+                                if vox.is_opaque() {
+                                    None
+                                } else {
+                                    Some(vox.is_fluid())
+                                }
+                            }),
                             offs,
                             &colors,
-                            |pos, norm, col, light, ao| {
+                            |pos, norm, col, light, ao, &meta| {
                                 //let light = (light.min(ao) * 255.0) as u32;
                                 let light = (light * 255.0) as u32;
                                 let ao = (ao * 255.0) as u32;
@@ -409,17 +415,33 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                                 } else {
                                     if norm.z < 0.0 { 4 } else { 5 }
                                 };
-                                TerrainVertex::new(norm, light, ao, pos, col)
+                                TerrainVertex::new(norm, light, ao, pos, col, meta)
                             },
                             &lights,
                         );
                     } else if block.map_or(false, |vox| vox.is_fluid()) {
                         vol::push_vox_verts(
                             &mut fluid_mesh,
-                            faces_to_make(&blocks, true, |vox| vox.is_air()),
+                            // NOTE: want to skip blocks that aren't either next to air, or next to
+                            // opaque blocks like ground.  Addnig the blocks next to ground lets us
+                            // make sure we compute lighting effects both at the water surface, and
+                            // just before hitting the ground.
+                            faces_to_make(&blocks, Some(()), |vox| {
+                                if vox.is_air() { Some(()) } else { None }
+                            }),
                             offs,
                             &colors,
-                            |pos, norm, col, light, _ao| {
+                            |pos, norm, col, light, _ao, _meta| {
+                                /* let rel_pos = pos - offs;
+                                let rel_vox_pos = if rel_pos == offs {
+                                    rel_pos + norm + 1.0
+                                } else {
+                                    rel_pos + 1.0
+                                }.map(|e| e as usize);
+                                let vox_neighbor = blocks[rel_vox_pos.z][rel_vox_pos.y][rel_vox_pos.x];
+                                if vox_neighbor.is_opaque() {
+                                } else {
+                                } */
                                 FluidVertex::new(pos, norm, col, light, 0.3)
                             },
                             &lights,
@@ -450,13 +472,17 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
 /// Unlike the one in segments.rs this uses a provided array of blocks instead
 /// of retrieving from a volume
 /// blocks[z][y][x]
-fn faces_to_make(
+fn faces_to_make<M: Clone>(
     blocks: &[[[Option<Block>; 3]; 3]; 3],
-    error_makes_face: bool,
-    should_add: impl Fn(Block) -> bool,
-) -> [bool; 6] {
+    error_makes_face: Option<M>,
+    should_add: impl Fn(Block) -> Option<M>,
+) -> [Option<M>; 6] {
     // Faces to draw
-    let make_face = |opt_v: Option<Block>| opt_v.map(|v| should_add(v)).unwrap_or(error_makes_face);
+    let make_face = |opt_v: Option<Block>| {
+        opt_v
+            .map(|v| should_add(v))
+            .unwrap_or(error_makes_face.clone())
+    };
     [
         make_face(blocks[1][1][0]),
         make_face(blocks[1][1][2]),

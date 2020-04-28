@@ -28,6 +28,8 @@ void main() {
 	uint norm_dir = ((f_pos_norm >> 29) & 0x1u) * 3u;
 	// Use an array to avoid conditional branching
 	vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
+    // Whether this face is facing fluid or not.
+    bool faces_fluid = bool((f_pos_norm >> 28) & 0x1u);
 
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     // vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
@@ -61,23 +63,31 @@ void main() {
     const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
     const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
     const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
-    float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
+    // float faces_fluid = faces_fluid && f_pos.z <= floor(f_alt);
+    float fluid_alt = max(ceil(f_pos.z), floor(f_alt));
+    float R_s = /*(f_pos.z < f_alt)*/faces_fluid /*&& f_pos.z <= fluid_alt*/ ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
     vec3 k_a = vec3(1.0);
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
     float max_light = 0.0;
 
+    // Compute attenuation due to water from the camera.
+    vec3 mu = faces_fluid/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
+    // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
+    vec3 cam_attenuation = compute_attenuation_point(f_pos, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
+
+    // Computing light attenuation from water.
     vec3 emitted_light, reflected_light;
     // To account for prior saturation
     float f_light = pow(f_light, 1.5);
     float point_shadow = shadow_at(f_pos, f_norm);
-    max_light += get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
 
     emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     reflected_light *= f_light * point_shadow * shade_frac;
     max_light *= f_light * point_shadow * shade_frac;
 
-    max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
 	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.9 + 0.1;
 	emitted_light *= ao;

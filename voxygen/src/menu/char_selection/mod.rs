@@ -25,8 +25,6 @@ impl CharSelectionState {
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         let scene = Scene::new(
             global_state.window.renderer_mut(),
-            &client.borrow(),
-            &global_state.settings,
             Some("fixture.selection_bg"),
         );
         Self {

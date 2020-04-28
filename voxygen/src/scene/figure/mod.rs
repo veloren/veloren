@@ -16,7 +16,7 @@ use crate::{
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::{
         camera::{Camera, CameraMode},
-        Lod, SceneData,
+        LodData, SceneData,
     },
 };
 use common::{
@@ -1499,7 +1499,7 @@ impl FigureMgr {
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
-        lod: &Lod,
+        lod: &LodData,
         camera: &Camera,
         figure_lod_render_distance: f32,
     ) {
@@ -1553,7 +1553,7 @@ impl FigureMgr {
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
-        lod: &Lod,
+        lod: &LodData,
         camera: &Camera,
         figure_lod_render_distance: f32,
     ) {
@@ -1602,7 +1602,7 @@ impl FigureMgr {
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
-        lod: &Lod,
+        lod: &LodData,
         camera: &Camera,
         character_state: Option<&CharacterState>,
         entity: EcsEntity,

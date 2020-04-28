@@ -22,10 +22,10 @@ out vec3 f_col;
 out float f_light;
 out float f_ao;
 
-const int EXTRA_NEG_Z = 65536;
+const int EXTRA_NEG_Z = 32768;
 
 void main() {
-	f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0x1FFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+	f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
 	f_pos = f_chunk_pos + model_offs;
 
 	f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
@@ -39,7 +39,7 @@ void main() {
 	f_pos_norm = v_pos_norm;
 
     // Also precalculate shadow texture and estimated terrain altitude.
-    f_alt = alt_at(f_pos.xy);
+    f_alt = alt_at_real(f_pos.xy);
     f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
 	gl_Position =
