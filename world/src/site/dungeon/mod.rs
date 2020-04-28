@@ -1,10 +1,10 @@
 use super::SpawnRules;
 use crate::{
+    block::block_from_structure,
     column::ColumnSample,
     sim::WorldSim,
     site::BlockMask,
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
-    block::block_from_structure,
 };
 use common::{
     assets,
@@ -12,12 +12,12 @@ use common::{
     comp,
     generation::{ChunkSupplement, EntityInfo},
     store::{Id, Store},
-    terrain::{Block, BlockKind, TerrainChunkSize, Structure},
+    terrain::{Block, BlockKind, Structure, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use std::{sync::Arc, f32};
+use std::{f32, sync::Arc};
 use vek::*;
 
 impl WorldSim {
@@ -47,13 +47,13 @@ pub struct GenCtx<'a, R: Rng> {
     rng: &'a mut R,
 }
 
-const ALT_OFFSET: i32 = 2;
+const ALT_OFFSET: i32 = -2;
 
 impl Dungeon {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
         let this = Self {
-            origin: wpos,
+            origin: wpos - TILE_SIZE / 2,
             alt: ctx
                 .sim
                 .and_then(|sim| sim.get_alt_approx(wpos))
@@ -91,7 +91,8 @@ impl Dungeon {
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
         lazy_static! {
-            pub static ref ENTRANCES: Vec<Arc<Structure>> = Structure::load_group("dungeon_entrances");
+            pub static ref ENTRANCES: Vec<Arc<Structure>> =
+                Structure::load_group("dungeon_entrances");
         }
 
         let entrance = &ENTRANCES[self.seed as usize % ENTRANCES.len()];
@@ -107,7 +108,7 @@ impl Dungeon {
                 let col_sample = if let Some(col) = get_column(offs) {
                     col
                 } else {
-                    continue
+                    continue;
                 };
                 for z in entrance.get_bounds().min.z..entrance.get_bounds().max.z {
                     let wpos = Vec3::new(offs.x, offs.y, self.alt + z + ALT_OFFSET);
@@ -116,7 +117,9 @@ impl Dungeon {
                         .get(spos)
                         .ok()
                         .copied()
-                        .map(|sb| block_from_structure(sb, spos, self.origin, self.seed, col_sample))
+                        .map(|sb| {
+                            block_from_structure(sb, spos, self.origin, self.seed, col_sample)
+                        })
                         .unwrap_or(None)
                     {
                         let _ = vol.set(wpos, block);
