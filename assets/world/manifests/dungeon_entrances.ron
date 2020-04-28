@@ -1,6 +1,5 @@
 (
-    [
-        (
+    [     (
             specifier: "world.structure.dungeon.jungle_temple.entrance.1",
             center: (50, 40, 10)
         ),
@@ -35,11 +34,15 @@
         (
             specifier: "world.structure.dungeon.pillar_entrance.6",
             center: (18, 16, 17)
+        ),                
+        (
+            specifier: "world.structure.dungeon.temperate_entrance.ruins_4",
+         center: (13, 11, 14)
         ),
-        // Pfau's dungeon entrance
-        //(
-        //    specifier: "world.structure.dungeon.entrance.1",
-        //    center: (13, 11, 12)
-        //),
+        (
+            specifier: "world.structure.dungeon.misc_entrance.tower-ruin",
+         center: (13, 16, 9)
+        ),
+
     ]
 )
