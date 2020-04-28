@@ -447,4 +447,41 @@
             lateral: ("npc.holladon.female.foot_br"),
         ),
     ),
+    (Hyena, Male): (
+        left_front: (
+            offset: (-1.5, -2.0, -5.0),
+            lateral: ("npc.hyena.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.5, -2.0, -5.0),
+            lateral: ("npc.hyena.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.5, -2.0, -4.5),
+            lateral: ("npc.hyena.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-1.5, -2.0, -4.5),
+            lateral: ("npc.hyena.male.foot_br"),
+        ),
+    ),
+
+    (Hyena, Female): (
+        left_front: (
+            offset: (-1.5, -2.0, -5.0),
+            lateral: ("npc.hyena.female.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.5, -2.0, -5.0),
+            lateral: ("npc.hyena.female.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.5, -2.0, -4.5),
+            lateral: ("npc.hyena.female.foot_bl"),
+        ),
+        right_back: (
+            offset: (-1.5, -2.0, -4.5),
+            lateral: ("npc.hyena.female.foot_br"),
+        ),
+    ),
 })
