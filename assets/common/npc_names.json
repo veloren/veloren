@@ -433,6 +433,10 @@
             "holladon": {
                 "keyword": "holladon",
                 "generic": "Holladon"
+            },
+            "hyena": {
+                "keyword": "hyena",
+                "generic": "Hyena"
             }
         }
     },
@@ -463,6 +467,14 @@
             "eagle": {
                 "keyword": "eagle",
                 "generic": "Eagle"
+            },
+            "snowyowl": {
+                "keyword": "snowyowl",
+                "generic": "Snowy Owl"
+            },
+            "parrot": {
+                "keyword": "parrot",
+                "generic": "Parrot"
             }
         }
     },
