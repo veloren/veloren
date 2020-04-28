@@ -104,6 +104,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Quokka, _) => (10.0, 10.0),
                 (Dodarock, _) => (8.0, 9.0),
                 (Holladon, _) => (8.0, 8.0),
+                (Hyena, _) => (7.5, 13.0),
             },
             chest: match (body.species, body.body_type) {
                 (Pig, _) => (0.0, 8.0),
@@ -118,6 +119,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Quokka, _) => (2.0, 8.0),
                 (Dodarock, _) => (-2.0, 8.0),
                 (Holladon, _) => (-2.0, 6.0),
+                (Hyena, _) => (-2.0, 9.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Pig, _) => (3.0, 5.0, 2.0),
@@ -132,6 +134,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Quokka, _) => (3.0, 5.0, 3.0),
                 (Dodarock, _) => (3.5, 5.0, 4.0),
                 (Holladon, _) => (3.0, 5.0, 4.0),
+                (Hyena, _) => (2.5, 5.0, 6.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Pig, _) => (3.0, -2.0, 2.0),
@@ -146,6 +149,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Quokka, _) => (3.0, -4.0, 3.0),
                 (Dodarock, _) => (4.5, -3.0, 4.0),
                 (Holladon, _) => (4.0, -4.0, 3.0),
+                (Hyena, _) => (2.5, -7.0, 6.0),
             },
         }
     }
