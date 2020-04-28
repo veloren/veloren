@@ -160,10 +160,10 @@ impl Dungeon {
             let offs = Vec2::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0))
                 .try_normalized()
                 .unwrap_or(Vec2::unit_y())
-                * 16.0;
+                * 12.0;
             supplement.add_entity(
                 EntityInfo::at(
-                    Vec3::new(self.origin.x, self.origin.y, self.alt + 4).map(|e| e as f32)
+                    Vec3::new(self.origin.x, self.origin.y, self.alt + 16).map(|e| e as f32)
                         + Vec3::from(offs),
                 )
                 .into_waypoint(),
