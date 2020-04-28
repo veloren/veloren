@@ -563,7 +563,10 @@ pub fn block_from_structure(
 
     match sblock {
         StructureBlock::None => None,
-        StructureBlock::Grass => Some(Block::new(BlockKind::Normal, sample.surface_color.map(|e| (e * 255.0) as u8))),
+        StructureBlock::Grass => Some(Block::new(
+            BlockKind::Normal,
+            sample.surface_color.map(|e| (e * 255.0) as u8),
+        )),
         StructureBlock::TemperateLeaves => Some(Block::new(
             BlockKind::Leaves,
             Lerp::lerp(
