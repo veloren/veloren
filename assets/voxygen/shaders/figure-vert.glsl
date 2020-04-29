@@ -36,7 +36,7 @@ void main() {
 	uint bone_idx = (v_ao_bone >> 2) & 0x3Fu;
 	mat4 combined_mat = model_mat * bones[bone_idx].bone_mat;
 
-	vec3 pos = vec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) - 128.0;
+	vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) - 128.0) / 2.0;
 
 	f_pos = (
 		combined_mat *
