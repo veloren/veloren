@@ -1,5 +1,6 @@
 use super::SpawnRules;
 use crate::{
+    block::block_from_structure,
     column::ColumnSample,
     sim::WorldSim,
     site::BlockMask,
@@ -11,11 +12,12 @@ use common::{
     comp,
     generation::{ChunkSupplement, EntityInfo},
     store::{Id, Store},
-    terrain::{Block, BlockKind, TerrainChunkSize},
+    terrain::{Block, BlockKind, Structure, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
+use lazy_static::lazy_static;
 use rand::prelude::*;
-use std::f32;
+use std::{f32, sync::Arc};
 use vek::*;
 
 impl WorldSim {
@@ -34,6 +36,7 @@ impl WorldSim {
 pub struct Dungeon {
     origin: Vec2<i32>,
     alt: i32,
+    seed: u32,
     #[allow(dead_code)]
     noise: RandomField,
     floors: Vec<Floor>,
@@ -44,16 +47,19 @@ pub struct GenCtx<'a, R: Rng> {
     rng: &'a mut R,
 }
 
+const ALT_OFFSET: i32 = -2;
+
 impl Dungeon {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
         let this = Self {
-            origin: wpos,
+            origin: wpos - TILE_SIZE / 2,
             alt: ctx
                 .sim
                 .and_then(|sim| sim.get_alt_approx(wpos))
                 .unwrap_or(0.0) as i32
                 + 6,
+            seed: ctx.rng.gen(),
             noise: RandomField::new(ctx.rng.gen()),
             floors: (0..6)
                 .scan(Vec2::zero(), |stair_tile, level| {
@@ -71,8 +77,9 @@ impl Dungeon {
 
     pub fn radius(&self) -> f32 { 1200.0 }
 
-    pub fn spawn_rules(&self, _wpos: Vec2<i32>) -> SpawnRules {
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
+            trees: wpos.distance_squared(self.origin) > 64i32.pow(2),
             ..SpawnRules::default()
         }
     }
@@ -80,9 +87,16 @@ impl Dungeon {
     pub fn apply_to<'a>(
         &'a self,
         wpos2d: Vec2<i32>,
-        _get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+        mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
+        lazy_static! {
+            pub static ref ENTRANCES: Vec<Arc<Structure>> =
+                Structure::load_group("dungeon_entrances");
+        }
+
+        let entrance = &ENTRANCES[self.seed as usize % ENTRANCES.len()];
+
         for y in 0..vol.size_xy().y as i32 {
             for x in 0..vol.size_xy().x as i32 {
                 let offs = Vec2::new(x, y);
@@ -90,7 +104,30 @@ impl Dungeon {
                 let wpos2d = wpos2d + offs;
                 let rpos = wpos2d - self.origin;
 
-                let mut z = self.alt;
+                // Apply the dungeon entrance
+                let col_sample = if let Some(col) = get_column(offs) {
+                    col
+                } else {
+                    continue;
+                };
+                for z in entrance.get_bounds().min.z..entrance.get_bounds().max.z {
+                    let wpos = Vec3::new(offs.x, offs.y, self.alt + z + ALT_OFFSET);
+                    let spos = Vec3::new(rpos.x - TILE_SIZE / 2, rpos.y - TILE_SIZE / 2, z);
+                    if let Some(block) = entrance
+                        .get(spos)
+                        .ok()
+                        .copied()
+                        .map(|sb| {
+                            block_from_structure(sb, spos, self.origin, self.seed, col_sample)
+                        })
+                        .unwrap_or(None)
+                    {
+                        let _ = vol.set(wpos, block);
+                    }
+                }
+
+                // Apply the dungeon internals
+                let mut z = self.alt + ALT_OFFSET;
                 for floor in &self.floors {
                     z -= floor.total_depth();
 
@@ -123,17 +160,17 @@ impl Dungeon {
             let offs = Vec2::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0))
                 .try_normalized()
                 .unwrap_or(Vec2::unit_y())
-                * 16.0;
+                * 12.0;
             supplement.add_entity(
                 EntityInfo::at(
-                    Vec3::new(self.origin.x, self.origin.y, self.alt + 4).map(|e| e as f32)
+                    Vec3::new(self.origin.x, self.origin.y, self.alt + 16).map(|e| e as f32)
                         + Vec3::from(offs),
                 )
                 .into_waypoint(),
             );
         }
 
-        let mut z = self.alt;
+        let mut z = self.alt + ALT_OFFSET;
         for floor in &self.floors {
             z -= floor.total_depth();
             let origin = Vec3::new(self.origin.x, self.origin.y, z);
