@@ -36,7 +36,7 @@ void main() {
 	uint bone_idx = (v_ao_bone >> 2) & 0x3Fu;
 	mat4 combined_mat = model_mat * bones[bone_idx].bone_mat;
 
-	vec3 pos = vec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) - 128.0;
+	vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
 
 	f_pos = (
 		combined_mat *
@@ -48,7 +48,7 @@ void main() {
 
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
-	vec3 norm = normals[(v_pos_norm >> 24) & 0x7u];
+	vec3 norm = normals[(v_pos_norm >> 29) & 0x7u];
 
 	// Calculate normal here rather than for each pixel in the fragment shader
 	f_norm = normalize((
