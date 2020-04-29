@@ -5,12 +5,13 @@ use crate::{
     volumes::dyna::{Dyna, DynaError},
 };
 use dot_vox::DotVoxData;
-use std::{fs::File, io::BufReader};
+use std::{fs::File, io::BufReader, sync::Arc};
 use vek::*;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum StructureBlock {
     None,
+    Grass,
     TemperateLeaves,
     PineLeaves,
     Acacia,
@@ -50,6 +51,21 @@ pub struct Structure {
 }
 
 impl Structure {
+    pub fn load_group(specifier: &str) -> Vec<Arc<Structure>> {
+        let spec = assets::load::<StructuresSpec>(&["world.manifests.", specifier].concat());
+        return spec
+            .unwrap()
+            .0
+            .iter()
+            .map(|sp| {
+                assets::load_map(&sp.specifier[..], |s: Structure| {
+                    s.with_center(Vec3::from(sp.center))
+                })
+                .unwrap()
+            })
+            .collect();
+    }
+
     pub fn with_center(mut self, center: Vec3<i32>) -> Self {
         self.center = center;
         self
@@ -113,6 +129,7 @@ impl Asset for Structure {
                     5 => StructureBlock::Mangrove,
                     6 => StructureBlock::GreenSludge,
                     7 => StructureBlock::Fruit,
+                    8 => StructureBlock::Grass,
                     9 => StructureBlock::Liana,
                     10 => StructureBlock::Chest,
                     11 => StructureBlock::Coconut,
@@ -148,5 +165,21 @@ impl Asset for Structure {
                 default_kind: BlockKind::Normal,
             })
         }
+    }
+}
+
+#[derive(Deserialize)]
+struct StructureSpec {
+    specifier: String,
+    center: [i32; 3],
+}
+#[derive(Deserialize)]
+struct StructuresSpec(Vec<StructureSpec>);
+
+impl Asset for StructuresSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
     }
 }
