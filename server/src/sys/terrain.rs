@@ -149,23 +149,33 @@ impl<'a> System<'a> for Sys {
                     comp::Alignment::Npc => comp::Loadout {
                         active_item,
                         second_item: None,
-                        shoulder: Some(assets::load_expect_cloned(
-                            "common.items.armor.shoulder.leather_0",
-                        )),
+                        shoulder: None,
                         chest: Some(assets::load_expect_cloned(
-                            "common.items.armor.chest.leather_0",
+                            match rand::thread_rng().gen_range(0, 10) {
+                                0 => "common.items.armor.chest.worker_green_0",
+                                1 => "common.items.armor.chest.worker_green_1",
+                                2 => "common.items.armor.chest.worker_red_0",
+                                3 => "common.items.armor.chest.worker_red_1",
+                                4 => "common.items.armor.chest.worker_purple_0",
+                                5 => "common.items.armor.chest.worker_purple_1",
+                                6 => "common.items.armor.chest.worker_yellow_0",
+                                7 => "common.items.armor.chest.worker_yellow_1",
+                                8 => "common.items.armor.chest.worker_orange_0",
+                                _ => "common.items.armor.chest.worker_orange_1",
+                            },
                         )),
                         belt: Some(assets::load_expect_cloned(
-                            "common.items.armor.belt.plate_0",
+                            "common.items.armor.belt.leather_0",
                         )),
-                        hand: Some(assets::load_expect_cloned(
-                            "common.items.armor.hand.plate_0",
-                        )),
+                        hand: None,
                         pants: Some(assets::load_expect_cloned(
-                            "common.items.armor.pants.plate_green_0",
+                            "common.items.armor.pants.worker_blue_0",
                         )),
                         foot: Some(assets::load_expect_cloned(
-                            "common.items.armor.foot.leather_0",
+                            match rand::thread_rng().gen_range(0, 2) {
+                                0 => "common.items.armor.foot.leather_0",
+                                _ => "common.items.armor.starter.sandals_0",
+                            },
                         )),
                         back: None,
                         ring: None,
@@ -178,27 +188,27 @@ impl<'a> System<'a> for Sys {
                         active_item,
                         second_item: None,
                         shoulder: Some(assets::load_expect_cloned(
-                            "common.items.armor.shoulder.leather_0",
+                            "common.items.armor.shoulder.cultist_shoulder_purple",
                         )),
                         chest: Some(assets::load_expect_cloned(
-                            "common.items.armor.chest.plate_green_0",
+                            "common.items.armor.chest.cultist_chest_purple",
                         )),
                         belt: Some(assets::load_expect_cloned(
-                            "common.items.armor.belt.plate_0",
+                            "common.items.armor.belt.cultist_belt",
                         )),
                         hand: Some(assets::load_expect_cloned(
-                            "common.items.armor.hand.plate_0",
+                            "common.items.armor.hand.cultist_hands_purple",
                         )),
                         pants: Some(assets::load_expect_cloned(
-                            "common.items.armor.pants.plate_green_0",
+                            "common.items.armor.pants.cultist_legs_purple",
                         )),
                         foot: Some(assets::load_expect_cloned(
-                            "common.items.armor.foot.plate_0",
+                            "common.items.armor.foot.cultist_boots",
                         )),
                         back: None,
                         ring: None,
                         neck: None,
-                        lantern: None,
+                        lantern: Some(assets::load_expect_cloned("common.items.lantern.black_0")),
                         head: None,
                         tabard: None,
                     },
@@ -233,7 +243,7 @@ impl<'a> System<'a> for Sys {
                         body = comp::Body::Humanoid(body_new);
                         stats = comp::Stats::new(
                             format!(
-                                "Fearless Giant {}",
+                                "Gentle {} Giant",
                                 get_npc_name(&NPC_NAMES.humanoid, body_new.race)
                             ),
                             body,
@@ -242,7 +252,7 @@ impl<'a> System<'a> for Sys {
                     loadout = comp::Loadout {
                         active_item: Some(comp::ItemConfig {
                             item: assets::load_expect_cloned(
-                                "common.items.weapons.zweihander_sword_0",
+                                "common.items.weapons.sword.zweihander_sword_0",
                             ),
                             ability1: Some(CharacterAbility::BasicMelee {
                                 energy_cost: 0,

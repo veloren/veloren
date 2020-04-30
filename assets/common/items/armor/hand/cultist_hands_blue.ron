@@ -1,0 +1,8 @@
+Item(
+    name: "Blue Cultist Gloves",
+    description: "Hands\n\nArmor: 0\n\n<Right-Click to use>",
+    kind: Armor(
+        kind: Hand(CultistBlue),
+        stats: (20),
+    ),
+)

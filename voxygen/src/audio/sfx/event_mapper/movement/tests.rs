@@ -331,7 +331,7 @@ fn maps_wield_while_equipping() {
     let mut loadout = Loadout::default();
 
     loadout.active_item = Some(ItemConfig {
-        item: assets::load_expect_cloned("common.items.weapons.starter_axe"),
+        item: assets::load_expect_cloned("common.items.weapons.axe.starter_axe"),
         ability1: None,
         ability2: None,
         ability3: None,
@@ -368,7 +368,7 @@ fn maps_unwield() {
     let mut loadout = Loadout::default();
 
     loadout.active_item = Some(ItemConfig {
-        item: assets::load_expect_cloned("common.items.weapons.starter_bow"),
+        item: assets::load_expect_cloned("common.items.weapons.bow.starter_bow"),
         ability1: None,
         ability2: None,
         ability3: None,
@@ -395,7 +395,7 @@ fn maps_unwield() {
         Some(&loadout),
     );
 
-    assert_eq!(result, SfxEvent::Unwield(ToolKind::Bow(BowKind::BasicBow)));
+    assert_eq!(result, SfxEvent::Unwield(ToolKind::Bow(BowKind::ShortBow0)));
 }
 
 #[test]

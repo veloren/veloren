@@ -1,0 +1,10 @@
+Item(
+    name: "Shovel",
+    description: "",
+    kind: Tool (
+        (
+            kind: Farming(Shovel0),
+            equip_time_millis: 400,
+        )
+    ),
+)

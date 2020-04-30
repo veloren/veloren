@@ -89,7 +89,7 @@ impl Scene {
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
         camera.set_focus_pos(Vec3::unit_z() * 1.5);
-        camera.set_distance(3.0); // 4.2
+        camera.set_distance(3.4);
         camera.set_orientation(Vec3::new(0.0, 0.0, 0.0));
 
         Self {

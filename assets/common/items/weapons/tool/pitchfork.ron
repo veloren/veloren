@@ -1,0 +1,10 @@
+Item(
+    name: "Pitchfork",
+    description: "",
+    kind: Tool (
+        (
+            kind: Farming(Pitchfork),
+            equip_time_millis: 400,
+        )
+    ),
+)

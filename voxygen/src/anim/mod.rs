@@ -60,9 +60,6 @@ pub trait Skeleton: Send + Sync + 'static {
     fn interpolate(&mut self, target: &Self, dt: f32);
 }
 
-// rustc complains that `SkeletonAttr` fields are never read.
-// Pls remove when they are.
-
 pub trait Animation {
     type Skeleton: Skeleton;
     type Dependency;

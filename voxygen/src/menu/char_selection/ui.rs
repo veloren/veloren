@@ -13,7 +13,7 @@ use crate::{
 use client::Client;
 use common::{
     assets,
-    assets::load_expect,
+    assets::{load, load_expect},
     comp::{self, humanoid},
 };
 use conrod_core::{
@@ -23,14 +23,15 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
+use log::error;
 use std::sync::Arc;
 
-const STARTER_HAMMER: &str = "common.items.weapons.starter_hammer";
-const STARTER_BOW: &str = "common.items.weapons.starter_bow";
-const STARTER_AXE: &str = "common.items.weapons.starter_axe";
-const STARTER_STAFF: &str = "common.items.weapons.starter_staff";
-const STARTER_SWORD: &str = "common.items.weapons.starter_sword";
-const STARTER_DAGGER: &str = "common.items.weapons.starter_dagger";
+const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
+const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
+const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
+const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
+const STARTER_SWORD: &str = "common.items.weapons.sword.starter_sword";
+const STARTER_DAGGER: &str = "common.items.weapons.dagger.starter_dagger";
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
@@ -342,7 +343,14 @@ impl CharSelectionUi {
                         .as_ref()
                         .and_then(|d| d.tool.as_ref())
                         .map(|tool| comp::ItemConfig {
-                            item: (*load_expect::<comp::Item>(&tool)).clone(),
+                            item: (*load::<comp::Item>(&tool).unwrap_or_else(|err| {
+                                error!(
+                                    "Could not load item {} maybe it no longer exists: {:?}",
+                                    &tool, err
+                                );
+                                load_expect("common.items.weapons.sword.starter_sword")
+                            }))
+                            .clone(),
                             ability1: None,
                             ability2: None,
                             ability3: None,
