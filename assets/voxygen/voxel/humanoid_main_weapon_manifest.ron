@@ -1,4 +1,4 @@
-({
+({  //Swords
     Sword(BasicSword): (
         vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
         color: None
@@ -19,34 +19,99 @@
         vox_spec: ("weapon.sword.short_2h-0", (-1.5, -6.5, -1.0)),
         color: None
     ),
+    // Axes
     Axe(BasicAxe): (
         vox_spec: ("weapon.axe.rusty_2h", (-1.5, -5.0, -4.0)),
         color: None
     ),
+    // Hammers
     Hammer(BasicHammer): (
         vox_spec: ("weapon.hammer.rusty_2h", (-2.5, -5.5, -4.0)),
         color: None
     ),
+    // Daggers
     Dagger(BasicDagger): (
         vox_spec: ("weapon.hammer.rusty_2h", (-2.5, -5.5, -4.0)), // TODO
         color: None
     ),
+    // Shields
     Shield(BasicShield): (
         vox_spec: ("weapon.shield.wood-0", (-2.5, -6.5, -2.0)),
         color: None
     ),
-    Bow(BasicBow): (
-        vox_spec: ("weapon.bow.simple-bow", (-1.0, -6.0, -2.0)),
+    // Bows
+    Bow(ShortBow0): (
+        vox_spec: ("weapon.bow.shortbow-0", (-1.0, -6.0, 2.5)),
         color: None
     ),
+    Bow(ShortBow1): (
+        vox_spec: ("weapon.bow.shortbow-1", (-1.0, -6.0, 2.5)),
+        color: None
+    ),    
+    Bow(LongBow0): (
+        vox_spec: ("weapon.bow.longbow-0", (-1.0, -6.0, 2.5)),
+        color: None
+    ),
+    Bow(LongBow1): (
+        vox_spec: ("weapon.bow.longbow-1", (-1.0, -6.0, 2.5)),
+        color: None
+    ),
+    Bow(RareBow0): (
+        vox_spec: ("weapon.bow.rare_bow-0", (-1.0, -6.0, 2.5)),
+        color: None
+    ),
+    // Farming Equipment
+    Farming(Broom): (
+        vox_spec: ("weapon.tool.broom-0", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    Farming(Hoe0): (
+        vox_spec: ("weapon.tool.hoe_green", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+    Farming(Hoe1): (
+        vox_spec: ("weapon.tool.hoe_blue", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+     Farming(Pitchfork): (
+        vox_spec: ("weapon.tool.pitchfork-0", (-1.0, -3.5, -4.0)),
+        color: None
+    ),
+    Farming(FishingRod0): (
+        vox_spec: ("weapon.tool.fishing_rod_blue-0", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+    Farming(Rake): (
+        vox_spec: ("weapon.tool.rake-0", (-1.0, -5.5, -4.0)),
+        color: None
+    ),
+    Farming(FishingRod1): (
+        vox_spec: ("weapon.tool.fishing_rod_orange-0", (-2.5, -4.5, -4.0)),
+        color: None
+    ),    
+    Farming(Pickaxe0): (
+        vox_spec: ("weapon.tool.pickaxe_green-0", (-1.5, -7.5, -4.0)),
+        color: None
+    ),
+    Farming(Shovel0): (
+        vox_spec: ("weapon.tool.shovel_green", (-1.0, -2.5, -4.0)),
+        color: None
+    ),
+    Farming(Shovel1): (
+        vox_spec: ("weapon.tool.shovel_gold", (-1.0, -2.5, -4.0)),
+        color: None
+    ),
+    // Staves    
     Staff(BasicStaff): (
         vox_spec: ("weapon.staff.wood-fire", (-1.0, -6.0, -3.0)),
         color: None
     ),
+    // Sceptres
      Staff(Sceptre): (
         vox_spec: ("weapon.staff.wood-nature", (-1.0, -6.0, -5.0)),
         color: None
     ),
+    // Misc
     Debug(Boost): (
         vox_spec: ("weapon.debug_wand", (-1.5, -9.5, -4.0)),
         color: None

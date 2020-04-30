@@ -76,12 +76,6 @@ impl Animation for DashAnimation {
             },
             _ => {},
         }
-        next.head.offset = Vec3::new(
-            0.0,
-            -2.0 + skeleton_attr.head.0,
-            skeleton_attr.head.1 + 12.0,
-        );
-        next.head.ori = Quaternion::rotation_x(0.5);
 
         next.lantern.offset = Vec3::new(
             skeleton_attr.lantern.0,

@@ -40,5 +40,9 @@
             vox_spec: ("armor.foot.cloth_sandals", (-2.5, -3.5, -9.0)),
             color: None
         ),
+        Cultist: (
+            vox_spec: ("armor.foot.cultist", (-2.5, -3.5, -9.0)),
+            color: None
+        ),
     },
 ))

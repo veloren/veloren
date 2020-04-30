@@ -56,5 +56,17 @@
             vox_spec: ("armor.pants.rugged-0", (-5.0, -3.5, 1.0)),
             color: None
         ),
+        WorkerBlue0:(
+            vox_spec: ("armor.pants.worker_blue-0", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
+        CultistPurple: (
+            vox_spec: ("armor.pants.cultist", (-5.0, -3.5, 1.0)),
+            color: Some((30, 0, 64))
+        ),
+        CultistBlue : (
+            vox_spec: ("armor.pants.cultist", (-5.0, -3.5, 1.0)),
+            color: Some((57, 81, 132))
+        ),
     },
 ))

@@ -406,12 +406,12 @@ impl Floor {
                                 .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                                 .with_automatic_name()
                                 .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
-                                    0 => "common.items.weapons.starter_axe",
-                                    1 => "common.items.weapons.starter_sword",
-                                    2 => "common.items.weapons.short_sword_0",
-                                    3 => "common.items.weapons.hammer_1",
-                                    4 => "common.items.weapons.starter_staff",
-                                    _ => "common.items.weapons.starter_bow",
+                                    0 => "common.items.weapons.axe.starter_axe",
+                                    1 => "common.items.weapons.sword.starter_sword",
+                                    2 => "common.items.weapons.sword.short_sword_0",
+                                    3 => "common.items.weapons.hammer.hammer_1",
+                                    4 => "common.items.weapons.staff.starter_staff",
+                                    _ => "common.items.weapons.bow.starter_bow",
                                 }));
 
                                 supplement.add_entity(entity);
