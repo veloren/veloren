@@ -1,0 +1,10 @@
+Item(
+    name: "Pickaxe",
+    description: "",
+    kind: Tool (
+        (
+            kind: Farming(Pickaxe0),
+            equip_time_millis: 400,
+        )
+    ),
+)

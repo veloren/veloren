@@ -1,0 +1,10 @@
+Item(
+    name: "Fishing Rod",
+    description: "",
+    kind: Tool (
+        (
+            kind: Farming(FishingRod0),
+            equip_time_millis: 400,
+        )
+    ),
+)

@@ -813,13 +813,15 @@ impl Settlement {
                         })
                         .do_if(rng.gen(), |entity| {
                             entity.with_main_tool(assets::load_expect_cloned(
-                                match rng.gen_range(0, 6) {
-                                    0 => "common.items.weapons.starter_axe",
-                                    1 => "common.items.weapons.starter_sword",
-                                    2 => "common.items.weapons.short_sword_0",
-                                    3 => "common.items.weapons.hammer_1",
-                                    4 => "common.items.weapons.starter_staff",
-                                    _ => "common.items.weapons.starter_bow",
+                                match rng.gen_range(0, 8) {
+                                    0 => "common.items.weapons.tool.broom",
+                                    1 => "common.items.weapons.tool.hoe",
+                                    2 => "common.items.weapons.tool.pickaxe",
+                                    3 => "common.items.weapons.tool.pitchfork",
+                                    4 => "common.items.weapons.tool.rake",
+                                    5 => "common.items.weapons.tool.shovel-0",
+                                    6 => "common.items.weapons.tool.shovel-1",
+                                    _ => "common.items.weapons.bow.starter_bow",
                                 },
                             ))
                         })
