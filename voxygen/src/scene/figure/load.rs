@@ -112,6 +112,7 @@ struct ArmorVoxSpec {
 struct SidedArmorVoxSpec {
     left: ArmorVoxSpec,
     right: ArmorVoxSpec,
+    color: Option<[u8; 3]>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -371,7 +372,7 @@ impl HumArmorShoulderSpec {
             &self.0.default
         };
 
-        let shoulder_segment = color_segment(
+        let mut shoulder_segment = color_segment(
             if flipped {
                 graceful_load_mat_segment_flipped(&spec.left.vox_spec.0)
             } else {
@@ -392,6 +393,16 @@ impl HumArmorShoulderSpec {
         } else {
             spec.right.vox_spec.1
         };
+
+        if let Some(color) = if flipped {
+            spec.left.color
+        } else {
+            spec.right.color
+        } {
+            let shoulder_color = Vec3::from(color);
+            shoulder_segment =
+                shoulder_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(shoulder_color)));
+        }
 
         generate_mesh(&shoulder_segment, Vec3::from(offset))
     }
@@ -500,7 +511,7 @@ impl HumArmorHandSpec {
             &self.0.default
         };
 
-        let hand_segment = color_segment(
+        let mut hand_segment = color_segment(
             if flipped {
                 graceful_load_mat_segment_flipped(&spec.left.vox_spec.0)
             } else {
@@ -516,6 +527,15 @@ impl HumArmorHandSpec {
         } else {
             spec.right.vox_spec.1
         };
+
+        if let Some(color) = if flipped {
+            spec.left.color
+        } else {
+            spec.right.color
+        } {
+            let hand_color = Vec3::from(color);
+            hand_segment = hand_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(hand_color)));
+        }
 
         generate_mesh(&hand_segment, Vec3::from(offset))
     }
@@ -567,12 +587,17 @@ impl HumArmorBeltSpec {
             &self.0.default
         };
 
-        let belt_segment = color_segment(
+        let mut belt_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
             body.race.skin_color(body.skin),
             body.race.hair_color(body.hair_color),
             body.race.eye_color(body.eye_color),
         );
+
+        if let Some(color) = spec.color {
+            let belt_color = Vec3::from(color);
+            belt_segment = belt_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(belt_color)));
+        }
 
         generate_mesh(&belt_segment, Vec3::from(spec.vox_spec.1))
     }
@@ -606,12 +631,16 @@ impl HumArmorBackSpec {
             &self.0.default
         };
 
-        let back_segment = color_segment(
+        let mut back_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
             body.race.skin_color(body.skin),
             body.race.hair_color(body.hair_color),
             body.race.eye_color(body.eye_color),
         );
+        if let Some(color) = spec.color {
+            let back_color = Vec3::from(color);
+            back_segment = back_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(back_color)));
+        }
 
         generate_mesh(&back_segment, Vec3::from(spec.vox_spec.1))
     }
@@ -702,7 +731,7 @@ impl HumArmorFootSpec {
             &self.0.default
         };
 
-        let foot_segment = color_segment(
+        let mut foot_segment = color_segment(
             if flipped {
                 graceful_load_mat_segment_flipped(&spec.vox_spec.0)
             } else {
@@ -712,6 +741,11 @@ impl HumArmorFootSpec {
             body.race.hair_color(body.hair_color),
             body.race.eye_color(body.eye_color),
         );
+
+        if let Some(color) = spec.color {
+            let foot_color = Vec3::from(color);
+            foot_segment = foot_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(foot_color)));
+        }
 
         generate_mesh(&foot_segment, Vec3::from(spec.vox_spec.1))
     }
@@ -755,7 +789,7 @@ impl HumMainWeaponSpec {
         let spec = match self.0.get(tool_kind) {
             Some(spec) => spec,
             None => {
-                error!("No hand specification exists for {:?}", tool_kind);
+                error!("No tool/weapon specification exists for {:?}", tool_kind);
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0), generate_mesh);
             },
         };
@@ -789,12 +823,17 @@ impl HumArmorLanternSpec {
                 &self.0.default
             };
 
-        let lantern_segment = color_segment(
+        let mut lantern_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
             body.race.skin_color(body.skin),
             body.race.hair_color(body.hair_color),
             body.race.eye_color(body.eye_color),
         );
+        if let Some(color) = spec.color {
+            let lantern_color = Vec3::from(color);
+            lantern_segment =
+                lantern_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(lantern_color)));
+        }
 
         generate_mesh(&lantern_segment, Vec3::from(spec.vox_spec.1))
     }

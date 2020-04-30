@@ -1,8 +1,0 @@
-Item(
-    name: "Iron Shoulderguards",
-    description: "Shoulders\n\nArmor: 0\n\A strong shoulder to lean on.",
-    kind: Armor(
-        kind: Shoulder(Plate0),
-        stats: (20),
-    ),
-)

@@ -3,7 +3,7 @@ Item(
     description: "Bow\n\nPower: 5\n\nSomeone carved his initials into it...\n\n<Right-Click to use>",  
     kind: Tool(
         (
-            kind: Bow(BasicBow),    
+            kind: Bow(ShortBow0),    
             equip_time_millis: 400,
         )
     ),
