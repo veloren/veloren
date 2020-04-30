@@ -80,5 +80,26 @@
                 color: None
             )
         ),
+        CultistPurple: (
+            left: (
+                vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -7.0)),
+                color: Some((30, 0, 64))
+            ),
+            right: (
+                 vox_spec: ("armor.hand.cultist_right", (-2.0, -1.5, -7.0)),
+                color: Some((30, 0, 64))
+            )
+        ),
+        CultistBlue: (
+            left: (
+                vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -7.0)),
+                color: Some((57, 81, 132))
+            ),
+            right: (
+                 vox_spec: ("armor.hand.cultist_right", (-2.0, -1.5, -7.0)),
+                color: Some((57, 81, 132))
+            )
+        ),
+
     },
 ))

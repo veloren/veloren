@@ -22,7 +22,11 @@ pub enum HammerKind {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum BowKind {
-    BasicBow,
+    ShortBow0,
+    ShortBow1,
+    LongBow0,
+    LongBow1,
+    RareBow0,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DaggerKind {
@@ -36,6 +40,19 @@ pub enum StaffKind {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ShieldKind {
     BasicShield,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum FarmKind {
+    Broom,
+    Hoe0,
+    Hoe1,
+    Pitchfork,
+    Rake,
+    FishingRod0,
+    FishingRod1,
+    Pickaxe0,
+    Shovel0,
+    Shovel1,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -54,6 +71,7 @@ pub enum ToolKind {
     Staff(StaffKind),
     Shield(ShieldKind),
     Debug(DebugKind),
+    Farming(FarmKind),
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
 }
@@ -112,6 +130,14 @@ impl Tool {
                 recover_duration: Duration::from_millis(300),
                 base_healthchange: -10,
                 range: 3.5,
+                max_angle: 60.0,
+            }],
+            Farming(_) => vec![BasicMelee {
+                energy_cost: 1,
+                buildup_duration: Duration::from_millis(700),
+                recover_duration: Duration::from_millis(150),
+                base_healthchange: -5,
+                range: 3.0,
                 max_angle: 60.0,
             }],
             Bow(_) => vec![BasicRanged {
