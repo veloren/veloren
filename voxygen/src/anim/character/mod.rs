@@ -31,6 +31,7 @@ pub use self::{
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 use common::comp;
+
 #[derive(Clone, Default)]
 pub struct CharacterSkeleton {
     head: Bone,
@@ -167,18 +168,18 @@ impl SkeletonAttr {
     pub fn calculate_scale(body: &comp::humanoid::Body) -> f32 {
         use comp::humanoid::{BodyType::*, Race::*};
         match (body.race, body.body_type) {
-            (Orc, Male) => 0.95 * 1.2,
-            (Orc, Female) => 0.85 * 1.2,
-            (Human, Male) => 0.85 * 1.2,
-            (Human, Female) => 0.8 * 1.2,
-            (Elf, Male) => 0.85 * 1.2,
-            (Elf, Female) => 0.8 * 1.2,
-            (Dwarf, Male) => 0.7 * 1.2,
-            (Dwarf, Female) => 0.65 * 1.2,
-            (Undead, Male) => 0.8 * 1.2,
-            (Undead, Female) => 0.75 * 1.2,
-            (Danari, Male) => 0.58 * 1.2,
-            (Danari, Female) => 0.58 * 1.2,
+            (Orc, Male) => 1.14,
+            (Orc, Female) => 1.02,
+            (Human, Male) => 1.02,
+            (Human, Female) => 0.96,
+            (Elf, Male) => 1.02,
+            (Elf, Female) => 0.96,
+            (Dwarf, Male) => 0.84,
+            (Dwarf, Female) => 0.78,
+            (Undead, Male) => 0.96,
+            (Undead, Female) => 0.9,
+            (Danari, Male) => 0.696,
+            (Danari, Female) => 0.696,
         }
     }
 }
@@ -206,7 +207,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Orc, Male) => (0.0, 14.0),
                 (Orc, Female) => (0.0, 14.0),
                 (Human, Male) => (0.3, 13.5),
-                (Human, Female) => (-0.6, 13.5),
+                (Human, Female) => (0.0, 13.8),
                 (Elf, Male) => (0.0, 13.5),
                 (Elf, Female) => (0.0, 13.5),
                 (Dwarf, Male) => (0.0, 14.5),
