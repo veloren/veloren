@@ -6,8 +6,8 @@
 in vec3 f_pos;
 in vec3 f_chunk_pos;
 flat in uint f_pos_norm;
-in float f_alt;
-in vec4 f_shadow;
+// in float f_alt;
+// in vec4 f_shadow;
 in vec3 f_col;
 in float f_light;
 in float f_ao;
@@ -39,6 +39,26 @@ void main() {
 
     vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x);
+
+    float f_alt = alt_at(f_pos.xy);
+    vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+
+    float alpha = 1.0;
+    // TODO: Possibly angle with water surface into account?  Since we can basically assume it's horizontal.
+    const float n2 = 1.01;
+    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
+    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
+    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
+    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
+    // float faces_fluid = faces_fluid && f_pos.z <= floor(f_alt);
+    float fluid_alt = max(ceil(f_pos.z), floor(f_alt));
+    float R_s = /*(f_pos.z < f_alt)*/faces_fluid /*&& f_pos.z <= fluid_alt*/ ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
+
+    // vec3 surf_color = /*srgb_to_linear*/(f_col);
+    vec3 k_a = vec3(1.0);
+    vec3 k_d = vec3(1.0);
+    vec3 k_s = vec3(R_s);
+
     // float sun_light = get_sun_brightness(sun_dir);
 	// float moon_light = get_moon_brightness(moon_dir);
     /* float sun_shade_frac = horizon_at(f_pos, sun_dir);
@@ -55,39 +75,31 @@ void main() {
     // for the sun and moon (since they have different brightnesses / colors so the shadows shouldn't attenuate equally).
     float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
-    vec3 surf_color = /*srgb_to_linear*/(f_col);
-    float alpha = 1.0;
-    // TODO: Possibly angle with water surface into account?  Since we can basically assume it's horizontal.
-    const float n2 = 1.01;
-    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
-    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
-    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
-    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
-    // float faces_fluid = faces_fluid && f_pos.z <= floor(f_alt);
-    float fluid_alt = max(ceil(f_pos.z), floor(f_alt));
-    float R_s = /*(f_pos.z < f_alt)*/faces_fluid /*&& f_pos.z <= fluid_alt*/ ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
-    vec3 k_a = vec3(1.0);
-    vec3 k_d = vec3(1.0);
-    vec3 k_s = vec3(R_s);
     float max_light = 0.0;
+
+    // After shadows are computed, we use a refracted sun and moon direction.
+    // sun_dir = faces_fluid && sun_shade_frac > 0.0 ? refract(sun_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), 1.0 / 1.3325) : sun_dir;
+    // moon_dir = faces_fluid && moon_shade_frac > 0.0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), 1.0 / 1.3325) : moon_dir;
 
     // Compute attenuation due to water from the camera.
     vec3 mu = faces_fluid/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
-    vec3 cam_attenuation = compute_attenuation_point(f_pos, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
+    vec3 cam_attenuation = compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
 
     // Computing light attenuation from water.
     vec3 emitted_light, reflected_light;
     // To account for prior saturation
-    float f_light = pow(f_light, 1.5);
+    float f_light = faces_fluid ? 1.0 : pow(f_light, 1.5);
     float point_shadow = shadow_at(f_pos, f_norm);
-    max_light += get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(f_norm, /*time_of_day.x, */sun_dir, moon_dir, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, 1.0, emitted_light, reflected_light);
 
     emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     reflected_light *= f_light * point_shadow * shade_frac;
     max_light *= f_light * point_shadow * shade_frac;
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+
+    // float f_ao = 1.0;
 
 	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.9 + 0.1;
 	emitted_light *= ao;
@@ -115,7 +127,7 @@ void main() {
 
 	// vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
 	vec3 col = srgb_to_linear(f_col + hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0)) * 0.02); // Small-scale noise
-	surf_color = illuminate(max_light, col * emitted_light, col * reflected_light);
+    vec3 surf_color = illuminate(max_light, col * emitted_light, col * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

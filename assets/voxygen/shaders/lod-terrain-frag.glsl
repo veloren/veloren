@@ -87,6 +87,82 @@ void main() {
     vec3 view_dir = -cam_to_frag;
     // vec3 view_dir = normalize(f_pos - cam_pos.xyz);
 
+    // const vec3 normals[3] = vec3[](vec3(1,0,0), vec3(0,1,0), vec3(0,0,1));//, vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1));
+    // const mat3 side_norms = vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1);
+    // mat3 sides = mat3(
+    //     /*vec3(1, 0, 0),
+    //     vec3(0, 1, 0),
+    //     vec3(0, 0, 1)*/
+    //     vec3(1, 0, 0),
+    //     // faceforward(vec3(1, 0, 0), -f_norm, vec3(1, 0, 0)),
+    //     vec3(0, 1, 0),
+    //     // faceforward(vec3(0, 1, 0), -f_norm, vec3(0, 1, 0)),
+    //     vec3(0, 0, 1)
+    //     // faceforward(vec3(0, 0, 1), -f_norm, vec3(0, 0, 1))
+    // );
+
+    // This vector is shorthand for a diagonal matrix, which works because:
+    // (1) our voxel normal vectors are exactly the basis vectors in worldspace;
+    // (2) only 3 of them can be in the direction of the actual normal anyway.
+    // (NOTE: This normal should always be pointing up, so implicitly sides.z = 1.0).
+    // vec3 sides = sign(f_norm);
+    // // NOTE: Should really be sides * f_norm, i.e. abs(f_norm), but voxel_norm would then re-multiply by sides so it cancels out.
+    // vec3 cos_sides_i = sides * f_norm;
+    // vec3 cos_sides_o = sides * view_dir;
+    // // vec3 side_factor_i = cos_sides_i;
+    // // vec3 side_factor_i = f_norm;
+    // // vec3 side_factor_i = cos_sides_o;
+    // vec3 side_factor_i = 1.0 - pow(1.0 - 0.5 * cos_sides_i, vec3(5));
+    // // vec3 side_factor_i = /*abs*/sign(f_norm) * cos_sides_i;//max(cos_sides_i, 0.0);// 1.0 - pow(1.0 - 0.5 * cos_sides_i, vec3(5.0)); // max(sides * f_norm, vec3(0.0));//
+    // // vec3 side_factor_i = /*abs*/sign(f_norm) * cos_sides_i;//max(cos_sides_i, 0.0);// 1.0 - pow(1.0 - 0.5 * cos_sides_i, vec3(5.0)); // max(sides * f_norm, vec3(0.0));//
+    // // vec3 side_factor_o = max(cos_sides_o, 0.0);// 1.0 - pow(1.0 - 0.5 * max(cos_sides_o, 0.0), vec3(5));
+    // vec3 side_factor_o = 1.0 - pow(1.0 - 0.5 * max(cos_sides_o, 0.0), vec3(5));
+    // // vec3 side_factor_o = max(cos_sides_o, 0.0);// 1.0 - pow(1.0 - 0.5 * max(cos_sides_o, vec3(0.0)), vec3(5.0));//max(sides * view_dir/* * sign(cos_sides_i) */, vec3(0.0));
+    // // vec3 side_factor_o = max(sides * view_dir/* * cos_sides_o*/, 0.0);// 1.0 - pow(1.0 - 0.5 * max(cos_sides_o, vec3(0.0)), vec3(5.0));//max(sides * view_dir/* * sign(cos_sides_i) */, vec3(0.0));
+    // // NOTE: side = transpose(sides), so we avoid the extra operatin.
+    // // We multply the vector by the matrix from the *left*, so each normal gets multiplied by the corresponding factor.
+    // // vec3 voxel_norm = normalize(/*sides * *//*sqrt(1.0 - cos_sides_i * cos_sides_i)*/(side_factor_i * side_factor_o));
+    // vec3 voxel_norm = normalize(/*sides * *//*sqrt(1.0 - cos_sides_i * cos_sides_i)*/((28.0 / (23.0 * PI)) * side_factor_i * side_factor_o * sides));
+    // vec3 voxel_norm = normalize(sign(f_norm) * sqrt(abs(f_norm)) * max(sign(f_norm) * view_dir, 0.0));
+    float f_ao = 1.0;//1.0;//sqrt(dot(cos_sides_i, cos_sides_i) / 3.0);
+    // float f_ao = 0.2;
+    // sqrt(dot(sqrt(1.0 - cos_sides_i * cos_sides_i)), 1.0 - cos_sides_o/* * cos_sides_o*/);// length(sqrt(1.0 - cos_sides_o * cos_sides_o) / cos_sides_i * cos_sides_o);
+    // f_ao = f_ao * f_ao;
+
+    // /* vec3 voxel_norm = vec3(0.0);
+    // for (int i = 0; i < 3; i ++) {
+    //     // Light reflecting off the half-angle can shine on up to three sides.
+    //     // So, the idea here is to figure out the ratio of visibility of each of these
+    //     // three sides such that their sum adds to 1, then computing a Beckmann Distribution for each side times
+    //     // the this ratio.
+    //     //
+    //     // The ratio of these normals in each direction should be the sum of their cosines with the light over π,
+    //     // I think.
+    //     //
+    //     // cos (wh, theta)
+    //     //
+    //     // - one normal
+    //     //
+    //     // The ratio of each of the three exposed sides should just be the slope.
+    //     vec3 side = normals[i];
+    //     side = faceforward(side, -f_norm, side);
+    //     float cos_wi = max(dot(f_norm, side), 0.0);
+    //     float cos_wo = max(dot(view_dir, side), 0.0);
+    //     float share = cos_wi * cos_wo;
+    //     // float share = (1.0 - pow5(1.0 - 0.5 * cos_wi)) * (1.0 - pow5(1.0 - 0.5 * cos_wo));
+    //     voxel_norm += share * side;
+    //     // voxel_norm += normals[i] * side_visible * max(dot(-cam_dir, normals[i]), 0.0);
+    //     // voxel_norm += normals[i] * side_visible * max(dot(-cam_dir, normals[i]), 0.0);
+    // }
+    // voxel_norm = normalize(voxel_norm); */
+
+    float dist_lerp = clamp(pow(max(distance(focus_pos.xy, f_pos.xy) - view_distance.x, 0.0) / 1024.0, 2.0), 0, 1);
+    // dist_lerp = 0.0;
+    // voxel_norm = normalize(mix(voxel_norm, f_norm, /*pow(dist_lerp, 1.0)*/dist_lerp));
+
+    vec3 voxel_norm = f_norm;
+    // voxel_norm = f_norm;
+
     // Note: because voxels, we reduce the normal for reflections to just its z component, dpendng on distance to camera.
     // Idea: the closer we are to facing top-down, the more the norm should tend towards up-z.
     // vec3 l_norm; // = vec3(0.0, 0.0, 1.0);
@@ -150,12 +226,16 @@ void main() {
 	// vec3 light, diffuse_light, ambient_light;
     // get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, (0.25 * shade_frac + 0.25 * light_frac) * f_col, 0.5 * shade_frac * f_col, 0.5 * shade_frac * /*vec3(1.0)*/f_col, 2.0, emitted_light, reflected_light);
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(f_norm/*l_norm*/, sun_dir, moon_dir, view_dir, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(/*f_norm*/voxel_norm/*l_norm*/, sun_dir, moon_dir, view_dir, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, dist_lerp/*max(distance(focus_pos.xy, f_pos.xyz) - view_distance.x, 0.0) / 1000 < 1.0*/, emitted_light, reflected_light);
     // emitted_light = vec3(1.0);
     emitted_light *= max(shade_frac, MIN_SHADOW);
     reflected_light *= shade_frac;
     max_light *= shade_frac;
     // reflected_light = vec3(0.0);
+
+	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.9 + 0.1;
+	emitted_light *= ao;
+	reflected_light *= ao;
 
     // emitted_light += 0.5 * vec3(SUN_AMBIANCE * sun_shade_frac * sun_light + moon_shade_frac * moon_light) * f_col * (ambient_sides + 1.0);
 

@@ -115,7 +115,7 @@ void main() {
 		float opacity = clamp(distance / distance_divider, 0, 1);
 
 		if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
-            tgt_color = vec4(color, 0.0);
+            discard;
             return;
 		}
 	}

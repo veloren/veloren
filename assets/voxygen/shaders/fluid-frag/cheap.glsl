@@ -39,7 +39,7 @@ void main() {
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
     vec3 view_dir = -cam_to_frag;
 	// vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
-    /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
+    /*const */vec3 water_color = 1.0 - MU_WATER;//srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.0, 0.25, 0.5));
 
     vec3 sun_dir = get_sun_dir(time_of_day.x);
@@ -52,13 +52,18 @@ void main() {
     // float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
     float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
 
+    float fluid_alt = max(ceil(f_pos.z), floor(f_alt));// f_alt;//max(f_alt - f_pos.z, 0.0);
+
     const float alpha = 0.255/* / 4.0 / sqrt(2.0)*/;
     const float n2 = 1.3325;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
     const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
     const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
     const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
-    float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
+    float R_s = (f_pos.z < fluid_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
+
+    // NOTE: Assumes normal is vertical.
+    vec3 sun_view_dir = cam_pos.z <= fluid_alt ? /*refract(view_dir, -f_norm, 1.0 / n2)*//*reflect(view_dir, -f_norm)*/vec3(view_dir.xy, -view_dir.z) : view_dir;
 
     vec3 k_a = vec3(1.0);
     vec3 k_d = vec3(1.0);
@@ -78,7 +83,7 @@ void main() {
 
 	// vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(f_norm, /*time_of_day.x*/sun_dir, moon_dir, /*-cam_to_frag*/view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(0.0), k_s, alpha, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(f_norm, /*time_of_day.x*/sun_dir, moon_dir, /*-cam_to_frag*/sun_view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, /*vec3(0.0)*/k_d, k_s, alpha, emitted_light, reflected_light);
     reflected_light *= f_light * point_shadow * shade_frac;
     emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     max_light *= f_light * point_shadow * shade_frac;
@@ -96,16 +101,18 @@ void main() {
     emitted_light += point_light;
     reflected_light += point_light; */
 
-    vec3 diffuse_light_point = vec3(0.0);
-    max_light += lights_at(f_pos, f_norm, view_dir, k_a, vec3(1.0), k_s, alpha, emitted_light, diffuse_light_point);
+    max_light += lights_at(f_pos, f_norm, view_dir, /*vec3(0.0), vec3(1.0), fluid_alt, */k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    // vec3 diffuse_light_point = vec3(0.0);
+    // max_light += lights_at(f_pos, f_norm, view_dir, k_a, vec3(1.0), k_s, alpha, emitted_light, diffuse_light_point);
 
-    vec3 dump_light = vec3(0.0);
-    vec3 specular_light_point = vec3(0.0);
-    lights_at(f_pos, f_norm, view_dir, vec3(0.0), vec3(0.0), /*vec3(1.0)*/k_s, alpha, dump_light, specular_light_point);
-    diffuse_light_point -= specular_light_point;
+    float reflected_light_point = length(reflected_light);///*length*/(diffuse_light_point.r) + f_light * point_shadow;
+    // vec3 dump_light = vec3(0.0);
+    // vec3 specular_light_point = vec3(0.0);
+    // lights_at(f_pos, f_norm, view_dir, vec3(0.0), vec3(0.0), /*vec3(1.0)*/k_s, alpha, dump_light, specular_light_point);
+    // diffuse_light_point -= specular_light_point;
 
-    float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
-    reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + specular_light_point;
+    // float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
+    // reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + specular_light_point;
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
@@ -114,7 +121,7 @@ void main() {
 	float passthrough = /*pow(*/dot(faceforward(f_norm, f_norm, cam_to_frag/*view_dir*/), -cam_to_frag/*view_dir*/)/*, 0.5)*/;
 
     vec3 surf_color = illuminate(max_light, water_color * fog_color * emitted_light, /*surf_color * */water_color * reflected_light);
-	vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*//*(f_light * point_shadow + point_light)*/reflected_light_point/* * 0.25*/)), passthrough);
+	vec4 color = mix(vec4(surf_color, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*//*(f_light * point_shadow + point_light)*/4.0 * reflected_light_point/* * 0.25*/)), passthrough);
 
     tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
 }

@@ -101,8 +101,9 @@ void main() {
 	nmap = mix(f_norm, normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
 
 	vec3 norm = vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
+    // vec3 norm = f_norm;
 
-    float f_alt = alt_at_real(f_pos.xy);
+    float f_alt = alt_at(f_pos.xy);
 
     float fluid_alt = max(ceil(f_pos.z), floor(f_alt));// f_alt;//max(f_alt - f_pos.z, 0.0);
     const float alpha = 0.255/*/ / 4.0*//* / 4.0 / sqrt(2.0)*/;
@@ -118,7 +119,8 @@ void main() {
     vec4 _clouds;
 	vec3 reflect_ray_dir = reflect(cam_to_frag/*-view_dir*/, norm);
 	vec3 refract_ray_dir = refract(cam_to_frag/*-view_dir*/, norm, 1.0 / n2);
-    vec3 sun_view_dir = cam_pos.z <= fluid_alt ? -view_dir : view_dir;
+    vec3 sun_view_dir = /*sign(cam_pos.z - fluid_alt) * view_dir;*/cam_pos.z <= fluid_alt ? -view_dir : view_dir;
+    // vec3 sun_view_dir = cam_pos.z <= fluid_alt ? -view_dir : view_dir;
     vec3 beam_view_dir = reflect_ray_dir;//cam_pos.z <= fluid_alt ? -refract_ray_dir : reflect_ray_dir;
     /* vec4 reflect_ray_dir4 = view_mat * vec4(reflect_ray_dir, 1.0);
     reflect_ray_dir = normalize(vec3(reflect_ray_dir4) / reflect_ray_dir4.w); */
@@ -130,7 +132,7 @@ void main() {
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.8, 0.9, 1.0));
     // NOTE: Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
     // See https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water
-    /*const */vec3 water_attenuation = vec3(0.8, 0.05, 0.01);
+    /*const */vec3 water_attenuation = MU_WATER;// vec3(0.8, 0.05, 0.01);
     // /*const */vec3 water_color = vec3(0.2, 0.95, 0.99);
 
     vec3 sun_dir = get_sun_dir(time_of_day.x);
@@ -192,7 +194,7 @@ void main() {
     float passthrough = /*pow(*/dot(faceforward(f_norm, f_norm, cam_to_frag/*view_dir*/), -cam_to_frag/*view_dir*/)/*, 0.5)*/;
 
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(norm, /*time_of_day.x*/sun_dir, moon_dir, sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(norm, /*time_of_day.x*/sun_dir, moon_dir, sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, 1.0, emitted_light, reflected_light);
     reflected_light *= /*water_color_direct * */reflect_color * f_light * point_shadow * shade_frac;
     emitted_light *= /*water_color_direct*//*ambient_attenuation * */f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     max_light *= f_light * point_shadow * shade_frac;
@@ -252,7 +254,8 @@ void main() {
     //vec4 color = vec4(surf_color, 1.0);
 	// vec4 color = mix(vec4(reflect_color, 1.0), vec4(surf_color, 1.0 / (1.0 + /*diffuse_light*/(/*f_light * point_shadow*/reflected_light_point/* + point_light*//*reflected_light*/))), passthrough);
 
-    vec4 color = vec4(surf_color, 1.0 - passthrough * /*log(1.0 + cam_attenuation)*/cam_attenuation);
+    float log_cam = log(min(cam_attenuation.r, min(cam_attenuation.g, cam_attenuation.b)));
+    vec4 color = vec4(surf_color, passthrough * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (1.0 - log_cam)));
     // vec4 color = vec4(surf_color, mix(1.0, 1.0 / (1.0 + /*0.25 * *//*diffuse_light*/(/*f_light * point_shadow*/reflected_light_point)), passthrough));
     // vec4 color = vec4(surf_color, mix(1.0, length(cam_attenuation), passthrough));
 

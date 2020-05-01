@@ -8,13 +8,13 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.0, 1.0, 1.0);
+const vec3 DAY_LIGHT   = vec3(1.5, 1.4, 1.0);
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
-const vec3 DUSK_LIGHT   = vec3(3.0, 1.5, 0.3);
+const vec3 DUSK_LIGHT   = vec3(8.0, 1.5, 0.15);
 const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.0);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
@@ -135,7 +135,7 @@ vec3 get_moon_color(vec3 moon_dir) {
 // mu is the attenuation coefficient for any substance on a horizontal plane.
 // cam_attenuation is the total light attenuation due to the substance for beams between the point and the camera.
 // surface_alt is the altitude of the attenuating surface.
-float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wpos, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
+float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wpos, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
 	const vec3 SUN_AMBIANCE = MU_SCATTER;//0.23;/* / 1.8*/;// 0.1 / 3.0;
 	const vec3 MOON_AMBIANCE = MU_SCATTER;//0.23;//0.1;
 
@@ -239,7 +239,7 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wp
     vec3 R_t_r = R_d + R_r;
 
     // vec3 half_vec = normalize(-norm + dir);
-    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * light_reflection_factor(norm, /*norm*//*dir*/dir, /*-norm*/-dir, /*k_d*/k_d/* * (1.0 - k_s)*/, /*k_s*/vec3(0.0), alpha);
+    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * light_reflection_factor(norm, /*norm*//*dir*/dir, /*-norm*/-dir, /*k_d*/k_d/* * (1.0 - k_s)*/, /*k_s*/vec3(0.0), alpha, voxel_lighting);
     // vec3 light_frac = /*vec3(1.0)*//*H_d * */
     //     SUN_AMBIANCE * /*sun_light*/sun_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_sun) * 0.5), vec3(k_s * (1.0 - cos_sun) * 0.5), alpha) +
     //     MOON_AMBIANCE * /*sun_light*/moon_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_moon) * 0.5), vec3(k_s * (1.0 - cos_moon) * 0.5), alpha);
@@ -259,10 +259,10 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wp
 
     // TODO: Add shadows.
     reflected_light = R_t_r * (
-        (1.0 - SUN_AMBIANCE) * sun_chroma * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) /*+
+        (1.0 - SUN_AMBIANCE) * sun_chroma * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha, voxel_lighting) /*+
                       light_reflection_factor(norm, dir, normalize(sun_dir + vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha) +
                       light_reflection_factor(norm, dir, normalize(sun_dir - vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha)*/) +
-        (1.0 - MOON_AMBIANCE) * moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha)
+        (1.0 - MOON_AMBIANCE) * moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha, voxel_lighting)
     );
 
 	/* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
@@ -274,8 +274,12 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wp
     return rel_luminance(emitted_light + reflected_light);//rel_luminance(emitted_light + reflected_light);//sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 }
 
+float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
+    return get_sun_diffuse2(norm, sun_dir, moon_dir, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, voxel_lighting, emitted_light, reflected_light);
+}
+
 float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-    return get_sun_diffuse2(norm, sun_dir, moon_dir, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    return get_sun_diffuse2(norm, sun_dir, moon_dir, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, 1.0, emitted_light, reflected_light);
 }
 
 // This has been extracted into a function to allow quick exit when detecting a star.
@@ -299,10 +303,13 @@ float is_star_at(vec3 dir) {
 	return 0.0;
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars, out vec4 clouds) {
+vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars, float refractionIndex, out vec4 clouds) {
 	// Sky color
 	vec3 sun_dir = get_sun_dir(time_of_day);
 	vec3 moon_dir = get_moon_dir(time_of_day);
+
+    // sun_dir = sun_dir.z <= 0 ? refract(sun_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : sun_dir;
+    // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
 
 	// Add white dots for stars. Note these flicker and jump due to FXAA
 	float star = 0.0;
@@ -321,7 +328,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 	);
 
 	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
-	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR;
+	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR * SUN_COLOR_FACTOR;
 	vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
 
 	// Moon
@@ -386,6 +393,10 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 	}
 
 	return mix(sky_color, clouds.rgb, clouds.a);
+}
+
+vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars, out vec4 clouds) {
+    return get_sky_color(dir, time_of_day, origin, f_pos, quality, with_stars, 1.0, clouds);
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
