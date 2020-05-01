@@ -4,6 +4,7 @@ use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::Write, path::PathBuf};
 
+const VALID_VERSION: u32 = 0; // Change this if you broke charsaves 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[repr(C)]
 pub struct CharacterData {
@@ -13,11 +14,12 @@ pub struct CharacterData {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(default)]
+//#[serde(default)]
 #[repr(C)]
 pub struct Meta {
     pub characters: Vec<CharacterData>,
     pub selected_character: usize,
+    pub version: u32,
 }
 
 impl Meta {
@@ -38,8 +40,12 @@ impl Meta {
         let path = Self::get_meta_path();
 
         if let Ok(file) = fs::File::open(&path) {
-            match ron::de::from_reader(file) {
-                Ok(s) => return s,
+            match ron::de::from_reader::<_, Meta>(file) {
+                Ok(s) => {
+                    if s.version == VALID_VERSION {
+                        return s;
+                    }
+                },
                 Err(e) => {
                     log::warn!("Failed to parse meta file! Fallback to default. {}", e);
                     // Rename the corrupted settings file
