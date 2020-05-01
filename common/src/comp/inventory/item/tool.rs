@@ -1,3 +1,6 @@
+// Note: If you changes here "break" old character saves you can change the
+// version in voxygen\src\meta.rs in order to reset save files to being empty
+
 use crate::comp::{
     body::object, projectile, Body, CharacterAbility, Gravity, HealthChange, HealthSource,
     LightEmitter, Projectile,
