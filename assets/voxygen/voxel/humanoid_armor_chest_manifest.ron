@@ -60,5 +60,55 @@
             vox_spec: ("armor.chest.rugged-0", (-7.0, -3.5, 2.0)),
             color: None
         ),
+        // Villagers
+        WorkerGreen0:(
+            vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((88, 108, 65))
+        ),
+        WorkerGreen1:(
+            vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((88, 108, 65))
+        ),
+        WorkerRed0:(
+            vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((124, 38, 46))
+        ),
+        WorkerRed1:(
+            vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((124, 38, 46))
+        ),
+        WorkerPurple0:(
+            vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((64, 47, 56))
+        ),  
+        WorkerPurple1:(
+            vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((64, 47, 56))
+        ),   
+        WorkerYellow0:(
+            vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((184, 132, 40))
+        ), 
+        WorkerYellow1:(
+            vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((184, 132, 40)) 
+        ), 
+        WorkerOrange0:(
+            vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((135, 82, 67))
+        ), 
+        WorkerOrange1:(
+            vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
+            color: Some((135, 82, 67))
+        ),       
+        // Cultists
+        CultistPurple: (
+            vox_spec: ("armor.chest.cultist", (-7.0, -3.5, 2.0)),
+            color: Some((30, 0, 64))
+        ),
+        CultistBlue: (
+            vox_spec: ("armor.chest.cultist", (-7.0, -3.5, 2.0)),
+            color: Some((57, 81, 132))
+        ),
     },
 ))

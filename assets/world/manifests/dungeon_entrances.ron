@@ -1,0 +1,48 @@
+(
+    [     (
+            specifier: "world.structure.dungeon.jungle_temple.entrance.1",
+            center: (50, 40, 10)
+        ),
+        (
+            specifier: "world.structure.dungeon.pillar_entrance.round.1",
+            center: (21, 17, 28)
+        ),
+        (
+            specifier: "world.structure.dungeon.pillar_entrance.round.2",
+            center: (20, 28, 15)
+        ),
+        (
+            specifier: "world.structure.dungeon.pillar_entrance.1",
+            center: (18, 16, 17)
+        ),
+        (
+            specifier: "world.structure.dungeon.pillar_entrance.2",
+            center: (18, 16, 17)
+        ),
+        (
+            specifier: "world.structure.dungeon.pillar_entrance.3",
+            center: (18, 16, 17)
+        ),
+        (
+            specifier: "world.structure.dungeon.pillar_entrance.4",
+            center: (18, 16, 17)
+        ),
+        (
+            specifier: "world.structure.dungeon.pillar_entrance.5",
+            center: (18, 16, 17)
+        ),
+        (
+            specifier: "world.structure.dungeon.pillar_entrance.6",
+            center: (18, 16, 17)
+        ),                
+        (
+            specifier: "world.structure.dungeon.temperate_entrance.ruins_4",
+         center: (13, 11, 14)
+        ),
+        (
+            specifier: "world.structure.dungeon.misc_entrance.tower-ruin",
+         center: (13, 16, 9)
+        ),
+
+    ]
+)

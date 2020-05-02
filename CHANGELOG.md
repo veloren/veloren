@@ -63,6 +63,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added non-uniform block heights
 - Added `/sudo` command
 - Added a Level of Detail (LoD) system for terrain sprites and entities
+- Added owl, hyena, parrot npcs
+- Added dungeon entrances
+- Villagers tools and clothing
+- Cultists clothing
 
 ### Changed
 
@@ -78,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Asset cleanup to lower client-size
 - Rewrote the humanoid skeleton to be more ideal for attack animations
 - Arrows can no longer hurt their owners
+- Increased overall character scale
 
 ### Removed
 

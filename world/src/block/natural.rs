@@ -5,11 +5,9 @@ use crate::{
     util::{RandomPerm, Sampler, SmallCache, UnitChooser},
     CONFIG,
 };
-use common::{assets, assets::Asset, terrain::Structure};
+use common::terrain::Structure;
 use lazy_static::lazy_static;
-use ron;
-use serde::Deserialize;
-use std::{fs::File, io::BufReader, sync::Arc, u32};
+use std::{sync::Arc, u32};
 use vek::*;
 
 static VOLUME_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
@@ -76,47 +74,16 @@ pub fn structure_gen<'a>(
     })
 }
 
-#[derive(Deserialize)]
-struct StructureSpec {
-    specifier: String,
-    center: [i32; 3],
-}
-#[derive(Deserialize)]
-struct StructuresSpec(Vec<StructureSpec>);
-
-impl Asset for StructuresSpec {
-    const ENDINGS: &'static [&'static str] = &["ron"];
-
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
-    }
-}
-
-fn load_structures(specifier: &str) -> Vec<Arc<Structure>> {
-    let spec = assets::load::<StructuresSpec>(&["world.manifests.", specifier].concat());
-    return spec
-        .unwrap()
-        .0
-        .iter()
-        .map(|sp| {
-            assets::load_map(&sp.specifier[..], |s: Structure| {
-                s.with_center(Vec3::from(sp.center))
-            })
-            .unwrap()
-        })
-        .collect();
-}
-
 lazy_static! {
-    pub static ref OAKS: Vec<Arc<Structure>> = load_structures("oaks");
-    pub static ref OAK_STUMPS: Vec<Arc<Structure>> = load_structures("oak_stumps");
-    pub static ref PINES: Vec<Arc<Structure>> = load_structures("pines");
-    pub static ref PALMS: Vec<Arc<Structure>> = load_structures("palms");
-    pub static ref SNOW_PINES: Vec<Arc<Structure>> = load_structures("snow_pines");
-    pub static ref ACACIAS: Vec<Arc<Structure>> = load_structures("acacias");
-    pub static ref FRUIT_TREES: Vec<Arc<Structure>> = load_structures("fruit_trees");
-    pub static ref BIRCHES: Vec<Arc<Structure>> = load_structures("birch");
-    pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = load_structures("mangrove_trees");
-    pub static ref QUIRKY: Vec<Arc<Structure>> = load_structures("quirky");
-    pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = load_structures("quirky_dry");
+    pub static ref OAKS: Vec<Arc<Structure>> = Structure::load_group("oaks");
+    pub static ref OAK_STUMPS: Vec<Arc<Structure>> = Structure::load_group("oak_stumps");
+    pub static ref PINES: Vec<Arc<Structure>> = Structure::load_group("pines");
+    pub static ref PALMS: Vec<Arc<Structure>> = Structure::load_group("palms");
+    pub static ref SNOW_PINES: Vec<Arc<Structure>> = Structure::load_group("snow_pines");
+    pub static ref ACACIAS: Vec<Arc<Structure>> = Structure::load_group("acacias");
+    pub static ref FRUIT_TREES: Vec<Arc<Structure>> = Structure::load_group("fruit_trees");
+    pub static ref BIRCHES: Vec<Arc<Structure>> = Structure::load_group("birch");
+    pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = Structure::load_group("mangrove_trees");
+    pub static ref QUIRKY: Vec<Arc<Structure>> = Structure::load_group("quirky");
+    pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = Structure::load_group("quirky_dry");
 }

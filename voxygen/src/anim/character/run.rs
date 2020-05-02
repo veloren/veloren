@@ -23,7 +23,7 @@ impl Animation for RunAnimation {
 
         let walkintensity = if speed > 5.0 { 1.0 } else { 0.7 };
         let walk = if speed > 5.0 { 1.0 } else { 0.5 };
-        let lower = if speed > 5.0 { 0.0 } else { 2.0 };
+        let lower = if speed > 5.0 { 0.0 } else { 1.0 };
         let snapfoot = if speed > 5.0 { 1.1 } else { 2.0 };
         let lab = 1.0;
         let long = (((5.0)
@@ -101,7 +101,7 @@ impl Animation for RunAnimation {
         next.chest.offset = Vec3::new(
             0.0,
             skeleton_attr.chest.0,
-            skeleton_attr.chest.1 + 1.0 + short * 1.1 - lower,
+            skeleton_attr.chest.1 + 2.0 + short * 1.1 - lower,
         );
         next.chest.ori = Quaternion::rotation_z(short * 0.3 * walkintensity);
         next.chest.scale = Vec3::one();
