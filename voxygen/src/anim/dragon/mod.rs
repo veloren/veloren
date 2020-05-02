@@ -38,10 +38,12 @@ impl Skeleton for DragonSkeleton {
 
     fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let chest_front_mat = self.chest_front.compute_base_matrix();
+        let chest_rear_mat = self.chest_rear.compute_base_matrix();
         let wing_in_l_mat = self.wing_in_l.compute_base_matrix();
         let wing_in_r_mat = self.wing_in_r.compute_base_matrix();
         let tail_front_mat = self.tail_front.compute_base_matrix();
 
+<<<<<<< HEAD
         (
             [
                 FigureBoneData::new(self.head.compute_base_matrix() * chest_front_mat),
@@ -63,6 +65,26 @@ impl Skeleton for DragonSkeleton {
             ],
             Vec3::default(),
         )
+=======
+        [
+            FigureBoneData::new(self.head.compute_base_matrix() * chest_front_mat),
+            FigureBoneData::new(chest_front_mat),
+            FigureBoneData::new(self.chest_rear.compute_base_matrix() * chest_front_mat),
+            FigureBoneData::new(chest_rear_mat * self.tail_front.compute_base_matrix()),
+            FigureBoneData::new(self.tail_rear.compute_base_matrix() * tail_front_mat),
+            FigureBoneData::new(chest_front_mat * self.wing_in_l.compute_base_matrix()),
+            FigureBoneData::new(chest_front_mat * self.wing_in_r.compute_base_matrix()),
+            FigureBoneData::new(self.wing_out_l.compute_base_matrix() * wing_in_l_mat),
+            FigureBoneData::new(self.wing_out_r.compute_base_matrix() * wing_in_r_mat),
+            FigureBoneData::new(self.foot_fl.compute_base_matrix()),
+            FigureBoneData::new(self.foot_fr.compute_base_matrix()),
+            FigureBoneData::new(self.foot_bl.compute_base_matrix()),
+            FigureBoneData::new(self.foot_br.compute_base_matrix()),
+            FigureBoneData::default(),
+            FigureBoneData::default(),
+            FigureBoneData::default(),
+        ]
+>>>>>>> Symmetry of dragon skeleton
     }
 
     fn interpolate(&mut self, target: &Self, dt: f32) {
@@ -88,8 +110,8 @@ pub struct SkeletonAttr {
     chest_rear: (f32, f32),
     tail_front: (f32, f32),
     tail_rear: (f32, f32),
-    wing_in: (f32, f32),
-    wing_out: (f32, f32),
+    wing_in: (f32, f32, f32),
+    wing_out: (f32, f32, f32),
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
 }
@@ -113,8 +135,8 @@ impl Default for SkeletonAttr {
             chest_rear: (0.0, 0.0),
             tail_front: (0.0, 0.0),
             tail_rear: (0.0, 0.0),
-            wing_in: (0.0, 0.0),
-            wing_out: (0.0, 0.0),
+            wing_in: (0.0, 0.0, 0.0),
+            wing_out: (0.0, 0.0, 0.0),
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
         }
@@ -141,10 +163,10 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
                 (Reddragon, _) => (0.0, 0.0),
             },
             wing_in: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0),
+                (Reddragon, _) => (0.0, 0.0, 0.0),
             },
             wing_out: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0),
+                (Reddragon, _) => (0.0, 0.0, 0.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Reddragon, _) => (0.0, 0.0, 0.0),
