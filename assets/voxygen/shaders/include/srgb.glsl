@@ -291,11 +291,11 @@ vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3
 }
 
 vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3 k_s, float alpha, float voxel_lighting) {
-    if (voxel_lighting < 1.0) {
+    //if (voxel_lighting < 1.0) {
         return FresnelBlend_Voxel_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha, voxel_lighting);
-    } else {
-        return FresnelBlend_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha);
-    }
+    //} else {
+    //    return FresnelBlend_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha);
+    //}
 }
 
 float rel_luminance(vec3 rgb)
