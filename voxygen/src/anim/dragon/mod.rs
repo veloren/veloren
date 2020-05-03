@@ -10,6 +10,51 @@ use crate::render::FigureBoneData;
 use common::comp::{self};
 use vek::Vec3;
 
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const HEAD_X: f32 = 4.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const HEAD_Z: f32 = 11.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const CHEST_F_X: f32 = 0.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const CHEST_F_Z: f32 = 14.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const CHEST_R_X: f32 = -13.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const CHEST_R_Z: f32 = 0.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const TAIL_F_X: f32 = -11.5;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const TAIL_F_Z: f32 = 16.5;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const TAIL_R_X: f32 = -25.5;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const TAIL_R_Z: f32 = 0.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const WING_IN_X: f32 = 10.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const WING_IN_Y: f32 = -32.5;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const WING_IN_Z: f32 = -19.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const WING_OUT_X: f32 = 0.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const WING_OUT_Y: f32 = 1.5;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const WING_OUT_Z: f32 = -10.5;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const FEET_F_X: f32 = 4.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const FEET_F_Y: f32 = 0.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const FEET_F_Z: f32 = 1.5;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const FEET_B_X: f32 = 4.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const FEET_B_Y: f32 = -15.0;
+#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
+const FEET_B_Z: f32 = 3.0;   
+
 #[derive(Clone, Default)]
 pub struct DragonSkeleton {
     head: Bone,
@@ -148,31 +193,31 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
         use comp::dragon::Species::*;
         Self {
             head: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0),
+                (Reddragon, _) => (*HEAD_X, *HEAD_Z),
             },
             chest_front: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0),
+                (Reddragon, _) => (*CHEST_F_X, *CHEST_F_Z),
             },
             chest_rear: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0),
+                (Reddragon, _) => (*CHEST_R_X, *CHEST_R_Z),
             },
             tail_front: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0),
+                (Reddragon, _) => (*TAIL_F_X, *TAIL_F_Z),
             },
             tail_rear: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0),
+                (Reddragon, _) => (*TAIL_R_X, *TAIL_R_Z),
             },
             wing_in: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0, 0.0),
+                (Reddragon, _) => (*WING_IN_X, *WING_IN_Y, *WING_IN_Z),
             },
             wing_out: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0, 0.0),
+                (Reddragon, _) => (*WING_OUT_X, *WING_OUT_Y, *WING_OUT_Z),
             },
             feet_f: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0, 0.0),
+                (Reddragon, _) => (*FEET_F_X, *FEET_F_Y, *FEET_F_Z),
             },
             feet_b: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 0.0, 0.0),
+                (Reddragon, _) => (*FEET_B_X, *FEET_B_Y, *FEET_B_Z),
             },
         }
     }
