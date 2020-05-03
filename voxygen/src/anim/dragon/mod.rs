@@ -33,15 +33,15 @@ const TAIL_R_Z: f32 = 0.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const WING_IN_X: f32 = 10.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_IN_Y: f32 = -32.5;
+const WING_IN_Y: f32 = -28.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_IN_Z: f32 = -19.0;
+const WING_IN_Z: f32 = 6.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_OUT_X: f32 = 0.0;
+const WING_OUT_X: f32 = 1.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_OUT_Y: f32 = 1.5;
+const WING_OUT_Y: f32 = 2.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_OUT_Z: f32 = -10.5;
+const WING_OUT_Z: f32 = 12.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const FEET_F_X: f32 = 4.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
@@ -159,6 +159,7 @@ pub struct SkeletonAttr {
     wing_out: (f32, f32, f32),
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
+    height: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -184,6 +185,7 @@ impl Default for SkeletonAttr {
             wing_out: (0.0, 0.0, 0.0),
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
+            height: (0.0),
         }
     }
 }
@@ -218,6 +220,9 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
             },
             feet_b: match (body.species, body.body_type) {
                 (Reddragon, _) => (*FEET_B_X, *FEET_B_Y, *FEET_B_Z),
+            },
+            height: match (body.species, body.body_type) {
+                (Reddragon, _) => (1.0),
             },
         }
     }
