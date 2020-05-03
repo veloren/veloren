@@ -86,7 +86,7 @@ impl Animation for IdleAnimation {
         next.wing_out_l.ori = Quaternion::rotation_z(0.0);
         next.wing_out_l.scale = Vec3::one() * 1.05;
 
-        next.wing_in_r.offset = Vec3::new(
+        next.wing_out_r.offset = Vec3::new(
             skeleton_attr.wing_out.0,
             skeleton_attr.wing_out.1,
             skeleton_attr.wing_out.2,
