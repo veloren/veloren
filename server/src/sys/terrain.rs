@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, CharacterAbility, Item, ItemConfig, Player, Pos},
+    comp::{self, item, CharacterAbility, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
@@ -110,8 +110,9 @@ impl<'a> System<'a> for Sys {
                 let name = entity.name.unwrap_or("Unnamed".to_string());
                 let alignment = entity.alignment;
                 let main_tool = entity.main_tool;
-
                 let mut stats = comp::Stats::new(name, body);
+                // let damage = stats.level.level() as i32; TODO: Make NPC base damage
+                // non-linearly depend on their level
 
                 let active_item =
                     if let Some(item::ItemKind::Tool(tool)) = main_tool.as_ref().map(|i| &i.kind) {
@@ -129,12 +130,12 @@ impl<'a> System<'a> for Sys {
                     } else {
                         Some(ItemConfig {
                             // We need the empty item so npcs can attack
-                            item: Item::empty(),
+                            item: assets::load_expect_cloned("common.items.weapons.empty"),
                             ability1: Some(CharacterAbility::BasicMelee {
                                 energy_cost: 0,
                                 buildup_duration: Duration::from_millis(0),
                                 recover_duration: Duration::from_millis(400),
-                                base_healthchange: -4,
+                                base_healthchange: -2,
                                 range: 3.5,
                                 max_angle: 60.0,
                             }),
@@ -213,7 +214,21 @@ impl<'a> System<'a> for Sys {
                         tabard: None,
                     },
                     _ => comp::Loadout {
-                        active_item,
+                        active_item: Some(comp::ItemConfig {
+                            item: assets::load_expect_cloned("common.items.weapons.empty"),
+                            ability1: Some(CharacterAbility::BasicMelee {
+                                energy_cost: 10,
+                                buildup_duration: Duration::from_millis(800),
+                                recover_duration: Duration::from_millis(200),
+                                base_healthchange: -2,
+                                range: 3.5,
+                                max_angle: 60.0,
+                            }),
+                            ability2: None,
+                            ability3: None,
+                            block_ability: None,
+                            dodge_ability: None,
+                        }),
                         second_item: None,
                         shoulder: None,
                         chest: None,
@@ -258,7 +273,7 @@ impl<'a> System<'a> for Sys {
                                 energy_cost: 0,
                                 buildup_duration: Duration::from_millis(800),
                                 recover_duration: Duration::from_millis(200),
-                                base_healthchange: -13,
+                                base_healthchange: -10,
                                 range: 3.5,
                                 max_angle: 60.0,
                             }),

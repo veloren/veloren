@@ -1,0 +1,10 @@
+Item(
+    name: "Empty",
+    description: "",
+    kind: Tool (
+        (
+            kind: Empty,
+            equip_time_millis: 200,
+        )
+    ),
+)
