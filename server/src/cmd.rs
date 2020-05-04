@@ -270,6 +270,13 @@ lazy_static! {
             true,
             handle_sudo,
         ),
+        ChatCommand::new(
+            "version",
+            "",
+            "/version : Prints server version",
+            false,
+            handle_version,
+        ),
     ];
 }
 
@@ -1411,4 +1418,21 @@ fn handle_sudo(
     } else {
         server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
     }
+}
+
+fn handle_version(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    server.notify_client(
+        client,
+        ServerMsg::private(format!(
+            "Server is running {}[{}]",
+            common::util::GIT_HASH.to_string(),
+            common::util::GIT_DATE.to_string(),
+        )),
+    );
 }
