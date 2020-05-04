@@ -202,9 +202,9 @@ lazy_static! {
         ),
         ChatCommand::new(
             "lantern",
-            "{}",
-            "/lantern : adds/remove light near player",
-            false,
+            "{} {} {} {}",
+            "/lantern <strength> [<r> <g> <b>]: Change your lantern's strength and color",
+            true,
             handle_lantern,
         ),
         ChatCommand::new(
@@ -847,6 +847,7 @@ fn handle_light(
         scan_fmt_some!(&args, action.arg_fmt, f32, f32, f32, f32, f32, f32, f32);
 
     let mut light_emitter = comp::LightEmitter::default();
+    let mut light_offset_opt = None;
 
     if let (Some(r), Some(g), Some(b)) = (opt_r, opt_g, opt_b) {
         let r = r.max(0.0).min(1.0);
@@ -855,7 +856,11 @@ fn handle_light(
         light_emitter.col = Rgb::new(r, g, b)
     };
     if let (Some(x), Some(y), Some(z)) = (opt_x, opt_y, opt_z) {
-        light_emitter.offset = Vec3::new(x, y, z)
+        light_offset_opt = Some(comp::LightAnimation {
+            offset: Vec3::new(x, y, z),
+            col: light_emitter.col,
+            strength: 0.0,
+        })
     };
     if let Some(s) = opt_s {
         light_emitter.strength = s.max(0.0)
@@ -867,14 +872,18 @@ fn handle_light(
         .get(target)
         .copied();
     if let Some(pos) = pos {
-        server
+        let builder = server
             .state
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(comp::ForceUpdate)
-            .with(light_emitter)
-            .build();
+            .with(light_emitter);
+        if let Some(light_offset) = light_offset_opt {
+            builder.with(light_offset).build();
+        } else {
+            builder.build();
+        }
         server.notify_client(client, ServerMsg::private(format!("Spawned object.")));
     } else {
         server.notify_client(client, ServerMsg::private(format!("You have no position!")));
@@ -888,57 +897,39 @@ fn handle_lantern(
     args: String,
     action: &ChatCommand,
 ) {
-    let opt_s = scan_fmt_some!(&args, action.arg_fmt, f32);
-
-    if server
-        .state
-        .read_storage::<comp::LightEmitter>()
-        .get(target)
-        .is_some()
-    {
-        if let Some(s) = opt_s {
-            if let Some(light) = server
-                .state
-                .ecs()
-                .write_storage::<comp::LightEmitter>()
-                .get_mut(target)
-            {
-                light.strength = s.max(0.1).min(10.0);
+    if let (Some(s), r, g, b) = scan_fmt_some!(&args, action.arg_fmt, f32, f32, f32, f32) {
+        if let Some(light) = server
+            .state
+            .ecs()
+            .write_storage::<comp::LightEmitter>()
+            .get_mut(target)
+        {
+            light.strength = s.max(0.1).min(10.0);
+            if let (Some(r), Some(g), Some(b)) = (r, g, b) {
+                light.col = (
+                    r.max(0.0).min(1.0),
+                    g.max(0.0).min(1.0),
+                    b.max(0.0).min(1.0),
+                )
+                    .into();
+                server.notify_client(
+                    client,
+                    ServerMsg::private(String::from("You adjusted flame strength and color.")),
+                );
+            } else {
                 server.notify_client(
                     client,
                     ServerMsg::private(String::from("You adjusted flame strength.")),
                 );
             }
         } else {
-            server
-                .state
-                .ecs()
-                .write_storage::<comp::LightEmitter>()
-                .remove(target);
             server.notify_client(
                 client,
-                ServerMsg::private(String::from("You put out the lantern.")),
+                ServerMsg::private(String::from("Please equip a lantern first")),
             );
         }
     } else {
-        let _ = server
-            .state
-            .ecs()
-            .write_storage::<comp::LightEmitter>()
-            .insert(target, comp::LightEmitter {
-                offset: Vec3::new(0.5, 0.2, 0.8),
-                col: Rgb::new(1.0, 0.75, 0.3),
-                strength: if let Some(s) = opt_s {
-                    s.max(0.0).min(10.0)
-                } else {
-                    3.0
-                },
-            });
-
-        server.notify_client(
-            client,
-            ServerMsg::private(String::from("You lit your lantern.")),
-        );
+        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
     }
 }
 

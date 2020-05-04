@@ -86,6 +86,7 @@ pub enum ServerEvent {
         entity: EcsEntity,
         vel: Vec3<f32>,
     },
+    ToggleLantern(EcsEntity),
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),

@@ -18,6 +18,7 @@ pub enum InventoryManip {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlEvent {
+    ToggleLantern,
     Mount(Uid),
     Unmount,
     InventoryManip(InventoryManip),
