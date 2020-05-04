@@ -125,6 +125,7 @@ pub enum ToolCategory {
     Staff,
     Shield,
     Debug,
+    Farming,
     Empty,
 }
 
@@ -139,6 +140,7 @@ impl From<ToolKind> for ToolCategory {
             ToolKind::Staff(_) => ToolCategory::Staff,
             ToolKind::Shield(_) => ToolCategory::Shield,
             ToolKind::Debug(_) => ToolCategory::Debug,
+            ToolKind::Farming(_) => ToolCategory::Farming,
             ToolKind::Empty => ToolCategory::Empty,
         }
     }

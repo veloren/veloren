@@ -1,7 +1,7 @@
 /// event_mapper::movement watches all local entities movements and determines
 /// which sfx to emit, and the position at which the sound should be emitted
 /// from
-use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
+use crate::audio::sfx::{SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
 
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
@@ -42,7 +42,6 @@ impl MovementEventMapper {
     }
 
     pub fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
-        const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
         let ecs = state.ecs();
 
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();

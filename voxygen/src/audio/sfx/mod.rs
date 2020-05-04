@@ -16,6 +16,13 @@ use serde::Deserialize;
 use specs::WorldExt;
 use vek::*;
 
+/// We watch the states of nearby entities in order to emit SFX at their
+/// position based on their state. This constant limits the radius that we
+/// observe to prevent tracking distant entities. It approximates the distance
+/// at which the volume of the sfx emitted is too quiet to be meaningful for the
+/// player.
+const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
+
 #[derive(Deserialize)]
 pub struct SfxTriggerItem {
     pub files: Vec<String>,

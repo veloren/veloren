@@ -1,6 +1,6 @@
 /// event_mapper::combat watches the combat state of entities and emits
 /// associated sfx events
-use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
+use crate::audio::sfx::{SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
 
 use common::{
     comp::{
@@ -44,7 +44,6 @@ impl CombatEventMapper {
     }
 
     pub fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
-        const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
         let ecs = state.ecs();
 
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();

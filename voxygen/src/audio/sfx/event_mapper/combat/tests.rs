@@ -1,10 +1,7 @@
 use super::*;
 use common::{
     assets,
-    comp::{
-        item::tool::{AxeKind, BowKind, SwordKind, ToolCategory, ToolKind},
-        CharacterAbilityType, CharacterState, ItemConfig, Loadout,
-    },
+    comp::{item::tool::ToolCategory, CharacterAbilityType, CharacterState, ItemConfig, Loadout},
     event::SfxEvent,
     states,
 };
@@ -15,7 +12,7 @@ fn maps_wield_while_equipping() {
     let mut loadout = Loadout::default();
 
     loadout.active_item = Some(ItemConfig {
-        item: assets::load_expect_cloned("common.items.weapons.starter_axe"),
+        item: assets::load_expect_cloned("common.items.weapons.axe.starter_axe"),
         ability1: None,
         ability2: None,
         ability3: None,
@@ -43,7 +40,7 @@ fn maps_unwield() {
     let mut loadout = Loadout::default();
 
     loadout.active_item = Some(ItemConfig {
-        item: assets::load_expect_cloned("common.items.weapons.starter_bow"),
+        item: assets::load_expect_cloned("common.items.weapons.bow.starter_bow"),
         ability1: None,
         ability2: None,
         ability3: None,
@@ -69,7 +66,7 @@ fn maps_basic_melee() {
     let mut loadout = Loadout::default();
 
     loadout.active_item = Some(ItemConfig {
-        item: assets::load_expect_cloned("common.items.weapons.starter_axe"),
+        item: assets::load_expect_cloned("common.items.weapons.axe.starter_axe"),
         ability1: None,
         ability2: None,
         ability3: None,
@@ -105,7 +102,7 @@ fn maps_triple_strike() {
     let mut loadout = Loadout::default();
 
     loadout.active_item = Some(ItemConfig {
-        item: assets::load_expect_cloned("common.items.weapons.starter_sword"),
+        item: assets::load_expect_cloned("common.items.weapons.sword.starter_sword"),
         ability1: None,
         ability2: None,
         ability3: None,
