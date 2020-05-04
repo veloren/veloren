@@ -813,15 +813,15 @@ impl Settlement {
                         })
                         .do_if(rng.gen(), |entity| {
                             entity.with_main_tool(assets::load_expect_cloned(
-                                match rng.gen_range(0, 8) {
+                                match rng.gen_range(0, 7) {
                                     0 => "common.items.weapons.tool.broom",
                                     1 => "common.items.weapons.tool.hoe",
                                     2 => "common.items.weapons.tool.pickaxe",
                                     3 => "common.items.weapons.tool.pitchfork",
                                     4 => "common.items.weapons.tool.rake",
                                     5 => "common.items.weapons.tool.shovel-0",
-                                    6 => "common.items.weapons.tool.shovel-1",
-                                    _ => "common.items.weapons.bow.starter_bow",
+                                    _ => "common.items.weapons.tool.shovel-1",
+                                    //_ => "common.items.weapons.bow.starter_bow", TODO: Re-Add this when we have a better way of distributing weapons here
                                 },
                             ))
                         })
