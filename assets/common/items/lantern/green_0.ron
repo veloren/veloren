@@ -1,5 +1,12 @@
 Item(
     name: "Lime Zest Lantern",
     description: "It has an opening that could fit a ring...",
-    kind: Lantern(Green0),
+    kind: Lantern(
+        (
+            kind: Green0,
+            color: (r: 192, g: 255, b: 76),
+            strength_thousandths: 4000,
+            flicker_thousandths: 500,
+        ),
+    ),
 )

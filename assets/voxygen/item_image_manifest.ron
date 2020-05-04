@@ -56,10 +56,16 @@
     ),
     // Lanterns
     Lantern(Black0): Png(
-        "element.icons.lantern_black-0",        
+        "element.icons.lantern_black-0",
     ),
     Lantern(Green0): Png(
-        "element.icons.lantern_green-0",        
+        "element.icons.lantern_green-0",
+    ),
+    Lantern(Blue0): Png(
+        "element.icons.lantern_blue-0",
+    ),
+    Lantern(Red0): Png(
+        "element.icons.lantern_red-0",
     ),
     // Farming Equipment    
     Tool(Farming(Broom)): VoxTrans(

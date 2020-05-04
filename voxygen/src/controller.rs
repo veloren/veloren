@@ -106,6 +106,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 /*map.entry(settings.game_buttons.wall_leap)
                 .or_default()
                 .push(GameInput::WallLeap);*/
+                map.entry(settings.game_buttons.toggle_lantern)
+                    .or_default()
+                    .push(GameInput::ToggleLantern);
                 map.entry(settings.game_buttons.mount)
                     .or_default()
                     .push(GameInput::Mount);
