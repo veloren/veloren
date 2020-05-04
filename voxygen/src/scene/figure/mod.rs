@@ -21,10 +21,10 @@ use crate::{
 };
 use common::{
     comp::{
-        item::ItemKind, Body, CharacterState, Last, Loadout, Ori, PhysicsState, Pos, Scale, Stats,
-        Vel,
+        item::ItemKind, Body, CharacterState, Last, LightAnimation, LightEmitter, Loadout, Ori,
+        PhysicsState, Pos, Scale, Stats, Vel,
     },
-    state::State,
+    state::{DeltaTime, State},
     states::triple_strike,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
@@ -106,6 +106,61 @@ impl FigureMgr {
         self.fish_small_model_cache.clean(tick);
         self.biped_large_model_cache.clean(tick);
         self.golem_model_cache.clean(tick);
+    }
+
+    pub fn update_lighting(&mut self, scene_data: &SceneData) {
+        let ecs = scene_data.state.ecs();
+        for (entity, light_emitter) in (&ecs.entities(), &ecs.read_storage::<LightEmitter>()).join()
+        {
+            // Add LightAnimation for objects with a LightEmitter
+            let mut anim_storage = ecs.write_storage::<LightAnimation>();
+            if let None = anim_storage.get_mut(entity) {
+                let anim = LightAnimation {
+                    offset: Vec3::zero(),
+                    col: light_emitter.col,
+                    strength: 0.0,
+                };
+                let _ = anim_storage.insert(entity, anim);
+            }
+        }
+        let dt = ecs.fetch::<DeltaTime>().0;
+        for (entity, waypoint, light_emitter_opt, light_anim) in (
+            &ecs.entities(),
+            ecs.read_storage::<common::comp::Waypoint>().maybe(),
+            ecs.read_storage::<LightEmitter>().maybe(),
+            &mut ecs.write_storage::<LightAnimation>(),
+        )
+            .join()
+        {
+            let (target_col, target_strength, flicker, animated) =
+                if let Some(emitter) = light_emitter_opt {
+                    (
+                        emitter.col,
+                        emitter.strength,
+                        emitter.flicker,
+                        emitter.animated,
+                    )
+                } else {
+                    (Rgb::zero(), 0.0, 0.0, true)
+                };
+            if let Some(_) = waypoint {
+                light_anim.offset = Vec3::unit_z() * 0.5;
+            }
+            if let Some(state) = self.character_states.get(&entity) {
+                light_anim.offset = state.lantern_offset;
+            }
+            if animated {
+                let flicker = (rand::random::<f32>() - 0.5) * flicker / dt.sqrt();
+                // Close gap between current and target strength by 95% per second
+                let delta = 0.05_f32.powf(dt);
+                light_anim.strength =
+                    light_anim.strength * delta + (target_strength + flicker) * (1.0 - delta);
+                light_anim.col = light_anim.col * delta + target_col * (1.0 - delta)
+            } else {
+                light_anim.strength = target_strength;
+                light_anim.col = target_col;
+            }
+        }
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData, camera: &Camera) {
@@ -1463,6 +1518,9 @@ impl FigureMgr {
             }
         }
 
+        // Update lighting (lanterns) for figures
+        self.update_lighting(scene_data);
+
         // Clear states that have deleted entities.
         self.character_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -1932,6 +1990,7 @@ impl FigureMgr {
 pub struct FigureState<S: Skeleton> {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
+    lantern_offset: Vec3<f32>,
     state_time: f64,
     skeleton: S,
     last_ori: Vec3<f32>,
@@ -1941,11 +2000,11 @@ pub struct FigureState<S: Skeleton> {
 
 impl<S: Skeleton> FigureState<S> {
     pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
+        let (bone_consts, lantern_offset) = skeleton.compute_matrices();
         Self {
-            bone_consts: renderer
-                .create_consts(&skeleton.compute_matrices())
-                .unwrap(),
+            bone_consts: renderer.create_consts(&bone_consts).unwrap(),
             locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
+            lantern_offset,
             state_time: 0.0,
             skeleton,
             last_ori: Vec3::zero(),
@@ -1984,12 +2043,14 @@ impl<S: Skeleton> FigureState<S> {
         let locals = FigureLocals::new(mat, col, is_player);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
+        let (new_bone_consts, lantern_offset) = self.skeleton.compute_matrices();
         renderer
             .update_consts(
                 &mut self.bone_consts,
-                &self.skeleton.compute_matrices()[0..self.skeleton.bone_count()],
+                &new_bone_consts[0..self.skeleton.bone_count()],
             )
             .unwrap();
+        self.lantern_offset = lantern_offset;
     }
 
     pub fn locals(&self) -> &Consts<FigureLocals> { &self.locals }

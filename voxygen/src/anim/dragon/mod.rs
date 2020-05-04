@@ -8,6 +8,7 @@ pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 use common::comp::{self};
+use vek::Vec3;
 
 #[derive(Clone)]
 pub struct DragonSkeleton {
@@ -51,30 +52,33 @@ impl Skeleton for DragonSkeleton {
 
     fn bone_count(&self) -> usize { 13 }
 
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
+    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let chest_front_mat = self.chest_front.compute_base_matrix();
         let wing_in_l_mat = self.wing_in_l.compute_base_matrix();
         let wing_in_r_mat = self.wing_in_r.compute_base_matrix();
         let tail_front_mat = self.tail_front.compute_base_matrix();
 
-        [
-            FigureBoneData::new(self.head.compute_base_matrix() * chest_front_mat),
-            FigureBoneData::new(chest_front_mat),
-            FigureBoneData::new(self.chest_rear.compute_base_matrix() * chest_front_mat),
-            FigureBoneData::new(tail_front_mat),
-            FigureBoneData::new(self.tail_rear.compute_base_matrix() * tail_front_mat),
-            FigureBoneData::new(wing_in_l_mat),
-            FigureBoneData::new(wing_in_r_mat),
-            FigureBoneData::new(self.wing_out_l.compute_base_matrix() * wing_in_l_mat),
-            FigureBoneData::new(self.wing_out_r.compute_base_matrix() * wing_in_r_mat),
-            FigureBoneData::new(self.foot_fl.compute_base_matrix()),
-            FigureBoneData::new(self.foot_fr.compute_base_matrix()),
-            FigureBoneData::new(self.foot_bl.compute_base_matrix()),
-            FigureBoneData::new(self.foot_br.compute_base_matrix()),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-        ]
+        (
+            [
+                FigureBoneData::new(self.head.compute_base_matrix() * chest_front_mat),
+                FigureBoneData::new(chest_front_mat),
+                FigureBoneData::new(self.chest_rear.compute_base_matrix() * chest_front_mat),
+                FigureBoneData::new(tail_front_mat),
+                FigureBoneData::new(self.tail_rear.compute_base_matrix() * tail_front_mat),
+                FigureBoneData::new(wing_in_l_mat),
+                FigureBoneData::new(wing_in_r_mat),
+                FigureBoneData::new(self.wing_out_l.compute_base_matrix() * wing_in_l_mat),
+                FigureBoneData::new(self.wing_out_r.compute_base_matrix() * wing_in_r_mat),
+                FigureBoneData::new(self.foot_fl.compute_base_matrix()),
+                FigureBoneData::new(self.foot_fr.compute_base_matrix()),
+                FigureBoneData::new(self.foot_bl.compute_base_matrix()),
+                FigureBoneData::new(self.foot_br.compute_base_matrix()),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+            ],
+            Vec3::default(),
+        )
     }
 
     fn interpolate(&mut self, target: &Self, dt: f32) {

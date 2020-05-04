@@ -6,7 +6,7 @@ use entity_creation::{
 use entity_manipulation::{
     handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_respawn,
 };
-use interaction::{handle_mount, handle_possess, handle_unmount};
+use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
 use inventory_manip::handle_inventory;
 use player::{handle_client_disconnect, handle_exit_ingame};
 use specs::{Entity as EcsEntity, WorldExt};
@@ -63,6 +63,7 @@ impl Server {
                 ServerEvent::LandOnGround { entity, vel } => {
                     handle_land_on_ground(&self, entity, vel)
                 },
+                ServerEvent::ToggleLantern(entity) => handle_lantern(self, entity),
                 ServerEvent::Mount(mounter, mountee) => handle_mount(self, mounter, mountee),
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {

@@ -7,10 +7,18 @@
       Green0: (
           vox_spec: ("armor.lantern.green-0", (-2.0, -2.0, -7.0)),
           color: None
-      ),  
+      ),
       Black0: (
           vox_spec: ("armor.lantern.black-0", (-2.0, -2.0, -7.0)),
           color: None
-      ),     
+      ),
+      Red0: (
+          vox_spec: ("armor.lantern.red-0", (-2.0, -2.0, -7.0)),
+          color: None
+      ),
+      Blue0: (
+          vox_spec: ("armor.lantern.blue-0", (-2.0, -2.0, -7.0)),
+          color: None
+      ),
     },
 ))

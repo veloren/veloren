@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Player now starts with a lantern. Equipping/unequipping a lantern has the same effect as the `/lantern` command
 - Added music system
 - Added zoomable and rotatable minimap
 - Added rotating orientation marker to main-map
