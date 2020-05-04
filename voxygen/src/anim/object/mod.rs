@@ -17,25 +17,28 @@ impl Skeleton for ObjectSkeleton {
 
     fn bone_count(&self) -> usize { 1 }
 
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
-        [
-            FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-            FigureBoneData::new(vek::Mat4::identity()),
-        ]
+    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+        (
+            [
+                FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(vek::Mat4::identity()),
+            ],
+            Vec3::default(),
+        )
     }
 
     fn interpolate(&mut self, _target: &Self, _dt: f32) {}

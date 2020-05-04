@@ -3,6 +3,7 @@ pub mod slot;
 
 use crate::assets;
 use item::{Consumable, Item, ItemKind};
+use rand::{seq::SliceRandom, thread_rng};
 use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs_idvs::IDVStorage;
 use std::ops::Not;
@@ -304,6 +305,15 @@ impl Default for Inventory {
         };
         inventory.push(assets::load_expect_cloned("common.items.cheese"));
         inventory.push(assets::load_expect_cloned("common.items.apple"));
+        let mut rng = thread_rng();
+        let starter_lantern = [
+            "common.items.lantern.black_0",
+            "common.items.lantern.red_0",
+            "common.items.lantern.blue_0",
+        ]
+        .choose(&mut rng)
+        .unwrap();
+        inventory.push(assets::load_expect_cloned(starter_lantern));
         inventory
     }
 }

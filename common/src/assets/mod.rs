@@ -167,7 +167,7 @@ pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Result<A, Err
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     load(specifier).unwrap_or_else(|err| {
         panic!(
-            "Failed loading essential asset: {} (error={})",
+            "Failed loading essential asset: {} (error={:?})",
             specifier, err
         )
     })

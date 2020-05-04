@@ -11,6 +11,43 @@ use common::{
 use log::error;
 use specs::{world::WorldExt, Entity as EcsEntity};
 
+pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
+    let ecs = server.state_mut().ecs();
+    if ecs
+        .read_storage::<comp::LightEmitter>()
+        .get(entity)
+        .map_or(false, |light| light.strength > 0.0)
+    {
+        server
+            .state_mut()
+            .ecs()
+            .write_storage::<comp::LightEmitter>()
+            .remove(entity);
+    } else {
+        let lantern_opt = ecs
+            .read_storage::<comp::Loadout>()
+            .get(entity)
+            .and_then(|loadout| loadout.lantern.as_ref())
+            .and_then(|item| {
+                if let comp::item::ItemKind::Lantern(l) = item.kind {
+                    Some(l)
+                } else {
+                    None
+                }
+            });
+        if let Some(lantern) = lantern_opt {
+            let _ = ecs
+                .write_storage::<comp::LightEmitter>()
+                .insert(entity, comp::LightEmitter {
+                    col: lantern.color(),
+                    strength: lantern.strength(),
+                    flicker: 1.0,
+                    animated: true,
+                });
+        }
+    }
+}
+
 pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity) {
     let state = server.state_mut();
 

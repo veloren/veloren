@@ -79,9 +79,10 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
         .state
         .create_object(Pos(pos), comp::object::Body::CampfireLit)
         .with(LightEmitter {
-            offset: Vec3::unit_z() * 0.5,
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
+            flicker: 1.0,
+            animated: true,
         })
         .with(WaypointArea::default())
         .build();

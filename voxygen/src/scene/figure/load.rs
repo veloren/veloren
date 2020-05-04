@@ -12,7 +12,7 @@ use common::{
         item::{
             armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard},
             tool::{Tool, ToolKind},
-            ItemKind, Lantern,
+            ItemKind, Lantern, LanternKind,
         },
         object,
         quadruped_medium::{BodyType as QMBodyType, Species as QMSpecies},
@@ -259,7 +259,7 @@ pub struct HumArmorFootSpec(ArmorVoxSpecMap<Foot, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorLanternSpec(ArmorVoxSpecMap<Lantern, ArmorVoxSpec>);
+pub struct HumArmorLanternSpec(ArmorVoxSpecMap<LanternKind, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorHeadSpec(ArmorVoxSpecMap<Head, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
@@ -810,18 +810,19 @@ impl HumArmorLanternSpec {
         loadout: &Loadout,
         generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
     ) -> Mesh<FigurePipeline> {
-        let spec =
-            if let Some(ItemKind::Lantern(lantern)) = loadout.lantern.as_ref().map(|i| &i.kind) {
-                match self.0.map.get(&lantern) {
-                    Some(spec) => spec,
-                    None => {
-                        error!("No lantern specification exists for {:?}", lantern);
-                        return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
-                    },
-                }
-            } else {
-                &self.0.default
-            };
+        let spec = if let Some(ItemKind::Lantern(Lantern { kind, .. })) =
+            loadout.lantern.as_ref().map(|i| &i.kind)
+        {
+            match self.0.map.get(&kind) {
+                Some(spec) => spec,
+                None => {
+                    error!("No lantern specification exists for {:?}", kind);
+                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
+                },
+            }
+        } else {
+            &self.0.default
+        };
 
         let mut lantern_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),

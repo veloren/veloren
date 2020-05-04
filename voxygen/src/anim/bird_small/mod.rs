@@ -8,6 +8,7 @@ pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 use common::comp::{self};
+use vek::Vec3;
 
 #[derive(Clone)]
 pub struct BirdSmallSkeleton {
@@ -33,27 +34,30 @@ impl Skeleton for BirdSmallSkeleton {
 
     fn bone_count(&self) -> usize { 4 }
 
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
+    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let torso_mat = self.torso.compute_base_matrix();
 
-        [
-            FigureBoneData::new(self.head.compute_base_matrix() * torso_mat),
-            FigureBoneData::new(torso_mat),
-            FigureBoneData::new(self.wing_l.compute_base_matrix() * torso_mat),
-            FigureBoneData::new(self.wing_r.compute_base_matrix() * torso_mat),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-        ]
+        (
+            [
+                FigureBoneData::new(self.head.compute_base_matrix() * torso_mat),
+                FigureBoneData::new(torso_mat),
+                FigureBoneData::new(self.wing_l.compute_base_matrix() * torso_mat),
+                FigureBoneData::new(self.wing_r.compute_base_matrix() * torso_mat),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+            ],
+            Vec3::default(),
+        )
     }
 
     fn interpolate(&mut self, target: &Self, dt: f32) {
