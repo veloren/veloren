@@ -26,7 +26,7 @@ struct ControlChannels {
     stream_open_receiver: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
     stream_opened_sender: mpsc::UnboundedSender<Stream>,
     transfer_channel_receiver: mpsc::UnboundedReceiver<(Cid, mpsc::UnboundedSender<Frame>)>,
-    frame_recv_receiver: mpsc::UnboundedReceiver<Frame>,
+    frame_recv_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>,
     shutdown_api_receiver: mpsc::UnboundedReceiver<Sid>,
     shutdown_api_sender: mpsc::UnboundedSender<Sid>,
     send_outgoing: Arc<Mutex<std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>>>, //api
@@ -67,7 +67,7 @@ impl BParticipant {
         mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
         mpsc::UnboundedReceiver<Stream>,
         mpsc::UnboundedSender<(Cid, mpsc::UnboundedSender<Frame>)>,
-        mpsc::UnboundedSender<Frame>,
+        mpsc::UnboundedSender<(Cid, Frame)>,
         mpsc::UnboundedSender<(Pid, Sid, Frame)>,
         oneshot::Sender<()>,
     ) {
@@ -76,7 +76,7 @@ impl BParticipant {
         let (stream_opened_sender, stream_opened_receiver) = mpsc::unbounded::<Stream>();
         let (transfer_channel_sender, transfer_channel_receiver) =
             mpsc::unbounded::<(Cid, mpsc::UnboundedSender<Frame>)>();
-        let (frame_recv_sender, frame_recv_receiver) = mpsc::unbounded::<Frame>();
+        let (frame_recv_sender, frame_recv_receiver) = mpsc::unbounded::<(Cid, Frame)>();
         let (shutdown_api_sender, shutdown_api_receiver) = mpsc::unbounded();
         let (frame_send_sender, frame_send_receiver) = mpsc::unbounded::<(Pid, Sid, Frame)>();
         let (shutdown_sender, shutdown_receiver) = oneshot::channel();
@@ -162,7 +162,7 @@ impl BParticipant {
 
     async fn handle_frames(
         &self,
-        mut frame_recv_receiver: mpsc::UnboundedReceiver<Frame>,
+        mut frame_recv_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>,
         mut stream_opened_sender: mpsc::UnboundedSender<Stream>,
         shutdown_api_sender: mpsc::UnboundedSender<Sid>,
         send_outgoing: Arc<Mutex<std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>>>,
@@ -172,7 +172,7 @@ impl BParticipant {
         let mut messages = HashMap::new();
         let pid_u128: u128 = self.remote_pid.into();
         let pid_string = pid_u128.to_string();
-        while let Some(frame) = frame_recv_receiver.next().await {
+        while let Some((cid, frame)) = frame_recv_receiver.next().await {
             debug!("handling frame");
             match frame {
                 Frame::OpenStream {

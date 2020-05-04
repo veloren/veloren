@@ -1,6 +1,7 @@
 use crate::{
     metrics::NetworkMetrics,
     protocols::Protocols,
+    scheduler::ConfigureInfo,
     types::{
         Cid, Frame, Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
         VELOREN_NETWORK_VERSION,
@@ -66,18 +67,13 @@ impl Channel {
         self,
         protocol: Protocols,
         part_in_receiver: mpsc::UnboundedReceiver<Frame>,
-        part_out_sender: mpsc::UnboundedSender<(Cid, Frame)>,
-        configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
+        configured_sender: mpsc::UnboundedSender<ConfigureInfo>,
     ) {
         let (prot_in_sender, prot_in_receiver) = mpsc::unbounded::<Frame>();
         let (prot_out_sender, prot_out_receiver) = mpsc::unbounded::<Frame>();
 
-        let handler_future = self.frame_handler(
-            prot_in_receiver,
-            prot_out_sender,
-            part_out_sender,
-            configured_sender,
-        );
+        let handler_future =
+            self.frame_handler(prot_in_receiver, prot_out_sender, configured_sender);
         match protocol {
             Protocols::Tcp(tcp) => {
                 futures::join!(
@@ -102,13 +98,18 @@ impl Channel {
         &self,
         mut frames: mpsc::UnboundedReceiver<Frame>,
         mut frame_sender: mpsc::UnboundedSender<Frame>,
-        mut external_frame_sender: mpsc::UnboundedSender<(Cid, Frame)>,
-        mut configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
+        mut configured_sender: mpsc::UnboundedSender<(
+            Cid,
+            Pid,
+            Sid,
+            oneshot::Sender<mpsc::UnboundedSender<(Cid, Frame)>>,
+        )>,
     ) {
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
                              something went wrong on network layer and connection will be closed";
         let mut pid_string = "".to_string();
         let cid_string = self.cid.to_string();
+        let mut external_frame_sender: Option<mpsc::UnboundedSender<(Cid, Frame)>> = None;
         while let Some(frame) = frames.next().await {
             match frame {
                 Frame::Handshake {
@@ -165,7 +166,7 @@ impl Channel {
                         .send((self.cid, pid, stream_id_offset, sender))
                         .await
                         .unwrap();
-                    receiver.await.unwrap();
+                    external_frame_sender = Some(receiver.await.unwrap());
                     //TODO: this is sync anyway, because we need to wait. so find a better way than
                     // there channels like direct method call... otherwise a
                     // frame might jump in before its officially configured yet
@@ -200,7 +201,14 @@ impl Channel {
                 },
                 _ => {
                     trace!("forward frame");
-                    external_frame_sender.send((self.cid, frame)).await.unwrap();
+                    let pid = &pid_string;
+                    match &mut external_frame_sender {
+                        None => error!(
+                            ?pid,
+                            "cannot forward frame, as channel isn't configured correctly!"
+                        ),
+                        Some(sender) => sender.send((self.cid, frame)).await.unwrap(),
+                    };
                 },
             }
         }

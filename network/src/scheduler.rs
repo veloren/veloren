@@ -34,13 +34,18 @@ use tracing_futures::Instrument;
 
 type ParticipantInfo = (
     mpsc::UnboundedSender<(Cid, mpsc::UnboundedSender<Frame>)>,
-    mpsc::UnboundedSender<Frame>,
     mpsc::UnboundedSender<(Pid, Sid, Frame)>,
     oneshot::Sender<()>,
 );
 type UnknownChannelInfo = (
     mpsc::UnboundedSender<Frame>,
     Option<oneshot::Sender<io::Result<Participant>>>,
+);
+pub(crate) type ConfigureInfo = (
+    Cid,
+    Pid,
+    Sid,
+    oneshot::Sender<mpsc::UnboundedSender<(Cid, Frame)>>,
 );
 
 #[derive(Debug)]
@@ -121,29 +126,18 @@ impl Scheduler {
     }
 
     pub async fn run(mut self) {
-        let (part_out_sender, part_out_receiver) = mpsc::unbounded::<(Cid, Frame)>();
-        let (configured_sender, configured_receiver) =
-            mpsc::unbounded::<(Cid, Pid, Sid, oneshot::Sender<()>)>();
+        let (configured_sender, configured_receiver) = mpsc::unbounded::<ConfigureInfo>();
         let (disconnect_sender, disconnect_receiver) = mpsc::unbounded::<Pid>();
         let (stream_finished_request_sender, stream_finished_request_receiver) = mpsc::unbounded();
         let run_channels = self.run_channels.take().unwrap();
 
         futures::join!(
-            self.listen_manager(
-                run_channels.listen_receiver,
-                part_out_sender.clone(),
-                configured_sender.clone(),
-            ),
-            self.connect_manager(
-                run_channels.connect_receiver,
-                part_out_sender,
-                configured_sender,
-            ),
+            self.listen_manager(run_channels.listen_receiver, configured_sender.clone(),),
+            self.connect_manager(run_channels.connect_receiver, configured_sender,),
             self.disconnect_manager(disconnect_receiver,),
             self.send_outgoing(),
             self.stream_finished_manager(stream_finished_request_receiver),
             self.shutdown_manager(run_channels.shutdown_receiver),
-            self.handle_frames(part_out_receiver),
             self.channel_configurer(
                 run_channels.connected_sender,
                 configured_receiver,
@@ -157,14 +151,12 @@ impl Scheduler {
     async fn listen_manager(
         &self,
         listen_receiver: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
-        part_out_sender: mpsc::UnboundedSender<(Cid, Frame)>,
-        configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
+        configured_sender: mpsc::UnboundedSender<ConfigureInfo>,
     ) {
         trace!("start listen_manager");
         listen_receiver
             .for_each_concurrent(None, |(address, result_sender)| {
                 let address = address.clone();
-                let part_out_sender = part_out_sender.clone();
                 let configured_sender = configured_sender.clone();
 
                 async move {
@@ -185,7 +177,6 @@ impl Scheduler {
                     self.channel_creator(
                         address,
                         end_receiver,
-                        part_out_sender.clone(),
                         configured_sender.clone(),
                         result_sender,
                     )
@@ -202,8 +193,7 @@ impl Scheduler {
             Address,
             oneshot::Sender<io::Result<Participant>>,
         )>,
-        part_out_sender: mpsc::UnboundedSender<(Cid, Frame)>,
-        configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
+        configured_sender: mpsc::UnboundedSender<ConfigureInfo>,
     ) {
         trace!("start connect_manager");
         while let Some((addr, pid_sender)) = connect_receiver.next().await {
@@ -258,7 +248,6 @@ impl Scheduler {
             };
             self.init_protocol(
                 addr,
-                &part_out_sender,
                 &configured_sender,
                 protocol,
                 Some(pid_sender),
@@ -277,7 +266,7 @@ impl Scheduler {
             // 2. we need to close BParticipant, this will drop its senderns and receivers
             // 3. Participant will try to access the BParticipant senders and receivers with
             // their next api action, it will fail and be closed then.
-            if let Some((_, _, _, sender)) = self.participants.write().await.remove(&pid) {
+            if let Some((_, _, sender)) = self.participants.write().await.remove(&pid) {
                 sender.send(()).unwrap();
             }
         }
@@ -298,7 +287,7 @@ impl Scheduler {
                 .await
                 .fill_frames(FRAMES_PER_TICK, &mut frames);
             for (pid, sid, frame) in frames {
-                if let Some((_, _, sender, _)) = self.participants.write().await.get_mut(&pid) {
+                if let Some((_, sender, _)) = self.participants.write().await.get_mut(&pid) {
                     sender.send((pid, sid, frame)).await.unwrap();
                 }
             }
@@ -307,30 +296,13 @@ impl Scheduler {
         trace!("stop send_outgoing");
     }
 
-    //TODO Why is this done in scheduler when it just redirecty everything to
-    // participant?
-    async fn handle_frames(&self, mut part_out_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>) {
-        trace!("start handle_frames");
-        while let Some((cid, frame)) = part_out_receiver.next().await {
-            trace!("handling frame");
-            if let Some(pid) = self.participant_from_channel.read().await.get(&cid) {
-                if let Some((_, sender, _, _)) = self.participants.write().await.get_mut(&pid) {
-                    sender.send(frame).await.unwrap();
-                }
-            } else {
-                error!("dropping frame, unreachable, got a frame from a non existing channel");
-            }
-        }
-        trace!("stop handle_frames");
-    }
-
     //TODO: //ERROR CHECK IF THIS SHOULD BE PUT IN A ASYNC FUNC WHICH IS SEND OVER
     // TO CHANNEL OR NOT FOR RETURN VALUE!
 
     async fn channel_configurer(
         &self,
         mut connected_sender: mpsc::UnboundedSender<Participant>,
-        mut receiver: mpsc::UnboundedReceiver<(Cid, Pid, Sid, oneshot::Sender<()>)>,
+        mut receiver: mpsc::UnboundedReceiver<ConfigureInfo>,
         disconnect_sender: mpsc::UnboundedSender<Pid>,
         prios_sender: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
         stream_finished_request_sender: mpsc::UnboundedSender<(Pid, Sid, oneshot::Sender<()>)>,
@@ -387,7 +359,6 @@ impl Scheduler {
                         pid,
                         (
                             transfer_channel_receiver,
-                            frame_recv_sender,
                             frame_send_sender,
                             shutdown_sender,
                         ),
@@ -398,13 +369,17 @@ impl Scheduler {
                             .run()
                             .instrument(tracing::info_span!("participant", ?pid)),
                     );
+                    sender.send(frame_recv_sender).unwrap();
                 } else {
                     error!(
                         "2ND channel of participants opens, but we cannot verify that this is not \
                          a attack to "
-                    )
+                    );
+                    //ERROR DEADLOCK AS NO SENDER HERE!
+                    //sender.send(frame_recv_sender).unwrap();
                 }
-                sender.send(()).unwrap();
+                //From now on this CHANNEL can receiver other frames! move
+                // directly to participant!
             }
         }
         trace!("stop channel_activator");
@@ -461,7 +436,7 @@ impl Scheduler {
         self.closed.store(true, Ordering::Relaxed);
         debug!("shutting down all BParticipants gracefully");
         let mut participants = self.participants.write().await;
-        for (pid, (_, _, _, sender)) in participants.drain() {
+        for (pid, (_, _, sender)) in participants.drain() {
             trace!(?pid, "shutting down BParticipants");
             sender.send(()).unwrap();
         }
@@ -472,8 +447,7 @@ impl Scheduler {
         &self,
         addr: Address,
         end_receiver: oneshot::Receiver<()>,
-        part_out_sender: mpsc::UnboundedSender<(Cid, Frame)>,
-        configured_sender: mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
+        configured_sender: mpsc::UnboundedSender<ConfigureInfo>,
         result_sender: oneshot::Sender<io::Result<()>>,
     ) {
         info!(?addr, "start up channel creator");
@@ -505,7 +479,6 @@ impl Scheduler {
                     info!("Accepting Tcp from: {}", stream.peer_addr().unwrap());
                     self.init_protocol(
                         addr,
-                        &part_out_sender,
                         &configured_sender,
                         Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone())),
                         None,
@@ -552,15 +525,8 @@ impl Scheduler {
                             self.metrics.clone(),
                             udp_data_receiver,
                         ));
-                        self.init_protocol(
-                            addr,
-                            &part_out_sender,
-                            &configured_sender,
-                            protocol,
-                            None,
-                            true,
-                        )
-                        .await;
+                        self.init_protocol(addr, &configured_sender, protocol, None, true)
+                            .await;
                     }
                     let udp_data_sender = listeners.get_mut(&remote_addr).unwrap();
                     udp_data_sender.send(datavec).await.unwrap();
@@ -598,8 +564,7 @@ impl Scheduler {
     async fn init_protocol(
         &self,
         addr: std::net::SocketAddr,
-        part_out_sender: &mpsc::UnboundedSender<(Cid, Frame)>,
-        configured_sender: &mpsc::UnboundedSender<(Cid, Pid, Sid, oneshot::Sender<()>)>,
+        configured_sender: &mpsc::UnboundedSender<ConfigureInfo>,
         protocol: Protocols,
         pid_sender: Option<oneshot::Sender<io::Result<Participant>>>,
         send_handshake: bool,
@@ -618,12 +583,7 @@ impl Scheduler {
         }
         self.pool.spawn_ok(
             channel
-                .run(
-                    protocol,
-                    part_in_receiver,
-                    part_out_sender.clone(),
-                    configured_sender.clone(),
-                )
+                .run(protocol, part_in_receiver, configured_sender.clone())
                 .instrument(tracing::info_span!("channel", ?addr)),
         );
         self.unknown_channels
