@@ -74,6 +74,9 @@ impl<'a> System<'a> for Sys {
                         }
                     },
                     ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
+                    ControlEvent::ToggleLantern => {
+                        server_emitter.emit(ServerEvent::ToggleLantern(entity))
+                    },
                     ControlEvent::InventoryManip(manip) => {
                         *character_state = CharacterState::Idle;
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip))

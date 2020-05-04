@@ -331,6 +331,9 @@ impl PlayState for SessionState {
                             self.client.borrow_mut().swap_loadout();
                         }
                     }
+                    Event::InputUpdate(GameInput::ToggleLantern, true) => {
+                        self.client.borrow_mut().toggle_lantern();
+                    },
                     Event::InputUpdate(GameInput::Mount, true) => {
                         let mut client = self.client.borrow_mut();
                         if client.is_mounted() {

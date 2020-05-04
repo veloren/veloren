@@ -11,8 +11,23 @@ use common::{
 };
 use log::error;
 use rand::Rng;
-use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity};
+use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
 use vek::Vec3;
+
+pub fn swap_lantern(
+    storage: &mut WriteStorage<comp::LightEmitter>,
+    entity: EcsEntity,
+    lantern: &item::Lantern,
+) {
+    if let Some(light) = storage.get_mut(entity) {
+        light.strength = lantern.strength();
+        light.col = lantern.color();
+    }
+}
+
+pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: EcsEntity) {
+    storage.remove(entity);
+}
 
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
@@ -101,12 +116,19 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let event = match slot {
                 Slot::Inventory(slot) => {
                     use item::ItemKind;
-                    // Check if item is equipable
-                    if inventory.get(slot).map_or(false, |i| match &i.kind {
-                        ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => true,
-                        _ => false,
-                    }) {
+                    let (is_equippable, lantern_opt) =
+                        inventory
+                            .get(slot)
+                            .map_or((false, None), |i| match &i.kind {
+                                ItemKind::Tool(_) | ItemKind::Armor { .. } => (true, None),
+                                ItemKind::Lantern(lantern) => (true, Some(lantern)),
+                                _ => (false, None),
+                            });
+                    if is_equippable {
                         if let Some(loadout) = state.ecs().write_storage().get_mut(entity) {
+                            if let Some(lantern) = lantern_opt {
+                                swap_lantern(&mut state.ecs().write_storage(), entity, lantern);
+                            }
                             slot::equip(slot, inventory, loadout);
                             Some(comp::InventoryUpdateEvent::Used)
                         } else {
@@ -191,6 +213,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 },
                 Slot::Equip(slot) => {
                     if let Some(loadout) = state.ecs().write_storage().get_mut(entity) {
+                        if slot == slot::EquipSlot::Lantern {
+                            snuff_lantern(&mut state.ecs().write_storage(), entity);
+                        }
                         slot::unequip(slot, inventory, loadout);
                         Some(comp::InventoryUpdateEvent::Used)
                     } else {

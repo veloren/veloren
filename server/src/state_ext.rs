@@ -127,7 +127,6 @@ impl StateExt for State {
                 z_max: 0.9,
             })
             .with(comp::Gravity(1.0))
-        //.with(comp::LightEmitter::default())
     }
 
     /// Build a projectile

@@ -13,6 +13,7 @@ use rand::seq::SliceRandom;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::{fs::File, io::BufReader};
+use vek::Rgb;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Consumable {
@@ -39,11 +40,33 @@ pub enum Ingredient {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
-pub enum Lantern {
+pub enum LanternKind {
     Black0 = 1,
     Green0 = 2,
+    Red0 = 3,
+    Blue0 = 4,
 }
-pub const ALL_LANTERNS: [Lantern; 2] = [Lantern::Black0, Lantern::Green0];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Lantern {
+    pub kind: LanternKind,
+    color: Rgb<u32>,
+    strength_thousandths: u32,
+    flicker_thousandths: u32,
+}
+
+pub const ALL_LANTERNS: [LanternKind; 4] = [
+    LanternKind::Black0,
+    LanternKind::Green0,
+    LanternKind::Red0,
+    LanternKind::Blue0,
+];
+
+impl Lantern {
+    pub fn strength(&self) -> f32 { self.strength_thousandths as f32 / 1000_f32 }
+
+    pub fn color(&self) -> Rgb<f32> { self.color.map(|c| c as f32 / 255.0) }
+}
 
 fn default_amount() -> u32 { 1 }
 
