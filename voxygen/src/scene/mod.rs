@@ -270,14 +270,17 @@ impl Scene {
                 .ecs()
                 .read_storage::<crate::ecs::comp::Interpolated>()
                 .maybe(),
-            &scene_data.state.ecs().read_storage::<comp::LightEmitter>(),
+            &scene_data
+                .state
+                .ecs()
+                .read_storage::<comp::LightAnimation>(),
         )
             .join()
             .filter(|(pos, _, _, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
                     < self.loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
             })
-            .map(|(pos, ori, interpolated, light_emitter)| {
+            .map(|(pos, ori, interpolated, light_anim)| {
                 // Use interpolated values if they are available
                 let (pos, ori) =
                     interpolated.map_or((pos.0, ori.map(|o| o.0)), |i| (i.pos, Some(i.ori)));
@@ -289,9 +292,9 @@ impl Scene {
                     }
                 };
                 Light::new(
-                    pos + (rot * light_emitter.offset),
-                    light_emitter.col,
-                    light_emitter.strength,
+                    pos + (rot * light_anim.offset),
+                    light_anim.col,
+                    light_anim.strength,
                 )
             })
             .collect::<Vec<_>>();

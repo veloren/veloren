@@ -135,6 +135,10 @@ impl State {
         ecs.register::<comp::Ori>();
         ecs.register::<comp::Inventory>();
 
+        // Register client-local components
+        // TODO: only register on the client
+        ecs.register::<comp::LightAnimation>();
+
         // Register server-local components
         // TODO: only register on the server
         ecs.register::<comp::Last<comp::Pos>>();

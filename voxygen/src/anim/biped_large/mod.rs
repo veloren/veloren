@@ -8,6 +8,7 @@ pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 use common::comp::{self};
+use vek::Vec3;
 
 #[derive(Clone)]
 pub struct BipedLargeSkeleton {
@@ -49,7 +50,7 @@ impl Skeleton for BipedLargeSkeleton {
 
     fn bone_count(&self) -> usize { 11 }
 
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
+    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();
         let shoulder_r_mat = self.shoulder_r.compute_base_matrix();
@@ -57,26 +58,33 @@ impl Skeleton for BipedLargeSkeleton {
         let leg_r_mat = self.leg_r.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
 
-        [
-            FigureBoneData::new(torso_mat * upper_torso_mat * self.head.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * upper_torso_mat),
-            FigureBoneData::new(
-                torso_mat * upper_torso_mat * self.lower_torso.compute_base_matrix(),
-            ),
-            FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_l_mat),
-            FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_r_mat),
-            FigureBoneData::new(torso_mat * upper_torso_mat * self.hand_l.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * upper_torso_mat * self.hand_r.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * upper_torso_mat * leg_l_mat),
-            FigureBoneData::new(torso_mat * upper_torso_mat * leg_r_mat),
-            FigureBoneData::new(self.foot_l.compute_base_matrix()),
-            FigureBoneData::new(self.foot_r.compute_base_matrix()),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-        ]
+        (
+            [
+                FigureBoneData::new(torso_mat * upper_torso_mat * self.head.compute_base_matrix()),
+                FigureBoneData::new(torso_mat * upper_torso_mat),
+                FigureBoneData::new(
+                    torso_mat * upper_torso_mat * self.lower_torso.compute_base_matrix(),
+                ),
+                FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_l_mat),
+                FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_r_mat),
+                FigureBoneData::new(
+                    torso_mat * upper_torso_mat * self.hand_l.compute_base_matrix(),
+                ),
+                FigureBoneData::new(
+                    torso_mat * upper_torso_mat * self.hand_r.compute_base_matrix(),
+                ),
+                FigureBoneData::new(torso_mat * upper_torso_mat * leg_l_mat),
+                FigureBoneData::new(torso_mat * upper_torso_mat * leg_r_mat),
+                FigureBoneData::new(self.foot_l.compute_base_matrix()),
+                FigureBoneData::new(self.foot_r.compute_base_matrix()),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+            ],
+            Vec3::default(),
+        )
     }
 
     fn interpolate(&mut self, target: &Self, dt: f32) {

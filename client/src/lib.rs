@@ -274,6 +274,11 @@ impl Client {
         }
     }
 
+    pub fn toggle_lantern(&mut self) {
+        self.postbox
+            .send_message(ClientMsg::ControlEvent(ControlEvent::ToggleLantern));
+    }
+
     pub fn is_mounted(&self) -> bool {
         self.state
             .ecs()

@@ -1,0 +1,12 @@
+Item(
+    name: "Cool Blue Lantern",
+    description: "This lantern is surprisingly cold when lit.",
+    kind: Lantern(
+        (
+            kind: Blue0,
+            color: (r: 64, g: 127, b: 153),
+            strength_thousandths: 4000,
+            flicker_thousandths: 250,
+        ),
+    ),
+)
