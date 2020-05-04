@@ -32,13 +32,30 @@
             ],
             threshold: 1.2,
         ),
-        Attack(TripleStrike, Sword): (
+        Attack(TripleStrike(First), Sword): (
             files: [
-                "voxygen.audio.sfx.weapon.sword_triple_strike_01",
-                "voxygen.audio.sfx.weapon.sword_triple_strike_02",
-                "voxygen.audio.sfx.weapon.sword_triple_strike_03",
+                "voxygen.audio.sfx.weapon.whoosh_normal_01",
+                "voxygen.audio.sfx.weapon.whoosh_normal_02",
+                "voxygen.audio.sfx.weapon.whoosh_normal_03",
+                "voxygen.audio.sfx.weapon.whoosh_normal_04",
             ],
-            threshold: 0.8,
+            threshold: 0.5,
+        ),
+        Attack(TripleStrike(Second), Sword): (
+            files: [
+                "voxygen.audio.sfx.weapon.whoosh_low_01",
+                "voxygen.audio.sfx.weapon.whoosh_low_02",
+                "voxygen.audio.sfx.weapon.whoosh_low_03",
+            ],
+            threshold: 0.5,
+        ),
+        Attack(TripleStrike(Third), Sword): (
+            files: [
+                "voxygen.audio.sfx.weapon.whoosh_low_01",
+                "voxygen.audio.sfx.weapon.whoosh_low_02",
+                "voxygen.audio.sfx.weapon.whoosh_low_03",
+            ],
+            threshold: 0.5,
         ),
         Attack(BasicRanged, Bow): (
             files: [
@@ -76,7 +93,6 @@
             ],
             threshold: 0.5,
         ),
-        
 		Inventory(Collected): (
             files: [
                 "voxygen.audio.sfx.inventory.add_item",
