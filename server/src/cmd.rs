@@ -849,6 +849,14 @@ fn handle_light(
     let mut light_emitter = comp::LightEmitter::default();
 
     if let (Some(r), Some(g), Some(b)) = (opt_r, opt_g, opt_b) {
+        if r < 0.0 || g < 0.0 || b < 0.0 {
+            server.notify_client(
+                client,
+                ServerMsg::private(String::from("cr, cg and cb values mustn't be negative.")),
+            );
+            return;
+        }
+
         let r = r.max(0.0).min(1.0);
         let g = g.max(0.0).min(1.0);
         let b = b.max(0.0).min(1.0);
@@ -950,6 +958,21 @@ fn handle_explosion(
     action: &ChatCommand,
 ) {
     let power = scan_fmt!(&args, action.arg_fmt, f32).unwrap_or(8.0);
+
+    if power > 512.0 {
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from("Explosion power mustn't be more than 512.")),
+        );
+        return;
+    } else if power <= 0.0 {
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from("Explosion power must be more than 0.")),
+        );
+        return;
+    }
+
     let ecs = server.state.ecs();
 
     match server.state.read_component_cloned::<comp::Pos>(target) {
