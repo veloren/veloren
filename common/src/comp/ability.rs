@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile,
-        StateUpdate,
+        ability::Stage, item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter,
+        Projectile, StateUpdate,
     },
     states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
@@ -17,7 +17,7 @@ pub enum CharacterAbilityType {
     Boost,
     DashMelee,
     BasicBlock,
-    TripleStrike,
+    TripleStrike(Stage),
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -28,7 +28,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::Boost(_) => Self::Boost,
             CharacterState::DashMelee(_) => Self::DashMelee,
             CharacterState::BasicBlock => Self::BasicBlock,
-            CharacterState::TripleStrike(_) => Self::TripleStrike,
+            CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
             _ => Self::BasicMelee,
         }
     }
