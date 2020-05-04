@@ -136,7 +136,11 @@ impl FigureMgr {
                 if let Some(emitter) = light_emitter_opt {
                     (
                         emitter.col,
-                        emitter.strength,
+                        if emitter.strength.is_finite() {
+                            emitter.strength
+                        } else {
+                            0.0
+                        },
                         emitter.flicker,
                         emitter.animated,
                     )
@@ -148,6 +152,9 @@ impl FigureMgr {
             }
             if let Some(state) = self.character_states.get(&entity) {
                 light_anim.offset = state.lantern_offset;
+            }
+            if !light_anim.strength.is_finite() {
+                light_anim.strength = 0.0;
             }
             if animated {
                 let flicker = (rand::random::<f32>() - 0.5) * flicker / dt.sqrt();
