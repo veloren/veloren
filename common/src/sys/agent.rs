@@ -256,10 +256,10 @@ impl<'a> System<'a> for Sys {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
                                 // Close-range attack
-                                inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
-                                    .try_normalized()
-                                    .unwrap_or(Vec2::unit_y())
-                                    * 0.7;
+                                /*inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
+                                .try_normalized()
+                                .unwrap_or(Vec2::unit_y())
+                                * 0.7;*/
 
                                 match tactic {
                                     Tactic::Melee | Tactic::Staff => inputs.primary.set_state(true),
