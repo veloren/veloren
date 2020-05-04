@@ -283,7 +283,14 @@ impl Tool {
                     projectile_gravity: None,
                 }],
             },
-            Empty => vec![],
+            Empty => vec![BasicMelee {
+                energy_cost: 0,
+                buildup_duration: Duration::from_millis(0),
+                recover_duration: Duration::from_millis(1000),
+                base_healthchange: -2,
+                range: 3.5,
+                max_angle: 45.0,
+            }],
         }
     }
 }
