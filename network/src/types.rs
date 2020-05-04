@@ -62,6 +62,36 @@ pub(crate) enum Frame {
     Raw(Vec<u8>),
 }
 
+impl Frame {
+    pub fn get_string(&self) -> &str {
+        match self {
+            Frame::Handshake {
+                magic_number: _,
+                version: _,
+            } => "Handshake",
+            Frame::ParticipantId { pid: _ } => "ParticipantId",
+            Frame::Shutdown => "Shutdown",
+            Frame::OpenStream {
+                sid: _,
+                prio: _,
+                promises: _,
+            } => "OpenStream",
+            Frame::CloseStream { sid: _ } => "CloseStream",
+            Frame::DataHeader {
+                mid: _,
+                sid: _,
+                length: _,
+            } => "DataHeader",
+            Frame::Data {
+                mid: _,
+                start: _,
+                data: _,
+            } => "Data",
+            Frame::Raw(_) => "Raw",
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(crate) enum Requestor {
     User,
@@ -111,13 +141,35 @@ impl Sid {
 impl std::fmt::Debug for Pid {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        const BITS_PER_SIXLET: usize = 6;
         //only print last 6 chars of number as full u128 logs are unreadable
-        write!(f, "{}", self.internal.rem_euclid(100000))
+        const CHAR_COUNT: usize = 6;
+        for i in 0..CHAR_COUNT {
+            write!(
+                f,
+                "{}",
+                sixlet_to_str((self.internal >> i * BITS_PER_SIXLET) & 0x3F)
+            )?;
+        }
+        Ok(())
     }
 }
 
-impl From<Pid> for u128 {
-    fn from(pid: Pid) -> Self { pid.internal }
+impl std::fmt::Display for Pid {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        const BITS_PER_SIXLET: usize = 6;
+        //only print last 6 chars of number as full u128 logs are unreadable
+        const CHAR_COUNT: usize = 6;
+        for i in 0..CHAR_COUNT {
+            write!(
+                f,
+                "{}",
+                sixlet_to_str((self.internal >> i * BITS_PER_SIXLET) & 0x3F)
+            )?;
+        }
+        Ok(())
+    }
 }
 
 impl std::ops::AddAssign for Sid {
@@ -138,4 +190,75 @@ impl std::fmt::Debug for Sid {
 
 impl From<u64> for Sid {
     fn from(internal: u64) -> Self { Sid { internal } }
+}
+
+#[inline]
+fn sixlet_to_str(sixlet: u128) -> char {
+    match sixlet {
+        0 => 'A',
+        1 => 'B',
+        2 => 'C',
+        3 => 'D',
+        4 => 'E',
+        5 => 'F',
+        6 => 'G',
+        7 => 'H',
+        8 => 'I',
+        9 => 'J',
+        10 => 'K',
+        11 => 'L',
+        12 => 'M',
+        13 => 'N',
+        14 => 'O',
+        15 => 'P',
+        16 => 'Q',
+        17 => 'R',
+        18 => 'S',
+        19 => 'T',
+        20 => 'U',
+        21 => 'V',
+        22 => 'W',
+        23 => 'X',
+        24 => 'Y',
+        25 => 'Z',
+        26 => 'a',
+        27 => 'b',
+        28 => 'c',
+        29 => 'd',
+        30 => 'e',
+        31 => 'f',
+        32 => 'g',
+        33 => 'h',
+        34 => 'i',
+        35 => 'j',
+        36 => 'k',
+        37 => 'l',
+        38 => 'm',
+        39 => 'n',
+        40 => 'o',
+        41 => 'p',
+        42 => 'q',
+        43 => 'r',
+        44 => 's',
+        45 => 't',
+        46 => 'u',
+        47 => 'v',
+        48 => 'w',
+        49 => 'x',
+        50 => 'y',
+        51 => 'z',
+        52 => '0',
+        53 => '1',
+        54 => '2',
+        55 => '3',
+        56 => '4',
+        57 => '5',
+        58 => '6',
+        59 => '7',
+        60 => '8',
+        61 => '9',
+        62 => '+',
+        63 => '/',
+        _ => '-',
+    }
 }

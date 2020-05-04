@@ -17,5 +17,5 @@ tracing = "0.1"
 tracing-subscriber = "0.2.3"
 bincode = "1.2"
 prometheus = "0.7"
-rouille = "3.0.0"
+tiny_http = "0.7.0"
 serde = { version = "1.0", features = ["derive"] }

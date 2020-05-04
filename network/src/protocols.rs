@@ -1,13 +1,19 @@
 use crate::{
     metrics::NetworkMetrics,
-    types::{Frame, Mid, Pid, Sid},
+    types::{Cid, Frame, Mid, Pid, Sid},
 };
 use async_std::{
     net::{TcpStream, UdpSocket},
     prelude::*,
     sync::RwLock,
 };
-use futures::{channel::mpsc, future::FutureExt, select, sink::SinkExt, stream::StreamExt};
+use futures::{
+    channel::{mpsc, oneshot},
+    future::FutureExt,
+    select,
+    sink::SinkExt,
+    stream::StreamExt,
+};
 use std::{net::SocketAddr, sync::Arc};
 use tracing::*;
 
@@ -51,12 +57,23 @@ impl TcpProtocol {
         Self { stream, metrics }
     }
 
-    pub async fn read(&self, mut frame_handler: mpsc::UnboundedSender<Frame>) {
+    pub async fn read(
+        &self,
+        cid: Cid,
+        mut from_wire_sender: mpsc::UnboundedSender<(Cid, Frame)>,
+        end_receiver: oneshot::Receiver<()>,
+    ) {
+        trace!("starting up tcp write()");
         let mut stream = self.stream.clone();
+        let mut end_receiver = end_receiver.fuse();
         loop {
             let mut bytes = [0u8; 1];
-            if stream.read_exact(&mut bytes).await.is_err() {
-                info!("tcp channel closed, shutting down read");
+            let r = select! {
+                    r = stream.read_exact(&mut bytes).fuse() => r,
+                    _ = end_receiver => break,
+            };
+            if r.is_err() {
+                info!("tcp stream closed, shutting down read");
                 break;
             }
             let frame_no = bytes[0];
@@ -156,7 +173,11 @@ impl TcpProtocol {
                     Frame::Raw(data)
                 },
             };
-            frame_handler.send(frame).await.unwrap();
+            self.metrics
+                .frames_wire_in_total
+                .with_label_values(&[&cid.to_string(), frame.get_string()])
+                .inc();
+            from_wire_sender.send((cid, frame)).await.unwrap();
         }
         trace!("shutting down tcp read()");
     }
@@ -164,16 +185,15 @@ impl TcpProtocol {
     //dezerialize here as this is executed in a seperate thread PER channel.
     // Limites Throughput per single Receiver but stays in same thread (maybe as its
     // in a threadpool) for TCP, UDP and MPSC
-    pub async fn write(
-        &self,
-        mut internal_frame_receiver: mpsc::UnboundedReceiver<Frame>,
-        mut external_frame_receiver: mpsc::UnboundedReceiver<Frame>,
-    ) {
+    pub async fn write(&self, cid: Cid, mut to_wire_receiver: mpsc::UnboundedReceiver<Frame>) {
+        trace!("starting up tcp write()");
         let mut stream = self.stream.clone();
-        while let Some(frame) = select! {
-            next = internal_frame_receiver.next().fuse() => next,
-            next = external_frame_receiver.next().fuse() => next,
-        } {
+        let cid_string = cid.to_string();
+        while let Some(frame) = to_wire_receiver.next().await {
+            self.metrics
+                .frames_wire_out_total
+                .with_label_values(&[&cid_string, frame.get_string()])
+                .inc();
             match frame {
                 Frame::Handshake {
                     magic_number,
@@ -269,9 +289,19 @@ impl UdpProtocol {
         }
     }
 
-    pub async fn read(&self, mut frame_handler: mpsc::UnboundedSender<Frame>) {
+    pub async fn read(
+        &self,
+        cid: Cid,
+        mut from_wire_sender: mpsc::UnboundedSender<(Cid, Frame)>,
+        end_receiver: oneshot::Receiver<()>,
+    ) {
+        trace!("starting up udp read()");
         let mut data_in = self.data_in.write().await;
-        while let Some(bytes) = data_in.next().await {
+        let mut end_receiver = end_receiver.fuse();
+        while let Some(bytes) = select! {
+            r = data_in.next().fuse() => r,
+            _ = end_receiver => None,
+        } {
             trace!("got raw UDP message with len: {}", bytes.len());
             let frame_no = bytes[0];
             let frame = match frame_no {
@@ -351,7 +381,6 @@ impl UdpProtocol {
                     Frame::Data { mid, start, data }
                 },
                 FRAME_RAW => {
-                    error!("Uffff");
                     let length = u16::from_le_bytes([bytes[1], bytes[2]]);
                     let mut data = vec![0; length as usize];
                     data.copy_from_slice(&bytes[3..]);
@@ -359,60 +388,24 @@ impl UdpProtocol {
                 },
                 _ => Frame::Raw(bytes),
             };
-            frame_handler.send(frame).await.unwrap();
+            self.metrics
+                .frames_wire_in_total
+                .with_label_values(&[&cid.to_string(), frame.get_string()])
+                .inc();
+            from_wire_sender.send((cid, frame)).await.unwrap();
         }
-        /*
-        let mut data_in = self.data_in.write().await;
-        let mut buffer = NetworkBuffer::new();
-        while let Some(data) = data_in.next().await {
-            let n = data.len();
-            let slice = &mut buffer.get_write_slice(n)[0..n]; //get_write_slice can return  more then n!
-            slice.clone_from_slice(data.as_slice());
-            buffer.actually_written(n);
-            trace!("incomming message with len: {}", n);
-            let slice = buffer.get_read_slice();
-            let mut cur = std::io::Cursor::new(slice);
-            let mut read_ok = 0;
-            while cur.position() < n as u64 {
-                let round_start = cur.position() as usize;
-                let r: Result<Frame, _> = bincode::deserialize_from(&mut cur);
-                match r {
-                    Ok(frame) => {
-                        frame_handler.send(frame).await.unwrap();
-                        read_ok = cur.position() as usize;
-                    },
-                    Err(e) => {
-                        // Probably we have to wait for moare data!
-                        let first_bytes_of_msg =
-                            &slice[round_start..std::cmp::min(n, round_start + 16)];
-                        debug!(
-                            ?buffer,
-                            ?e,
-                            ?n,
-                            ?round_start,
-                            ?first_bytes_of_msg,
-                            "message cant be parsed, probably because we need to wait for more \
-                             data"
-                        );
-                        break;
-                    },
-                }
-            }
-            buffer.actually_read(read_ok);
-        }*/
         trace!("shutting down udp read()");
     }
 
-    pub async fn write(
-        &self,
-        mut internal_frame_receiver: mpsc::UnboundedReceiver<Frame>,
-        mut external_frame_receiver: mpsc::UnboundedReceiver<Frame>,
-    ) {
+    pub async fn write(&self, cid: Cid, mut to_wire_receiver: mpsc::UnboundedReceiver<Frame>) {
+        trace!("starting up udp write()");
         let mut buffer = [0u8; 2000];
-        while let Some(frame) = select! {
-            next = internal_frame_receiver.next().fuse() => next,
-            next = external_frame_receiver.next().fuse() => next,
-        } {
+        let cid_string = cid.to_string();
+        while let Some(frame) = to_wire_receiver.next().await {
+            self.metrics
+                .frames_wire_out_total
+                .with_label_values(&[&cid_string, frame.get_string()])
+                .inc();
             let len = match frame {
                 Frame::Handshake {
                     magic_number,
@@ -602,116 +595,5 @@ impl UdpProtocol {
             }
         }
         trace!("shutting down udp write()");
-        /*
-        let mut buffer = NetworkBuffer::new();
-        while let Some(frame) = select! {
-            next = internal_frame_receiver.next().fuse() => next,
-            next = external_frame_receiver.next().fuse() => next,
-        } {
-            let len = bincode::serialized_size(&frame).unwrap() as usize;
-            match bincode::serialize_into(buffer.get_write_slice(len), &frame) {
-                Ok(_) => buffer.actually_written(len),
-                Err(e) => error!("Oh nooo {}", e),
-            };
-            trace!(?len, "going to send frame via Udp");
-            let mut to_send = buffer.get_read_slice();
-            while to_send.len() > 0 {
-                match self.socket.send_to(to_send, self.remote_addr).await {
-                    Ok(n) => buffer.actually_read(n),
-                    Err(e) => error!(?e, "need to handle that error!"),
-                }
-                to_send = buffer.get_read_slice();
-            }
-        }
-        */
     }
 }
-
-// INTERNAL NetworkBuffer
-/*
-struct NetworkBuffer {
-    pub(crate) data: Vec<u8>,
-    pub(crate) read_idx: usize,
-    pub(crate) write_idx: usize,
-}
-
-/// NetworkBuffer to use for streamed access
-/// valid data is between read_idx and write_idx!
-/// everything before read_idx is already processed and no longer important
-/// everything after write_idx is either 0 or random data buffered
-impl NetworkBuffer {
-    fn new() -> Self {
-        NetworkBuffer {
-            data: vec![0; 2048],
-            read_idx: 0,
-            write_idx: 0,
-        }
-    }
-
-    fn get_write_slice(&mut self, min_size: usize) -> &mut [u8] {
-        if self.data.len() < self.write_idx + min_size {
-            trace!(
-                ?self,
-                ?min_size,
-                "need to resize because buffer is to small"
-            );
-            self.data.resize(self.write_idx + min_size, 0);
-        }
-        &mut self.data[self.write_idx..]
-    }
-
-    fn actually_written(&mut self, cnt: usize) { self.write_idx += cnt; }
-
-    fn get_read_slice(&self) -> &[u8] { &self.data[self.read_idx..self.write_idx] }
-
-    fn actually_read(&mut self, cnt: usize) {
-        self.read_idx += cnt;
-        if self.read_idx == self.write_idx {
-            if self.read_idx > 10485760 {
-                trace!(?self, "buffer empty, resetting indices");
-            }
-            self.read_idx = 0;
-            self.write_idx = 0;
-        }
-        if self.write_idx > 10485760 {
-            if self.write_idx - self.read_idx < 65536 {
-                debug!(
-                    ?self,
-                    "This buffer is filled over 10 MB, but the actual data diff is less then \
-                     65kB, which is a sign of stressing this connection much as always new data \
-                     comes in - nevertheless, in order to handle this we will remove some data \
-                     now so that this buffer doesn't grow endlessly"
-                );
-                let mut i2 = 0;
-                for i in self.read_idx..self.write_idx {
-                    self.data[i2] = self.data[i];
-                    i2 += 1;
-                }
-                self.read_idx = 0;
-                self.write_idx = i2;
-            }
-            if self.data.len() > 67108864 {
-                warn!(
-                    ?self,
-                    "over 64Mbyte used, something seems fishy, len: {}",
-                    self.data.len()
-                );
-            }
-        }
-    }
-}
-
-impl std::fmt::Debug for NetworkBuffer {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "NetworkBuffer(len: {}, read: {}, write: {})",
-            self.data.len(),
-            self.read_idx,
-            self.write_idx
-        )
-    }
-}
-
-*/

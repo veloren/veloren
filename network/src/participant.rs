@@ -1,7 +1,9 @@
 use crate::{
     api::Stream,
+    channel::Channel,
     message::{InCommingMessage, MessageBuffer, OutGoingMessage},
     metrics::NetworkMetrics,
+    protocols::Protocols,
     types::{Cid, Frame, Pid, Prio, Promises, Sid},
 };
 use async_std::sync::RwLock;
@@ -25,8 +27,7 @@ use tracing::*;
 struct ControlChannels {
     stream_open_receiver: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
     stream_opened_sender: mpsc::UnboundedSender<Stream>,
-    transfer_channel_receiver: mpsc::UnboundedReceiver<(Cid, mpsc::UnboundedSender<Frame>)>,
-    frame_recv_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>,
+    create_channel_receiver: mpsc::UnboundedReceiver<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
     shutdown_api_receiver: mpsc::UnboundedReceiver<Sid>,
     shutdown_api_sender: mpsc::UnboundedSender<Sid>,
     send_outgoing: Arc<Mutex<std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>>>, //api
@@ -39,7 +40,7 @@ struct ControlChannels {
 pub struct BParticipant {
     remote_pid: Pid,
     offset_sid: Sid,
-    channels: RwLock<Vec<(Cid, mpsc::UnboundedSender<Frame>)>>,
+    channels: Arc<RwLock<Vec<(Cid, mpsc::UnboundedSender<Frame>)>>>,
     streams: RwLock<
         HashMap<
             Sid,
@@ -66,26 +67,23 @@ impl BParticipant {
         Self,
         mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
         mpsc::UnboundedReceiver<Stream>,
-        mpsc::UnboundedSender<(Cid, mpsc::UnboundedSender<Frame>)>,
-        mpsc::UnboundedSender<(Cid, Frame)>,
+        mpsc::UnboundedSender<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
         mpsc::UnboundedSender<(Pid, Sid, Frame)>,
         oneshot::Sender<()>,
     ) {
         let (stream_open_sender, stream_open_receiver) =
             mpsc::unbounded::<(Prio, Promises, oneshot::Sender<Stream>)>();
         let (stream_opened_sender, stream_opened_receiver) = mpsc::unbounded::<Stream>();
-        let (transfer_channel_sender, transfer_channel_receiver) =
-            mpsc::unbounded::<(Cid, mpsc::UnboundedSender<Frame>)>();
-        let (frame_recv_sender, frame_recv_receiver) = mpsc::unbounded::<(Cid, Frame)>();
         let (shutdown_api_sender, shutdown_api_receiver) = mpsc::unbounded();
         let (frame_send_sender, frame_send_receiver) = mpsc::unbounded::<(Pid, Sid, Frame)>();
         let (shutdown_sender, shutdown_receiver) = oneshot::channel();
+        let (create_channel_sender, create_channel_receiver) =
+            mpsc::unbounded::<(Cid, Sid, Protocols, oneshot::Sender<()>)>();
 
         let run_channels = Some(ControlChannels {
             stream_open_receiver,
             stream_opened_sender,
-            transfer_channel_receiver,
-            frame_recv_receiver,
+            create_channel_receiver,
             shutdown_api_receiver,
             shutdown_api_sender,
             send_outgoing: Arc::new(Mutex::new(send_outgoing)),
@@ -98,15 +96,14 @@ impl BParticipant {
             Self {
                 remote_pid,
                 offset_sid,
-                channels: RwLock::new(vec![]),
+                channels: Arc::new(RwLock::new(vec![])),
                 streams: RwLock::new(HashMap::new()),
                 run_channels,
                 metrics,
             },
             stream_open_sender,
             stream_opened_receiver,
-            transfer_channel_sender,
-            frame_recv_sender,
+            create_channel_sender,
             frame_send_sender,
             shutdown_sender,
         )
@@ -118,10 +115,10 @@ impl BParticipant {
         let (shutdown_open_manager_sender, shutdown_open_manager_receiver) = oneshot::channel();
         let (shutdown_stream_close_manager_sender, shutdown_stream_close_manager_receiver) =
             oneshot::channel();
+        let (frame_from_wire_sender, frame_from_wire_receiver) = mpsc::unbounded::<(Cid, Frame)>();
 
         let run_channels = self.run_channels.take().unwrap();
         futures::join!(
-            self.transfer_channel_manager(run_channels.transfer_channel_receiver),
             self.open_manager(
                 run_channels.stream_open_receiver,
                 run_channels.shutdown_api_sender.clone(),
@@ -129,10 +126,14 @@ impl BParticipant {
                 shutdown_open_manager_receiver,
             ),
             self.handle_frames(
-                run_channels.frame_recv_receiver,
+                frame_from_wire_receiver,
                 run_channels.stream_opened_sender,
                 run_channels.shutdown_api_sender,
                 run_channels.send_outgoing.clone(),
+            ),
+            self.create_channel_manager(
+                run_channels.create_channel_receiver,
+                frame_from_wire_sender,
             ),
             self.send_manager(run_channels.frame_send_receiver),
             self.stream_close_manager(
@@ -153,7 +154,15 @@ impl BParticipant {
     async fn send_frame(&self, frame: Frame) {
         // find out ideal channel here
         //TODO: just take first
-        if let Some((_cid, channel)) = self.channels.write().await.get_mut(0) {
+        if let Some((cid, channel)) = self.channels.write().await.get_mut(0) {
+            self.metrics
+                .frames_out_total
+                .with_label_values(&[
+                    &self.remote_pid.to_string(),
+                    &cid.to_string(),
+                    frame.get_string(),
+                ])
+                .inc();
             channel.send(frame).await.unwrap();
         } else {
             error!("participant has no channel to communicate on");
@@ -162,7 +171,7 @@ impl BParticipant {
 
     async fn handle_frames(
         &self,
-        mut frame_recv_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>,
+        mut frame_from_wire_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>,
         mut stream_opened_sender: mpsc::UnboundedSender<Stream>,
         shutdown_api_sender: mpsc::UnboundedSender<Sid>,
         send_outgoing: Arc<Mutex<std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>>>,
@@ -170,10 +179,14 @@ impl BParticipant {
         trace!("start handle_frames");
         let send_outgoing = { send_outgoing.lock().unwrap().clone() };
         let mut messages = HashMap::new();
-        let pid_u128: u128 = self.remote_pid.into();
-        let pid_string = pid_u128.to_string();
-        while let Some((cid, frame)) = frame_recv_receiver.next().await {
-            debug!("handling frame");
+        let pid_string = &self.remote_pid.to_string();
+        while let Some((cid, frame)) = frame_from_wire_receiver.next().await {
+            let cid_string = cid.to_string();
+            trace!("handling frame");
+            self.metrics
+                .frames_in_total
+                .with_label_values(&[&pid_string, &cid_string, frame.get_string()])
+                .inc();
             match frame {
                 Frame::OpenStream {
                     sid,
@@ -185,9 +198,6 @@ impl BParticipant {
                         .create_stream(sid, prio, promises, send_outgoing, &shutdown_api_sender)
                         .await;
                     stream_opened_sender.send(stream).await.unwrap();
-                    //TODO: Metrics
-                    //self.metrics.frames_in_total.with_label_values(&[&pid_string, &cid_string,
-                    // "Raw"]).inc();
                     trace!("opened frame from remote");
                 },
                 Frame::CloseStream { sid } => {
@@ -197,10 +207,9 @@ impl BParticipant {
                     // is dropped, so i need a way to notify the Stream that it's send messages will
                     // be dropped... from remote, notify local
                     if let Some((_, _, _, closed)) = self.streams.write().await.remove(&sid) {
-                        let pid_u128: u128 = self.remote_pid.into();
                         self.metrics
                             .streams_closed_total
-                            .with_label_values(&[&pid_u128.to_string()])
+                            .with_label_values(&[&pid_string])
                             .inc();
                         closed.store(true, Ordering::Relaxed);
                     } else {
@@ -249,6 +258,40 @@ impl BParticipant {
         trace!("stop handle_frames");
     }
 
+    async fn create_channel_manager(
+        &self,
+        channels_receiver: mpsc::UnboundedReceiver<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
+        frame_from_wire_sender: mpsc::UnboundedSender<(Cid, Frame)>,
+    ) {
+        trace!("start channel_manager");
+        channels_receiver
+            .for_each_concurrent(None, |(cid, sid, protocol, sender)| {
+                // This channel is now configured, and we are running it in scope of the
+                // participant.
+                let frame_from_wire_sender = frame_from_wire_sender.clone();
+                let channels = self.channels.clone();
+                async move {
+                    let (channel, frame_to_wire_sender, shutdown_sender) =
+                        Channel::new(cid, self.remote_pid, self.metrics.clone());
+                    channels.write().await.push((cid, frame_to_wire_sender));
+                    sender.send(()).unwrap();
+                    self.metrics
+                        .channels_connected_total
+                        .with_label_values(&[&self.remote_pid.to_string()])
+                        .inc();
+                    channel.run(protocol, frame_from_wire_sender).await;
+                    self.metrics
+                        .channels_disconnected_total
+                        .with_label_values(&[&self.remote_pid.to_string()])
+                        .inc();
+                    trace!(?cid, "channel got closed");
+                    shutdown_sender.send(()).unwrap();
+                }
+            })
+            .await;
+        trace!("stop channel_manager");
+    }
+
     async fn send_manager(
         &self,
         mut frame_send_receiver: mpsc::UnboundedReceiver<(Pid, Sid, Frame)>,
@@ -258,18 +301,6 @@ impl BParticipant {
             self.send_frame(frame).await;
         }
         trace!("stop send_manager");
-    }
-
-    async fn transfer_channel_manager(
-        &self,
-        mut transfer_channel_receiver: mpsc::UnboundedReceiver<(Cid, mpsc::UnboundedSender<Frame>)>,
-    ) {
-        trace!("start transfer_channel_manager");
-        while let Some((cid, sender)) = transfer_channel_receiver.next().await {
-            debug!(?cid, "got a new channel to listen on");
-            self.channels.write().await.push((cid, sender));
-        }
-        trace!("stop transfer_channel_manager");
     }
 
     async fn open_manager(
@@ -369,10 +400,9 @@ impl BParticipant {
                 .unwrap();
             receiver.await.unwrap();
             trace!(?sid, "stream was successfully flushed");
-            let pid_u128: u128 = self.remote_pid.into();
             self.metrics
                 .streams_closed_total
-                .with_label_values(&[&pid_u128.to_string()])
+                .with_label_values(&[&self.remote_pid.to_string()])
                 .inc();
 
             self.streams.write().await.remove(&sid);
@@ -396,10 +426,9 @@ impl BParticipant {
             .write()
             .await
             .insert(sid, (prio, promises, msg_recv_sender, closed.clone()));
-        let pid_u128: u128 = self.remote_pid.into();
         self.metrics
             .streams_opened_total
-            .with_label_values(&[&pid_u128.to_string()])
+            .with_label_values(&[&self.remote_pid.to_string()])
             .inc();
         Stream::new(
             self.remote_pid,

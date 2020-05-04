@@ -1,6 +1,6 @@
 use crate::{
     api::{Address, Participant},
-    channel::Channel,
+    channel::Handshake,
     message::OutGoingMessage,
     metrics::NetworkMetrics,
     participant::BParticipant,
@@ -30,31 +30,28 @@ use std::{
 };
 use tracing::*;
 use tracing_futures::Instrument;
-//use futures::prelude::*;
 
 type ParticipantInfo = (
-    mpsc::UnboundedSender<(Cid, mpsc::UnboundedSender<Frame>)>,
+    mpsc::UnboundedSender<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
     mpsc::UnboundedSender<(Pid, Sid, Frame)>,
     oneshot::Sender<()>,
-);
-type UnknownChannelInfo = (
-    mpsc::UnboundedSender<Frame>,
-    Option<oneshot::Sender<io::Result<Participant>>>,
-);
-pub(crate) type ConfigureInfo = (
-    Cid,
-    Pid,
-    Sid,
-    oneshot::Sender<mpsc::UnboundedSender<(Cid, Frame)>>,
 );
 
 #[derive(Debug)]
 struct ControlChannels {
     listen_receiver: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
     connect_receiver: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<Participant>>)>,
-    connected_sender: mpsc::UnboundedSender<Participant>,
     shutdown_receiver: oneshot::Receiver<()>,
+    disconnect_receiver: mpsc::UnboundedReceiver<Pid>,
+    stream_finished_request_receiver: mpsc::UnboundedReceiver<(Pid, Sid, oneshot::Sender<()>)>,
+}
+
+#[derive(Debug, Clone)]
+struct ParticipantChannels {
+    connected_sender: mpsc::UnboundedSender<Participant>,
+    disconnect_sender: mpsc::UnboundedSender<Pid>,
     prios_sender: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
+    stream_finished_request_sender: mpsc::UnboundedSender<(Pid, Sid, oneshot::Sender<()>)>,
 }
 
 #[derive(Debug)]
@@ -63,11 +60,10 @@ pub struct Scheduler {
     closed: AtomicBool,
     pool: Arc<ThreadPool>,
     run_channels: Option<ControlChannels>,
+    participant_channels: ParticipantChannels,
     participants: Arc<RwLock<HashMap<Pid, ParticipantInfo>>>,
-    participant_from_channel: Arc<RwLock<HashMap<Cid, Pid>>>,
     channel_ids: Arc<AtomicU64>,
     channel_listener: RwLock<HashMap<Address, oneshot::Sender<()>>>,
-    unknown_channels: Arc<RwLock<HashMap<Cid, UnknownChannelInfo>>>,
     prios: Arc<Mutex<PrioManager>>,
     metrics: Arc<NetworkMetrics>,
 }
@@ -90,16 +86,25 @@ impl Scheduler {
         let (connected_sender, connected_receiver) = mpsc::unbounded::<Participant>();
         let (shutdown_sender, shutdown_receiver) = oneshot::channel::<()>();
         let (prios, prios_sender) = PrioManager::new();
+        let (disconnect_sender, disconnect_receiver) = mpsc::unbounded::<Pid>();
+        let (stream_finished_request_sender, stream_finished_request_receiver) = mpsc::unbounded();
 
         let run_channels = Some(ControlChannels {
             listen_receiver,
             connect_receiver,
-            connected_sender,
             shutdown_receiver,
-            prios_sender,
+            disconnect_receiver,
+            stream_finished_request_receiver,
         });
 
-        let metrics = Arc::new(NetworkMetrics::new().unwrap());
+        let participant_channels = ParticipantChannels {
+            disconnect_sender,
+            stream_finished_request_sender,
+            connected_sender,
+            prios_sender,
+        };
+
+        let metrics = Arc::new(NetworkMetrics::new(&local_pid).unwrap());
         if let Some(registry) = registry {
             metrics.register(registry).unwrap();
         }
@@ -110,11 +115,10 @@ impl Scheduler {
                 closed: AtomicBool::new(false),
                 pool: Arc::new(ThreadPool::new().unwrap()),
                 run_channels,
+                participant_channels,
                 participants: Arc::new(RwLock::new(HashMap::new())),
-                participant_from_channel: Arc::new(RwLock::new(HashMap::new())),
                 channel_ids: Arc::new(AtomicU64::new(0)),
                 channel_listener: RwLock::new(HashMap::new()),
-                unknown_channels: Arc::new(RwLock::new(HashMap::new())),
                 prios: Arc::new(Mutex::new(prios)),
                 metrics,
             },
@@ -126,38 +130,26 @@ impl Scheduler {
     }
 
     pub async fn run(mut self) {
-        let (configured_sender, configured_receiver) = mpsc::unbounded::<ConfigureInfo>();
-        let (disconnect_sender, disconnect_receiver) = mpsc::unbounded::<Pid>();
-        let (stream_finished_request_sender, stream_finished_request_receiver) = mpsc::unbounded();
         let run_channels = self.run_channels.take().unwrap();
 
         futures::join!(
-            self.listen_manager(run_channels.listen_receiver, configured_sender.clone(),),
-            self.connect_manager(run_channels.connect_receiver, configured_sender,),
-            self.disconnect_manager(disconnect_receiver,),
+            self.listen_manager(run_channels.listen_receiver),
+            self.connect_manager(run_channels.connect_receiver),
+            self.disconnect_manager(run_channels.disconnect_receiver),
             self.send_outgoing(),
-            self.stream_finished_manager(stream_finished_request_receiver),
+            self.stream_finished_manager(run_channels.stream_finished_request_receiver),
             self.shutdown_manager(run_channels.shutdown_receiver),
-            self.channel_configurer(
-                run_channels.connected_sender,
-                configured_receiver,
-                disconnect_sender,
-                run_channels.prios_sender.clone(),
-                stream_finished_request_sender.clone(),
-            ),
         );
     }
 
     async fn listen_manager(
         &self,
         listen_receiver: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
-        configured_sender: mpsc::UnboundedSender<ConfigureInfo>,
     ) {
         trace!("start listen_manager");
         listen_receiver
             .for_each_concurrent(None, |(address, result_sender)| {
                 let address = address.clone();
-                let configured_sender = configured_sender.clone();
 
                 async move {
                     debug!(?address, "got request to open a channel_creator");
@@ -174,13 +166,8 @@ impl Scheduler {
                         .write()
                         .await
                         .insert(address.clone(), end_sender);
-                    self.channel_creator(
-                        address,
-                        end_receiver,
-                        configured_sender.clone(),
-                        result_sender,
-                    )
-                    .await;
+                    self.channel_creator(address, end_receiver, result_sender)
+                        .await;
                 }
             })
             .await;
@@ -193,11 +180,10 @@ impl Scheduler {
             Address,
             oneshot::Sender<io::Result<Participant>>,
         )>,
-        configured_sender: mpsc::UnboundedSender<ConfigureInfo>,
     ) {
         trace!("start connect_manager");
         while let Some((addr, pid_sender)) = connect_receiver.next().await {
-            let (addr, protocol, handshake) = match addr {
+            let (protocol, handshake) = match addr {
                 Address::Tcp(addr) => {
                     self.metrics
                         .connect_requests_total
@@ -212,7 +198,7 @@ impl Scheduler {
                     };
                     info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
                     let protocol = Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone()));
-                    (addr, protocol, false)
+                    (protocol, false)
                 },
                 Address::Udp(addr) => {
                     self.metrics
@@ -242,18 +228,12 @@ impl Scheduler {
                         Self::udp_single_channel_connect(socket.clone(), udp_data_sender)
                             .instrument(tracing::info_span!("udp", ?addr)),
                     );
-                    (addr, protocol, true)
+                    (protocol, true)
                 },
                 _ => unimplemented!(),
             };
-            self.init_protocol(
-                addr,
-                &configured_sender,
-                protocol,
-                Some(pid_sender),
-                handshake,
-            )
-            .await;
+            self.init_protocol(protocol, Some(pid_sender), handshake)
+                .await;
         }
         trace!("stop connect_manager");
     }
@@ -294,95 +274,6 @@ impl Scheduler {
             async_std::task::sleep(TICK_TIME).await;
         }
         trace!("stop send_outgoing");
-    }
-
-    //TODO: //ERROR CHECK IF THIS SHOULD BE PUT IN A ASYNC FUNC WHICH IS SEND OVER
-    // TO CHANNEL OR NOT FOR RETURN VALUE!
-
-    async fn channel_configurer(
-        &self,
-        mut connected_sender: mpsc::UnboundedSender<Participant>,
-        mut receiver: mpsc::UnboundedReceiver<ConfigureInfo>,
-        disconnect_sender: mpsc::UnboundedSender<Pid>,
-        prios_sender: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
-        stream_finished_request_sender: mpsc::UnboundedSender<(Pid, Sid, oneshot::Sender<()>)>,
-    ) {
-        trace!("start channel_activator");
-        while let Some((cid, pid, offset_sid, sender)) = receiver.next().await {
-            if let Some((frame_sender, pid_oneshot)) =
-                self.unknown_channels.write().await.remove(&cid)
-            {
-                trace!(
-                    ?cid,
-                    ?pid,
-                    "detected that my channel is ready!, activating it :)"
-                );
-                let mut participants = self.participants.write().await;
-                if !participants.contains_key(&pid) {
-                    debug!(?cid, "new participant connected via a channel");
-                    let (
-                        bparticipant,
-                        stream_open_sender,
-                        stream_opened_receiver,
-                        mut transfer_channel_receiver,
-                        frame_recv_sender,
-                        frame_send_sender,
-                        shutdown_sender,
-                    ) = BParticipant::new(
-                        pid,
-                        offset_sid,
-                        self.metrics.clone(),
-                        prios_sender.clone(),
-                        stream_finished_request_sender.clone(),
-                    );
-
-                    let participant = Participant::new(
-                        self.local_pid,
-                        pid,
-                        stream_open_sender,
-                        stream_opened_receiver,
-                        disconnect_sender.clone(),
-                    );
-                    if let Some(pid_oneshot) = pid_oneshot {
-                        // someone is waiting with connect, so give them their PID
-                        pid_oneshot.send(Ok(participant)).unwrap();
-                    } else {
-                        // noone is waiting on this Participant, return in to Network
-                        connected_sender.send(participant).await.unwrap();
-                    }
-                    self.metrics.participants_connected_total.inc();
-                    transfer_channel_receiver
-                        .send((cid, frame_sender))
-                        .await
-                        .unwrap();
-                    participants.insert(
-                        pid,
-                        (
-                            transfer_channel_receiver,
-                            frame_send_sender,
-                            shutdown_sender,
-                        ),
-                    );
-                    self.participant_from_channel.write().await.insert(cid, pid);
-                    self.pool.spawn_ok(
-                        bparticipant
-                            .run()
-                            .instrument(tracing::info_span!("participant", ?pid)),
-                    );
-                    sender.send(frame_recv_sender).unwrap();
-                } else {
-                    error!(
-                        "2ND channel of participants opens, but we cannot verify that this is not \
-                         a attack to "
-                    );
-                    //ERROR DEADLOCK AS NO SENDER HERE!
-                    //sender.send(frame_recv_sender).unwrap();
-                }
-                //From now on this CHANNEL can receiver other frames! move
-                // directly to participant!
-            }
-        }
-        trace!("stop channel_activator");
     }
 
     // requested by participant when stream wants to close from api, checking if no
@@ -447,10 +338,9 @@ impl Scheduler {
         &self,
         addr: Address,
         end_receiver: oneshot::Receiver<()>,
-        configured_sender: mpsc::UnboundedSender<ConfigureInfo>,
         result_sender: oneshot::Sender<io::Result<()>>,
     ) {
-        info!(?addr, "start up channel creator");
+        trace!(?addr, "start up channel creator");
         match addr {
             Address::Tcp(addr) => {
                 let listener = match net::TcpListener::bind(addr).await {
@@ -478,8 +368,6 @@ impl Scheduler {
                     let stream = stream.unwrap();
                     info!("Accepting Tcp from: {}", stream.peer_addr().unwrap());
                     self.init_protocol(
-                        addr,
-                        &configured_sender,
                         Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone())),
                         None,
                         true,
@@ -521,12 +409,11 @@ impl Scheduler {
                         listeners.insert(remote_addr.clone(), udp_data_sender);
                         let protocol = Protocols::Udp(UdpProtocol::new(
                             socket.clone(),
-                            remote_addr,
+                            remote_addr.clone(),
                             self.metrics.clone(),
                             udp_data_receiver,
                         ));
-                        self.init_protocol(addr, &configured_sender, protocol, None, true)
-                            .await;
+                        self.init_protocol(protocol, None, false).await;
                     }
                     let udp_data_sender = listeners.get_mut(&remote_addr).unwrap();
                     udp_data_sender.send(datavec).await.unwrap();
@@ -534,7 +421,7 @@ impl Scheduler {
             },
             _ => unimplemented!(),
         }
-        info!(?addr, "ending channel creator");
+        trace!(?addr, "ending channel creator");
     }
 
     pub(crate) async fn udp_single_channel_connect(
@@ -542,7 +429,7 @@ impl Scheduler {
         mut udp_data_sender: mpsc::UnboundedSender<Vec<u8>>,
     ) {
         let addr = socket.local_addr();
-        info!(?addr, "start udp_single_channel_connect");
+        trace!(?addr, "start udp_single_channel_connect");
         //TODO: implement real closing
         let (_end_sender, end_receiver) = oneshot::channel::<()>();
 
@@ -558,37 +445,112 @@ impl Scheduler {
             datavec.extend_from_slice(&data[0..size]);
             udp_data_sender.send(datavec).await.unwrap();
         }
-        info!(?addr, "stop udp_single_channel_connect");
+        trace!(?addr, "stop udp_single_channel_connect");
     }
 
     async fn init_protocol(
         &self,
-        addr: std::net::SocketAddr,
-        configured_sender: &mpsc::UnboundedSender<ConfigureInfo>,
         protocol: Protocols,
         pid_sender: Option<oneshot::Sender<io::Result<Participant>>>,
         send_handshake: bool,
     ) {
-        let (mut part_in_sender, part_in_receiver) = mpsc::unbounded::<Frame>();
         //channels are unknown till PID is known!
         /* When A connects to a NETWORK, we, the listener answers with a Handshake.
           Pro: - Its easier to debug, as someone who opens a port gets a magic number back!
           Contra: - DOS posibility because we answer fist
                   - Speed, because otherwise the message can be send with the creation
         */
+        let mut participant_channels = self.participant_channels.clone();
+        // spawn is needed here, e.g. for TCP connect it would mean that only 1
+        // participant can be in handshake phase ever! Someone could deadlock
+        // the whole server easily for new clients UDP doesnt work at all, as
+        // the UDP listening is done in another place.
         let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
-        let channel = Channel::new(cid, self.local_pid, self.metrics.clone());
-        if send_handshake {
-            channel.send_handshake(&mut part_in_sender).await;
-        }
-        self.pool.spawn_ok(
-            channel
-                .run(protocol, part_in_receiver, configured_sender.clone())
-                .instrument(tracing::info_span!("channel", ?addr)),
-        );
-        self.unknown_channels
-            .write()
-            .await
-            .insert(cid, (part_in_sender, pid_sender));
+        let participants = self.participants.clone();
+        let metrics = self.metrics.clone();
+        let pool = self.pool.clone();
+        let local_pid = self.local_pid;
+        self.pool.spawn_ok(async move {
+            trace!(?cid, "open channel and be ready for Handshake");
+            let handshake = Handshake::new(cid, local_pid, metrics.clone(), send_handshake);
+            match handshake.setup(&protocol).await {
+                Ok((pid, sid)) => {
+                    trace!(
+                        ?cid,
+                        ?pid,
+                        "detected that my channel is ready!, activating it :)"
+                    );
+                    let mut participants = participants.write().await;
+                    if !participants.contains_key(&pid) {
+                        debug!(?cid, "new participant connected via a channel");
+                        let (
+                            bparticipant,
+                            stream_open_sender,
+                            stream_opened_receiver,
+                            mut create_channel_sender,
+                            frame_send_sender,
+                            shutdown_sender,
+                        ) = BParticipant::new(
+                            pid,
+                            sid,
+                            metrics.clone(),
+                            participant_channels.prios_sender,
+                            participant_channels.stream_finished_request_sender,
+                        );
+
+                        let participant = Participant::new(
+                            local_pid,
+                            pid,
+                            stream_open_sender,
+                            stream_opened_receiver,
+                            participant_channels.disconnect_sender,
+                        );
+
+                        metrics.participants_connected_total.inc();
+                        participants.insert(
+                            pid,
+                            (
+                                create_channel_sender.clone(),
+                                frame_send_sender,
+                                shutdown_sender,
+                            ),
+                        );
+                        pool.spawn_ok(
+                            bparticipant
+                                .run()
+                                .instrument(tracing::info_span!("participant", ?pid)),
+                        );
+                        //create a new channel within BParticipant and wait for it to run
+                        let (sync_sender, sync_receiver) = oneshot::channel();
+                        create_channel_sender
+                            .send((cid, sid, protocol, sync_sender))
+                            .await
+                            .unwrap();
+                        sync_receiver.await.unwrap();
+                        if let Some(pid_oneshot) = pid_sender {
+                            // someone is waiting with connect, so give them their PID
+                            pid_oneshot.send(Ok(participant)).unwrap();
+                        } else {
+                            // noone is waiting on this Participant, return in to Network
+                            participant_channels
+                                .connected_sender
+                                .send(participant)
+                                .await
+                                .unwrap();
+                        }
+                    } else {
+                        error!(
+                            "2ND channel of participants opens, but we cannot verify that this is \
+                             not a attack to "
+                        );
+                        //ERROR DEADLOCK AS NO SENDER HERE!
+                        //sender.send(frame_recv_sender).unwrap();
+                    }
+                    //From now on this CHANNEL can receiver other frames! move
+                    // directly to participant!
+                },
+                Err(()) => {},
+            }
+        });
     }
 }
