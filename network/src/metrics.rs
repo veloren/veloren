@@ -1,3 +1,4 @@
+use crate::types::Pid;
 use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
 use std::error::Error;
 
@@ -16,9 +17,12 @@ pub struct NetworkMetrics {
     pub streams_opened_total: IntCounterVec,
     pub streams_closed_total: IntCounterVec,
     pub network_info: IntGauge,
-    // Frames, seperated by CHANNEL (and PARTICIPANT) AND FRAME TYPE,
+    // Frames counted a channel level, seperated by CHANNEL (and PARTICIPANT) AND FRAME TYPE,
     pub frames_out_total: IntCounterVec,
     pub frames_in_total: IntCounterVec,
+    // Frames counted at protocol level, seperated by CHANNEL (and PARTICIPANT) AND FRAME TYPE,
+    pub frames_wire_out_total: IntCounterVec,
+    pub frames_wire_in_total: IntCounterVec,
     pub frames_count: IntGaugeVec,
     // send Messages, seperated by STREAM (and PARTICIPANT, CHANNEL),
     pub message_count: IntGaugeVec,
@@ -38,7 +42,7 @@ pub struct NetworkMetrics {
 
 impl NetworkMetrics {
     #[allow(dead_code)]
-    pub fn new() -> Result<Self, Box<dyn Error>> {
+    pub fn new(local_pid: &Pid) -> Result<Self, Box<dyn Error>> {
         let listen_requests_total = IntCounterVec::new(
             Opts::new(
                 "listen_requests_total",
@@ -89,26 +93,45 @@ impl NetworkMetrics {
             ),
             &["participant"],
         )?;
-        let opts = Opts::new("network_info", "Static Network information").const_label(
-            "version",
-            &format!(
-                "{}.{}.{}",
-                &crate::types::VELOREN_NETWORK_VERSION[0],
-                &crate::types::VELOREN_NETWORK_VERSION[1],
-                &crate::types::VELOREN_NETWORK_VERSION[2]
-            ),
-        );
+        let opts = Opts::new("network_info", "Static Network information")
+            .const_label(
+                "version",
+                &format!(
+                    "{}.{}.{}",
+                    &crate::types::VELOREN_NETWORK_VERSION[0],
+                    &crate::types::VELOREN_NETWORK_VERSION[1],
+                    &crate::types::VELOREN_NETWORK_VERSION[2]
+                ),
+            )
+            .const_label("local_pid", &format!("{}", &local_pid));
         let network_info = IntGauge::with_opts(opts)?;
         let frames_out_total = IntCounterVec::new(
-            Opts::new("frames_out_total", "number of all frames send per channel"),
+            Opts::new(
+                "frames_out_total",
+                "number of all frames send per channel, at the channel level",
+            ),
             &["participant", "channel", "frametype"],
         )?;
         let frames_in_total = IntCounterVec::new(
             Opts::new(
                 "frames_in_total",
-                "number of all frames received per channel",
+                "number of all frames received per channel, at the channel level",
             ),
             &["participant", "channel", "frametype"],
+        )?;
+        let frames_wire_out_total = IntCounterVec::new(
+            Opts::new(
+                "frames_wire_out_total",
+                "number of all frames send per channel, at the protocol level",
+            ),
+            &["channel", "frametype"],
+        )?;
+        let frames_wire_in_total = IntCounterVec::new(
+            Opts::new(
+                "frames_wire_in_total",
+                "number of all frames received per channel, at the protocol level",
+            ),
+            &["channel", "frametype"],
         )?;
 
         let frames_count = IntGaugeVec::new(
@@ -170,6 +193,8 @@ impl NetworkMetrics {
             network_info,
             frames_out_total,
             frames_in_total,
+            frames_wire_out_total,
+            frames_wire_in_total,
             frames_count,
             message_count,
             bytes_send,
@@ -189,9 +214,11 @@ impl NetworkMetrics {
         registry.register(Box::new(self.channels_disconnected_total.clone()))?;
         registry.register(Box::new(self.streams_opened_total.clone()))?;
         registry.register(Box::new(self.streams_closed_total.clone()))?;
-        registry.register(Box::new(self.network_info.clone()))?;
         registry.register(Box::new(self.frames_out_total.clone()))?;
         registry.register(Box::new(self.frames_in_total.clone()))?;
+        registry.register(Box::new(self.frames_wire_out_total.clone()))?;
+        registry.register(Box::new(self.frames_wire_in_total.clone()))?;
+        registry.register(Box::new(self.network_info.clone()))?;
         registry.register(Box::new(self.frames_count.clone()))?;
         registry.register(Box::new(self.message_count.clone()))?;
         registry.register(Box::new(self.bytes_send.clone()))?;

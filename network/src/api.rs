@@ -92,6 +92,7 @@ impl Network {
                     .run()
                     .instrument(tracing::info_span!("scheduler", ?p)),
             );
+            trace!(?p, ?User, "stopping sheduler and his own thread");
         });
         Self {
             local_pid: participant_id,

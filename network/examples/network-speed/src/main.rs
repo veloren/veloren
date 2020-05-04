@@ -90,16 +90,15 @@ fn main() {
         _ => panic!("invalid mode, run --help!"),
     };
 
-    let mut m = metrics::SimpleMetrics::new();
     let mut background = None;
     match matches.value_of("mode") {
         Some("server") => server(address),
-        Some("client") => client(address, &mut m),
+        Some("client") => client(address),
         Some("both") => {
             let address1 = address.clone();
             background = Some(thread::spawn(|| server(address1)));
             thread::sleep(Duration::from_millis(200)); //start client after server
-            client(address, &mut m);
+            client(address);
         },
         _ => panic!("invalid mode, run --help!"),
     };
@@ -110,7 +109,9 @@ fn main() {
 
 fn server(address: Address) {
     let thread_pool = ThreadPoolBuilder::new().build();
-    let server = Network::new(Pid::new(), &thread_pool, None);
+    let mut metrics = metrics::SimpleMetrics::new();
+    let server = Network::new(Pid::new(), &thread_pool, Some(metrics.registry()));
+    metrics.run("0.0.0.0:59112".parse().unwrap()).unwrap();
     block_on(server.listen(address)).unwrap();
 
     loop {
@@ -134,8 +135,9 @@ fn server(address: Address) {
     }
 }
 
-fn client(address: Address, metrics: &mut metrics::SimpleMetrics) {
+fn client(address: Address) {
     let thread_pool = ThreadPoolBuilder::new().build();
+    let mut metrics = metrics::SimpleMetrics::new();
     let client = Network::new(Pid::new(), &thread_pool, Some(metrics.registry()));
     metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
 
@@ -160,7 +162,7 @@ fn client(address: Address, metrics: &mut metrics::SimpleMetrics) {
         }
         if id > 2000000 {
             println!("stop");
-            std::thread::sleep(std::time::Duration::from_millis(50));
+            std::thread::sleep(std::time::Duration::from_millis(5000));
             break;
         }
     }
