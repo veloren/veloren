@@ -61,6 +61,13 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
+const ASSETS_TMP: [&'static str; 1] = ["common/items/lantern/black_0"];
+pub fn iterate() -> impl Iterator<Item = &'static str> {
+    // TODO FIXME implement this
+    //ASSETS.read().iter().flat_map(|e| e.keys())
+    ASSETS_TMP.iter().map(|k| *k)
+}
+
 // TODO: Remove this function. It's only used in world/ in a really ugly way.To
 // do this properly assets should have all their necessary data in one file. A
 // ron file could be used to combine voxel data with positioning data for
