@@ -1,9 +1,9 @@
+pub mod fly;
 pub mod idle;
-pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
+pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
