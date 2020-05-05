@@ -137,8 +137,9 @@ impl<'a> Widget for Chat<'a> {
             }
         });
 
+        let mut force_cursor = self.force_cursor;
+
         // If up or down are pressed move through history
-        // TODO: move cursor to the end of the last line
         match ui.widget_input(state.ids.input).presses().key().fold(
             (false, false),
             |(up, down), key_press| match key_press.key {
@@ -152,6 +153,7 @@ impl<'a> Widget for Chat<'a> {
                     state.update(|s| {
                         s.history_pos += 1;
                         s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                        force_cursor = Some(Index{line: 0, char: s.input.len()});
                     });
                 }
             },
@@ -161,6 +163,7 @@ impl<'a> Widget for Chat<'a> {
                         s.history_pos -= 1;
                         if s.history_pos > 0 {
                             s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                            force_cursor = Some(Index{line: 0, char: s.input.len()});
                         } else {
                             s.input.clear();
                         }
@@ -190,7 +193,7 @@ impl<'a> Widget for Chat<'a> {
                 .font_size(self.fonts.opensans.scale(15))
                 .font_id(self.fonts.opensans.conrod_id);
 
-            if let Some(pos) = self.force_cursor {
+            if let Some(pos) = force_cursor {
                 text_edit = text_edit.cursor_pos(pos);
             }
 
