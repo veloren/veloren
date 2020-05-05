@@ -1,14 +1,10 @@
 use crate::{assets, comp::Player, state::State};
-use lazy_static::lazy_static;
 use specs::prelude::{Join, WorldExt};
 
-
 /// Struct representing a command that a user can run from server chat.
-pub struct ChatCommand {
-    /// The keyword used to invoke the command, omitting the leading '/'.
-    pub keyword: &'static str,
+pub struct ChatCommandData {
     /// A format string for parsing arguments.
-    pub args: Vec<ArgumentSyntax>,
+    pub args: Vec<ArgumentSpec>,
     /// A one-line message that explains what the command does
     pub description: &'static str,
     /// A boolean that is used to check whether the command requires
@@ -16,15 +12,9 @@ pub struct ChatCommand {
     pub needs_admin: bool,
 }
 
-impl ChatCommand {
-    pub fn new(
-        keyword: &'static str,
-        args: Vec<ArgumentSyntax>,
-        description: &'static str,
-        needs_admin: bool,
-    ) -> Self {
+impl ChatCommandData {
+    pub fn new(args: Vec<ArgumentSpec>, description: &'static str, needs_admin: bool) -> Self {
         Self {
-            keyword,
             args,
             description,
             needs_admin,
@@ -32,17 +22,267 @@ impl ChatCommand {
     }
 }
 
-lazy_static! {
-    static ref CHAT_COMMANDS: Vec<ChatCommand> = {
-        use ArgumentSyntax::*;
-        vec![
-            ChatCommand::new("help", vec![Command(true)], "Display information about commands", false),
-        ]
-    };
+// Please keep this sorted alphabetically :-)
+#[derive(Copy, Clone)]
+pub enum ChatCommand {
+    Adminify,
+    Alias,
+    Build,
+    Debug,
+    DebugColumn,
+    Explosion,
+    GiveExp,
+    GiveItem,
+    Goto,
+    Health,
+    Help,
+    Jump,
+    Kill,
+    KillNpcs,
+    Lantern,
+    Light,
+    Object,
+    Players,
+    RemoveLights,
+    SetLevel,
+    Spawn,
+    Sudo,
+    Tell,
+    Time,
+    Tp,
+    Version,
+    Waypoint,
+}
+
+// Thank you for keeping this sorted alphabetically :-)
+pub static CHAT_COMMANDS: &'static [ChatCommand] = &[
+    ChatCommand::Adminify,
+    ChatCommand::Alias,
+    ChatCommand::Build,
+    ChatCommand::Debug,
+    ChatCommand::DebugColumn,
+    ChatCommand::Explosion,
+    ChatCommand::GiveExp,
+    ChatCommand::GiveItem,
+    ChatCommand::Goto,
+    ChatCommand::Health,
+    ChatCommand::Help,
+    ChatCommand::Jump,
+    ChatCommand::Kill,
+    ChatCommand::KillNpcs,
+    ChatCommand::Lantern,
+    ChatCommand::Light,
+    ChatCommand::Object,
+    ChatCommand::Players,
+    ChatCommand::RemoveLights,
+    ChatCommand::SetLevel,
+    ChatCommand::Spawn,
+    ChatCommand::Sudo,
+    ChatCommand::Tell,
+    ChatCommand::Time,
+    ChatCommand::Tp,
+    ChatCommand::Version,
+    ChatCommand::Waypoint,
+];
+
+impl ChatCommand {
+    pub fn data(&self) -> ChatCommandData {
+        use ArgumentSpec::*;
+        let cmd = ChatCommandData::new;
+        match self {
+            ChatCommand::Adminify => cmd(
+                vec![PlayerName(false)],
+                "Temporarily gives a player admin permissions or removes them",
+                true,
+            ),
+            ChatCommand::Alias => cmd(vec![Any("name", false)], "Change your alias", false),
+            ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", true),
+            ChatCommand::Debug => cmd(vec![], "Place all debug items into your pack.", true),
+            ChatCommand::DebugColumn => cmd(
+                vec![Float("x", f32::NAN, false), Float("y", f32::NAN, false)],
+                "Prints some debug information about a column",
+                false,
+            ),
+            ChatCommand::Explosion => cmd(
+                vec![Float("radius", 5.0, false)],
+                "Explodes the ground around you",
+                true,
+            ),
+            ChatCommand::GiveExp => cmd(
+                vec![Integer("amount", 50, false)],
+                "Give experience to yourself",
+                true,
+            ),
+            ChatCommand::GiveItem => cmd(
+                vec![ItemSpec(false), Integer("num", 1, true)],
+                "Give yourself some items",
+                true,
+            ),
+            ChatCommand::Goto => cmd(
+                vec![
+                    Float("x", 0.0, false),
+                    Float("y", 0.0, false),
+                    Float("z", 0.0, false),
+                ],
+                "Teleport to a position",
+                true,
+            ),
+            ChatCommand::Health => cmd(
+                vec![Integer("hp", 100, false)],
+                "Set your current health",
+                true,
+            ),
+            ChatCommand::Help => ChatCommandData::new(
+                vec![Command(true)],
+                "Display information about commands",
+                false,
+            ),
+            ChatCommand::Jump => cmd(
+                vec![
+                    Float("x", 0.0, false),
+                    Float("y", 0.0, false),
+                    Float("z", 0.0, false),
+                ],
+                "Offset your current position",
+                true,
+            ),
+            ChatCommand::Kill => cmd(vec![], "Kill yourself", false),
+            ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", true),
+            ChatCommand::Lantern => cmd(
+                vec![
+                    Float("strength", 5.0, false),
+                    Float("r", 1.0, true),
+                    Float("g", 1.0, true),
+                    Float("b", 1.0, true),
+                ],
+                "Change your lantern's strength and color",
+                true,
+            ),
+            ChatCommand::Light => cmd(
+                vec![
+                    Float("r", 1.0, true),
+                    Float("g", 1.0, true),
+                    Float("b", 1.0, true),
+                    Float("x", 0.0, true),
+                    Float("y", 0.0, true),
+                    Float("z", 0.0, true),
+                    Float("strength", 5.0, true),
+                ],
+                "Spawn entity with light",
+                true,
+            ),
+            ChatCommand::Object => cmd(vec![/*TODO*/], "Spawn an object", true),
+            ChatCommand::Players => cmd(vec![], "Lists players currently online", false),
+            ChatCommand::RemoveLights => cmd(
+                vec![Float("radius", 20.0, true)],
+                "Removes all lights spawned by players",
+                true,
+            ),
+            ChatCommand::SetLevel => {
+                cmd(vec![Integer("level", 10, false)], "Set player Level", true)
+            },
+            ChatCommand::Spawn => cmd(vec![/*TODO*/], "Spawn a test entity", true),
+            ChatCommand::Sudo => cmd(
+                vec![PlayerName(false), Command(false), Message /* TODO */],
+                "Run command as if you were another player",
+                true,
+            ),
+            ChatCommand::Tell => cmd(
+                vec![PlayerName(false), Message],
+                "Send a message to another player",
+                false,
+            ),
+            ChatCommand::Time => cmd(vec![/*TODO*/], "Set the time of day", true),
+            ChatCommand::Tp => cmd(vec![PlayerName(true)], "Teleport to another player", true),
+            ChatCommand::Version => cmd(vec![], "Prints server version", false),
+            ChatCommand::Waypoint => {
+                cmd(vec![], "Set your waypoint to your current position", true)
+            },
+        }
+    }
+
+    pub fn keyword(&self) -> &'static str {
+        match self {
+            ChatCommand::Adminify => "adminify",
+            ChatCommand::Alias => "alias",
+            ChatCommand::Build => "build",
+            ChatCommand::Debug => "debug",
+            ChatCommand::DebugColumn => "debug_column",
+            ChatCommand::Explosion => "explosion",
+            ChatCommand::GiveExp => "give_exp",
+            ChatCommand::GiveItem => "give_item",
+            ChatCommand::Goto => "goto",
+            ChatCommand::Health => "health",
+            ChatCommand::Help => "help",
+            ChatCommand::Jump => "jump",
+            ChatCommand::Kill => "kill",
+            ChatCommand::KillNpcs => "kill_npcs",
+            ChatCommand::Lantern => "lantern",
+            ChatCommand::Light => "light",
+            ChatCommand::Object => "object",
+            ChatCommand::Players => "players",
+            ChatCommand::RemoveLights => "remove_lights",
+            ChatCommand::SetLevel => "set_level",
+            ChatCommand::Spawn => "spawn",
+            ChatCommand::Sudo => "sudo",
+            ChatCommand::Tell => "tell",
+            ChatCommand::Time => "time",
+            ChatCommand::Tp => "tp",
+            ChatCommand::Version => "version",
+            ChatCommand::Waypoint => "waypoint",
+        }
+    }
+
+    pub fn help_string(&self) -> String {
+        let data = self.data();
+        let usage = std::iter::once(format!("/{}", self.keyword()))
+            .chain(data.args.iter().map(|arg| arg.usage_string()))
+            .collect::<Vec<_>>()
+            .join(" ");
+        format!("{}: {}", usage, data.description)
+    }
+
+    pub fn needs_admin(&self) -> bool { self.data().needs_admin }
+
+    pub fn arg_fmt(&self) -> String {
+        self.data()
+            .args
+            .iter()
+            .map(|arg| match arg {
+                ArgumentSpec::PlayerName(_) => "{}",
+                ArgumentSpec::ItemSpec(_) => "{}",
+                ArgumentSpec::Float(_, _, _) => "{f}",
+                ArgumentSpec::Integer(_, _, _) => "{d}",
+                ArgumentSpec::Any(_, _) => "{}",
+                ArgumentSpec::Command(_) => "{}",
+                ArgumentSpec::Message => "{/.*/}",
+                ArgumentSpec::OneOf(_, _, _, _) => "{}", // TODO
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+}
+
+impl std::str::FromStr for ChatCommand {
+    type Err = ();
+
+    fn from_str(keyword: &str) -> Result<ChatCommand, ()> {
+        let kwd = if keyword.chars().next() == Some('/') {
+            &keyword[1..]
+        } else {
+            &keyword[..]
+        };
+        for c in CHAT_COMMANDS {
+            if kwd == c.keyword() {
+                return Ok(*c);
+            }
+        }
+        return Err(());
+    }
 }
 
 /// Representation for chat command arguments
-pub enum ArgumentSyntax {
+pub enum ArgumentSpec {
     /// The argument refers to a player by alias
     PlayerName(bool),
     /// The argument refers to an item asset by path
@@ -56,61 +296,74 @@ pub enum ArgumentSyntax {
     /// * label
     /// * default tab-completion
     /// * whether it's optional
-    Integer(&'static str, f32, bool),
+    Integer(&'static str, i32, bool),
+    /// The argument is any string that doesn't contain spaces
+    Any(&'static str, bool),
     /// The argument is a command name
     Command(bool),
-    /// This is the final argument, consuming all characters until the end of input.
+    /// This is the final argument, consuming all characters until the end of
+    /// input.
     Message,
     /// The argument is likely an enum. The associated values are
     /// * label
     /// * Predefined string completions
     /// * Other completion types
     /// * whether it's optional
-    OneOf(&'static str, &'static [&'static str], Vec<Box<ArgumentSyntax>>, bool),
+    OneOf(
+        &'static str,
+        &'static [&'static str],
+        Vec<Box<ArgumentSpec>>,
+        bool,
+    ),
 }
 
-impl ArgumentSyntax {
-    pub fn help_string(arg: &ArgumentSyntax) -> String {
-        match arg {
-            ArgumentSyntax::PlayerName(optional) => {
+impl ArgumentSpec {
+    pub fn usage_string(&self) -> String {
+        match self {
+            ArgumentSpec::PlayerName(optional) => {
                 if *optional {
                     "[player]".to_string()
                 } else {
                     "<player>".to_string()
                 }
             },
-            ArgumentSyntax::ItemSpec(optional) => {
+            ArgumentSpec::ItemSpec(optional) => {
                 if *optional {
                     "[item]".to_string()
                 } else {
                     "<item>".to_string()
                 }
             },
-            ArgumentSyntax::Float(label, _, optional) => {
+            ArgumentSpec::Float(label, _, optional) => {
                 if *optional {
                     format!("[{}]", label)
                 } else {
                     format!("<{}>", label)
                 }
             },
-            ArgumentSyntax::Integer(label, _, optional) => {
+            ArgumentSpec::Integer(label, _, optional) => {
                 if *optional {
                     format!("[{}]", label)
                 } else {
                     format!("<{}>", label)
                 }
             },
-            ArgumentSyntax::Command(optional) => {
+            ArgumentSpec::Any(label, optional) => {
+                if *optional {
+                    format!("[{}]", label)
+                } else {
+                    format!("<{}>", label)
+                }
+            },
+            ArgumentSpec::Command(optional) => {
                 if *optional {
                     "[[/]command]".to_string()
                 } else {
                     "<[/]command>".to_string()
                 }
             },
-            ArgumentSyntax::Message => {
-                "<message>".to_string()
-            },
-            ArgumentSyntax::OneOf(label, _, _, optional) => {
+            ArgumentSpec::Message => "<message>".to_string(),
+            ArgumentSpec::OneOf(label, _, _, optional) => {
                 if *optional {
                     format! {"[{}]", label}
                 } else {
@@ -122,25 +375,26 @@ impl ArgumentSyntax {
 
     pub fn complete(&self, state: &State, part: &String) -> Vec<String> {
         match self {
-            ArgumentSyntax::PlayerName(_) => (&state.ecs().read_storage::<Player>())
+            ArgumentSpec::PlayerName(_) => (&state.ecs().read_storage::<Player>())
                 .join()
                 .filter(|player| player.alias.starts_with(part))
                 .map(|player| player.alias.clone())
                 .collect(),
-            ArgumentSyntax::ItemSpec(_) => assets::iterate()
+            ArgumentSpec::ItemSpec(_) => assets::iterate()
                 .filter(|asset| asset.starts_with(part))
                 .map(|c| c.to_string())
                 .collect(),
-            ArgumentSyntax::Float(_, x, _) => vec![format!("{}", x)],
-            ArgumentSyntax::Integer(_, x, _) => vec![format!("{}", x)],
-            ArgumentSyntax::Command(_) => CHAT_COMMANDS
+            ArgumentSpec::Float(_, x, _) => vec![format!("{}", x)],
+            ArgumentSpec::Integer(_, x, _) => vec![format!("{}", x)],
+            ArgumentSpec::Any(_, _) => vec![],
+            ArgumentSpec::Command(_) => CHAT_COMMANDS
                 .iter()
-                .map(|com| com.keyword.clone())
+                .map(|com| com.keyword())
                 .filter(|kwd| kwd.starts_with(part) || format!("/{}", kwd).starts_with(part))
                 .map(|c| c.to_string())
                 .collect(),
-            ArgumentSyntax::Message => vec![],
-            ArgumentSyntax::OneOf(_, strings, alts, _) => {
+            ArgumentSpec::Message => vec![],
+            ArgumentSpec::OneOf(_, strings, alts, _) => {
                 let string_completions = strings
                     .iter()
                     .filter(|string| string.starts_with(part))
@@ -150,7 +404,7 @@ impl ArgumentSyntax {
                     .flat_map(|b| (*b).complete(&state, part))
                     .map(|c| c.to_string());
                 string_completions.chain(alt_completions).collect()
-            }
+            },
         }
     }
 }
