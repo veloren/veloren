@@ -1312,4 +1312,3 @@ fn handle_version(
         )),
     );
 }
-

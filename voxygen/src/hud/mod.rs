@@ -2296,6 +2296,27 @@ impl Hud {
         camera: &Camera,
         dt: Duration,
     ) -> Vec<Event> {
+        // conrod eats tabs. Un-eat a tabstop so tab completion can work
+        if self.ui.ui.global_input().events().any(|event| {
+            use conrod_core::{event, input};
+            match event {
+                //event::Event::Raw(event::Input::Press(input::Button::Keyboard(input::Key::Tab)))
+                // => true,
+                event::Event::Ui(event::Ui::Press(
+                    _,
+                    event::Press {
+                        button: event::Button::Keyboard(input::Key::Tab),
+                        ..
+                    },
+                )) => true,
+                _ => false,
+            }
+        }) {
+            self.ui
+                .ui
+                .handle_event(conrod_core::event::Input::Text("\t".to_string()));
+        }
+
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
