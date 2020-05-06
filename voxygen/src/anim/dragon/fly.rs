@@ -18,7 +18,12 @@ impl Animation for FlyAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 12.0;
-        
+
+        let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
+        let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
+        let wave_slow = (anim_time as f32 * 4.5).sin();
+        let wave_slow_cos = (anim_time as f32 * 4.5).cos();
+
         let vertlf = (anim_time as f32 * lab as f32 + PI * 1.8).sin().max(0.15);
         let vertrfoffset = (anim_time as f32 * lab as f32 + PI * 0.80).sin().max(0.15);
         let vertlboffset = (anim_time as f32 * lab as f32).sin().max(0.15);
@@ -52,13 +57,27 @@ impl Animation for FlyAnimation {
                 * 0.125,
         );
 
-        next.head.offset = Vec3::new(
+        let wave = (anim_time as f32 * 14.0).sin();
+        let wave_slow = (anim_time as f32 * 3.5 + PI).sin();
+        let wave_stop = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
+
+        next.head_upper.offset = Vec3::new(0.0, 7.5, 15.0 + wave_stop * 4.8) * 1.05;
+        next.head_upper.ori =
+            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_slow * -0.25);
+        next.head_upper.scale = Vec3::one() * 1.05;
+
+        next.head_lower.offset = Vec3::new(0.0, 7.5, 15.0 + wave_stop * 4.8) * 1.05;
+        next.head_lower.ori =
+            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_slow * -0.25);
+        next.head_lower.scale = Vec3::one() * 1.05;
+
+        next.jaw.offset = Vec3::new(
             0.0,
-            skeleton_attr.head.0 + 0.5,
-            skeleton_attr.head.1 + center * 0.5 - 1.0,
+            skeleton_attr.jaw.0 - wave_ultra_slow_cos * 0.12,
+            skeleton_attr.jaw.1 + wave_slow * 0.2,
         );
-        next.head.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0 + center * 0.03);
-        next.head.scale = Vec3::one();
+        next.jaw.ori = Quaternion::rotation_x(wave_slow * 0.05);
+        next.jaw.scale = Vec3::one() * 0.98;
 
         next.tail_front.offset = Vec3::new(
             0.0,

@@ -1,5 +1,5 @@
 use super::{super::Animation, DragonSkeleton, SkeletonAttr};
-use std::ops::Mul;
+use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
 pub struct IdleAnimation;
@@ -17,10 +17,12 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
+        let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
+        let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
         let wave_slow = (anim_time as f32 * 4.5).sin();
         let wave_slow_cos = (anim_time as f32 * 4.5).cos();
 
-        let duck_head_look = Vec2::new(
+        let look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
                 .floor()
                 .mul(7331.0)
@@ -33,10 +35,31 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-        next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
-        next.head.ori = Quaternion::rotation_z(duck_head_look.x)
-            * Quaternion::rotation_x(-duck_head_look.y.abs() + wave_slow_cos * 0.03);
-        next.head.scale = Vec3::one();
+        next.head_upper.offset = Vec3::new(
+            0.0,
+            skeleton_attr.head_upper.0,
+            skeleton_attr.head_upper.1 + wave_ultra_slow * 0.4,
+        ) * 1.05;
+        next.head_upper.ori =
+            Quaternion::rotation_z(0.8 * look.x) * Quaternion::rotation_x(0.8 * look.y);
+        next.head_upper.scale = Vec3::one() * 1.05;
+
+        next.head_lower.offset = Vec3::new(
+            0.0,
+            skeleton_attr.head_lower.0,
+            skeleton_attr.head_lower.1 + wave_ultra_slow * 0.20,
+        );
+        next.head_lower.ori =
+            Quaternion::rotation_z(-0.4 * look.x) * Quaternion::rotation_x(-0.4 * look.y);
+        next.head_lower.scale = Vec3::one() * 1.05;
+
+        next.jaw.offset = Vec3::new(
+            0.0,
+            skeleton_attr.jaw.0 - wave_ultra_slow_cos * 0.12,
+            skeleton_attr.jaw.1 + wave_slow * 0.2,
+        );
+        next.jaw.ori = Quaternion::rotation_x(wave_slow * 0.05);
+        next.jaw.scale = Vec3::one() * 0.98;
 
         next.chest_front.offset = Vec3::new(
             0.0,

@@ -18,6 +18,12 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 14;
+
+        let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
+        let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
+        let wave_slow = (anim_time as f32 * 4.5).sin();
+        let wave_slow_cos = (anim_time as f32 * 4.5).cos();
+        
         let vertlf = (anim_time as f32 * lab as f32 + PI * 1.8).sin().max(0.15);
         let vertrfoffset = (anim_time as f32 * lab as f32 + PI * 0.80).sin().max(0.15);
         let vertlboffset = (anim_time as f32 * lab as f32).sin().max(0.15);
@@ -51,14 +57,31 @@ impl Animation for RunAnimation {
                 * 0.125,
         );
 
-        next.head.offset = Vec3::new(
+        next.head_upper.offset = Vec3::new(
             0.0,
-            skeleton_attr.head.0 + horichest * 0.9,
-            skeleton_attr.head.1 + verthead * -0.9,
+            skeleton_attr.head_upper.0 + horichest * 1.8,
+            skeleton_attr.head_upper.1 + verthead * -1.8,
         ) * 1.05;
-        next.head.ori =
+        next.head_upper.ori =
             Quaternion::rotation_x(wolf_look.y) * Quaternion::rotation_z(wolf_look.x);
-        next.head.scale = Vec3::one() * 1.05;
+        next.head_upper.scale = Vec3::one() * 1.05;
+
+        next.head_lower.offset = Vec3::new(
+            0.0,
+            skeleton_attr.head_lower.0 + horichest * 1.8,
+            skeleton_attr.head_lower.1 + verthead * -1.8,
+        ) * 1.05;
+        next.head_lower.ori =
+            Quaternion::rotation_x(wolf_look.y) * Quaternion::rotation_z(wolf_look.x);
+        next.head_lower.scale = Vec3::one() * 1.05;
+
+        next.jaw.offset = Vec3::new(
+            0.0,
+            skeleton_attr.jaw.0 - wave_ultra_slow_cos * 0.12,
+            skeleton_attr.jaw.1 + wave_slow * 0.2,
+        );
+        next.jaw.ori = Quaternion::rotation_x(wave_slow * 0.05);
+        next.jaw.scale = Vec3::one() * 0.98;
 
         next.tail_front.offset = Vec3::new(
             0.0,
