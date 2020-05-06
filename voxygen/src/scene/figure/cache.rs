@@ -417,7 +417,17 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     DragonLateralSpec::load_watched(manifest_indicator);
 
                 [
-                    Some(dragon_center_spec.mesh_head(
+                    Some(dragon_center_spec.mesh_head_upper(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_center_spec.mesh_head_lower(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(dragon_center_spec.mesh_jaw(
                         body.species,
                         body.body_type,
                         generate_mesh,
@@ -482,8 +492,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    None,
-                    None,
                     None,
                 ]
             },
