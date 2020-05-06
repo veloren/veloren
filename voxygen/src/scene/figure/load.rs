@@ -1873,7 +1873,9 @@ pub struct DragonCenterSpec(HashMap<(DSpecies, DBodyType), SidedDCenterVoxSpec>)
 
 #[derive(Serialize, Deserialize)]
 struct SidedDCenterVoxSpec {
-    head: DragonCenterSubSpec,
+    upper: DragonCenterSubSpec,
+    lower: DragonCenterSubSpec,
+    jaw: DragonCenterSubSpec,
     chest_front: DragonCenterSubSpec,
     chest_rear: DragonCenterSubSpec,
     tail_front: DragonCenterSubSpec,
@@ -1927,7 +1929,7 @@ impl DragonCenterSpec {
             .unwrap()
     }
 
-    pub fn mesh_head(
+    pub fn mesh_head_upper(
         &self,
         species: DSpecies,
         body_type: DBodyType,
@@ -1937,15 +1939,57 @@ impl DragonCenterSpec {
             Some(spec) => spec,
             None => {
                 error!(
-                    "No head specification exists for the combination of {:?} and {:?}",
+                    "No upper head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let center = graceful_load_segment(&spec.head.center.0);
+        let central = graceful_load_segment(&spec.upper.center.0);
 
-        generate_mesh(&center, Vec3::from(spec.head.offset))
+        generate_mesh(&central, Vec3::from(spec.upper.offset))
+    }
+
+    pub fn mesh_head_lower(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No lower head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let central = graceful_load_segment(&spec.lower.center.0);
+
+        generate_mesh(&central, Vec3::from(spec.lower.offset))
+    }
+
+    pub fn mesh_jaw(
+        &self,
+        species: DSpecies,
+        body_type: DBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No jaw specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let central = graceful_load_segment(&spec.jaw.center.0);
+
+        generate_mesh(&central, Vec3::from(spec.jaw.offset))
     }
 
     pub fn mesh_chest_front(
