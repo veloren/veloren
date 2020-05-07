@@ -123,6 +123,28 @@ impl Item {
         }
     }
 
+    pub fn set_amount(&mut self, give_amount: u32) -> Result<(), assets::Error> {
+        use ItemKind::*;
+        match self.kind {
+            Consumable { ref mut amount, .. } => {
+                *amount = give_amount;
+                Ok(())
+            },
+            Utility { ref mut amount, .. } => {
+                *amount = give_amount;
+                Ok(())
+            },
+            Ingredient { ref mut amount, .. } => {
+                *amount = give_amount;
+                Ok(())
+            },
+            Tool { .. } | Lantern { .. } | Armor { .. } => {
+                // Tools and armor don't stack
+                Err(assets::Error::InvalidType)
+            },
+        }
+    }
+
     pub fn name(&self) -> &str { &self.name }
 
     pub fn description(&self) -> &str { &self.description }
