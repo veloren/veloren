@@ -95,9 +95,9 @@ lazy_static! {
     pub static ref CHAT_COMMANDS: Vec<ChatCommand> = vec![
         ChatCommand::new(
             "give_item",
-            "{d}",
-            "/give_item <path to item>\n\
-            Example: common/items/debug/boost",
+            "{} {d}",
+            "/give_item <path to item> [num]\n\
+            Example items: common/items/apple, common/items/debug/boost",
             true,
             handle_give,),
         ChatCommand::new(
@@ -285,25 +285,68 @@ fn handle_give(
     client: EcsEntity,
     target: EcsEntity,
     args: String,
-    _action: &ChatCommand,
+    action: &ChatCommand,
 ) {
-    if let Ok(item) = assets::load_cloned(&args) {
-        server
-            .state
-            .ecs()
-            .write_storage::<comp::Inventory>()
-            .get_mut(target)
-            .map(|inv| inv.push(item));
-        let _ = server
-            .state
-            .ecs()
-            .write_storage::<comp::InventoryUpdate>()
-            .insert(
-                target,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
+    if let (Some(item_name), give_amount_opt) = scan_fmt_some!(&args, action.arg_fmt, String, u32) {
+        let give_amount = give_amount_opt.unwrap_or(1);
+        if let Ok(item) = assets::load_cloned(&item_name) {
+            let mut item: Item = item;
+            if let Ok(()) = item.set_amount(give_amount.min(2000)) {
+                server
+                    .state
+                    .ecs()
+                    .write_storage::<comp::Inventory>()
+                    .get_mut(target)
+                    .map(|inv| {
+                        if inv.push(item).is_some() {
+                            server.notify_client(
+                                client,
+                                ServerMsg::private(format!(
+                                    "Player inventory full. Gave 0 of {} items.",
+                                    give_amount
+                                )),
+                            );
+                        }
+                    });
+            } else {
+                // This item can't stack. Give each item in a loop.
+                server
+                    .state
+                    .ecs()
+                    .write_storage::<comp::Inventory>()
+                    .get_mut(target)
+                    .map(|inv| {
+                        for i in 0..give_amount {
+                            if inv.push(item.clone()).is_some() {
+                                server.notify_client(
+                                    client,
+                                    ServerMsg::private(format!(
+                                        "Player inventory full. Gave {} of {} items.",
+                                        i, give_amount
+                                    )),
+                                );
+                                break;
+                            }
+                        }
+                    });
+            }
+
+            let _ = server
+                .state
+                .ecs()
+                .write_storage::<comp::InventoryUpdate>()
+                .insert(
+                    target,
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
+                );
+        } else {
+            server.notify_client(
+                client,
+                ServerMsg::private(format!("Invalid item: {}", item_name)),
             );
+        }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from("Invalid item!")));
+        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
     }
 }
 

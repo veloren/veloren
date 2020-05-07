@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The /give_item command can now specify the amount of items. Syntax is now `/give_item <name> [num]`
 - Brighter / higher contrast main-map
 - Removed highlighting of non-collectible sprites
 - Fixed /give_exp ignoring player argument
