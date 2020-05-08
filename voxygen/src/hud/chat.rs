@@ -37,6 +37,7 @@ pub struct Chat<'a> {
     new_messages: &'a mut VecDeque<ClientEvent>,
     force_input: Option<String>,
     force_cursor: Option<Index>,
+    force_completions: Option<Vec<String>>,
 
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
@@ -60,6 +61,7 @@ impl<'a> Chat<'a> {
             new_messages,
             force_input: None,
             force_cursor: None,
+            force_completions: None,
             imgs,
             fonts,
             global_state,
@@ -68,11 +70,17 @@ impl<'a> Chat<'a> {
         }
     }
 
+    pub fn prepare_tab_completion(mut self, input: String, state: &common::state::State) -> Self {
+        if let Some(index) = input.find('\t') {
+            self.force_completions = Some(common::cmd::complete(&input[..index], &state));
+        } else {
+            self.force_completions = None;
+        }
+        self
+    }
+
     pub fn input(mut self, input: String) -> Self {
         if let Ok(()) = validate_chat_msg(&input) {
-            if input.contains('\t') {
-                println!("Contains tab: '{}'", input);
-            }
             self.force_input = Some(input);
         }
         self
@@ -107,12 +115,14 @@ pub struct State {
     // otherwise index is history_pos -1
     history_pos: usize,
     completions: Vec<String>,
-    // Index into the completion Vec, completions_pos == 0 means not in use
-    // otherwise index is completions_pos -1
-    completions_pos: usize,
+    // Index into the completion Vec
+    completions_index: Option<usize>,
+    // At which character is tab completion happening
+    completion_cursor: Option<usize>,
 }
 
 pub enum Event {
+    TabCompletionStart(String),
     SendMessage(String),
     Focus(Id),
 }
@@ -129,7 +139,8 @@ impl<'a> Widget for Chat<'a> {
             history: VecDeque::new(),
             history_pos: 0,
             completions: Vec::new(),
-            completions_pos: 0,
+            completions_index: None,
+            completion_cursor: None,
             ids: Ids::new(id_gen),
         }
     }
@@ -152,21 +163,74 @@ impl<'a> Widget for Chat<'a> {
             }
         });
 
+        if let Some(comps) = &self.force_completions {
+            state.update(|s| s.completions = comps.clone());
+        }
+
         let mut force_cursor = self.force_cursor;
 
-        // If up or down are pressed move through history
-        let history_move =
-            ui.widget_input(state.ids.chat_input)
-                .presses()
-                .key()
-                .fold(0, |n, key_press| match key_press.key {
-                    Key::Up => n + 1,
-                    Key::Down => n - 1,
-                    _ => n,
-                });
-        if history_move != 0 {
+        // If up or down are pressed: move through history
+        // If any key other than up, down, or tab is pressed: stop completion.
+        let (history_dir, tab_dir, stop_tab_completion) =
+            ui.widget_input(state.ids.chat_input).presses().key().fold(
+                (0isize, 0isize, false),
+                |(n, m, tc), key_press| match key_press.key {
+                    Key::Up => (n + 1, m - 1, tc),
+                    Key::Down => (n - 1, m + 1, tc),
+                    Key::Tab => (n, m + 1, tc),
+                    _ => (n, m, true),
+                },
+            );
+
+        // Handle tab completion
+        let request_tab_completions = if stop_tab_completion {
+            // End tab completion
             state.update(|s| {
-                if history_move > 0 {
+                if s.completion_cursor.is_some() {
+                    s.completion_cursor = None;
+                }
+                s.completions_index = None;
+            });
+            false
+        } else if let Some(cursor) = state.completion_cursor {
+            // Cycle through tab completions of the current word
+            if state.input.contains('\t') {
+                state.update(|s| s.input.retain(|c| c != '\t'));
+                //tab_dir + 1
+            }
+            if !state.completions.is_empty() {
+                if tab_dir != 0 || state.completions_index.is_none() {
+                    state.update(|s| {
+                        let len = s.completions.len();
+                        s.completions_index = Some(
+                            (s.completions_index.unwrap_or(0) + (tab_dir + len as isize) as usize)
+                                % len,
+                        );
+                        if let Some(replacement) = &s.completions.get(s.completions_index.unwrap())
+                        {
+                            let (completed, offset) =
+                                do_tab_completion(cursor, &s.input, replacement);
+                            force_cursor =
+                                cursor_offset_to_index(offset, &completed, &ui, &self.fonts);
+                            s.input = completed;
+                        }
+                    });
+                }
+            }
+            false
+        } else if let Some(cursor) = state.input.find('\t') {
+            // Begin tab completion
+            state.update(|s| s.completion_cursor = Some(cursor));
+            true
+        } else {
+            // Not tab completing
+            false
+        };
+
+        // Move through history
+        if history_dir != 0 && state.completion_cursor.is_none() {
+            state.update(|s| {
+                if history_dir > 0 {
                     if s.history_pos < s.history.len() {
                         s.history_pos += 1;
                     }
@@ -182,33 +246,6 @@ impl<'a> Widget for Chat<'a> {
                 } else {
                     s.input.clear();
                 }
-            });
-        }
-
-        // Handle tab-completion
-        if let Some(cursor) = state.input.find('\t') {
-            state.update(|s| {
-                if s.completions_pos > 0 {
-                    if s.completions_pos >= s.completions.len() {
-                        s.completions_pos = 1;
-                    } else {
-                        s.completions_pos += 1;
-                    }
-                } else {
-                    // TODO FIXME pull completions from common::cmd
-                    s.completions = "a,bc,def,ghi,jklm,nop,qr,stu,v,w,xyz"
-                        .split(",")
-                        .map(|x| x.to_string())
-                        .collect();
-                    s.completions_pos = 1;
-                }
-                //let index = force_cursor;
-                //let cursor = index.and_then(|index| cursor_index_to_offset(index, &s.input,
-                // ui, &self.fonts)).unwrap_or(0);
-                let replacement = &s.completions[s.completions_pos - 1];
-                let (completed, offset) = do_tab_completion(cursor, &s.input, replacement);
-                force_cursor = cursor_offset_to_index(offset, &completed, &ui, &self.fonts);
-                s.input = completed;
             });
         }
 
@@ -255,9 +292,6 @@ impl<'a> Widget for Chat<'a> {
                 let mut input = str.to_owned();
                 input.retain(|c| c != '\n');
                 if let Ok(()) = validate_chat_msg(&input) {
-                    if input.contains('\t') {
-                        println!("Contains tab: '{}'", input);
-                    }
                     state.update(|s| s.input = input);
                 }
             }
@@ -345,9 +379,12 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
-        // If the chat widget is focused, return a focus event to pass the focus to the
-        // input box.
-        if keyboard_capturer == Some(id) {
+        // We've started a new tab completion. Populate tab completion suggestions.
+        if request_tab_completions {
+            Some(Event::TabCompletionStart(state.input.to_string()))
+        // If the chat widget is focused, return a focus event to pass the focus
+        // to the input box.
+        } else if keyboard_capturer == Some(id) {
             Some(Event::Focus(state.ids.chat_input))
         }
         // If enter is pressed and the input box is not empty, send the current message.
