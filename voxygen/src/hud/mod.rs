@@ -443,6 +443,7 @@ pub struct Hud {
     force_ungrab: bool,
     force_chat_input: Option<String>,
     force_chat_cursor: Option<Index>,
+    tab_complete: Option<String>,
     pulse: f32,
     velocity: f32,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
@@ -516,6 +517,7 @@ impl Hud {
             force_ungrab: false,
             force_chat_input: None,
             force_chat_cursor: None,
+            tab_complete: None,
             pulse: 0.0,
             velocity: 0.0,
             voxygen_i18n,
@@ -1724,9 +1726,15 @@ impl Hud {
             &self.fonts,
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
+        .and_then(self.tab_complete.take(), |c, input| {
+            c.prepare_tab_completion(input, &client.state())
+        })
         .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
         .set(self.ids.chat, ui_widgets)
         {
+            Some(chat::Event::TabCompletionStart(input)) => {
+                self.tab_complete = Some(input);
+            },
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
             },
