@@ -17,11 +17,6 @@ impl Animation for FlyAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
-        let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
-        let wave_slow = (anim_time as f32 * 4.5).sin();
-        let wave_slow_cos = (anim_time as f32 * 4.5).cos();
-
         let lab = 12.0; //14.0
 
         let footl = (anim_time as f32 * lab as f32 + PI).sin();
