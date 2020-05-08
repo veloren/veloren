@@ -183,7 +183,7 @@ impl ChatCommand {
             },
             ChatCommand::Spawn => cmd(vec![/*TODO*/], "Spawn a test entity", true),
             ChatCommand::Sudo => cmd(
-                vec![PlayerName(false), Command(false), SubCommand],
+                vec![PlayerName(false), SubCommand],
                 "Run command as if you were another player",
                 true,
             ),
@@ -251,12 +251,12 @@ impl ChatCommand {
             .map(|arg| match arg {
                 ArgumentSpec::PlayerName(_) => "{}",
                 ArgumentSpec::ItemSpec(_) => "{}",
-                ArgumentSpec::Float(_, _, _) => "{f}",
+                ArgumentSpec::Float(_, _, _) => "{}",
                 ArgumentSpec::Integer(_, _, _) => "{d}",
                 ArgumentSpec::Any(_, _) => "{}",
                 ArgumentSpec::Command(_) => "{}",
                 ArgumentSpec::Message => "{/.*/}",
-                ArgumentSpec::SubCommand => "{/.*/}",
+                ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::OneOf(_, _, _, _) => "{}", // TODO
             })
             .collect::<Vec<_>>()
@@ -406,34 +406,43 @@ impl ArgumentSpec {
 }
 
 fn complete_player(part: &str, state: &State) -> Vec<String> {
-    println!("Player completion: '{}'", part);
-    state.ecs().read_storage::<Player>()
-        .join()
-        .inspect(|player| println!(" player: {}", player.alias))
-        .filter(|player| player.alias.starts_with(part))
-        .map(|player| player.alias.clone())
-        .collect()
+    let storage = state.ecs().read_storage::<Player>();
+    let mut iter = storage.join();
+    if let Some(first) = iter.next() {
+        std::iter::once(first)
+            .chain(iter)
+            .filter(|player| player.alias.starts_with(part))
+            .map(|player| player.alias.clone())
+            .collect()
+    } else {
+        vec!["singleplayer".to_string()]
+    }
 }
 
 fn complete_command(part: &str) -> Vec<String> {
-    println!("Command completion: '{}'", part);
     CHAT_COMMANDS
         .iter()
         .map(|com| com.keyword())
         .filter(|kwd| kwd.starts_with(part) || format!("/{}", kwd).starts_with(part))
-        .map(|c| c.to_string())
+        .map(|c| format!("/{}", c))
         .collect()
 }
 
+// Get the byte index of the nth word. Used in completing "/sudo p /subcmd"
 fn nth_word(line: &str, n: usize) -> Option<usize> {
     let mut is_space = false;
     let mut j = 0;
     for (i, c) in line.char_indices() {
         match (is_space, c.is_whitespace()) {
-            (true, true) => {}
-            (true, false) => { is_space = false; }
-            (false, true) => { is_space = true; j += 1; }
-            (false, false) => {}
+            (true, true) => {},
+            (true, false) => {
+                is_space = false;
+                j += 1;
+            },
+            (false, true) => {
+                is_space = true;
+            },
+            (false, false) => {},
         }
         if j == n {
             return Some(i);
@@ -443,16 +452,25 @@ fn nth_word(line: &str, n: usize) -> Option<usize> {
 }
 
 pub fn complete(line: &str, state: &State) -> Vec<String> {
-    let word = line.split_whitespace().last().unwrap_or("");
+    let word = if line.chars().last().map_or(true, char::is_whitespace) {
+        ""
+    } else {
+        line.split_whitespace().last().unwrap_or("")
+    };
     if line.chars().next() == Some('/') {
         let mut iter = line.split_whitespace();
         let cmd = iter.next().unwrap();
-        if let Some((i, word)) = iter.enumerate().last() {
+        let i = iter.count() + if word.is_empty() { 1 } else { 0 };
+        if i == 0 {
+            // Completing chat command name
+            complete_command(word)
+        } else {
             if let Ok(cmd) = cmd.parse::<ChatCommand>() {
-                if let Some(arg) = cmd.data().args.get(i) {
-                    println!("Arg completion: {}", word);
+                if let Some(arg) = cmd.data().args.get(i - 1) {
+                    // Complete ith argument
                     arg.complete(word, &state)
                 } else {
+                    // Complete past the last argument
                     match cmd.data().args.last() {
                         Some(ArgumentSpec::SubCommand) => {
                             if let Some(index) = nth_word(line, cmd.data().args.len()) {
@@ -461,22 +479,18 @@ pub fn complete(line: &str, state: &State) -> Vec<String> {
                                 error!("Could not tab-complete SubCommand");
                                 vec![]
                             }
-                        }
+                        },
                         Some(ArgumentSpec::Message) => complete_player(word, &state),
-                        _ => { vec![] } // End of command. Nothing to complete
+                        _ => vec![], // End of command. Nothing to complete
                     }
                 }
             } else {
                 // Completing for unknown chat command
                 complete_player(word, &state)
             }
-        } else {
-            // Completing chat command name
-            complete_command(word)
         }
     } else {
         // Not completing a command
         complete_player(word, &state)
     }
 }
-
