@@ -15,7 +15,7 @@ const HEAD_UPPER_X: f32 = 2.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const HEAD_UPPER_Z: f32 = 4.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const HEAD_LOWER_X: f32 = 8.0;
+const HEAD_LOWER_X: f32 = 7.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const HEAD_LOWER_Z: f32 = 3.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
@@ -27,7 +27,7 @@ const CHEST_F_X: f32 = 0.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const CHEST_F_Z: f32 = 14.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const CHEST_R_X: f32 = -13.0;
+const CHEST_R_X: f32 = -12.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const CHEST_R_Z: f32 = 0.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
@@ -35,9 +35,9 @@ const TAIL_F_X: f32 = -12.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const TAIL_F_Z: f32 = 1.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const TAIL_R_X: f32 = -30.0;
+const TAIL_R_X: f32 = -14.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const TAIL_R_Z: f32 = 14.0;
+const TAIL_R_Z: f32 = 0.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const WING_IN_X: f32 = 2.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
@@ -51,13 +51,13 @@ const WING_OUT_Y: f32 = 0.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const WING_OUT_Z: f32 = 4.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const FEET_F_X: f32 = 4.0;
+const FEET_F_X: f32 = 6.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const FEET_F_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const FEET_F_Z: f32 = 1.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const FEET_B_X: f32 = 4.0;
+const FEET_B_X: f32 = 6.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const FEET_B_Y: f32 = -15.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
@@ -128,17 +128,17 @@ impl Skeleton for DragonSkeleton {
         )
 =======
         [
-            FigureBoneData::new(chest_front_mat * head_lower_mat*head_upper_mat),
+            FigureBoneData::new(chest_front_mat * head_lower_mat * head_upper_mat),
             FigureBoneData::new(chest_front_mat * head_lower_mat),
-            FigureBoneData::new(chest_front_mat * head_lower_mat*head_upper_mat * self.jaw.compute_base_matrix()),
+            FigureBoneData::new(chest_front_mat * head_lower_mat * head_upper_mat * self.jaw.compute_base_matrix()),
             FigureBoneData::new(chest_front_mat),
             FigureBoneData::new(chest_front_mat * self.chest_rear.compute_base_matrix() ),
-            FigureBoneData::new(chest_front_mat*chest_rear_mat * tail_front_mat),
-            FigureBoneData::new(self.tail_rear.compute_base_matrix() * tail_front_mat),
+            FigureBoneData::new(chest_front_mat * chest_rear_mat * tail_front_mat),
+            FigureBoneData::new(chest_front_mat * chest_rear_mat * tail_front_mat * self.tail_rear.compute_base_matrix()),
             FigureBoneData::new(chest_front_mat * self.wing_in_l.compute_base_matrix()),
             FigureBoneData::new(chest_front_mat * self.wing_in_r.compute_base_matrix()),
-            FigureBoneData::new(chest_front_mat*wing_in_l_mat*self.wing_out_l.compute_base_matrix()),
-            FigureBoneData::new(chest_front_mat*wing_in_r_mat*self.wing_out_r.compute_base_matrix()),
+            FigureBoneData::new(chest_front_mat * wing_in_l_mat * self.wing_out_l.compute_base_matrix()),
+            FigureBoneData::new(chest_front_mat * wing_in_r_mat * self.wing_out_r.compute_base_matrix()),
             FigureBoneData::new(self.foot_fl.compute_base_matrix()),
             FigureBoneData::new(self.foot_fr.compute_base_matrix()),
             FigureBoneData::new(self.foot_bl.compute_base_matrix()),
@@ -244,10 +244,10 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
                 (Reddragon, _) => (*WING_OUT_X, *WING_OUT_Y, *WING_OUT_Z),
             },
             feet_f: match (body.species, body.body_type) {
-                (Reddragon, _) => (4.0, 0.0, 1.5),
+                (Reddragon, _) => (*FEET_F_X, *FEET_F_Y, *FEET_F_Z),
             },
             feet_b: match (body.species, body.body_type) {
-                (Reddragon, _) => (4.0, -15.0, 3.0),
+                (Reddragon, _) => (*FEET_B_X, *FEET_B_Y, *FEET_B_Z),
             },
             height: match (body.species, body.body_type) {
                 (Reddragon, _) => (1.0),
