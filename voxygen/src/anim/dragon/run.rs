@@ -59,8 +59,8 @@ impl Animation for RunAnimation {
 
         next.head_upper.offset = Vec3::new(
             0.0,
-            skeleton_attr.head_upper.0 + horichest * 1.8,
-            skeleton_attr.head_upper.1 + verthead * -1.8,
+            skeleton_attr.head_upper.0,
+            skeleton_attr.head_upper.1,
         ) * 1.05;
         next.head_upper.ori =
             Quaternion::rotation_x(wolf_look.y) * Quaternion::rotation_z(wolf_look.x);
@@ -68,11 +68,10 @@ impl Animation for RunAnimation {
 
         next.head_lower.offset = Vec3::new(
             0.0,
-            skeleton_attr.head_lower.0 + horichest * 1.8,
-            skeleton_attr.head_lower.1 + verthead * -1.8,
+            skeleton_attr.head_lower.0,
+            skeleton_attr.head_lower.1,
         ) * 1.05;
-        next.head_lower.ori =
-            Quaternion::rotation_x(wolf_look.y) * Quaternion::rotation_z(wolf_look.x);
+        next.head_lower.ori = Quaternion::rotation_x(wave_slow * 0.05);
         next.head_lower.scale = Vec3::one() * 1.05;
 
         next.jaw.offset = Vec3::new(
@@ -81,7 +80,7 @@ impl Animation for RunAnimation {
             skeleton_attr.jaw.1 + wave_slow * 0.2,
         );
         next.jaw.ori = Quaternion::rotation_x(wave_slow * 0.05);
-        next.jaw.scale = Vec3::one() * 0.98;
+        next.jaw.scale = Vec3::one();
 
         next.tail_front.offset = Vec3::new(
             0.0,
@@ -105,15 +104,15 @@ impl Animation for RunAnimation {
             skeleton_attr.chest_front.1 + vertchest * -1.6 + 1.0,
         ) * 1.05;
         next.chest_front.ori = Quaternion::rotation_y(horichest * -0.09);
-        next.chest_front.scale = Vec3::one() * 0.98 * 1.05;
+        next.chest_front.scale = Vec3::one() * 1.05;
 
         next.chest_rear.offset = Vec3::new(
             0.0,
-            skeleton_attr.chest_rear.0 + horichest * 1.25,
-            skeleton_attr.chest_rear.1 + vertchest * -1.6 + 1.0,
+            skeleton_attr.chest_rear.0,
+            skeleton_attr.chest_rear.1,
         ) * 1.05;
         next.chest_rear.ori = Quaternion::rotation_y(horichest * -0.09);
-        next.chest_rear.scale = Vec3::one() * 0.98 * 1.05;
+        next.chest_rear.scale = Vec3::one() * 1.05;
 
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
@@ -152,7 +151,7 @@ impl Animation for RunAnimation {
             skeleton_attr.wing_in.1,
             skeleton_attr.wing_in.2,
         );
-        next.wing_in_l.ori = Quaternion::rotation_y((footl * 0.35).max(0.0));
+        next.wing_in_l.ori = Quaternion::rotation_y(1.3);
         next.wing_in_l.scale = Vec3::one() * 1.05;
 
         next.wing_in_r.offset = Vec3::new(
@@ -160,23 +159,23 @@ impl Animation for RunAnimation {
             skeleton_attr.wing_in.1,
             skeleton_attr.wing_in.2,
         );
-        next.wing_in_r.ori = Quaternion::rotation_y((footr * 0.35).max(0.0));
+        next.wing_in_r.ori = Quaternion::rotation_y(-1.3);
         next.wing_in_r.scale = Vec3::one() * 1.05;
 
         next.wing_out_l.offset = Vec3::new(
             -skeleton_attr.wing_out.0,
             skeleton_attr.wing_out.1,
-            skeleton_attr.wing_out.2,
+            skeleton_attr.wing_out.2 - 1.4,
         );
-        next.wing_out_l.ori = Quaternion::rotation_y((footl * 0.35).max(0.0));
+        next.wing_out_l.ori = Quaternion::rotation_y(-2.5);
         next.wing_out_l.scale = Vec3::one() * 1.05;
 
         next.wing_out_r.offset = Vec3::new(
             skeleton_attr.wing_out.0,
             skeleton_attr.wing_out.1,
-            skeleton_attr.wing_out.2,
+            skeleton_attr.wing_out.2 - 1.4,
         );
-        next.wing_out_r.ori = Quaternion::rotation_y((footr * 0.35).max(0.0));
+        next.wing_out_r.ori = Quaternion::rotation_y(2.5);
         next.wing_out_r.scale = Vec3::one() * 1.05;
 
         next
