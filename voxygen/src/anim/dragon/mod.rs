@@ -7,6 +7,7 @@ pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
+<<<<<<< HEAD
 use common::comp::{self};
 use vek::Vec3;
 
@@ -62,6 +63,9 @@ const FEET_B_X: f32 = 6.0;
 const FEET_B_Y: f32 = -15.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const FEET_B_Z: f32 = 3.0;   
+=======
+use common::comp::{self}; 
+>>>>>>> Cleanup
 
 #[derive(Clone, Default)]
 pub struct DragonSkeleton {
@@ -217,37 +221,37 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
         use comp::dragon::Species::*;
         Self {
             head_upper: match (body.species, body.body_type) {
-                (Reddragon, _) => (*HEAD_UPPER_X, *HEAD_UPPER_Z),
+                (Reddragon, _) => (2.5, 4.5),
             },
             head_lower: match (body.species, body.body_type) {
-                (Reddragon, _) => (*HEAD_LOWER_X, *HEAD_LOWER_Z),
+                (Reddragon, _) => (7.5, 3.5),
             },
             jaw: match (body.species, body.body_type) {
-                (Reddragon, _) => (*JAW_X, *JAW_Z),
+                (Reddragon, _) => (7.0, -5.0),
             },
             chest_front: match (body.species, body.body_type) {
-                (Reddragon, _) => (*CHEST_F_X, *CHEST_F_Z),
+                (Reddragon, _) => (0.0, 14.0),
             },
             chest_rear: match (body.species, body.body_type) {
-                (Reddragon, _) => (*CHEST_R_X, *CHEST_R_Z),
+                (Reddragon, _) => (-12.5, 0.0),
             },
             tail_front: match (body.species, body.body_type) {
-                (Reddragon, _) => (*TAIL_F_X, *TAIL_F_Z),
+                (Reddragon, _) => (-12.5, 1.5),
             },
             tail_rear: match (body.species, body.body_type) {
-                (Reddragon, _) => (*TAIL_R_X, *TAIL_R_Z),
+                (Reddragon, _) => (-14.0, 0.0),
             },
             wing_in: match (body.species, body.body_type) {
-                (Reddragon, _) => (*WING_IN_X, *WING_IN_Y, *WING_IN_Z),
+                (Reddragon, _) => (2.5, -16.5, 0.0),
             },
             wing_out: match (body.species, body.body_type) {
-                (Reddragon, _) => (*WING_OUT_X, *WING_OUT_Y, *WING_OUT_Z),
+                (Reddragon, _) => (23.0, 0.5, 4.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Reddragon, _) => (*FEET_F_X, *FEET_F_Y, *FEET_F_Z),
+                (Reddragon, _) => (6.0, 0.0, 1.5),
             },
             feet_b: match (body.species, body.body_type) {
-                (Reddragon, _) => (*FEET_B_X, *FEET_B_Y, *FEET_B_Z),
+                (Reddragon, _) => (6.0, -15.0, 3.0),
             },
             height: match (body.species, body.body_type) {
                 (Reddragon, _) => (1.0),

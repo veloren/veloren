@@ -19,10 +19,8 @@ impl Animation for RunAnimation {
 
         let lab = 14;
 
-        let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
         let wave_slow = (anim_time as f32 * 4.5).sin();
-        let wave_slow_cos = (anim_time as f32 * 4.5).cos();
         
         let vertlf = (anim_time as f32 * lab as f32 + PI * 1.8).sin().max(0.15);
         let vertrfoffset = (anim_time as f32 * lab as f32 + PI * 0.80).sin().max(0.15);
@@ -36,15 +34,11 @@ impl Animation for RunAnimation {
 
         let vertchest = (anim_time as f32 * lab as f32 + PI * 0.3).sin().max(0.2);
         let horichest = (anim_time as f32 * lab as f32 + PI * 0.8).sin();
-        let verthead = (anim_time as f32 * lab as f32 + PI * 0.3).sin();
-
-        let footl = (anim_time as f32 * lab as f32 + PI).sin();
-        let footr = (anim_time as f32 * lab as f32).sin();
 
         let center = (anim_time as f32 * lab as f32 + PI / 2.0).sin();
         let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();
 
-        let wolf_look = Vec2::new(
+        let dragon_look = Vec2::new(
             ((global_time + anim_time) as f32 / 4.0)
                 .floor()
                 .mul(7331.0)
@@ -63,7 +57,7 @@ impl Animation for RunAnimation {
             skeleton_attr.head_upper.1,
         ) * 1.05;
         next.head_upper.ori =
-            Quaternion::rotation_x(wolf_look.y) * Quaternion::rotation_z(wolf_look.x);
+            Quaternion::rotation_x(dragon_look.y) * Quaternion::rotation_z(dragon_look.x);
         next.head_upper.scale = Vec3::one() * 1.05;
 
         next.head_lower.offset = Vec3::new(
