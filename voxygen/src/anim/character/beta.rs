@@ -97,7 +97,7 @@ impl Animation for BetaAnimation {
         }
 
         next.l_shoulder.offset = Vec3::new(
-            skeleton_attr.shoulder.0,
+            -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );

@@ -151,7 +151,7 @@ impl Animation for RunAnimation {
             skeleton_attr.wing_in.1,
             skeleton_attr.wing_in.2,
         );
-        next.wing_in_l.ori = Quaternion::rotation_y(1.3);
+        next.wing_in_l.ori = Quaternion::rotation_y(0.8);
         next.wing_in_l.scale = Vec3::one() * 1.05;
 
         next.wing_in_r.offset = Vec3::new(
@@ -159,7 +159,7 @@ impl Animation for RunAnimation {
             skeleton_attr.wing_in.1,
             skeleton_attr.wing_in.2,
         );
-        next.wing_in_r.ori = Quaternion::rotation_y(-1.3);
+        next.wing_in_r.ori = Quaternion::rotation_y(-0.8);
         next.wing_in_r.scale = Vec3::one() * 1.05;
 
         next.wing_out_l.offset = Vec3::new(
@@ -167,7 +167,7 @@ impl Animation for RunAnimation {
             skeleton_attr.wing_out.1,
             skeleton_attr.wing_out.2 - 1.4,
         );
-        next.wing_out_l.ori = Quaternion::rotation_y(-2.5);
+        next.wing_out_l.ori = Quaternion::rotation_y(-2.0);
         next.wing_out_l.scale = Vec3::one() * 1.05;
 
         next.wing_out_r.offset = Vec3::new(
@@ -175,7 +175,7 @@ impl Animation for RunAnimation {
             skeleton_attr.wing_out.1,
             skeleton_attr.wing_out.2 - 1.4,
         );
-        next.wing_out_r.ori = Quaternion::rotation_y(2.5);
+        next.wing_out_r.ori = Quaternion::rotation_y(2.0);
         next.wing_out_r.scale = Vec3::one() * 1.05;
 
         next
