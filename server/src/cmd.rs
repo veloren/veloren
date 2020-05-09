@@ -724,7 +724,6 @@ fn handle_lantern(
     args: String,
     action: &ChatCommand,
 ) {
-    println!("args: '{}', fmt: '{}'", &args, &action.arg_fmt());
     if let (Some(s), r, g, b) = scan_fmt_some!(&args, &action.arg_fmt(), f32, f32, f32, f32) {
         if let Some(light) = server
             .state

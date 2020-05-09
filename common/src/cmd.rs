@@ -1,6 +1,5 @@
-use crate::{assets, comp, npc, state::State};
+use crate::{assets, comp, npc};
 use lazy_static::lazy_static;
-use specs::prelude::{Join, WorldExt};
 use std::{ops::Deref, str::FromStr};
 
 /// Struct representing a command that a user can run from server chat.
@@ -110,23 +109,6 @@ lazy_static! {
     .map(|s| s.to_string())
     .collect();
 }
-fn items() -> Vec<String> {
-    if let Ok(assets) = assets::ASSETS.read() {
-        assets
-            .iter()
-            .flat_map(|(k, v)| {
-                if v.is::<comp::item::Item>() {
-                    Some(k.clone())
-                } else {
-                    None
-                }
-            })
-            .collect()
-    } else {
-        error!("Assets not found");
-        vec![]
-    }
-}
 
 impl ChatCommand {
     pub fn data(&self) -> ChatCommandData {
@@ -143,10 +125,7 @@ impl ChatCommand {
             ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", true),
             ChatCommand::Debug => cmd(vec![], "Place all debug items into your pack.", true),
             ChatCommand::DebugColumn => cmd(
-                vec![
-                    Integer("x", 15000, Required),
-                    Integer("y", 15000, Required),
-                ],
+                vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column",
                 false,
             ),
@@ -161,7 +140,10 @@ impl ChatCommand {
                 true,
             ),
             ChatCommand::GiveItem => cmd(
-                vec![Enum("item", items(), Required), Integer("num", 1, Optional)],
+                vec![
+                    Enum("item", assets::ITEM_SPECS.clone(), Required),
+                    Integer("num", 1, Optional),
+                ],
                 "Give yourself some items",
                 true,
             ),
@@ -443,124 +425,5 @@ impl ArgumentSpec {
                 }
             },
         }
-    }
-
-    pub fn complete(&self, part: &str, state: &State) -> Vec<String> {
-        match self {
-            ArgumentSpec::PlayerName(_) => complete_player(part, &state),
-            ArgumentSpec::Float(_, x, _) => {
-                if part.is_empty() {
-                    vec![format!("{:.1}", x)]
-                } else {
-                    vec![]
-                }
-            },
-            ArgumentSpec::Integer(_, x, _) => {
-                if part.is_empty() {
-                    vec![format!("{}", x)]
-                } else {
-                    vec![]
-                }
-            },
-            ArgumentSpec::Any(_, _) => vec![],
-            ArgumentSpec::Command(_) => complete_command(part),
-            ArgumentSpec::Message => complete_player(part, &state),
-            ArgumentSpec::SubCommand => complete_command(part),
-            ArgumentSpec::Enum(_, strings, _) => strings
-                .iter()
-                .filter(|string| string.starts_with(part))
-                .map(|c| c.to_string())
-                .collect(),
-        }
-    }
-}
-
-fn complete_player(part: &str, state: &State) -> Vec<String> {
-    let storage = state.ecs().read_storage::<comp::Player>();
-    let mut iter = storage.join();
-    if let Some(first) = iter.next() {
-        std::iter::once(first)
-            .chain(iter)
-            .filter(|player| player.alias.starts_with(part))
-            .map(|player| player.alias.clone())
-            .collect()
-    } else {
-        vec!["singleplayer".to_string()]
-    }
-}
-
-fn complete_command(part: &str) -> Vec<String> {
-    CHAT_COMMANDS
-        .iter()
-        .map(|com| com.keyword())
-        .filter(|kwd| kwd.starts_with(part) || format!("/{}", kwd).starts_with(part))
-        .map(|c| format!("/{}", c))
-        .collect()
-}
-
-// Get the byte index of the nth word. Used in completing "/sudo p /subcmd"
-fn nth_word(line: &str, n: usize) -> Option<usize> {
-    let mut is_space = false;
-    let mut j = 0;
-    for (i, c) in line.char_indices() {
-        match (is_space, c.is_whitespace()) {
-            (true, true) => {},
-            (true, false) => {
-                is_space = false;
-                j += 1;
-            },
-            (false, true) => {
-                is_space = true;
-            },
-            (false, false) => {},
-        }
-        if j == n {
-            return Some(i);
-        }
-    }
-    return None;
-}
-
-pub fn complete(line: &str, state: &State) -> Vec<String> {
-    let word = if line.chars().last().map_or(true, char::is_whitespace) {
-        ""
-    } else {
-        line.split_whitespace().last().unwrap_or("")
-    };
-    if line.chars().next() == Some('/') {
-        let mut iter = line.split_whitespace();
-        let cmd = iter.next().unwrap();
-        let i = iter.count() + if word.is_empty() { 1 } else { 0 };
-        if i == 0 {
-            // Completing chat command name
-            complete_command(word)
-        } else {
-            if let Ok(cmd) = cmd.parse::<ChatCommand>() {
-                if let Some(arg) = cmd.data().args.get(i - 1) {
-                    // Complete ith argument
-                    arg.complete(word, &state)
-                } else {
-                    // Complete past the last argument
-                    match cmd.data().args.last() {
-                        Some(ArgumentSpec::SubCommand) => {
-                            if let Some(index) = nth_word(line, cmd.data().args.len()) {
-                                complete(&line[index..], &state)
-                            } else {
-                                error!("Could not tab-complete SubCommand");
-                                vec![]
-                            }
-                        },
-                        Some(ArgumentSpec::Message) => complete_player(word, &state),
-                        _ => vec![], // End of command. Nothing to complete
-                    }
-                }
-            } else {
-                // Completing for unknown chat command
-                complete_player(word, &state)
-            }
-        }
-    } else {
-        // Not completing a command
-        complete_player(word, &state)
     }
 }
