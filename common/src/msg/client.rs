@@ -7,6 +7,13 @@ pub enum ClientMsg {
         view_distance: Option<u32>,
         token_or_username: String,
     },
+    RequestCharacterList,
+    CreateCharacter {
+        alias: String,
+        tool: Option<String>,
+        body: comp::Body,
+    },
+    DeleteCharacter(i32),
     Character {
         name: String,
         body: comp::Body,

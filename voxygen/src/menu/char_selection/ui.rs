@@ -1,6 +1,5 @@
 use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
-    meta::CharacterData,
     render::{Consts, Globals, Renderer},
     ui::{
         fonts::ConrodVoxygenFonts,
@@ -14,6 +13,7 @@ use client::Client;
 use common::{
     assets,
     assets::{load, load_expect},
+    character::{Character, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp::{self, humanoid},
 };
 use conrod_core::{
@@ -65,6 +65,10 @@ widget_ids! {
         info_no,
         delete_text,
         space,
+        loading_characters_text,
+        creating_character_text,
+        deleting_character_text,
+        character_error_message,
 
         // REMOVE THIS AFTER IMPLEMENTATION
         daggers_grey,
@@ -244,19 +248,41 @@ rotation_image_ids! {
 pub enum Event {
     Logout,
     Play,
+    AddCharacter {
+        alias: String,
+        tool: Option<String>,
+        body: comp::Body,
+    },
+    DeleteCharacter(i32),
 }
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
 
+#[derive(PartialEq)]
 enum InfoContent {
     None,
     Deletion(usize),
-    //Name,
+    LoadingCharacters,
+    CreatingCharacter,
+    DeletingCharacter,
+    CharacterError,
+}
+
+impl InfoContent {
+    pub fn has_content(&self, character_list_loading: &bool) -> bool {
+        match self {
+            Self::None => false,
+            Self::CreatingCharacter | Self::DeletingCharacter | Self::LoadingCharacters => {
+                *character_list_loading
+            },
+            _ => true,
+        }
+    }
 }
 
 pub enum Mode {
-    Select(Option<CharacterData>),
+    Select(Option<Vec<CharacterItem>>),
     Create {
         name: String,
         body: humanoid::Body,
@@ -271,16 +297,10 @@ pub struct CharSelectionUi {
     imgs: Imgs,
     rot_imgs: ImgsRot,
     fonts: ConrodVoxygenFonts,
-    //character_creation: bool,
     info_content: InfoContent,
     voxygen_i18n: Arc<VoxygenLocalization>,
-    //deletion_confirmation: bool,
-    /*
-    pub character_name: String,
-    pub character_body: humanoid::Body,
-    pub character_tool: Option<&'static str>,
-    */
     pub mode: Mode,
+    pub selected_character: usize,
 }
 
 impl CharSelectionUi {
@@ -303,83 +323,86 @@ impl CharSelectionUi {
         let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
 
-        // TODO: Randomize initial values.
         Self {
             ui,
             ids,
             imgs,
             rot_imgs,
             fonts,
-            info_content: InfoContent::None,
+            info_content: InfoContent::LoadingCharacters,
+            selected_character: 0,
             voxygen_i18n,
-            //deletion_confirmation: false,
-            /*
-            character_creation: false,
-            selected_language: global_state.settings.language.selected_language.clone(),
-            character_name: "Character Name".to_string(),
-            character_body: humanoid::Body::random(),
-            character_tool: Some(STARTER_SWORD),
-            */
             mode: Mode::Select(None),
         }
     }
 
-    pub fn get_character_data(&self) -> Option<CharacterData> {
+    pub fn get_character_list(&self) -> Option<Vec<CharacterItem>> {
         match &self.mode {
             Mode::Select(data) => data.clone(),
             Mode::Create {
                 name, body, tool, ..
-            } => Some(CharacterData {
-                name: name.clone(),
+            } => Some(vec![CharacterItem {
+                character: Character {
+                    id: None,
+                    alias: name.clone(),
+                    tool: tool.map(|specifier| specifier.to_string()),
+                },
                 body: comp::Body::Humanoid(body.clone()),
-                tool: tool.map(|specifier| specifier.to_string()),
-            }),
+            }]),
         }
     }
 
     pub fn get_loadout(&mut self) -> Option<comp::Loadout> {
         match &mut self.mode {
-            Mode::Select(characterdata) => {
-                let loadout = comp::Loadout {
-                    active_item: characterdata
-                        .as_ref()
-                        .and_then(|d| d.tool.as_ref())
-                        .map(|tool| comp::ItemConfig {
-                            item: (*load::<comp::Item>(&tool).unwrap_or_else(|err| {
-                                error!(
-                                    "Could not load item {} maybe it no longer exists: {:?}",
-                                    &tool, err
-                                );
-                                load_expect("common.items.weapons.sword.starter_sword")
-                            }))
-                            .clone(),
-                            ability1: None,
-                            ability2: None,
-                            ability3: None,
-                            block_ability: None,
-                            dodge_ability: None,
-                        }),
-                    second_item: None,
-                    shoulder: None,
-                    chest: Some(assets::load_expect_cloned(
-                        "common.items.armor.starter.rugged_chest",
-                    )),
-                    belt: None,
-                    hand: None,
-                    pants: Some(assets::load_expect_cloned(
-                        "common.items.armor.starter.rugged_pants",
-                    )),
-                    foot: Some(assets::load_expect_cloned(
-                        "common.items.armor.starter.sandals_0",
-                    )),
-                    back: None,
-                    ring: None,
-                    neck: None,
-                    lantern: None,
-                    head: None,
-                    tabard: None,
-                };
-                Some(loadout)
+            Mode::Select(character_list) => {
+                if let Some(data) = character_list {
+                    if let Some(character_item) = data.get(self.selected_character) {
+                        let loadout = comp::Loadout {
+                            active_item: character_item.character.tool.as_ref().map(|tool| {
+                                comp::ItemConfig {
+                                    item: (*load::<comp::Item>(&tool).unwrap_or_else(|err| {
+                                        error!(
+                                            "Could not load item {} maybe it no longer exists: \
+                                             {:?}",
+                                            &tool, err
+                                        );
+                                        load_expect("common.items.weapons.sword.starter_sword")
+                                    }))
+                                    .clone(),
+                                    ability1: None,
+                                    ability2: None,
+                                    ability3: None,
+                                    block_ability: None,
+                                    dodge_ability: None,
+                                }
+                            }),
+                            second_item: None,
+                            shoulder: None,
+                            chest: Some(assets::load_expect_cloned(
+                                "common.items.armor.starter.rugged_chest",
+                            )),
+                            belt: None,
+                            hand: None,
+                            pants: Some(assets::load_expect_cloned(
+                                "common.items.armor.starter.rugged_pants",
+                            )),
+                            foot: Some(assets::load_expect_cloned(
+                                "common.items.armor.starter.sandals_0",
+                            )),
+                            back: None,
+                            ring: None,
+                            neck: None,
+                            lantern: None,
+                            head: None,
+                            tabard: None,
+                        };
+                        Some(loadout)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
             },
             Mode::Create { loadout, tool, .. } => {
                 loadout.active_item = tool.map(|tool| comp::ItemConfig {
@@ -405,7 +428,7 @@ impl CharSelectionUi {
     }
 
     // TODO: Split this into multiple modules or functions.
-    fn update_layout(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
+    fn update_layout(&mut self, client: &mut Client) -> Vec<Event> {
         let mut events = Vec::new();
 
         let can_enter_world = match &self.mode {
@@ -453,9 +476,16 @@ impl CharSelectionUi {
         .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
 
+        // Set the info content if we encountered an error related to characters
+        if client.character_list.error.is_some() {
+            self.info_content = InfoContent::CharacterError;
+        }
+
         // Information Window
-        if let InfoContent::None = self.info_content {
-        } else {
+        if self
+            .info_content
+            .has_content(&client.character_list.loading)
+        {
             Rectangle::fill_with([520.0, 150.0], color::rgba(0.0, 0.0, 0.0, 0.9))
                 .mid_top_with_margin_on(ui_widgets.window, 300.0)
                 .set(self.ids.info_bg, ui_widgets);
@@ -467,6 +497,7 @@ impl CharSelectionUi {
             Rectangle::fill_with([275.0, 150.0], color::TRANSPARENT)
                 .bottom_left_with_margins_on(self.ids.info_frame, 0.0, 0.0)
                 .set(self.ids.info_button_align, ui_widgets);
+
             match self.info_content {
                 InfoContent::None => unreachable!(),
                 InfoContent::Deletion(character_index) => {
@@ -505,21 +536,90 @@ impl CharSelectionUi {
                         .was_clicked()
                     {
                         self.info_content = InfoContent::None;
-                        global_state.meta.delete_character(character_index);
+
+                        if let Some(character_item) =
+                            client.character_list.characters.get(character_index)
+                        {
+                            // Unsaved characters have no id, this should never be the case here
+                            if let Some(character_id) = character_item.character.id {
+                                self.info_content = InfoContent::DeletingCharacter;
+
+                                events.push(Event::DeleteCharacter(character_id));
+                            }
+                        }
                     };
+                },
+                InfoContent::LoadingCharacters => {
+                    Text::new(&self.voxygen_i18n.get("char_selection.loading_characters"))
+                        .mid_top_with_margin_on(self.ids.info_frame, 40.0)
+                        .font_size(self.fonts.cyri.scale(24))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.loading_characters_text, ui_widgets);
+                },
+                InfoContent::CreatingCharacter => {
+                    Text::new(&self.voxygen_i18n.get("char_selection.creating_character"))
+                        .mid_top_with_margin_on(self.ids.info_frame, 40.0)
+                        .font_size(self.fonts.cyri.scale(24))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.creating_character_text, ui_widgets);
+                },
+                InfoContent::DeletingCharacter => {
+                    Text::new(&self.voxygen_i18n.get("char_selection.deleting_character"))
+                        .mid_top_with_margin_on(self.ids.info_frame, 40.0)
+                        .font_size(self.fonts.cyri.scale(24))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.deleting_character_text, ui_widgets);
+                },
+                InfoContent::CharacterError => {
+                    if let Some(error_message) = &client.character_list.error {
+                        Text::new(&format!(
+                            "{}: {}",
+                            &self.voxygen_i18n.get("common.error"),
+                            error_message
+                        ))
+                        .mid_top_with_margin_on(self.ids.info_frame, 40.0)
+                        .font_size(self.fonts.cyri.scale(24))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.character_error_message, ui_widgets);
+
+                        if Button::image(self.imgs.button)
+                            .w_h(150.0, 40.0)
+                            .bottom_right_with_margins_on(self.ids.info_button_align, 20.0, 20.0)
+                            .hover_image(self.imgs.button_hover)
+                            .press_image(self.imgs.button_press)
+                            .label_y(Relative::Scalar(2.0))
+                            .label(&self.voxygen_i18n.get("common.close"))
+                            .label_font_id(self.fonts.cyri.conrod_id)
+                            .label_font_size(self.fonts.cyri.scale(18))
+                            .label_color(TEXT_COLOR)
+                            .set(self.ids.info_ok, ui_widgets)
+                            .was_clicked()
+                        {
+                            self.info_content = InfoContent::None;
+                            client.character_list.error = None;
+                        }
+                    } else {
+                        self.info_content = InfoContent::None;
+                    }
                 },
             }
         }
+
         // Character Selection /////////////////
         match &mut self.mode {
             Mode::Select(data) => {
                 // Set active body
-                *data = if let Some(character) = global_state
-                    .meta
+                *data = if client
+                    .character_list
                     .characters
-                    .get(global_state.meta.selected_character)
+                    .get(self.selected_character)
+                    .is_some()
                 {
-                    Some(character.clone())
+                    Some(client.character_list.characters.clone())
                 } else {
                     None
                 };
@@ -579,7 +679,7 @@ impl CharSelectionUi {
                 }
 
                 // Enter World Button
-                let character_count = global_state.meta.characters.len();
+                let character_count = client.character_list.characters.len();
                 let enter_world_str = &self.voxygen_i18n.get("char_selection.enter_world");
                 let enter_button = Button::image(self.imgs.button)
                     .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
@@ -648,13 +748,12 @@ impl CharSelectionUi {
                     .resize(character_count, &mut ui_widgets.widget_id_generator());
 
                 // Character selection
-                for (i, character) in global_state.meta.characters.iter().enumerate() {
-                    let character_box =
-                        Button::image(if global_state.meta.selected_character == i {
-                            self.imgs.selection_hover
-                        } else {
-                            self.imgs.selection
-                        });
+                for (i, character_item) in client.character_list.characters.iter().enumerate() {
+                    let character_box = Button::image(if self.selected_character == i {
+                        self.imgs.selection_hover
+                    } else {
+                        self.imgs.selection
+                    });
                     let character_box = if i == 0 {
                         character_box.top_left_with_margins_on(
                             self.ids.charlist_alignment,
@@ -674,7 +773,7 @@ impl CharSelectionUi {
                         .set(self.ids.character_boxes[i], ui_widgets)
                         .was_clicked()
                     {
-                        global_state.meta.selected_character = i;
+                        self.selected_character = i;
                     }
                     if Button::image(self.imgs.delete_button)
                         .w_h(30.0 * 0.5, 30.0 * 0.5)
@@ -692,7 +791,7 @@ impl CharSelectionUi {
                     {
                         self.info_content = InfoContent::Deletion(i);
                     }
-                    Text::new(&character.name)
+                    Text::new(&character_item.character.alias)
                         .top_left_with_margins_on(self.ids.character_boxes[i], 6.0, 9.0)
                         .font_size(self.fonts.cyri.scale(19))
                         .font_id(self.fonts.cyri.conrod_id)
@@ -731,23 +830,34 @@ impl CharSelectionUi {
                         2.0,
                     )
                 };
+
+                let character_limit_reached = character_count >= MAX_CHARACTERS_PER_PLAYER;
+
+                let color = if character_limit_reached {
+                    Color::Rgba(0.38, 0.38, 0.10, 1.0)
+                } else {
+                    Color::Rgba(0.38, 1.0, 0.07, 1.0)
+                };
+
                 if create_char_button
                     .w_h(386.0, 80.0)
                     .hover_image(self.imgs.selection_hover)
                     .press_image(self.imgs.selection_press)
                     .label(&self.voxygen_i18n.get("char_selection.create_new_charater"))
-                    .label_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
+                    .label_color(color)
                     .label_font_id(self.fonts.cyri.conrod_id)
-                    .image_color(Color::Rgba(0.38, 1.0, 0.07, 1.0))
+                    .image_color(color)
                     .set(self.ids.character_box_2, ui_widgets)
                     .was_clicked()
                 {
-                    self.mode = Mode::Create {
-                        name: "Character Name".to_string(),
-                        body: humanoid::Body::random(),
-                        loadout: comp::Loadout::default(),
-                        tool: Some(STARTER_SWORD),
-                    };
+                    if !character_limit_reached {
+                        self.mode = Mode::Create {
+                            name: "Character Name".to_string(),
+                            body: humanoid::Body::random(),
+                            loadout: comp::Loadout::default(),
+                            tool: Some(STARTER_SWORD),
+                        };
+                    }
                 }
             },
             // Character_Creation
@@ -791,12 +901,14 @@ impl CharSelectionUi {
                     .set(self.ids.create_button, ui_widgets)
                     .was_clicked()
                 {
-                    global_state.meta.selected_character =
-                        global_state.meta.add_character(CharacterData {
-                            name: name.clone(),
-                            body: comp::Body::Humanoid(body.clone()),
-                            tool: tool.map(|tool| tool.to_string()),
-                        });
+                    self.info_content = InfoContent::CreatingCharacter;
+
+                    events.push(Event::AddCharacter {
+                        alias: name.clone(),
+                        tool: tool.map(|tool| tool.to_string()),
+                        body: comp::Body::Humanoid(body.clone()),
+                    });
+
                     to_select = true;
                 }
                 // Character Name Input
@@ -1290,20 +1402,16 @@ impl CharSelectionUi {
                     body.skin = new_val as u8;
                 }
                 // Eyebrows
-                let current_eyebrows = body.eyebrows;
                 if let Some(new_val) = char_slider(
                     self.ids.skin_slider,
                     self.voxygen_i18n.get("char_selection.eyebrows"),
                     self.ids.eyebrows_text,
-                    humanoid::ALL_EYEBROWS.len() - 1,
-                    humanoid::ALL_EYEBROWS
-                        .iter()
-                        .position(|&c| c == current_eyebrows)
-                        .unwrap_or(0),
+                    body.race.num_eyebrows(body.body_type) as usize - 1,
+                    body.eyebrows as usize,
                     self.ids.eyebrows_slider,
                     ui_widgets,
                 ) {
-                    body.eyebrows = humanoid::ALL_EYEBROWS[new_val];
+                    body.eyebrows = new_val as u8;
                 }
                 // EyeColor
                 if let Some(new_val) = char_slider(
@@ -1423,8 +1531,8 @@ impl CharSelectionUi {
         }
     }
 
-    pub fn maintain(&mut self, global_state: &mut GlobalState, client: &Client) -> Vec<Event> {
-        let events = self.update_layout(global_state, client);
+    pub fn maintain(&mut self, global_state: &mut GlobalState, client: &mut Client) -> Vec<Event> {
+        let events = self.update_layout(client);
         self.ui.maintain(global_state.window.renderer_mut(), None);
         events
     }
