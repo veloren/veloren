@@ -29,8 +29,6 @@ widget_ids! {
 }
 
 const MAX_MESSAGES: usize = 100;
-// Maximum completions shown at once
-const MAX_COMPLETIONS: usize = 10;
 
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
@@ -454,21 +452,6 @@ fn do_tab_completion(cursor: usize, input: &str, word: &str) -> (String, usize) 
             )
         },
     }
-}
-
-fn cursor_index_to_offset(
-    index: text::cursor::Index,
-    text: &str,
-    ui: &Ui,
-    fonts: &ConrodVoxygenFonts,
-) -> Option<usize> {
-    // Width and font must match that of the chat TextEdit
-    let width = 460.0;
-    let font = ui.fonts.get(fonts.opensans.conrod_id)?;
-    let font_size = fonts.opensans.scale(15);
-    let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(width);
-
-    text::glyph::index_after_cursor(infos, index)
 }
 
 fn cursor_offset_to_index(

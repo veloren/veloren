@@ -1,5 +1,7 @@
-use crate::{assets, comp::Player, state::State};
+use crate::{assets, comp, npc, state::State};
+use lazy_static::lazy_static;
 use specs::prelude::{Join, WorldExt};
+use std::{ops::Deref, str::FromStr};
 
 /// Struct representing a command that a user can run from server chat.
 pub struct ChatCommandData {
@@ -85,63 +87,108 @@ pub static CHAT_COMMANDS: &'static [ChatCommand] = &[
     ChatCommand::Waypoint,
 ];
 
+lazy_static! {
+    static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    static ref ENTITIES: Vec<String> = {
+        let npc_names = &*npc::NPC_NAMES;
+        npc::ALL_NPCS
+            .iter()
+            .map(|&npc| npc_names[npc].keyword.clone())
+            .collect()
+    };
+    static ref OBJECTS: Vec<String> = comp::object::ALL_OBJECTS
+        .iter()
+        .map(|o| o.to_string().to_string())
+        .collect();
+    static ref TIMES: Vec<String> = vec![
+        "midnight", "night", "dawn", "morning", "day", "noon", "dusk"
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
+}
+fn items() -> Vec<String> {
+    if let Ok(assets) = assets::ASSETS.read() {
+        assets
+            .iter()
+            .flat_map(|(k, v)| {
+                if v.is::<comp::item::Item>() {
+                    Some(k.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    } else {
+        error!("Assets not found");
+        vec![]
+    }
+}
+
 impl ChatCommand {
     pub fn data(&self) -> ChatCommandData {
         use ArgumentSpec::*;
+        use Requirement::*;
         let cmd = ChatCommandData::new;
         match self {
             ChatCommand::Adminify => cmd(
-                vec![PlayerName(false)],
+                vec![PlayerName(Required)],
                 "Temporarily gives a player admin permissions or removes them",
                 true,
             ),
-            ChatCommand::Alias => cmd(vec![Any("name", false)], "Change your alias", false),
+            ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", false),
             ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", true),
             ChatCommand::Debug => cmd(vec![], "Place all debug items into your pack.", true),
             ChatCommand::DebugColumn => cmd(
-                vec![Float("x", f32::NAN, false), Float("y", f32::NAN, false)],
+                vec![
+                    Integer("x", 15000, Required),
+                    Integer("y", 15000, Required),
+                ],
                 "Prints some debug information about a column",
                 false,
             ),
             ChatCommand::Explosion => cmd(
-                vec![Float("radius", 5.0, false)],
+                vec![Float("radius", 5.0, Required)],
                 "Explodes the ground around you",
                 true,
             ),
             ChatCommand::GiveExp => cmd(
-                vec![Integer("amount", 50, false)],
+                vec![Integer("amount", 50, Required)],
                 "Give experience to yourself",
                 true,
             ),
             ChatCommand::GiveItem => cmd(
-                vec![ItemSpec(false), Integer("num", 1, true)],
+                vec![Enum("item", items(), Required), Integer("num", 1, Optional)],
                 "Give yourself some items",
                 true,
             ),
             ChatCommand::Goto => cmd(
                 vec![
-                    Float("x", 0.0, false),
-                    Float("y", 0.0, false),
-                    Float("z", 0.0, false),
+                    Float("x", 0.0, Required),
+                    Float("y", 0.0, Required),
+                    Float("z", 0.0, Required),
                 ],
                 "Teleport to a position",
                 true,
             ),
             ChatCommand::Health => cmd(
-                vec![Integer("hp", 100, false)],
+                vec![Integer("hp", 100, Required)],
                 "Set your current health",
                 true,
             ),
             ChatCommand::Help => ChatCommandData::new(
-                vec![Command(true)],
+                vec![Command(Optional)],
                 "Display information about commands",
                 false,
             ),
             ChatCommand::Jump => cmd(
                 vec![
-                    Float("x", 0.0, false),
-                    Float("y", 0.0, false),
-                    Float("z", 0.0, false),
+                    Float("x", 0.0, Required),
+                    Float("y", 0.0, Required),
+                    Float("z", 0.0, Required),
                 ],
                 "Offset your current position",
                 true,
@@ -150,50 +197,72 @@ impl ChatCommand {
             ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", true),
             ChatCommand::Lantern => cmd(
                 vec![
-                    Float("strength", 5.0, false),
-                    Float("r", 1.0, true),
-                    Float("g", 1.0, true),
-                    Float("b", 1.0, true),
+                    Float("strength", 5.0, Required),
+                    Float("r", 1.0, Optional),
+                    Float("g", 1.0, Optional),
+                    Float("b", 1.0, Optional),
                 ],
                 "Change your lantern's strength and color",
                 true,
             ),
             ChatCommand::Light => cmd(
                 vec![
-                    Float("r", 1.0, true),
-                    Float("g", 1.0, true),
-                    Float("b", 1.0, true),
-                    Float("x", 0.0, true),
-                    Float("y", 0.0, true),
-                    Float("z", 0.0, true),
-                    Float("strength", 5.0, true),
+                    Float("r", 1.0, Optional),
+                    Float("g", 1.0, Optional),
+                    Float("b", 1.0, Optional),
+                    Float("x", 0.0, Optional),
+                    Float("y", 0.0, Optional),
+                    Float("z", 0.0, Optional),
+                    Float("strength", 5.0, Optional),
                 ],
                 "Spawn entity with light",
                 true,
             ),
-            ChatCommand::Object => cmd(vec![/*TODO*/], "Spawn an object", true),
+            ChatCommand::Object => cmd(
+                vec![Enum("object", OBJECTS.clone(), Required)],
+                "Spawn an object",
+                true,
+            ),
             ChatCommand::Players => cmd(vec![], "Lists players currently online", false),
             ChatCommand::RemoveLights => cmd(
-                vec![Float("radius", 20.0, true)],
+                vec![Float("radius", 20.0, Optional)],
                 "Removes all lights spawned by players",
                 true,
             ),
-            ChatCommand::SetLevel => {
-                cmd(vec![Integer("level", 10, false)], "Set player Level", true)
-            },
-            ChatCommand::Spawn => cmd(vec![/*TODO*/], "Spawn a test entity", true),
+            ChatCommand::SetLevel => cmd(
+                vec![Integer("level", 10, Required)],
+                "Set player Level",
+                true,
+            ),
+            ChatCommand::Spawn => cmd(
+                vec![
+                    Enum("alignment", ALIGNMENTS.clone(), Required),
+                    Enum("entity", ENTITIES.clone(), Required),
+                    Integer("amount", 1, Optional),
+                ],
+                "Spawn a test entity",
+                true,
+            ),
             ChatCommand::Sudo => cmd(
-                vec![PlayerName(false), SubCommand],
+                vec![PlayerName(Required), SubCommand],
                 "Run command as if you were another player",
                 true,
             ),
             ChatCommand::Tell => cmd(
-                vec![PlayerName(false), Message],
+                vec![PlayerName(Required), Message],
                 "Send a message to another player",
                 false,
             ),
-            ChatCommand::Time => cmd(vec![/*TODO*/], "Set the time of day", true),
-            ChatCommand::Tp => cmd(vec![PlayerName(true)], "Teleport to another player", true),
+            ChatCommand::Time => cmd(
+                vec![Enum("time", TIMES.clone(), Optional)],
+                "Set the time of day",
+                true,
+            ),
+            ChatCommand::Tp => cmd(
+                vec![PlayerName(Optional)],
+                "Teleport to another player",
+                true,
+            ),
             ChatCommand::Version => cmd(vec![], "Prints server version", false),
             ChatCommand::Waypoint => {
                 cmd(vec![], "Set your waypoint to your current position", true)
@@ -250,21 +319,20 @@ impl ChatCommand {
             .iter()
             .map(|arg| match arg {
                 ArgumentSpec::PlayerName(_) => "{}",
-                ArgumentSpec::ItemSpec(_) => "{}",
                 ArgumentSpec::Float(_, _, _) => "{}",
                 ArgumentSpec::Integer(_, _, _) => "{d}",
                 ArgumentSpec::Any(_, _) => "{}",
                 ArgumentSpec::Command(_) => "{}",
                 ArgumentSpec::Message => "{/.*/}",
                 ArgumentSpec::SubCommand => "{} {/.*/}",
-                ArgumentSpec::OneOf(_, _, _, _) => "{}", // TODO
+                ArgumentSpec::Enum(_, _, _) => "{}", // TODO
             })
             .collect::<Vec<_>>()
             .join(" ")
     }
 }
 
-impl std::str::FromStr for ChatCommand {
+impl FromStr for ChatCommand {
     type Err = ();
 
     fn from_str(keyword: &str) -> Result<ChatCommand, ()> {
@@ -282,26 +350,39 @@ impl std::str::FromStr for ChatCommand {
     }
 }
 
+pub enum Requirement {
+    Required,
+    Optional,
+}
+impl Deref for Requirement {
+    type Target = bool;
+
+    fn deref(&self) -> &bool {
+        match self {
+            Requirement::Required => &true,
+            Requirement::Optional => &false,
+        }
+    }
+}
+
 /// Representation for chat command arguments
 pub enum ArgumentSpec {
     /// The argument refers to a player by alias
-    PlayerName(bool),
-    /// The argument refers to an item asset by path
-    ItemSpec(bool),
+    PlayerName(Requirement),
     /// The argument is a float. The associated values are
     /// * label
-    /// * default tab-completion
+    /// * suggested tab-completion
     /// * whether it's optional
-    Float(&'static str, f32, bool),
+    Float(&'static str, f32, Requirement),
     /// The argument is a float. The associated values are
     /// * label
-    /// * default tab-completion
+    /// * suggested tab-completion
     /// * whether it's optional
-    Integer(&'static str, i32, bool),
+    Integer(&'static str, i32, Requirement),
     /// The argument is any string that doesn't contain spaces
-    Any(&'static str, bool),
-    /// The argument is a command name
-    Command(bool),
+    Any(&'static str, Requirement),
+    /// The argument is a command name (such as in /help)
+    Command(Requirement),
     /// This is the final argument, consuming all characters until the end of
     /// input.
     Message,
@@ -310,68 +391,55 @@ pub enum ArgumentSpec {
     /// The argument is likely an enum. The associated values are
     /// * label
     /// * Predefined string completions
-    /// * Other completion types
     /// * whether it's optional
-    OneOf(
-        &'static str,
-        &'static [&'static str],
-        Vec<Box<ArgumentSpec>>,
-        bool,
-    ),
+    Enum(&'static str, Vec<String>, Requirement),
 }
 
 impl ArgumentSpec {
     pub fn usage_string(&self) -> String {
         match self {
-            ArgumentSpec::PlayerName(optional) => {
-                if *optional {
-                    "[player]".to_string()
-                } else {
+            ArgumentSpec::PlayerName(req) => {
+                if **req {
                     "<player>".to_string()
+                } else {
+                    "[player]".to_string()
                 }
             },
-            ArgumentSpec::ItemSpec(optional) => {
-                if *optional {
-                    "[item]".to_string()
-                } else {
-                    "<item>".to_string()
-                }
-            },
-            ArgumentSpec::Float(label, _, optional) => {
-                if *optional {
-                    format!("[{}]", label)
-                } else {
+            ArgumentSpec::Float(label, _, req) => {
+                if **req {
                     format!("<{}>", label)
-                }
-            },
-            ArgumentSpec::Integer(label, _, optional) => {
-                if *optional {
+                } else {
                     format!("[{}]", label)
-                } else {
-                    format!("<{}>", label)
                 }
             },
-            ArgumentSpec::Any(label, optional) => {
-                if *optional {
+            ArgumentSpec::Integer(label, _, req) => {
+                if **req {
+                    format!("<{}>", label)
+                } else {
                     format!("[{}]", label)
-                } else {
-                    format!("<{}>", label)
                 }
             },
-            ArgumentSpec::Command(optional) => {
-                if *optional {
-                    "[[/]command]".to_string()
+            ArgumentSpec::Any(label, req) => {
+                if **req {
+                    format!("<{}>", label)
                 } else {
+                    format!("[{}]", label)
+                }
+            },
+            ArgumentSpec::Command(req) => {
+                if **req {
                     "<[/]command>".to_string()
+                } else {
+                    "[[/]command]".to_string()
                 }
             },
             ArgumentSpec::Message => "<message>".to_string(),
             ArgumentSpec::SubCommand => "<[/]command> [args...]".to_string(),
-            ArgumentSpec::OneOf(label, _, _, optional) => {
-                if *optional {
-                    format! {"[{}]", label}
-                } else {
+            ArgumentSpec::Enum(label, _, req) => {
+                if **req {
                     format! {"<{}>", label}
+                } else {
+                    format! {"[{}]", label}
                 }
             },
         }
@@ -380,33 +448,35 @@ impl ArgumentSpec {
     pub fn complete(&self, part: &str, state: &State) -> Vec<String> {
         match self {
             ArgumentSpec::PlayerName(_) => complete_player(part, &state),
-            ArgumentSpec::ItemSpec(_) => assets::iterate()
-                .filter(|asset| asset.starts_with(part))
-                .map(|c| c.to_string())
-                .collect(),
-            ArgumentSpec::Float(_, x, _) => vec![format!("{}", x)],
-            ArgumentSpec::Integer(_, x, _) => vec![format!("{}", x)],
+            ArgumentSpec::Float(_, x, _) => {
+                if part.is_empty() {
+                    vec![format!("{:.1}", x)]
+                } else {
+                    vec![]
+                }
+            },
+            ArgumentSpec::Integer(_, x, _) => {
+                if part.is_empty() {
+                    vec![format!("{}", x)]
+                } else {
+                    vec![]
+                }
+            },
             ArgumentSpec::Any(_, _) => vec![],
             ArgumentSpec::Command(_) => complete_command(part),
             ArgumentSpec::Message => complete_player(part, &state),
             ArgumentSpec::SubCommand => complete_command(part),
-            ArgumentSpec::OneOf(_, strings, alts, _) => {
-                let string_completions = strings
-                    .iter()
-                    .filter(|string| string.starts_with(part))
-                    .map(|c| c.to_string());
-                let alt_completions = alts
-                    .iter()
-                    .flat_map(|b| (*b).complete(part, &state))
-                    .map(|c| c.to_string());
-                string_completions.chain(alt_completions).collect()
-            },
+            ArgumentSpec::Enum(_, strings, _) => strings
+                .iter()
+                .filter(|string| string.starts_with(part))
+                .map(|c| c.to_string())
+                .collect(),
         }
     }
 }
 
 fn complete_player(part: &str, state: &State) -> Vec<String> {
-    let storage = state.ecs().read_storage::<Player>();
+    let storage = state.ecs().read_storage::<comp::Player>();
     let mut iter = storage.join();
     if let Some(first) = iter.next() {
         std::iter::once(first)

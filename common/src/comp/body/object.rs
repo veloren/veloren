@@ -65,7 +65,7 @@ impl Body {
     }
 }
 
-const ALL_OBJECTS: [Body; 52] = [
+pub const ALL_OBJECTS: [Body; 53] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -114,8 +114,69 @@ const ALL_OBJECTS: [Body; 52] = [
     Body::CarpetHumanSquare,
     Body::CarpetHumanSquare2,
     Body::CarpetHumanSquircle,
+    Body::Pouch,
     Body::CraftingBench,
     Body::BoltFire,
     Body::BoltFireBig,
     Body::ArrowSnake,
 ];
+
+impl Body {
+    pub fn to_string(&self) -> &str {
+        match self {
+            Body::Arrow => "arrow",
+            Body::Bomb => "bomb",
+            Body::Scarecrow => "scarecrow",
+            Body::Cauldron => "cauldron",
+            Body::ChestVines => "chest_vines",
+            Body::Chest => "chest",
+            Body::ChestDark => "chest_dark",
+            Body::ChestDemon => "chest_demon",
+            Body::ChestGold => "chest_gold",
+            Body::ChestLight => "chest_light",
+            Body::ChestOpen => "chest_open",
+            Body::ChestSkull => "chest_skull",
+            Body::Pumpkin => "pumpkin",
+            Body::Pumpkin2 => "pumpkin_2",
+            Body::Pumpkin3 => "pumpkin_3",
+            Body::Pumpkin4 => "pumpkin_4",
+            Body::Pumpkin5 => "pumpkin_5",
+            Body::Campfire => "campfire",
+            Body::CampfireLit => "campfire_lit",
+            Body::LanternGround => "lantern_ground",
+            Body::LanternGroundOpen => "lantern_ground_open",
+            Body::LanternStanding => "lantern_standing",
+            Body::LanternStanding2 => "lantern_standing_2",
+            Body::PotionRed => "potion_red",
+            Body::PotionBlue => "potion_blue",
+            Body::PotionGreen => "potion_green",
+            Body::Crate => "crate",
+            Body::Tent => "tent",
+            Body::WindowSpooky => "window_spooky",
+            Body::DoorSpooky => "door_spooky",
+            Body::Anvil => "anvil",
+            Body::Gravestone => "gravestone",
+            Body::Gravestone2 => "gravestone_2",
+            Body::Bench => "bench",
+            Body::Chair => "chair",
+            Body::Chair2 => "chair_2",
+            Body::Chair3 => "chair_3",
+            Body::Table => "table",
+            Body::Table2 => "table_2",
+            Body::Table3 => "table_3",
+            Body::Drawer => "drawer",
+            Body::BedBlue => "bed_blue",
+            Body::Carpet => "carpet",
+            Body::Bedroll => "bedroll",
+            Body::CarpetHumanRound => "carpet_human_round",
+            Body::CarpetHumanSquare => "carpet_human_square",
+            Body::CarpetHumanSquare2 => "carpet_human_square_2",
+            Body::CarpetHumanSquircle => "carpet_human_squircle",
+            Body::Pouch => "pouch",
+            Body::CraftingBench => "crafting_bench",
+            Body::BoltFire => "bolt_fire",
+            Body::BoltFireBig => "bolt_fire_big",
+            Body::ArrowSnake => "arrow_snake",
+        }
+    }
+}

@@ -78,6 +78,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Waypoint => handle_waypoint,
     }
 }
+
 fn handle_give_item(
     server: &mut Server,
     client: EcsEntity,
@@ -616,85 +617,39 @@ fn handle_object(
     .with(ori);*/
     if let (Some(pos), Some(ori)) = (pos, ori) {
         let obj_str_res = obj_type.as_ref().map(String::as_str);
-        let obj_type = match obj_str_res {
-            Ok("scarecrow") => comp::object::Body::Scarecrow,
-            Ok("cauldron") => comp::object::Body::Cauldron,
-            Ok("chest_vines") => comp::object::Body::ChestVines,
-            Ok("chest") => comp::object::Body::Chest,
-            Ok("chest_dark") => comp::object::Body::ChestDark,
-            Ok("chest_demon") => comp::object::Body::ChestDemon,
-            Ok("chest_gold") => comp::object::Body::ChestGold,
-            Ok("chest_light") => comp::object::Body::ChestLight,
-            Ok("chest_open") => comp::object::Body::ChestOpen,
-            Ok("chest_skull") => comp::object::Body::ChestSkull,
-            Ok("pumpkin") => comp::object::Body::Pumpkin,
-            Ok("pumpkin_2") => comp::object::Body::Pumpkin2,
-            Ok("pumpkin_3") => comp::object::Body::Pumpkin3,
-            Ok("pumpkin_4") => comp::object::Body::Pumpkin4,
-            Ok("pumpkin_5") => comp::object::Body::Pumpkin5,
-            Ok("campfire") => comp::object::Body::Campfire,
-            Ok("campfire_lit") => comp::object::Body::CampfireLit,
-            Ok("lantern_ground") => comp::object::Body::LanternGround,
-            Ok("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
-            Ok("lantern_2") => comp::object::Body::LanternStanding2,
-            Ok("lantern") => comp::object::Body::LanternStanding,
-            Ok("potion_blue") => comp::object::Body::PotionBlue,
-            Ok("potion_green") => comp::object::Body::PotionGreen,
-            Ok("potion_red") => comp::object::Body::PotionRed,
-            Ok("crate") => comp::object::Body::Crate,
-            Ok("tent") => comp::object::Body::Tent,
-            Ok("bomb") => comp::object::Body::Bomb,
-            Ok("window_spooky") => comp::object::Body::WindowSpooky,
-            Ok("door_spooky") => comp::object::Body::DoorSpooky,
-            Ok("carpet") => comp::object::Body::Carpet,
-            Ok("table_human") => comp::object::Body::Table,
-            Ok("table_human_2") => comp::object::Body::Table2,
-            Ok("table_human_3") => comp::object::Body::Table3,
-            Ok("drawer") => comp::object::Body::Drawer,
-            Ok("bed_human_blue") => comp::object::Body::BedBlue,
-            Ok("anvil") => comp::object::Body::Anvil,
-            Ok("gravestone") => comp::object::Body::Gravestone,
-            Ok("gravestone_2") => comp::object::Body::Gravestone2,
-            Ok("chair") => comp::object::Body::Chair,
-            Ok("chair_2") => comp::object::Body::Chair2,
-            Ok("chair_3") => comp::object::Body::Chair3,
-            Ok("bench_human") => comp::object::Body::Bench,
-            Ok("bedroll") => comp::object::Body::Bedroll,
-            Ok("carpet_human_round") => comp::object::Body::CarpetHumanRound,
-            Ok("carpet_human_square") => comp::object::Body::CarpetHumanSquare,
-            Ok("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
-            Ok("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
-            Ok("crafting_bench") => comp::object::Body::CraftingBench,
-            _ => {
-                return server.notify_client(
-                    client,
-                    ServerMsg::private(String::from("Object not found!")),
-                );
-            },
-        };
-        server
-            .state
-            .create_object(pos, obj_type)
-            .with(comp::Ori(
-                // converts player orientation into a 90° rotation for the object by using the axis
-                // with the highest value
-                Dir::from_unnormalized(ori.0.map(|e| {
-                    if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
-                        e
-                    } else {
-                        0.0
-                    }
-                }))
-                .unwrap_or_default(),
-            ))
-            .build();
-        server.notify_client(
-            client,
-            ServerMsg::private(format!(
-                "Spawned: {}",
-                obj_str_res.unwrap_or("<Unknown object>")
-            )),
-        );
+        if let Some(obj_type) = comp::object::ALL_OBJECTS
+            .iter()
+            .find(|o| Ok(o.to_string()) == obj_str_res)
+        {
+            server
+                .state
+                .create_object(pos, *obj_type)
+                .with(comp::Ori(
+                    // converts player orientation into a 90° rotation for the object by using the
+                    // axis with the highest value
+                    Dir::from_unnormalized(ori.0.map(|e| {
+                        if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
+                            e
+                        } else {
+                            0.0
+                        }
+                    }))
+                    .unwrap_or_default(),
+                ))
+                .build();
+            server.notify_client(
+                client,
+                ServerMsg::private(format!(
+                    "Spawned: {}",
+                    obj_str_res.unwrap_or("<Unknown object>")
+                )),
+            );
+        } else {
+            return server.notify_client(
+                client,
+                ServerMsg::private(String::from("Object not found!")),
+            );
+        }
     } else {
         server.notify_client(client, ServerMsg::private(format!("You have no position!")));
     }
