@@ -1,17 +1,8 @@
 use super::{super::Animation, DragonSkeleton, SkeletonAttr};
-use std::{f32::consts::PI, ops::Mul};
+use std::ops::Mul;
 use vek::*;
 
 pub struct IdleAnimation;
-
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.1)]
-const TEST_R: f32 = 2.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.1)]
-const TEST_L: f32 = -2.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.1)]
-const OFF1: f32 = -1.4;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.1)]
-const OFF2: f32 = -1.4;
 
 impl Animation for IdleAnimation {
     type Dependency = f64;
@@ -30,7 +21,7 @@ impl Animation for IdleAnimation {
         let wave_slow = (anim_time as f32 * 2.5).sin();
         let wave_slow_cos = (anim_time as f32 * 4.5).cos();
 
-        let look = Vec2::new(
+        let dragon_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
                 .floor()
                 .mul(7331.0)
@@ -49,7 +40,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.head_upper.1 + ultra_slow * 0.20,
         ) * 1.05;
         next.head_upper.ori =
-            Quaternion::rotation_z(0.8 * look.x) * Quaternion::rotation_x(0.8 * look.y);
+            Quaternion::rotation_z(0.8 * dragon_look.x) * Quaternion::rotation_x(0.8 * dragon_look.y);
         next.head_upper.scale = Vec3::one() * 1.05;
 
         next.head_lower.offset = Vec3::new(
@@ -58,7 +49,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.head_lower.1 + ultra_slow * 0.20,
         ) * 1.05;
         next.head_lower.ori =
-            Quaternion::rotation_z(0.8 * look.x) * Quaternion::rotation_x(0.8 * look.y);
+            Quaternion::rotation_z(0.8 * dragon_look.x) * Quaternion::rotation_x(0.8 * dragon_look.y);
         next.head_lower.scale = Vec3::one() * 1.05;
 
         next.jaw.offset = Vec3::new(
@@ -112,7 +103,7 @@ impl Animation for IdleAnimation {
         next.wing_out_l.offset = Vec3::new(
             -skeleton_attr.wing_out.0,
             skeleton_attr.wing_out.1,
-            skeleton_attr.wing_out.2 + *OFF1,
+            skeleton_attr.wing_out.2 - 1.4,
         );
         next.wing_out_l.ori = Quaternion::rotation_y(-0.3);//2.0
         next.wing_out_l.scale = Vec3::one() * 1.05;
@@ -120,7 +111,7 @@ impl Animation for IdleAnimation {
         next.wing_out_r.offset = Vec3::new(
             skeleton_attr.wing_out.0,
             skeleton_attr.wing_out.1,
-            skeleton_attr.wing_out.2 + *OFF2,
+            skeleton_attr.wing_out.2 - 1.4,
         );
         next.wing_out_r.ori = Quaternion::rotation_y(0.3);
         next.wing_out_r.scale = Vec3::one() * 1.05;

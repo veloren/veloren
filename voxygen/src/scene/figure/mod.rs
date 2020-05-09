@@ -1052,7 +1052,7 @@ impl FigureMgr {
                         is_player,
                     );
                 },
-                Body::Dragon(dragon_body) => {
+                Body::Dragon(_) => {
                     let skeleton_attr = &self
                         .dragon_model_cache
                         .get_or_create_model(
@@ -1064,7 +1064,6 @@ impl FigureMgr {
                             None,
                         )
                         .1;
-                        let ref skeleton_attr = dragon_body.into();
 
                     let state = self
                         .dragon_states
