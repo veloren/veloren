@@ -57,15 +57,8 @@ impl From<std::io::Error> for Error {
 
 lazy_static! {
     /// The HashMap where all loaded assets are stored in.
-    static ref ASSETS: RwLock<HashMap<String, Arc<dyn Any + 'static + Sync + Send>>> =
+    pub static ref ASSETS: RwLock<HashMap<String, Arc<dyn Any + 'static + Sync + Send>>> =
         RwLock::new(HashMap::new());
-}
-
-const ASSETS_TMP: [&'static str; 1] = ["common/items/lantern/black_0"];
-pub fn iterate() -> impl Iterator<Item = &'static str> {
-    // TODO FIXME implement this
-    //ASSETS.read().iter().flat_map(|e| e.keys())
-    ASSETS_TMP.iter().map(|k| *k)
 }
 
 // TODO: Remove this function. It's only used in world/ in a really ugly way.To
