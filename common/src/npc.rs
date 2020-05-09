@@ -93,7 +93,7 @@ pub fn kind_to_body(kind: NpcKind) -> Body {
         NpcKind::Ogre => comp::biped_large::Body::random().into(),
         NpcKind::Rat => comp::critter::Body::random().into(),
         NpcKind::StoneGolem => comp::golem::Body::random().into(),
-        NpcKind::Reddragon => comp::critter::Body::random().into(),
+        NpcKind::Reddragon => comp::dragon::Body::random().into(),
     }
 }
 

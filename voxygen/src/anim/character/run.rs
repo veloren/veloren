@@ -26,11 +26,6 @@ impl Animation for RunAnimation {
         let lower = if speed > 5.0 { 0.0 } else { 1.0 };
         let snapfoot = if speed > 5.0 { 1.1 } else { 2.0 };
         let lab = 1.0;
-        let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 8.0 * walk).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0 * walk).sin());
-
         let short = (((5.0)
             / (1.5
                 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
@@ -94,7 +89,7 @@ impl Animation for RunAnimation {
             -3.0 + skeleton_attr.head.0,
             -1.0 + skeleton_attr.head.1 + short * 0.1,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x + long * -0.1 - short * 0.1)
+        next.head.ori = Quaternion::rotation_z(head_look.x - short * 0.1)
             * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
