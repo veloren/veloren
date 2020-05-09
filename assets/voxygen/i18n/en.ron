@@ -337,11 +337,14 @@ Enjoy your stay in the World of Veloren."#,
 
 
         /// Start chracter selection section
+        "char_selection.loading_characters": "Loading characters...",
         "char_selection.delete_permanently": "Permanently delete this Character?",
+        "char_selection.deleting_character": "Deleting Character...",
         "char_selection.change_server": "Change Server",
         "char_selection.enter_world": "Enter World",
         "char_selection.logout": "Logout",
         "char_selection.create_new_charater": "Create New Character",
+        "char_selection.creating_character": "Creating Character...",
         "char_selection.character_creation": "Character Creation",
 
         "char_selection.human_default": "Human Default",

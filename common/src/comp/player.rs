@@ -7,14 +7,21 @@ const MAX_ALIAS_LEN: usize = 32;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
     pub alias: String,
+    pub character_id: Option<i32>,
     pub view_distance: Option<u32>,
     uuid: Uuid,
 }
 
 impl Player {
-    pub fn new(alias: String, view_distance: Option<u32>, uuid: Uuid) -> Self {
+    pub fn new(
+        alias: String,
+        character_id: Option<i32>,
+        view_distance: Option<u32>,
+        uuid: Uuid,
+    ) -> Self {
         Self {
             alias,
+            character_id,
             view_distance,
             uuid,
         }
