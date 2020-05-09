@@ -9,6 +9,7 @@ pub mod error;
 pub mod events;
 pub mod input;
 pub mod metrics;
+pub mod persistence;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
@@ -53,6 +54,9 @@ use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
     World,
 };
+
+#[macro_use] extern crate diesel;
+#[macro_use] extern crate diesel_migrations;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -215,7 +219,16 @@ impl Server {
                 .expect("Failed to initialize server metrics submodule."),
             server_settings: settings.clone(),
         };
+
+        // Run pending DB migrations (if any)
+        debug!("Running DB migrations...");
+
+        if let Some(error) = persistence::run_migrations().err() {
+            log::info!("Migration error: {}", format!("{:#?}", error));
+        }
+
         debug!("created veloren server with: {:?}", &settings);
+
         log::info!(
             "Server version: {}[{}]",
             *common::util::GIT_HASH,
