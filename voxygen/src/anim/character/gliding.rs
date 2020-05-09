@@ -55,11 +55,7 @@ impl Animation for GlidingAnimation {
             0.0
         } * 0.8;
 
-        next.head.offset = Vec3::new(
-            0.0,
-            -2.0 + skeleton_attr.head.0,
-             skeleton_attr.head.1,
-        );
+        next.head.offset = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.ori = Quaternion::rotation_x(0.35 - slow * 0.10 + head_look.y)
             * Quaternion::rotation_z(head_look.x + slowa * 0.15);
 

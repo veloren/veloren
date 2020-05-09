@@ -8,6 +8,7 @@ pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 <<<<<<< HEAD
+<<<<<<< HEAD
 use common::comp::{self};
 use vek::Vec3;
 
@@ -66,6 +67,9 @@ const FEET_B_Z: f32 = 3.0;
 =======
 use common::comp::{self}; 
 >>>>>>> Cleanup
+=======
+use common::comp::{self};
+>>>>>>> fmt
 
 #[derive(Clone, Default)]
 pub struct DragonSkeleton {
@@ -134,15 +138,26 @@ impl Skeleton for DragonSkeleton {
         [
             FigureBoneData::new(chest_front_mat * head_lower_mat * head_upper_mat),
             FigureBoneData::new(chest_front_mat * head_lower_mat),
-            FigureBoneData::new(chest_front_mat * head_lower_mat * head_upper_mat * self.jaw.compute_base_matrix()),
+            FigureBoneData::new(
+                chest_front_mat * head_lower_mat * head_upper_mat * self.jaw.compute_base_matrix(),
+            ),
             FigureBoneData::new(chest_front_mat),
-            FigureBoneData::new(chest_front_mat * self.chest_rear.compute_base_matrix() ),
+            FigureBoneData::new(chest_front_mat * self.chest_rear.compute_base_matrix()),
             FigureBoneData::new(chest_front_mat * chest_rear_mat * tail_front_mat),
-            FigureBoneData::new(chest_front_mat * chest_rear_mat * tail_front_mat * self.tail_rear.compute_base_matrix()),
+            FigureBoneData::new(
+                chest_front_mat
+                    * chest_rear_mat
+                    * tail_front_mat
+                    * self.tail_rear.compute_base_matrix(),
+            ),
             FigureBoneData::new(chest_front_mat * self.wing_in_l.compute_base_matrix()),
             FigureBoneData::new(chest_front_mat * self.wing_in_r.compute_base_matrix()),
-            FigureBoneData::new(chest_front_mat * wing_in_l_mat * self.wing_out_l.compute_base_matrix()),
-            FigureBoneData::new(chest_front_mat * wing_in_r_mat * self.wing_out_r.compute_base_matrix()),
+            FigureBoneData::new(
+                chest_front_mat * wing_in_l_mat * self.wing_out_l.compute_base_matrix(),
+            ),
+            FigureBoneData::new(
+                chest_front_mat * wing_in_r_mat * self.wing_out_r.compute_base_matrix(),
+            ),
             FigureBoneData::new(self.foot_fl.compute_base_matrix()),
             FigureBoneData::new(self.foot_fr.compute_base_matrix()),
             FigureBoneData::new(self.foot_bl.compute_base_matrix()),
@@ -217,7 +232,7 @@ impl Default for SkeletonAttr {
 }
 
 impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
-    fn from(body: &'a comp::dragon::Body) -> Self { 
+    fn from(body: &'a comp::dragon::Body) -> Self {
         use comp::dragon::Species::*;
         Self {
             head_upper: match (body.species, body.body_type) {
