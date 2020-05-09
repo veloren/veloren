@@ -14,6 +14,7 @@
 
 pub mod assets;
 pub mod astar;
+pub mod character;
 pub mod clock;
 pub mod comp;
 pub mod effect;
