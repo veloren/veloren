@@ -55,11 +55,7 @@ impl Animation for RollAnimation {
         next.chest.ori = Quaternion::rotation_x(wave_dub * 0.4);
         next.chest.scale = Vec3::one() * 1.01;
 
-        next.belt.offset = Vec3::new(
-            0.0,
-            skeleton_attr.belt.0 + 2.0,
-            skeleton_attr.belt.1 + 2.0,
-        );
+        next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0 + 2.0, skeleton_attr.belt.1 + 2.0);
         next.belt.ori = Quaternion::rotation_x(0.0 + wave_dub * 0.8);
 
         next.shorts.offset = Vec3::new(

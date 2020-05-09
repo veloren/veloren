@@ -49,9 +49,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 1] = [
-    Species::Reddragon,
-];
+pub const ALL_SPECIES: [Species; 1] = [Species::Reddragon];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type Item = Species;
