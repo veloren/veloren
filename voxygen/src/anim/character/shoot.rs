@@ -46,11 +46,9 @@ impl Animation for ShootAnimation {
         next.chest.ori = Quaternion::rotation_z(0.4 + exp * 1.0)
             * Quaternion::rotation_x(0.0 + exp * 0.2)
             * Quaternion::rotation_y(exp * -0.08);
-        next.chest.scale = Vec3::one();
 
         next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0 + exp * 1.0, skeleton_attr.belt.1);
         next.belt.ori = next.chest.ori * -0.1;
-        next.belt.scale = Vec3::one();
 
         next.shorts.offset = Vec3::new(
             0.0,
@@ -58,7 +56,6 @@ impl Animation for ShootAnimation {
             skeleton_attr.shorts.1,
         );
         next.shorts.ori = next.chest.ori * -0.08;
-        next.shorts.scale = Vec3::one();
 
         match active_tool_kind {
             //TODO: Inventory
@@ -75,7 +72,6 @@ impl Animation for ShootAnimation {
                 next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(3.14 + 0.3)
                     * Quaternion::rotation_z(0.9);
-                next.main.scale = Vec3::one();
 
                 next.control.offset = Vec3::new(-7.0, 6.0, 6.0 - exp * 5.0);
                 next.control.ori = Quaternion::rotation_x(exp * 1.3)
@@ -98,7 +94,6 @@ impl Animation for ShootAnimation {
                 next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.3)
                     * Quaternion::rotation_z(-0.6);
-                next.main.scale = Vec3::one();
 
                 next.control.offset = Vec3::new(-9.0, 6.0, 8.0);
                 next.control.ori = Quaternion::rotation_x(exp * 0.4)
@@ -123,23 +118,17 @@ impl Animation for ShootAnimation {
                 * Quaternion::rotation_y(0.0);
             next.r_foot.scale = Vec3::one();
             next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
-            next.torso.ori = Quaternion::rotation_z(0.0)
-                * Quaternion::rotation_x(-0.15)
-                * Quaternion::rotation_y(0.0);
+            next.torso.ori = Quaternion::rotation_x(-0.15);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         } else {
             next.l_foot.offset = Vec3::new(-3.4, -2.5, 8.0 + exp * 2.5);
             next.l_foot.ori =
                 Quaternion::rotation_x(exp * -0.2 - 0.2) * Quaternion::rotation_z(exp * 1.0);
-            next.l_foot.scale = Vec3::one();
 
             next.r_foot.offset = Vec3::new(3.4, 3.5 - exp * 2.0, 8.0);
             next.r_foot.ori = Quaternion::rotation_x(exp * 0.1) * Quaternion::rotation_z(exp * 0.5);
-            next.r_foot.scale = Vec3::one();
             next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
-            next.torso.ori = Quaternion::rotation_z(0.0)
-                * Quaternion::rotation_x(0.0)
-                * Quaternion::rotation_y(0.0);
+            next.torso.ori = Quaternion::rotation_z(0.0);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         }
         next.back.offset = Vec3::new(0.0, -2.8, 7.25);
