@@ -39,6 +39,9 @@ impl PlayState for CharSelectionState {
         // Set up an fps clock.
         let mut clock = Clock::start();
 
+        // Load the player's character list
+        self.client.borrow_mut().load_characters();
+
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Registered = current_client_state {
             // Handle window events
@@ -62,22 +65,35 @@ impl PlayState for CharSelectionState {
             // Maintain the UI.
             let events = self
                 .char_selection_ui
-                .maintain(global_state, &self.client.borrow());
+                .maintain(global_state, &mut self.client.borrow_mut());
+
             for event in events {
                 match event {
                     ui::Event::Logout => {
                         return PlayStateResult::Pop;
                     },
+                    ui::Event::AddCharacter { alias, tool, body } => {
+                        self.client.borrow_mut().create_character(alias, tool, body);
+                    },
+                    ui::Event::DeleteCharacter(character_id) => {
+                        self.client.borrow_mut().delete_character(character_id);
+                    },
                     ui::Event::Play => {
                         let char_data = self
                             .char_selection_ui
-                            .get_character_data()
+                            .get_character_list()
                             .expect("Character data is required to play");
-                        self.client.borrow_mut().request_character(
-                            char_data.name,
-                            char_data.body,
-                            char_data.tool,
-                        );
+
+                        if let Some(selected_character) =
+                            char_data.get(self.char_selection_ui.selected_character)
+                        {
+                            self.client.borrow_mut().request_character(
+                                selected_character.character.alias.clone(),
+                                selected_character.body,
+                                selected_character.character.tool.clone(),
+                            );
+                        }
+
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
                             self.client.clone(),
@@ -91,10 +107,16 @@ impl PlayState for CharSelectionState {
 
             let humanoid_body = self
                 .char_selection_ui
-                .get_character_data()
-                .and_then(|data| match data.body {
-                    comp::Body::Humanoid(body) => Some(body),
-                    _ => None,
+                .get_character_list()
+                .and_then(|data| {
+                    if let Some(character) = data.get(self.char_selection_ui.selected_character) {
+                        match character.body {
+                            comp::Body::Humanoid(body) => Some(body),
+                            _ => None,
+                        }
+                    } else {
+                        None
+                    }
                 });
 
             // Maintain the scene.

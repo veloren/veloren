@@ -14,6 +14,7 @@ pub use specs::{
 
 use byteorder::{ByteOrder, LittleEndian};
 use common::{
+    character::CharacterItem,
     comp::{
         self, ControlAction, ControlEvent, Controller, ControllerInputs, InventoryManip,
         InventoryUpdateEvent,
@@ -65,6 +66,7 @@ pub struct Client {
     pub server_info: ServerInfo,
     pub world_map: (Arc<DynamicImage>, Vec2<u32>),
     pub player_list: HashMap<u64, String>,
+    pub character_list: CharacterList,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
 
@@ -81,6 +83,15 @@ pub struct Client {
     loaded_distance: f32,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
+}
+
+/// Holds data related to the current players characters, as well as some
+/// additional state to handle UI.
+#[derive(Default)]
+pub struct CharacterList {
+    pub characters: Vec<CharacterItem>,
+    pub loading: bool,
+    pub error: Option<String>,
 }
 
 impl Client {
@@ -158,6 +169,7 @@ impl Client {
             server_info,
             world_map,
             player_list: HashMap::new(),
+            character_list: CharacterList::default(),
 
             postbox,
 
@@ -224,7 +236,28 @@ impl Client {
     pub fn request_character(&mut self, name: String, body: comp::Body, main: Option<String>) {
         self.postbox
             .send_message(ClientMsg::Character { name, body, main });
+
         self.client_state = ClientState::Pending;
+    }
+
+    /// Load the current players character list
+    pub fn load_characters(&mut self) {
+        self.character_list.loading = true;
+        self.postbox.send_message(ClientMsg::RequestCharacterList);
+    }
+
+    /// New character creation
+    pub fn create_character(&mut self, alias: String, tool: Option<String>, body: comp::Body) {
+        self.character_list.loading = true;
+        self.postbox
+            .send_message(ClientMsg::CreateCharacter { alias, tool, body });
+    }
+
+    /// Character deletion
+    pub fn delete_character(&mut self, character_id: i32) {
+        self.character_list.loading = true;
+        self.postbox
+            .send_message(ClientMsg::DeleteCharacter(character_id));
     }
 
     /// Send disconnect message to the server
@@ -818,6 +851,14 @@ impl Client {
                     ServerMsg::Disconnect => {
                         frontend_events.push(Event::Disconnect);
                         self.postbox.send_message(ClientMsg::Terminate);
+                    },
+                    ServerMsg::CharacterListUpdate(character_list) => {
+                        self.character_list.characters = character_list;
+                        self.character_list.loading = false;
+                    },
+                    ServerMsg::CharacterActionError(error) => {
+                        warn!("CharacterActionError: {:?}.", error);
+                        self.character_list.error = Some(error);
                     },
                 }
             }

@@ -69,7 +69,7 @@ impl Server {
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
                     handle_possess(&self, possessor_uid, possesse_uid)
                 },
-                ServerEvent::CreateCharacter {
+                ServerEvent::SelectCharacter {
                     entity,
                     name,
                     body,
