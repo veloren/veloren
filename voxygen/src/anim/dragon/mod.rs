@@ -158,7 +158,7 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
                 (Reddragon, _) => (7.5, 3.5),
             },
             jaw: match (body.species, body.body_type) {
-                (Reddragon, _) => (7.0, -5.0),
+                (Reddragon, _) => (6.5, -5.0),
             },
             chest_front: match (body.species, body.body_type) {
                 (Reddragon, _) => (0.0, 14.0),
