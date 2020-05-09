@@ -17,19 +17,19 @@
             lateral: ("npc.reddragon.male.wing_out_r"),
         ),
         foot_fl: (
-            offset: (-6.5, -4.0, -1.5),
+            offset: (-5.5, -4.0, -1.5),
             lateral: ("npc.reddragon.male.foot_fl"),
         ),
         foot_fr: (
-            offset: (-6.5, -4.0, -1.5),
+            offset: (-5.5, -4.0, -1.5),
             lateral: ("npc.reddragon.male.foot_fr"),
         ),
         foot_bl: (
-            offset: (-6.5, -4.0, -3.0),
+            offset: (-5.5, -4.0, -3.0),
             lateral: ("npc.reddragon.male.foot_bl"),
         ),
         foot_br: (
-            offset: (-6.5, -4.0, -3.0),
+            offset: (-5.5, -4.0, -3.0),
             lateral: ("npc.reddragon.male.foot_br"),
         )
     ),
@@ -51,19 +51,19 @@
             lateral: ("npc.reddragon.female.wing_out_r"),
         ),
         foot_fl: (
-            offset: (-6.5, -4.0, -1.5),
+            offset: (-5.5, -4.0, -1.5),
             lateral: ("npc.reddragon.female.foot_fl"),
         ),
         foot_fr: (
-            offset: (-6.5, -4.0, -1.5),
+            offset: (-5.5, -4.0, -1.5),
             lateral: ("npc.reddragon.female.foot_fr"),
         ),
         foot_bl: (
-            offset: (-6.5, -4.0, -3.0),
+            offset: (-5.5, -4.0, -3.0),
             lateral: ("npc.reddragon.female.foot_bl"),
         ),
         foot_br: (
-            offset: (-6.5, -4.0, -3.0),
+            offset: (-5.5, -4.0, -3.0),
             lateral: ("npc.reddragon.female.foot_br"),
         )
     ),
