@@ -1925,8 +1925,7 @@ impl Asset for DragonLateralSpec {
 
 impl DragonCenterSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.dragon_center_manifest", indicator)
-            .unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.dragon_center_manifest", indicator).unwrap()
     }
 
     pub fn mesh_head_upper(
@@ -2012,7 +2011,7 @@ impl DragonCenterSpec {
 
         generate_mesh(&center, Vec3::from(spec.chest_front.offset))
     }
-	
+
     pub fn mesh_chest_rear(
         &self,
         species: DSpecies,
@@ -2078,8 +2077,7 @@ impl DragonCenterSpec {
 }
 impl DragonLateralSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
-        assets::load_watched::<Self>("voxygen.voxel.dragon_lateral_manifest", indicator)
-            .unwrap()
+        assets::load_watched::<Self>("voxygen.voxel.dragon_lateral_manifest", indicator).unwrap()
     }
 
     pub fn mesh_wing_in_l(

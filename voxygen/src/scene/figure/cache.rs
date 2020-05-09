@@ -411,10 +411,8 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                 None,
             ],
             Body::Dragon(body) => {
-                let dragon_center_spec =
-                    DragonCenterSpec::load_watched(manifest_indicator);
-                let dragon_lateral_spec =
-                    DragonLateralSpec::load_watched(manifest_indicator);
+                let dragon_center_spec = DragonCenterSpec::load_watched(manifest_indicator);
+                let dragon_lateral_spec = DragonLateralSpec::load_watched(manifest_indicator);
 
                 [
                     Some(dragon_center_spec.mesh_head_upper(
@@ -427,11 +425,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(dragon_center_spec.mesh_jaw(
-                        body.species,
-                        body.body_type,
-                        generate_mesh,
-                    )),
+                    Some(dragon_center_spec.mesh_jaw(body.species, body.body_type, generate_mesh)),
                     Some(dragon_center_spec.mesh_chest_front(
                         body.species,
                         body.body_type,

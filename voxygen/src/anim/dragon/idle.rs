@@ -19,7 +19,7 @@ impl Animation for IdleAnimation {
 
         let ultra_slow = (anim_time as f32 * 1.0).sin();
         let slow = (anim_time as f32 * 2.5).sin();
-        let slowalt = (anim_time as f32 * 2.5+PI/2.0).sin();
+        let slowalt = (anim_time as f32 * 2.5 + PI / 2.0).sin();
 
         let dragon_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
@@ -39,8 +39,8 @@ impl Animation for IdleAnimation {
             skeleton_attr.head_upper.0,
             skeleton_attr.head_upper.1 + ultra_slow * 0.20,
         );
-        next.head_upper.ori =
-            Quaternion::rotation_z(0.8 * dragon_look.x) * Quaternion::rotation_x(0.8 * dragon_look.y);
+        next.head_upper.ori = Quaternion::rotation_z(0.8 * dragon_look.x)
+            * Quaternion::rotation_x(0.8 * dragon_look.y);
         next.head_upper.scale = Vec3::one();
 
         next.head_lower.offset = Vec3::new(
@@ -48,15 +48,11 @@ impl Animation for IdleAnimation {
             skeleton_attr.head_lower.0,
             skeleton_attr.head_lower.1 + ultra_slow * 0.20,
         );
-        next.head_lower.ori =
-            Quaternion::rotation_z(0.8 * dragon_look.x) * Quaternion::rotation_x(-0.2+0.8 * dragon_look.y);
+        next.head_lower.ori = Quaternion::rotation_z(0.8 * dragon_look.x)
+            * Quaternion::rotation_x(-0.2 + 0.8 * dragon_look.y);
         next.head_lower.scale = Vec3::one() * 1.05;
 
-        next.jaw.offset = Vec3::new(
-            0.0,
-            skeleton_attr.jaw.0,
-            skeleton_attr.jaw.1,
-        );
+        next.jaw.offset = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
         next.jaw.ori = Quaternion::rotation_x(slow * 0.05);
         next.jaw.scale = Vec3::one() * 0.98;
 
@@ -68,21 +64,20 @@ impl Animation for IdleAnimation {
         next.chest_front.ori = Quaternion::rotation_y(slow * 0.01);
         next.chest_front.scale = Vec3::one() * 1.05;
 
-        next.chest_rear.offset = Vec3::new(
-            0.0,
-            skeleton_attr.chest_rear.0,
-            skeleton_attr.chest_rear.1,
-        );
+        next.chest_rear.offset =
+            Vec3::new(0.0, skeleton_attr.chest_rear.0, skeleton_attr.chest_rear.1);
         next.chest_rear.ori = Quaternion::rotation_y(slow * 0.01);
         next.chest_rear.scale = Vec3::one() * 1.05;
 
-        next.tail_front.offset = Vec3::new(0.0, skeleton_attr.tail_front.0, skeleton_attr.tail_front.1);
-        next.tail_front.ori = Quaternion::rotation_z(slowalt * 0.10)*Quaternion::rotation_x(0.1);
-        next.tail_front.scale = Vec3::one()*0.98;
+        next.tail_front.offset =
+            Vec3::new(0.0, skeleton_attr.tail_front.0, skeleton_attr.tail_front.1);
+        next.tail_front.ori = Quaternion::rotation_z(slowalt * 0.10) * Quaternion::rotation_x(0.1);
+        next.tail_front.scale = Vec3::one() * 0.98;
 
-        next.tail_rear.offset = Vec3::new(0.0, skeleton_attr.tail_rear.0, skeleton_attr.tail_rear.1);
-        next.tail_rear.ori = Quaternion::rotation_z(slowalt * 0.12)*Quaternion::rotation_x(0.05);
-        next.tail_rear.scale = Vec3::one()*0.98;
+        next.tail_rear.offset =
+            Vec3::new(0.0, skeleton_attr.tail_rear.0, skeleton_attr.tail_rear.1);
+        next.tail_rear.ori = Quaternion::rotation_z(slowalt * 0.12) * Quaternion::rotation_x(0.05);
+        next.tail_rear.scale = Vec3::one() * 0.98;
 
         next.wing_in_l.offset = Vec3::new(
             -skeleton_attr.wing_in.0,
