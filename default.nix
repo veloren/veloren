@@ -1,57 +1,56 @@
 let
   fallbackPkgs = import <nixpkgs> {};
+  fallbackMozSrc = builtins.fetchTarball "https://github.com/mozilla/nixpkgs-mozilla/archive/master.tar.gz";
 in
 
 {
   alsaLib ? fallbackPkgs.alsaLib,
   atk ? fallbackPkgs.atk,
   cairo ? fallbackPkgs.cairo,
-  fetchFromGitHub ? fallbackPkgs.fetchFromGitHub,
-  git ? fallbackPkgs.git,
-  git-lfs ? fallbackPkgs.git-lfs,
+  git ? null,
+  git-lfs ? null,
   glib ? fallbackPkgs.glib,
-  gnuplot ? fallbackPkgs.gnuplot,
+  gnuplot ? null,
   gtk3 ? fallbackPkgs.gtk3,
+  libudev ? fallbackPkgs.libudev,
   makeRustPlatform ? fallbackPkgs.makeRustPlatform,
+  mozSrc ? fallbackMozSrc,
   nix-gitignore ? fallbackPkgs.nix-gitignore,
+  openssl ? fallbackPkgs.openssl,
   pango ? fallbackPkgs.pango,
   pkg-config ? fallbackPkgs.pkg-config,
   pkgs ? fallbackPkgs,
-  rustup ? fallbackPkgs.rustup,
+  python3 ? fallbackPkgs.python3,
+  rustup ? null,
   stdenv ? fallbackPkgs.stdenv,
   veloren-src ? null,
 }:
 
 let
-  mozRepo = fetchFromGitHub {
-    owner = "mozilla";
-    repo = "nixpkgs-mozilla";
-    rev = "ac8e9d7bbda8fb5e45cae20c5b7e44c52da3ac0c";
-    sha256 = "1irlkqc0jdkxdfznq7r52ycnf0kcvvrz416qc7346xhmilrx2gy6";
-  };
   # `mozPkgs` is the package set of `mozRepo`; this differs from their README
   # where they use it as an overlay rather than a separate package set
-  mozPkgs = import "${mozRepo}/package-set.nix" { inherit pkgs; };
-  channel = mozPkgs.rustChannelOf { date = "2019-07-03"; channel = "nightly"; };
-  nightlyRustPlatform = makeRustPlatform {
+  mozPkgs = import "${mozSrc}/package-set.nix" { inherit pkgs; };
+  channel = mozPkgs.rustChannelOf { rustToolchain = ./rust-toolchain; };
+  rustPlatform = makeRustPlatform {
     rustc = channel.rust;
     cargo = channel.cargo;
   };
 in
 
-nightlyRustPlatform.buildRustPackage rec {
-  name = "veloren";
+rustPlatform.buildRustPackage rec {
+  pname = "veloren";
   version = "unstable";
   # For information on how to automatically fetch the source from GitLab, please
   # ask @haslersn
   src = if veloren-src == null then (nix-gitignore.gitignoreSource [] ./.) else veloren-src;
   nativeBuildInputs = [
     pkg-config
-    # convenience for nix-shell:
+    python3
+    # Convenience for nix-shell
     git
     git-lfs
     gnuplot
-    rustup # Needed for RLS integration in some IDEs such as vscode
+    rustup # Required for integration in some editors
   ];
   buildInputs = [
     alsaLib
@@ -60,15 +59,13 @@ nightlyRustPlatform.buildRustPackage rec {
     glib
     gtk3
     pango
+    libudev
+    openssl
   ];
-  preConfigure = ''
-    export HOME=`mktemp -d`
-  '';
-  postInstall = ''
-    cp -R $src/assets $out/bin/assets
-  '';
-  CARGO_INCREMENTAL = 1;
-  cargoSha256 = "1zhsn69171wazigxxqggwqb5j8qllr5245y2w92dpnrgmdbjqyga";
+  #preConfigure = "export HOME=`mktemp -d`";
+  postInstall = "cp -R $src/assets $out/bin/assets";
+  # If veloren-vendor build fails with hash mismatch, change this hash with `got:` hash
+  cargoSha256 = "0715pic4fsbacpv5pz67hyp1sqqw3z41rxn4y5hgjdqaw8a4blq2";
 
   meta = {
     platforms = stdenv.lib.platforms.linux;
