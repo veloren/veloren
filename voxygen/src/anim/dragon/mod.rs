@@ -43,7 +43,7 @@ const WING_IN_X: f32 = 2.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const WING_IN_Y: f32 = -16.5;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_IN_Z: f32 = 3.0;
+const WING_IN_Z: f32 = 0.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
 const WING_OUT_X: f32 = 23.0;
 #[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]

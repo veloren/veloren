@@ -26,9 +26,8 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
-        let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
-        let wave_slow = (anim_time as f32 * 4.5).sin();
+        let ultra_slow = (anim_time as f32 * 1.0).sin();
+        let wave_slow = (anim_time as f32 * 2.5).sin();
         let wave_slow_cos = (anim_time as f32 * 4.5).cos();
 
         let look = Vec2::new(
@@ -47,7 +46,7 @@ impl Animation for IdleAnimation {
         next.head_upper.offset = Vec3::new(
             0.0,
             skeleton_attr.head_upper.0,
-            skeleton_attr.head_upper.1 + wave_ultra_slow * 0.20,
+            skeleton_attr.head_upper.1 + ultra_slow * 0.20,
         ) * 1.05;
         next.head_upper.ori =
             Quaternion::rotation_z(0.8 * look.x) * Quaternion::rotation_x(0.8 * look.y);
@@ -56,7 +55,7 @@ impl Animation for IdleAnimation {
         next.head_lower.offset = Vec3::new(
             0.0,
             skeleton_attr.head_lower.0,
-            skeleton_attr.head_lower.1 + wave_ultra_slow * 0.20,
+            skeleton_attr.head_lower.1 + ultra_slow * 0.20,
         ) * 1.05;
         next.head_lower.ori =
             Quaternion::rotation_z(0.8 * look.x) * Quaternion::rotation_x(0.8 * look.y);
@@ -64,8 +63,8 @@ impl Animation for IdleAnimation {
 
         next.jaw.offset = Vec3::new(
             0.0,
-            skeleton_attr.jaw.0 - wave_ultra_slow_cos * 0.12,
-            skeleton_attr.jaw.1 + wave_slow * 0.2,
+            skeleton_attr.jaw.0,
+            skeleton_attr.jaw.1,
         ) * 1.05;
         next.jaw.ori = Quaternion::rotation_x(wave_slow * 0.05);
         next.jaw.scale = Vec3::one() * 0.98;
@@ -73,7 +72,7 @@ impl Animation for IdleAnimation {
         next.chest_front.offset = Vec3::new(
             0.0,
             skeleton_attr.chest_front.0,
-            wave_slow * 0.3 + skeleton_attr.chest_front.1,
+            skeleton_attr.chest_front.1,
         ) * 1.05;
         next.chest_front.ori = Quaternion::rotation_y(wave_slow * 0.03);
         next.chest_front.scale = Vec3::one() * 1.05;
@@ -81,7 +80,7 @@ impl Animation for IdleAnimation {
         next.chest_rear.offset = Vec3::new(
             0.0,
             skeleton_attr.chest_rear.0,
-            wave_slow * 0.3 + skeleton_attr.chest_rear.1,
+            skeleton_attr.chest_rear.1,
         ) * 1.05;
         next.chest_rear.ori = Quaternion::rotation_y(wave_slow * 0.03);
         next.chest_rear.scale = Vec3::one() * 1.05;
@@ -99,7 +98,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.wing_in.1,
             skeleton_attr.wing_in.2,
         );
-        next.wing_in_l.ori = Quaternion::rotation_y(1.3);
+        next.wing_in_l.ori = Quaternion::rotation_y(0.2);
         next.wing_in_l.scale = Vec3::one() * 1.05;
 
         next.wing_in_r.offset = Vec3::new(
@@ -107,7 +106,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.wing_in.1,
             skeleton_attr.wing_in.2,
         );
-        next.wing_in_r.ori = Quaternion::rotation_y(-1.3);
+        next.wing_in_r.ori = Quaternion::rotation_y(-0.2);//.8
         next.wing_in_r.scale = Vec3::one() * 1.05;
 
         next.wing_out_l.offset = Vec3::new(
@@ -115,7 +114,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.wing_out.1,
             skeleton_attr.wing_out.2 + *OFF1,
         );
-        next.wing_out_l.ori = Quaternion::rotation_y(*TEST_L);
+        next.wing_out_l.ori = Quaternion::rotation_y(-0.3);//2.0
         next.wing_out_l.scale = Vec3::one() * 1.05;
 
         next.wing_out_r.offset = Vec3::new(
@@ -123,7 +122,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.wing_out.1,
             skeleton_attr.wing_out.2 + *OFF2,
         );
-        next.wing_out_r.ori = Quaternion::rotation_y(*TEST_R);
+        next.wing_out_r.ori = Quaternion::rotation_y(0.3);
         next.wing_out_r.scale = Vec3::one() * 1.05;
 
         next.foot_fl.offset = Vec3::new(
