@@ -53,8 +53,8 @@ impl Animation for IdleAnimation {
         next.head_lower.scale = Vec3::one() * 1.05;
 
         next.jaw.offset = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
-        next.jaw.ori = Quaternion::rotation_x(slow * 0.05);
-        next.jaw.scale = Vec3::one() * 0.98;
+        next.jaw.ori = Quaternion::rotation_x(slow * 0.04);
+        next.jaw.scale = Vec3::one() * 1.05;
 
         next.chest_front.offset = Vec3::new(
             0.0,

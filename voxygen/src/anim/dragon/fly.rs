@@ -39,7 +39,7 @@ impl Animation for FlyAnimation {
         );
         next.head_upper.ori =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_ultra_slow * -0.10);
-        next.head_upper.scale = Vec3::one();
+        next.head_upper.scale = Vec3::one() * 1.05;
 
         next.head_lower.offset = Vec3::new(
             0.0,
@@ -48,15 +48,15 @@ impl Animation for FlyAnimation {
         );
         next.head_lower.ori =
             Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_ultra_slow * -0.10);
-        next.head_lower.scale = Vec3::one();
+        next.head_lower.scale = Vec3::one() * 1.05;
 
         next.jaw.offset = Vec3::new(
             0.0,
             skeleton_attr.jaw.0 - wave_ultra_slow_cos * 0.12,
             skeleton_attr.jaw.1 + wave_slow * 0.2,
         );
-        next.jaw.ori = Quaternion::rotation_x(wave_slow * 0.05);
-        next.jaw.scale = Vec3::one() * 0.98;
+        next.jaw.ori = Quaternion::rotation_x(wave_slow * 0.03);
+        next.jaw.scale = Vec3::one() * 1.05;
 
         next.tail_front.offset = Vec3::new(
             0.0,
@@ -141,7 +141,7 @@ impl Animation for FlyAnimation {
             skeleton_attr.wing_out.2,
         );
         next.wing_out_l.ori = Quaternion::rotation_y((0.35 + wingl * 0.6).max(0.2));
-        next.wing_out_l.scale = Vec3::one() * 1.05;
+        next.wing_out_l.scale = Vec3::one();
 
         next.wing_out_r.offset = Vec3::new(
             skeleton_attr.wing_out.0,
