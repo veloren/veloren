@@ -3,7 +3,7 @@ use super::{
     META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
 };
 use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
-use client::Event as ClientEvent;
+use client::{cmd, Client, Event as ClientEvent};
 use common::{msg::validate_chat_msg, ChatType};
 use conrod_core::{
     input::Key,
@@ -68,9 +68,9 @@ impl<'a> Chat<'a> {
         }
     }
 
-    pub fn prepare_tab_completion(mut self, input: String, state: &common::state::State) -> Self {
+    pub fn prepare_tab_completion(mut self, input: String, client: &Client) -> Self {
         if let Some(index) = input.find('\t') {
-            self.force_completions = Some(common::cmd::complete(&input[..index], &state));
+            self.force_completions = Some(cmd::complete(&input[..index], &client));
         } else {
             self.force_completions = None;
         }
