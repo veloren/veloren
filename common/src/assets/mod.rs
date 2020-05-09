@@ -12,7 +12,7 @@ use std::{
     fmt,
     fs::{self, File, ReadDir},
     io::{BufReader, Read},
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{Arc, RwLock},
 };
 
@@ -59,6 +59,31 @@ lazy_static! {
     /// The HashMap where all loaded assets are stored in.
     pub static ref ASSETS: RwLock<HashMap<String, Arc<dyn Any + 'static + Sync + Send>>> =
         RwLock::new(HashMap::new());
+
+    /// List of item specifiers. Used for tab completing
+    pub static ref ITEM_SPECS: Vec<String> = {
+        let base = ASSETS_PATH.join("common").join("items");
+        let mut items = vec![];
+        fn list_items (path: &Path, base: &Path, mut items: &mut Vec<String>) -> std::io::Result<()>{
+            for entry in std::fs::read_dir(path)? {
+                let path = entry?.path();
+                if path.is_dir(){
+                    list_items(&path, &base, &mut items)?;
+                } else {
+                    if let Ok(path) = path.strip_prefix(base) {
+                        let path = path.to_string_lossy().trim_end_matches(".ron").replace('/', ".");
+                        items.push(path);
+                    }
+                }
+            }
+            Ok(())
+        }
+        if list_items(&base, &ASSETS_PATH, &mut items).is_err() {
+            warn!("There was a problem listing some item assets");
+        }
+        items.sort();
+        items
+    };
 }
 
 // TODO: Remove this function. It's only used in world/ in a really ugly way.To

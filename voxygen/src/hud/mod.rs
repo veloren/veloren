@@ -1727,7 +1727,7 @@ impl Hud {
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
         .and_then(self.tab_complete.take(), |c, input| {
-            c.prepare_tab_completion(input, &client.state())
+            c.prepare_tab_completion(input, &client)
         })
         .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
         .set(self.ids.chat, ui_widgets)
