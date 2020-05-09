@@ -236,10 +236,10 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
                 (Reddragon, _) => (-12.5, 0.0),
             },
             tail_front: match (body.species, body.body_type) {
-                (Reddragon, _) => (-12.5, 1.5),
+                (Reddragon, _) => (-6.5, 1.5),
             },
             tail_rear: match (body.species, body.body_type) {
-                (Reddragon, _) => (-14.0, 0.0),
+                (Reddragon, _) => (-11.5, -1.0),
             },
             wing_in: match (body.species, body.body_type) {
                 (Reddragon, _) => (2.5, -16.5, 0.0),
