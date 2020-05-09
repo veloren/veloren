@@ -1,6 +1,10 @@
 with import <nixpkgs> {};
 
 import ./default.nix {
+  git = git;
+  git-lfs = git-lfs;
+  gnuplot = gnuplot;
+  rustup = rustup;
   # The source is copied to the nix store. We don't want to do this (including assets) for every
   # time the `nix-shell` is entered. Therefore we create a source which contains only the files
   # necessary to evaluate `buildRustPackage` successfully:
