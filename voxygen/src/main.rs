@@ -7,7 +7,6 @@ use veloren_voxygen::{
     i18n::{self, i18n_asset_key, VoxygenLocalization},
     logging,
     menu::main::MainMenuState,
-    meta::Meta,
     settings::{AudioOutput, Settings},
     window::Window,
     Direction, GlobalState, PlayState, PlayStateResult,
@@ -39,9 +38,6 @@ fn main() {
 
     logging::init(&settings, term_log_level, file_log_level);
 
-    // Load metadata
-    let meta = Meta::load();
-
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
@@ -62,7 +58,6 @@ fn main() {
         audio,
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
-        meta,
         info_message: None,
         singleplayer: None,
     };
@@ -221,7 +216,6 @@ fn main() {
         }
     }
 
-    // Save any unsaved changes to settings and meta
+    // Save any unsaved changes to settings
     global_state.settings.save_to_file_warn();
-    global_state.meta.save_to_file_warn();
 }

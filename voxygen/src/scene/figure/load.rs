@@ -8,7 +8,7 @@ use common::{
         critter::{BodyType as CBodyType, Species as CSpecies},
         dragon, fish_medium, fish_small,
         golem::{BodyType as GBodyType, Species as GSpecies},
-        humanoid::{Body, BodyType, EyeColor, Eyebrows, Race, Skin},
+        humanoid::{Body, BodyType, EyeColor, Race, Skin},
         item::{
             armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard},
             tool::{Tool, ToolKind},
@@ -156,7 +156,7 @@ impl HumHeadSpec {
         beard: u8,
         eye_color: u8,
         skin: u8,
-        _eyebrows: Eyebrows,
+        _eyebrows: u8,
         accessory: u8,
         generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
     ) -> Mesh<FigurePipeline> {
