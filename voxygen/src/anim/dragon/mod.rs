@@ -7,69 +7,8 @@ pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
-<<<<<<< HEAD
-<<<<<<< HEAD
 use common::comp::{self};
 use vek::Vec3;
-
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const HEAD_UPPER_X: f32 = 2.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const HEAD_UPPER_Z: f32 = 4.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const HEAD_LOWER_X: f32 = 7.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const HEAD_LOWER_Z: f32 = 3.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const JAW_X: f32 = 7.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const JAW_Z: f32 = -5.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const CHEST_F_X: f32 = 0.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const CHEST_F_Z: f32 = 14.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const CHEST_R_X: f32 = -12.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const CHEST_R_Z: f32 = 0.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const TAIL_F_X: f32 = -12.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const TAIL_F_Z: f32 = 1.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const TAIL_R_X: f32 = -14.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const TAIL_R_Z: f32 = 0.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_IN_X: f32 = 2.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_IN_Y: f32 = -16.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_IN_Z: f32 = 0.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_OUT_X: f32 = 23.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_OUT_Y: f32 = 0.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const WING_OUT_Z: f32 = 4.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const FEET_F_X: f32 = 6.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const FEET_F_Y: f32 = 0.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const FEET_F_Z: f32 = 1.5;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const FEET_B_X: f32 = 6.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const FEET_B_Y: f32 = -15.0;
-#[const_tweaker::tweak(min = -40.0, max = 40.0, step = 0.5)]
-const FEET_B_Z: f32 = 3.0;   
-=======
-use common::comp::{self}; 
->>>>>>> Cleanup
-=======
-use common::comp::{self};
->>>>>>> fmt
 
 #[derive(Clone, Default)]
 pub struct DragonSkeleton {
@@ -99,72 +38,49 @@ impl Skeleton for DragonSkeleton {
 
     fn bone_count(&self) -> usize { 15 }
 
-<<<<<<< HEAD
     fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
-=======
-    fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let head_upper_mat = self.head_upper.compute_base_matrix();
         let head_lower_mat = self.head_lower.compute_base_matrix();
->>>>>>> New dragon model, added jaw, splitted head into upper/lower
         let chest_front_mat = self.chest_front.compute_base_matrix();
         let chest_rear_mat = self.chest_rear.compute_base_matrix();
         let wing_in_l_mat = self.wing_in_l.compute_base_matrix();
         let wing_in_r_mat = self.wing_in_r.compute_base_matrix();
         let tail_front_mat = self.tail_front.compute_base_matrix();
-
-<<<<<<< HEAD
         (
             [
-                FigureBoneData::new(self.head.compute_base_matrix() * chest_front_mat),
+                FigureBoneData::new(chest_front_mat * head_lower_mat * head_upper_mat),
+                FigureBoneData::new(chest_front_mat * head_lower_mat),
+                FigureBoneData::new(
+                    chest_front_mat
+                        * head_lower_mat
+                        * head_upper_mat
+                        * self.jaw.compute_base_matrix(),
+                ),
                 FigureBoneData::new(chest_front_mat),
-                FigureBoneData::new(self.chest_rear.compute_base_matrix() * chest_front_mat),
-                FigureBoneData::new(tail_front_mat),
-                FigureBoneData::new(self.tail_rear.compute_base_matrix() * tail_front_mat),
-                FigureBoneData::new(wing_in_l_mat),
-                FigureBoneData::new(wing_in_r_mat),
-                FigureBoneData::new(self.wing_out_l.compute_base_matrix() * wing_in_l_mat),
-                FigureBoneData::new(self.wing_out_r.compute_base_matrix() * wing_in_r_mat),
+                FigureBoneData::new(chest_front_mat * self.chest_rear.compute_base_matrix()),
+                FigureBoneData::new(chest_front_mat * chest_rear_mat * tail_front_mat),
+                FigureBoneData::new(
+                    chest_front_mat
+                        * chest_rear_mat
+                        * tail_front_mat
+                        * self.tail_rear.compute_base_matrix(),
+                ),
+                FigureBoneData::new(chest_front_mat * self.wing_in_l.compute_base_matrix()),
+                FigureBoneData::new(chest_front_mat * self.wing_in_r.compute_base_matrix()),
+                FigureBoneData::new(
+                    chest_front_mat * wing_in_l_mat * self.wing_out_l.compute_base_matrix(),
+                ),
+                FigureBoneData::new(
+                    chest_front_mat * wing_in_r_mat * self.wing_out_r.compute_base_matrix(),
+                ),
                 FigureBoneData::new(self.foot_fl.compute_base_matrix()),
                 FigureBoneData::new(self.foot_fr.compute_base_matrix()),
                 FigureBoneData::new(self.foot_bl.compute_base_matrix()),
                 FigureBoneData::new(self.foot_br.compute_base_matrix()),
                 FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
             ],
             Vec3::default(),
         )
-=======
-        [
-            FigureBoneData::new(chest_front_mat * head_lower_mat * head_upper_mat),
-            FigureBoneData::new(chest_front_mat * head_lower_mat),
-            FigureBoneData::new(
-                chest_front_mat * head_lower_mat * head_upper_mat * self.jaw.compute_base_matrix(),
-            ),
-            FigureBoneData::new(chest_front_mat),
-            FigureBoneData::new(chest_front_mat * self.chest_rear.compute_base_matrix()),
-            FigureBoneData::new(chest_front_mat * chest_rear_mat * tail_front_mat),
-            FigureBoneData::new(
-                chest_front_mat
-                    * chest_rear_mat
-                    * tail_front_mat
-                    * self.tail_rear.compute_base_matrix(),
-            ),
-            FigureBoneData::new(chest_front_mat * self.wing_in_l.compute_base_matrix()),
-            FigureBoneData::new(chest_front_mat * self.wing_in_r.compute_base_matrix()),
-            FigureBoneData::new(
-                chest_front_mat * wing_in_l_mat * self.wing_out_l.compute_base_matrix(),
-            ),
-            FigureBoneData::new(
-                chest_front_mat * wing_in_r_mat * self.wing_out_r.compute_base_matrix(),
-            ),
-            FigureBoneData::new(self.foot_fl.compute_base_matrix()),
-            FigureBoneData::new(self.foot_fr.compute_base_matrix()),
-            FigureBoneData::new(self.foot_bl.compute_base_matrix()),
-            FigureBoneData::new(self.foot_br.compute_base_matrix()),
-            FigureBoneData::default(),
-        ]
->>>>>>> Symmetry of dragon skeleton
     }
 
     fn interpolate(&mut self, target: &Self, dt: f32) {
