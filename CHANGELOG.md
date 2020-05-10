@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cultists clothing
 - You can start the game by pressing "enter" from the character selection menu
 - Added server-side character saving
+- Added tab completion in chat for player names and chat commands
 
 ### Changed
 
@@ -87,6 +88,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rewrote the humanoid skeleton to be more ideal for attack animations
 - Arrows can no longer hurt their owners
 - Increased overall character scale
+- `/sudo player /tp` is short for `/sudo player /tp me`
+- The `/object` command can create any object in comp::object::Body
+- The `/help` command takes an optional argument. `/help /sudo` will show you information about only the sudo command.
 
 ### Removed
 
