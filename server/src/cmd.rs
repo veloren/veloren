@@ -86,7 +86,9 @@ fn handle_give_item(
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(item_name), give_amount_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, u32) {
+    if let (Some(item_name), give_amount_opt) =
+        scan_fmt_some!(&args, &action.arg_fmt(), String, u32)
+    {
         let give_amount = give_amount_opt.unwrap_or(1);
         if let Ok(item) = assets::load_cloned(&item_name) {
             let mut item: Item = item;
@@ -145,7 +147,10 @@ fn handle_give_item(
             );
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string())));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
@@ -356,44 +361,47 @@ fn handle_tp(
     args: String,
     action: &ChatCommand,
 ) {
-    if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
+    let opt_player = if let Some(alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
         let ecs = server.state.ecs();
-        let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+        (&ecs.entities(), &ecs.read_storage::<comp::Player>())
             .join()
             .find(|(_, player)| player.alias == alias)
-            .map(|(entity, _)| entity);
-        match server.state.read_component_cloned::<comp::Pos>(target) {
-            Some(_pos) => match opt_player {
-                Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
-                    Some(pos) => {
-                        server.state.write_component(target, pos);
-                        server.state.write_component(target, comp::ForceUpdate);
-                    },
-                    None => server.notify_client(
-                        client,
-                        ServerMsg::private(format!("Unable to teleport to player '{}'!", alias)),
-                    ),
-                },
-                None => {
-                    server.notify_client(
-                        client,
-                        ServerMsg::private(format!("Player '{}' not found!", alias)),
-                    );
-                    server.notify_client(
-                        client,
-                        ServerMsg::private(String::from(action.help_string())),
-                    );
-                },
-            },
-            None => {
-                server.notify_client(client, ServerMsg::private(format!("You have no position!")));
-            },
+            .map(|(entity, _)| entity)
+    } else {
+        if client != target {
+            Some(client)
+        } else {
+            server.notify_client(
+                client,
+                ServerMsg::private("You must specify a player name".to_string()),
+            );
+            server.notify_client(
+                client,
+                ServerMsg::private(String::from(action.help_string())),
+            );
+            return;
+        }
+    };
+    if let Some(_pos) = server.state.read_component_cloned::<comp::Pos>(target) {
+        if let Some(player) = opt_player {
+            if let Some(pos) = server.state.read_component_cloned::<comp::Pos>(player) {
+                server.state.write_component(target, pos);
+                server.state.write_component(target, comp::ForceUpdate);
+            } else {
+                server.notify_client(
+                    client,
+                    ServerMsg::private(format!("Unable to teleport to player!")),
+                );
+            }
+        } else {
+            server.notify_client(client, ServerMsg::private(format!("Player not found!")));
+            server.notify_client(
+                client,
+                ServerMsg::private(String::from(action.help_string())),
+            );
         }
     } else {
-        server.notify_client(
-            client,
-            ServerMsg::private(String::from(action.help_string())),
-        );
+        server.notify_client(client, ServerMsg::private(format!("You have no position!")));
     }
 }
 

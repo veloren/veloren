@@ -60,7 +60,7 @@ lazy_static! {
     pub static ref ASSETS: RwLock<HashMap<String, Arc<dyn Any + 'static + Sync + Send>>> =
         RwLock::new(HashMap::new());
 
-    /// List of item specifiers. Used for tab completing
+    /// List of item specifiers. Useful for tab completing
     pub static ref ITEM_SPECS: Vec<String> = {
         let base = ASSETS_PATH.join("common").join("items");
         let mut items = vec![];
