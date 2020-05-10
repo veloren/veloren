@@ -55,11 +55,7 @@ impl Animation for GlidingAnimation {
             0.0
         } * 0.8;
 
-        next.head.offset = Vec3::new(
-            0.0,
-            -2.0 + skeleton_attr.head.0,
-            -2.0 + skeleton_attr.head.1,
-        );
+        next.head.offset = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.ori = Quaternion::rotation_x(0.35 - slow * 0.10 + head_look.y)
             * Quaternion::rotation_z(head_look.x + slowa * 0.15);
 
@@ -72,10 +68,10 @@ impl Animation for GlidingAnimation {
         next.shorts.offset = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
         next.shorts.ori = Quaternion::rotation_z(slowa * 0.35);
 
-        next.l_hand.offset = Vec3::new(-9.5 + slowa * -1.5, -3.0 + slowa * 1.5, 6.0);
+        next.l_hand.offset = Vec3::new(-9.5 + slowa * -1.5, -3.0 + slowa * 1.5, 8.0);
         next.l_hand.ori = Quaternion::rotation_x(-2.7 + slowa * -0.1);
 
-        next.r_hand.offset = Vec3::new(9.5 + slowa * -1.5, -3.0 + slowa * -1.5, 6.0);
+        next.r_hand.offset = Vec3::new(9.5 + slowa * -1.5, -3.0 + slowa * -1.5, 8.0);
         next.r_hand.ori = Quaternion::rotation_x(-2.7 + slowa * -0.10);
 
         next.l_foot.offset = Vec3::new(
@@ -112,8 +108,8 @@ impl Animation for GlidingAnimation {
         );
         next.r_shoulder.scale = Vec3::one() * 1.1;
 
-        next.glider.offset = Vec3::new(0.0, -13.0 + slow * 0.10, 6.0);
-        next.glider.ori = Quaternion::rotation_x(1.0) * Quaternion::rotation_y(slowa * 0.04);
+        next.glider.offset = Vec3::new(0.0, -13.0 + slow * 0.10, 8.0);
+        next.glider.ori = Quaternion::rotation_x(0.8) * Quaternion::rotation_y(slowa * 0.04);
         next.glider.scale = Vec3::one();
 
         next.main.offset = Vec3::new(-7.0, -5.0, 15.0);
@@ -130,7 +126,7 @@ impl Animation for GlidingAnimation {
         next.lantern.scale = Vec3::one() * 0.65;
 
         next.torso.offset = Vec3::new(0.0, 6.0, 15.0) / 11.0 * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(-0.05 * speed.max(12.0) + slow * 0.10)
+        next.torso.ori = Quaternion::rotation_x(-0.05 * speed.max(12.0) + slow * 0.06)
             * Quaternion::rotation_y(tilt * 16.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 

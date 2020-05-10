@@ -475,6 +475,10 @@
             "parrot": {
                 "keyword": "parrot",
                 "generic": "Parrot"
+            },
+            "cockatrice": {
+                "keyword": "cockatrice",
+                "generic": "Cockatrice"
             }
         }
     },
@@ -537,6 +541,20 @@
             "fungome": {
                 "keyword": "fungome",
                 "generic": "Fungome"
+            }
+        }
+    },
+    "dragon": {
+        "body": {
+            "keyword": "dragon",
+            "names": [
+                "Smaug"
+            ]
+        },
+        "species": {
+            "reddragon": {
+                "keyword": "reddragon",
+                "generic": "Reddragon"
             }
         }
     }
