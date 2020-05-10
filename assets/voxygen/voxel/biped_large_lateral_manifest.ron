@@ -25,11 +25,11 @@
             lateral: ("npc.ogre.male.leg_r"),
         ),
         foot_l: (
-            offset: (-3.0, -5.0, -3.0),
+            offset: (-3.0, -5.0, -2.5),
             lateral: ("npc.ogre.male.foot_l"),
         ),
         foot_r: (
-            offset: (-3.0, -5.0, -3.0),
+            offset: (-3.0, -5.0, -2.5),
             lateral: ("npc.ogre.male.foot_r"),
         )
     ),
@@ -59,11 +59,11 @@
             lateral: ("npc.ogre.female.leg_r"),
         ),
         foot_l: (
-            offset: (-3.0, -5.0, -3.0),
+            offset: (-3.0, -5.0, -2.5),
             lateral: ("npc.ogre.female.foot_l"),
         ),
         foot_r: (
-            offset: (-3.0, -5.0, -3.0),
+            offset: (-3.0, -5.0, -2.5),
             lateral: ("npc.ogre.female.foot_r"),
         )
     ),

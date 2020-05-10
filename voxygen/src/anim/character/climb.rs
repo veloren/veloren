@@ -72,7 +72,7 @@ impl Animation for ClimbAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            skeleton_attr.hand.0,
+            -skeleton_attr.hand.0,
             skeleton_attr.hand.1 + quicka * 1.5,
             skeleton_attr.hand.2 - quick * 4.0,
         );
