@@ -3,13 +3,34 @@ use rand::Rng;
 pub type Mid = u64;
 pub type Cid = u64;
 pub type Prio = u8;
+/// use promises to modify the behavior of [`Streams`].
+/// available promises are:
+/// * [`PROMISES_NONE`]
+/// * [`PROMISES_ORDERED`]
+/// * [`PROMISES_CONSISTENCY`]
+/// * [`PROMISES_GUARANTEED_DELIVERY`]
+/// * [`PROMISES_COMPRESSED`]
+/// * [`PROMISES_ENCRYPTED`]
+///
+/// [`Streams`]: crate::api::Stream
 pub type Promises = u8;
 
+/// use for no special promises on this [`Stream`](crate::api::Stream).
 pub const PROMISES_NONE: Promises = 0;
+/// this will guarantee that the order of messages which are send on one side,
+/// is the same when received on the other.
 pub const PROMISES_ORDERED: Promises = 1;
+/// this will guarantee that messages received haven't been altered by errors,
+/// like bit flips, this is done with a checksum.
 pub const PROMISES_CONSISTENCY: Promises = 2;
+/// this will guarantee that the other side will receive every message exactly
+/// once no messages are droped
 pub const PROMISES_GUARANTEED_DELIVERY: Promises = 4;
+/// this will enable the internal compression on this
+/// [`Stream`](crate::api::Stream)
 pub const PROMISES_COMPRESSED: Promises = 8;
+/// this will enable the internal encryption on this
+/// [`Stream`](crate::api::Stream)
 pub const PROMISES_ENCRYPTED: Promises = 16;
 
 pub(crate) const VELOREN_MAGIC_NUMBER: [u8; 7] = [86, 69, 76, 79, 82, 69, 78]; //VELOREN
@@ -17,6 +38,11 @@ pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 2, 0];
 pub(crate) const STREAM_ID_OFFSET1: Sid = Sid::new(0);
 pub(crate) const STREAM_ID_OFFSET2: Sid = Sid::new(u64::MAX / 2);
 
+/// Support struct used for uniquely identifying [`Participant`] over the
+/// [`Network`].
+///
+/// [`Participant`]: crate::api::Participant
+/// [`Network`]: crate::api::Network
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Pid {
     internal: u128,
@@ -101,6 +127,16 @@ pub(crate) enum Requestor {
 }
 
 impl Pid {
+    /// create a new Pid with a random interior value
+    ///
+    /// # Example
+    /// ```rust
+    /// use uvth::ThreadPoolBuilder;
+    /// use veloren_network::Network;
+    ///
+    /// let pid = Pid::new();
+    /// let _network = Network::new(pid, ThreadPoolBuilder::new().build(), None);
+    /// ```
     pub fn new() -> Self {
         Self {
             internal: rand::thread_rng().gen(),
@@ -108,8 +144,9 @@ impl Pid {
     }
 
     /// don't use fake! just for testing!
-    /// This will panic if pid i greater than 7, as i do not want you to use
+    /// This will panic if pid i greater than 7, as I do not want you to use
     /// this in production!
+    #[doc(hidden)]
     pub fn fake(pid: u8) -> Self {
         assert!(pid < 8);
         Self {

@@ -108,7 +108,7 @@ fn main() {
 }
 
 fn server(address: Address) {
-    let thread_pool = ThreadPoolBuilder::new().build();
+    let thread_pool = ThreadPoolBuilder::new().num_threads(1).build();
     let mut metrics = metrics::SimpleMetrics::new();
     let server = Network::new(Pid::new(), &thread_pool, Some(metrics.registry()));
     metrics.run("0.0.0.0:59112".parse().unwrap()).unwrap();
@@ -136,7 +136,7 @@ fn server(address: Address) {
 }
 
 fn client(address: Address) {
-    let thread_pool = ThreadPoolBuilder::new().build();
+    let thread_pool = ThreadPoolBuilder::new().num_threads(1).build();
     let mut metrics = metrics::SimpleMetrics::new();
     let client = Network::new(Pid::new(), &thread_pool, Some(metrics.registry()));
     metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
