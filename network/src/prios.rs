@@ -1,10 +1,9 @@
-/*
-Priorities are handled the following way.
-Prios from 0-63 are allowed.
-all 5 numbers the throughput i halved.
-E.g. in the same time 100 prio0 messages are send, only 50 prio5, 25 prio10, 12 prio15 or 6 prio20 messages are send.
-Note: TODO: prio0 will be send immeadiatly when found!
-*/
+//!Priorities are handled the following way.
+//!Prios from 0-63 are allowed.
+//!all 5 numbers the throughput is halved.
+//!E.g. in the same time 100 prio0 messages are send, only 50 prio5, 25 prio10,
+//! 12 prio15 or 6 prio20 messages are send. Note: TODO: prio0 will be send
+//! immeadiatly when found!
 
 use crate::{
     message::OutGoingMessage,

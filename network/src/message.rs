@@ -4,9 +4,17 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::types::{Mid, Sid};
 use std::sync::Arc;
 
+//Todo: Evaluate switching to VecDeque for quickly adding and removing data
+// from front, back.
+// - It would prob requiere custom bincode code but thats possible.
+/// Support struct used for optimising sending the same Message to multiple
+/// [`Stream`]
+///
+/// For an example usage see: [`send_raw`]
+///
+/// [`Stream`]: crate::api::Stream
+/// [`send_raw`]: crate::api::Stream::send_raw
 pub struct MessageBuffer {
-    // use VecDeque for msg storage, because it allows to quickly remove data from front.
-    //however VecDeque needs custom bincode code, but it's possible
     pub data: Vec<u8>,
 }
 
