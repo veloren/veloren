@@ -13,17 +13,19 @@ impl<'a> System<'a> for Sys {
 
     fn run(&mut self, (players, player_stats, mut scheduler): Self::SystemData) {
         if scheduler.should_run() {
-            for (player, stats) in (&players, &player_stats).join() {
-                if let Some(character_id) = player.character_id {
-                    stats::update(
-                        character_id,
-                        Some(stats.level.level() as i32),
-                        Some(stats.exp.current() as i32),
-                        None,
-                        None,
-                        None,
-                    );
-                }
+            let updates: Vec<(i32, &Stats)> = (&players, &player_stats)
+                .join()
+                .filter_map(|(player, stats)| {
+                    if let Some(character_id) = player.character_id {
+                        Some((character_id, stats))
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            if !updates.is_empty() {
+                stats::update(updates);
             }
         }
     }
