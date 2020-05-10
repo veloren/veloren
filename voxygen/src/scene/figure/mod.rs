@@ -1101,7 +1101,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // In air
-                        (false, _, false) => anim::dragon::JumpAnimation::update_skeleton(
+                        (false, _, false) => anim::dragon::FlyAnimation::update_skeleton(
                             &DragonSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.state_time,

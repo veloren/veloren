@@ -2,128 +2,67 @@ use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Body {
-    pub head: Head,
-    pub chest_front: ChestFront,
-    pub chest_rear: ChestRear,
-    pub tail_front: TailFront,
-    pub tail_rear: TailRear,
-    pub wing_in_l: WingInL,
-    pub wing_in_r: WingInR,
-    pub wing_out_l: WingOutL,
-    pub wing_out_r: WingOutR,
-    pub foot_fl: FootFL,
-    pub foot_fr: FootFR,
-    pub foot_bl: FootBL,
-    pub foot_br: FootBR,
+    pub species: Species,
+    pub body_type: BodyType,
 }
+
 impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
-        Self {
-            head: *(&ALL_HEADS).choose(&mut rng).unwrap(),
-            chest_front: *(&ALL_CHEST_FRONTS).choose(&mut rng).unwrap(),
-            chest_rear: *(&ALL_CHEST_REARS).choose(&mut rng).unwrap(),
-            tail_front: *(&ALL_TAIL_FRONTS).choose(&mut rng).unwrap(),
-            tail_rear: *(&ALL_TAIL_REARS).choose(&mut rng).unwrap(),
-            wing_in_l: *(&ALL_WING_IN_LS).choose(&mut rng).unwrap(),
-            wing_in_r: *(&ALL_WING_IN_RS).choose(&mut rng).unwrap(),
-            wing_out_l: *(&ALL_WING_OUT_LS).choose(&mut rng).unwrap(),
-            wing_out_r: *(&ALL_WING_OUT_RS).choose(&mut rng).unwrap(),
-            foot_fl: *(&ALL_FOOT_FLS).choose(&mut rng).unwrap(),
-            foot_fr: *(&ALL_FOOT_FRS).choose(&mut rng).unwrap(),
-            foot_bl: *(&ALL_FOOT_BLS).choose(&mut rng).unwrap(),
-            foot_br: *(&ALL_FOOT_BRS).choose(&mut rng).unwrap(),
+        let species = *(&ALL_SPECIES).choose(&mut rng).unwrap();
+        Self::random_with(&mut rng, &species)
+    }
+
+    #[inline]
+    pub fn random_with(rng: &mut impl rand::Rng, &species: &Species) -> Self {
+        let body_type = *(&ALL_BODY_TYPES).choose(rng).unwrap();
+        Self { species, body_type }
+    }
+}
+
+impl From<Body> for super::Body {
+    fn from(body: Body) -> Self { super::Body::Dragon(body) }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Species {
+    Reddragon = 0,
+}
+
+/// Data representing per-species generic data.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AllSpecies<SpeciesMeta> {
+    pub reddragon: SpeciesMeta,
+}
+
+impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
+    type Output = SpeciesMeta;
+
+    #[inline]
+    fn index(&self, &index: &'a Species) -> &Self::Output {
+        match index {
+            Species::Reddragon => &self.reddragon,
         }
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Head {
-    Default,
+pub const ALL_SPECIES: [Species; 1] = [Species::Reddragon];
+
+impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
+    type Item = Species;
+
+    type IntoIter = impl Iterator<Item = Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
-const ALL_HEADS: [Head; 1] = [Head::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
-pub enum ChestFront {
-    Default,
+pub enum BodyType {
+    Female = 0,
+    Male = 1,
 }
-const ALL_CHEST_FRONTS: [ChestFront; 1] = [ChestFront::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum ChestRear {
-    Default,
-}
-const ALL_CHEST_REARS: [ChestRear; 1] = [ChestRear::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum TailFront {
-    Default,
-}
-const ALL_TAIL_FRONTS: [TailFront; 1] = [TailFront::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum TailRear {
-    Default,
-}
-const ALL_TAIL_REARS: [TailRear; 1] = [TailRear::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum WingInL {
-    Default,
-}
-const ALL_WING_IN_LS: [WingInL; 1] = [WingInL::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum WingInR {
-    Default,
-}
-const ALL_WING_IN_RS: [WingInR; 1] = [WingInR::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum WingOutL {
-    Default,
-}
-const ALL_WING_OUT_LS: [WingOutL; 1] = [WingOutL::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum WingOutR {
-    Default,
-}
-const ALL_WING_OUT_RS: [WingOutR; 1] = [WingOutR::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum FootFL {
-    Default,
-}
-const ALL_FOOT_FLS: [FootFL; 1] = [FootFL::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum FootFR {
-    Default,
-}
-const ALL_FOOT_FRS: [FootFR; 1] = [FootFR::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum FootBL {
-    Default,
-}
-const ALL_FOOT_BLS: [FootBL; 1] = [FootBL::Default];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum FootBR {
-    Default,
-}
-const ALL_FOOT_BRS: [FootBR; 1] = [FootBR::Default];
+pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];

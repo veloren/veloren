@@ -26,11 +26,6 @@ impl Animation for RunAnimation {
         let lower = if speed > 5.0 { 0.0 } else { 1.0 };
         let snapfoot = if speed > 5.0 { 1.1 } else { 2.0 };
         let lab = 1.0;
-        let long = (((5.0)
-            / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 8.0 * walk).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0 * walk).sin());
-
         let short = (((5.0)
             / (1.5
                 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
@@ -92,9 +87,9 @@ impl Animation for RunAnimation {
         next.head.offset = Vec3::new(
             0.0,
             -3.0 + skeleton_attr.head.0,
-            -1.0 + skeleton_attr.head.1 + short * 0.3,
+            -1.0 + skeleton_attr.head.1 + short * 0.1,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x + long * -0.1 - short * 0.3)
+        next.head.ori = Quaternion::rotation_z(head_look.x - short * 0.1)
             * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
@@ -103,11 +98,11 @@ impl Animation for RunAnimation {
             skeleton_attr.chest.0,
             skeleton_attr.chest.1 + 2.0 + short * 1.1 - lower,
         );
-        next.chest.ori = Quaternion::rotation_z(short * 0.3 * walkintensity);
+        next.chest.ori = Quaternion::rotation_z(short * 0.15 * walkintensity);
         next.chest.scale = Vec3::one();
 
         next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
-        next.belt.ori = Quaternion::rotation_z(short * 0.25);
+        next.belt.ori = Quaternion::rotation_z(short * 0.1);
         next.belt.scale = Vec3::one();
 
         next.back.offset = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
@@ -115,24 +110,24 @@ impl Animation for RunAnimation {
         next.back.scale = Vec3::one() * 1.02;
 
         next.shorts.offset = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
-        next.shorts.ori = Quaternion::rotation_z(short * 0.4);
+        next.shorts.ori = Quaternion::rotation_z(short * 0.2);
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
             -skeleton_attr.hand.0 + wave_stop * 1.0 * walkintensity,
             skeleton_attr.hand.1 + short * 3.0 * walkintensity,
-            1.0 + skeleton_attr.hand.2 + short * -1.5 * walkintensity,
+            1.0 + skeleton_attr.hand.2 + short * -0.75 * walkintensity,
         );
-        next.l_hand.ori = Quaternion::rotation_x(0.2 + short * 1.2 * walk)
+        next.l_hand.ori = Quaternion::rotation_x(0.2 + short * 1.5 * walk)
             * Quaternion::rotation_y(wave_stop * -0.1);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
             skeleton_attr.hand.0 + wave_stop * -1.0 * walkintensity,
             skeleton_attr.hand.1 + short * -3.0 * walkintensity,
-            1.0 + skeleton_attr.hand.2 + short * 1.5 * walkintensity,
+            1.0 + skeleton_attr.hand.2 + short * 0.75 * walkintensity,
         );
-        next.r_hand.ori = Quaternion::rotation_x(0.2 + short * -1.2 * walk)
+        next.r_hand.ori = Quaternion::rotation_x(0.2 + short * -1.5 * walk)
             * Quaternion::rotation_y(wave_stop * 0.1);
         next.r_hand.scale = Vec3::one();
 

@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added non-uniform block heights
 - Added `/sudo` command
 - Added a Level of Detail (LoD) system for terrain sprites and entities
-- Added owl, hyena, parrot npcs
+- Added owl, hyena, parrot, cockatrice, red dragon npcs
 - Added dungeon entrances
 - Villagers tools and clothing
 - Cultists clothing

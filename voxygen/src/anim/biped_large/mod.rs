@@ -10,7 +10,7 @@ use crate::render::FigureBoneData;
 use common::comp::{self};
 use vek::Vec3;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct BipedLargeSkeleton {
     head: Bone,
     upper_torso: Bone,
@@ -27,22 +27,7 @@ pub struct BipedLargeSkeleton {
 }
 
 impl BipedLargeSkeleton {
-    pub fn new() -> Self {
-        Self {
-            head: Bone::default(),
-            upper_torso: Bone::default(),
-            lower_torso: Bone::default(),
-            shoulder_l: Bone::default(),
-            shoulder_r: Bone::default(),
-            hand_l: Bone::default(),
-            hand_r: Bone::default(),
-            leg_l: Bone::default(),
-            leg_r: Bone::default(),
-            foot_l: Bone::default(),
-            foot_r: Bone::default(),
-            torso: Bone::default(),
-        }
-    }
+    pub fn new() -> Self { Self::default() }
 }
 
 impl Skeleton for BipedLargeSkeleton {
@@ -57,7 +42,6 @@ impl Skeleton for BipedLargeSkeleton {
         let leg_l_mat = self.leg_l.compute_base_matrix();
         let leg_r_mat = self.leg_r.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
-
         (
             [
                 FigureBoneData::new(torso_mat * upper_torso_mat * self.head.compute_base_matrix()),
@@ -146,7 +130,7 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
                 (Ogre, _) => (3.0, 6.0),
             },
             upper_torso: match (body.species, body.body_type) {
-                (Ogre, _) => (0.0, 20.0),
+                (Ogre, _) => (0.0, 19.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, _) => (1.0, -9.5),
@@ -155,7 +139,7 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
                 (Ogre, _) => (6.1, 0.5, 2.5),
             },
             hand: match (body.species, body.body_type) {
-                (Ogre, _) => (10.5, -1.0, 0.5),
+                (Ogre, _) => (10.5, -1.0, -0.5),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0, -6.0),

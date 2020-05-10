@@ -41,7 +41,7 @@ impl Animation for RunAnimation {
             * ((anim_time as f32 * lab as f32 + PI * 0.4).sin());
 
         next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) * 1.02;
-        next.head.ori = Quaternion::rotation_z(belt * -0.3) * Quaternion::rotation_x(0.3);
+        next.head.ori = Quaternion::rotation_z(belt * -0.3) * Quaternion::rotation_x(0.1);
         next.head.scale = Vec3::one() * 1.02;
 
         next.upper_torso.offset = Vec3::new(
@@ -132,7 +132,7 @@ impl Animation for RunAnimation {
         next.foot_r.scale = Vec3::one() / 8.0 * 0.98;
 
         next.torso.offset = Vec3::new(0.0, 0.0, beltsnap * 0.25);
-        next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.2);
+        next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.13);
         next.torso.scale = Vec3::one();
         next
     }
