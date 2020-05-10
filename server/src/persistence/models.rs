@@ -73,7 +73,7 @@ impl From<&Body> for comp::Body {
 }
 
 /// `Stats` represents the stats for a character
-#[derive(Associations, Identifiable, Queryable, Debug, Insertable)]
+#[derive(Associations, AsChangeset, Identifiable, Queryable, Debug, Insertable)]
 #[belongs_to(Character)]
 #[primary_key(character_id)]
 #[table_name = "stats"]
@@ -110,9 +110,9 @@ impl From<StatsJoinData<'_>> for comp::Stats {
 #[primary_key(character_id)]
 #[table_name = "stats"]
 pub struct StatsUpdate {
-    pub level: Option<i32>,
-    pub exp: Option<i32>,
-    pub endurance: Option<i32>,
-    pub fitness: Option<i32>,
-    pub willpower: Option<i32>,
+    pub level: i32,
+    pub exp: i32,
+    pub endurance: i32,
+    pub fitness: i32,
+    pub willpower: i32,
 }

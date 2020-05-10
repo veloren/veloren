@@ -4,7 +4,7 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum Error {
-    // The player has alredy reached the max character limit
+    // The player has already reached the max character limit
     CharacterLimitReached,
     // An error occured when performing a database action
     DatabaseError(diesel::result::Error),

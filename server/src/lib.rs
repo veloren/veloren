@@ -108,7 +108,7 @@ impl Server {
         state
             .ecs_mut()
             .insert(sys::StatsPersistenceScheduler::every(Duration::from_secs(
-                5,
+                60,
             )));
 
         // Server-only components
