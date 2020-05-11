@@ -243,9 +243,9 @@
             ]
         },
         "species": {
-            "wolf": {
-                "keyword": "wolf",
-                "generic": "Wolf"
+            "grolgar": {
+                "keyword": "grolgar",
+                "generic": "Grolgar"
             },
             "saber": {
                 "keyword": "sabertooth",
@@ -493,6 +493,10 @@
             "ogre": {
                 "keyword": "ogre",
                 "generic": "Ogre"
+            },
+            "cyclops": {
+                "keyword": "cyclops",
+                "generic": "Cyclops"
             }
         }
     },
