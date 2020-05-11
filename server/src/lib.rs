@@ -22,11 +22,12 @@ use crate::{
     auth_provider::AuthProvider,
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
-    cmd::CHAT_COMMANDS,
+    cmd::ChatCommandExt,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
 use common::{
+    cmd::ChatCommand,
     comp,
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
@@ -534,18 +535,16 @@ impl Server {
         };
 
         // Find the command object and run its handler.
-        let action_opt = CHAT_COMMANDS.iter().find(|x| x.keyword == kwd);
-        match action_opt {
-            Some(action) => action.execute(self, entity, args),
-            // Unknown command
-            None => {
-                if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-                    client.notify(ServerMsg::private(format!(
-                        "Unknown command '/{}'.\nType '/help' for available commands",
-                        kwd
-                    )));
-                }
-            },
+        if let Ok(command) = kwd.parse::<ChatCommand>() {
+            command.execute(self, entity, args);
+        } else {
+            self.notify_client(
+                entity,
+                ServerMsg::private(format!(
+                    "Unknown command '/{}'.\nType '/help' for available commands",
+                    kwd
+                )),
+            );
         }
     }
 
