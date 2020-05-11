@@ -46,6 +46,18 @@ impl ChatCommandExt for ChatCommand {
     }
 }
 
+/// Handler function called when the command is executed.
+/// # Arguments
+/// * `&mut Server` - the `Server` instance executing the command.
+/// * `EcsEntity` - an `Entity` corresponding to the player that invoked the
+///   command.
+/// * `EcsEntity` - an `Entity` for the player on whom the command is invoked.
+///   This differs from the previous argument when using /sudo
+/// * `String` - a `String` containing the part of the command after the
+///   keyword.
+/// * `&ChatCommand` - the command to execute with the above arguments.
+/// Handler functions must parse arguments from the the given `String`
+/// (`scan_fmt!` is included for this purpose).
 type CommandHandler = fn(&mut Server, EcsEntity, EcsEntity, String, &ChatCommand);
 fn get_handler(cmd: &ChatCommand) -> CommandHandler {
     match cmd {
