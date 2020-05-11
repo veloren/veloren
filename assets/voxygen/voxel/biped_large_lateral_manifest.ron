@@ -67,4 +67,72 @@
             lateral: ("npc.ogre.female.foot_r"),
         )
     ),
+    (Cyclops, Male): (
+        shoulder_l: (
+            offset: (-3.0, -4.0, -5.0),
+            lateral: ("npc.cyclops.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-3.0, -4.0, -5.0),
+            lateral: ("npc.cyclops.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-3.5, -3.5, -14.0),
+            lateral: ("npc.cyclops.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-3.5, -3.5, -14.0),
+            lateral: ("npc.cyclops.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-6.0, -3.5, -7.0),
+            lateral: ("npc.cyclops.male.leg_l"),
+        ),
+        leg_r: (
+            offset: (0.0, -3.5, -7.0),
+            lateral: ("npc.cyclops.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.0, -5.0, -5.0),
+            lateral: ("npc.cyclops.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-3.0, -5.0, -5.0),
+            lateral: ("npc.cyclops.male.foot_r"),
+        )
+    ),
+    (Cyclops, Female): (
+        shoulder_l: (
+            offset: (-3.0, -4.0, -5.0),
+            lateral: ("npc.cyclops.female.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (-3.0, -4.0, -5.0),
+            lateral: ("npc.cyclops.female.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-3.5, -3.5, -14.0),
+            lateral: ("npc.cyclops.female.hand_l"),
+        ),
+        hand_r: (
+            offset: (-3.5, -3.5, -14.0),
+            lateral: ("npc.cyclops.female.hand_r"),
+        ),
+        leg_l: (
+            offset: (-6.0, -3.5, -7.0),
+            lateral: ("npc.cyclops.female.leg_l"),
+        ),
+        leg_r: (
+            offset: (0.0, -3.5, -7.0),
+            lateral: ("npc.cyclops.female.leg_r"),
+        ),
+        foot_l: (
+            offset: (-3.0, -5.0, -5.0),
+            lateral: ("npc.cyclops.female.foot_l"),
+        ),
+        foot_r: (
+            offset: (-3.0, -5.0, -5.0),
+            lateral: ("npc.cyclops.female.foot_r"),
+        )
+    ),
 })

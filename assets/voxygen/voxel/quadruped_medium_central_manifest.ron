@@ -1,62 +1,62 @@
 ({
-    (Wolf, Male): (
+    (Grolgar, Male): (
         upper: (
             offset: (-7.0, -9.0, -5.5),
-            central: ("npc.wolf.male.head_upper"),
+            central: ("npc.grolgar.male.head_upper"),
         ),
         lower: (
             offset: (-7.0, -4.5, -5.0),
-            central: ("npc.wolf.male.head_lower"),
+            central: ("npc.grolgar.male.head_lower"),
         ),
         jaw: (
             offset: (-3.0, -3.0, -2.5),
-            central: ("npc.wolf.male.jaw"),
+            central: ("npc.grolgar.male.jaw"),
         ),
         torso_f: (
             offset: (-8.0, -5.5, -6.0),
-            central: ("npc.wolf.male.torso_front"),
+            central: ("npc.grolgar.male.torso_front"),
         ),
         torso_b: (
             offset: (-7.0, -6.0, -6.0),
-            central: ("npc.wolf.male.torso_back"),
+            central: ("npc.grolgar.male.torso_back"),
         ),
         ears: (
             offset: (-4.0, -1.0, -1.5),
-            central: ("npc.wolf.male.ears"),
+            central: ("npc.grolgar.male.ears"),
         ),
         tail: (
             offset: (-2.0, -9.5, -5.0),
-            central: ("npc.wolf.male.tail"),
+            central: ("npc.grolgar.male.tail"),
         ),
     ),
-    (Wolf, Female): (
+    (Grolgar, Female): (
         upper: (
             offset: (-7.0, -9.0, -5.5),
-            central: ("npc.wolf.female.head_upper"),
+            central: ("npc.grolgar.female.head_upper"),
         ),
         lower: (
             offset: (-7.0, -4.5, -5.0),
-            central: ("npc.wolf.female.head_lower"),
+            central: ("npc.grolgar.female.head_lower"),
         ),
         jaw: (
             offset: (-3.0, -3.0, -2.5),
-            central: ("npc.wolf.male.jaw"),
+            central: ("npc.grolgar.male.jaw"),
         ),
         torso_f: (
             offset: (-8.0, -5.5, -6.0),
-            central: ("npc.wolf.female.torso_front"),
+            central: ("npc.grolgar.female.torso_front"),
         ),
         torso_b: (
             offset: (-7.0, -6.0, -6.0),
-            central: ("npc.wolf.female.torso_back"),
+            central: ("npc.grolgar.female.torso_back"),
         ),
         ears: (
             offset: (-4.0, -1.0, -1.5),
-            central: ("npc.wolf.female.ears"),
+            central: ("npc.grolgar.female.ears"),
         ),
         tail: (
             offset: (-2.0, -9.5, -5.0),
-            central: ("npc.wolf.female.tail"),
+            central: ("npc.grolgar.female.tail"),
         ),
     ),
 

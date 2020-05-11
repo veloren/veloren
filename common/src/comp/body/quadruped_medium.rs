@@ -27,7 +27,7 @@ impl From<Body> for super::Body {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Species {
-    Wolf = 0,
+    Grolgar = 0,
     Saber = 1,
     Viper = 2,
     Tuskram = 3,
@@ -42,7 +42,7 @@ pub enum Species {
 /// NOTE: Deliberately don't (yet?) implement serialize.
 #[derive(Clone, Debug, Deserialize)]
 pub struct AllSpecies<SpeciesMeta> {
-    pub wolf: SpeciesMeta,
+    pub grolgar: SpeciesMeta,
     pub saber: SpeciesMeta,
     pub viper: SpeciesMeta,
     pub tuskram: SpeciesMeta,
@@ -58,7 +58,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     #[inline]
     fn index(&self, &index: &'a Species) -> &Self::Output {
         match index {
-            Species::Wolf => &self.wolf,
+            Species::Grolgar => &self.grolgar,
             Species::Saber => &self.saber,
             Species::Viper => &self.viper,
             Species::Tuskram => &self.tuskram,
@@ -71,7 +71,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
 }
 
 pub const ALL_SPECIES: [Species; 8] = [
-    Species::Wolf,
+    Species::Grolgar,
     Species::Saber,
     Species::Viper,
     Species::Tuskram,
