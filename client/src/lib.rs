@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 #![feature(label_break_value)]
 
+pub mod cmd;
 pub mod error;
 
 // Reexports

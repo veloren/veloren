@@ -5,7 +5,9 @@
 use crate::{Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
-    assets, comp,
+    assets,
+    cmd::{ChatCommand, CHAT_COMMANDS},
+    comp,
     event::{EventBus, ServerEvent},
     msg::{PlayerListUpdate, ServerMsg},
     npc::{self, get_npc_name},
@@ -20,274 +22,73 @@ use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 use world::util::Sampler;
 
-use lazy_static::lazy_static;
 use log::error;
 use scan_fmt::{scan_fmt, scan_fmt_some};
 
-/// Struct representing a command that a user can run from server chat.
-pub struct ChatCommand {
-    /// The keyword used to invoke the command, omitting the leading '/'.
-    pub keyword: &'static str,
-    /// A format string for parsing arguments.
-    arg_fmt: &'static str,
-    /// A message that explains how the command is used.
-    help_string: &'static str,
-    /// A boolean that is used to check whether the command requires
-    /// administrator permissions or not.
-    needs_admin: bool,
-    /// Handler function called when the command is executed.
-    /// # Arguments
-    /// * `&mut Server` - the `Server` instance executing the command.
-    /// * `EcsEntity` - an `Entity` corresponding to the player that invoked the
-    ///   command.
-    /// * `EcsEntity` - an `Entity` for the player on whom the command is
-    ///   invoked. This differs from the previous argument when using /sudo
-    /// * `String` - a `String` containing the part of the command after the
-    ///   keyword.
-    /// * `&ChatCommand` - the command to execute with the above arguments.
-    /// Handler functions must parse arguments from the the given `String`
-    /// (`scan_fmt!` is included for this purpose).
-    handler: fn(&mut Server, EcsEntity, EcsEntity, String, &ChatCommand),
+pub trait ChatCommandExt {
+    fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
 }
-
-impl ChatCommand {
-    /// Creates a new chat command.
-    pub fn new(
-        keyword: &'static str,
-        arg_fmt: &'static str,
-        help_string: &'static str,
-        needs_admin: bool,
-        handler: fn(&mut Server, EcsEntity, EcsEntity, String, &ChatCommand),
-    ) -> Self {
-        Self {
-            keyword,
-            arg_fmt,
-            help_string,
-            needs_admin,
-            handler,
-        }
-    }
-
-    /// Calls the contained handler function, passing `&self` as the last
-    /// argument.
-    pub fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
-        if self.needs_admin {
-            if !server.entity_is_admin(entity) {
-                server.notify_client(
-                    entity,
-                    ServerMsg::private(format!(
-                        "You don't have permission to use '/{}'.",
-                        self.keyword
-                    )),
-                );
-                return;
-            } else {
-                (self.handler)(server, entity, entity, args, self);
-            }
+impl ChatCommandExt for ChatCommand {
+    fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
+        let cmd_data = self.data();
+        if cmd_data.needs_admin && !server.entity_is_admin(entity) {
+            server.notify_client(
+                entity,
+                ServerMsg::private(format!(
+                    "You don't have permission to use '/{}'.",
+                    self.keyword()
+                )),
+            );
+            return;
         } else {
-            (self.handler)(server, entity, entity, args, self);
+            get_handler(self)(server, entity, entity, args, &self);
         }
     }
 }
 
-lazy_static! {
-    /// Static list of chat commands available to the server.
-    pub static ref CHAT_COMMANDS: Vec<ChatCommand> = vec![
-        ChatCommand::new(
-            "give_item",
-            "{} {d}",
-            "/give_item <path to item> [num]\n\
-            Example items: common/items/apple, common/items/debug/boost",
-            true,
-            handle_give,),
-        ChatCommand::new(
-            "jump",
-            "{d} {d} {d}",
-            "/jump <dx> <dy> <dz> : Offset your current position",
-            true,
-            handle_jump,
-        ),
-        ChatCommand::new(
-            "goto",
-            "{d} {d} {d}",
-            "/goto <x> <y> <z> : Teleport to a position",
-            true,
-            handle_goto,
-        ),
-        ChatCommand::new(
-            "alias",
-            "{}",
-            "/alias <name> : Change your alias",
-            false,
-            handle_alias,
-        ),
-        ChatCommand::new(
-            "tp",
-            "{}",
-            "/tp <alias> : Teleport to another player",
-            true,
-            handle_tp,
-        ),
-        ChatCommand::new(
-            "kill",
-            "{}",
-            "/kill : Kill yourself",
-            false,
-            handle_kill,
-        ),
-        ChatCommand::new(
-            "time",
-            "{} {s}",
-            "/time <XY:XY> or [Time of day] : Set the time of day",
-            true,
-            handle_time,
-        ),
-        ChatCommand::new(
-            "spawn",
-            "{} {} {d}",
-            "/spawn <alignment> <entity> [amount] : Spawn a test entity",
-            true,
-            handle_spawn,
-        ),
-        ChatCommand::new(
-             "players",
-             "{}",
-             "/players : Lists players currently online",
-             false,
-             handle_players,
-         ),
-        ChatCommand::new(
-            "help", "", "/help: Display this message", false, handle_help),
-        ChatCommand::new(
-            "health",
-            "{}",
-            "/health : Set your current health",
-            true,
-            handle_health,
-        ),
-        ChatCommand::new(
-            "build",
-            "",
-            "/build : Toggles build mode on and off",
-            true,
-            handle_build,
-        ),
-        ChatCommand::new(
-            "tell",
-            "{}",
-            "/tell <alias> <message>: Send a message to another player",
-            false,
-            handle_tell,
-        ),
-        ChatCommand::new(
-            "killnpcs",
-            "{}",
-            "/killnpcs : Kill the NPCs",
-            true,
-            handle_killnpcs,
-        ),
-        ChatCommand::new(
-            "object",
-            "{}",
-            "/object [Name]: Spawn an object",
-            true,
-            handle_object,
-        ),
-        ChatCommand::new(
-            "light",
-            "{} {} {} {} {} {} {}",
-            "/light <opt:  <<cr> <cg> <cb>> <<ox> <oy> <oz>> <<strength>>>: Spawn entity with light",
-            true,
-            handle_light,
-        ),
-        ChatCommand::new(
-            "lantern",
-            "{} {} {} {}",
-            "/lantern <strength> [<r> <g> <b>]: Change your lantern's strength and color",
-            true,
-            handle_lantern,
-        ),
-        ChatCommand::new(
-            "explosion",
-            "{}",
-            "/explosion <radius> : Explodes the ground around you",
-            true,
-            handle_explosion,
-        ),
-        ChatCommand::new(
-            "waypoint",
-            "{}",
-            "/waypoint : Set your waypoint to your current position",
-            true,
-            handle_waypoint,
-        ),
-        ChatCommand::new(
-            "adminify",
-            "{}",
-            "/adminify <playername> : Temporarily gives a player admin permissions or removes them",
-            true,
-            handle_adminify,
-        ),
-        ChatCommand::new(
-             "debug_column",
-             "{} {}",
-             "/debug_column <x> <y> : Prints some debug information about a column",
-             false,
-             handle_debug_column,
-         ),
-         ChatCommand::new(
-             "give_exp",
-             "{d} {}",
-             "/give_exp <amount> <playername?> : Give experience to yourself or specify a target player",
-             true,
-             handle_exp,
-         ),
-         ChatCommand::new(
-             "set_level",
-             "{d} {}",
-             "/set_level <level> <playername?> : Set own Level or specify a target player",
-             true,
-             handle_level
-         ),
-        ChatCommand::new(
-             "removelights",
-             "{}",
-             "/removelights [radius] : Removes all lights spawned by players",
-             true,
-             handle_remove_lights,
-         ),
-        ChatCommand::new(
-            "debug",
-            "",
-            "/debug : Place all debug items into your pack.",
-            true,
-            handle_debug,
-        ),
-        ChatCommand::new(
-            "sudo",
-            "{} {} {/.*/}",
-            "/sudo <player> /<command> [args...] : Run command as if you were another player",
-            true,
-            handle_sudo,
-        ),
-        ChatCommand::new(
-            "version",
-            "",
-            "/version : Prints server version",
-            false,
-            handle_version,
-        ),
-    ];
+type CommandHandler = fn(&mut Server, EcsEntity, EcsEntity, String, &ChatCommand);
+fn get_handler(cmd: &ChatCommand) -> CommandHandler {
+    match cmd {
+        ChatCommand::Adminify => handle_adminify,
+        ChatCommand::Alias => handle_alias,
+        ChatCommand::Build => handle_build,
+        ChatCommand::Debug => handle_debug,
+        ChatCommand::DebugColumn => handle_debug_column,
+        ChatCommand::Explosion => handle_explosion,
+        ChatCommand::GiveExp => handle_give_exp,
+        ChatCommand::GiveItem => handle_give_item,
+        ChatCommand::Goto => handle_goto,
+        ChatCommand::Health => handle_health,
+        ChatCommand::Help => handle_help,
+        ChatCommand::Jump => handle_jump,
+        ChatCommand::Kill => handle_kill,
+        ChatCommand::KillNpcs => handle_kill_npcs,
+        ChatCommand::Lantern => handle_lantern,
+        ChatCommand::Light => handle_light,
+        ChatCommand::Object => handle_object,
+        ChatCommand::Players => handle_players,
+        ChatCommand::RemoveLights => handle_remove_lights,
+        ChatCommand::SetLevel => handle_set_level,
+        ChatCommand::Spawn => handle_spawn,
+        ChatCommand::Sudo => handle_sudo,
+        ChatCommand::Tell => handle_tell,
+        ChatCommand::Time => handle_time,
+        ChatCommand::Tp => handle_tp,
+        ChatCommand::Version => handle_version,
+        ChatCommand::Waypoint => handle_waypoint,
+    }
 }
 
-fn handle_give(
+fn handle_give_item(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(item_name), give_amount_opt) = scan_fmt_some!(&args, action.arg_fmt, String, u32) {
+    if let (Some(item_name), give_amount_opt) =
+        scan_fmt_some!(&args, &action.arg_fmt(), String, u32)
+    {
         let give_amount = give_amount_opt.unwrap_or(1);
         if let Ok(item) = assets::load_cloned(&item_name) {
             let mut item: Item = item;
@@ -346,7 +147,10 @@ fn handle_give(
             );
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
@@ -357,7 +161,7 @@ fn handle_jump(
     args: String,
     action: &ChatCommand,
 ) {
-    if let Ok((x, y, z)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
+    if let Ok((x, y, z)) = scan_fmt!(&args, &action.arg_fmt(), f32, f32, f32) {
         match server.state.read_component_cloned::<comp::Pos>(target) {
             Some(current_pos) => {
                 server
@@ -380,7 +184,7 @@ fn handle_goto(
     args: String,
     action: &ChatCommand,
 ) {
-    if let Ok((x, y, z)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
+    if let Ok((x, y, z)) = scan_fmt!(&args, &action.arg_fmt(), f32, f32, f32) {
         if server
             .state
             .read_component_cloned::<comp::Pos>(target)
@@ -397,7 +201,10 @@ fn handle_goto(
             );
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
@@ -432,7 +239,7 @@ fn handle_time(
     args: String,
     action: &ChatCommand,
 ) {
-    let time = scan_fmt_some!(&args, action.arg_fmt, String);
+    let time = scan_fmt_some!(&args, &action.arg_fmt(), String);
     let new_time = match time.as_ref().map(|s| s.as_str()) {
         Some("midnight") => NaiveTime::from_hms(0, 0, 0),
         Some("night") => NaiveTime::from_hms(20, 0, 0),
@@ -490,7 +297,7 @@ fn handle_health(
     args: String,
     action: &ChatCommand,
 ) {
-    if let Ok(hp) = scan_fmt!(&args, action.arg_fmt, u32) {
+    if let Ok(hp) = scan_fmt!(&args, &action.arg_fmt(), u32) {
         if let Some(stats) = server
             .state
             .ecs()
@@ -519,7 +326,7 @@ fn handle_alias(
     args: String,
     action: &ChatCommand,
 ) {
-    if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
+    if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
         server
             .state
             .ecs_mut()
@@ -540,7 +347,10 @@ fn handle_alias(
             server.state.notify_registered_clients(msg);
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
@@ -551,41 +361,47 @@ fn handle_tp(
     args: String,
     action: &ChatCommand,
 ) {
-    if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
+    let opt_player = if let Some(alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
         let ecs = server.state.ecs();
-        let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+        (&ecs.entities(), &ecs.read_storage::<comp::Player>())
             .join()
             .find(|(_, player)| player.alias == alias)
-            .map(|(entity, _)| entity);
-        match server.state.read_component_cloned::<comp::Pos>(target) {
-            Some(_pos) => match opt_player {
-                Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
-                    Some(pos) => {
-                        server.state.write_component(target, pos);
-                        server.state.write_component(target, comp::ForceUpdate);
-                    },
-                    None => server.notify_client(
-                        client,
-                        ServerMsg::private(format!("Unable to teleport to player '{}'!", alias)),
-                    ),
-                },
-                None => {
-                    server.notify_client(
-                        client,
-                        ServerMsg::private(format!("Player '{}' not found!", alias)),
-                    );
-                    server.notify_client(
-                        client,
-                        ServerMsg::private(String::from(action.help_string)),
-                    );
-                },
-            },
-            None => {
-                server.notify_client(client, ServerMsg::private(format!("You have no position!")));
-            },
+            .map(|(entity, _)| entity)
+    } else {
+        if client != target {
+            Some(client)
+        } else {
+            server.notify_client(
+                client,
+                ServerMsg::private("You must specify a player name".to_string()),
+            );
+            server.notify_client(
+                client,
+                ServerMsg::private(String::from(action.help_string())),
+            );
+            return;
+        }
+    };
+    if let Some(_pos) = server.state.read_component_cloned::<comp::Pos>(target) {
+        if let Some(player) = opt_player {
+            if let Some(pos) = server.state.read_component_cloned::<comp::Pos>(player) {
+                server.state.write_component(target, pos);
+                server.state.write_component(target, comp::ForceUpdate);
+            } else {
+                server.notify_client(
+                    client,
+                    ServerMsg::private(format!("Unable to teleport to player!")),
+                );
+            }
+        } else {
+            server.notify_client(client, ServerMsg::private(format!("Player not found!")));
+            server.notify_client(
+                client,
+                ServerMsg::private(String::from(action.help_string())),
+            );
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(client, ServerMsg::private(format!("You have no position!")));
     }
 }
 
@@ -596,7 +412,7 @@ fn handle_spawn(
     args: String,
     action: &ChatCommand,
 ) {
-    match scan_fmt_some!(&args, action.arg_fmt, String, npc::NpcBody, String) {
+    match scan_fmt_some!(&args, &action.arg_fmt(), String, npc::NpcBody, String) {
         (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount) => {
             if let Some(alignment) = parse_alignment(target, &opt_align) {
                 let amount = opt_amount
@@ -659,7 +475,10 @@ fn handle_spawn(
             }
         },
         _ => {
-            server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+            server.notify_client(
+                client,
+                ServerMsg::private(String::from(action.help_string())),
+            );
         },
     }
 }
@@ -733,12 +552,16 @@ fn handle_help(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: String,
-    _action: &ChatCommand,
+    args: String,
+    action: &ChatCommand,
 ) {
-    for cmd in CHAT_COMMANDS.iter() {
-        if !cmd.needs_admin || server.entity_is_admin(client) {
-            server.notify_client(client, ServerMsg::private(String::from(cmd.help_string)));
+    if let Some(cmd) = scan_fmt_some!(&args, &action.arg_fmt(), ChatCommand) {
+        server.notify_client(client, ServerMsg::private(String::from(cmd.help_string())));
+    } else {
+        for cmd in CHAT_COMMANDS.iter() {
+            if !cmd.needs_admin() || server.entity_is_admin(client) {
+                server.notify_client(client, ServerMsg::private(String::from(cmd.help_string())));
+            }
         }
     }
 }
@@ -753,7 +576,7 @@ fn parse_alignment(owner: EcsEntity, alignment: &str) -> Option<comp::Alignment>
     }
 }
 
-fn handle_killnpcs(
+fn handle_kill_npcs(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
@@ -781,9 +604,9 @@ fn handle_object(
     client: EcsEntity,
     target: EcsEntity,
     args: String,
-    _action: &ChatCommand,
+    action: &ChatCommand,
 ) {
-    let obj_type = scan_fmt!(&args, _action.arg_fmt, String);
+    let obj_type = scan_fmt!(&args, &action.arg_fmt(), String);
 
     let pos = server
         .state
@@ -802,85 +625,39 @@ fn handle_object(
     .with(ori);*/
     if let (Some(pos), Some(ori)) = (pos, ori) {
         let obj_str_res = obj_type.as_ref().map(String::as_str);
-        let obj_type = match obj_str_res {
-            Ok("scarecrow") => comp::object::Body::Scarecrow,
-            Ok("cauldron") => comp::object::Body::Cauldron,
-            Ok("chest_vines") => comp::object::Body::ChestVines,
-            Ok("chest") => comp::object::Body::Chest,
-            Ok("chest_dark") => comp::object::Body::ChestDark,
-            Ok("chest_demon") => comp::object::Body::ChestDemon,
-            Ok("chest_gold") => comp::object::Body::ChestGold,
-            Ok("chest_light") => comp::object::Body::ChestLight,
-            Ok("chest_open") => comp::object::Body::ChestOpen,
-            Ok("chest_skull") => comp::object::Body::ChestSkull,
-            Ok("pumpkin") => comp::object::Body::Pumpkin,
-            Ok("pumpkin_2") => comp::object::Body::Pumpkin2,
-            Ok("pumpkin_3") => comp::object::Body::Pumpkin3,
-            Ok("pumpkin_4") => comp::object::Body::Pumpkin4,
-            Ok("pumpkin_5") => comp::object::Body::Pumpkin5,
-            Ok("campfire") => comp::object::Body::Campfire,
-            Ok("campfire_lit") => comp::object::Body::CampfireLit,
-            Ok("lantern_ground") => comp::object::Body::LanternGround,
-            Ok("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
-            Ok("lantern_2") => comp::object::Body::LanternStanding2,
-            Ok("lantern") => comp::object::Body::LanternStanding,
-            Ok("potion_blue") => comp::object::Body::PotionBlue,
-            Ok("potion_green") => comp::object::Body::PotionGreen,
-            Ok("potion_red") => comp::object::Body::PotionRed,
-            Ok("crate") => comp::object::Body::Crate,
-            Ok("tent") => comp::object::Body::Tent,
-            Ok("bomb") => comp::object::Body::Bomb,
-            Ok("window_spooky") => comp::object::Body::WindowSpooky,
-            Ok("door_spooky") => comp::object::Body::DoorSpooky,
-            Ok("carpet") => comp::object::Body::Carpet,
-            Ok("table_human") => comp::object::Body::Table,
-            Ok("table_human_2") => comp::object::Body::Table2,
-            Ok("table_human_3") => comp::object::Body::Table3,
-            Ok("drawer") => comp::object::Body::Drawer,
-            Ok("bed_human_blue") => comp::object::Body::BedBlue,
-            Ok("anvil") => comp::object::Body::Anvil,
-            Ok("gravestone") => comp::object::Body::Gravestone,
-            Ok("gravestone_2") => comp::object::Body::Gravestone2,
-            Ok("chair") => comp::object::Body::Chair,
-            Ok("chair_2") => comp::object::Body::Chair2,
-            Ok("chair_3") => comp::object::Body::Chair3,
-            Ok("bench_human") => comp::object::Body::Bench,
-            Ok("bedroll") => comp::object::Body::Bedroll,
-            Ok("carpet_human_round") => comp::object::Body::CarpetHumanRound,
-            Ok("carpet_human_square") => comp::object::Body::CarpetHumanSquare,
-            Ok("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
-            Ok("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
-            Ok("crafting_bench") => comp::object::Body::CraftingBench,
-            _ => {
-                return server.notify_client(
-                    client,
-                    ServerMsg::private(String::from("Object not found!")),
-                );
-            },
-        };
-        server
-            .state
-            .create_object(pos, obj_type)
-            .with(comp::Ori(
-                // converts player orientation into a 90° rotation for the object by using the axis
-                // with the highest value
-                Dir::from_unnormalized(ori.0.map(|e| {
-                    if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
-                        e
-                    } else {
-                        0.0
-                    }
-                }))
-                .unwrap_or_default(),
-            ))
-            .build();
-        server.notify_client(
-            client,
-            ServerMsg::private(format!(
-                "Spawned: {}",
-                obj_str_res.unwrap_or("<Unknown object>")
-            )),
-        );
+        if let Some(obj_type) = comp::object::ALL_OBJECTS
+            .iter()
+            .find(|o| Ok(o.to_string()) == obj_str_res)
+        {
+            server
+                .state
+                .create_object(pos, *obj_type)
+                .with(comp::Ori(
+                    // converts player orientation into a 90° rotation for the object by using the
+                    // axis with the highest value
+                    Dir::from_unnormalized(ori.0.map(|e| {
+                        if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
+                            e
+                        } else {
+                            0.0
+                        }
+                    }))
+                    .unwrap_or_default(),
+                ))
+                .build();
+            server.notify_client(
+                client,
+                ServerMsg::private(format!(
+                    "Spawned: {}",
+                    obj_str_res.unwrap_or("<Unknown object>")
+                )),
+            );
+        } else {
+            return server.notify_client(
+                client,
+                ServerMsg::private(String::from("Object not found!")),
+            );
+        }
     } else {
         server.notify_client(client, ServerMsg::private(format!("You have no position!")));
     }
@@ -894,7 +671,7 @@ fn handle_light(
     action: &ChatCommand,
 ) {
     let (opt_r, opt_g, opt_b, opt_x, opt_y, opt_z, opt_s) =
-        scan_fmt_some!(&args, action.arg_fmt, f32, f32, f32, f32, f32, f32, f32);
+        scan_fmt_some!(&args, &action.arg_fmt(), f32, f32, f32, f32, f32, f32, f32);
 
     let mut light_emitter = comp::LightEmitter::default();
     let mut light_offset_opt = None;
@@ -955,7 +732,7 @@ fn handle_lantern(
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(s), r, g, b) = scan_fmt_some!(&args, action.arg_fmt, f32, f32, f32, f32) {
+    if let (Some(s), r, g, b) = scan_fmt_some!(&args, &action.arg_fmt(), f32, f32, f32, f32) {
         if let Some(light) = server
             .state
             .ecs()
@@ -987,7 +764,10 @@ fn handle_lantern(
             );
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
@@ -998,7 +778,7 @@ fn handle_explosion(
     args: String,
     action: &ChatCommand,
 ) {
-    let power = scan_fmt!(&args, action.arg_fmt, f32).unwrap_or(8.0);
+    let power = scan_fmt!(&args, &action.arg_fmt(), f32).unwrap_or(8.0);
 
     if power > 512.0 {
         server.notify_client(
@@ -1062,7 +842,7 @@ fn handle_adminify(
     args: String,
     action: &ChatCommand,
 ) {
-    if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
+    if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
         let ecs = server.state.ecs();
         let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
             .join()
@@ -1082,11 +862,17 @@ fn handle_adminify(
                     client,
                     ServerMsg::private(format!("Player '{}' not found!", alias)),
                 );
-                server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+                server.notify_client(
+                    client,
+                    ServerMsg::private(String::from(action.help_string())),
+                );
             },
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
@@ -1104,7 +890,7 @@ fn handle_tell(
         );
         return;
     }
-    if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
+    if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
         let ecs = server.state.ecs();
         let msg = &args[alias.len()..args.len()];
         if let Some(player) = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
@@ -1152,7 +938,10 @@ fn handle_tell(
             );
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
@@ -1180,7 +969,7 @@ fn handle_debug_column(
 ) {
     let sim = server.world.sim();
     let sampler = server.world.sample_columns();
-    if let Ok((x, y)) = scan_fmt!(&args, action.arg_fmt, i32, i32) {
+    if let Ok((x, y)) = scan_fmt!(&args, &action.arg_fmt(), i32, i32) {
         let wpos = Vec2::new(x, y);
         /* let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e / sz as i32
@@ -1244,7 +1033,10 @@ spawn_rate {:?} "#,
             );
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
@@ -1264,14 +1056,14 @@ fn find_target(
     }
 }
 
-fn handle_exp(
+fn handle_give_exp(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) {
-    let (a_exp, a_alias) = scan_fmt_some!(&args, action.arg_fmt, i64, String);
+    let (a_exp, a_alias) = scan_fmt_some!(&args, &action.arg_fmt(), i64, String);
 
     if let Some(exp) = a_exp {
         let ecs = server.state.ecs_mut();
@@ -1298,14 +1090,14 @@ fn handle_exp(
     }
 }
 
-fn handle_level(
+fn handle_set_level(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) {
-    let (a_lvl, a_alias) = scan_fmt_some!(&args, action.arg_fmt, u32, String);
+    let (a_lvl, a_alias) = scan_fmt_some!(&args, &action.arg_fmt(), u32, String);
 
     if let Some(lvl) = a_lvl {
         let ecs = server.state.ecs_mut();
@@ -1378,7 +1170,7 @@ fn handle_remove_lights(
     args: String,
     action: &ChatCommand,
 ) {
-    let opt_radius = scan_fmt_some!(&args, action.arg_fmt, f32);
+    let opt_radius = scan_fmt_some!(&args, &action.arg_fmt(), f32);
     let opt_player_pos = server.state.read_component_cloned::<comp::Pos>(target);
     let mut to_delete = vec![];
 
@@ -1430,7 +1222,7 @@ fn handle_sudo(
     action: &ChatCommand,
 ) {
     if let (Some(player_alias), Some(cmd), cmd_args) =
-        scan_fmt_some!(&args, action.arg_fmt, String, String, String)
+        scan_fmt_some!(&args, &action.arg_fmt(), String, String, String)
     {
         let cmd_args = cmd_args.unwrap_or(String::from(""));
         let cmd = if cmd.chars().next() == Some('/') {
@@ -1438,14 +1230,14 @@ fn handle_sudo(
         } else {
             cmd
         };
-        if let Some(action) = CHAT_COMMANDS.iter().find(|c| c.keyword == cmd) {
+        if let Some(action) = CHAT_COMMANDS.iter().find(|c| c.keyword() == cmd) {
             let ecs = server.state.ecs();
             let entity_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
                 .join()
                 .find(|(_, player)| player.alias == player_alias)
                 .map(|(entity, _)| entity);
             if let Some(entity) = entity_opt {
-                (action.handler)(server, client, entity, cmd_args, action);
+                get_handler(action)(server, client, entity, cmd_args, action);
             } else {
                 server.notify_client(
                     client,
@@ -1459,7 +1251,10 @@ fn handle_sudo(
             );
         }
     } else {
-        server.notify_client(client, ServerMsg::private(String::from(action.help_string)));
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
     }
 }
 
