@@ -15,12 +15,11 @@ pub fn handle_create_character(
     character_id: i32,
     body: Body,
     main: Option<String>,
-    stats: Stats,
 ) {
     let state = &mut server.state;
     let server_settings = &server.server_settings;
 
-    state.create_player_character(entity, character_id, body, main, stats, server_settings);
+    state.create_player_character(entity, character_id, body, main, server_settings);
     sys::subscription::initialize_region_subscription(state.ecs(), entity);
 }
 

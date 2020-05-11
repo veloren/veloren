@@ -126,6 +126,9 @@ impl PlayState for MainMenuState {
                                     ),
                                     client::AuthClientError::ServerError(_, e) => format!("{}", e),
                                 },
+                                client::Error::InvalidCharacter => {
+                                    localized_strings.get("main.login.invalid_character").into()
+                                },
                             },
                             InitError::ClientCrashed => {
                                 localized_strings.get("main.login.client_crashed").into()

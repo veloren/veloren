@@ -1,4 +1,7 @@
-use crate::{persistence::stats, sys::SysScheduler};
+use crate::{
+    persistence::stats,
+    sys::{SysScheduler, SysTimer},
+};
 use common::comp::{Player, Stats};
 use specs::{Join, ReadStorage, System, Write};
 
@@ -9,24 +12,20 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Player>,
         ReadStorage<'a, Stats>,
         Write<'a, SysScheduler<Self>>,
+        Write<'a, SysTimer<Self>>,
     );
 
-    fn run(&mut self, (players, player_stats, mut scheduler): Self::SystemData) {
+    fn run(&mut self, (players, player_stats, mut scheduler, mut timer): Self::SystemData) {
         if scheduler.should_run() {
-            let updates: Vec<(i32, &Stats)> = (&players, &player_stats)
-                .join()
-                .filter_map(|(player, stats)| {
-                    if let Some(character_id) = player.character_id {
-                        Some((character_id, stats))
-                    } else {
-                        None
-                    }
-                })
-                .collect::<Vec<_>>();
+            timer.start();
 
-            if !updates.is_empty() {
-                stats::update(updates);
-            }
+            stats::update(
+                (&players, &player_stats)
+                    .join()
+                    .filter_map(|(player, stats)| player.character_id.map(|id| (id, stats))),
+            );
+
+            timer.end();
         }
     }
 }

@@ -8,6 +8,8 @@ pub enum Error {
     CharacterLimitReached,
     // An error occured when performing a database action
     DatabaseError(diesel::result::Error),
+    // Unable to load body or stats for a character
+    CharacterDataError,
 }
 
 impl fmt::Display for Error {
@@ -15,6 +17,7 @@ impl fmt::Display for Error {
         write!(f, "{}", match self {
             Self::DatabaseError(diesel_error) => diesel_error.to_string(),
             Self::CharacterLimitReached => String::from("Character limit exceeded"),
+            Self::CharacterDataError => String::from("Error while loading character data"),
         })
     }
 }
