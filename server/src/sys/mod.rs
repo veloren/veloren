@@ -20,6 +20,7 @@ pub type SubscriptionTimer = SysTimer<subscription::Sys>;
 pub type TerrainTimer = SysTimer<terrain::Sys>;
 pub type TerrainSyncTimer = SysTimer<terrain_sync::Sys>;
 pub type WaypointTimer = SysTimer<waypoint::Sys>;
+pub type StatsPersistenceTimer = SysTimer<persistence::stats::Sys>;
 pub type StatsPersistenceScheduler = SysScheduler<persistence::stats::Sys>;
 
 // System names

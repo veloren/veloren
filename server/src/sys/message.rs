@@ -175,7 +175,6 @@ impl<'a> System<'a> for Sys {
                         character_id,
                         body,
                         main,
-                        stats,
                     } => match client.client_state {
                         // Become Registered first.
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
@@ -201,7 +200,6 @@ impl<'a> System<'a> for Sys {
                                 character_id,
                                 body,
                                 main,
-                                stats,
                             });
                         },
                         ClientState::Character => client.error_state(RequestStateError::Already),
@@ -317,7 +315,7 @@ impl<'a> System<'a> for Sys {
                     },
                     ClientMsg::RequestCharacterList => {
                         if let Some(player) = players.get(entity) {
-                            match persistence::character::load_characters(
+                            match persistence::character::load_character_list(
                                 &player.uuid().to_string(),
                             ) {
                                 Ok(character_list) => {
