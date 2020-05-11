@@ -1,5 +1,6 @@
 use crate::{comp, comp::item};
 use comp::{Inventory, Loadout};
+use log::warn;
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Slot {
@@ -169,6 +170,13 @@ fn swap_inventory_loadout(
 }
 
 fn swap_loadout(slot_a: EquipSlot, slot_b: EquipSlot, loadout: &mut Loadout) {
+    // Ensure that the slots are not the same (somehow the voxygen does this
+    // occasionsally)
+    if slot_a == slot_b {
+        warn!("Tried to swap equip slot with itself");
+        return;
+    }
+
     // Get items from the slots
     let item_a = loadout_remove(slot_a, loadout);
     let item_b = loadout_remove(slot_b, loadout);
