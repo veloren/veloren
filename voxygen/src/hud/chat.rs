@@ -3,14 +3,17 @@ use super::{
     META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
 };
 use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
-use client::Event as ClientEvent;
+use client::{cmd, Client, Event as ClientEvent};
 use common::{msg::validate_chat_msg, ChatType};
 use conrod_core::{
     input::Key,
     position::Dimension,
-    text::cursor::Index,
+    text::{
+        self,
+        cursor::{self, Index},
+    },
     widget::{self, Button, Id, List, Rectangle, Text, TextEdit},
-    widget_ids, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids, Colorable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
 };
 use std::collections::VecDeque;
 
@@ -18,9 +21,10 @@ widget_ids! {
     struct Ids {
         message_box,
         message_box_bg,
-        input,
-        input_bg,
+        chat_input,
+        chat_input_bg,
         chat_arrow,
+        completion_box,
     }
 }
 
@@ -31,6 +35,7 @@ pub struct Chat<'a> {
     new_messages: &'a mut VecDeque<ClientEvent>,
     force_input: Option<String>,
     force_cursor: Option<Index>,
+    force_completions: Option<Vec<String>>,
 
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
@@ -54,12 +59,22 @@ impl<'a> Chat<'a> {
             new_messages,
             force_input: None,
             force_cursor: None,
+            force_completions: None,
             imgs,
             fonts,
             global_state,
             common: widget::CommonBuilder::default(),
             history_max: 32,
         }
+    }
+
+    pub fn prepare_tab_completion(mut self, input: String, client: &Client) -> Self {
+        if let Some(index) = input.find('\t') {
+            self.force_completions = Some(cmd::complete(&input[..index], &client));
+        } else {
+            self.force_completions = None;
+        }
+        self
     }
 
     pub fn input(mut self, input: String) -> Self {
@@ -97,9 +112,15 @@ pub struct State {
     // Index into the history Vec, history_pos == 0 is history not in use
     // otherwise index is history_pos -1
     history_pos: usize,
+    completions: Vec<String>,
+    // Index into the completion Vec
+    completions_index: Option<usize>,
+    // At which character is tab completion happening
+    completion_cursor: Option<usize>,
 }
 
 pub enum Event {
+    TabCompletionStart(String),
     SendMessage(String),
     Focus(Id),
 }
@@ -115,6 +136,9 @@ impl<'a> Widget for Chat<'a> {
             messages: VecDeque::new(),
             history: VecDeque::new(),
             history_pos: 0,
+            completions: Vec::new(),
+            completions_index: None,
+            completion_cursor: None,
             ids: Ids::new(id_gen),
         }
     }
@@ -137,51 +161,106 @@ impl<'a> Widget for Chat<'a> {
             }
         });
 
-        // If up or down are pressed move through history
-        // TODO: move cursor to the end of the last line
-        match ui.widget_input(state.ids.input).presses().key().fold(
-            (false, false),
-            |(up, down), key_press| match key_press.key {
-                Key::Up => (true, down),
-                Key::Down => (up, true),
-                _ => (up, down),
-            },
-        ) {
-            (true, false) => {
-                if state.history_pos < state.history.len() {
-                    state.update(|s| {
-                        s.history_pos += 1;
-                        s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
-                    });
+        if let Some(comps) = &self.force_completions {
+            state.update(|s| s.completions = comps.clone());
+        }
+
+        let mut force_cursor = self.force_cursor;
+
+        // If up or down are pressed: move through history
+        // If any key other than up, down, or tab is pressed: stop completion.
+        let (history_dir, tab_dir, stop_tab_completion) =
+            ui.widget_input(state.ids.chat_input).presses().key().fold(
+                (0isize, 0isize, false),
+                |(n, m, tc), key_press| match key_press.key {
+                    Key::Up => (n + 1, m - 1, tc),
+                    Key::Down => (n - 1, m + 1, tc),
+                    Key::Tab => (n, m + 1, tc),
+                    _ => (n, m, true),
+                },
+            );
+
+        // Handle tab completion
+        let request_tab_completions = if stop_tab_completion {
+            // End tab completion
+            state.update(|s| {
+                if s.completion_cursor.is_some() {
+                    s.completion_cursor = None;
                 }
-            },
-            (false, true) => {
-                if state.history_pos > 0 {
+                s.completions_index = None;
+            });
+            false
+        } else if let Some(cursor) = state.completion_cursor {
+            // Cycle through tab completions of the current word
+            if state.input.contains('\t') {
+                state.update(|s| s.input.retain(|c| c != '\t'));
+                //tab_dir + 1
+            }
+            if !state.completions.is_empty() {
+                if tab_dir != 0 || state.completions_index.is_none() {
                     state.update(|s| {
-                        s.history_pos -= 1;
-                        if s.history_pos > 0 {
-                            s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
-                        } else {
-                            s.input.clear();
+                        let len = s.completions.len();
+                        s.completions_index = Some(
+                            (s.completions_index.unwrap_or(0) + (tab_dir + len as isize) as usize)
+                                % len,
+                        );
+                        if let Some(replacement) = &s.completions.get(s.completions_index.unwrap())
+                        {
+                            let (completed, offset) =
+                                do_tab_completion(cursor, &s.input, replacement);
+                            force_cursor =
+                                cursor_offset_to_index(offset, &completed, &ui, &self.fonts);
+                            s.input = completed;
                         }
                     });
                 }
-            },
-            _ => {},
+            }
+            false
+        } else if let Some(cursor) = state.input.find('\t') {
+            // Begin tab completion
+            state.update(|s| s.completion_cursor = Some(cursor));
+            true
+        } else {
+            // Not tab completing
+            false
+        };
+
+        // Move through history
+        if history_dir != 0 && state.completion_cursor.is_none() {
+            state.update(|s| {
+                if history_dir > 0 {
+                    if s.history_pos < s.history.len() {
+                        s.history_pos += 1;
+                    }
+                } else {
+                    if s.history_pos > 0 {
+                        s.history_pos -= 1;
+                    }
+                }
+                if s.history_pos > 0 {
+                    s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                    force_cursor =
+                        cursor_offset_to_index(s.input.len(), &s.input, &ui, &self.fonts);
+                } else {
+                    s.input.clear();
+                }
+            });
         }
 
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
 
         if let Some(input) = &self.force_input {
-            state.update(|s| s.input = input.clone());
+            state.update(|s| s.input = input.to_string());
         }
 
         let input_focused =
-            keyboard_capturer == Some(state.ids.input) || keyboard_capturer == Some(id);
+            keyboard_capturer == Some(state.ids.chat_input) || keyboard_capturer == Some(id);
 
         // Only show if it has the keyboard captured.
         // Chat input uses a rectangle as its background.
         if input_focused {
+            // Any changes to this TextEdit's width and font size must be reflected in
+            // `cursor_offset_to_index` below.
             let mut text_edit = TextEdit::new(&state.input)
                 .w(460.0)
                 .restrict_to_height(false)
@@ -190,7 +269,7 @@ impl<'a> Widget for Chat<'a> {
                 .font_size(self.fonts.opensans.scale(15))
                 .font_id(self.fonts.opensans.conrod_id);
 
-            if let Some(pos) = self.force_cursor {
+            if let Some(pos) = force_cursor {
                 text_edit = text_edit.cursor_pos(pos);
             }
 
@@ -202,11 +281,11 @@ impl<'a> Widget for Chat<'a> {
                 .rgba(0.0, 0.0, 0.0, transp + 0.1)
                 .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
                 .w(470.0)
-                .set(state.ids.input_bg, ui);
+                .set(state.ids.chat_input_bg, ui);
 
             if let Some(str) = text_edit
-                .top_left_with_margins_on(state.ids.input_bg, 1.0, 1.0)
-                .set(state.ids.input, ui)
+                .top_left_with_margins_on(state.ids.chat_input_bg, 1.0, 1.0)
+                .set(state.ids.chat_input, ui)
             {
                 let mut input = str.to_owned();
                 input.retain(|c| c != '\n');
@@ -221,7 +300,7 @@ impl<'a> Widget for Chat<'a> {
             .rgba(0.0, 0.0, 0.0, transp)
             .and(|r| {
                 if input_focused {
-                    r.up_from(state.ids.input_bg, 0.0)
+                    r.up_from(state.ids.chat_input_bg, 0.0)
                 } else {
                     r.bottom_left_with_margins_on(ui.window, 10.0, 10.0)
                 }
@@ -298,14 +377,17 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
-        // If the chat widget is focused, return a focus event to pass the focus to the
-        // input box.
-        if keyboard_capturer == Some(id) {
-            Some(Event::Focus(state.ids.input))
+        // We've started a new tab completion. Populate tab completion suggestions.
+        if request_tab_completions {
+            Some(Event::TabCompletionStart(state.input.to_string()))
+        // If the chat widget is focused, return a focus event to pass the focus
+        // to the input box.
+        } else if keyboard_capturer == Some(id) {
+            Some(Event::Focus(state.ids.chat_input))
         }
         // If enter is pressed and the input box is not empty, send the current message.
         else if ui
-            .widget_input(state.ids.input)
+            .widget_input(state.ids.chat_input)
             .presses()
             .key()
             .any(|key_press| match key_press.key {
@@ -329,4 +411,65 @@ impl<'a> Widget for Chat<'a> {
             None
         }
     }
+}
+
+fn do_tab_completion(cursor: usize, input: &str, word: &str) -> (String, usize) {
+    let mut pre_ws = None;
+    let mut post_ws = None;
+    for (char_i, (byte_i, c)) in input.char_indices().enumerate() {
+        if c.is_whitespace() && c != '\t' {
+            if char_i < cursor {
+                pre_ws = Some(byte_i);
+            } else {
+                assert_eq!(post_ws, None); // TODO debug
+                post_ws = Some(byte_i);
+                break;
+            }
+        }
+    }
+
+    match (pre_ws, post_ws) {
+        (None, None) => (word.to_string(), word.chars().count()),
+        (None, Some(i)) => (
+            format!("{}{}", word, input.split_at(i).1),
+            word.chars().count(),
+        ),
+        (Some(i), None) => {
+            let l_split = input.split_at(i).0;
+            let completed = format!("{} {}", l_split, word);
+            (
+                completed,
+                l_split.chars().count() + 1 + word.chars().count(),
+            )
+        },
+        (Some(i), Some(j)) => {
+            let l_split = input.split_at(i).0;
+            let r_split = input.split_at(j).1;
+            let completed = format!("{} {}{}", l_split, word, r_split);
+            (
+                completed,
+                l_split.chars().count() + 1 + word.chars().count(),
+            )
+        },
+    }
+}
+
+fn cursor_offset_to_index(
+    offset: usize,
+    text: &str,
+    ui: &Ui,
+    fonts: &ConrodVoxygenFonts,
+) -> Option<Index> {
+    // This moves the cursor to the given offset. Conrod is a pain.
+    //let iter = cursor::xys_per_line_from_text(&text, &[], &font, font_size,
+    // Justify::Left, Align::Start, 2.0, Rect{x: Range{start: 0.0, end: width}, y:
+    // Range{start: 0.0, end: 12.345}});
+    // cursor::closest_cursor_index_and_xy([f64::MAX, f64::MAX], iter).map(|(i, _)|
+    // i) Width and font must match that of the chat TextEdit
+    let width = 460.0;
+    let font = ui.fonts.get(fonts.opensans.conrod_id)?;
+    let font_size = fonts.opensans.scale(15);
+    let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(width);
+
+    cursor::index_before_char(infos, offset)
 }
