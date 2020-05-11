@@ -1,10 +1,10 @@
 use crate::{assets, comp, npc};
 use lazy_static::lazy_static;
-use std::{ops::Deref, str::FromStr};
+use std::{ops::Deref, path::Path, str::FromStr};
 
 /// Struct representing a command that a user can run from server chat.
 pub struct ChatCommandData {
-    /// A format string for parsing arguments.
+    /// A list of arguments useful for both tab completion and parsing
     pub args: Vec<ArgumentSpec>,
     /// A one-line message that explains what the command does
     pub description: &'static str,
@@ -108,6 +108,31 @@ lazy_static! {
     .iter()
     .map(|s| s.to_string())
     .collect();
+
+    /// List of item specifiers. Useful for tab completing
+    static ref ITEM_SPECS: Vec<String> = {
+        let path = assets::ASSETS_PATH.join("common").join("items");
+        let mut items = vec![];
+        fn list_items (path: &Path, base: &Path, mut items: &mut Vec<String>) -> std::io::Result<()>{
+            for entry in std::fs::read_dir(path)? {
+                let path = entry?.path();
+                if path.is_dir(){
+                    list_items(&path, &base, &mut items)?;
+                } else {
+                    if let Ok(path) = path.strip_prefix(base) {
+                        let path = path.to_string_lossy().trim_end_matches(".ron").replace('/', ".");
+                        items.push(path);
+                    }
+                }
+            }
+            Ok(())
+        }
+        if list_items(&path, &assets::ASSETS_PATH, &mut items).is_err() {
+            warn!("There was a problem listing item assets");
+        }
+        items.sort();
+        items
+    };
 }
 
 impl ChatCommand {
@@ -141,7 +166,7 @@ impl ChatCommand {
             ),
             ChatCommand::GiveItem => cmd(
                 vec![
-                    Enum("item", assets::ITEM_SPECS.clone(), Required),
+                    Enum("item", ITEM_SPECS.clone(), Required),
                     Integer("num", 1, Optional),
                 ],
                 "Give yourself some items",
@@ -252,6 +277,7 @@ impl ChatCommand {
         }
     }
 
+    /// The keyword used to invoke the command, omitting the leading '/'.
     pub fn keyword(&self) -> &'static str {
         match self {
             ChatCommand::Adminify => "adminify",
@@ -284,6 +310,7 @@ impl ChatCommand {
         }
     }
 
+    /// A message that explains what the command does
     pub fn help_string(&self) -> String {
         let data = self.data();
         let usage = std::iter::once(format!("/{}", self.keyword()))
@@ -293,8 +320,11 @@ impl ChatCommand {
         format!("{}: {}", usage, data.description)
     }
 
+    /// A boolean that is used to check whether the command requires
+    /// administrator permissions or not.
     pub fn needs_admin(&self) -> bool { self.data().needs_admin }
 
+    /// Returns a format string for parsing arguments with scan_fmt
     pub fn arg_fmt(&self) -> String {
         self.data()
             .args
