@@ -74,7 +74,7 @@ fn nth_word(line: &str, n: usize) -> Option<usize> {
             return Some(i);
         }
     }
-    return None;
+    None
 }
 
 pub fn complete(line: &str, client: &Client) -> Vec<String> {
