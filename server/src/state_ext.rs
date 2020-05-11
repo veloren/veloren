@@ -1,9 +1,12 @@
-use crate::{client::Client, settings::ServerSettings, sys::sentinel::DeletedEntities, SpawnPoint};
+use crate::{
+    client::Client, persistence, settings::ServerSettings, sys::sentinel::DeletedEntities,
+    SpawnPoint,
+};
 use common::{
     assets,
     comp::{self, item},
     effect::Effect,
-    msg::{ClientState, ServerMsg},
+    msg::{ClientState, RegisterError, RequestStateError, ServerMsg},
     state::State,
     sync::{Uid, WorldSyncExt},
     util::Dir,
@@ -36,7 +39,6 @@ pub trait StateExt {
         character_id: i32,
         body: comp::Body,
         main: Option<String>,
-        stats: comp::Stats,
         server_settings: &ServerSettings,
     );
     fn notify_registered_clients(&self, msg: ServerMsg);
@@ -153,19 +155,39 @@ impl StateExt for State {
     fn create_player_character(
         &mut self,
         entity: EcsEntity,
-        character_id: i32, // TODO
+        character_id: i32,
         body: comp::Body,
         main: Option<String>,
-        stats: comp::Stats,
         server_settings: &ServerSettings,
     ) {
+        // Grab persisted character data from the db and insert their associated
+        // components. If for some reason the data can't be returned (missing
+        // data, DB error), kick the client back to the character select screen.
+        match persistence::character::load_character_data(character_id) {
+            Ok(stats) => self.write_component(entity, stats),
+            Err(error) => {
+                log::warn!(
+                    "{}",
+                    format!(
+                        "Failed to load character data for character_id {}: {}",
+                        character_id, error
+                    )
+                );
+
+                if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
+                    client.error_state(RequestStateError::RegisterDenied(
+                        RegisterError::InvalidCharacter,
+                    ))
+                }
+            },
+        }
+
         // Give no item when an invalid specifier is given
         let main = main.and_then(|specifier| assets::load_cloned::<comp::Item>(&specifier).ok());
 
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
         self.write_component(entity, body);
-        self.write_component(entity, stats);
         self.write_component(entity, comp::Energy::new(1000));
         self.write_component(entity, comp::Controller::default());
         self.write_component(entity, comp::Pos(spawn_point));
@@ -251,6 +273,7 @@ impl StateExt for State {
         ) {
             self.write_component(entity, comp::Admin);
         }
+
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
             client.allow_state(ClientState::Character);

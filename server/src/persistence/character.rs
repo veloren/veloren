@@ -12,10 +12,32 @@ use diesel::prelude::*;
 
 type CharacterListResult = Result<Vec<CharacterItem>, Error>;
 
-// Loading of characters happens immediately after login, and the data is only
-// for the purpose of rendering the character and their level in the character
-// list.
-pub fn load_characters(player_uuid: &str) -> CharacterListResult {
+/// Load stored data for a character.
+///
+/// After first logging in, and after a character is selected, we fetch this
+/// data for the purpose of inserting their persisted data for the entity.
+pub fn load_character_data(character_id: i32) -> Result<comp::Stats, Error> {
+    let (character_data, body_data, stats_data) = schema::character::dsl::character
+        .filter(schema::character::id.eq(character_id))
+        .inner_join(schema::body::table)
+        .inner_join(schema::stats::table)
+        .first::<(Character, Body, Stats)>(&establish_connection())?;
+
+    Ok(comp::Stats::from(StatsJoinData {
+        alias: &character_data.alias,
+        body: &comp::Body::from(&body_data),
+        stats: &stats_data,
+    }))
+}
+
+/// Loads a list of characters belonging to the player. This data is a small
+/// subset of the character's data, and is used to render the character and
+/// their level in the character list.
+///
+/// In the event that a join fails, for a character (i.e. they lack an entry for
+/// stats, body, etc...) the character is skipped, and no entry will be
+/// returned.
+pub fn load_character_list(player_uuid: &str) -> CharacterListResult {
     let data: Vec<(Character, Body, Stats)> = schema::character::dsl::character
         .filter(schema::character::player_uuid.eq(player_uuid))
         .order(schema::character::id.desc())
@@ -28,22 +50,19 @@ pub fn load_characters(player_uuid: &str) -> CharacterListResult {
         .map(|(character_data, body_data, stats_data)| {
             let character = CharacterData::from(character_data);
             let body = comp::Body::from(body_data);
-            let stats = comp::Stats::from(StatsJoinData {
-                character: &character,
-                body: &body,
-                stats: stats_data,
-            });
+            let level = stats_data.level as usize;
 
             CharacterItem {
                 character,
                 body,
-                stats,
+                level,
             }
         })
         .collect())
 }
 
 /// Create a new character with provided comp::Character and comp::Body data.
+///
 /// Note that sqlite does not support returning the inserted data after a
 /// successful insert. To workaround, we wrap this in a transaction which
 /// inserts, queries for the newly created chaacter id, then uses the character
@@ -117,15 +136,16 @@ pub fn create_character(
         Ok(())
     })?;
 
-    load_characters(uuid)
+    load_character_list(uuid)
 }
 
+/// Delete a character. Returns the updated character list.
 pub fn delete_character(uuid: &str, character_id: i32) -> CharacterListResult {
     use schema::character::dsl::*;
 
     diesel::delete(character.filter(id.eq(character_id))).execute(&establish_connection())?;
 
-    load_characters(uuid)
+    load_character_list(uuid)
 }
 
 fn check_character_limit(uuid: &str) -> Result<(), Error> {

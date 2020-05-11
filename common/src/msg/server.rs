@@ -79,6 +79,7 @@ pub enum RequestStateError {
 pub enum RegisterError {
     AlreadyLoggedIn,
     AuthError(String),
+    InvalidCharacter,
     //TODO: InvalidAlias,
 }
 

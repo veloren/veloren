@@ -136,6 +136,7 @@ https://account.veloren.net."#,
         "main.login.already_logged_in": "You are already logged into the server.",
         "main.login.network_error": "Network error",
         "main.login.failed_sending_request": "Request to Auth server failed",
+        "main.login.invalid_character": "The selected character is invalid",
         "main.login.client_crashed": "Client crashed",
 
         /// End Main screen section
