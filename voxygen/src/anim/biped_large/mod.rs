@@ -128,24 +128,31 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (Ogre, _) => (3.0, 6.0),
+                (Cyclops, _) => (3.0, 9.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 19.0),
+                (Cyclops, _) => (-1.0, 27.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, _) => (1.0, -9.5),
+                (Cyclops, _) => (1.0, -10.5),
             },
             shoulder: match (body.species, body.body_type) {
                 (Ogre, _) => (6.1, 0.5, 2.5),
+                (Cyclops, _) => (9.5, 0.5, 2.5),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, _) => (10.5, -1.0, -0.5),
+                (Cyclops, _) => (10.5, 0.0, -0.5),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0, -6.0),
+                (Cyclops, _) => (0.0, 0.0, -9.0),
             },
             foot: match (body.species, body.body_type) {
-                (Ogre, _) => (4.0, 0.5, 2.5),
+                (Ogre, _) => (4.0, 0.5, 5.5),
+                (Cyclops, _) => (4.0, 0.5, 5.0),
             },
         }
     }
