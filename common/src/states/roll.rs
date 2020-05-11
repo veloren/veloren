@@ -28,7 +28,7 @@ impl CharacterBehavior for Data {
                 * ROLL_SPEED;
 
         // Smooth orientation
-        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, update.vel.0, 9.0 * data.dt.0);
+        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, update.vel.0.xy().into(), 9.0 * data.dt.0);
 
         if self.remaining_duration == Duration::default() {
             // Roll duration has expired

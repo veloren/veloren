@@ -166,7 +166,11 @@ where
                         self.events.push(Event::Dropped(*slot));
                     } else if let Some(idx) = slot_ids.iter().position(|slot_id| *slot_id == id) {
                         // If widget is a slot widget swap with it
-                        self.events.push(Event::Dragged(*slot, slots[idx]));
+                        let (from, to) = (*slot, slots[idx]);
+                        // Don't drag if it is the same slot
+                        if from != to {
+                            self.events.push(Event::Dragged(from, to));
+                        }
                     }
                 }
                 // Mouse released stop dragging
