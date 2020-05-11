@@ -21,7 +21,7 @@ use rand_chacha::ChaChaRng;
 use std::{fmt, hash::Hash, ops::Range};
 use vek::*;
 
-const INITIAL_CIV_COUNT: usize = 32;
+const INITIAL_CIV_COUNT: usize = 64;
 
 #[derive(Default)]
 pub struct Civs {
@@ -61,7 +61,7 @@ impl Civs {
             }
         }
 
-        for _ in 0..INITIAL_CIV_COUNT * 2 {
+        for _ in 0..INITIAL_CIV_COUNT * 4 {
             attempt(5, || {
                 let loc = find_site_loc(&mut ctx, None)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {
