@@ -1,5 +1,8 @@
 use super::SysTimer;
-use crate::{auth_provider::AuthProvider, client::Client, persistence, CLIENT_TIMEOUT};
+use crate::{
+    auth_provider::AuthProvider, client::Client, persistence, settings::PersistenceDBDir,
+    CLIENT_TIMEOUT,
+};
 use common::{
     comp::{Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
@@ -24,6 +27,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
+        ReadExpect<'a, PersistenceDBDir>,
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
@@ -47,6 +51,7 @@ impl<'a> System<'a> for Sys {
             entities,
             server_event_bus,
             time,
+            persistence_db_dir,
             terrain,
             mut timer,
             uids,
@@ -67,6 +72,8 @@ impl<'a> System<'a> for Sys {
         timer.start();
 
         let time = time.0;
+
+        let persistence_db_dir = &persistence_db_dir.0;
 
         let mut server_emitter = server_event_bus.emitter();
 
@@ -317,6 +324,7 @@ impl<'a> System<'a> for Sys {
                         if let Some(player) = players.get(entity) {
                             match persistence::character::load_character_list(
                                 &player.uuid().to_string(),
+                                persistence_db_dir,
                             ) {
                                 Ok(character_list) => {
                                     client.notify(ServerMsg::CharacterListUpdate(character_list));
@@ -335,6 +343,7 @@ impl<'a> System<'a> for Sys {
                                 alias,
                                 tool,
                                 &body,
+                                persistence_db_dir,
                             ) {
                                 Ok(character_list) => {
                                     client.notify(ServerMsg::CharacterListUpdate(character_list));
@@ -351,6 +360,7 @@ impl<'a> System<'a> for Sys {
                             match persistence::character::delete_character(
                                 &player.uuid().to_string(),
                                 character_id,
+                                persistence_db_dir,
                             ) {
                                 Ok(character_list) => {
                                     client.notify(ServerMsg::CharacterListUpdate(character_list));

@@ -16,12 +16,12 @@ type CharacterListResult = Result<Vec<CharacterItem>, Error>;
 ///
 /// After first logging in, and after a character is selected, we fetch this
 /// data for the purpose of inserting their persisted data for the entity.
-pub fn load_character_data(character_id: i32) -> Result<comp::Stats, Error> {
+pub fn load_character_data(character_id: i32, db_dir: &str) -> Result<comp::Stats, Error> {
     let (character_data, body_data, stats_data) = schema::character::dsl::character
         .filter(schema::character::id.eq(character_id))
         .inner_join(schema::body::table)
         .inner_join(schema::stats::table)
-        .first::<(Character, Body, Stats)>(&establish_connection())?;
+        .first::<(Character, Body, Stats)>(&establish_connection(db_dir))?;
 
     Ok(comp::Stats::from(StatsJoinData {
         alias: &character_data.alias,
@@ -37,13 +37,13 @@ pub fn load_character_data(character_id: i32) -> Result<comp::Stats, Error> {
 /// In the event that a join fails, for a character (i.e. they lack an entry for
 /// stats, body, etc...) the character is skipped, and no entry will be
 /// returned.
-pub fn load_character_list(player_uuid: &str) -> CharacterListResult {
+pub fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResult {
     let data: Vec<(Character, Body, Stats)> = schema::character::dsl::character
         .filter(schema::character::player_uuid.eq(player_uuid))
         .order(schema::character::id.desc())
         .inner_join(schema::body::table)
         .inner_join(schema::stats::table)
-        .load::<(Character, Body, Stats)>(&establish_connection())?;
+        .load::<(Character, Body, Stats)>(&establish_connection(db_dir))?;
 
     Ok(data
         .iter()
@@ -72,10 +72,11 @@ pub fn create_character(
     character_alias: String,
     character_tool: Option<String>,
     body: &comp::Body,
+    db_dir: &str,
 ) -> CharacterListResult {
-    check_character_limit(uuid)?;
+    check_character_limit(uuid, db_dir)?;
 
-    let connection = establish_connection();
+    let connection = establish_connection(db_dir);
 
     connection.transaction::<_, diesel::result::Error, _>(|| {
         use schema::{body, character, character::dsl::*, stats};
@@ -136,26 +137,26 @@ pub fn create_character(
         Ok(())
     })?;
 
-    load_character_list(uuid)
+    load_character_list(uuid, db_dir)
 }
 
 /// Delete a character. Returns the updated character list.
-pub fn delete_character(uuid: &str, character_id: i32) -> CharacterListResult {
+pub fn delete_character(uuid: &str, character_id: i32, db_dir: &str) -> CharacterListResult {
     use schema::character::dsl::*;
 
-    diesel::delete(character.filter(id.eq(character_id))).execute(&establish_connection())?;
+    diesel::delete(character.filter(id.eq(character_id))).execute(&establish_connection(db_dir))?;
 
-    load_character_list(uuid)
+    load_character_list(uuid, db_dir)
 }
 
-fn check_character_limit(uuid: &str) -> Result<(), Error> {
+fn check_character_limit(uuid: &str, db_dir: &str) -> Result<(), Error> {
     use diesel::dsl::count_star;
     use schema::character::dsl::*;
 
     let character_count = character
         .select(count_star())
         .filter(player_uuid.eq(uuid))
-        .load::<i64>(&establish_connection())?;
+        .load::<i64>(&establish_connection(db_dir))?;
 
     match character_count.first() {
         Some(count) => {
