@@ -446,6 +446,9 @@ impl Server {
             });
             self.metrics.chonks_count.set(chonk_cnt as i64);
             self.metrics.chunks_count.set(chunk_cnt as i64);
+
+            let entity_count = self.state.ecs().entities().join().count();
+            self.metrics.entity_count.set(entity_count as i64);
         }
         //self.metrics.entity_count.set(self.state.);
         self.metrics

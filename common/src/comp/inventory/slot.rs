@@ -170,8 +170,7 @@ fn swap_inventory_loadout(
 }
 
 fn swap_loadout(slot_a: EquipSlot, slot_b: EquipSlot, loadout: &mut Loadout) {
-    // Ensure that the slots are not the same (somehow the voxygen does this
-    // occasionsally)
+    // Ensure that the slots are not the same
     if slot_a == slot_b {
         warn!("Tried to swap equip slot with itself");
         return;
