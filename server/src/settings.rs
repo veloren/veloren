@@ -21,6 +21,7 @@ pub struct ServerSettings {
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
+    pub persistence_db_dir: String,
 }
 
 impl Default for ServerSettings {
@@ -56,6 +57,7 @@ impl Default for ServerSettings {
             .iter()
             .map(|n| n.to_string())
             .collect(),
+            persistence_db_dir: "saves".to_owned(),
         }
     }
 }
@@ -127,3 +129,5 @@ impl ServerSettings {
 
     fn get_settings_path() -> PathBuf { PathBuf::from(r"server_settings.ron") }
 }
+
+pub struct PersistenceDBDir(pub String);
